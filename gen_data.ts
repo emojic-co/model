@@ -58,7 +58,7 @@ async function generateBatch(emoji: string, feeling: string): Promise<string[]> 
 const MODEL = "openai/gpt-5.6-luna"
 const OUT_PATH = new URL("./data.jsonl", import.meta.url)
 const SAMPLES_PER_BATCH = 20
-const BATCH_COUNT = 20
+const BATCH_COUNT = 50
 
 if (import.meta.main) {
   // Each batch picks its own random (emoji, feeling) pair; run them together.
