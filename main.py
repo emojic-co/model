@@ -56,14 +56,16 @@ def feeling_colors(feeling_name: str) -> dict:
     Returns a dict with keys bg1, bg2, text_color. Unknown feelings fall back
     to the Neutral palette.
     """
-    bg1, bg2, text_color = FEELING_PALETTE.get(feeling_name, FEELING_PALETTE["Neutral"])
+    bg1, bg2, text_color = FEELING_PALETTE.get(
+        feeling_name, FEELING_PALETTE["Neutral"])
     return {"bg1": list(bg1), "bg2": list(bg2), "text_color": list(text_color)}
 
 
 class Model(nn.Module):
     def __init__(self, *, embed_dim: int, hidden_dim: int):
         super().__init__()
-        self.embedding = nn.Embedding(VOCAB_SIZE, embed_dim, padding_idx=PAD_IDX)
+        self.embedding = nn.Embedding(
+            VOCAB_SIZE, embed_dim, padding_idx=PAD_IDX)
 
         self.lstm = nn.LSTM(embed_dim, hidden_dim, batch_first=True)
         self.emoji = nn.Linear(hidden_dim, len(EMOJIS))
@@ -188,8 +190,6 @@ def train(
 
         avg_loss = total_loss / len(dataloader)
         epoch_bar.set_postfix(loss=f"{avg_loss:.4f}")
-        if epoch % 5 == 0 or epoch == 1:
-            tqdm.write(f"Epoch [{epoch:02d}/{epochs}] - Loss: {avg_loss:.4f}")
 
     print("\nTraining completed successfully.")
 
@@ -205,7 +205,8 @@ def evaluate(model: Model, data) -> dict:
     feeling_correct = 0
     for x, target_emoji, target_feeling in dataloader:
         emoji_logits, feeling_logits = model(x)
-        emoji_correct += (emoji_logits.argmax(dim=-1) == target_emoji).sum().item()
+        emoji_correct += (emoji_logits.argmax(dim=-1)
+                          == target_emoji).sum().item()
         feeling_correct += (
             (feeling_logits.argmax(dim=-1) == target_feeling).sum().item()
         )
