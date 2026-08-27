@@ -60,7 +60,8 @@ if (import.meta.main) {
       }),
     }),
     prompt: [
-      'Generate a list of short (1-6 words, no more than 64 characters), WhatsApp-style messages.',
+      'Generate a list of short (1-6 words, no more than 64 characters), WhatsApp-style diverse messages.',
+      'Mix diverse intents, e.g. complaining, joking, celebrating, best wishes, questions, etc.',
       `For each message associate one of the feelings: ${feelings.join(", ")}`,
       `For each message associate one of the emojis: ${emojis.join(", ")}`,
       `Note that emojis and feelings are independent; the same emoji can be used for different feelings, and vice versa.`,
