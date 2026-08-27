@@ -1,5 +1,6 @@
 import json
 import re
+from datetime import datetime
 from pathlib import Path
 
 import torch
@@ -87,7 +88,7 @@ class Model(nn.Module):
 
         self.relu = nn.ReLU()
 
-        self.rnn = nn.GRU(
+        self.rnn = nn.LSTM(
             input_size=H_SIZE,
             hidden_size=H_SIZE,
             num_layers=NUM_LAYERS,
@@ -204,7 +205,8 @@ def load_data(
 
 def run_name() -> str:
     """Build a TensorBoard run name that encodes the training configuration."""
-    return f"emb{EMBED_SIZE}-h{H_SIZE}-l{NUM_LAYERS}-lr{LR}-bs{BATCH_SIZE}-ep{EPOCHS}"
+    time = datetime.now().strftime("%H:%M")
+    return f"emb{EMBED_SIZE}-h{H_SIZE}-l{NUM_LAYERS}-lr{LR}-bs{BATCH_SIZE}-ep{EPOCHS}-{time}"
 
 
 def train(
