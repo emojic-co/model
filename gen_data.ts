@@ -69,11 +69,24 @@ if (import.meta.main) {
     ].join("\n")
   })
 
-  const records = z.array(Record).parse(output.records)
+  const parsed = z.array(Record).parse(output.records)
 
-  const lines = records
-    .map((r) => JSON.stringify({ emoji: r.emoji, feeling: r.feeling, text: r.text }))
-    .join("\n")
-  await appendFile(OUT_PATH, lines + "\n")
+  // Drop anything the model invented outside the labels.json label sets.
+  const feelingSet = new Set(feelings)
+  const emojiSet = new Set(emojis)
+  const records = parsed.filter(
+    (r) => emojiSet.has(r.emoji) && feelingSet.has(r.feeling),
+  )
+  const dropped = parsed.length - records.length
+  if (dropped > 0) {
+    console.warn(`Dropped ${dropped} record(s) with unknown emoji/feeling`)
+  }
+
+  if (records.length > 0) {
+    const lines = records
+      .map((r) => JSON.stringify({ emoji: r.emoji, feeling: r.feeling, text: r.text }))
+      .join("\n")
+    await appendFile(OUT_PATH, lines + "\n")
+  }
   console.log(`Appended ${records.length} records to data.jsonl`)
 }
