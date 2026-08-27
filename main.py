@@ -82,8 +82,9 @@ class Model(nn.Module):
             in_channels=EMBED_SIZE,
             out_channels=H_SIZE,
             kernel_size=3,
-            padding=0,
+            padding=1,
         )
+
         self.relu = nn.ReLU()
 
         self.rnn = nn.GRU(
