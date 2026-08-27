@@ -7,6 +7,7 @@ import snowballstemmer
 import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
+from tqdm import tqdm
 
 from config import EMBED_SIZE, EPOCHS, H_SIZE, MAX_TEXT_LEN
 
@@ -165,8 +166,8 @@ def train(
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Total params: {total_params:,}")
     print("Starting training loop...\n")
-    # TODO: add tqdm progress for the epoch progress
-    for epoch in range(1, epochs + 1):
+    epoch_bar = tqdm(range(1, epochs + 1), desc="Training", unit="epoch")
+    for epoch in epoch_bar:
         total_loss = 0.0
 
         for x, target_emoji, target_feeling in dataloader:
@@ -186,8 +187,9 @@ def train(
             total_loss += loss.item()
 
         avg_loss = total_loss / len(dataloader)
+        epoch_bar.set_postfix(loss=f"{avg_loss:.4f}")
         if epoch % 5 == 0 or epoch == 1:
-            print(f"Epoch [{epoch:02d}/{epochs}] - Loss: {avg_loss:.4f}")
+            tqdm.write(f"Epoch [{epoch:02d}/{epochs}] - Loss: {avg_loss:.4f}")
 
     print("\nTraining completed successfully.")
 
