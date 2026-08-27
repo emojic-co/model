@@ -310,7 +310,7 @@ if __name__ == "__main__":
 
     dataset = load_data()
 
-    n_test = min(100, len(dataset) // 10)
+    n_test = min(200, len(dataset) // 10)
     n_train = len(dataset) - n_test
     perm = torch.randperm(
         len(dataset), generator=torch.Generator().manual_seed(0)
