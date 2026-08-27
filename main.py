@@ -9,7 +9,7 @@ from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
-from config import EMBED_SIZE, EPOCHS, H_SIZE, MAX_TEXT_LEN
+from config import EMBED_SIZE, EPOCHS, H_SIZE, MAX_TEXT_LEN, NUM_LAYERS
 
 # INPUT
 # Index 0 is reserved for padding; real characters are numbered from 1.
@@ -67,7 +67,12 @@ class Model(nn.Module):
         self.embedding = nn.Embedding(
             VOCAB_SIZE, embed_dim, padding_idx=PAD_IDX)
 
-        self.lstm = nn.LSTM(embed_dim, hidden_dim, batch_first=True)
+        self.lstm = nn.LSTM(
+            input_size=embed_dim,
+            hidden_size=hidden_dim,
+            num_layers=NUM_LAYERS,
+            batch_first=True
+        )
         self.emoji = nn.Linear(hidden_dim, len(EMOJIS))
         self.feeling = nn.Linear(hidden_dim, len(feeling))
 

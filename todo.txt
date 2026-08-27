@@ -1,4 +1,7 @@
 TODO:
+    Tensorboard:
+        Add tensorboard logging, name the model using the configuration params.
+
 Done:
     Extract the feelings and emojis from the main.py and gen_data.ts to external json files, and load them in the scripts.
     Write a script that uses (Vercel) ai sdk and GPT-5.6 Luna to generate the dataset.
