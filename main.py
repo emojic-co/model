@@ -5,6 +5,8 @@ import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset, random_split
 
+from config import EMBED_SIZE, H_SIZE
+
 # INPUT
 vocab = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,!?;:()[]{}<>@#$%^&* "
 
@@ -270,7 +272,7 @@ if __name__ == "__main__":
 
     dataset = load_data(
         path="data.jsonl",
-        max_len=32
+        max_len=40
     )
 
     n_test = 100
@@ -284,8 +286,8 @@ if __name__ == "__main__":
     print(f"Train: {n_train}  Test: {n_test}\n")
 
     model = Model(
-        embed_dim=8,
-        hidden_dim=16
+        embed_dim=EMBED_SIZE,
+        hidden_dim=H_SIZE
     )
 
     train(

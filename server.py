@@ -15,6 +15,7 @@ from urllib.parse import parse_qs, urlparse
 
 import torch
 
+from config import EMBED_SIZE, H_SIZE
 from main import Model, predict
 
 WEB_DIR = Path(__file__).parent / "web"
@@ -27,7 +28,7 @@ STATIC = {
     "/app.js": ("app.js", "application/javascript; charset=utf-8"),
 }
 
-model = Model(embed_dim=16, hidden_dim=32)
+model = Model(embed_dim=EMBED_SIZE, hidden_dim=H_SIZE)
 model.load_state_dict(torch.load(MODEL_PATH, map_location="cpu"))
 model.eval()
 
