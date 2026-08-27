@@ -1,17 +1,6 @@
 TODO:
-
-DONE:
-    Colors:
-        - Write a function that given a feeling generates bg gradient and text colors.
-          -> feeling_colors() + FEELING_PALETTE in main.py; predict() merges the
-             colors in so server.py / web keep working.
-    Model:
-        - Update the model to only predict emoji and feeling.
-          -> Model now has just the emoji + feeling heads (both cross-entropy);
-             dataset, train, evaluate, predict all drop the color targets.
-    Data:
-        - Regenerate data.jsonl from scratch:
-            For each combination of emoji (60) x feeling (7) write (5) short texts that match the combination.
-            So dataset should have 60 x 7 x 5 = 2100 entries.
-          -> gen_data.py builds all 2100 rows deterministically, grouped
-             emoji-major then feeling-minor, as {emoji, feeling, text}.
+    Write a script that uses (Vercel) ai sdk and GPT-5.6 Luna to generate the dataset.
+    The script should be ran from the command line and appends to data.jsonl.
+    The script picks a random feeling and emoji, and generates 10 samples, note that the model should only return the text (feeling and emoji are given).
+    Text should be short, 1-6 words and should have the style of a WhatsApp message.
+    Use the AI_GATEWAY_API_KEY from the .env file

@@ -12,3 +12,4 @@ wheels/
 # Trained model checkpoint
 *.pt
 *.bak
+.env
