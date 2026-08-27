@@ -84,7 +84,7 @@ def encode(text: str, max_len=16) -> torch.Tensor:
 
 
 class MultiTaskDataset(Dataset):
-    def __init__(self, data, max_len=16):
+    def __init__(self, data, max_len: int):
         self.data = data
         self.max_len = max_len
 
@@ -113,7 +113,7 @@ class MultiTaskDataset(Dataset):
         )
 
 
-def load_data(path: str = "data.jsonl", max_len: int = 16) -> MultiTaskDataset:
+def load_data(path: str = "data.jsonl", max_len: int = 64) -> MultiTaskDataset:
     """Read a .jsonl file of samples and return a MultiTaskDataset.
 
     Each line must be a JSON object with keys: text, emoji, feeling, bg1, bg2,
@@ -143,8 +143,8 @@ def train(
     *,
     model: Model,
     data,
-    epochs=40,
-    batch_size=8,
+    epochs=100,
+    batch_size=16,
 ):
 
     optimizer = optim.Adam(model.parameters(), lr=0.005)
