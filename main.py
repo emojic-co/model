@@ -27,16 +27,12 @@ feeling = [
 
 # TODO: decouple emojis from feelings, pick 30 popular diverse emojis and backfill the data.jsonl with them.
 emojis = (
-    "😀😂🥹😍🤔"  # Expressions & Feelings
-    "🥳😎😭💀🔥"
-    "❤️💯✨👍👏"  # Symbols & Gestures
-    "🙌🙏💪🧠👀"
-    "🐶🐱🦁🦉🐙"  # Animals & Nature
-    "🌲🌺🌈☀️⭐"
-    "🍕🌮🍣☕🍺"  # Food & Drink
-    "⚽🎉🚀✈️🎸"  # Activities & Travel
-    "💡💎📱🎁🔒"  # Objects & Tools
-    "🌍🏆🎨🔮📍"  # Places & Concepts
+    "😀😂🥹😍🤔🥳😎😭💀🔥"  # Expressions & Feelings
+    "❤️💯✨👍👏🙌🙏💪🧠👀"  # Symbols & Gestures
+    "🐶🐱🦁🦉🐙🌲🌺🌈☀️⭐"  # Animals & Nature
+    "🍕🌮🍣☕🍺⚽🎉🚀✈️🎸"   # Food, Travel & Fun
+    "💡💎📱🎁🔒🌍🏆🎨🔮📍"  # Objects & Places
+    "💼🩺💻⏰🚗🌾⛈️🧩👑🕊️"  # New: Work, Weather, Health & Icons
 )
 char2idx = {char: i for i, char in enumerate(CHARS)}
 feeling2idx = {f: i for i, f in enumerate(feeling)}
@@ -61,10 +57,6 @@ class Model(nn.Module):
         self.lstm = nn.LSTM(embed_dim, hidden_dim, batch_first=True)
         self.emoji = nn.Linear(hidden_dim, len(emojis))
         self.feeling = nn.Linear(hidden_dim, len(feeling))
-        # Each head emits raw (L, a, b); `squash_oklab` maps them into Oklab range.
-        self.bg1 = nn.Linear(hidden_dim, 3)  # gradient background start color
-        self.bg2 = nn.Linear(hidden_dim, 3)  # gradient background end color
-        self.text_color = nn.Linear(hidden_dim, 3)  # foreground text color
 
     def forward(self, x):
         # True length of each row (chars before padding); clamp so an all-pad
@@ -81,9 +73,6 @@ class Model(nn.Module):
         return (
             self.emoji(last_step),
             self.feeling(last_step),
-            squash_oklab(self.bg1(last_step)),
-            squash_oklab(self.bg2(last_step)),
-            squash_oklab(self.text_color(last_step)),
         )
 
 

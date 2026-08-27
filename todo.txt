@@ -1,18 +1,22 @@
 TODO:
+    Colors:
+        - Write a function that given a feeling generates bg gradient and text colors.
+    Model:
+        - Update the model to only predict emoji and feeling.
     Data:
-        Extends the dataset to a total of 
+        - Regenerate data.jsonl from scratch:
+            For each combination of emoji (60) x feeling (7) write (5) short texts that match the combination.
+            So dataset should have 60 x 7 x 5 = 2100 entries.
+            Dataset should look like this:
+
+            // 😀 + Happy
+            {emoji: '😀', feeling: 'Happy', text:'...'}
+            .
+            .
+            .
+            //🕊️ + Neutral
+            {emoji: '🕊️', feeling: 'Neutral', text:'...'}
+            .
+            .
+
 DONE:
-    Data:
-        generate 1,000 more samples that covers all the emojis and feelings in the dataset and append them to data.jsonl
-        create a claude code command that adds 500 samples to the existing dataset.
-        the command should not read the existing dataset entirely, it should sample 50 rows from it and generate new samples based on them.
-        The new samples should be appended to the existing dataset in a .jsonl format.
-        add text_color to the dataset and model train loss
-        make a function load_data that reads the .jsonl file and returns a MultiTaskDataset object
-    Training + Eval:
-        load the data.jsonl, split to train, test, train the model, and evaluate on the test set save the model to disk
-    Web App:
-        create a simple web app that takes a text input and returns the predicted emoji, feeling, and background colors
-        make it predict on each key stroke, the output should be a 512x512 div with the typed text, the predicted emoji and the feeling
-        Use the bg colors to set the background gradient of the div
-        Use the text color to set the text color of the div
