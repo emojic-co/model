@@ -1,9 +1,23 @@
 TODO:
     Generating new data:
         update the gen_data.ts script:
-            - generate raw texts - WhatsApp style, short, diverse topics, 1 message per line, no schema.
-            - save the texts in a raw .txt file.
-            - send the texts for annotations, similar to fix.ts:
+            Step 1:
+            - generate raw texts - WhatsApp style, short (max 64 chars), diverse topics, 1 message per line, no schema, no further limitations.
+            - deduplicate (also with existing) and save the texts in a raw .txt file.
+            - at least 1,000 texts each time (run in batches, seed a topic for each batch?).
+            
+            Step 2:
+            - send the texts (at least 1,000)for annotations (similar to fix.ts):
                 - batches of 10, assign id for each text and ask the model to annotate with emoji (any) and a feeling (from a closed list in labels.json).
-                - keep records if either emoji already exists in the labels.json or if it has >= 1% frequency (in the current generation run).
+                - model returns a record {id, emoji, feeling} for each text.
+                - merge with the text and save to a tmp file.
+                - keep records if either emoji already exists in the labels.json or if it has >= 1% frequency (in the tmp file).
+                - append to data.jsonl
+            Step 3:
+            - update the labels.json file with new emojis (if any).
+
+        Notes:
+            - A single run generates at least 1,000 new texts and annotations.
+            - Out of the 1,000 tmp records, you keep only records with existing emojis (already in labels.json) or new emojis that have >= 1% frequency in the tmp file i.e. roughly >= 10 new records.
+            - That means that we expect from time to time new emojis to be added to the labels.json file, but not every time.
 DONE:
