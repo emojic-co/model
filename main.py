@@ -20,6 +20,7 @@ from config import (
     LR,
     MAX_TEXT_LEN,
     NUM_LAYERS,
+    PERTURB_RATE,
 )
 
 # INPUT
@@ -125,7 +126,7 @@ def normalize(text: str) -> str:
 _PERTURB_ALPHABET = "abcdefghijklmnopqrstuvwxyz "
 
 
-def perturb(text: str, *, rate: float = 0.05, rng: random.Random | None = None) -> str:
+def perturb(text: str, *, rng: random.Random | None = None) -> str:
     """Return `text` with random char-level typo noise, for data augmentation.
 
     Walks the string left to right; each position is independently hit with
@@ -147,7 +148,7 @@ def perturb(text: str, *, rate: float = 0.05, rng: random.Random | None = None) 
     i = 0
     while i < n:
         c = chars[i]
-        if r.random() >= rate:
+        if r.random() >= PERTURB_RATE:
             out.append(c)
             i += 1
             continue
@@ -181,15 +182,19 @@ def encode(text: str) -> torch.Tensor:
 
 
 class MultiTaskDataset(Dataset):
-    def __init__(self, data):
+    def __init__(self, data, *, perturb: bool = False):
         self.data = data
         self.data_len = len(data)
+        self.perturb = perturb
 
     def __len__(self):
         return self.data_len
 
     def __getitem__(self, idx):
         text, emoji_target, feeling_target = self.data[idx]
+
+        if self.perturb:
+            text = perturb(text)
 
         x_tensor = encode(text).squeeze(0)
 
@@ -213,14 +218,15 @@ def load_data(*, path: str) -> MultiTaskDataset:
                 continue
             row = json.loads(line)
             data.append((row["text"], row["emoji"], row["feeling"]))
-    return MultiTaskDataset(data)
+
+    return MultiTaskDataset(data, perturb=True)
 
 
 def run_name() -> str:
     """Build a TensorBoard run name that encodes the training configuration."""
     return (
         f"emb{EMBED_SIZE}-h{H_SIZE}-l{NUM_LAYERS}"
-        f"-lr{LR}-bs{BATCH_SIZE}-ep{EPOCHS}"
+        f"-lr{LR}-bs{BATCH_SIZE}-ep{EPOCHS}-pr{PERTURB_RATE}"
     )
 
 
@@ -229,7 +235,12 @@ def train(
     model: Model,
     data,
     writer: SummaryWriter | None = None,
+    perturb_rate: float = PERTURB_RATE,
 ):
+    # Turn on input perturbation for the training data (evaluate/predict keep
+    # the clean text). No-op when perturb_rate is 0 or `data` has no such knob.
+    if hasattr(data, "perturb_rate"):
+        data.perturb_rate = perturb_rate
 
     optimizer = optim.Adam(model.parameters(), lr=LR)
     dataloader = DataLoader(data, batch_size=BATCH_SIZE, shuffle=True)
@@ -239,6 +250,7 @@ def train(
 
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Total params: {total_params:,}")
+    print(f"Input perturbation rate: {perturb_rate}")
     print("Starting training loop...\n")
     epoch_bar = tqdm(range(1, EPOCHS + 1), desc="Training", unit="epoch")
     for epoch in epoch_bar:
@@ -374,6 +386,7 @@ if __name__ == "__main__":
             "lr": lr,
             "batch_size": batch_size,
             "epochs": EPOCHS,
+            "perturb_rate": PERTURB_RATE,
         },
         {
             "test/emoji_acc": metrics["emoji_acc"],
