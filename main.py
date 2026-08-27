@@ -169,7 +169,7 @@ def train(
     print(f"Total params: {total_params:,}")
     print("Starting training loop...\n")
     epoch_bar = tqdm(range(1, epochs + 1), desc="Training", unit="epoch")
-    for epoch in epoch_bar:
+    for _ in epoch_bar:
         total_loss = 0.0
 
         for x, target_emoji, target_feeling in dataloader:
