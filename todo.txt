@@ -5,6 +5,8 @@ TODO:
             - load it in the webpage using onnxruntime-web
             - run the inference in the browser
             - output the page to a docs folder so it can be published on GitHub Pages
+        
+        - The entire process must be automated so whenever the model is updated, the web page is automatically rebuilt and published (can be triggered manually but must be a single command).
 
 
 DONE:
