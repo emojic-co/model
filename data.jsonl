@@ -98,3 +98,503 @@
 {"text": "dreading tomorrow", "emoji": "😰", "feeling": "Anxious", "bg1": [0.5, -0.09, -0.06], "bg2": [0.4, -0.05, -0.14], "text_color": [0.95, -0.011, -0.015]}
 {"text": "stomach in knots", "emoji": "😅", "feeling": "Anxious", "bg1": [0.47, -0.07, -0.05], "bg2": [0.37, -0.03, -0.12], "text_color": [0.95, -0.007, -0.013]}
 {"text": "keep second guessing", "emoji": "🤔", "feeling": "Anxious", "bg1": [0.49, -0.08, -0.06], "bg2": [0.39, -0.04, -0.13], "text_color": [0.95, -0.009, -0.014]}
+{"text": "the release is minutes away", "emoji": "🥳", "feeling": "Excited", "bg1": [0.755, 0.183, 0.157], "bg2": [0.884, 0.061, 0.205], "text_color": [0.2, 0.088, 0.122]}
+{"text": "the plane is pushing back", "emoji": "💥", "feeling": "Excited", "bg1": [0.734, 0.15, 0.146], "bg2": [0.867, 0.056, 0.202], "text_color": [0.2, 0.072, 0.114]}
+{"text": "i replay it over and over", "emoji": "🙃", "feeling": "Anxious", "bg1": [0.515, -0.081, -0.054], "bg2": [0.425, -0.027, -0.134], "text_color": [0.95, -0.011, -0.015]}
+{"text": "the hills fade into gray", "emoji": "🕯", "feeling": "Calm", "bg1": [0.464, -0.031, -0.088], "bg2": [0.582, -0.06, -0.1], "text_color": [0.95, -0.006, -0.013]}
+{"text": "the last voicemail is all i have", "emoji": "💤", "feeling": "Sad", "bg1": [0.291, -0.043, -0.101], "bg2": [0.208, -0.036, -0.086], "text_color": [0.95, -0.007, -0.014]}
+{"text": "this line has not moved", "emoji": "🎃", "feeling": "Angry", "bg1": [0.42, 0.237, 0.142], "bg2": [0.284, 0.185, 0.08], "text_color": [0.95, 0.033, 0.017]}
+{"text": "the phone screen stayed dark", "emoji": "👻", "feeling": "Sad", "bg1": [0.308, -0.035, -0.097], "bg2": [0.219, -0.048, -0.062], "text_color": [0.95, -0.006, -0.014]}
+{"text": "kids playing outside", "emoji": "🥰", "feeling": "Happy", "bg1": [0.8, 0.057, 0.155], "bg2": [0.867, 0.027, 0.221], "text_color": [0.2, 0.026, 0.101]}
+{"text": "the volume is way too loud", "emoji": "👎", "feeling": "Angry", "bg1": [0.438, 0.265, 0.123], "bg2": [0.304, 0.197, 0.092], "text_color": [0.95, 0.037, 0.015]}
+{"text": "good vibes only", "emoji": "☀", "feeling": "Happy", "bg1": [0.791, 0.115, 0.123], "bg2": [0.885, 0.023, 0.203], "text_color": [0.2, 0.052, 0.08]}
+{"text": "she is boarding right now", "emoji": "🎯", "feeling": "Excited", "bg1": [0.71, 0.172, 0.188], "bg2": [0.854, 0.087, 0.249], "text_color": [0.2, 0.083, 0.147]}
+{"text": "the porch light stayed off", "emoji": "😰", "feeling": "Sad", "bg1": [0.298, -0.027, -0.103], "bg2": [0.2, -0.056, -0.099], "text_color": [0.95, -0.004, -0.014]}
+{"text": "i walked home in the rain", "emoji": "😰", "feeling": "Sad", "bg1": [0.286, -0.044, -0.091], "bg2": [0.209, -0.063, -0.073], "text_color": [0.95, -0.007, -0.013]}
+{"text": "they took the last one on purpose", "emoji": "🚨", "feeling": "Angry", "bg1": [0.416, 0.267, 0.126], "bg2": [0.291, 0.179, 0.108], "text_color": [0.95, 0.037, 0.015]}
+{"text": "the meeting could decide it all", "emoji": "😰", "feeling": "Anxious", "bg1": [0.528, -0.071, -0.037], "bg2": [0.426, -0.047, -0.127], "text_color": [0.95, -0.009, -0.01]}
+{"text": "what if it goes wrong", "emoji": "🔦", "feeling": "Anxious", "bg1": [0.51, -0.073, -0.054], "bg2": [0.405, -0.034, -0.134], "text_color": [0.95, -0.009, -0.015]}
+{"text": "we leave at dawn", "emoji": "🎯", "feeling": "Excited", "bg1": [0.76, 0.17, 0.168], "bg2": [0.864, 0.074, 0.22], "text_color": [0.2, 0.082, 0.131]}
+{"text": "this rule makes no sense", "emoji": "👎", "feeling": "Angry", "bg1": [0.461, 0.216, 0.13], "bg2": [0.306, 0.179, 0.094], "text_color": [0.95, 0.03, 0.016]}
+{"text": "my chest is heavy with worry", "emoji": "😅", "feeling": "Anxious", "bg1": [0.503, -0.089, -0.068], "bg2": [0.402, -0.04, -0.145], "text_color": [0.95, -0.012, -0.019]}
+{"text": "the ride is starting up", "emoji": "🎯", "feeling": "Excited", "bg1": [0.756, 0.155, 0.167], "bg2": [0.869, 0.063, 0.227], "text_color": [0.2, 0.074, 0.13]}
+{"text": "the garden is asleep and still", "emoji": "🐼", "feeling": "Calm", "bg1": [0.394, -0.061, -0.119], "bg2": [0.508, -0.07, -0.074], "text_color": [0.95, -0.011, -0.018]}
+{"text": "a soft rain keeps steady time", "emoji": "☕", "feeling": "Calm", "bg1": [0.381, -0.061, -0.127], "bg2": [0.475, -0.062, -0.063], "text_color": [0.95, -0.011, -0.019]}
+{"text": "the trail is empty and green", "emoji": "☕", "feeling": "Calm", "bg1": [0.448, -0.032, -0.125], "bg2": [0.555, -0.064, -0.087], "text_color": [0.95, -0.006, -0.019]}
+{"text": "the reveal is any minute", "emoji": "💥", "feeling": "Excited", "bg1": [0.742, 0.142, 0.18], "bg2": [0.891, 0.085, 0.246], "text_color": [0.2, 0.068, 0.14]}
+{"text": "concert in an hour", "emoji": "🎯", "feeling": "Excited", "bg1": [0.727, 0.188, 0.17], "bg2": [0.853, 0.065, 0.23], "text_color": [0.2, 0.09, 0.133]}
+{"text": "no one listens here", "emoji": "💪", "feeling": "Angry", "bg1": [0.464, 0.253, 0.141], "bg2": [0.336, 0.203, 0.11], "text_color": [0.95, 0.035, 0.017]}
+{"text": "the clock is moving too fast", "emoji": "🙃", "feeling": "Anxious", "bg1": [0.519, -0.077, -0.054], "bg2": [0.402, -0.052, -0.121], "text_color": [0.95, -0.01, -0.015]}
+{"text": "i checked the lock a third time", "emoji": "🤔", "feeling": "Anxious", "bg1": [0.492, -0.071, -0.066], "bg2": [0.397, -0.045, -0.154], "text_color": [0.95, -0.009, -0.018]}
+{"text": "the silence on the line scares me", "emoji": "💤", "feeling": "Anxious", "bg1": [0.476, -0.083, -0.064], "bg2": [0.363, -0.059, -0.144], "text_color": [0.95, -0.011, -0.018]}
+{"text": "i forgot if i locked the door", "emoji": "🌙", "feeling": "Anxious", "bg1": [0.472, -0.085, -0.053], "bg2": [0.39, -0.045, -0.141], "text_color": [0.95, -0.011, -0.015]}
+{"text": "the trailer just dropped", "emoji": "🎯", "feeling": "Excited", "bg1": [0.719, 0.161, 0.132], "bg2": [0.834, 0.075, 0.233], "text_color": [0.2, 0.077, 0.103]}
+{"text": "we hit the road now", "emoji": "🥳", "feeling": "Excited", "bg1": [0.756, 0.181, 0.133], "bg2": [0.891, 0.084, 0.257], "text_color": [0.2, 0.087, 0.104]}
+{"text": "the reveal party is set", "emoji": "🔥", "feeling": "Excited", "bg1": [0.708, 0.164, 0.148], "bg2": [0.824, 0.068, 0.214], "text_color": [0.2, 0.079, 0.115]}
+{"text": "the map is in my hand", "emoji": "🥂", "feeling": "Excited", "bg1": [0.743, 0.167, 0.166], "bg2": [0.877, 0.064, 0.21], "text_color": [0.2, 0.08, 0.129]}
+{"text": "the party bus arrived", "emoji": "🎤", "feeling": "Excited", "bg1": [0.724, 0.157, 0.179], "bg2": [0.838, 0.088, 0.218], "text_color": [0.2, 0.075, 0.14]}
+{"text": "the boat drifts on still water", "emoji": "🎹", "feeling": "Calm", "bg1": [0.466, -0.052, -0.131], "bg2": [0.578, -0.074, -0.102], "text_color": [0.95, -0.009, -0.02]}
+{"text": "a quiet kitchen after dark", "emoji": "🐼", "feeling": "Calm", "bg1": [0.382, -0.056, -0.126], "bg2": [0.488, -0.071, -0.109], "text_color": [0.95, -0.01, -0.019]}
+{"text": "warm rain then a rainbow", "emoji": "✨", "feeling": "Happy", "bg1": [0.812, 0.096, 0.134], "bg2": [0.907, 0.022, 0.219], "text_color": [0.2, 0.043, 0.087]}
+{"text": "the alarm went off all night", "emoji": "🎃", "feeling": "Angry", "bg1": [0.427, 0.215, 0.141], "bg2": [0.302, 0.18, 0.083], "text_color": [0.95, 0.03, 0.017]}
+{"text": "slow music low and warm", "emoji": "🎷", "feeling": "Calm", "bg1": [0.424, -0.049, -0.094], "bg2": [0.509, -0.072, -0.09], "text_color": [0.95, -0.009, -0.014]}
+{"text": "i miss the way it was", "emoji": "😰", "feeling": "Sad", "bg1": [0.268, -0.036, -0.111], "bg2": [0.188, -0.054, -0.071], "text_color": [0.95, -0.006, -0.016]}
+{"text": "the crowd counts down", "emoji": "💯", "feeling": "Excited", "bg1": [0.716, 0.171, 0.162], "bg2": [0.832, 0.06, 0.227], "text_color": [0.2, 0.082, 0.126]}
+{"text": "warm hug from a friend", "emoji": "✨", "feeling": "Happy", "bg1": [0.786, 0.051, 0.122], "bg2": [0.848, 0.05, 0.228], "text_color": [0.2, 0.023, 0.079]}
+{"text": "the clock ticks softly", "emoji": "🎷", "feeling": "Calm", "bg1": [0.399, -0.065, -0.138], "bg2": [0.481, -0.05, -0.054], "text_color": [0.95, -0.012, -0.021]}
+{"text": "the phone might ring any second", "emoji": "🔦", "feeling": "Anxious", "bg1": [0.487, -0.066, -0.063], "bg2": [0.391, -0.033, -0.137], "text_color": [0.95, -0.009, -0.018]}
+{"text": "the phone stayed quiet", "emoji": "💔", "feeling": "Sad", "bg1": [0.279, -0.017, -0.128], "bg2": [0.211, -0.045, -0.086], "text_color": [0.95, -0.003, -0.018]}
+{"text": "we baked cookies", "emoji": "☀", "feeling": "Happy", "bg1": [0.792, 0.075, 0.162], "bg2": [0.884, 0.05, 0.175], "text_color": [0.2, 0.034, 0.105]}
+{"text": "no footsteps on the stairs", "emoji": "😰", "feeling": "Sad", "bg1": [0.299, -0.03, -0.1], "bg2": [0.227, -0.045, -0.067], "text_color": [0.95, -0.005, -0.014]}
+{"text": "my mind will not let it rest", "emoji": "🔦", "feeling": "Anxious", "bg1": [0.493, -0.101, -0.041], "bg2": [0.394, -0.057, -0.144], "text_color": [0.95, -0.013, -0.011]}
+{"text": "a warm quiet corner", "emoji": "🕯", "feeling": "Calm", "bg1": [0.388, -0.045, -0.084], "bg2": [0.489, -0.077, -0.099], "text_color": [0.95, -0.008, -0.013]}
+{"text": "no one owns up to it", "emoji": "💪", "feeling": "Angry", "bg1": [0.447, 0.223, 0.146], "bg2": [0.309, 0.194, 0.086], "text_color": [0.95, 0.031, 0.018]}
+{"text": "the call is any minute now", "emoji": "😰", "feeling": "Anxious", "bg1": [0.515, -0.102, -0.037], "bg2": [0.423, -0.054, -0.129], "text_color": [0.95, -0.013, -0.01]}
+{"text": "the streets look smaller now", "emoji": "😭", "feeling": "Sad", "bg1": [0.286, -0.039, -0.127], "bg2": [0.198, -0.045, -0.068], "text_color": [0.95, -0.006, -0.018]}
+{"text": "no one noticed i was gone", "emoji": "💔", "feeling": "Sad", "bg1": [0.277, -0.038, -0.092], "bg2": [0.212, -0.048, -0.077], "text_color": [0.95, -0.006, -0.013]}
+{"text": "the order was wrong again", "emoji": "👎", "feeling": "Angry", "bg1": [0.438, 0.217, 0.133], "bg2": [0.306, 0.221, 0.115], "text_color": [0.95, 0.03, 0.016]}
+{"text": "this is a total mess", "emoji": "👎", "feeling": "Angry", "bg1": [0.465, 0.214, 0.153], "bg2": [0.308, 0.214, 0.115], "text_color": [0.95, 0.03, 0.018]}
+{"text": "new game drops today", "emoji": "🎁", "feeling": "Excited", "bg1": [0.735, 0.156, 0.148], "bg2": [0.851, 0.074, 0.244], "text_color": [0.2, 0.075, 0.115]}
+{"text": "the ball is in the air", "emoji": "🚀", "feeling": "Excited", "bg1": [0.703, 0.139, 0.18], "bg2": [0.849, 0.08, 0.213], "text_color": [0.2, 0.067, 0.14]}
+{"text": "a walk in the park", "emoji": "😅", "feeling": "Happy", "bg1": [0.81, 0.051, 0.193], "bg2": [0.909, 0.012, 0.225], "text_color": [0.2, 0.023, 0.125]}
+{"text": "an easy happy laugh", "emoji": "👍", "feeling": "Happy", "bg1": [0.804, 0.102, 0.185], "bg2": [0.882, 0.015, 0.181], "text_color": [0.2, 0.046, 0.12]}
+{"text": "the path is soft with moss", "emoji": "⛵", "feeling": "Calm", "bg1": [0.45, -0.041, -0.081], "bg2": [0.566, -0.061, -0.107], "text_color": [0.95, -0.007, -0.012]}
+{"text": "i cannot quiet the drumming in my ears", "emoji": "😅", "feeling": "Anxious", "bg1": [0.484, -0.076, -0.059], "bg2": [0.393, -0.025, -0.122], "text_color": [0.95, -0.01, -0.017]}
+{"text": "the old dog is gone", "emoji": "💤", "feeling": "Sad", "bg1": [0.255, -0.036, -0.099], "bg2": [0.16, -0.065, -0.077], "text_color": [0.95, -0.006, -0.014]}
+{"text": "no answer to my message", "emoji": "🌙", "feeling": "Sad", "bg1": [0.31, -0.045, -0.12], "bg2": [0.243, -0.058, -0.075], "text_color": [0.95, -0.007, -0.017]}
+{"text": "my team made the finals", "emoji": "🎉", "feeling": "Excited", "bg1": [0.712, 0.142, 0.146], "bg2": [0.845, 0.066, 0.257], "text_color": [0.2, 0.068, 0.114]}
+{"text": "a slow cup of tea", "emoji": "🕯", "feeling": "Calm", "bg1": [0.438, -0.027, -0.083], "bg2": [0.558, -0.065, -0.108], "text_color": [0.95, -0.005, -0.012]}
+{"text": "reading by the lamp", "emoji": "💤", "feeling": "Calm", "bg1": [0.422, -0.063, -0.11], "bg2": [0.505, -0.052, -0.058], "text_color": [0.95, -0.011, -0.017]}
+{"text": "a soft happy sigh", "emoji": "🎈", "feeling": "Happy", "bg1": [0.848, 0.105, 0.139], "bg2": [0.95, 0.027, 0.2], "text_color": [0.2, 0.047, 0.09]}
+{"text": "the fireworks are starting", "emoji": "🔥", "feeling": "Excited", "bg1": [0.723, 0.138, 0.132], "bg2": [0.865, 0.071, 0.202], "text_color": [0.2, 0.066, 0.103]}
+{"text": "we are almost there", "emoji": "🎁", "feeling": "Excited", "bg1": [0.705, 0.146, 0.187], "bg2": [0.813, 0.07, 0.252], "text_color": [0.2, 0.07, 0.146]}
+{"text": "the app crashed and lost it all", "emoji": "👎", "feeling": "Angry", "bg1": [0.418, 0.226, 0.157], "bg2": [0.275, 0.183, 0.081], "text_color": [0.95, 0.032, 0.019]}
+{"text": "the room is too silent", "emoji": "🐱", "feeling": "Sad", "bg1": [0.288, -0.023, -0.091], "bg2": [0.205, -0.033, -0.098], "text_color": [0.95, -0.004, -0.013]}
+{"text": "the party ended and i stayed", "emoji": "🌙", "feeling": "Sad", "bg1": [0.251, -0.021, -0.11], "bg2": [0.172, -0.067, -0.077], "text_color": [0.95, -0.003, -0.015]}
+{"text": "a gentle steady rain", "emoji": "🎶", "feeling": "Calm", "bg1": [0.445, -0.027, -0.113], "bg2": [0.537, -0.061, -0.074], "text_color": [0.95, -0.005, -0.017]}
+{"text": "warm bath and quiet", "emoji": "🔮", "feeling": "Calm", "bg1": [0.466, -0.066, -0.122], "bg2": [0.569, -0.05, -0.071], "text_color": [0.95, -0.012, -0.018]}
+{"text": "the fields turned gold", "emoji": "🐶", "feeling": "Happy", "bg1": [0.767, 0.06, 0.172], "bg2": [0.87, 0.029, 0.217], "text_color": [0.2, 0.027, 0.112]}
+{"text": "the meadow lies still", "emoji": "🎷", "feeling": "Calm", "bg1": [0.377, -0.02, -0.11], "bg2": [0.485, -0.082, -0.078], "text_color": [0.95, -0.004, -0.017]}
+{"text": "they cancelled with no warning", "emoji": "💥", "feeling": "Angry", "bg1": [0.465, 0.238, 0.138], "bg2": [0.313, 0.199, 0.086], "text_color": [0.95, 0.033, 0.017]}
+{"text": "the evening is mild and gray", "emoji": "🎷", "feeling": "Calm", "bg1": [0.445, -0.024, -0.128], "bg2": [0.536, -0.047, -0.095], "text_color": [0.95, -0.004, -0.019]}
+{"text": "so much love here", "emoji": "🎈", "feeling": "Happy", "bg1": [0.776, 0.114, 0.136], "bg2": [0.863, 0.028, 0.2], "text_color": [0.2, 0.051, 0.088]}
+{"text": "the chair is still empty", "emoji": "😭", "feeling": "Sad", "bg1": [0.315, -0.034, -0.114], "bg2": [0.248, -0.065, -0.087], "text_color": [0.95, -0.005, -0.016]}
+{"text": "we grew up and grew apart", "emoji": "🌙", "feeling": "Sad", "bg1": [0.289, -0.043, -0.13], "bg2": [0.212, -0.046, -0.098], "text_color": [0.95, -0.007, -0.018]}
+{"text": "the fire burns down low", "emoji": "🐱", "feeling": "Calm", "bg1": [0.38, -0.038, -0.112], "bg2": [0.491, -0.062, -0.083], "text_color": [0.95, -0.007, -0.017]}
+{"text": "i missed the last chance to say it", "emoji": "💔", "feeling": "Sad", "bg1": [0.29, -0.027, -0.116], "bg2": [0.223, -0.051, -0.077], "text_color": [0.95, -0.004, -0.016]}
+{"text": "the drop is in ten", "emoji": "🥳", "feeling": "Excited", "bg1": [0.746, 0.178, 0.169], "bg2": [0.882, 0.066, 0.247], "text_color": [0.2, 0.085, 0.132]}
+{"text": "they changed the rules on me", "emoji": "🚨", "feeling": "Angry", "bg1": [0.44, 0.213, 0.157], "bg2": [0.301, 0.213, 0.08], "text_color": [0.95, 0.03, 0.019]}
+{"text": "i keep refreshing the page", "emoji": "🤔", "feeling": "Anxious", "bg1": [0.492, -0.094, -0.041], "bg2": [0.399, -0.04, -0.158], "text_color": [0.95, -0.012, -0.011]}
+{"text": "nothing feels right lately", "emoji": "😰", "feeling": "Sad", "bg1": [0.309, -0.021, -0.095], "bg2": [0.24, -0.039, -0.095], "text_color": [0.95, -0.003, -0.013]}
+{"text": "new bike arrives today", "emoji": "🎉", "feeling": "Excited", "bg1": [0.721, 0.165, 0.147], "bg2": [0.856, 0.069, 0.227], "text_color": [0.2, 0.079, 0.115]}
+{"text": "the lamp glows amber and low", "emoji": "🐱", "feeling": "Calm", "bg1": [0.461, -0.05, -0.118], "bg2": [0.562, -0.07, -0.086], "text_color": [0.95, -0.009, -0.018]}
+{"text": "flowers on the table", "emoji": "🥰", "feeling": "Happy", "bg1": [0.829, 0.107, 0.146], "bg2": [0.938, 0.031, 0.218], "text_color": [0.2, 0.048, 0.095]}
+{"text": "they broke the shared tool again", "emoji": "⚡", "feeling": "Angry", "bg1": [0.424, 0.265, 0.158], "bg2": [0.264, 0.216, 0.105], "text_color": [0.95, 0.037, 0.019]}
+{"text": "we won the match", "emoji": "🎯", "feeling": "Excited", "bg1": [0.752, 0.142, 0.169], "bg2": [0.89, 0.087, 0.212], "text_color": [0.2, 0.068, 0.132]}
+{"text": "the storm is coming closer", "emoji": "🤔", "feeling": "Anxious", "bg1": [0.525, -0.101, -0.037], "bg2": [0.444, -0.046, -0.146], "text_color": [0.95, -0.013, -0.01]}
+{"text": "i had enough of the delays", "emoji": "💪", "feeling": "Angry", "bg1": [0.421, 0.254, 0.137], "bg2": [0.296, 0.207, 0.117], "text_color": [0.95, 0.036, 0.016]}
+{"text": "what if i said the wrong thing", "emoji": "🙃", "feeling": "Anxious", "bg1": [0.509, -0.097, -0.048], "bg2": [0.418, -0.035, -0.149], "text_color": [0.95, -0.013, -0.013]}
+{"text": "the meeting ran an hour long", "emoji": "😡", "feeling": "Angry", "bg1": [0.446, 0.24, 0.132], "bg2": [0.322, 0.175, 0.103], "text_color": [0.95, 0.034, 0.016]}
+{"text": "i am furious right now", "emoji": "😡", "feeling": "Angry", "bg1": [0.413, 0.25, 0.149], "bg2": [0.291, 0.226, 0.12], "text_color": [0.95, 0.035, 0.018]}
+{"text": "we sprinted to the gate", "emoji": "🎤", "feeling": "Excited", "bg1": [0.728, 0.146, 0.174], "bg2": [0.878, 0.073, 0.203], "text_color": [0.2, 0.07, 0.136]}
+{"text": "the whole day felt kind", "emoji": "☀", "feeling": "Happy", "bg1": [0.812, 0.072, 0.164], "bg2": [0.903, 0.036, 0.201], "text_color": [0.2, 0.032, 0.107]}
+{"text": "first day at the new job", "emoji": "🎮", "feeling": "Excited", "bg1": [0.74, 0.179, 0.15], "bg2": [0.843, 0.067, 0.225], "text_color": [0.2, 0.086, 0.117]}
+{"text": "the news just broke big", "emoji": "🥂", "feeling": "Excited", "bg1": [0.729, 0.149, 0.162], "bg2": [0.834, 0.072, 0.215], "text_color": [0.2, 0.072, 0.126]}
+{"text": "kind words made my day", "emoji": "😀", "feeling": "Happy", "bg1": [0.828, 0.081, 0.148], "bg2": [0.899, 0.019, 0.203], "text_color": [0.2, 0.036, 0.096]}
+{"text": "hugs all around", "emoji": "🍎", "feeling": "Happy", "bg1": [0.828, 0.092, 0.175], "bg2": [0.936, 0.045, 0.191], "text_color": [0.2, 0.041, 0.114]}
+{"text": "old friends never change", "emoji": "🍎", "feeling": "Happy", "bg1": [0.776, 0.053, 0.153], "bg2": [0.838, 0.033, 0.203], "text_color": [0.2, 0.024, 0.099]}
+{"text": "the candle steadies again", "emoji": "💤", "feeling": "Calm", "bg1": [0.404, -0.032, -0.131], "bg2": [0.501, -0.056, -0.092], "text_color": [0.95, -0.006, -0.02]}
+{"text": "packing for the trip", "emoji": "⚡", "feeling": "Excited", "bg1": [0.758, 0.181, 0.137], "bg2": [0.865, 0.055, 0.228], "text_color": [0.2, 0.087, 0.107]}
+{"text": "the show starts tonight", "emoji": "🥳", "feeling": "Excited", "bg1": [0.716, 0.145, 0.188], "bg2": [0.82, 0.063, 0.243], "text_color": [0.2, 0.07, 0.147]}
+{"text": "they blamed me for it", "emoji": "⚡", "feeling": "Angry", "bg1": [0.46, 0.214, 0.15], "bg2": [0.336, 0.206, 0.119], "text_color": [0.95, 0.03, 0.018]}
+{"text": "my mind races at night", "emoji": "🙃", "feeling": "Anxious", "bg1": [0.527, -0.079, -0.038], "bg2": [0.422, -0.052, -0.129], "text_color": [0.95, -0.01, -0.011]}
+{"text": "i want my time back", "emoji": "⚡", "feeling": "Angry", "bg1": [0.416, 0.263, 0.133], "bg2": [0.275, 0.215, 0.085], "text_color": [0.95, 0.037, 0.016]}
+{"text": "i am sick of the excuses", "emoji": "😡", "feeling": "Angry", "bg1": [0.469, 0.232, 0.151], "bg2": [0.33, 0.221, 0.112], "text_color": [0.95, 0.032, 0.018]}
+{"text": "the flight is boarding soon", "emoji": "💤", "feeling": "Anxious", "bg1": [0.509, -0.101, -0.039], "bg2": [0.398, -0.043, -0.123], "text_color": [0.95, -0.013, -0.011]}
+{"text": "one deep quiet breath", "emoji": "🐶", "feeling": "Calm", "bg1": [0.454, -0.066, -0.134], "bg2": [0.536, -0.07, -0.084], "text_color": [0.95, -0.012, -0.02]}
+{"text": "the timer hit zero", "emoji": "🏀", "feeling": "Excited", "bg1": [0.741, 0.178, 0.168], "bg2": [0.863, 0.053, 0.203], "text_color": [0.2, 0.085, 0.131]}
+{"text": "nobody cleaned up after", "emoji": "🔥", "feeling": "Angry", "bg1": [0.468, 0.213, 0.147], "bg2": [0.311, 0.227, 0.113], "text_color": [0.95, 0.03, 0.018]}
+{"text": "the meeting keeps getting moved", "emoji": "💤", "feeling": "Anxious", "bg1": [0.475, -0.086, -0.039], "bg2": [0.378, -0.042, -0.126], "text_color": [0.95, -0.011, -0.011]}
+{"text": "they skipped me in the queue", "emoji": "👎", "feeling": "Angry", "bg1": [0.421, 0.241, 0.144], "bg2": [0.28, 0.186, 0.098], "text_color": [0.95, 0.034, 0.017]}
+{"text": "the map led back to nothing", "emoji": "😭", "feeling": "Sad", "bg1": [0.303, -0.029, -0.116], "bg2": [0.223, -0.032, -0.085], "text_color": [0.95, -0.005, -0.016]}
+{"text": "we are minutes from go", "emoji": "🎮", "feeling": "Excited", "bg1": [0.743, 0.159, 0.169], "bg2": [0.843, 0.083, 0.237], "text_color": [0.2, 0.076, 0.132]}
+{"text": "we found the perfect spot", "emoji": "👏", "feeling": "Happy", "bg1": [0.787, 0.109, 0.134], "bg2": [0.904, 0.033, 0.221], "text_color": [0.2, 0.049, 0.087]}
+{"text": "the last light went out", "emoji": "👻", "feeling": "Sad", "bg1": [0.312, -0.025, -0.116], "bg2": [0.213, -0.031, -0.09], "text_color": [0.95, -0.004, -0.016]}
+{"text": "the same bug shipped twice", "emoji": "💪", "feeling": "Angry", "bg1": [0.418, 0.236, 0.147], "bg2": [0.277, 0.204, 0.117], "text_color": [0.95, 0.033, 0.018]}
+{"text": "i sat alone at lunch", "emoji": "🌙", "feeling": "Sad", "bg1": [0.316, -0.033, -0.092], "bg2": [0.223, -0.069, -0.088], "text_color": [0.95, -0.005, -0.013]}
+{"text": "the song reminded me of you", "emoji": "🌙", "feeling": "Sad", "bg1": [0.302, -0.029, -0.113], "bg2": [0.22, -0.033, -0.063], "text_color": [0.95, -0.005, -0.016]}
+{"text": "my heart skips when it buzzes", "emoji": "🙃", "feeling": "Anxious", "bg1": [0.499, -0.101, -0.04], "bg2": [0.381, -0.032, -0.149], "text_color": [0.95, -0.013, -0.011]}
+{"text": "the tour bus pulled up", "emoji": "🎁", "feeling": "Excited", "bg1": [0.738, 0.154, 0.152], "bg2": [0.871, 0.07, 0.218], "text_color": [0.2, 0.074, 0.119]}
+{"text": "we watched the stars", "emoji": "🎨", "feeling": "Happy", "bg1": [0.791, 0.09, 0.136], "bg2": [0.907, 0.031, 0.216], "text_color": [0.2, 0.041, 0.088]}
+{"text": "the plan got trashed last minute", "emoji": "⚡", "feeling": "Angry", "bg1": [0.413, 0.236, 0.126], "bg2": [0.285, 0.181, 0.091], "text_color": [0.95, 0.033, 0.015]}
+{"text": "they blocked the whole aisle", "emoji": "🚨", "feeling": "Angry", "bg1": [0.449, 0.219, 0.134], "bg2": [0.315, 0.191, 0.115], "text_color": [0.95, 0.031, 0.016]}
+{"text": "i put the second cup away", "emoji": "💤", "feeling": "Sad", "bg1": [0.275, -0.023, -0.119], "bg2": [0.179, -0.058, -0.079], "text_color": [0.95, -0.004, -0.017]}
+{"text": "we scored front row", "emoji": "⚽", "feeling": "Excited", "bg1": [0.716, 0.147, 0.148], "bg2": [0.845, 0.07, 0.245], "text_color": [0.2, 0.071, 0.115]}
+{"text": "the second toothbrush is still there", "emoji": "🌙", "feeling": "Sad", "bg1": [0.288, -0.02, -0.099], "bg2": [0.213, -0.051, -0.083], "text_color": [0.95, -0.003, -0.014]}
+{"text": "a quiet tea and a book", "emoji": "🕯", "feeling": "Calm", "bg1": [0.387, -0.049, -0.129], "bg2": [0.497, -0.046, -0.107], "text_color": [0.95, -0.009, -0.019]}
+{"text": "the photos hurt to see", "emoji": "😭", "feeling": "Sad", "bg1": [0.318, -0.025, -0.104], "bg2": [0.251, -0.054, -0.1], "text_color": [0.95, -0.004, -0.015]}
+{"text": "the final round begins", "emoji": "🎯", "feeling": "Excited", "bg1": [0.733, 0.156, 0.138], "bg2": [0.849, 0.056, 0.248], "text_color": [0.2, 0.075, 0.108]}
+{"text": "the desk chair is empty again", "emoji": "🐱", "feeling": "Sad", "bg1": [0.325, -0.038, -0.115], "bg2": [0.255, -0.032, -0.087], "text_color": [0.95, -0.006, -0.016]}
+{"text": "the lake holds the moon", "emoji": "🕯", "feeling": "Calm", "bg1": [0.466, -0.04, -0.081], "bg2": [0.571, -0.055, -0.063], "text_color": [0.95, -0.007, -0.012]}
+{"text": "we made the cut", "emoji": "💥", "feeling": "Excited", "bg1": [0.719, 0.15, 0.168], "bg2": [0.839, 0.053, 0.216], "text_color": [0.2, 0.072, 0.131]}
+{"text": "i feel so far from everyone", "emoji": "😰", "feeling": "Sad", "bg1": [0.326, -0.041, -0.111], "bg2": [0.253, -0.067, -0.076], "text_color": [0.95, -0.007, -0.016]}
+{"text": "the holidays feel hollow", "emoji": "😰", "feeling": "Sad", "bg1": [0.257, -0.028, -0.096], "bg2": [0.176, -0.043, -0.097], "text_color": [0.95, -0.004, -0.013]}
+{"text": "the whole city is buzzing", "emoji": "⚽", "feeling": "Excited", "bg1": [0.716, 0.163, 0.141], "bg2": [0.851, 0.062, 0.236], "text_color": [0.2, 0.078, 0.11]}
+{"text": "the charge went through twice", "emoji": "💥", "feeling": "Angry", "bg1": [0.438, 0.251, 0.135], "bg2": [0.311, 0.211, 0.088], "text_color": [0.95, 0.035, 0.016]}
+{"text": "a slow walk to nowhere", "emoji": "🌙", "feeling": "Calm", "bg1": [0.371, -0.061, -0.086], "bg2": [0.456, -0.066, -0.055], "text_color": [0.95, -0.011, -0.013]}
+{"text": "a gentle evening walk", "emoji": "☕", "feeling": "Calm", "bg1": [0.4, -0.031, -0.103], "bg2": [0.484, -0.059, -0.097], "text_color": [0.95, -0.006, -0.015]}
+{"text": "her side of the closet is empty", "emoji": "😰", "feeling": "Sad", "bg1": [0.259, -0.038, -0.111], "bg2": [0.165, -0.065, -0.099], "text_color": [0.95, -0.006, -0.016]}
+{"text": "the bill is more than i thought", "emoji": "🔦", "feeling": "Anxious", "bg1": [0.483, -0.1, -0.061], "bg2": [0.371, -0.043, -0.121], "text_color": [0.95, -0.013, -0.017]}
+{"text": "the fog softens every edge", "emoji": "🐱", "feeling": "Calm", "bg1": [0.459, -0.05, -0.093], "bg2": [0.55, -0.05, -0.061], "text_color": [0.95, -0.009, -0.014]}
+{"text": "we planted a little tree", "emoji": "🐶", "feeling": "Happy", "bg1": [0.761, 0.088, 0.194], "bg2": [0.876, 0.038, 0.226], "text_color": [0.2, 0.04, 0.126]}
+{"text": "i checked the stove twice", "emoji": "😰", "feeling": "Anxious", "bg1": [0.527, -0.098, -0.038], "bg2": [0.414, -0.032, -0.153], "text_color": [0.95, -0.013, -0.011]}
+{"text": "i keep checking the rear view", "emoji": "⚡", "feeling": "Anxious", "bg1": [0.481, -0.088, -0.054], "bg2": [0.367, -0.05, -0.131], "text_color": [0.95, -0.011, -0.015]}
+{"text": "a slow soft playlist", "emoji": "✨", "feeling": "Calm", "bg1": [0.441, -0.048, -0.107], "bg2": [0.557, -0.084, -0.07], "text_color": [0.95, -0.009, -0.016]}
+{"text": "the fee was hidden until now", "emoji": "🎃", "feeling": "Angry", "bg1": [0.446, 0.24, 0.135], "bg2": [0.311, 0.19, 0.094], "text_color": [0.95, 0.034, 0.016]}
+{"text": "the kittens are safe", "emoji": "🎨", "feeling": "Happy", "bg1": [0.858, 0.042, 0.184], "bg2": [0.95, 0.027, 0.19], "text_color": [0.2, 0.019, 0.12]}
+{"text": "a slow warm hug", "emoji": "🥰", "feeling": "Happy", "bg1": [0.814, 0.114, 0.154], "bg2": [0.915, 0.044, 0.22], "text_color": [0.2, 0.051, 0.1]}
+{"text": "the puzzle piece just fit", "emoji": "🥳", "feeling": "Excited", "bg1": [0.74, 0.144, 0.167], "bg2": [0.867, 0.056, 0.241], "text_color": [0.2, 0.069, 0.13]}
+{"text": "clean sheets tonight", "emoji": "👍", "feeling": "Happy", "bg1": [0.851, 0.096, 0.172], "bg2": [0.949, 0.034, 0.225], "text_color": [0.2, 0.043, 0.112]}
+{"text": "the score just flipped", "emoji": "🏆", "feeling": "Excited", "bg1": [0.722, 0.136, 0.183], "bg2": [0.841, 0.062, 0.244], "text_color": [0.2, 0.065, 0.143]}
+{"text": "the trip was a dream", "emoji": "🐶", "feeling": "Happy", "bg1": [0.846, 0.078, 0.19], "bg2": [0.916, 0.042, 0.184], "text_color": [0.2, 0.035, 0.124]}
+{"text": "the porch swing is quiet now", "emoji": "🐱", "feeling": "Sad", "bg1": [0.306, -0.016, -0.105], "bg2": [0.221, -0.036, -0.093], "text_color": [0.95, -0.003, -0.015]}
+{"text": "we sang in the car", "emoji": "🙏", "feeling": "Happy", "bg1": [0.791, 0.077, 0.167], "bg2": [0.902, 0.038, 0.227], "text_color": [0.2, 0.035, 0.109]}
+{"text": "a calm walk along the pier", "emoji": "☕", "feeling": "Calm", "bg1": [0.442, -0.024, -0.089], "bg2": [0.56, -0.063, -0.087], "text_color": [0.95, -0.004, -0.013]}
+{"text": "i keep rehearsing what to say", "emoji": "😅", "feeling": "Anxious", "bg1": [0.517, -0.074, -0.064], "bg2": [0.426, -0.057, -0.131], "text_color": [0.95, -0.01, -0.018]}
+{"text": "sunday feels gentle", "emoji": "👏", "feeling": "Happy", "bg1": [0.763, 0.061, 0.16], "bg2": [0.844, 0.012, 0.186], "text_color": [0.2, 0.027, 0.104]}
+{"text": "we cheered from the porch", "emoji": "👏", "feeling": "Happy", "bg1": [0.848, 0.09, 0.125], "bg2": [0.94, 0.044, 0.211], "text_color": [0.2, 0.041, 0.081]}
+{"text": "sweet ripe peaches", "emoji": "🌈", "feeling": "Happy", "bg1": [0.836, 0.08, 0.167], "bg2": [0.924, 0.012, 0.226], "text_color": [0.2, 0.036, 0.109]}
+{"text": "the parade is turning our way", "emoji": "✈", "feeling": "Excited", "bg1": [0.726, 0.131, 0.184], "bg2": [0.846, 0.05, 0.254], "text_color": [0.2, 0.063, 0.144]}
+{"text": "stop touching my stuff", "emoji": "💪", "feeling": "Angry", "bg1": [0.444, 0.212, 0.145], "bg2": [0.289, 0.176, 0.114], "text_color": [0.95, 0.03, 0.017]}
+{"text": "we are next in line", "emoji": "⚡", "feeling": "Excited", "bg1": [0.75, 0.146, 0.184], "bg2": [0.891, 0.083, 0.25], "text_color": [0.2, 0.07, 0.144]}
+{"text": "the beat just kicked in", "emoji": "🎯", "feeling": "Excited", "bg1": [0.746, 0.156, 0.175], "bg2": [0.861, 0.067, 0.249], "text_color": [0.2, 0.075, 0.136]}
+{"text": "a long easy exhale", "emoji": "🌈", "feeling": "Calm", "bg1": [0.376, -0.038, -0.102], "bg2": [0.461, -0.055, -0.094], "text_color": [0.95, -0.007, -0.015]}
+{"text": "the market was full of color", "emoji": "🐱", "feeling": "Happy", "bg1": [0.852, 0.043, 0.151], "bg2": [0.931, 0.049, 0.21], "text_color": [0.2, 0.019, 0.098]}
+{"text": "clouds drift with no rush", "emoji": "☕", "feeling": "Calm", "bg1": [0.412, -0.033, -0.108], "bg2": [0.517, -0.056, -0.065], "text_color": [0.95, -0.006, -0.016]}
+{"text": "the calendar has nothing on it", "emoji": "🌙", "feeling": "Sad", "bg1": [0.28, -0.044, -0.124], "bg2": [0.19, -0.054, -0.087], "text_color": [0.95, -0.007, -0.017]}
+{"text": "the sky is so blue", "emoji": "😅", "feeling": "Happy", "bg1": [0.835, 0.095, 0.151], "bg2": [0.945, 0.015, 0.23], "text_color": [0.2, 0.043, 0.098]}
+{"text": "a full table of friends", "emoji": "😅", "feeling": "Happy", "bg1": [0.859, 0.054, 0.12], "bg2": [0.95, 0.038, 0.184], "text_color": [0.2, 0.024, 0.078]}
+{"text": "a mild and easy hour", "emoji": "☕", "feeling": "Calm", "bg1": [0.438, -0.058, -0.12], "bg2": [0.526, -0.08, -0.076], "text_color": [0.95, -0.01, -0.018]}
+{"text": "everyone got home okay", "emoji": "🌈", "feeling": "Happy", "bg1": [0.779, 0.09, 0.133], "bg2": [0.874, 0.036, 0.191], "text_color": [0.2, 0.041, 0.086]}
+{"text": "my thoughts jump from fear to fear", "emoji": "⚡", "feeling": "Anxious", "bg1": [0.51, -0.076, -0.044], "bg2": [0.406, -0.041, -0.158], "text_color": [0.95, -0.01, -0.012]}
+{"text": "the pressure is building fast", "emoji": "😅", "feeling": "Anxious", "bg1": [0.498, -0.077, -0.046], "bg2": [0.413, -0.044, -0.142], "text_color": [0.95, -0.01, -0.013]}
+{"text": "the first pitch is here", "emoji": "🥂", "feeling": "Excited", "bg1": [0.742, 0.177, 0.16], "bg2": [0.886, 0.074, 0.207], "text_color": [0.2, 0.085, 0.125]}
+{"text": "i keep waiting for a call", "emoji": "😰", "feeling": "Sad", "bg1": [0.312, -0.031, -0.097], "bg2": [0.221, -0.037, -0.065], "text_color": [0.95, -0.005, -0.014]}
+{"text": "i keep biting my nails", "emoji": "🙃", "feeling": "Anxious", "bg1": [0.52, -0.078, -0.051], "bg2": [0.431, -0.048, -0.135], "text_color": [0.95, -0.01, -0.014]}
+{"text": "stop rolling your eyes at me", "emoji": "👎", "feeling": "Angry", "bg1": [0.442, 0.254, 0.15], "bg2": [0.308, 0.218, 0.091], "text_color": [0.95, 0.036, 0.018]}
+{"text": "the package arrived crushed", "emoji": "🚨", "feeling": "Angry", "bg1": [0.45, 0.246, 0.142], "bg2": [0.29, 0.218, 0.11], "text_color": [0.95, 0.034, 0.017]}
+{"text": "fresh bread smell", "emoji": "🎨", "feeling": "Happy", "bg1": [0.781, 0.097, 0.167], "bg2": [0.844, 0.045, 0.196], "text_color": [0.2, 0.044, 0.109]}
+{"text": "we packed the car fast", "emoji": "⚡", "feeling": "Excited", "bg1": [0.717, 0.176, 0.16], "bg2": [0.859, 0.083, 0.221], "text_color": [0.2, 0.084, 0.125]}
+{"text": "so pumped for this", "emoji": "✈", "feeling": "Excited", "bg1": [0.709, 0.181, 0.147], "bg2": [0.853, 0.057, 0.232], "text_color": [0.2, 0.087, 0.115]}
+{"text": "the wifi dropped again", "emoji": "😡", "feeling": "Angry", "bg1": [0.447, 0.264, 0.138], "bg2": [0.289, 0.2, 0.103], "text_color": [0.95, 0.037, 0.017]}
+{"text": "the form reset and lost it all", "emoji": "🔥", "feeling": "Angry", "bg1": [0.415, 0.214, 0.133], "bg2": [0.266, 0.215, 0.105], "text_color": [0.95, 0.03, 0.016]}
+{"text": "i cannot slow my thoughts", "emoji": "🤔", "feeling": "Anxious", "bg1": [0.5, -0.08, -0.067], "bg2": [0.415, -0.054, -0.127], "text_color": [0.95, -0.01, -0.019]}
+{"text": "the last leaf fell", "emoji": "💔", "feeling": "Sad", "bg1": [0.329, -0.025, -0.104], "bg2": [0.234, -0.055, -0.079], "text_color": [0.95, -0.004, -0.015]}
+{"text": "they slammed the door in my face", "emoji": "⚡", "feeling": "Angry", "bg1": [0.434, 0.258, 0.148], "bg2": [0.29, 0.197, 0.108], "text_color": [0.95, 0.036, 0.018]}
+{"text": "the house is quiet in a bad way", "emoji": "💔", "feeling": "Sad", "bg1": [0.27, -0.026, -0.13], "bg2": [0.192, -0.049, -0.098], "text_color": [0.95, -0.004, -0.018]}
+{"text": "a perfect lazy brunch", "emoji": "🐶", "feeling": "Happy", "bg1": [0.791, 0.087, 0.122], "bg2": [0.893, 0.015, 0.228], "text_color": [0.2, 0.039, 0.079]}
+{"text": "the wait feels endless", "emoji": "😰", "feeling": "Anxious", "bg1": [0.522, -0.104, -0.043], "bg2": [0.423, -0.064, -0.155], "text_color": [0.95, -0.014, -0.012]}
+{"text": "a hug that lasted long", "emoji": "🌈", "feeling": "Happy", "bg1": [0.802, 0.065, 0.163], "bg2": [0.899, 0.033, 0.213], "text_color": [0.2, 0.029, 0.106]}
+{"text": "i cannot stop the racing mind", "emoji": "😰", "feeling": "Anxious", "bg1": [0.5, -0.07, -0.047], "bg2": [0.397, -0.035, -0.125], "text_color": [0.95, -0.009, -0.013]}
+{"text": "smiling at strangers", "emoji": "🐱", "feeling": "Happy", "bg1": [0.824, 0.068, 0.176], "bg2": [0.933, 0.016, 0.224], "text_color": [0.2, 0.031, 0.114]}
+{"text": "stop talking over me", "emoji": "🔥", "feeling": "Angry", "bg1": [0.441, 0.258, 0.135], "bg2": [0.308, 0.218, 0.104], "text_color": [0.95, 0.036, 0.016]}
+{"text": "the fire is just embers now", "emoji": "🐱", "feeling": "Calm", "bg1": [0.456, -0.031, -0.1], "bg2": [0.576, -0.083, -0.058], "text_color": [0.95, -0.006, -0.015]}
+{"text": "we booked the whole day", "emoji": "🎶", "feeling": "Excited", "bg1": [0.706, 0.176, 0.158], "bg2": [0.842, 0.064, 0.22], "text_color": [0.2, 0.084, 0.123]}
+{"text": "the doors just opened", "emoji": "✈", "feeling": "Excited", "bg1": [0.725, 0.143, 0.161], "bg2": [0.851, 0.076, 0.247], "text_color": [0.2, 0.069, 0.126]}
+{"text": "the garden rests at night", "emoji": "🌙", "feeling": "Calm", "bg1": [0.394, -0.043, -0.097], "bg2": [0.5, -0.041, -0.082], "text_color": [0.95, -0.008, -0.015]}
+{"text": "we ran for the train", "emoji": "🏆", "feeling": "Excited", "bg1": [0.741, 0.19, 0.147], "bg2": [0.847, 0.07, 0.229], "text_color": [0.2, 0.091, 0.115]}
+{"text": "grandma told her stories", "emoji": "💖", "feeling": "Happy", "bg1": [0.858, 0.1, 0.2], "bg2": [0.936, 0.037, 0.19], "text_color": [0.2, 0.045, 0.13]}
+{"text": "i asked three times already", "emoji": "🎃", "feeling": "Angry", "bg1": [0.432, 0.224, 0.12], "bg2": [0.289, 0.178, 0.101], "text_color": [0.95, 0.031, 0.014]}
+{"text": "tea leaves settle down", "emoji": "🌴", "feeling": "Calm", "bg1": [0.424, -0.064, -0.123], "bg2": [0.536, -0.05, -0.109], "text_color": [0.95, -0.012, -0.018]}
+{"text": "the trip is finally real", "emoji": "🔥", "feeling": "Excited", "bg1": [0.742, 0.135, 0.175], "bg2": [0.88, 0.073, 0.222], "text_color": [0.2, 0.065, 0.136]}
+{"text": "the test is in an hour", "emoji": "🔦", "feeling": "Anxious", "bg1": [0.514, -0.093, -0.04], "bg2": [0.432, -0.059, -0.13], "text_color": [0.95, -0.012, -0.011]}
+{"text": "the plane just landed home", "emoji": "🎁", "feeling": "Excited", "bg1": [0.702, 0.137, 0.184], "bg2": [0.811, 0.071, 0.226], "text_color": [0.2, 0.066, 0.144]}
+{"text": "leaves settle on the path", "emoji": "🌴", "feeling": "Calm", "bg1": [0.38, -0.025, -0.097], "bg2": [0.494, -0.087, -0.099], "text_color": [0.95, -0.004, -0.015]}
+{"text": "the fog would not lift today", "emoji": "😭", "feeling": "Sad", "bg1": [0.28, -0.021, -0.093], "bg2": [0.198, -0.06, -0.072], "text_color": [0.95, -0.003, -0.013]}
+{"text": "everything went right", "emoji": "🌴", "feeling": "Happy", "bg1": [0.771, 0.093, 0.176], "bg2": [0.842, 0.033, 0.186], "text_color": [0.2, 0.042, 0.114]}
+{"text": "the room is dim and warm", "emoji": "🐶", "feeling": "Calm", "bg1": [0.374, -0.054, -0.123], "bg2": [0.482, -0.059, -0.056], "text_color": [0.95, -0.01, -0.018]}
+{"text": "the package finally shipped", "emoji": "🏀", "feeling": "Excited", "bg1": [0.721, 0.144, 0.137], "bg2": [0.847, 0.077, 0.229], "text_color": [0.2, 0.069, 0.107]}
+{"text": "a hush before sleep", "emoji": "🎷", "feeling": "Calm", "bg1": [0.374, -0.038, -0.091], "bg2": [0.455, -0.044, -0.089], "text_color": [0.95, -0.007, -0.014]}
+{"text": "found my old photos", "emoji": "🎈", "feeling": "Happy", "bg1": [0.773, 0.069, 0.18], "bg2": [0.839, 0.021, 0.18], "text_color": [0.2, 0.031, 0.117]}
+{"text": "a good book by the window", "emoji": "😀", "feeling": "Happy", "bg1": [0.786, 0.079, 0.166], "bg2": [0.867, 0.013, 0.225], "text_color": [0.2, 0.036, 0.108]}
+{"text": "they lied to my face", "emoji": "🚨", "feeling": "Angry", "bg1": [0.456, 0.249, 0.155], "bg2": [0.333, 0.221, 0.115], "text_color": [0.95, 0.035, 0.019]}
+{"text": "laughing with mom", "emoji": "👍", "feeling": "Happy", "bg1": [0.813, 0.114, 0.128], "bg2": [0.905, 0.023, 0.178], "text_color": [0.2, 0.051, 0.083]}
+{"text": "the contract changed overnight", "emoji": "💪", "feeling": "Angry", "bg1": [0.419, 0.223, 0.156], "bg2": [0.297, 0.204, 0.114], "text_color": [0.95, 0.031, 0.019]}
+{"text": "a hollow kind of morning", "emoji": "💤", "feeling": "Sad", "bg1": [0.279, -0.03, -0.107], "bg2": [0.186, -0.049, -0.076], "text_color": [0.95, -0.005, -0.015]}
+{"text": "she said yes", "emoji": "✨", "feeling": "Happy", "bg1": [0.828, 0.066, 0.165], "bg2": [0.898, 0.03, 0.226], "text_color": [0.2, 0.03, 0.107]}
+{"text": "the room smells of pine", "emoji": "☕", "feeling": "Calm", "bg1": [0.439, -0.068, -0.114], "bg2": [0.547, -0.066, -0.095], "text_color": [0.95, -0.012, -0.017]}
+{"text": "the refund never came through", "emoji": "🎃", "feeling": "Angry", "bg1": [0.448, 0.221, 0.137], "bg2": [0.32, 0.188, 0.085], "text_color": [0.95, 0.031, 0.016]}
+{"text": "i cannot stop the tears", "emoji": "💔", "feeling": "Sad", "bg1": [0.308, -0.038, -0.103], "bg2": [0.244, -0.062, -0.081], "text_color": [0.95, -0.006, -0.014]}
+{"text": "the tea has gone warm and mild", "emoji": "🎹", "feeling": "Calm", "bg1": [0.468, -0.06, -0.117], "bg2": [0.565, -0.086, -0.053], "text_color": [0.95, -0.011, -0.018]}
+{"text": "the doctor has not called back", "emoji": "💤", "feeling": "Anxious", "bg1": [0.53, -0.067, -0.052], "bg2": [0.419, -0.044, -0.12], "text_color": [0.95, -0.009, -0.015]}
+{"text": "the house key feels heavy", "emoji": "😰", "feeling": "Sad", "bg1": [0.312, -0.027, -0.107], "bg2": [0.233, -0.035, -0.062], "text_color": [0.95, -0.004, -0.015]}
+{"text": "the light left the room", "emoji": "🌙", "feeling": "Sad", "bg1": [0.274, -0.027, -0.109], "bg2": [0.204, -0.059, -0.077], "text_color": [0.95, -0.004, -0.015]}
+{"text": "they wasted my whole day", "emoji": "👎", "feeling": "Angry", "bg1": [0.421, 0.233, 0.131], "bg2": [0.272, 0.193, 0.086], "text_color": [0.95, 0.033, 0.016]}
+{"text": "a bright yellow door", "emoji": "🎈", "feeling": "Happy", "bg1": [0.8, 0.044, 0.143], "bg2": [0.862, 0.03, 0.175], "text_color": [0.2, 0.02, 0.093]}
+{"text": "i miss them so much", "emoji": "😰", "feeling": "Sad", "bg1": [0.323, -0.02, -0.097], "bg2": [0.236, -0.035, -0.078], "text_color": [0.95, -0.003, -0.014]}
+{"text": "the printer jammed for the fifth time", "emoji": "😡", "feeling": "Angry", "bg1": [0.436, 0.234, 0.145], "bg2": [0.292, 0.179, 0.112], "text_color": [0.95, 0.033, 0.017]}
+{"text": "still water at dusk", "emoji": "🐼", "feeling": "Calm", "bg1": [0.423, -0.065, -0.138], "bg2": [0.542, -0.05, -0.07], "text_color": [0.95, -0.012, -0.021]}
+{"text": "the shore is quiet at dawn", "emoji": "🔮", "feeling": "Calm", "bg1": [0.394, -0.052, -0.125], "bg2": [0.492, -0.055, -0.105], "text_color": [0.95, -0.009, -0.019]}
+{"text": "i cannot relax my shoulders", "emoji": "🔦", "feeling": "Anxious", "bg1": [0.504, -0.093, -0.049], "bg2": [0.393, -0.039, -0.153], "text_color": [0.95, -0.012, -0.014]}
+{"text": "a quiet joyful hour", "emoji": "🌴", "feeling": "Happy", "bg1": [0.835, 0.061, 0.132], "bg2": [0.933, 0.049, 0.186], "text_color": [0.2, 0.027, 0.086]}
+{"text": "i keep counting the minutes", "emoji": "🔦", "feeling": "Anxious", "bg1": [0.505, -0.086, -0.041], "bg2": [0.395, -0.046, -0.159], "text_color": [0.95, -0.011, -0.011]}
+{"text": "they broke it and walked away", "emoji": "👎", "feeling": "Angry", "bg1": [0.463, 0.25, 0.153], "bg2": [0.341, 0.182, 0.114], "text_color": [0.95, 0.035, 0.018]}
+{"text": "i am seething about this", "emoji": "🎃", "feeling": "Angry", "bg1": [0.447, 0.229, 0.123], "bg2": [0.29, 0.227, 0.085], "text_color": [0.95, 0.032, 0.015]}
+{"text": "i keep checking if it sent", "emoji": "⚡", "feeling": "Anxious", "bg1": [0.494, -0.088, -0.037], "bg2": [0.395, -0.03, -0.138], "text_color": [0.95, -0.011, -0.01]}
+{"text": "my thoughts will not go quiet", "emoji": "💤", "feeling": "Anxious", "bg1": [0.476, -0.087, -0.072], "bg2": [0.365, -0.027, -0.127], "text_color": [0.95, -0.011, -0.02]}
+{"text": "the room feels too small", "emoji": "😰", "feeling": "Anxious", "bg1": [0.495, -0.076, -0.056], "bg2": [0.384, -0.058, -0.137], "text_color": [0.95, -0.01, -0.016]}
+{"text": "i lost the thread of the day", "emoji": "😰", "feeling": "Sad", "bg1": [0.306, -0.018, -0.1], "bg2": [0.23, -0.031, -0.083], "text_color": [0.95, -0.003, -0.014]}
+{"text": "happy tears today", "emoji": "🎨", "feeling": "Happy", "bg1": [0.854, 0.092, 0.161], "bg2": [0.95, 0.041, 0.217], "text_color": [0.2, 0.041, 0.105]}
+{"text": "a slow breath in the dark", "emoji": "⛵", "feeling": "Calm", "bg1": [0.449, -0.03, -0.108], "bg2": [0.538, -0.063, -0.062], "text_color": [0.95, -0.005, -0.016]}
+{"text": "the horn would not stop honking", "emoji": "⚡", "feeling": "Angry", "bg1": [0.454, 0.239, 0.137], "bg2": [0.326, 0.192, 0.102], "text_color": [0.95, 0.033, 0.016]}
+{"text": "the system is down again", "emoji": "🚨", "feeling": "Angry", "bg1": [0.462, 0.227, 0.154], "bg2": [0.337, 0.174, 0.116], "text_color": [0.95, 0.032, 0.018]}
+{"text": "the deadline keeps me up", "emoji": "🤔", "feeling": "Anxious", "bg1": [0.481, -0.092, -0.038], "bg2": [0.396, -0.05, -0.123], "text_color": [0.95, -0.012, -0.011]}
+{"text": "the results could change everything", "emoji": "⚡", "feeling": "Anxious", "bg1": [0.508, -0.093, -0.062], "bg2": [0.418, -0.035, -0.138], "text_color": [0.95, -0.012, -0.017]}
+{"text": "coffee and sunshine", "emoji": "✨", "feeling": "Happy", "bg1": [0.81, 0.102, 0.164], "bg2": [0.89, 0.015, 0.207], "text_color": [0.2, 0.046, 0.107]}
+{"text": "the winner is announced soon", "emoji": "💯", "feeling": "Excited", "bg1": [0.742, 0.151, 0.164], "bg2": [0.843, 0.087, 0.253], "text_color": [0.2, 0.072, 0.128]}
+{"text": "i folded the small clothes away", "emoji": "😭", "feeling": "Sad", "bg1": [0.302, -0.039, -0.092], "bg2": [0.224, -0.046, -0.093], "text_color": [0.95, -0.006, -0.013]}
+{"text": "the room is cool dim and still", "emoji": "🌴", "feeling": "Calm", "bg1": [0.444, -0.024, -0.099], "bg2": [0.563, -0.076, -0.066], "text_color": [0.95, -0.004, -0.015]}
+{"text": "we shared one big cookie", "emoji": "☀", "feeling": "Happy", "bg1": [0.766, 0.088, 0.182], "bg2": [0.879, 0.024, 0.206], "text_color": [0.2, 0.04, 0.118]}
+{"text": "the porch is cool and still", "emoji": "🐶", "feeling": "Calm", "bg1": [0.46, -0.028, -0.132], "bg2": [0.568, -0.066, -0.059], "text_color": [0.95, -0.005, -0.02]}
+{"text": "stop making excuses", "emoji": "🚨", "feeling": "Angry", "bg1": [0.469, 0.222, 0.133], "bg2": [0.344, 0.177, 0.115], "text_color": [0.95, 0.031, 0.016]}
+{"text": "the summer is over now", "emoji": "🌙", "feeling": "Sad", "bg1": [0.267, -0.036, -0.129], "bg2": [0.184, -0.032, -0.089], "text_color": [0.95, -0.006, -0.018]}
+{"text": "the last text was months ago", "emoji": "💔", "feeling": "Sad", "bg1": [0.264, -0.039, -0.118], "bg2": [0.168, -0.047, -0.07], "text_color": [0.95, -0.006, -0.017]}
+{"text": "i wave at an empty window", "emoji": "🐱", "feeling": "Sad", "bg1": [0.291, -0.024, -0.126], "bg2": [0.205, -0.053, -0.064], "text_color": [0.95, -0.004, -0.018]}
+{"text": "i miss a voice that is gone", "emoji": "😭", "feeling": "Sad", "bg1": [0.258, -0.021, -0.091], "bg2": [0.175, -0.062, -0.07], "text_color": [0.95, -0.003, -0.013]}
+{"text": "the pond is glassy calm", "emoji": "⛵", "feeling": "Calm", "bg1": [0.41, -0.057, -0.081], "bg2": [0.501, -0.075, -0.095], "text_color": [0.95, -0.01, -0.012]}
+{"text": "what if they say no", "emoji": "🤔", "feeling": "Anxious", "bg1": [0.48, -0.09, -0.065], "bg2": [0.395, -0.039, -0.154], "text_color": [0.95, -0.012, -0.018]}
+{"text": "she laughed until she cried", "emoji": "👍", "feeling": "Happy", "bg1": [0.858, 0.056, 0.162], "bg2": [0.95, 0.024, 0.211], "text_color": [0.2, 0.025, 0.105]}
+{"text": "the call ended too fast", "emoji": "😰", "feeling": "Sad", "bg1": [0.323, -0.018, -0.113], "bg2": [0.233, -0.048, -0.065], "text_color": [0.95, -0.003, -0.016]}
+{"text": "the pie is still warm", "emoji": "🥰", "feeling": "Happy", "bg1": [0.826, 0.048, 0.127], "bg2": [0.928, 0.015, 0.221], "text_color": [0.2, 0.022, 0.083]}
+{"text": "no one called today", "emoji": "🐱", "feeling": "Sad", "bg1": [0.268, -0.015, -0.105], "bg2": [0.202, -0.047, -0.076], "text_color": [0.95, -0.002, -0.015]}
+{"text": "my breath is short and quick", "emoji": "🌙", "feeling": "Anxious", "bg1": [0.492, -0.077, -0.05], "bg2": [0.4, -0.027, -0.146], "text_color": [0.95, -0.01, -0.014]}
+{"text": "the box is at the door", "emoji": "🚀", "feeling": "Excited", "bg1": [0.728, 0.137, 0.17], "bg2": [0.848, 0.087, 0.217], "text_color": [0.2, 0.066, 0.133]}
+{"text": "they left a nasty note", "emoji": "💥", "feeling": "Angry", "bg1": [0.466, 0.238, 0.127], "bg2": [0.334, 0.206, 0.095], "text_color": [0.95, 0.033, 0.015]}
+{"text": "they talked behind my back", "emoji": "👎", "feeling": "Angry", "bg1": [0.465, 0.252, 0.154], "bg2": [0.332, 0.181, 0.081], "text_color": [0.95, 0.035, 0.018]}
+{"text": "my thoughts spiral fast", "emoji": "😰", "feeling": "Anxious", "bg1": [0.509, -0.104, -0.045], "bg2": [0.402, -0.049, -0.133], "text_color": [0.95, -0.014, -0.013]}
+{"text": "they rescheduled for the third time", "emoji": "🚨", "feeling": "Angry", "bg1": [0.428, 0.227, 0.151], "bg2": [0.274, 0.205, 0.104], "text_color": [0.95, 0.032, 0.018]}
+{"text": "my plants are thriving", "emoji": "😅", "feeling": "Happy", "bg1": [0.816, 0.068, 0.174], "bg2": [0.925, 0.034, 0.171], "text_color": [0.2, 0.031, 0.113]}
+{"text": "what if i am not ready", "emoji": "💤", "feeling": "Anxious", "bg1": [0.511, -0.082, -0.063], "bg2": [0.397, -0.048, -0.122], "text_color": [0.95, -0.011, -0.018]}
+{"text": "the deal fell apart on us", "emoji": "🔥", "feeling": "Angry", "bg1": [0.455, 0.261, 0.126], "bg2": [0.311, 0.23, 0.098], "text_color": [0.95, 0.037, 0.015]}
+{"text": "i forgot how to feel okay", "emoji": "😰", "feeling": "Sad", "bg1": [0.328, -0.035, -0.118], "bg2": [0.261, -0.067, -0.069], "text_color": [0.95, -0.006, -0.017]}
+{"text": "a low hum from the fan", "emoji": "🎷", "feeling": "Calm", "bg1": [0.422, -0.025, -0.09], "bg2": [0.515, -0.075, -0.056], "text_color": [0.95, -0.004, -0.013]}
+{"text": "the surprise is ready", "emoji": "⚡", "feeling": "Excited", "bg1": [0.758, 0.136, 0.131], "bg2": [0.882, 0.06, 0.215], "text_color": [0.2, 0.065, 0.102]}
+{"text": "breathing slow and even", "emoji": "⛵", "feeling": "Calm", "bg1": [0.37, -0.04, -0.083], "bg2": [0.458, -0.057, -0.09], "text_color": [0.95, -0.007, -0.012]}
+{"text": "the interview is tomorrow", "emoji": "⚡", "feeling": "Anxious", "bg1": [0.477, -0.066, -0.035], "bg2": [0.372, -0.064, -0.134], "text_color": [0.95, -0.009, -0.01]}
+{"text": "a hushed and gentle dusk", "emoji": "🐶", "feeling": "Calm", "bg1": [0.448, -0.055, -0.13], "bg2": [0.54, -0.079, -0.079], "text_color": [0.95, -0.01, -0.019]}
+{"text": "the meeting could go badly", "emoji": "🤔", "feeling": "Anxious", "bg1": [0.53, -0.068, -0.065], "bg2": [0.425, -0.048, -0.147], "text_color": [0.95, -0.009, -0.018]}
+{"text": "the email has not been answered", "emoji": "⚡", "feeling": "Anxious", "bg1": [0.482, -0.102, -0.036], "bg2": [0.39, -0.054, -0.13], "text_color": [0.95, -0.013, -0.01]}
+{"text": "i keep pacing the hall", "emoji": "💤", "feeling": "Anxious", "bg1": [0.493, -0.079, -0.054], "bg2": [0.385, -0.059, -0.121], "text_color": [0.95, -0.01, -0.015]}
+{"text": "they mocked the idea in the room", "emoji": "👎", "feeling": "Angry", "bg1": [0.437, 0.259, 0.142], "bg2": [0.303, 0.214, 0.1], "text_color": [0.95, 0.036, 0.017]}
+{"text": "i cannot settle down tonight", "emoji": "😰", "feeling": "Anxious", "bg1": [0.516, -0.068, -0.049], "bg2": [0.41, -0.03, -0.13], "text_color": [0.95, -0.009, -0.014]}
+{"text": "one slow easy stretch", "emoji": "🌙", "feeling": "Calm", "bg1": [0.432, -0.026, -0.1], "bg2": [0.528, -0.08, -0.058], "text_color": [0.95, -0.005, -0.015]}
+{"text": "the update broke everything", "emoji": "🚨", "feeling": "Angry", "bg1": [0.43, 0.22, 0.144], "bg2": [0.3, 0.201, 0.089], "text_color": [0.95, 0.031, 0.017]}
+{"text": "everyone showed up", "emoji": "🥰", "feeling": "Happy", "bg1": [0.824, 0.066, 0.178], "bg2": [0.921, 0.02, 0.222], "text_color": [0.2, 0.03, 0.116]}
+{"text": "the swing hangs still and empty", "emoji": "😭", "feeling": "Sad", "bg1": [0.316, -0.029, -0.109], "bg2": [0.256, -0.042, -0.077], "text_color": [0.95, -0.005, -0.015]}
+{"text": "the deal just closed", "emoji": "🥂", "feeling": "Excited", "bg1": [0.725, 0.19, 0.189], "bg2": [0.848, 0.072, 0.22], "text_color": [0.2, 0.091, 0.147]}
+{"text": "they ignored every email", "emoji": "💪", "feeling": "Angry", "bg1": [0.465, 0.265, 0.156], "bg2": [0.343, 0.172, 0.114], "text_color": [0.95, 0.037, 0.019]}
+{"text": "small wins add up", "emoji": "😅", "feeling": "Happy", "bg1": [0.817, 0.067, 0.162], "bg2": [0.913, 0.036, 0.194], "text_color": [0.2, 0.03, 0.105]}
+{"text": "the light is still red", "emoji": "💤", "feeling": "Anxious", "bg1": [0.527, -0.083, -0.048], "bg2": [0.446, -0.05, -0.133], "text_color": [0.95, -0.011, -0.013]}
+{"text": "the doors slide open now", "emoji": "🎶", "feeling": "Excited", "bg1": [0.753, 0.137, 0.175], "bg2": [0.861, 0.083, 0.215], "text_color": [0.2, 0.066, 0.136]}
+{"text": "the street is asleep", "emoji": "🐱", "feeling": "Calm", "bg1": [0.448, -0.039, -0.134], "bg2": [0.551, -0.067, -0.09], "text_color": [0.95, -0.007, -0.02]}
+{"text": "the results are in", "emoji": "🏀", "feeling": "Excited", "bg1": [0.734, 0.165, 0.168], "bg2": [0.877, 0.086, 0.214], "text_color": [0.2, 0.079, 0.131]}
+{"text": "the fog sits on the field", "emoji": "🎹", "feeling": "Calm", "bg1": [0.384, -0.038, -0.087], "bg2": [0.486, -0.089, -0.06], "text_color": [0.95, -0.007, -0.013]}
+{"text": "the update is downloading", "emoji": "🏆", "feeling": "Excited", "bg1": [0.737, 0.166, 0.169], "bg2": [0.858, 0.069, 0.203], "text_color": [0.2, 0.08, 0.132]}
+{"text": "no one to walk with anymore", "emoji": "🐱", "feeling": "Sad", "bg1": [0.326, -0.03, -0.118], "bg2": [0.241, -0.068, -0.084], "text_color": [0.95, -0.005, -0.017]}
+{"text": "the sun feels great", "emoji": "🌈", "feeling": "Happy", "bg1": [0.845, 0.079, 0.125], "bg2": [0.923, 0.028, 0.181], "text_color": [0.2, 0.036, 0.081]}
+{"text": "just booked the flight", "emoji": "🎁", "feeling": "Excited", "bg1": [0.703, 0.145, 0.165], "bg2": [0.827, 0.066, 0.249], "text_color": [0.2, 0.07, 0.129]}
+{"text": "quit ignoring my messages", "emoji": "⚡", "feeling": "Angry", "bg1": [0.465, 0.266, 0.138], "bg2": [0.32, 0.228, 0.119], "text_color": [0.95, 0.037, 0.017]}
+{"text": "we got the tickets", "emoji": "🥂", "feeling": "Excited", "bg1": [0.703, 0.148, 0.143], "bg2": [0.81, 0.088, 0.235], "text_color": [0.2, 0.071, 0.112]}
+{"text": "puppy learned a trick", "emoji": "✨", "feeling": "Happy", "bg1": [0.769, 0.046, 0.172], "bg2": [0.85, 0.024, 0.176], "text_color": [0.2, 0.021, 0.112]}
+{"text": "grabbing my gear now", "emoji": "🏆", "feeling": "Excited", "bg1": [0.75, 0.152, 0.145], "bg2": [0.857, 0.055, 0.258], "text_color": [0.2, 0.073, 0.113]}
+{"text": "the whole street smiled", "emoji": "💖", "feeling": "Happy", "bg1": [0.859, 0.081, 0.155], "bg2": [0.95, 0.013, 0.216], "text_color": [0.2, 0.036, 0.101]}
+{"text": "i reread the message ten times", "emoji": "😰", "feeling": "Anxious", "bg1": [0.514, -0.096, -0.05], "bg2": [0.397, -0.065, -0.151], "text_color": [0.95, -0.012, -0.014]}
+{"text": "the pond mirrors the pale sky", "emoji": "🕯", "feeling": "Calm", "bg1": [0.389, -0.025, -0.125], "bg2": [0.509, -0.079, -0.078], "text_color": [0.95, -0.004, -0.019]}
+{"text": "grateful for today", "emoji": "🐱", "feeling": "Happy", "bg1": [0.836, 0.062, 0.152], "bg2": [0.93, 0.031, 0.212], "text_color": [0.2, 0.028, 0.099]}
+{"text": "we held hands and laughed", "emoji": "👏", "feeling": "Happy", "bg1": [0.816, 0.081, 0.18], "bg2": [0.88, 0.038, 0.182], "text_color": [0.2, 0.036, 0.117]}
+{"text": "i keep checking the phone", "emoji": "🤔", "feeling": "Anxious", "bg1": [0.501, -0.094, -0.064], "bg2": [0.386, -0.055, -0.141], "text_color": [0.95, -0.012, -0.018]}
+{"text": "sunset painted the hills", "emoji": "😅", "feeling": "Happy", "bg1": [0.799, 0.063, 0.162], "bg2": [0.883, 0.044, 0.206], "text_color": [0.2, 0.028, 0.105]}
+{"text": "the results come out soon", "emoji": "🤔", "feeling": "Anxious", "bg1": [0.524, -0.105, -0.041], "bg2": [0.436, -0.043, -0.151], "text_color": [0.95, -0.014, -0.011]}
+{"text": "a cheerful little tune", "emoji": "🎈", "feeling": "Happy", "bg1": [0.826, 0.048, 0.149], "bg2": [0.934, 0.013, 0.178], "text_color": [0.2, 0.022, 0.097]}
+{"text": "warm cocoa and blankets", "emoji": "💖", "feeling": "Happy", "bg1": [0.769, 0.102, 0.195], "bg2": [0.876, 0.011, 0.175], "text_color": [0.2, 0.046, 0.127]}
+{"text": "wrapped in a soft throw", "emoji": "☕", "feeling": "Calm", "bg1": [0.388, -0.039, -0.116], "bg2": [0.476, -0.082, -0.082], "text_color": [0.95, -0.007, -0.017]}
+{"text": "the road was closed with no sign", "emoji": "😡", "feeling": "Angry", "bg1": [0.417, 0.262, 0.146], "bg2": [0.288, 0.196, 0.105], "text_color": [0.95, 0.037, 0.018]}
+{"text": "soft snow on bare trees", "emoji": "🎹", "feeling": "Calm", "bg1": [0.397, -0.023, -0.096], "bg2": [0.48, -0.075, -0.057], "text_color": [0.95, -0.004, -0.014]}
+{"text": "my stomach is in knots", "emoji": "⚡", "feeling": "Anxious", "bg1": [0.495, -0.075, -0.048], "bg2": [0.391, -0.048, -0.137], "text_color": [0.95, -0.01, -0.013]}
+{"text": "the sea breathes in and out", "emoji": "🎶", "feeling": "Calm", "bg1": [0.438, -0.055, -0.106], "bg2": [0.543, -0.078, -0.094], "text_color": [0.95, -0.01, -0.016]}
+{"text": "i am done with the runaround", "emoji": "🔥", "feeling": "Angry", "bg1": [0.415, 0.215, 0.136], "bg2": [0.283, 0.211, 0.089], "text_color": [0.95, 0.03, 0.016]}
+{"text": "she moved far away", "emoji": "🌙", "feeling": "Sad", "bg1": [0.28, -0.022, -0.104], "bg2": [0.198, -0.037, -0.091], "text_color": [0.95, -0.004, -0.015]}
+{"text": "i am done being ignored", "emoji": "👎", "feeling": "Angry", "bg1": [0.455, 0.263, 0.124], "bg2": [0.304, 0.227, 0.107], "text_color": [0.95, 0.037, 0.015]}
+{"text": "the house feels empty", "emoji": "💤", "feeling": "Sad", "bg1": [0.297, -0.03, -0.094], "bg2": [0.235, -0.032, -0.076], "text_color": [0.95, -0.005, -0.013]}
+{"text": "the kitchen is cold tonight", "emoji": "💔", "feeling": "Sad", "bg1": [0.306, -0.026, -0.097], "bg2": [0.208, -0.034, -0.096], "text_color": [0.95, -0.004, -0.014]}
+{"text": "the days blur together", "emoji": "😰", "feeling": "Sad", "bg1": [0.284, -0.037, -0.109], "bg2": [0.185, -0.066, -0.075], "text_color": [0.95, -0.006, -0.015]}
+{"text": "we never got to say more", "emoji": "💤", "feeling": "Sad", "bg1": [0.29, -0.017, -0.118], "bg2": [0.224, -0.058, -0.084], "text_color": [0.95, -0.003, -0.017]}
+{"text": "i cried on the bus", "emoji": "👻", "feeling": "Sad", "bg1": [0.302, -0.028, -0.101], "bg2": [0.219, -0.054, -0.081], "text_color": [0.95, -0.004, -0.014]}
+{"text": "warm toast and honey", "emoji": "👍", "feeling": "Happy", "bg1": [0.776, 0.092, 0.17], "bg2": [0.888, 0.048, 0.175], "text_color": [0.2, 0.041, 0.111]}
+{"text": "warm feet by the fire", "emoji": "🥰", "feeling": "Happy", "bg1": [0.764, 0.045, 0.15], "bg2": [0.874, 0.026, 0.173], "text_color": [0.2, 0.02, 0.098]}
+{"text": "the house is quiet now", "emoji": "🔮", "feeling": "Calm", "bg1": [0.44, -0.069, -0.138], "bg2": [0.529, -0.075, -0.079], "text_color": [0.95, -0.012, -0.021]}
+{"text": "candle flickers softly", "emoji": "💤", "feeling": "Calm", "bg1": [0.4, -0.07, -0.081], "bg2": [0.495, -0.041, -0.104], "text_color": [0.95, -0.013, -0.012]}
+{"text": "the plans fell through", "emoji": "😭", "feeling": "Sad", "bg1": [0.276, -0.039, -0.107], "bg2": [0.179, -0.054, -0.081], "text_color": [0.95, -0.006, -0.015]}
+{"text": "kids drew me a card", "emoji": "🐶", "feeling": "Happy", "bg1": [0.762, 0.044, 0.196], "bg2": [0.824, 0.04, 0.223], "text_color": [0.2, 0.02, 0.127]}
+{"text": "my chest feels too tight", "emoji": "🤔", "feeling": "Anxious", "bg1": [0.525, -0.1, -0.048], "bg2": [0.426, -0.041, -0.138], "text_color": [0.95, -0.013, -0.013]}
+{"text": "the porch light glows warm", "emoji": "🎨", "feeling": "Happy", "bg1": [0.822, 0.097, 0.162], "bg2": [0.906, 0.033, 0.176], "text_color": [0.2, 0.044, 0.105]}
+{"text": "i lost my old friend today", "emoji": "💤", "feeling": "Sad", "bg1": [0.308, -0.028, -0.116], "bg2": [0.213, -0.058, -0.099], "text_color": [0.95, -0.004, -0.016]}
+{"text": "the bed feels too big now", "emoji": "💤", "feeling": "Sad", "bg1": [0.263, -0.019, -0.09], "bg2": [0.171, -0.039, -0.085], "text_color": [0.95, -0.003, -0.013]}
+{"text": "the garden went to weeds", "emoji": "💔", "feeling": "Sad", "bg1": [0.253, -0.017, -0.128], "bg2": [0.172, -0.049, -0.086], "text_color": [0.95, -0.003, -0.018]}
+{"text": "they broke their promise again", "emoji": "💪", "feeling": "Angry", "bg1": [0.452, 0.247, 0.139], "bg2": [0.328, 0.229, 0.09], "text_color": [0.95, 0.035, 0.017]}
+{"text": "my heart is pounding again", "emoji": "🤔", "feeling": "Anxious", "bg1": [0.5, -0.098, -0.063], "bg2": [0.384, -0.029, -0.142], "text_color": [0.95, -0.013, -0.018]}
+{"text": "the votes are being counted", "emoji": "🎤", "feeling": "Excited", "bg1": [0.749, 0.155, 0.177], "bg2": [0.852, 0.066, 0.259], "text_color": [0.2, 0.074, 0.138]}
+{"text": "the goodbye kept replaying", "emoji": "🐱", "feeling": "Sad", "bg1": [0.282, -0.041, -0.125], "bg2": [0.193, -0.069, -0.094], "text_color": [0.95, -0.007, -0.018]}
+{"text": "the machine ate my money", "emoji": "🔥", "feeling": "Angry", "bg1": [0.442, 0.226, 0.14], "bg2": [0.294, 0.22, 0.081], "text_color": [0.95, 0.032, 0.017]}
+{"text": "the engine just roared", "emoji": "🎮", "feeling": "Excited", "bg1": [0.708, 0.154, 0.159], "bg2": [0.81, 0.05, 0.251], "text_color": [0.2, 0.074, 0.124]}
+{"text": "a still pool under trees", "emoji": "🎹", "feeling": "Calm", "bg1": [0.46, -0.022, -0.109], "bg2": [0.579, -0.046, -0.104], "text_color": [0.95, -0.004, -0.016]}
+{"text": "no one saved me a seat", "emoji": "🐱", "feeling": "Sad", "bg1": [0.279, -0.024, -0.112], "bg2": [0.197, -0.058, -0.091], "text_color": [0.95, -0.004, -0.016]}
+{"text": "a calm gray drizzle falls", "emoji": "🔮", "feeling": "Calm", "bg1": [0.438, -0.033, -0.134], "bg2": [0.527, -0.04, -0.106], "text_color": [0.95, -0.006, -0.02]}
+{"text": "the puppy wags nonstop", "emoji": "🌴", "feeling": "Happy", "bg1": [0.851, 0.098, 0.183], "bg2": [0.95, 0.019, 0.174], "text_color": [0.2, 0.044, 0.119]}
+{"text": "what if i miss the train", "emoji": "💤", "feeling": "Anxious", "bg1": [0.512, -0.09, -0.068], "bg2": [0.413, -0.039, -0.135], "text_color": [0.95, -0.012, -0.019]}
+{"text": "soft rain on the roof", "emoji": "🎷", "feeling": "Calm", "bg1": [0.412, -0.056, -0.094], "bg2": [0.517, -0.05, -0.103], "text_color": [0.95, -0.01, -0.014]}
+{"text": "a surprise letter came", "emoji": "✨", "feeling": "Happy", "bg1": [0.802, 0.046, 0.121], "bg2": [0.909, 0.043, 0.206], "text_color": [0.2, 0.021, 0.079]}
+{"text": "i am tired of repeating myself", "emoji": "⚡", "feeling": "Angry", "bg1": [0.463, 0.233, 0.127], "bg2": [0.311, 0.205, 0.083], "text_color": [0.95, 0.033, 0.015]}
+{"text": "i ate alone again", "emoji": "👻", "feeling": "Sad", "bg1": [0.283, -0.029, -0.107], "bg2": [0.192, -0.064, -0.096], "text_color": [0.95, -0.005, -0.015]}
+{"text": "the green light is on", "emoji": "🏀", "feeling": "Excited", "bg1": [0.719, 0.136, 0.141], "bg2": [0.859, 0.054, 0.225], "text_color": [0.2, 0.065, 0.11]}
+{"text": "danced in the kitchen", "emoji": "😅", "feeling": "Happy", "bg1": [0.812, 0.114, 0.157], "bg2": [0.912, 0.036, 0.218], "text_color": [0.2, 0.051, 0.102]}
+{"text": "the letter never came", "emoji": "💤", "feeling": "Sad", "bg1": [0.286, -0.016, -0.121], "bg2": [0.224, -0.037, -0.063], "text_color": [0.95, -0.003, -0.017]}
+{"text": "sunlight on the floor", "emoji": "🌈", "feeling": "Happy", "bg1": [0.79, 0.102, 0.184], "bg2": [0.88, 0.016, 0.193], "text_color": [0.2, 0.046, 0.12]}
+{"text": "the trail race begins now", "emoji": "🎤", "feeling": "Excited", "bg1": [0.722, 0.183, 0.183], "bg2": [0.846, 0.071, 0.256], "text_color": [0.2, 0.088, 0.143]}
+{"text": "the numbers do not add up", "emoji": "⚡", "feeling": "Anxious", "bg1": [0.488, -0.085, -0.067], "bg2": [0.394, -0.046, -0.123], "text_color": [0.95, -0.011, -0.019]}
+{"text": "we drifted apart", "emoji": "😰", "feeling": "Sad", "bg1": [0.287, -0.032, -0.127], "bg2": [0.217, -0.052, -0.068], "text_color": [0.95, -0.005, -0.018]}
+{"text": "slow clouds over still hills", "emoji": "🐼", "feeling": "Calm", "bg1": [0.382, -0.038, -0.13], "bg2": [0.496, -0.051, -0.091], "text_color": [0.95, -0.007, -0.019]}
+{"text": "my best friend called", "emoji": "💖", "feeling": "Happy", "bg1": [0.812, 0.105, 0.155], "bg2": [0.888, 0.033, 0.189], "text_color": [0.2, 0.047, 0.101]}
+{"text": "the wind is barely there", "emoji": "⛵", "feeling": "Calm", "bg1": [0.419, -0.037, -0.116], "bg2": [0.507, -0.053, -0.1], "text_color": [0.95, -0.007, -0.017]}
+{"text": "a calm unhurried morning", "emoji": "🌴", "feeling": "Calm", "bg1": [0.377, -0.069, -0.108], "bg2": [0.469, -0.05, -0.103], "text_color": [0.95, -0.012, -0.016]}
+{"text": "i cannot shake this dread", "emoji": "🙃", "feeling": "Anxious", "bg1": [0.502, -0.076, -0.053], "bg2": [0.385, -0.026, -0.149], "text_color": [0.95, -0.01, -0.015]}
+{"text": "i cannot find my keys", "emoji": "🌙", "feeling": "Anxious", "bg1": [0.519, -0.101, -0.067], "bg2": [0.405, -0.037, -0.15], "text_color": [0.95, -0.013, -0.019]}
+{"text": "i am boiling over this", "emoji": "🔥", "feeling": "Angry", "bg1": [0.469, 0.255, 0.121], "bg2": [0.348, 0.219, 0.084], "text_color": [0.95, 0.036, 0.015]}
+{"text": "our song came on loud", "emoji": "🎤", "feeling": "Excited", "bg1": [0.705, 0.174, 0.166], "bg2": [0.81, 0.085, 0.217], "text_color": [0.2, 0.084, 0.129]}
+{"text": "soft light through curtains", "emoji": "🐶", "feeling": "Calm", "bg1": [0.412, -0.067, -0.12], "bg2": [0.521, -0.077, -0.071], "text_color": [0.95, -0.012, -0.018]}
+{"text": "the silence makes it worse", "emoji": "🌙", "feeling": "Anxious", "bg1": [0.521, -0.075, -0.066], "bg2": [0.421, -0.042, -0.135], "text_color": [0.95, -0.01, -0.018]}
+{"text": "the band walked on stage", "emoji": "🎮", "feeling": "Excited", "bg1": [0.746, 0.167, 0.132], "bg2": [0.863, 0.057, 0.259], "text_color": [0.2, 0.08, 0.103]}
+{"text": "a happy quiet kitchen", "emoji": "🍎", "feeling": "Happy", "bg1": [0.818, 0.061, 0.164], "bg2": [0.88, 0.019, 0.204], "text_color": [0.2, 0.027, 0.107]}
+{"text": "we are on the list", "emoji": "🔥", "feeling": "Excited", "bg1": [0.749, 0.14, 0.154], "bg2": [0.891, 0.078, 0.259], "text_color": [0.2, 0.067, 0.12]}
+{"text": "they moved the goalpost again", "emoji": "🔥", "feeling": "Angry", "bg1": [0.442, 0.265, 0.155], "bg2": [0.307, 0.206, 0.091], "text_color": [0.95, 0.037, 0.019]}
+{"text": "the news might be bad", "emoji": "🤔", "feeling": "Anxious", "bg1": [0.519, -0.075, -0.059], "bg2": [0.42, -0.028, -0.139], "text_color": [0.95, -0.01, -0.017]}
+{"text": "they left the mess for me", "emoji": "⚡", "feeling": "Angry", "bg1": [0.418, 0.255, 0.159], "bg2": [0.265, 0.182, 0.1], "text_color": [0.95, 0.036, 0.019]}
+{"text": "the tide slips out slowly", "emoji": "🌙", "feeling": "Calm", "bg1": [0.423, -0.026, -0.105], "bg2": [0.518, -0.053, -0.063], "text_color": [0.95, -0.005, -0.016]}
+{"text": "a slow morning stretch", "emoji": "⛵", "feeling": "Calm", "bg1": [0.414, -0.069, -0.114], "bg2": [0.522, -0.076, -0.093], "text_color": [0.95, -0.012, -0.017]}
+{"text": "i cannot focus on anything", "emoji": "😅", "feeling": "Anxious", "bg1": [0.476, -0.099, -0.04], "bg2": [0.39, -0.03, -0.13], "text_color": [0.95, -0.013, -0.011]}
+{"text": "the room holds a soft silence", "emoji": "🐱", "feeling": "Calm", "bg1": [0.467, -0.051, -0.083], "bg2": [0.551, -0.055, -0.069], "text_color": [0.95, -0.009, -0.012]}
+{"text": "moonlight on the floorboards", "emoji": "🌈", "feeling": "Calm", "bg1": [0.396, -0.052, -0.085], "bg2": [0.48, -0.088, -0.061], "text_color": [0.95, -0.009, -0.013]}
+{"text": "we are heading out early", "emoji": "🎉", "feeling": "Excited", "bg1": [0.704, 0.145, 0.169], "bg2": [0.849, 0.085, 0.226], "text_color": [0.2, 0.07, 0.132]}
+{"text": "they took my parking pass", "emoji": "🔥", "feeling": "Angry", "bg1": [0.452, 0.228, 0.152], "bg2": [0.3, 0.205, 0.093], "text_color": [0.95, 0.032, 0.018]}
+{"text": "the house settles for the night", "emoji": "🐶", "feeling": "Calm", "bg1": [0.424, -0.053, -0.13], "bg2": [0.506, -0.06, -0.051], "text_color": [0.95, -0.01, -0.019]}
+{"text": "the dog found me first", "emoji": "☀", "feeling": "Happy", "bg1": [0.8, 0.096, 0.191], "bg2": [0.89, 0.043, 0.192], "text_color": [0.2, 0.043, 0.124]}
+{"text": "i cannot catch my breath", "emoji": "😅", "feeling": "Anxious", "bg1": [0.514, -0.1, -0.063], "bg2": [0.423, -0.041, -0.126], "text_color": [0.95, -0.013, -0.018]}
+{"text": "good news from home", "emoji": "😅", "feeling": "Happy", "bg1": [0.814, 0.066, 0.149], "bg2": [0.93, 0.038, 0.209], "text_color": [0.2, 0.03, 0.097]}
+{"text": "they cut me off in traffic", "emoji": "🔥", "feeling": "Angry", "bg1": [0.456, 0.243, 0.121], "bg2": [0.323, 0.222, 0.085], "text_color": [0.95, 0.034, 0.015]}
+{"text": "my hands are cold and damp", "emoji": "🙃", "feeling": "Anxious", "bg1": [0.476, -0.079, -0.046], "bg2": [0.362, -0.061, -0.147], "text_color": [0.95, -0.01, -0.013]}
+{"text": "the season ended too soon", "emoji": "👻", "feeling": "Sad", "bg1": [0.306, -0.04, -0.127], "bg2": [0.206, -0.035, -0.095], "text_color": [0.95, -0.006, -0.018]}
+{"text": "a slow ache in the chest", "emoji": "🐱", "feeling": "Sad", "bg1": [0.284, -0.017, -0.097], "bg2": [0.209, -0.031, -0.086], "text_color": [0.95, -0.003, -0.014]}
+{"text": "the rain matched my mood", "emoji": "👻", "feeling": "Sad", "bg1": [0.319, -0.044, -0.1], "bg2": [0.245, -0.031, -0.065], "text_color": [0.95, -0.007, -0.014]}
+{"text": "the year just slipped by", "emoji": "💤", "feeling": "Sad", "bg1": [0.253, -0.026, -0.116], "bg2": [0.16, -0.032, -0.097], "text_color": [0.95, -0.004, -0.016]}
+{"text": "the stage lights blazed", "emoji": "🥂", "feeling": "Excited", "bg1": [0.712, 0.145, 0.137], "bg2": [0.856, 0.08, 0.217], "text_color": [0.2, 0.07, 0.107]}
+{"text": "we grabbed the last seats", "emoji": "⚽", "feeling": "Excited", "bg1": [0.705, 0.154, 0.154], "bg2": [0.823, 0.063, 0.206], "text_color": [0.2, 0.074, 0.12]}
+{"text": "the garden buzzed with life", "emoji": "☀", "feeling": "Happy", "bg1": [0.802, 0.099, 0.162], "bg2": [0.863, 0.022, 0.209], "text_color": [0.2, 0.045, 0.105]}
+{"text": "everything feels gray", "emoji": "💔", "feeling": "Sad", "bg1": [0.31, -0.028, -0.123], "bg2": [0.245, -0.069, -0.062], "text_color": [0.95, -0.004, -0.017]}
+{"text": "the tide moves slow", "emoji": "🌙", "feeling": "Calm", "bg1": [0.452, -0.035, -0.116], "bg2": [0.57, -0.078, -0.08], "text_color": [0.95, -0.006, -0.017]}
+{"text": "they hung up on me", "emoji": "😡", "feeling": "Angry", "bg1": [0.455, 0.261, 0.122], "bg2": [0.304, 0.227, 0.116], "text_color": [0.95, 0.037, 0.015]}
+{"text": "the kettle hums low", "emoji": "🐶", "feeling": "Calm", "bg1": [0.425, -0.041, -0.112], "bg2": [0.506, -0.06, -0.103], "text_color": [0.95, -0.007, -0.017]}
+{"text": "i cannot stand the lies", "emoji": "👎", "feeling": "Angry", "bg1": [0.435, 0.222, 0.138], "bg2": [0.279, 0.203, 0.098], "text_color": [0.95, 0.031, 0.017]}
+{"text": "the day winds down slow", "emoji": "⛵", "feeling": "Calm", "bg1": [0.447, -0.023, -0.091], "bg2": [0.552, -0.065, -0.109], "text_color": [0.95, -0.004, -0.014]}
+{"text": "nothing to do today", "emoji": "💤", "feeling": "Calm", "bg1": [0.395, -0.062, -0.125], "bg2": [0.492, -0.064, -0.089], "text_color": [0.95, -0.011, -0.019]}
+{"text": "resting with eyes closed", "emoji": "🌴", "feeling": "Calm", "bg1": [0.377, -0.065, -0.086], "bg2": [0.484, -0.088, -0.052], "text_color": [0.95, -0.012, -0.013]}
+{"text": "the box of memories stayed shut", "emoji": "😭", "feeling": "Sad", "bg1": [0.28, -0.023, -0.097], "bg2": [0.217, -0.041, -0.075], "text_color": [0.95, -0.004, -0.014]}
+{"text": "she is coming home", "emoji": "🏆", "feeling": "Excited", "bg1": [0.711, 0.167, 0.132], "bg2": [0.828, 0.071, 0.237], "text_color": [0.2, 0.08, 0.103]}
+{"text": "road trip tomorrow", "emoji": "🥂", "feeling": "Excited", "bg1": [0.712, 0.167, 0.153], "bg2": [0.83, 0.076, 0.223], "text_color": [0.2, 0.08, 0.119]}
+{"text": "what if they already know", "emoji": "😅", "feeling": "Anxious", "bg1": [0.491, -0.1, -0.059], "bg2": [0.385, -0.064, -0.152], "text_color": [0.95, -0.013, -0.017]}
+{"text": "the old cafe closed for good", "emoji": "💔", "feeling": "Sad", "bg1": [0.277, -0.027, -0.103], "bg2": [0.217, -0.041, -0.081], "text_color": [0.95, -0.004, -0.014]}
+{"text": "a mild and restful night", "emoji": "🔮", "feeling": "Calm", "bg1": [0.395, -0.047, -0.085], "bg2": [0.506, -0.079, -0.067], "text_color": [0.95, -0.008, -0.013]}
+{"text": "i walked past our old bench", "emoji": "👻", "feeling": "Sad", "bg1": [0.328, -0.031, -0.11], "bg2": [0.228, -0.03, -0.07], "text_color": [0.95, -0.005, -0.015]}
+{"text": "the road ahead is unclear", "emoji": "🙃", "feeling": "Anxious", "bg1": [0.488, -0.103, -0.048], "bg2": [0.384, -0.031, -0.15], "text_color": [0.95, -0.013, -0.013]}
+{"text": "someone took my spot", "emoji": "💪", "feeling": "Angry", "bg1": [0.439, 0.249, 0.134], "bg2": [0.308, 0.197, 0.088], "text_color": [0.95, 0.035, 0.016]}
+{"text": "what if the flight is delayed", "emoji": "🌙", "feeling": "Anxious", "bg1": [0.514, -0.076, -0.047], "bg2": [0.403, -0.028, -0.143], "text_color": [0.95, -0.01, -0.013]}
+{"text": "i keep the door unlocked just in case", "emoji": "💤", "feeling": "Sad", "bg1": [0.294, -0.021, -0.099], "bg2": [0.217, -0.047, -0.06], "text_color": [0.95, -0.003, -0.014]}
+{"text": "birdsong at dawn", "emoji": "🎈", "feeling": "Happy", "bg1": [0.857, 0.065, 0.128], "bg2": [0.92, 0.037, 0.195], "text_color": [0.2, 0.029, 0.083]}
+{"text": "quit slamming the cabinets", "emoji": "🎃", "feeling": "Angry", "bg1": [0.421, 0.216, 0.136], "bg2": [0.269, 0.211, 0.1], "text_color": [0.95, 0.03, 0.016]}
+{"text": "we lost touch a long time ago", "emoji": "😰", "feeling": "Sad", "bg1": [0.283, -0.034, -0.106], "bg2": [0.197, -0.047, -0.084], "text_color": [0.95, -0.005, -0.015]}
+{"text": "i feel like something is off", "emoji": "🌙", "feeling": "Anxious", "bg1": [0.481, -0.104, -0.074], "bg2": [0.395, -0.053, -0.139], "text_color": [0.95, -0.014, -0.021]}
+{"text": "they took credit for my work", "emoji": "🎃", "feeling": "Angry", "bg1": [0.459, 0.217, 0.126], "bg2": [0.319, 0.205, 0.092], "text_color": [0.95, 0.03, 0.015]}
+{"text": "we made it home safe", "emoji": "🍎", "feeling": "Happy", "bg1": [0.809, 0.088, 0.158], "bg2": [0.898, 0.028, 0.214], "text_color": [0.2, 0.04, 0.103]}
+{"text": "we said our last goodbye", "emoji": "💤", "feeling": "Sad", "bg1": [0.269, -0.03, -0.114], "bg2": [0.186, -0.044, -0.063], "text_color": [0.95, -0.005, -0.016]}
+{"text": "they ghosted the meeting", "emoji": "🔥", "feeling": "Angry", "bg1": [0.432, 0.254, 0.128], "bg2": [0.3, 0.215, 0.091], "text_color": [0.95, 0.036, 0.015]}
+{"text": "a calm unbroken quiet", "emoji": "⛵", "feeling": "Calm", "bg1": [0.39, -0.055, -0.114], "bg2": [0.492, -0.09, -0.081], "text_color": [0.95, -0.01, -0.017]}
+{"text": "the train pulled away without me", "emoji": "👻", "feeling": "Sad", "bg1": [0.314, -0.015, -0.121], "bg2": [0.216, -0.035, -0.07], "text_color": [0.95, -0.002, -0.017]}
+{"text": "cannot sit still", "emoji": "💥", "feeling": "Excited", "bg1": [0.759, 0.143, 0.138], "bg2": [0.876, 0.071, 0.24], "text_color": [0.2, 0.069, 0.108]}
+{"text": "the season opens today", "emoji": "🔥", "feeling": "Excited", "bg1": [0.716, 0.143, 0.166], "bg2": [0.861, 0.082, 0.202], "text_color": [0.2, 0.069, 0.129]}
+{"text": "the gates just swung open", "emoji": "🏆", "feeling": "Excited", "bg1": [0.744, 0.15, 0.186], "bg2": [0.893, 0.053, 0.207], "text_color": [0.2, 0.072, 0.145]}
+{"text": "the elevator broke again today", "emoji": "😡", "feeling": "Angry", "bg1": [0.412, 0.216, 0.158], "bg2": [0.282, 0.182, 0.11], "text_color": [0.95, 0.03, 0.019]}
+{"text": "the whistle is about to blow", "emoji": "🥂", "feeling": "Excited", "bg1": [0.727, 0.166, 0.176], "bg2": [0.839, 0.055, 0.231], "text_color": [0.2, 0.08, 0.137]}
+{"text": "the bell is about to ring", "emoji": "🎤", "feeling": "Excited", "bg1": [0.753, 0.131, 0.177], "bg2": [0.863, 0.063, 0.215], "text_color": [0.2, 0.063, 0.138]}
+{"text": "the cake turned out great", "emoji": "🐶", "feeling": "Happy", "bg1": [0.793, 0.066, 0.141], "bg2": [0.899, 0.034, 0.203], "text_color": [0.2, 0.03, 0.092]}
+{"text": "the news made us cheer", "emoji": "🎈", "feeling": "Happy", "bg1": [0.809, 0.084, 0.131], "bg2": [0.915, 0.02, 0.212], "text_color": [0.2, 0.038, 0.085]}
+{"text": "folding warm laundry", "emoji": "☕", "feeling": "Calm", "bg1": [0.433, -0.057, -0.125], "bg2": [0.53, -0.062, -0.051], "text_color": [0.95, -0.01, -0.019]}
+{"text": "a bright easy afternoon", "emoji": "✨", "feeling": "Happy", "bg1": [0.844, 0.046, 0.146], "bg2": [0.904, 0.037, 0.208], "text_color": [0.2, 0.021, 0.095]}
+{"text": "my leg will not stop bouncing", "emoji": "🔦", "feeling": "Anxious", "bg1": [0.497, -0.095, -0.068], "bg2": [0.417, -0.032, -0.155], "text_color": [0.95, -0.012, -0.019]}
+{"text": "the wait is unbearable", "emoji": "🙃", "feeling": "Anxious", "bg1": [0.491, -0.076, -0.049], "bg2": [0.399, -0.03, -0.126], "text_color": [0.95, -0.01, -0.014]}
+{"text": "i cannot find the words", "emoji": "🌙", "feeling": "Sad", "bg1": [0.269, -0.016, -0.103], "bg2": [0.17, -0.052, -0.086], "text_color": [0.95, -0.003, -0.014]}
+{"text": "the storm warning just went off", "emoji": "😰", "feeling": "Anxious", "bg1": [0.502, -0.077, -0.042], "bg2": [0.418, -0.056, -0.157], "text_color": [0.95, -0.01, -0.012]}
+{"text": "the blanket is heavy and warm", "emoji": "⛵", "feeling": "Calm", "bg1": [0.447, -0.066, -0.102], "bg2": [0.562, -0.068, -0.093], "text_color": [0.95, -0.012, -0.015]}
+{"text": "they parked in my driveway", "emoji": "⚡", "feeling": "Angry", "bg1": [0.446, 0.263, 0.157], "bg2": [0.302, 0.192, 0.105], "text_color": [0.95, 0.037, 0.019]}
+{"text": "the kickoff is now", "emoji": "🎉", "feeling": "Excited", "bg1": [0.722, 0.154, 0.181], "bg2": [0.838, 0.057, 0.225], "text_color": [0.2, 0.074, 0.141]}
+{"text": "the bill is wrong yet again", "emoji": "🔥", "feeling": "Angry", "bg1": [0.462, 0.232, 0.133], "bg2": [0.314, 0.229, 0.096], "text_color": [0.95, 0.032, 0.016]}
+{"text": "my hands will not stop shaking", "emoji": "😰", "feeling": "Anxious", "bg1": [0.509, -0.101, -0.046], "bg2": [0.392, -0.034, -0.149], "text_color": [0.95, -0.013, -0.013]}
+{"text": "the room is spinning a little", "emoji": "😰", "feeling": "Anxious", "bg1": [0.529, -0.076, -0.048], "bg2": [0.409, -0.059, -0.146], "text_color": [0.95, -0.01, -0.013]}
+{"text": "i keep watching the door", "emoji": "🌙", "feeling": "Anxious", "bg1": [0.524, -0.074, -0.036], "bg2": [0.422, -0.037, -0.149], "text_color": [0.95, -0.01, -0.01]}
+{"text": "i cannot eat before this", "emoji": "⚡", "feeling": "Anxious", "bg1": [0.507, -0.085, -0.052], "bg2": [0.403, -0.03, -0.134], "text_color": [0.95, -0.011, -0.015]}
+{"text": "i am so angry i could shout", "emoji": "🎃", "feeling": "Angry", "bg1": [0.457, 0.236, 0.132], "bg2": [0.309, 0.178, 0.086], "text_color": [0.95, 0.033, 0.016]}
+{"text": "what if the plan falls apart", "emoji": "💤", "feeling": "Anxious", "bg1": [0.498, -0.097, -0.056], "bg2": [0.382, -0.061, -0.158], "text_color": [0.95, -0.013, -0.016]}
+{"text": "the launch is live", "emoji": "🥳", "feeling": "Excited", "bg1": [0.727, 0.176, 0.157], "bg2": [0.835, 0.068, 0.229], "text_color": [0.2, 0.084, 0.122]}
+{"text": "the room smells like cake", "emoji": "🌈", "feeling": "Happy", "bg1": [0.778, 0.112, 0.134], "bg2": [0.854, 0.047, 0.186], "text_color": [0.2, 0.05, 0.087]}
+{"text": "quit changing the plan", "emoji": "🎃", "feeling": "Angry", "bg1": [0.457, 0.261, 0.131], "bg2": [0.311, 0.212, 0.116], "text_color": [0.95, 0.037, 0.016]}
+{"text": "the goodbye was too soon", "emoji": "😭", "feeling": "Sad", "bg1": [0.282, -0.037, -0.099], "bg2": [0.211, -0.048, -0.091], "text_color": [0.95, -0.006, -0.014]}
+{"text": "no lights on next door", "emoji": "🐱", "feeling": "Sad", "bg1": [0.256, -0.041, -0.124], "bg2": [0.192, -0.038, -0.08], "text_color": [0.95, -0.007, -0.017]}
+{"text": "i keep imagining the worst", "emoji": "😰", "feeling": "Anxious", "bg1": [0.525, -0.099, -0.048], "bg2": [0.429, -0.056, -0.13], "text_color": [0.95, -0.013, -0.013]}
+{"text": "what if the money runs out", "emoji": "🌙", "feeling": "Anxious", "bg1": [0.473, -0.071, -0.075], "bg2": [0.385, -0.055, -0.145], "text_color": [0.95, -0.009, -0.021]}
+{"text": "the noise will not stop", "emoji": "👎", "feeling": "Angry", "bg1": [0.464, 0.228, 0.14], "bg2": [0.343, 0.179, 0.111], "text_color": [0.95, 0.032, 0.017]}
+{"text": "i cannot stop the what ifs", "emoji": "⚡", "feeling": "Anxious", "bg1": [0.487, -0.075, -0.039], "bg2": [0.37, -0.045, -0.158], "text_color": [0.95, -0.01, -0.011]}
+{"text": "i feel a knot in my throat", "emoji": "😅", "feeling": "Anxious", "bg1": [0.513, -0.082, -0.071], "bg2": [0.399, -0.042, -0.124], "text_color": [0.95, -0.011, -0.02]}
+{"text": "the report is due at nine", "emoji": "🙃", "feeling": "Anxious", "bg1": [0.504, -0.071, -0.042], "bg2": [0.385, -0.045, -0.12], "text_color": [0.95, -0.009, -0.012]}
+{"text": "the album ended on a sad note", "emoji": "🌙", "feeling": "Sad", "bg1": [0.272, -0.023, -0.091], "bg2": [0.193, -0.065, -0.064], "text_color": [0.95, -0.004, -0.013]}
+{"text": "they double booked the room", "emoji": "🚨", "feeling": "Angry", "bg1": [0.459, 0.24, 0.137], "bg2": [0.332, 0.182, 0.117], "text_color": [0.95, 0.034, 0.016]}
+{"text": "the queue is finally moving", "emoji": "💯", "feeling": "Excited", "bg1": [0.728, 0.164, 0.188], "bg2": [0.849, 0.054, 0.21], "text_color": [0.2, 0.079, 0.147]}
+{"text": "the countdown is on", "emoji": "⚽", "feeling": "Excited", "bg1": [0.752, 0.178, 0.137], "bg2": [0.866, 0.072, 0.257], "text_color": [0.2, 0.085, 0.107]}
+{"text": "the site logged me out again", "emoji": "👎", "feeling": "Angry", "bg1": [0.416, 0.252, 0.141], "bg2": [0.274, 0.199, 0.084], "text_color": [0.95, 0.035, 0.017]}
+{"text": "i cannot believe this", "emoji": "⚡", "feeling": "Angry", "bg1": [0.418, 0.262, 0.142], "bg2": [0.271, 0.173, 0.082], "text_color": [0.95, 0.037, 0.017]}
+{"text": "the room still smells like them", "emoji": "👻", "feeling": "Sad", "bg1": [0.277, -0.037, -0.11], "bg2": [0.189, -0.047, -0.099], "text_color": [0.95, -0.006, -0.015]}
+{"text": "the call got dropped twice", "emoji": "😡", "feeling": "Angry", "bg1": [0.43, 0.231, 0.146], "bg2": [0.281, 0.213, 0.114], "text_color": [0.95, 0.032, 0.018]}
+{"text": "the cat sleeps on my lap", "emoji": "☕", "feeling": "Calm", "bg1": [0.407, -0.06, -0.084], "bg2": [0.5, -0.083, -0.106], "text_color": [0.95, -0.011, -0.013]}
+{"text": "a quiet page turns", "emoji": "🌴", "feeling": "Calm", "bg1": [0.423, -0.063, -0.12], "bg2": [0.508, -0.062, -0.092], "text_color": [0.95, -0.011, -0.018]}
+{"text": "the delivery never showed", "emoji": "😡", "feeling": "Angry", "bg1": [0.464, 0.215, 0.137], "bg2": [0.307, 0.192, 0.086], "text_color": [0.95, 0.03, 0.016]}
+{"text": "a long slow sip of tea", "emoji": "🐱", "feeling": "Calm", "bg1": [0.411, -0.042, -0.095], "bg2": [0.526, -0.083, -0.097], "text_color": [0.95, -0.008, -0.014]}
+{"text": "they left the gate wide open", "emoji": "🔥", "feeling": "Angry", "bg1": [0.459, 0.212, 0.144], "bg2": [0.306, 0.175, 0.097], "text_color": [0.95, 0.03, 0.017]}
+{"text": "the plan is a go", "emoji": "🥂", "feeling": "Excited", "bg1": [0.732, 0.136, 0.18], "bg2": [0.836, 0.081, 0.254], "text_color": [0.2, 0.065, 0.14]}
+{"text": "i cannot shake this weight", "emoji": "💔", "feeling": "Sad", "bg1": [0.299, -0.021, -0.094], "bg2": [0.208, -0.049, -0.082], "text_color": [0.95, -0.003, -0.013]}
+{"text": "the mic is hot", "emoji": "💥", "feeling": "Excited", "bg1": [0.742, 0.162, 0.163], "bg2": [0.887, 0.073, 0.231], "text_color": [0.2, 0.078, 0.127]}
+{"text": "i am fed up with this", "emoji": "😡", "feeling": "Angry", "bg1": [0.446, 0.269, 0.139], "bg2": [0.316, 0.195, 0.11], "text_color": [0.95, 0.038, 0.017]}
+{"text": "the lake was calm and gold", "emoji": "🐱", "feeling": "Happy", "bg1": [0.837, 0.115, 0.128], "bg2": [0.947, 0.025, 0.219], "text_color": [0.2, 0.052, 0.083]}
+{"text": "the harbor water is flat", "emoji": "🐱", "feeling": "Calm", "bg1": [0.403, -0.038, -0.131], "bg2": [0.511, -0.066, -0.079], "text_color": [0.95, -0.007, -0.02]}
+{"text": "i keep waiting for bad news", "emoji": "🌙", "feeling": "Anxious", "bg1": [0.512, -0.081, -0.062], "bg2": [0.402, -0.055, -0.151], "text_color": [0.95, -0.011, -0.017]}
+{"text": "the lights went up", "emoji": "⚡", "feeling": "Excited", "bg1": [0.725, 0.187, 0.157], "bg2": [0.874, 0.086, 0.202], "text_color": [0.2, 0.09, 0.122]}
+{"text": "a gentle hush settles in", "emoji": "🐱", "feeling": "Calm", "bg1": [0.452, -0.038, -0.134], "bg2": [0.567, -0.068, -0.085], "text_color": [0.95, -0.007, -0.02]}
+{"text": "the deadline is too close", "emoji": "🌙", "feeling": "Anxious", "bg1": [0.486, -0.074, -0.066], "bg2": [0.377, -0.057, -0.142], "text_color": [0.95, -0.01, -0.018]}
+{"text": "the waiting room clock is loud", "emoji": "🤔", "feeling": "Anxious", "bg1": [0.486, -0.078, -0.053], "bg2": [0.395, -0.036, -0.129], "text_color": [0.95, -0.01, -0.015]}
+{"text": "they cut the budget with no notice", "emoji": "💥", "feeling": "Angry", "bg1": [0.455, 0.218, 0.145], "bg2": [0.334, 0.176, 0.108], "text_color": [0.95, 0.031, 0.017]}
+{"text": "an easy slow heartbeat", "emoji": "🌈", "feeling": "Calm", "bg1": [0.465, -0.058, -0.139], "bg2": [0.581, -0.074, -0.053], "text_color": [0.95, -0.01, -0.021]}
+{"text": "the finish line is close", "emoji": "🥂", "feeling": "Excited", "bg1": [0.704, 0.165, 0.153], "bg2": [0.816, 0.086, 0.245], "text_color": [0.2, 0.079, 0.119]}
+{"text": "the cat curled up happy", "emoji": "🌴", "feeling": "Happy", "bg1": [0.791, 0.087, 0.155], "bg2": [0.886, 0.037, 0.193], "text_color": [0.2, 0.039, 0.101]}
+{"text": "the meadow was full of bees", "emoji": "🥰", "feeling": "Happy", "bg1": [0.857, 0.108, 0.199], "bg2": [0.936, 0.041, 0.213], "text_color": [0.2, 0.049, 0.129]}
+{"text": "the crowd is roaring", "emoji": "💯", "feeling": "Excited", "bg1": [0.733, 0.152, 0.173], "bg2": [0.842, 0.081, 0.256], "text_color": [0.2, 0.073, 0.135]}
+{"text": "the app just went live", "emoji": "💯", "feeling": "Excited", "bg1": [0.738, 0.181, 0.149], "bg2": [0.853, 0.064, 0.207], "text_color": [0.2, 0.087, 0.116]}
+{"text": "the baby giggled", "emoji": "🎨", "feeling": "Happy", "bg1": [0.777, 0.065, 0.126], "bg2": [0.861, 0.027, 0.211], "text_color": [0.2, 0.029, 0.082]}
+{"text": "so proud of you", "emoji": "🥰", "feeling": "Happy", "bg1": [0.823, 0.057, 0.193], "bg2": [0.884, 0.026, 0.174], "text_color": [0.2, 0.026, 0.125]}
+{"text": "my heart is full", "emoji": "😀", "feeling": "Happy", "bg1": [0.816, 0.079, 0.127], "bg2": [0.923, 0.04, 0.21], "text_color": [0.2, 0.036, 0.083]}
+{"text": "a lovely picnic", "emoji": "🎈", "feeling": "Happy", "bg1": [0.796, 0.098, 0.143], "bg2": [0.88, 0.025, 0.187], "text_color": [0.2, 0.044, 0.093]}

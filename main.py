@@ -21,7 +21,15 @@ feeling = [
 # De-duplicate emojis string while retaining unique items
 emojis = sorted(
     set(
-        "😀😂😍😡😰🥰😎🤔😅😭🥳🙃👍👎👏🙏💪🔥💯❤️✨⭐🎉🚀🍕🍔🍟🍦🍩🍺🍷☕🏀⚽🎮🎲🎸🎨✈️🚗🚲🌴🌈☀️🌙⭐🐶🐱🦁🐼🦊🍎🍌🥑🌶️🍿🍻🥂🏆🎯🎶🎤💡🔑📌⚡💥🎉👑💍💎💖💔💤🤖👽💀👻💩🎃🔮🚀🚢⛵🚗🚲🚨🏆⚽🏀🏈⚾🎾🎱🎮🎯🎲🎨🎤🎶🎷🎸🎹🎺🥁📱💻🎥📷📸🔍💡🔦🕯️💰💎⚖️🛒🎁🎈🎉🎊✉️📦📌📍🔑🔒🔓❤️‍🔥💖"
+        "😀😂😍😡😰🥰😎🤔😅😭🥳🙃👍👎👏🙏💪🔥💯❤️✨⭐🎉🚀🍕🍔🍟🍦🍩🍺🍷☕"
+        "🏀⚽🎮🎲🎸🎨✈️🚗🚲🌴🌈☀️🌙🐶🐱🦁🐼🦊🍎🍌🥑🌶️🍿🍻🥂🏆🎯🎶🎤💡"
+        "🔑📌⚡💥👑💍💎💖💔💤🤖👽💀👻💩🎃🔮🚢⛵🚨🏈⚾🎾🎱🎷🎹🎺🥁📱💻"
+        "🎥📷📸🔍🔦🕯️💰⚖️🛒🎁🎈🎊✉️📦📍🔒🔓❤️‍🔥"
+        # --- 100 additional popular & diverse emojis ---
+        "🥳🤩😜🙈🙉🙊👋🤝🙌💅🧠👀👄🔥🌊🌸🌹🌻🌺🌾🍃🥦🍄🍉🍓🥭🍇🥥🧀"
+        "🥞🥨🥓🥩🍗🌭🥪🌮🌯🍣🍜🍲🍡🧋🍵🍾🍹✈️🚁🚀🛸🚜🏎️🏍️⛵🚢🗺️⛵"
+        "🗼🗽🗿🏰🎡🎢🎪🎨🎭🎫🎖️🏆🏅⚽🏀🏈🎾🏐🏉🎱🎯🧘‍♀️🏄‍♂️🏊‍♂️🏋️‍♂️🚴‍♂️"
+        "🧗‍♂️🐾🦩🦄🐬🐳🐙🐉🌵🌲🪵💫🌟⚡💥🔥✨🎈🎉🎊🎋🎍🎏🧸🔮🧿"
     )
 )
 
@@ -218,14 +226,17 @@ def evaluate(model: Model, data) -> dict:
         target_bg2,
         target_text_color,
     ) in dataloader:
-        emoji_logits, feeling_logits, pred_bg1, pred_bg2, pred_text_color, _ = model(x)
-        emoji_correct += (emoji_logits.argmax(dim=-1) == target_emoji).sum().item()
+        emoji_logits, feeling_logits, pred_bg1, pred_bg2, pred_text_color, _ = model(
+            x)
+        emoji_correct += (emoji_logits.argmax(dim=-1)
+                          == target_emoji).sum().item()
         feeling_correct += (
             (feeling_logits.argmax(dim=-1) == target_feeling).sum().item()
         )
         color_sq_err += criterion_mse(pred_bg1, target_bg1).item()
         color_sq_err += criterion_mse(pred_bg2, target_bg2).item()
-        color_sq_err += criterion_mse(pred_text_color, target_text_color).item()
+        color_sq_err += criterion_mse(pred_text_color,
+                                      target_text_color).item()
         n += x.size(0)
 
     return {

@@ -1,10 +1,9 @@
 TODO:
+DONE:
     Data:
         create a claude code command that adds 500 samples to the existing dataset.
         the command should not read the existing dataset entirely, it should sample 50 rows from it and generate new samples based on them.
         The new samples should be appended to the existing dataset in a .jsonl format.
-DONE:
-    Data:
         add text_color to the dataset and model train loss
         make a function load_data that reads the .jsonl file and returns a MultiTaskDataset object
     Training + Eval:
