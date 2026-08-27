@@ -1,5 +1,5 @@
 TODO:
-    Web App:
 DONE:
     - Change the gradient color of the Neutral filling to something nicer.
     - Use different webfont for each filling, you can use Google fonts CDN for that.
+    - Keywords: fixed the feelings in keywords.jsonl (and gen_keywords.py, its source) so keywords strongly tied to a feeling (e.g. crying->Sad, party->Excited, deadline->Anxious) no longer default to Neutral.

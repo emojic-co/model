@@ -1,51 +1,51 @@
-{"emoji":"😀","feeling":"Neutral","text":"smile"}
-{"emoji":"😀","feeling":"Neutral","text":"grin"}
-{"emoji":"😀","feeling":"Neutral","text":"grinning"}
-{"emoji":"😀","feeling":"Neutral","text":"happy"}
-{"emoji":"😀","feeling":"Neutral","text":"cheerful"}
-{"emoji":"😀","feeling":"Neutral","text":"beaming"}
-{"emoji":"😀","feeling":"Neutral","text":"joy"}
-{"emoji":"😀","feeling":"Neutral","text":"smiley"}
-{"emoji":"😀","feeling":"Neutral","text":"delighted"}
-{"emoji":"😀","feeling":"Neutral","text":"pleased"}
-{"emoji":"😀","feeling":"Neutral","text":"glad"}
-{"emoji":"😀","feeling":"Neutral","text":"friendly"}
-{"emoji":"😀","feeling":"Neutral","text":"big smile"}
-{"emoji":"😂","feeling":"Neutral","text":"laughing"}
-{"emoji":"😂","feeling":"Neutral","text":"lol"}
-{"emoji":"😂","feeling":"Neutral","text":"lmao"}
-{"emoji":"😂","feeling":"Neutral","text":"rofl"}
-{"emoji":"😂","feeling":"Neutral","text":"hilarious"}
-{"emoji":"😂","feeling":"Neutral","text":"funny"}
-{"emoji":"😂","feeling":"Neutral","text":"laugh"}
-{"emoji":"😂","feeling":"Neutral","text":"crying laughing"}
-{"emoji":"😂","feeling":"Neutral","text":"humor"}
-{"emoji":"😂","feeling":"Neutral","text":"joke"}
-{"emoji":"😂","feeling":"Neutral","text":"giggles"}
-{"emoji":"😂","feeling":"Neutral","text":"chuckle"}
-{"emoji":"😂","feeling":"Neutral","text":"hysterical"}
-{"emoji":"🥹","feeling":"Neutral","text":"touched"}
+{"emoji":"😀","feeling":"Happy","text":"smile"}
+{"emoji":"😀","feeling":"Happy","text":"grin"}
+{"emoji":"😀","feeling":"Happy","text":"grinning"}
+{"emoji":"😀","feeling":"Happy","text":"happy"}
+{"emoji":"😀","feeling":"Happy","text":"cheerful"}
+{"emoji":"😀","feeling":"Happy","text":"beaming"}
+{"emoji":"😀","feeling":"Happy","text":"joy"}
+{"emoji":"😀","feeling":"Happy","text":"smiley"}
+{"emoji":"😀","feeling":"Happy","text":"delighted"}
+{"emoji":"😀","feeling":"Happy","text":"pleased"}
+{"emoji":"😀","feeling":"Happy","text":"glad"}
+{"emoji":"😀","feeling":"Happy","text":"friendly"}
+{"emoji":"😀","feeling":"Happy","text":"big smile"}
+{"emoji":"😂","feeling":"Happy","text":"laughing"}
+{"emoji":"😂","feeling":"Happy","text":"lol"}
+{"emoji":"😂","feeling":"Happy","text":"lmao"}
+{"emoji":"😂","feeling":"Happy","text":"rofl"}
+{"emoji":"😂","feeling":"Happy","text":"hilarious"}
+{"emoji":"😂","feeling":"Happy","text":"funny"}
+{"emoji":"😂","feeling":"Happy","text":"laugh"}
+{"emoji":"😂","feeling":"Happy","text":"crying laughing"}
+{"emoji":"😂","feeling":"Happy","text":"humor"}
+{"emoji":"😂","feeling":"Happy","text":"joke"}
+{"emoji":"😂","feeling":"Happy","text":"giggles"}
+{"emoji":"😂","feeling":"Happy","text":"chuckle"}
+{"emoji":"😂","feeling":"Happy","text":"hysterical"}
+{"emoji":"🥹","feeling":"Happy","text":"touched"}
 {"emoji":"🥹","feeling":"Neutral","text":"emotional"}
-{"emoji":"🥹","feeling":"Neutral","text":"grateful"}
-{"emoji":"🥹","feeling":"Neutral","text":"moved"}
-{"emoji":"🥹","feeling":"Neutral","text":"teary"}
-{"emoji":"🥹","feeling":"Neutral","text":"bittersweet"}
-{"emoji":"🥹","feeling":"Neutral","text":"heartwarming"}
-{"emoji":"🥹","feeling":"Neutral","text":"proud"}
+{"emoji":"🥹","feeling":"Happy","text":"grateful"}
+{"emoji":"🥹","feeling":"Happy","text":"moved"}
+{"emoji":"🥹","feeling":"Sad","text":"teary"}
+{"emoji":"🥹","feeling":"Sad","text":"bittersweet"}
+{"emoji":"🥹","feeling":"Happy","text":"heartwarming"}
+{"emoji":"🥹","feeling":"Happy","text":"proud"}
 {"emoji":"🥹","feeling":"Neutral","text":"overwhelmed"}
 {"emoji":"🥹","feeling":"Neutral","text":"sentimental"}
-{"emoji":"🥹","feeling":"Neutral","text":"holding back tears"}
-{"emoji":"😍","feeling":"Neutral","text":"love"}
-{"emoji":"😍","feeling":"Neutral","text":"adore"}
-{"emoji":"😍","feeling":"Neutral","text":"crush"}
-{"emoji":"😍","feeling":"Neutral","text":"infatuated"}
-{"emoji":"😍","feeling":"Neutral","text":"heart eyes"}
-{"emoji":"😍","feeling":"Neutral","text":"smitten"}
-{"emoji":"😍","feeling":"Neutral","text":"admiration"}
-{"emoji":"😍","feeling":"Neutral","text":"gorgeous"}
-{"emoji":"😍","feeling":"Neutral","text":"beautiful"}
-{"emoji":"😍","feeling":"Neutral","text":"obsessed"}
-{"emoji":"😍","feeling":"Neutral","text":"love struck"}
+{"emoji":"🥹","feeling":"Sad","text":"holding back tears"}
+{"emoji":"😍","feeling":"Happy","text":"love"}
+{"emoji":"😍","feeling":"Happy","text":"adore"}
+{"emoji":"😍","feeling":"Happy","text":"crush"}
+{"emoji":"😍","feeling":"Happy","text":"infatuated"}
+{"emoji":"😍","feeling":"Happy","text":"heart eyes"}
+{"emoji":"😍","feeling":"Happy","text":"smitten"}
+{"emoji":"😍","feeling":"Happy","text":"admiration"}
+{"emoji":"😍","feeling":"Happy","text":"gorgeous"}
+{"emoji":"😍","feeling":"Happy","text":"beautiful"}
+{"emoji":"😍","feeling":"Happy","text":"obsessed"}
+{"emoji":"😍","feeling":"Happy","text":"love struck"}
 {"emoji":"🤔","feeling":"Neutral","text":"thinking"}
 {"emoji":"🤔","feeling":"Neutral","text":"pondering"}
 {"emoji":"🤔","feeling":"Neutral","text":"hmm"}
@@ -57,36 +57,36 @@
 {"emoji":"🤔","feeling":"Neutral","text":"question"}
 {"emoji":"🤔","feeling":"Neutral","text":"reflecting"}
 {"emoji":"🤔","feeling":"Neutral","text":"puzzled"}
-{"emoji":"🥳","feeling":"Neutral","text":"celebration"}
-{"emoji":"🥳","feeling":"Neutral","text":"party"}
-{"emoji":"🥳","feeling":"Neutral","text":"birthday"}
-{"emoji":"🥳","feeling":"Neutral","text":"congrats"}
-{"emoji":"🥳","feeling":"Neutral","text":"festive"}
-{"emoji":"🥳","feeling":"Neutral","text":"hooray"}
-{"emoji":"🥳","feeling":"Neutral","text":"celebrate"}
+{"emoji":"🥳","feeling":"Excited","text":"celebration"}
+{"emoji":"🥳","feeling":"Excited","text":"party"}
+{"emoji":"🥳","feeling":"Excited","text":"birthday"}
+{"emoji":"🥳","feeling":"Excited","text":"congrats"}
+{"emoji":"🥳","feeling":"Excited","text":"festive"}
+{"emoji":"🥳","feeling":"Excited","text":"hooray"}
+{"emoji":"🥳","feeling":"Excited","text":"celebrate"}
 {"emoji":"🥳","feeling":"Neutral","text":"party horn"}
 {"emoji":"🥳","feeling":"Neutral","text":"confetti"}
-{"emoji":"🥳","feeling":"Neutral","text":"woohoo"}
+{"emoji":"🥳","feeling":"Excited","text":"woohoo"}
 {"emoji":"😎","feeling":"Neutral","text":"cool"}
 {"emoji":"😎","feeling":"Neutral","text":"sunglasses"}
-{"emoji":"😎","feeling":"Neutral","text":"confident"}
-{"emoji":"😎","feeling":"Neutral","text":"chill"}
+{"emoji":"😎","feeling":"Happy","text":"confident"}
+{"emoji":"😎","feeling":"Calm","text":"chill"}
 {"emoji":"😎","feeling":"Neutral","text":"swag"}
-{"emoji":"😎","feeling":"Neutral","text":"awesome"}
+{"emoji":"😎","feeling":"Excited","text":"awesome"}
 {"emoji":"😎","feeling":"Neutral","text":"slick"}
 {"emoji":"😎","feeling":"Neutral","text":"boss"}
-{"emoji":"😎","feeling":"Neutral","text":"unbothered"}
+{"emoji":"😎","feeling":"Calm","text":"unbothered"}
 {"emoji":"😎","feeling":"Neutral","text":"deal with it"}
-{"emoji":"😭","feeling":"Neutral","text":"crying"}
-{"emoji":"😭","feeling":"Neutral","text":"sobbing"}
-{"emoji":"😭","feeling":"Neutral","text":"tears"}
-{"emoji":"😭","feeling":"Neutral","text":"bawling"}
-{"emoji":"😭","feeling":"Neutral","text":"heartbroken"}
-{"emoji":"😭","feeling":"Neutral","text":"weeping"}
-{"emoji":"😭","feeling":"Neutral","text":"devastated"}
-{"emoji":"😭","feeling":"Neutral","text":"wailing"}
-{"emoji":"😭","feeling":"Neutral","text":"ugly cry"}
-{"emoji":"😭","feeling":"Neutral","text":"so sad"}
+{"emoji":"😭","feeling":"Sad","text":"crying"}
+{"emoji":"😭","feeling":"Sad","text":"sobbing"}
+{"emoji":"😭","feeling":"Sad","text":"tears"}
+{"emoji":"😭","feeling":"Sad","text":"bawling"}
+{"emoji":"😭","feeling":"Sad","text":"heartbroken"}
+{"emoji":"😭","feeling":"Sad","text":"weeping"}
+{"emoji":"😭","feeling":"Sad","text":"devastated"}
+{"emoji":"😭","feeling":"Sad","text":"wailing"}
+{"emoji":"😭","feeling":"Sad","text":"ugly cry"}
+{"emoji":"😭","feeling":"Sad","text":"so sad"}
 {"emoji":"💀","feeling":"Neutral","text":"skull"}
 {"emoji":"💀","feeling":"Neutral","text":"dead"}
 {"emoji":"💀","feeling":"Neutral","text":"death"}
@@ -97,29 +97,29 @@
 {"emoji":"💀","feeling":"Neutral","text":"morbid"}
 {"emoji":"💀","feeling":"Neutral","text":"danger"}
 {"emoji":"💀","feeling":"Neutral","text":"poison"}
-{"emoji":"💀","feeling":"Neutral","text":"im dead"}
+{"emoji":"💀","feeling":"Happy","text":"im dead"}
 {"emoji":"🔥","feeling":"Neutral","text":"fire"}
 {"emoji":"🔥","feeling":"Neutral","text":"flame"}
-{"emoji":"🔥","feeling":"Neutral","text":"lit"}
+{"emoji":"🔥","feeling":"Excited","text":"lit"}
 {"emoji":"🔥","feeling":"Neutral","text":"hot"}
 {"emoji":"🔥","feeling":"Neutral","text":"burning"}
 {"emoji":"🔥","feeling":"Neutral","text":"blaze"}
 {"emoji":"🔥","feeling":"Neutral","text":"heat"}
 {"emoji":"🔥","feeling":"Neutral","text":"wildfire"}
 {"emoji":"🔥","feeling":"Neutral","text":"campfire"}
-{"emoji":"🔥","feeling":"Neutral","text":"straight fire"}
-{"emoji":"❤️","feeling":"Neutral","text":"love"}
+{"emoji":"🔥","feeling":"Excited","text":"straight fire"}
+{"emoji":"❤️","feeling":"Happy","text":"love"}
 {"emoji":"❤️","feeling":"Neutral","text":"heart"}
-{"emoji":"❤️","feeling":"Neutral","text":"romance"}
-{"emoji":"❤️","feeling":"Neutral","text":"affection"}
+{"emoji":"❤️","feeling":"Happy","text":"romance"}
+{"emoji":"❤️","feeling":"Happy","text":"affection"}
 {"emoji":"❤️","feeling":"Neutral","text":"valentine"}
-{"emoji":"❤️","feeling":"Neutral","text":"devotion"}
-{"emoji":"❤️","feeling":"Neutral","text":"adore"}
-{"emoji":"❤️","feeling":"Neutral","text":"care"}
-{"emoji":"❤️","feeling":"Neutral","text":"sweetheart"}
+{"emoji":"❤️","feeling":"Happy","text":"devotion"}
+{"emoji":"❤️","feeling":"Happy","text":"adore"}
+{"emoji":"❤️","feeling":"Happy","text":"care"}
+{"emoji":"❤️","feeling":"Happy","text":"sweetheart"}
 {"emoji":"❤️","feeling":"Neutral","text":"red heart"}
 {"emoji":"💯","feeling":"Neutral","text":"hundred"}
-{"emoji":"💯","feeling":"Neutral","text":"perfect"}
+{"emoji":"💯","feeling":"Happy","text":"perfect"}
 {"emoji":"💯","feeling":"Neutral","text":"hundred percent"}
 {"emoji":"💯","feeling":"Neutral","text":"agreed"}
 {"emoji":"💯","feeling":"Neutral","text":"full marks"}
@@ -149,33 +149,33 @@
 {"emoji":"👍","feeling":"Neutral","text":"sounds good"}
 {"emoji":"👍","feeling":"Neutral","text":"will do"}
 {"emoji":"👏","feeling":"Neutral","text":"clap"}
-{"emoji":"👏","feeling":"Neutral","text":"applause"}
-{"emoji":"👏","feeling":"Neutral","text":"bravo"}
-{"emoji":"👏","feeling":"Neutral","text":"well done"}
-{"emoji":"👏","feeling":"Neutral","text":"cheer"}
-{"emoji":"👏","feeling":"Neutral","text":"ovation"}
-{"emoji":"👏","feeling":"Neutral","text":"congrats"}
-{"emoji":"👏","feeling":"Neutral","text":"praise"}
-{"emoji":"👏","feeling":"Neutral","text":"kudos"}
-{"emoji":"🙌","feeling":"Neutral","text":"praise"}
-{"emoji":"🙌","feeling":"Neutral","text":"hooray"}
-{"emoji":"🙌","feeling":"Neutral","text":"celebration"}
+{"emoji":"👏","feeling":"Happy","text":"applause"}
+{"emoji":"👏","feeling":"Happy","text":"bravo"}
+{"emoji":"👏","feeling":"Happy","text":"well done"}
+{"emoji":"👏","feeling":"Happy","text":"cheer"}
+{"emoji":"👏","feeling":"Happy","text":"ovation"}
+{"emoji":"👏","feeling":"Happy","text":"congrats"}
+{"emoji":"👏","feeling":"Happy","text":"praise"}
+{"emoji":"👏","feeling":"Happy","text":"kudos"}
+{"emoji":"🙌","feeling":"Happy","text":"praise"}
+{"emoji":"🙌","feeling":"Excited","text":"hooray"}
+{"emoji":"🙌","feeling":"Excited","text":"celebration"}
 {"emoji":"🙌","feeling":"Neutral","text":"raised hands"}
-{"emoji":"🙌","feeling":"Neutral","text":"hallelujah"}
-{"emoji":"🙌","feeling":"Neutral","text":"yay"}
-{"emoji":"🙌","feeling":"Neutral","text":"triumph"}
-{"emoji":"🙌","feeling":"Neutral","text":"relief"}
-{"emoji":"🙌","feeling":"Neutral","text":"thank goodness"}
-{"emoji":"🙏","feeling":"Neutral","text":"prayer"}
-{"emoji":"🙏","feeling":"Neutral","text":"pray"}
+{"emoji":"🙌","feeling":"Happy","text":"hallelujah"}
+{"emoji":"🙌","feeling":"Excited","text":"yay"}
+{"emoji":"🙌","feeling":"Happy","text":"triumph"}
+{"emoji":"🙌","feeling":"Calm","text":"relief"}
+{"emoji":"🙌","feeling":"Calm","text":"thank goodness"}
+{"emoji":"🙏","feeling":"Calm","text":"prayer"}
+{"emoji":"🙏","feeling":"Calm","text":"pray"}
 {"emoji":"🙏","feeling":"Neutral","text":"please"}
-{"emoji":"🙏","feeling":"Neutral","text":"thank you"}
-{"emoji":"🙏","feeling":"Neutral","text":"gratitude"}
+{"emoji":"🙏","feeling":"Happy","text":"thank you"}
+{"emoji":"🙏","feeling":"Happy","text":"gratitude"}
 {"emoji":"🙏","feeling":"Neutral","text":"hope"}
-{"emoji":"🙏","feeling":"Neutral","text":"blessing"}
-{"emoji":"🙏","feeling":"Neutral","text":"namaste"}
+{"emoji":"🙏","feeling":"Calm","text":"blessing"}
+{"emoji":"🙏","feeling":"Calm","text":"namaste"}
 {"emoji":"🙏","feeling":"Neutral","text":"plea"}
-{"emoji":"🙏","feeling":"Neutral","text":"grateful"}
+{"emoji":"🙏","feeling":"Happy","text":"grateful"}
 {"emoji":"💪","feeling":"Neutral","text":"strong"}
 {"emoji":"💪","feeling":"Neutral","text":"muscle"}
 {"emoji":"💪","feeling":"Neutral","text":"strength"}
@@ -354,15 +354,15 @@
 {"emoji":"⚽","feeling":"Neutral","text":"match"}
 {"emoji":"⚽","feeling":"Neutral","text":"fifa"}
 {"emoji":"⚽","feeling":"Neutral","text":"sport"}
-{"emoji":"🎉","feeling":"Neutral","text":"party"}
-{"emoji":"🎉","feeling":"Neutral","text":"celebration"}
+{"emoji":"🎉","feeling":"Excited","text":"party"}
+{"emoji":"🎉","feeling":"Excited","text":"celebration"}
 {"emoji":"🎉","feeling":"Neutral","text":"confetti"}
-{"emoji":"🎉","feeling":"Neutral","text":"congrats"}
+{"emoji":"🎉","feeling":"Excited","text":"congrats"}
 {"emoji":"🎉","feeling":"Neutral","text":"popper"}
-{"emoji":"🎉","feeling":"Neutral","text":"hooray"}
-{"emoji":"🎉","feeling":"Neutral","text":"festive"}
+{"emoji":"🎉","feeling":"Excited","text":"hooray"}
+{"emoji":"🎉","feeling":"Excited","text":"festive"}
 {"emoji":"🎉","feeling":"Neutral","text":"new year"}
-{"emoji":"🎉","feeling":"Neutral","text":"celebrate"}
+{"emoji":"🎉","feeling":"Excited","text":"celebrate"}
 {"emoji":"🚀","feeling":"Neutral","text":"rocket"}
 {"emoji":"🚀","feeling":"Neutral","text":"space"}
 {"emoji":"🚀","feeling":"Neutral","text":"launch"}
@@ -398,7 +398,7 @@
 {"emoji":"💡","feeling":"Neutral","text":"inspiration"}
 {"emoji":"💡","feeling":"Neutral","text":"bright idea"}
 {"emoji":"💡","feeling":"Neutral","text":"invention"}
-{"emoji":"💡","feeling":"Neutral","text":"eureka"}
+{"emoji":"💡","feeling":"Excited","text":"eureka"}
 {"emoji":"💡","feeling":"Neutral","text":"lamp"}
 {"emoji":"💡","feeling":"Neutral","text":"innovation"}
 {"emoji":"💎","feeling":"Neutral","text":"diamond"}
@@ -449,11 +449,11 @@
 {"emoji":"🌍","feeling":"Neutral","text":"continents"}
 {"emoji":"🏆","feeling":"Neutral","text":"trophy"}
 {"emoji":"🏆","feeling":"Neutral","text":"award"}
-{"emoji":"🏆","feeling":"Neutral","text":"winner"}
-{"emoji":"🏆","feeling":"Neutral","text":"champion"}
-{"emoji":"🏆","feeling":"Neutral","text":"first place"}
+{"emoji":"🏆","feeling":"Happy","text":"winner"}
+{"emoji":"🏆","feeling":"Happy","text":"champion"}
+{"emoji":"🏆","feeling":"Happy","text":"first place"}
 {"emoji":"🏆","feeling":"Neutral","text":"prize"}
-{"emoji":"🏆","feeling":"Neutral","text":"victory"}
+{"emoji":"🏆","feeling":"Excited","text":"victory"}
 {"emoji":"🏆","feeling":"Neutral","text":"championship"}
 {"emoji":"🏆","feeling":"Neutral","text":"cup"}
 {"emoji":"🎨","feeling":"Neutral","text":"art"}
@@ -516,7 +516,7 @@
 {"emoji":"⏰","feeling":"Neutral","text":"time"}
 {"emoji":"⏰","feeling":"Neutral","text":"wake up"}
 {"emoji":"⏰","feeling":"Neutral","text":"morning"}
-{"emoji":"⏰","feeling":"Neutral","text":"deadline"}
+{"emoji":"⏰","feeling":"Anxious","text":"deadline"}
 {"emoji":"⏰","feeling":"Neutral","text":"reminder"}
 {"emoji":"⏰","feeling":"Neutral","text":"alarm clock"}
 {"emoji":"⏰","feeling":"Neutral","text":"snooze"}
@@ -565,32 +565,32 @@
 {"emoji":"👑","feeling":"Neutral","text":"tiara"}
 {"emoji":"👑","feeling":"Neutral","text":"majesty"}
 {"emoji":"🕊️","feeling":"Neutral","text":"dove"}
-{"emoji":"🕊️","feeling":"Neutral","text":"peace"}
+{"emoji":"🕊️","feeling":"Calm","text":"peace"}
 {"emoji":"🕊️","feeling":"Neutral","text":"bird"}
 {"emoji":"🕊️","feeling":"Neutral","text":"pigeon"}
-{"emoji":"🕊️","feeling":"Neutral","text":"freedom"}
+{"emoji":"🕊️","feeling":"Calm","text":"freedom"}
 {"emoji":"🕊️","feeling":"Neutral","text":"hope"}
-{"emoji":"🕊️","feeling":"Neutral","text":"olive branch"}
-{"emoji":"🕊️","feeling":"Neutral","text":"harmony"}
-{"emoji":"🕊️","feeling":"Neutral","text":"tranquility"}
-{"emoji":"🤩","feeling":"Neutral","text":"star struck"}
-{"emoji":"🤩","feeling":"Neutral","text":"amazed"}
-{"emoji":"🤩","feeling":"Neutral","text":"excited"}
-{"emoji":"🤩","feeling":"Neutral","text":"wow"}
-{"emoji":"🤩","feeling":"Neutral","text":"starry eyes"}
-{"emoji":"🤩","feeling":"Neutral","text":"awesome"}
-{"emoji":"🤩","feeling":"Neutral","text":"thrilled"}
-{"emoji":"🤩","feeling":"Neutral","text":"fascinated"}
-{"emoji":"🤩","feeling":"Neutral","text":"dazzled"}
-{"emoji":"😴","feeling":"Neutral","text":"sleep"}
-{"emoji":"😴","feeling":"Neutral","text":"sleeping"}
+{"emoji":"🕊️","feeling":"Calm","text":"olive branch"}
+{"emoji":"🕊️","feeling":"Calm","text":"harmony"}
+{"emoji":"🕊️","feeling":"Calm","text":"tranquility"}
+{"emoji":"🤩","feeling":"Excited","text":"star struck"}
+{"emoji":"🤩","feeling":"Excited","text":"amazed"}
+{"emoji":"🤩","feeling":"Excited","text":"excited"}
+{"emoji":"🤩","feeling":"Excited","text":"wow"}
+{"emoji":"🤩","feeling":"Excited","text":"starry eyes"}
+{"emoji":"🤩","feeling":"Excited","text":"awesome"}
+{"emoji":"🤩","feeling":"Excited","text":"thrilled"}
+{"emoji":"🤩","feeling":"Excited","text":"fascinated"}
+{"emoji":"🤩","feeling":"Excited","text":"dazzled"}
+{"emoji":"😴","feeling":"Calm","text":"sleep"}
+{"emoji":"😴","feeling":"Calm","text":"sleeping"}
 {"emoji":"😴","feeling":"Neutral","text":"tired"}
-{"emoji":"😴","feeling":"Neutral","text":"nap"}
-{"emoji":"😴","feeling":"Neutral","text":"zzz"}
-{"emoji":"😴","feeling":"Neutral","text":"snooze"}
-{"emoji":"😴","feeling":"Neutral","text":"drowsy"}
-{"emoji":"😴","feeling":"Neutral","text":"bedtime"}
-{"emoji":"😴","feeling":"Neutral","text":"asleep"}
+{"emoji":"😴","feeling":"Calm","text":"nap"}
+{"emoji":"😴","feeling":"Calm","text":"zzz"}
+{"emoji":"😴","feeling":"Calm","text":"snooze"}
+{"emoji":"😴","feeling":"Calm","text":"drowsy"}
+{"emoji":"😴","feeling":"Calm","text":"bedtime"}
+{"emoji":"😴","feeling":"Calm","text":"asleep"}
 {"emoji":"😴","feeling":"Neutral","text":"exhausted"}
 {"emoji":"🤡","feeling":"Neutral","text":"clown"}
 {"emoji":"🤡","feeling":"Neutral","text":"circus"}
@@ -618,7 +618,7 @@
 {"emoji":"👻","feeling":"Neutral","text":"spirit"}
 {"emoji":"👻","feeling":"Neutral","text":"phantom"}
 {"emoji":"👻","feeling":"Neutral","text":"apparition"}
-{"emoji":"👻","feeling":"Neutral","text":"scary"}
+{"emoji":"👻","feeling":"Anxious","text":"scary"}
 {"emoji":"🤝","feeling":"Neutral","text":"handshake"}
 {"emoji":"🤝","feeling":"Neutral","text":"deal"}
 {"emoji":"🤝","feeling":"Neutral","text":"agreement"}
@@ -637,21 +637,21 @@
 {"emoji":"🫡","feeling":"Neutral","text":"at attention"}
 {"emoji":"🫡","feeling":"Neutral","text":"will do"}
 {"emoji":"🫶","feeling":"Neutral","text":"heart hands"}
-{"emoji":"🫶","feeling":"Neutral","text":"love"}
-{"emoji":"🫶","feeling":"Neutral","text":"appreciation"}
-{"emoji":"🫶","feeling":"Neutral","text":"thank you"}
-{"emoji":"🫶","feeling":"Neutral","text":"care"}
-{"emoji":"🫶","feeling":"Neutral","text":"gratitude"}
-{"emoji":"🫶","feeling":"Neutral","text":"adore"}
-{"emoji":"🫶","feeling":"Neutral","text":"support"}
-{"emoji":"💔","feeling":"Neutral","text":"broken heart"}
-{"emoji":"💔","feeling":"Neutral","text":"heartbreak"}
-{"emoji":"💔","feeling":"Neutral","text":"breakup"}
-{"emoji":"💔","feeling":"Neutral","text":"hurt"}
-{"emoji":"💔","feeling":"Neutral","text":"grief"}
-{"emoji":"💔","feeling":"Neutral","text":"lost love"}
-{"emoji":"💔","feeling":"Neutral","text":"heartbroken"}
-{"emoji":"💔","feeling":"Neutral","text":"pain"}
+{"emoji":"🫶","feeling":"Happy","text":"love"}
+{"emoji":"🫶","feeling":"Happy","text":"appreciation"}
+{"emoji":"🫶","feeling":"Happy","text":"thank you"}
+{"emoji":"🫶","feeling":"Happy","text":"care"}
+{"emoji":"🫶","feeling":"Happy","text":"gratitude"}
+{"emoji":"🫶","feeling":"Happy","text":"adore"}
+{"emoji":"🫶","feeling":"Happy","text":"support"}
+{"emoji":"💔","feeling":"Sad","text":"broken heart"}
+{"emoji":"💔","feeling":"Sad","text":"heartbreak"}
+{"emoji":"💔","feeling":"Sad","text":"breakup"}
+{"emoji":"💔","feeling":"Sad","text":"hurt"}
+{"emoji":"💔","feeling":"Sad","text":"grief"}
+{"emoji":"💔","feeling":"Sad","text":"lost love"}
+{"emoji":"💔","feeling":"Sad","text":"heartbroken"}
+{"emoji":"💔","feeling":"Sad","text":"pain"}
 {"emoji":"🌶️","feeling":"Neutral","text":"chili"}
 {"emoji":"🌶️","feeling":"Neutral","text":"pepper"}
 {"emoji":"🌶️","feeling":"Neutral","text":"spicy"}
@@ -716,10 +716,10 @@
 {"emoji":"🕯️","feeling":"Neutral","text":"candle"}
 {"emoji":"🕯️","feeling":"Neutral","text":"flame"}
 {"emoji":"🕯️","feeling":"Neutral","text":"wax"}
-{"emoji":"🕯️","feeling":"Neutral","text":"candlelight"}
-{"emoji":"🕯️","feeling":"Neutral","text":"vigil"}
-{"emoji":"🕯️","feeling":"Neutral","text":"meditation"}
-{"emoji":"🕯️","feeling":"Neutral","text":"cozy"}
+{"emoji":"🕯️","feeling":"Calm","text":"candlelight"}
+{"emoji":"🕯️","feeling":"Sad","text":"vigil"}
+{"emoji":"🕯️","feeling":"Calm","text":"meditation"}
+{"emoji":"🕯️","feeling":"Calm","text":"cozy"}
 {"emoji":"🕯️","feeling":"Neutral","text":"light"}
 {"emoji":"🕯️","feeling":"Neutral","text":"wick"}
 {"emoji":"⚡","feeling":"Neutral","text":"lightning"}

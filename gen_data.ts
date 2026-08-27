@@ -14,23 +14,42 @@
  *
  * Requires AI_GATEWAY_API_KEY (Bun auto-loads it from .env).
  */
-import { appendFile, readFile } from "node:fs/promises"
+import { readFile } from "node:fs/promises"
 
 import { generateText, Output } from "ai"
 import { z } from "zod"
 
 // Label sets live in labels.json, shared with main.py (see `EMOJIS` / `feeling`).
-const LABELS_PATH = new URL("./labels.json", import.meta.url)
-const { emojis: EMOJIS, feelings: FEELINGS } = JSON.parse(
-  await readFile(LABELS_PATH, "utf8"),
-) as { emojis: string[]; feelings: string[] }
 
 
 
-const pick = <T>(xs: readonly T[]): T =>
-  xs[Math.floor(Math.random() * xs.length)]
 
-async function generateBatch(emoji: string, feeling: string): Promise<string[]> {
+const MODEL = "openai/gpt-5.6-luna"
+const OUT_PATH = new URL("./data.jsonl", import.meta.url)
+
+const labels = z.object({
+  feelings: z.array(z.string()),
+  emojis: z.array(z.string()),
+})
+
+type Record = z.infer<typeof Record>
+const Record = z.object({
+  text: z.string().max(64),
+  emoji: z.string(),
+  feeling: z.string(),
+})
+const EXAMPLE_RECORD: Record = {
+  text: "I can't believe this happened!",
+  emoji: "😭",
+  feeling: "Sad",
+}
+
+if (import.meta.main) {
+  // Each batch picks its own random (emoji, feeling) pair; run them together.
+  const { feelings, emojis } = labels.parse(JSON.parse(
+    await readFile('./labels.json', "utf8"),
+  ))
+
   const { output } = await generateText({
     model: MODEL,
     output: Output.object({
@@ -40,67 +59,16 @@ async function generateBatch(emoji: string, feeling: string): Promise<string[]> 
           .describe("The generated messages, text only."),
       }),
     }),
-    prompt:
-      `Write ${SAMPLES_PER_BATCH} different short messages a person might send ` +
-      `in a WhatsApp chat.\n\n` +
-      `Every message must:\n` +
-      `- clearly convey the feeling "${feeling}"\n` +
-      `- fit the emoji ${emoji} in meaning (do NOT put the emoji or any ` +
-      `emoji in the text)\n` +
-      `- be 1 to 6 words, casual, like a real texter\n` +
-      `- contain no digits and no emoji\n\n` +
-      '- you can use special chars like !?:()@$%&* if appropriate\n\n' +
-      `Return only the message text for each item.`,
+    prompt: [
+      'Generate a list of short (1-6 words, no more than 64 characters), WhatsApp-style messages.',
+      `For each message associate one of the feelings: ${feelings.join(", ")}`,
+      `For each message associate one of the emojis: ${emojis.join(", ")}`,
+      `Note that emojis and feelings are independent; the same emoji can be used for different feelings, and vice versa.`,
+      'Return at least 100 messages as a JSON array of records, e.g.',
+      JSON.stringify([EXAMPLE_RECORD]),
+    ].join("\n")
   })
 
-  return output.texts
-}
-
-const MODEL = "openai/gpt-5.6-luna"
-const OUT_PATH = new URL("./data.jsonl", import.meta.url)
-const SAMPLES_PER_BATCH = 20
-const BATCH_COUNT = 100
-
-if (import.meta.main) {
-  // Each batch picks its own random (emoji, feeling) pair; run them together.
-  const pairs = Array.from({ length: BATCH_COUNT }, () => ({
-    emoji: pick(EMOJIS),
-    feeling: pick(FEELINGS),
-  }))
-
-  let done = 0
-  const total = pairs.length
-  const drawProgress = () => {
-    const width = 30
-    const filled = Math.round((done / total) * width)
-    const bar = "█".repeat(filled) + "░".repeat(width - filled)
-    process.stderr.write(`\r[${bar}] ${done}/${total} batches`)
-  }
-
-  drawProgress()
-  const results = await Promise.allSettled(
-    pairs.map(({ emoji, feeling }) =>
-      generateBatch(emoji, feeling).finally(() => {
-        done += 1
-        drawProgress()
-      }),
-    ),
-  )
-  process.stderr.write("\n")
-
-  const lines = results
-    .flatMap((result, i) => {
-      const { emoji, feeling } = pairs[i]
-      if (result.status === "rejected") {
-        console.error(`batch ${i} (${emoji} ${feeling}) failed:`, result.reason)
-        return []
-      }
-      return result.value
-        .map((t) => t.trim())
-        .filter(Boolean)
-        .map((text) => JSON.stringify({ emoji, feeling, text }))
-    })
-    .join("\n")
-
-  if (lines) await appendFile(OUT_PATH, lines + "\n", "utf8")
+  const records = z.array(Record).parse(output.texts)
+  // TODO: append to the file
 }
