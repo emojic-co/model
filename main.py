@@ -6,7 +6,7 @@ import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 
-from config import DATA_LEN, EMBED_SIZE, H_SIZE, MAX_TEXT_LEN
+from config import EMBED_SIZE, EPOCHS, H_SIZE, MAX_TEXT_LEN
 
 # INPUT
 vocab = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,!?;:()[]{}<>@#$%^&* "
@@ -87,16 +87,15 @@ def encode(text: str, max_len=16) -> torch.Tensor:
 
 
 class MultiTaskDataset(Dataset):
-    def __init__(self, data, data_len: int | None = None, *, augment: bool = False):
+    def __init__(self, data, *, augment: bool = False):
         self.data = data
-        self.data_len = data_len if data_len is not None else len(data)
+        self.data_len = len(data)
         self.augment = augment
 
     def __len__(self):
         return self.data_len
 
     def __getitem__(self, idx):
-        i = idx % len(self.data)
         (
             text,
             emoji_target,
@@ -104,7 +103,7 @@ class MultiTaskDataset(Dataset):
             bg1_oklab,
             bg2_oklab,
             text_color_oklab,
-        ) = self.data[i]
+        ) = self.data[idx]
 
         # Augmentation: half the time, shuffle the word order.
         if self.augment and random.random() < 0.5:
@@ -173,6 +172,7 @@ def train(
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Total params: {total_params:,}")
     print("Starting training loop...\n")
+    # TODO: add tqdm progress for the epoch progress
     for epoch in range(1, epochs + 1):
         total_loss = 0.0
 
@@ -296,7 +296,6 @@ if __name__ == "__main__":
 
     train_set = MultiTaskDataset(
         [raw[i] for i in perm[:n_train]],
-        data_len=DATA_LEN,
         augment=True)
 
     test_set = MultiTaskDataset(
@@ -314,7 +313,8 @@ if __name__ == "__main__":
         data=train_set,
         lr=0.005,
         batch_size=8,
-        epochs=1,)
+        epochs=EPOCHS,
+    )
 
     metrics = evaluate(model, test_set)
     print(
