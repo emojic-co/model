@@ -5,7 +5,7 @@ import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset, random_split
 
-from config import EMBED_SIZE, H_SIZE
+from config import EMBED_SIZE, H_SIZE, MAX_TEXT_LEN
 
 # INPUT
 vocab = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,!?;:()[]{}<>@#$%^&* "
@@ -253,6 +253,7 @@ def evaluate(model: Model, data) -> dict:
 def predict(model: Model, text: str, max_len: int = 16) -> dict:
     """Run inference for a single string, returning a plain-dict result."""
     model.eval()
+    text = normalize(text)[:MAX_TEXT_LEN]
     with torch.no_grad():
         emoji_logits, feeling_logits, bg1, bg2, text_color, _ = model(
             encode(text, max_len)
@@ -272,7 +273,7 @@ if __name__ == "__main__":
 
     dataset = load_data(
         path="data.jsonl",
-        max_len=40
+        max_len=MAX_TEXT_LEN
     )
 
     n_test = 100
