@@ -14,24 +14,16 @@
  *
  * Requires AI_GATEWAY_API_KEY (Bun auto-loads it from .env).
  */
-import { appendFile } from "node:fs/promises"
+import { appendFile, readFile } from "node:fs/promises"
 
 import { generateText, Output } from "ai"
 import { z } from "zod"
 
-// Kept in sync with `EMOJIS` and `feeling` in main.py.
-const EMOJIS = [
-  "😀", "😂", "🥹", "😍", "🤔", "🥳", "😎", "😭", "💀", "🔥",
-  "❤️", "💯", "✨", "👍", "👏", "🙌", "🙏", "💪", "🧠", "👀",
-  "🐶", "🐱", "🦁", "🦉", "🐙", "🌲", "🌺", "🌈", "☀️", "⭐",
-  "🍕", "🌮", "🍣", "☕", "🍺", "⚽", "🎉", "🚀", "✈️", "🎸",
-  "💡", "💎", "📱", "🎁", "🔒", "🌍", "🏆", "🎨", "🔮", "📍",
-  "💼", "🩺", "💻", "⏰", "🚗", "🌾", "⛈️", "🧩", "👑", "🕊️",
-]
-
-const FEELINGS = [
-  "Happy", "Excited", "Calm", "Sad", "Angry", "Anxious", "Neutral",
-]
+// Label sets live in labels.json, shared with main.py (see `EMOJIS` / `feeling`).
+const LABELS_PATH = new URL("./labels.json", import.meta.url)
+const { emojis: EMOJIS, feelings: FEELINGS } = JSON.parse(
+  await readFile(LABELS_PATH, "utf8"),
+) as { emojis: string[]; feelings: string[] }
 
 
 
@@ -65,8 +57,8 @@ async function generateBatch(emoji: string, feeling: string): Promise<string[]> 
 
 const MODEL = "openai/gpt-5.6-luna"
 const OUT_PATH = new URL("./data.jsonl", import.meta.url)
-const SAMPLES_PER_BATCH = 3
-const BATCH_COUNT = 3
+const SAMPLES_PER_BATCH = 10
+const BATCH_COUNT = 10
 
 if (import.meta.main) {
   // Each batch picks its own random (emoji, feeling) pair; run them together.

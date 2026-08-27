@@ -1,5 +1,6 @@
 import json
 import re
+from pathlib import Path
 
 import torch
 from torch import nn, optim
@@ -17,81 +18,16 @@ PAD_IDX = 0
 VOCAB_SIZE = len(CHARS) + 1
 
 # OUTPUTS
-feeling = [
-    "Happy",
-    "Excited",
-    "Calm",
-    "Sad",
-    "Angry",
-    "Anxious",
-    "Neutral",
-]
-
-# 60 diverse emojis, fully decoupled from feelings: every emoji is paired with
-# every feeling in data.jsonl. Kept as an explicit list (not a joined string) so
+# The label sets live in labels.json so main.py and gen_data.ts share one
+# source of truth. `feelings` are the 7 that all appear in data.jsonl;
+# `emojis` is a fixed 60-emoji palette, fully decoupled from feelings (every
+# emoji is paired with every feeling). The emoji list is stored explicitly so
 # multi-codepoint glyphs like ❤️, ☀️, ⛈️, 🕊️ index as a single unit.
-EMOJIS = [
-    "😀",
-    "😂",
-    "🥹",
-    "😍",
-    "🤔",
-    "🥳",
-    "😎",
-    "😭",
-    "💀",
-    "🔥",  # expressions
-    "❤️",
-    "💯",
-    "✨",
-    "👍",
-    "👏",
-    "🙌",
-    "🙏",
-    "💪",
-    "🧠",
-    "👀",  # gestures
-    "🐶",
-    "🐱",
-    "🦁",
-    "🦉",
-    "🐙",
-    "🌲",
-    "🌺",
-    "🌈",
-    "☀️",
-    "⭐",  # nature
-    "🍕",
-    "🌮",
-    "🍣",
-    "☕",
-    "🍺",
-    "⚽",
-    "🎉",
-    "🚀",
-    "✈️",
-    "🎸",  # food & fun
-    "💡",
-    "💎",
-    "📱",
-    "🎁",
-    "🔒",
-    "🌍",
-    "🏆",
-    "🎨",
-    "🔮",
-    "📍",  # objects
-    "💼",
-    "🩺",
-    "💻",
-    "⏰",
-    "🚗",
-    "🌾",
-    "⛈️",
-    "🧩",
-    "👑",
-    "🕊️",  # work & weather
-]
+_LABELS = json.loads(
+    (Path(__file__).parent / "labels.json").read_text(encoding="utf-8")
+)
+feeling = _LABELS["feelings"]
+EMOJIS = _LABELS["emojis"]
 
 char2idx = {char: i for i, char in enumerate(CHARS)}
 feeling2idx = {f: i for i, f in enumerate(feeling)}
@@ -119,16 +55,14 @@ def feeling_colors(feeling_name: str) -> dict:
     Returns a dict with keys bg1, bg2, text_color. Unknown feelings fall back
     to the Neutral palette.
     """
-    bg1, bg2, text_color = FEELING_PALETTE.get(
-        feeling_name, FEELING_PALETTE["Neutral"])
+    bg1, bg2, text_color = FEELING_PALETTE.get(feeling_name, FEELING_PALETTE["Neutral"])
     return {"bg1": list(bg1), "bg2": list(bg2), "text_color": list(text_color)}
 
 
 class Model(nn.Module):
     def __init__(self, *, embed_dim: int, hidden_dim: int):
         super().__init__()
-        self.embedding = nn.Embedding(
-            VOCAB_SIZE, embed_dim, padding_idx=PAD_IDX)
+        self.embedding = nn.Embedding(VOCAB_SIZE, embed_dim, padding_idx=PAD_IDX)
 
         self.lstm = nn.LSTM(embed_dim, hidden_dim, batch_first=True)
         self.emoji = nn.Linear(hidden_dim, len(EMOJIS))
@@ -259,8 +193,7 @@ def evaluate(model: Model, data) -> dict:
     feeling_correct = 0
     for x, target_emoji, target_feeling in dataloader:
         emoji_logits, feeling_logits = model(x)
-        emoji_correct += (emoji_logits.argmax(dim=-1)
-                          == target_emoji).sum().item()
+        emoji_correct += (emoji_logits.argmax(dim=-1) == target_emoji).sum().item()
         feeling_correct += (
             (feeling_logits.argmax(dim=-1) == target_feeling).sum().item()
         )

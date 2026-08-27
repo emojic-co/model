@@ -1,6 +1,6 @@
 TODO:
-    Extract the feelings and emojis from the main.py and gen_data.ts to external json files, and load them in the scripts.
 Done:
+    Extract the feelings and emojis from the main.py and gen_data.ts to external json files, and load them in the scripts.
     Write a script that uses (Vercel) ai sdk and GPT-5.6 Luna to generate the dataset.
     The script should be ran from the command line and appends to data.jsonl.
     The script picks a random feeling and emoji, and generates 10 samples, note that the model should only return the text (feeling and emoji are given).
