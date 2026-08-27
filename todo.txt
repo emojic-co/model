@@ -3,6 +3,7 @@ TODO:
         update the gen_data.ts script:
             Step 1:
             - generate raw texts - WhatsApp style, short (max 64 chars), diverse topics, 1 message per line, no schema, no further limitations.
+            - make sure texts represent all ages, genders, hobbies, and interests (e.g. sports, music, movies, politics, etc.).
             - deduplicate (also with existing) and save the texts in a raw .txt file.
             - at least 1,000 texts each time (run in batches, seed a topic for each batch?).
             
@@ -17,7 +18,9 @@ TODO:
             - update the labels.json file with new emojis (if any).
 
         Notes:
+            - At least 1,000 means generates 1,000 keep whats left.
             - A single run generates at least 1,000 new texts and annotations.
             - Out of the 1,000 tmp records, you keep only records with existing emojis (already in labels.json) or new emojis that have >= 1% frequency in the tmp file i.e. roughly >= 10 new records.
             - That means that we expect from time to time new emojis to be added to the labels.json file, but not every time.
+            - After a run is completed remove all tmp files. We should end up with an up-to-date data.jsonl and labels.json file, they are the ground truth for the next run.
 DONE:
