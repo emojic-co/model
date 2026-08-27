@@ -143,11 +143,12 @@ def train(
     *,
     model: Model,
     data,
+    lr,
     epochs,
     batch_size=16,
 ):
 
-    optimizer = optim.Adam(model.parameters(), lr=0.01)
+    optimizer = optim.Adam(model.parameters(), lr=lr)
     dataloader = DataLoader(data, batch_size=batch_size, shuffle=True)
     criterion_ce = nn.CrossEntropyLoss()
     criterion_mse = nn.MSELoss()
@@ -272,11 +273,14 @@ if __name__ == "__main__":
         max_len=32
     )
 
-    n_test = max(1, len(dataset) // 5)
+    n_test = 100
     n_train = len(dataset) - n_test
     train_set, test_set = random_split(
-        dataset, [n_train, n_test], generator=torch.Generator().manual_seed(0)
+        dataset,
+        [n_train, n_test],
+        generator=torch.Generator().manual_seed(0)
     )
+
     print(f"Train: {n_train}  Test: {n_test}\n")
 
     model = Model(
@@ -287,6 +291,7 @@ if __name__ == "__main__":
     train(
         model=model,
         data=train_set,
+        lr=0.005,
         epochs=200,)
 
     metrics = evaluate(model, test_set)
