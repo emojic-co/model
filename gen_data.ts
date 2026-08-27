@@ -26,6 +26,8 @@ import { z } from "zod"
 
 const MODEL = "openai/gpt-5.6-luna"
 const OUT_PATH = new URL("./data.jsonl", import.meta.url)
+const BATCH_COUNT = 10
+const SAMPLES_PER_BATCH = 50
 
 const labels = z.object({
   feelings: z.array(z.string()),
@@ -50,38 +52,46 @@ if (import.meta.main) {
     await readFile('./labels.json', "utf8"),
   ))
 
-  const { output } = await generateText({
-    model: MODEL,
-    output: Output.object({
-      schema: z.object({
-        records: z
-          .array(Record)
-          .describe("Generated messages, each with an emoji and feeling."),
+  async function batch() {
+    const { output } = await generateText({
+      model: MODEL,
+      output: Output.object({
+        schema: z.object({
+          records: z
+            .array(Record)
+            .describe("Generated messages, each with an emoji and feeling."),
+        }),
       }),
-    }),
-    prompt: [
-      'Generate a list of short (1-6 words, no more than 64 characters), WhatsApp-style diverse messages.',
-      'Ensure high variance in tone, intent, and style (e.g., quick updates, dry humor, complaints, sudden news, invitations, reactions, low-effort replies). Avoid repetitive or cliché text.',
-      `For each message associate one of the feelings: ${feelings.join(", ")}`,
-      `For each message associate one of the emojis: ${emojis.join(", ")}`,
-      `Note that emojis and feelings are independent; the same emoji can be used for different feelings, and vice versa.`,
-      'Return at least 200 records, e.g.',
-      JSON.stringify([EXAMPLE_RECORD]),
-    ].join("\n")
-  })
+      prompt: [
+        'Generate a list of short (1-6 words, no more than 64 characters), WhatsApp-style diverse messages.',
+        'Ensure high variance in tone, intent, and style (e.g., quick updates, dry humor, complaints, sudden news, invitations, reactions, low-effort replies). Avoid repetitive or cliché text.',
+        `For each message associate one of the feelings: ${feelings.join(", ")}`,
+        `For each message associate one of the emojis: ${emojis.join(", ")}`,
+        `Note that emojis and feelings are independent; the same emoji can be used for different feelings, and vice versa.`,
+        `Return at least ${SAMPLES_PER_BATCH} records like this example:`,
+        JSON.stringify([EXAMPLE_RECORD]),
+      ].join("\n")
+    })
 
-  const parsed = z.array(Record).parse(output.records)
+    const parsed = z.array(Record).parse(output.records)
 
-  // Drop anything the model invented outside the labels.json label sets.
-  const feelingSet = new Set(feelings)
-  const emojiSet = new Set(emojis)
-  const records = parsed.filter(
-    (r) => emojiSet.has(r.emoji) && feelingSet.has(r.feeling),
-  )
-  const dropped = parsed.length - records.length
-  if (dropped > 0) {
-    console.warn(`Dropped ${dropped} record(s) with unknown emoji/feeling`)
+    // Drop anything the model invented outside the labels.json label sets.
+    const feelingSet = new Set(feelings)
+    const emojiSet = new Set(emojis)
+    const records = parsed.filter(
+      (r) => emojiSet.has(r.emoji) && feelingSet.has(r.feeling),
+    )
+    const dropped = parsed.length - records.length
+    if (dropped > 0) {
+      console.warn(`Dropped ${dropped} record(s) with unknown emoji/feeling`)
+    }
+    return records
   }
+
+  const records = (await Promise.all(Array.from({ length: BATCH_COUNT }).map(async () => {
+    // TODO: progress bar
+    return batch()
+  }))).flat()
 
   if (records.length > 0) {
     const lines = records

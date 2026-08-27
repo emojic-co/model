@@ -9,10 +9,13 @@ wheels/
 # Virtual environments
 .venv
 .vscode
-# Trained model checkpoint
-*.pt
+# model.pt is committed: CI reads it to build the Pages site.
 *.bak
 .env
+
+# Built Pages site -- CI regenerates it from model.pt and uploads it as the
+# Pages artifact. Build locally for preview with `uv run build_web.py`.
+/docs/
 
 # TensorBoard logs
 runs/

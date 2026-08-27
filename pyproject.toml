@@ -22,6 +22,8 @@ torch = [{ index = "pytorch-cpu" }]
 
 [dependency-groups]
 dev = [
+    "onnx>=1.22.0",
+    "onnxscript>=0.7.1",
     "ruff>=0.16.4",
 ]
 
