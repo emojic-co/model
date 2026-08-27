@@ -281,14 +281,29 @@ if __name__ == "__main__":
 
     print(f"Train: {n_train}  Test: {n_test}\n")
 
+    lr = 0.005
+    batch_size = 8
+
     model = Model(embed_dim=EMBED_SIZE, hidden_dim=H_SIZE)
+
+    name = run_name(
+        embed_dim=EMBED_SIZE,
+        hidden_dim=H_SIZE,
+        num_layers=NUM_LAYERS,
+        lr=lr,
+        batch_size=batch_size,
+        epochs=EPOCHS,
+    )
+    writer = SummaryWriter(log_dir=str(Path("runs") / name))
+    print(f"TensorBoard run: runs/{name}\n")
 
     train(
         model=model,
         data=train_set,
-        lr=0.005,
-        batch_size=8,
+        lr=lr,
+        batch_size=batch_size,
         epochs=EPOCHS,
+        writer=writer,
     )
 
     metrics = evaluate(model, test_set)
@@ -297,6 +312,25 @@ if __name__ == "__main__":
         f"emoji_acc={metrics['emoji_acc']:.2f}  "
         f"feeling_acc={metrics['feeling_acc']:.2f}"
     )
+    writer.add_scalar("test/emoji_acc", metrics["emoji_acc"])
+    writer.add_scalar("test/feeling_acc", metrics["feeling_acc"])
+    writer.add_hparams(
+        {
+            "embed_size": EMBED_SIZE,
+            "h_size": H_SIZE,
+            "num_layers": NUM_LAYERS,
+            "max_text_len": MAX_TEXT_LEN,
+            "lr": lr,
+            "batch_size": batch_size,
+            "epochs": EPOCHS,
+        },
+        {
+            "test/emoji_acc": metrics["emoji_acc"],
+            "test/feeling_acc": metrics["feeling_acc"],
+        },
+        run_name=".",
+    )
+    writer.close()
 
     torch.save(model.state_dict(), "model.pt")
     print("Saved model to model.pt")

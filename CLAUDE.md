@@ -16,6 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Package management is `uv` only. Do not `pip install` — dependencies and the lockfile are managed with `uv add` / `uv sync`.
 - `torch` is pinned to the PyTorch CPU wheel index (see `[tool.uv.sources]` in `pyproject.toml`). Keep that index config intact when editing dependencies.
 - Run / verify a change: `uv run main.py` (trains for a few epochs, then prints a sample inference).
+- Training writes TensorBoard logs to `runs/<config-name>/` (run name encodes embed/hidden/layers/lr/batch/epochs); view with `uv run tensorboard --logdir runs`.
 - Lint / format: `uv run ruff check .` and `uv run ruff format .` (config in `pyproject.toml`).
 - Python 3.11.
 
