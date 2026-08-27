@@ -14,7 +14,7 @@
  *
  * Requires AI_GATEWAY_API_KEY (Bun auto-loads it from .env).
  */
-import { readFile } from "node:fs/promises"
+import { appendFile, readFile } from "node:fs/promises"
 
 import { generateText, Output } from "ai"
 import { z } from "zod"
@@ -54,9 +54,9 @@ if (import.meta.main) {
     model: MODEL,
     output: Output.object({
       schema: z.object({
-        texts: z
-          .array(z.string())
-          .describe("The generated messages, text only."),
+        records: z
+          .array(Record)
+          .describe("Generated messages, each with an emoji and feeling."),
       }),
     }),
     prompt: [
@@ -64,11 +64,16 @@ if (import.meta.main) {
       `For each message associate one of the feelings: ${feelings.join(", ")}`,
       `For each message associate one of the emojis: ${emojis.join(", ")}`,
       `Note that emojis and feelings are independent; the same emoji can be used for different feelings, and vice versa.`,
-      'Return at least 100 messages as a JSON array of records, e.g.',
+      'Return at least 100 records, e.g.',
       JSON.stringify([EXAMPLE_RECORD]),
     ].join("\n")
   })
 
-  const records = z.array(Record).parse(output.texts)
-  // TODO: append to the file
+  const records = z.array(Record).parse(output.records)
+
+  const lines = records
+    .map((r) => JSON.stringify({ emoji: r.emoji, feeling: r.feeling, text: r.text }))
+    .join("\n")
+  await appendFile(OUT_PATH, lines + "\n")
+  console.log(`Appended ${records.length} records to data.jsonl`)
 }
