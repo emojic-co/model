@@ -10116,4 +10116,108 @@
 {"emoji":"🎉","feeling":"Angry","text":"Stop cheering, I'm angry!"}
 {"emoji":"🎉","feeling":"Angry","text":"That celebration better be canceled!"}
 {"emoji":"🎉","feeling":"Angry","text":"This party is seriously infuriating!"}
-// NEW DATA
+// NEW DATA{"emoji":"☀️","feeling":"Happy","text":"What a beautiful day!"}
+{"emoji":"🥳","feeling":"Excited","text":"I’m so excited!"}
+{"emoji":"🕊️","feeling":"Calm","text":"Feeling peaceful today"}
+{"emoji":"💔","feeling":"Sad","text":"I miss you"}
+{"emoji":"😡","feeling":"Angry","text":"That really annoyed me"}
+{"emoji":"🤔","feeling":"Anxious","text":"I’m worried about tomorrow"}
+{"emoji":"👀","feeling":"Neutral","text":"Just checking in"}
+{"emoji":"😂","feeling":"Happy","text":"You made me laugh"}
+{"emoji":"🎉","feeling":"Excited","text":"Can’t wait to celebrate"}
+{"emoji":"☕","feeling":"Calm","text":"Taking it easy"}
+{"emoji":"😭","feeling":"Sad","text":"Today feels difficult"}
+{"emoji":"🌶️","feeling":"Angry","text":"Please stop doing that"}
+{"emoji":"⚡","feeling":"Anxious","text":"My mind is racing"}
+{"emoji":"👍","feeling":"Neutral","text":"Sounds good to me"}
+{"emoji":"😍","feeling":"Happy","text":"You’re absolutely wonderful"}
+{"emoji":"🚀","feeling":"Excited","text":"The weekend starts now"}
+{"emoji":"🌊","feeling":"Calm","text":"Breathe and relax"}
+{"emoji":"😴","feeling":"Sad","text":"I feel completely drained"}
+{"emoji":"💀","feeling":"Angry","text":"This is unacceptable"}
+{"emoji":"🙏","feeling":"Anxious","text":"Hope everything goes smoothly"}
+{"emoji":"📱","feeling":"Neutral","text":"I’ll let you know"}
+{"emoji":"✨","feeling":"Happy","text":"Best news ever!"}
+{"emoji":"🎨","feeling":"Excited","text":"Let’s make memories"}
+{"emoji":"🕯️","feeling":"Calm","text":"Quiet moments feel magical"}
+{"emoji":"🥹","feeling":"Sad","text":"Wish you were here"}
+{"emoji":"⛈️","feeling":"Angry","text":"I’m losing my patience"}
+{"emoji":"⏰","feeling":"Anxious","text":"Don’t forget to call"}
+{"emoji":"🤔","feeling":"Neutral","text":"That’s interesting"}
+{"emoji":"🌈","feeling":"Happy","text":"You brightened my day"}
+{"emoji":"🎸","feeling":"Excited","text":"This party is incredible"}
+{"emoji":"🔒","feeling":"Calm","text":"Everything feels under control"}
+{"emoji":"💔","feeling":"Sad","text":"My heart feels heavy"}
+{"emoji":"🔥","feeling":"Angry","text":"I’m furious right now"}
+{"emoji":"🫶","feeling":"Anxious","text":"I need some reassurance"}
+{"emoji":"📍","feeling":"Neutral","text":"No updates yet"}
+{"emoji":"❤️","feeling":"Happy","text":"Love this so much"}
+{"emoji":"✈️","feeling":"Excited","text":"Adventure awaits us"}
+{"emoji":"🌲","feeling":"Calm","text":"Enjoying the silence"}
+{"emoji":"🥹","feeling":"Sad","text":"That hurt deeply"}
+{"emoji":"🤡","feeling":"Angry","text":"Why would you do that?"}
+{"emoji":"👻","feeling":"Anxious","text":"I’m nervous about everything"}
+{"emoji":"🤝","feeling":"Neutral","text":"I understand"}
+{"emoji":"⭐","feeling":"Happy","text":"You’re a true superstar"}
+{"emoji":"🏆","feeling":"Excited","text":"We’re almost there!"}
+{"emoji":"🍀","feeling":"Calm","text":"Savoring this peaceful moment"}
+{"emoji":"🌾","feeling":"Sad","text":"I need time alone"}
+{"emoji":"🫡","feeling":"Angry","text":"That’s enough now"}
+{"emoji":"🧠","feeling":"Anxious","text":"I can’t stop worrying"}
+{"emoji":"💬","feeling":"Neutral","text":"Let’s discuss it later"}
+{"emoji":"💯","feeling":"Happy","text":"Everything is going perfectly"}
+{"emoji":"🔮","feeling":"Excited","text":"New possibilities are calling"}
+{"emoji":"🌺","feeling":"Calm","text":"Peace begins within"}
+{"emoji":"🌧️","feeling":"Sad","text":"I’m having a rough day"}
+{"emoji":"⚡","feeling":"Angry","text":"You crossed the line"}
+{"emoji":"🍀","feeling":"Anxious","text":"I hope this works"}
+{"emoji":"🧠","feeling":"Neutral","text":"I’ll keep that in mind"}
+{"emoji":"🤩","feeling":"Happy","text":"This is pure joy"}
+{"emoji":"🚗","feeling":"Excited","text":"Let’s go somewhere amazing"}
+{"emoji":"🦉","feeling":"Calm","text":"Slow down and breathe"}
+{"emoji":"🌙","feeling":"Sad","text":"I’m feeling lonely"}
+{"emoji":"🦁","feeling":"Angry","text":"That made me angry"}
+{"emoji":"⛈️","feeling":"Anxious","text":"What if something goes wrong?"}
+{"emoji":"⏰","feeling":"Neutral","text":"I’ll be there soon"}
+{"emoji":"👏","feeling":"Happy","text":"You’re doing an amazing job"}
+{"emoji":"💪","feeling":"Excited","text":"I’m ready for anything"}
+{"emoji":"🌊","feeling":"Calm","text":"Let the worries float away"}
+{"emoji":"🩺","feeling":"Sad","text":"I’m still recovering"}
+{"emoji":"🌶️","feeling":"Angry","text":"This is so frustrating"}
+{"emoji":"👀","feeling":"Anxious","text":"I feel a little uneasy"}
+{"emoji":"👍","feeling":"Neutral","text":"That works for me"}
+{"emoji":"🌟","feeling":"Happy","text":"Today is full of promise"}
+{"emoji":"⏰","feeling":"Excited","text":"The countdown begins!"}
+{"emoji":"☀️","feeling":"Calm","text":"Calm skies ahead"}
+{"emoji":"😭","feeling":"Sad","text":"I’m not okay today"}
+{"emoji":"🔥","feeling":"Angry","text":"Don’t test my patience"}
+{"emoji":"🤖","feeling":"Anxious","text":"I’m overthinking everything"}
+{"emoji":"🤔","feeling":"Neutral","text":"I have no preference"}
+{"emoji":"✨","feeling":"Happy","text":"You make life brighter"}
+{"emoji":"🎸","feeling":"Excited","text":"This is going to rock"}
+{"emoji":"🕯️","feeling":"Calm","text":"Peaceful thoughts only"}
+{"emoji":"💔","feeling":"Sad","text":"I feel forgotten"}
+{"emoji":"😤","feeling":"Angry","text":"That was incredibly rude"}
+{"emoji":"🧩","feeling":"Anxious","text":"I’m afraid of failing"}
+{"emoji":"🔮","feeling":"Neutral","text":"Let’s see what happens"}
+{"emoji":"🙏","feeling":"Happy","text":"I’m grateful for you"}
+{"emoji":"🚀","feeling":"Excited","text":"Big things are coming"}
+{"emoji":"😴","feeling":"Calm","text":"Rest is important too"}
+{"emoji":"😭","feeling":"Sad","text":"I can’t hold back tears"}
+{"emoji":"🦁","feeling":"Angry","text":"You’ve gone too far"}
+{"emoji":"🫶","feeling":"Anxious","text":"I need a little help"}
+{"emoji":"📱","feeling":"Neutral","text":"Message received"}
+{"emoji":"❤️","feeling":"Happy","text":"My heart is smiling"}
+{"emoji":"🍺","feeling":"Excited","text":"Let’s celebrate together"}
+{"emoji":"🌲","feeling":"Calm","text":"Nature heals everything"}
+{"emoji":"🕊️","feeling":"Sad","text":"I’m saying goodbye"}
+{"emoji":"🤡","feeling":"Angry","text":"This situation is ridiculous"}
+{"emoji":"🤔","feeling":"Anxious","text":"I’m scared to ask"}
+{"emoji":"💡","feeling":"Neutral","text":"Noted, thank you"}
+{"emoji":"😍","feeling":"Happy","text":"You’re my favorite person"}
+{"emoji":"🎮","feeling":"Excited","text":"Bring on the fun!"}
+{"emoji":"🍀","feeling":"Calm","text":"All is well"}
+{"emoji":"🥀","feeling":"Sad","text":"I’m disappointed again"}
+{"emoji":"💪","feeling":"Angry","text":"I won’t tolerate this"}
+{"emoji":"📱","feeling":"Anxious","text":"Please keep me updated"}
+{"emoji":"☕","feeling":"Neutral","text":"Maybe another time"}
