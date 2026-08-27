@@ -118,7 +118,8 @@ class Model(nn.Module):
         )
 
         # 6. RNN forward pass
-        _, h_n = self.rnn(packed)
+        # nn.LSTM returns (output, (h_n, c_n)); unpack the hidden state.
+        _, (h_n, _c_n) = self.rnn(packed)
 
         # h_n shape: (num_layers, batch, hidden_dim)
         last_step = h_n[-1]
@@ -206,7 +207,10 @@ def load_data(
 def run_name() -> str:
     """Build a TensorBoard run name that encodes the training configuration."""
     time = datetime.now().strftime("%H:%M")
-    return f"emb{EMBED_SIZE}-h{H_SIZE}-l{NUM_LAYERS}-lr{LR}-bs{BATCH_SIZE}-ep{EPOCHS}-{time}"
+    return (
+        f"emb{EMBED_SIZE}-h{H_SIZE}-l{NUM_LAYERS}-lr{LR}"
+        f"-bs{BATCH_SIZE}-ep{EPOCHS}-{time}"
+    )
 
 
 def train(
