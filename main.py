@@ -1,10 +1,7 @@
-import functools
 import json
-import random
 import re
 from pathlib import Path
 
-import snowballstemmer
 import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
@@ -20,7 +17,6 @@ from config import (
     LR,
     MAX_TEXT_LEN,
     NUM_LAYERS,
-    PERTURB_RATE,
 )
 
 # INPUT
@@ -107,76 +103,11 @@ class Model(nn.Module):
         )
 
 
-_stemmer = snowballstemmer.stemmer("english")
-
-
-@functools.lru_cache(maxsize=4096)
-def _stem(word: str) -> str:
-    return _stemmer.stemWord(word)
-
-
 def normalize(text: str) -> str:
     # Collapse whitespace, lowercase, Porter2-stem each word, then drop any
     # character not in the model vocab.
     text = re.sub(r"\s+", " ", text).strip().lower()
-    text = " ".join(_stem(w) for w in text.split(" "))
     return "".join(c for c in text if c in char2idx)
-
-
-# Letters (plus space) used when a perturbation has to invent a character.
-_PERTURB_ALPHABET = "abcdefghijklmnopqrstuvwxyz "
-
-
-def perturb(
-    text: str,
-    *,
-    rate: float = PERTURB_RATE,
-    rng: random.Random | None = None,
-) -> str:
-    """Return `text` with random char-level typo noise, for data augmentation.
-
-    Walks the string left to right; each position is independently hit with
-    probability `rate` and, if hit, gets one classic typo edit:
-
-    - ``swap``       transpose this character with the next one
-    - ``delete``     drop this character
-    - ``insert``     emit a random letter before this character
-    - ``substitute`` replace this character with a random letter
-
-    Operates on raw text, so call it *before* `normalize`. Pass an `rng`
-    (a `random.Random`) for deterministic output; otherwise the module-global
-    RNG is used.
-    """
-    r = rng or random
-    chars = list(text)
-    n = len(chars)
-    out: list[str] = []
-    i = 0
-    while i < n:
-        c = chars[i]
-        if r.random() >= rate:
-            out.append(c)
-            i += 1
-            continue
-
-        ops = ["insert", "substitute", "delete"]
-        if i + 1 < n:
-            ops.append("swap")
-        op = r.choice(ops)
-        if op == "swap":
-            out.append(chars[i + 1])
-            out.append(c)
-            i += 2
-        elif op == "delete":
-            i += 1
-        elif op == "insert":
-            out.append(r.choice(_PERTURB_ALPHABET))
-            out.append(c)
-            i += 1
-        else:  # substitute
-            out.append(r.choice(_PERTURB_ALPHABET))
-            i += 1
-    return "".join(out)
 
 
 def encode(text: str, *, normalized: bool = False) -> torch.Tensor:
@@ -194,21 +125,17 @@ def encode(text: str, *, normalized: bool = False) -> torch.Tensor:
 
 class MultiTaskDataset(Dataset):
     def __init__(
-        self, data, *, perturb: bool = False, perturb_rate: float = PERTURB_RATE
+        self, data, *, perturb: bool = False
     ):
         self.data = data
         self.data_len = len(data)
         self.perturb = perturb
-        self.perturb_rate = perturb_rate
 
     def __len__(self):
         return self.data_len
 
     def __getitem__(self, idx):
         text, emoji_target, feeling_target = self.data[idx]
-
-        if self.perturb:
-            text = perturb(text, rate=self.perturb_rate)
 
         x_tensor = encode(text).squeeze(0)
 
@@ -241,7 +168,7 @@ def run_name() -> str:
     """Build a TensorBoard run name that encodes the training configuration."""
     return (
         f"emb{EMBED_SIZE}-h{H_SIZE}-l{NUM_LAYERS}"
-        f"-lr{LR}-bs{BATCH_SIZE}-ep{EPOCHS}-pr{PERTURB_RATE}"
+        f"-lr{LR}-bs{BATCH_SIZE}-ep{EPOCHS}"
     )
 
 
@@ -253,8 +180,7 @@ def train(
 ):
     # Input perturbation is a property of the dataset (set `perturb=True` when
     # building the training set); evaluate/predict keep the clean text.
-    perturbed = getattr(data, "perturb", False)
-    active_rate = getattr(data, "perturb_rate", 0.0) if perturbed else 0.0
+    active_rate = 0.0
 
     optimizer = optim.Adam(model.parameters(), lr=LR)
     dataloader = DataLoader(data, batch_size=BATCH_SIZE, shuffle=True)
@@ -363,7 +289,8 @@ if __name__ == "__main__":
     ).tolist()
     raw = dataset.data
 
-    train_set = MultiTaskDataset([raw[i] for i in perm[:n_train]], perturb=True)
+    train_set = MultiTaskDataset(
+        [raw[i] for i in perm[:n_train]], perturb=True)
     test_set = MultiTaskDataset([raw[i] for i in perm[n_train:]])
 
     print(f"Train: {n_train}  Test: {n_test}\n")
@@ -397,7 +324,6 @@ if __name__ == "__main__":
             "lr": LR,
             "batch_size": BATCH_SIZE,
             "epochs": EPOCHS,
-            "perturb_rate": PERTURB_RATE,
         },
         {
             "test/emoji_acc": metrics["emoji_acc"],
