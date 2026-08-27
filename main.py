@@ -14,6 +14,7 @@ from config import (
     EPOCHS,
     GRAD_CLIP,
     H_SIZE,
+    KEYWORDS_UPSAMPLE,
     LR,
     MAX_TEXT_LEN,
     NUM_LAYERS,
@@ -71,16 +72,24 @@ def feeling_colors(feeling_name: str) -> dict:
 
 
 class Model(nn.Module):
-    def __init__(self, *, embed_dim: int, hidden_dim: int):
+    def __init__(self):
         super().__init__()
         self.embedding = nn.Embedding(
-            VOCAB_SIZE, embed_dim, padding_idx=PAD_IDX)
+            VOCAB_SIZE, EMBED_SIZE, padding_idx=PAD_IDX)
 
-        self.net = nn.RNN(
-            input_size=embed_dim,
-            hidden_size=hidden_dim,
-            num_layers=NUM_LAYERS,
-            batch_first=True,
+        self.net = nn.Sequential(
+            nn.Conv1d(
+                in_channels=EMBED_SIZE,
+                out_channels=H_SIZE,
+                kernel_size=3,
+                padding=1,
+            ),
+            nn.RNN(
+                input_size=H_SIZE,
+                hidden_size=H_SIZE,
+                num_layers=NUM_LAYERS,
+                batch_first=True,
+            )
         )
         # self.net = nn.LSTM(
         #     input_size=embed_dim,
@@ -88,8 +97,8 @@ class Model(nn.Module):
         #     num_layers=NUM_LAYERS,
         #     batch_first=True,
         # )
-        self.emoji = nn.Linear(hidden_dim, len(EMOJIS))
-        self.feeling = nn.Linear(hidden_dim, len(feeling))
+        self.emoji = nn.Linear(H_SIZE, len(EMOJIS))
+        self.feeling = nn.Linear(H_SIZE, len(feeling))
 
     def forward(self, x):
         # True length of each row (chars before padding); clamp so an all-pad
@@ -99,9 +108,9 @@ class Model(nn.Module):
         packed = nn.utils.rnn.pack_padded_sequence(
             emb, lengths.cpu(), batch_first=True, enforce_sorted=False
         )
-        # _, (h_n, _) = self.net(packed)
-        _, (h_n, _) = self.net(packed)
-        # h_n[-1] is the hidden state at each row's last real character.
+        # nn.RNN returns (output, h_n) -- no cell state, unlike nn.LSTM.
+        _, h_n = self.net(packed)
+        # h_n[-1] is the last layer's hidden state at each row's last real char.
         last_step = h_n[-1]  # (batch_size, hidden_dim)
 
         return (
@@ -150,20 +159,37 @@ class MultiTaskDataset(Dataset):
         )
 
 
-def load_data(*, path: str) -> MultiTaskDataset:
-    """Read a .jsonl file of samples and return a MultiTaskDataset.
+def _read_rows(path: str) -> list[tuple[str, str, str]]:
+    """Read a .jsonl file into a list of (text, emoji, feeling) tuples.
 
     Each line must be a JSON object with keys: text, emoji, feeling.
     """
-    data = []
+    rows = []
     with open(path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line:
                 continue
             row = json.loads(line)
-            data.append((row["text"], row["emoji"], row["feeling"]))
+            rows.append((row["text"], row["emoji"], row["feeling"]))
+    return rows
 
+
+def load_data(
+    *,
+    path: str = "data.jsonl",
+    keywords_path: str = "keywords.jsonl",
+    keywords_upsample: int = KEYWORDS_UPSAMPLE,
+) -> MultiTaskDataset:
+    """Load the main corpus plus the keyword corpus into one MultiTaskDataset.
+
+    The keyword rows (`keywords_path`) are duplicated `keywords_upsample` times
+    so the thin keyword corpus carries more weight during training; 0 leaves it
+    out entirely.
+    """
+    data = _read_rows(path)
+    if keywords_upsample:
+        data.extend(_read_rows(keywords_path) * keywords_upsample)
     return MultiTaskDataset(data)
 
 
@@ -274,7 +300,7 @@ def predict(model: Model, text: str) -> dict:
 if __name__ == "__main__":
     torch.manual_seed(0)
 
-    dataset = load_data(path="data.jsonl")
+    dataset = load_data()
 
     n_test = min(100, len(dataset) // 10)
     n_train = len(dataset) - n_test
@@ -288,7 +314,7 @@ if __name__ == "__main__":
 
     print(f"Train: {n_train}  Test: {n_test}\n")
 
-    model = Model(embed_dim=EMBED_SIZE, hidden_dim=H_SIZE)
+    model = Model()
 
     name = run_name()
     writer = SummaryWriter(log_dir=str(Path("runs") / name))
