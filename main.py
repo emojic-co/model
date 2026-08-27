@@ -1,9 +1,10 @@
 import json
+import random
 import re
 
 import torch
 from torch import nn, optim
-from torch.utils.data import DataLoader, Dataset, random_split
+from torch.utils.data import DataLoader, Dataset
 
 from config import EMBED_SIZE, H_SIZE, MAX_TEXT_LEN
 
@@ -86,14 +87,16 @@ def encode(text: str, max_len=16) -> torch.Tensor:
 
 
 class MultiTaskDataset(Dataset):
-    def __init__(self, data, max_len: int):
+    def __init__(self, data, data_len: int | None = None, *, augment: bool = False):
         self.data = data
-        self.max_len = max_len
+        self.data_len = data_len if data_len is not None else len(data)
+        self.augment = augment
 
     def __len__(self):
-        return len(self.data)
+        return self.data_len
 
     def __getitem__(self, idx):
+        i = idx % len(self.data)
         (
             text,
             emoji_target,
@@ -101,9 +104,15 @@ class MultiTaskDataset(Dataset):
             bg1_oklab,
             bg2_oklab,
             text_color_oklab,
-        ) = self.data[idx]
+        ) = self.data[i]
 
-        x_tensor = encode(text, self.max_len).squeeze(0)
+        # Augmentation: half the time, shuffle the word order.
+        if self.augment and random.random() < 0.5:
+            words = text.split()
+            random.shuffle(words)
+            text = " ".join(words)
+
+        x_tensor = encode(text, MAX_TEXT_LEN).squeeze(0)
 
         return (
             x_tensor,
@@ -115,7 +124,7 @@ class MultiTaskDataset(Dataset):
         )
 
 
-def load_data(*, path: str, max_len: int) -> MultiTaskDataset:
+def load_data(*, path: str) -> MultiTaskDataset:
     """Read a .jsonl file of samples and return a MultiTaskDataset.
 
     Each line must be a JSON object with keys: text, emoji, feeling, bg1, bg2,
@@ -138,7 +147,7 @@ def load_data(*, path: str, max_len: int) -> MultiTaskDataset:
                     row["text_color"],
                 )
             )
-    return MultiTaskDataset(data, max_len=max_len)
+    return MultiTaskDataset(data)
 
 
 def train(
@@ -270,19 +279,18 @@ def predict(model: Model, text: str, max_len: int = 16) -> dict:
 
 if __name__ == "__main__":
     torch.manual_seed(0)
+    random.seed(0)
 
-    dataset = load_data(
-        path="data.jsonl",
-        max_len=MAX_TEXT_LEN
-    )
+    dataset = load_data(path="data.jsonl")
 
     n_test = 100
     n_train = len(dataset) - n_test
-    train_set, test_set = random_split(
-        dataset,
-        [n_train, n_test],
-        generator=torch.Generator().manual_seed(0)
-    )
+    perm = torch.randperm(
+        len(dataset), generator=torch.Generator().manual_seed(0)
+    ).tolist()
+    raw = dataset.data
+    train_set = MultiTaskDataset([raw[i] for i in perm[:n_train]], augment=True)
+    test_set = MultiTaskDataset([raw[i] for i in perm[n_train:]], augment=False)
 
     print(f"Train: {n_train}  Test: {n_test}\n")
 
@@ -296,7 +304,7 @@ if __name__ == "__main__":
         data=train_set,
         lr=0.005,
         batch_size=8,
-        epochs=300,)
+        epochs=1,)
 
     metrics = evaluate(model, test_set)
     print(
