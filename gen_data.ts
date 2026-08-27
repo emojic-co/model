@@ -68,11 +68,26 @@ if (import.meta.main) {
     feeling: pick(FEELINGS),
   }))
 
-  const results = await Promise.allSettled(
-    pairs.map(({ emoji, feeling }) => generateBatch(emoji, feeling)),
-  )
+  let done = 0
+  const total = pairs.length
+  const drawProgress = () => {
+    const width = 30
+    const filled = Math.round((done / total) * width)
+    const bar = "█".repeat(filled) + "░".repeat(width - filled)
+    process.stderr.write(`\r[${bar}] ${done}/${total} batches`)
+  }
 
-  // TODO: add a progress bar
+  drawProgress()
+  const results = await Promise.allSettled(
+    pairs.map(({ emoji, feeling }) =>
+      generateBatch(emoji, feeling).finally(() => {
+        done += 1
+        drawProgress()
+      }),
+    ),
+  )
+  process.stderr.write("\n")
+
   const lines = results
     .flatMap((result, i) => {
       const { emoji, feeling } = pairs[i]
