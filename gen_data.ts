@@ -82,10 +82,6 @@ if (import.meta.main) {
     const records = parsed.filter(
       (r) => emojiSet.has(r.emoji) && feelingSet.has(r.feeling),
     )
-    const dropped = parsed.length - records.length
-    if (dropped > 0) {
-      console.warn(`Dropped ${dropped} record(s) with unknown emoji/feeling`)
-    }
     return records
   }
 
@@ -106,4 +102,5 @@ if (import.meta.main) {
   }))
   bar.stop()
 
+  process.exit(0)
 }
