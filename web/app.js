@@ -7,6 +7,18 @@ const feelingEl = document.getElementById("feeling");
 // Oklab [L, a, b] -> CSS oklab() color string.
 const oklab = ([L, a, b]) => `oklab(${L.toFixed(4)} ${a.toFixed(4)} ${b.toFixed(4)})`;
 
+// One Google-fonts webfont per feeling (loaded in index.html). The mood of the
+// typeface is meant to echo the mood of the feeling.
+const FEELING_FONTS = {
+  Happy: '"Fredoka", system-ui, sans-serif',
+  Excited: '"Bangers", system-ui, cursive',
+  Calm: '"Quicksand", system-ui, sans-serif',
+  Sad: '"Playfair Display", Georgia, serif',
+  Angry: '"Anton", system-ui, sans-serif',
+  Anxious: '"Shantell Sans", system-ui, cursive',
+  Neutral: '"Inter", system-ui, sans-serif',
+};
+
 let seq = 0;
 
 async function update() {
@@ -27,6 +39,7 @@ async function update() {
   feelingEl.textContent = r.feeling;
   card.style.background = `linear-gradient(135deg, ${oklab(r.bg1)}, ${oklab(r.bg2)})`;
   card.style.color = oklab(r.text_color);
+  card.style.fontFamily = FEELING_FONTS[r.feeling] ?? FEELING_FONTS.Neutral;
 }
 
 input.addEventListener("input", update);

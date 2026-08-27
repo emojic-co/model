@@ -1,5 +1,5 @@
 TODO:
     Web App:
-        - Change the gradient color of the Neutral filling to something nicer.
-        - Use different webfont for each filling, you can use Google fonts CDN for that.
 DONE:
+    - Change the gradient color of the Neutral filling to something nicer.
+    - Use different webfont for each filling, you can use Google fonts CDN for that.
