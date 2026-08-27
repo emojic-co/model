@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "gen": "bun run gen_data.ts"
+    "gen": "bun run gen_data.ts",
+    "fix": "bun run fix.ts"
   },
   "dependencies": {
     "ai": "^7.0.83",

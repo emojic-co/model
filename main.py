@@ -53,7 +53,8 @@ emoji2idx = {e: i for i, e in enumerate(EMOJIS)}
 # Oklab palette: bg1/bg2 are the gradient background, text_color the foreground.
 # Values are [L (0..1), a (-0.4..0.4), b (-0.4..0.4)]; consumed by server.py /
 # the web page. Warm/bright for Happy/Excited, green for Calm, muted/dark for
-# Sad/Anxious, dark saturated red for Angry, cool blue for Neutral.
+# Sad/Anxious, dark saturated red for Angry, cool blue for Neutral, warm pink
+# for Love.
 FEELING_PALETTE = {
     "Happy": ([0.90, 0.02, 0.13], [0.82, 0.06, 0.16], [0.22, 0.03, 0.06]),
     "Excited": ([0.80, 0.12, 0.10], [0.70, 0.16, 0.14], [0.97, 0.0, 0.02]),
@@ -62,6 +63,7 @@ FEELING_PALETTE = {
     "Angry": ([0.48, 0.18, 0.09], [0.38, 0.16, 0.07], [0.97, 0.02, 0.01]),
     "Anxious": ([0.60, -0.03, -0.06], [0.50, 0.02, -0.04], [0.95, 0.0, -0.01]),
     "Neutral": ([0.88, -0.05, -0.04], [0.80, -0.06, -0.08], [0.30, -0.004, -0.016]),
+    "Love": ([0.86, 0.10, 0.02], [0.78, 0.13, 0.03], [0.25, 0.06, 0.01]),
 }
 
 
