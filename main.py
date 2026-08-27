@@ -82,7 +82,7 @@ class Model(nn.Module):
             in_channels=EMBED_SIZE,
             out_channels=H_SIZE,
             kernel_size=3,
-            padding=1,  # Keeps sequence length constant
+            padding=0,
         )
         self.relu = nn.ReLU()
 
