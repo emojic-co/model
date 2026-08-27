@@ -75,43 +75,51 @@ class Model(nn.Module):
     def __init__(self):
         super().__init__()
         self.embedding = nn.Embedding(
-            VOCAB_SIZE, EMBED_SIZE, padding_idx=PAD_IDX)
-
-        self.net = nn.Sequential(
-            nn.Conv1d(
-                in_channels=EMBED_SIZE,
-                out_channels=H_SIZE,
-                kernel_size=3,
-                padding=1,
-            ),
-            nn.RNN(
-                input_size=H_SIZE,
-                hidden_size=H_SIZE,
-                num_layers=NUM_LAYERS,
-                batch_first=True,
-            )
+            VOCAB_SIZE, EMBED_SIZE, padding_idx=PAD_IDX
         )
-        # self.net = nn.LSTM(
-        #     input_size=embed_dim,
-        #     hidden_size=hidden_dim,
-        #     num_layers=NUM_LAYERS,
-        #     batch_first=True,
-        # )
+
+        self.conv = nn.Conv1d(
+            in_channels=EMBED_SIZE,
+            out_channels=H_SIZE,
+            kernel_size=3,
+            padding=1,  # Keeps sequence length constant
+        )
+        self.relu = nn.ReLU()
+
+        self.rnn = nn.RNN(
+            input_size=H_SIZE,
+            hidden_size=H_SIZE,
+            num_layers=NUM_LAYERS,
+            batch_first=True,
+        )
+
         self.emoji = nn.Linear(H_SIZE, len(EMOJIS))
         self.feeling = nn.Linear(H_SIZE, len(feeling))
 
     def forward(self, x):
-        # True length of each row (chars before padding); clamp so an all-pad
-        # row (empty text) still packs with length 1.
+        # 1. Compute valid character lengths before padding
         lengths = (x != PAD_IDX).sum(dim=1).clamp(min=1)
-        emb = self.embedding(x)  # (batch_size, seq_len, embed_dim)
+
+        # 2. Embedding: (batch, seq_len) -> (batch, seq_len, embed_dim)
+        emb = self.embedding(x)
+
+        # 3. Conv1d: permute to (batch, embed_dim, seq_len)
+        conv_in = emb.permute(0, 2, 1)
+        conv_out = self.relu(self.conv(conv_in))
+
+        # 4. Permute back for RNN: (batch, seq_len, h_size)
+        rnn_in = conv_out.permute(0, 2, 1)
+
+        # 5. Pack padded sequence
         packed = nn.utils.rnn.pack_padded_sequence(
-            emb, lengths.cpu(), batch_first=True, enforce_sorted=False
+            rnn_in, lengths.cpu(), batch_first=True, enforce_sorted=False
         )
-        # nn.RNN returns (output, h_n) -- no cell state, unlike nn.LSTM.
-        _, h_n = self.net(packed)
-        # h_n[-1] is the last layer's hidden state at each row's last real char.
-        last_step = h_n[-1]  # (batch_size, hidden_dim)
+
+        # 6. RNN forward pass
+        _, h_n = self.rnn(packed)
+
+        # h_n shape: (num_layers, batch, hidden_dim)
+        last_step = h_n[-1]
 
         return (
             self.emoji(last_step),
