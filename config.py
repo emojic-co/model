@@ -1,5 +1,3 @@
-
-
 EMBED_SIZE = 8
 H_SIZE = 16
 MAX_TEXT_LEN = 32

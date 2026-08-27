@@ -4,11 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-`emojic` trains a small multi-task char-level LSTM (`main.py`) that maps a short text string to: an emoji (one of a fixed 30-emoji palette, grouped 5-per-feeling), a feeling (`feeling` list in `main.py`; the 6 that appear in `data.jsonl` plus an inert `Neutral` slot), and three Oklab colors — `bg1`/`bg2` for a gradient background and `text_color` for the foreground text.
+`emojic` trains a small multi-task char-level LSTM (`main.py`) that maps a short text string to two labels: an emoji (`EMOJIS` in `main.py` — a fixed 60-emoji palette, fully decoupled from feelings) and a feeling (`feeling` list in `main.py` — the 7 that all appear in `data.jsonl`). Colors are **not** learned: `feeling_colors(feeling)` in `main.py` looks up a fixed per-feeling Oklab palette (`FEELING_PALETTE`) for `bg1`/`bg2` (gradient background) and `text_color` (foreground), and `predict` merges that into its result so `server.py` / the web page still receive colors.
 
-- `main.py` — data loading, model, training, eval, and `predict`.
+- `main.py` — data loading, model, training, eval, `predict`, and the `feeling_colors` palette.
+- `gen_data.py` — regenerates `data.jsonl` from scratch (`uv run gen_data.py`): 60 emojis × 7 feelings × 5 texts = 2100 rows, grouped emoji-major then feeling-minor. Deterministic. Each `text` is a short (~2-6 word) phrase joining an emoji-picture word (`EMOJI_WORDS`) with a feeling cue (`FEELING_MOODS`); edit those two dicts to change the corpus.
 - `server.py` — stdlib `http.server` app: loads `model.pt` once and serves `GET /predict?text=...` plus the static page in `web/`. Run with `uv run server.py`.
-- `data.jsonl` — one JSON sample per line: `text`, `emoji`, `feeling`, `bg1`, `bg2`, `text_color`.
+- `data.jsonl` — one JSON sample per line: `text`, `emoji`, `feeling` (no color fields).
 
 ## Environment & commands
 
@@ -20,6 +21,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Conventions
 
-- Oklab color values are `[L (0..1), a (-0.4..0.4), b (-0.4..0.4)]`. All three color targets and predictions are in Oklab; the color heads emit raw logits that `squash_oklab` maps into range (`sigmoid` for L, `0.4*tanh` for a/b), and the color losses are MSE in Oklab space (weighted 5x) to approximate perceptual distance.
+- Oklab color values are `[L (0..1), a (-0.4..0.4), b (-0.4..0.4)]`. Colors are a fixed lookup, not a model head: `FEELING_PALETTE` in `main.py` holds one `(bg1, bg2, text_color)` triple per feeling (warm/bright for Happy/Excited, cool for Calm, muted/dark for Sad/Anxious, dark saturated red for Angry, neutral grey for Neutral). `web/app.js` renders them via CSS `oklab()`. The model has only two heads (`emoji`, `feeling`), both cross-entropy; there is no color loss.
 - Char indexing reserves index 0 for padding (`PAD_IDX`); real characters in `CHARS` are numbered from 1, and `nn.Embedding` uses `padding_idx=0`. The LSTM is fed via `pack_padded_sequence`, so the classifier reads the hidden state at each row's last real character, not a trailing pad step. Sequences are always encoded to `MAX_TEXT_LEN` (train and inference must match).
-- No test suite or CI yet — verification is running `main.py` and checking the loss decreases and inference looks sane. Lint/format with `ruff` before committing.
+- No test suite or CI yet — verification is running `main.py` and checking the loss decreases and inference looks sane (feeling accuracy trains well; emoji accuracy is weak at the current `H_SIZE`/`EMBED_SIZE`). Regenerate the corpus with `uv run gen_data.py` if you touch the label sets. Lint/format with `ruff` before committing.

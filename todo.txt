@@ -1,22 +1,17 @@
 TODO:
+
+DONE:
     Colors:
         - Write a function that given a feeling generates bg gradient and text colors.
+          -> feeling_colors() + FEELING_PALETTE in main.py; predict() merges the
+             colors in so server.py / web keep working.
     Model:
         - Update the model to only predict emoji and feeling.
+          -> Model now has just the emoji + feeling heads (both cross-entropy);
+             dataset, train, evaluate, predict all drop the color targets.
     Data:
         - Regenerate data.jsonl from scratch:
             For each combination of emoji (60) x feeling (7) write (5) short texts that match the combination.
             So dataset should have 60 x 7 x 5 = 2100 entries.
-            Dataset should look like this:
-
-            // 😀 + Happy
-            {emoji: '😀', feeling: 'Happy', text:'...'}
-            .
-            .
-            .
-            //🕊️ + Neutral
-            {emoji: '🕊️', feeling: 'Neutral', text:'...'}
-            .
-            .
-
-DONE:
+          -> gen_data.py builds all 2100 rows deterministically, grouped
+             emoji-major then feeling-minor, as {emoji, feeling, text}.

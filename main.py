@@ -9,8 +9,10 @@ from config import EMBED_SIZE, EPOCHS, H_SIZE, MAX_TEXT_LEN
 
 # INPUT
 # Index 0 is reserved for padding; real characters are numbered from 1.
-PAD = '·'
-CHARS = PAD + "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,!?;:()[]{}<>@#$%^&* "
+PAD = "·"
+CHARS = (
+    PAD + "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,!?;:()[]{}<>@#$%^&* "
+)
 PAD_IDX = 0
 VOCAB_SIZE = len(CHARS) + 1
 
@@ -25,37 +27,109 @@ feeling = [
     "Neutral",
 ]
 
-# TODO: decouple emojis from feelings, pick 30 popular diverse emojis and backfill the data.jsonl with them.
-emojis = (
-    "😀😂🥹😍🤔🥳😎😭💀🔥"  # Expressions & Feelings
-    "❤️💯✨👍👏🙌🙏💪🧠👀"  # Symbols & Gestures
-    "🐶🐱🦁🦉🐙🌲🌺🌈☀️⭐"  # Animals & Nature
-    "🍕🌮🍣☕🍺⚽🎉🚀✈️🎸"   # Food, Travel & Fun
-    "💡💎📱🎁🔒🌍🏆🎨🔮📍"  # Objects & Places
-    "💼🩺💻⏰🚗🌾⛈️🧩👑🕊️"  # New: Work, Weather, Health & Icons
-)
+# 60 diverse emojis, fully decoupled from feelings: every emoji is paired with
+# every feeling in data.jsonl. Kept as an explicit list (not a joined string) so
+# multi-codepoint glyphs like ❤️, ☀️, ⛈️, 🕊️ index as a single unit.
+EMOJIS = [
+    "😀",
+    "😂",
+    "🥹",
+    "😍",
+    "🤔",
+    "🥳",
+    "😎",
+    "😭",
+    "💀",
+    "🔥",  # expressions
+    "❤️",
+    "💯",
+    "✨",
+    "👍",
+    "👏",
+    "🙌",
+    "🙏",
+    "💪",
+    "🧠",
+    "👀",  # gestures
+    "🐶",
+    "🐱",
+    "🦁",
+    "🦉",
+    "🐙",
+    "🌲",
+    "🌺",
+    "🌈",
+    "☀️",
+    "⭐",  # nature
+    "🍕",
+    "🌮",
+    "🍣",
+    "☕",
+    "🍺",
+    "⚽",
+    "🎉",
+    "🚀",
+    "✈️",
+    "🎸",  # food & fun
+    "💡",
+    "💎",
+    "📱",
+    "🎁",
+    "🔒",
+    "🌍",
+    "🏆",
+    "🎨",
+    "🔮",
+    "📍",  # objects
+    "💼",
+    "🩺",
+    "💻",
+    "⏰",
+    "🚗",
+    "🌾",
+    "⛈️",
+    "🧩",
+    "👑",
+    "🕊️",  # work & weather
+]
+
 char2idx = {char: i for i, char in enumerate(CHARS)}
 feeling2idx = {f: i for i, f in enumerate(feeling)}
-emoji2idx = {e: i for i, e in enumerate(emojis)}
+emoji2idx = {e: i for i, e in enumerate(EMOJIS)}
+
+# Colors are no longer a learned model output. Each feeling maps to a fixed
+# Oklab palette: bg1/bg2 are the gradient background, text_color the foreground.
+# Values are [L (0..1), a (-0.4..0.4), b (-0.4..0.4)]; consumed by server.py /
+# the web page. Warm/bright for Happy/Excited, cool for Calm, muted/dark for
+# Sad/Anxious, dark saturated red for Angry, neutral grey for Neutral.
+FEELING_PALETTE = {
+    "Happy": ([0.90, 0.02, 0.13], [0.82, 0.06, 0.16], [0.22, 0.03, 0.06]),
+    "Excited": ([0.80, 0.12, 0.10], [0.70, 0.16, 0.14], [0.97, 0.0, 0.02]),
+    "Calm": ([0.88, -0.05, -0.04], [0.80, -0.06, -0.08], [0.28, -0.02, -0.03]),
+    "Sad": ([0.55, -0.02, -0.09], [0.45, -0.02, -0.11], [0.95, -0.01, -0.02]),
+    "Angry": ([0.48, 0.18, 0.09], [0.38, 0.16, 0.07], [0.97, 0.02, 0.01]),
+    "Anxious": ([0.60, -0.03, -0.06], [0.50, 0.02, -0.04], [0.95, 0.0, -0.01]),
+    "Neutral": ([0.92, 0.0, 0.0], [0.85, 0.0, 0.0], [0.25, 0.0, 0.0]),
+}
 
 
-def squash_oklab(raw: torch.Tensor) -> torch.Tensor:
-    """Map a raw (..., 3) tensor into Oklab range: L in [0, 1], a/b in [-0.4, 0.4]."""
-    L = torch.sigmoid(raw[..., :1])
-    ab = 0.4 * torch.tanh(raw[..., 1:])
-    return torch.cat([L, ab], dim=-1)
+def feeling_colors(feeling_name: str) -> dict:
+    """Map a feeling to its gradient + text colors (Oklab [L, a, b] triples).
+
+    Returns a dict with keys bg1, bg2, text_color. Unknown feelings fall back
+    to the Neutral palette.
+    """
+    bg1, bg2, text_color = FEELING_PALETTE.get(feeling_name, FEELING_PALETTE["Neutral"])
+    return {"bg1": list(bg1), "bg2": list(bg2), "text_color": list(text_color)}
 
 
 class Model(nn.Module):
     def __init__(self, *, embed_dim: int, hidden_dim: int):
         super().__init__()
-        self.embedding = nn.Embedding(
-            VOCAB_SIZE,
-            embed_dim,
-            padding_idx=PAD_IDX)
+        self.embedding = nn.Embedding(VOCAB_SIZE, embed_dim, padding_idx=PAD_IDX)
 
         self.lstm = nn.LSTM(embed_dim, hidden_dim, batch_first=True)
-        self.emoji = nn.Linear(hidden_dim, len(emojis))
+        self.emoji = nn.Linear(hidden_dim, len(EMOJIS))
         self.feeling = nn.Linear(hidden_dim, len(feeling))
 
     def forward(self, x):
@@ -99,14 +173,7 @@ class MultiTaskDataset(Dataset):
         return self.data_len
 
     def __getitem__(self, idx):
-        (
-            text,
-            emoji_target,
-            feeling_target,
-            bg1_oklab,
-            bg2_oklab,
-            text_color_oklab,
-        ) = self.data[idx]
+        text, emoji_target, feeling_target = self.data[idx]
 
         x_tensor = encode(text).squeeze(0)
 
@@ -114,17 +181,13 @@ class MultiTaskDataset(Dataset):
             x_tensor,
             torch.tensor(emoji2idx[emoji_target], dtype=torch.long),
             torch.tensor(feeling2idx[feeling_target], dtype=torch.long),
-            torch.tensor(bg1_oklab, dtype=torch.float32),
-            torch.tensor(bg2_oklab, dtype=torch.float32),
-            torch.tensor(text_color_oklab, dtype=torch.float32),
         )
 
 
 def load_data(*, path: str) -> MultiTaskDataset:
     """Read a .jsonl file of samples and return a MultiTaskDataset.
 
-    Each line must be a JSON object with keys: text, emoji, feeling, bg1, bg2,
-    text_color (bg1/bg2/text_color are Oklab [L, a, b] triples).
+    Each line must be a JSON object with keys: text, emoji, feeling.
     """
     data = []
     with open(path, encoding="utf-8") as f:
@@ -133,16 +196,7 @@ def load_data(*, path: str) -> MultiTaskDataset:
             if not line:
                 continue
             row = json.loads(line)
-            data.append(
-                (
-                    row["text"],
-                    row["emoji"],
-                    row["feeling"],
-                    row["bg1"],
-                    row["bg2"],
-                    row["text_color"],
-                )
-            )
+            data.append((row["text"], row["emoji"], row["feeling"]))
     return MultiTaskDataset(data)
 
 
@@ -159,7 +213,6 @@ def train(
     dataloader = DataLoader(data, batch_size=batch_size, shuffle=True)
 
     criterion_ce = nn.CrossEntropyLoss()
-    criterion_mse = nn.MSELoss()
 
     model.train()
 
@@ -170,39 +223,16 @@ def train(
     for epoch in range(1, epochs + 1):
         total_loss = 0.0
 
-        for (
-            x,
-            target_emoji,
-            target_feeling,
-            target_bg1,
-            target_bg2,
-            target_text_color,
-        ) in dataloader:
+        for x, target_emoji, target_feeling in dataloader:
             optimizer.zero_grad()
 
-            (
-                emoji_logits,
-                feeling_logits,
-                pred_bg1,
-                pred_bg2,
-                pred_text_color,
-            ) = model(x)
+            emoji_logits, feeling_logits = model(x)
 
-            # Losses for discrete classes
+            # Losses for the two discrete heads.
             loss_emoji = criterion_ce(emoji_logits, target_emoji)
             loss_feeling = criterion_ce(feeling_logits, target_feeling)
 
-            # Euclidean MSE Loss in Oklab space mirrors true perceptual distance
-            loss_bg1 = criterion_mse(pred_bg1, target_bg1)
-            loss_bg2 = criterion_mse(pred_bg2, target_bg2)
-            loss_text_color = criterion_mse(pred_text_color, target_text_color)
-
-            # Combined multi-task loss
-            loss = (
-                loss_emoji
-                + loss_feeling
-                + (loss_bg1 + loss_bg2 + loss_text_color) * 5.0
-            )
+            loss = loss_emoji + loss_feeling
 
             loss.backward()
             optimizer.step()
@@ -218,58 +248,43 @@ def train(
 
 @torch.no_grad()
 def evaluate(model: Model, data) -> dict:
-    """Return emoji/feeling accuracy and Oklab MSE over `data`."""
+    """Return emoji/feeling accuracy over `data`."""
     model.eval()
     dataloader = DataLoader(data, batch_size=32)
-    criterion_mse = nn.MSELoss(reduction="sum")
 
     n = 0
     emoji_correct = 0
     feeling_correct = 0
-    color_sq_err = 0.0
-    for (
-        x,
-        target_emoji,
-        target_feeling,
-        target_bg1,
-        target_bg2,
-        target_text_color,
-    ) in dataloader:
-        emoji_logits, feeling_logits, pred_bg1, pred_bg2, pred_text_color = model(
-            x)
-        emoji_correct += (emoji_logits.argmax(dim=-1)
-                          == target_emoji).sum().item()
+    for x, target_emoji, target_feeling in dataloader:
+        emoji_logits, feeling_logits = model(x)
+        emoji_correct += (emoji_logits.argmax(dim=-1) == target_emoji).sum().item()
         feeling_correct += (
             (feeling_logits.argmax(dim=-1) == target_feeling).sum().item()
         )
-        color_sq_err += criterion_mse(pred_bg1, target_bg1).item()
-        color_sq_err += criterion_mse(pred_bg2, target_bg2).item()
-        color_sq_err += criterion_mse(pred_text_color,
-                                      target_text_color).item()
         n += x.size(0)
 
     return {
         "n": n,
         "emoji_acc": emoji_correct / n,
         "feeling_acc": feeling_correct / n,
-        "color_mse": color_sq_err / (n * 9),  # 3 colors x 3 channels
     }
 
 
 def predict(model: Model, text: str) -> dict:
-    """Run inference for a single string, returning a plain-dict result."""
+    """Run inference for a single string, returning a plain-dict result.
+
+    Colors are not predicted; they are looked up from the predicted feeling.
+    """
     model.eval()
     text = normalize(text)[:MAX_TEXT_LEN]
     with torch.no_grad():
-        emoji_logits, feeling_logits, bg1, bg2, text_color = model(
-            encode(text))
+        emoji_logits, feeling_logits = model(encode(text))
+    feeling_name = feeling[feeling_logits.argmax(dim=-1).item()]
     return {
         "text": text,
-        "emoji": emojis[emoji_logits.argmax(dim=-1).item()],
-        "feeling": feeling[feeling_logits.argmax(dim=-1).item()],
-        "bg1": bg1.squeeze(0).tolist(),
-        "bg2": bg2.squeeze(0).tolist(),
-        "text_color": text_color.squeeze(0).tolist(),
+        "emoji": EMOJIS[emoji_logits.argmax(dim=-1).item()],
+        "feeling": feeling_name,
+        **feeling_colors(feeling_name),
     }
 
 
@@ -304,8 +319,7 @@ if __name__ == "__main__":
     print(
         f"\nTest ({metrics['n']}): "
         f"emoji_acc={metrics['emoji_acc']:.2f}  "
-        f"feeling_acc={metrics['feeling_acc']:.2f}  "
-        f"color_mse={metrics['color_mse']:.4f}"
+        f"feeling_acc={metrics['feeling_acc']:.2f}"
     )
 
     torch.save(model.state_dict(), "model.pt")
@@ -316,6 +330,5 @@ if __name__ == "__main__":
     print(f"\nInference on '{sample_text}':")
     print(f"Predicted Emoji:    {result['emoji']}")
     print(f"Predicted Feeling:  {result['feeling']}")
-    print(f"Predicted Oklab 1:  {result['bg1']}")
-    print(f"Predicted Oklab 2:  {result['bg2']}")
-    print(f"Predicted TextClr:  {result['text_color']}")
+    print(f"Background Gradient: {result['bg1']} -> {result['bg2']}")
+    print(f"Text Color:         {result['text_color']}")
