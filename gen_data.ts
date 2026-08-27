@@ -49,6 +49,7 @@ async function generateBatch(emoji: string, feeling: string): Promise<string[]> 
       `emoji in the text)\n` +
       `- be 1 to 6 words, casual, like a real texter\n` +
       `- contain no digits and no emoji\n\n` +
+      '- you can use special chars like !?:()@$%&* if appropriate' +
       `Return only the message text for each item.`,
   })
 

@@ -9,6 +9,7 @@ at startup and a forward pass is run per request.
 """
 
 import json
+import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -29,8 +30,14 @@ STATIC = {
 }
 
 model = Model(embed_dim=EMBED_SIZE, hidden_dim=H_SIZE)
-model.load_state_dict(torch.load(MODEL_PATH, map_location="cpu"))
+model.load_state_dict(
+    torch.load(MODEL_PATH, map_location="cpu", weights_only=True)
+)
 model.eval()
+
+# ThreadingHTTPServer runs each request on its own thread; serialize the shared
+# model's forward pass rather than rely on it being reentrant.
+_model_lock = threading.Lock()
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -46,7 +53,14 @@ class Handler(BaseHTTPRequestHandler):
 
         if parsed.path == "/predict":
             text = parse_qs(parsed.query).get("text", [""])[0]
-            result = predict(model, text)
+            try:
+                with _model_lock:
+                    result = predict(model, text)
+            except Exception:
+                self._send(
+                    500, b"prediction failed", "text/plain; charset=utf-8"
+                )
+                return
             self._send(
                 200,
                 json.dumps(result, ensure_ascii=False).encode("utf-8"),

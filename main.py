@@ -28,7 +28,8 @@ from config import (
 PAD = "·"
 CHARS = PAD + "abcdefghijklmnopqrstuvwxyz!?:()@$%&* "
 PAD_IDX = 0
-VOCAB_SIZE = len(CHARS) + 1
+# CHARS already includes PAD at index 0, so the vocab is exactly its length.
+VOCAB_SIZE = len(CHARS)
 
 # OUTPUTS
 # The label sets live in labels.json so main.py and gen_data.ts share one
@@ -126,7 +127,12 @@ def normalize(text: str) -> str:
 _PERTURB_ALPHABET = "abcdefghijklmnopqrstuvwxyz "
 
 
-def perturb(text: str, *, rng: random.Random | None = None) -> str:
+def perturb(
+    text: str,
+    *,
+    rate: float = PERTURB_RATE,
+    rng: random.Random | None = None,
+) -> str:
     """Return `text` with random char-level typo noise, for data augmentation.
 
     Walks the string left to right; each position is independently hit with
@@ -148,7 +154,7 @@ def perturb(text: str, *, rng: random.Random | None = None) -> str:
     i = 0
     while i < n:
         c = chars[i]
-        if r.random() >= PERTURB_RATE:
+        if r.random() >= rate:
             out.append(c)
             i += 1
             continue
@@ -173,19 +179,27 @@ def perturb(text: str, *, rng: random.Random | None = None) -> str:
     return "".join(out)
 
 
-def encode(text: str) -> torch.Tensor:
-    """Normalize `text` and return a (1, MAX_TEXT_LEN) long tensor of char indices."""
-    text = normalize(text)
+def encode(text: str, *, normalized: bool = False) -> torch.Tensor:
+    """Return a (1, MAX_TEXT_LEN) long tensor of char indices for `text`.
+
+    `text` is run through `normalize` first unless `normalized=True` (the caller
+    has already normalized it).
+    """
+    if not normalized:
+        text = normalize(text)
     indices = [char2idx[c] for c in text[:MAX_TEXT_LEN]]
     padding = [PAD_IDX] * (MAX_TEXT_LEN - len(indices))
     return torch.tensor([indices + padding], dtype=torch.long)
 
 
 class MultiTaskDataset(Dataset):
-    def __init__(self, data, *, perturb: bool = False):
+    def __init__(
+        self, data, *, perturb: bool = False, perturb_rate: float = PERTURB_RATE
+    ):
         self.data = data
         self.data_len = len(data)
         self.perturb = perturb
+        self.perturb_rate = perturb_rate
 
     def __len__(self):
         return self.data_len
@@ -194,7 +208,7 @@ class MultiTaskDataset(Dataset):
         text, emoji_target, feeling_target = self.data[idx]
 
         if self.perturb:
-            text = perturb(text)
+            text = perturb(text, rate=self.perturb_rate)
 
         x_tensor = encode(text).squeeze(0)
 
@@ -219,7 +233,8 @@ def load_data(*, path: str) -> MultiTaskDataset:
             row = json.loads(line)
             data.append((row["text"], row["emoji"], row["feeling"]))
 
-    return MultiTaskDataset(data, perturb=True)
+    # Augmentation is the caller's choice: rebuild with perturb=True for training.
+    return MultiTaskDataset(data)
 
 
 def run_name() -> str:
@@ -235,12 +250,10 @@ def train(
     model: Model,
     data,
     writer: SummaryWriter | None = None,
-    perturb_rate: float = PERTURB_RATE,
 ):
-    # Turn on input perturbation for the training data (evaluate/predict keep
-    # the clean text). No-op when perturb_rate is 0 or `data` has no such knob.
-    if hasattr(data, "perturb_rate"):
-        data.perturb_rate = perturb_rate
+    # Input perturbation is a property of the dataset (set `perturb=True` when
+    # building the training set); evaluate/predict keep the clean text.
+    active_rate = data.perturb_rate if getattr(data, "perturb", False) else 0.0
 
     optimizer = optim.Adam(model.parameters(), lr=LR)
     dataloader = DataLoader(data, batch_size=BATCH_SIZE, shuffle=True)
@@ -250,7 +263,7 @@ def train(
 
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Total params: {total_params:,}")
-    print(f"Input perturbation rate: {perturb_rate}")
+    print(f"Input perturbation rate: {active_rate}")
     print("Starting training loop...\n")
     epoch_bar = tqdm(range(1, EPOCHS + 1), desc="Training", unit="epoch")
     for epoch in epoch_bar:
@@ -325,9 +338,9 @@ def predict(model: Model, text: str) -> dict:
     Colors are not predicted; they are looked up from the predicted feeling.
     """
     model.eval()
-    text = normalize(text)[:MAX_TEXT_LEN]
+    text = normalize(text)
     with torch.no_grad():
-        emoji_logits, feeling_logits = model(encode(text))
+        emoji_logits, feeling_logits = model(encode(text, normalized=True))
     feeling_name = feeling[feeling_logits.argmax(dim=-1).item()]
     return {
         "text": text,
@@ -349,7 +362,9 @@ if __name__ == "__main__":
     ).tolist()
     raw = dataset.data
 
-    train_set = MultiTaskDataset([raw[i] for i in perm[:n_train]])
+    train_set = MultiTaskDataset(
+        [raw[i] for i in perm[:n_train]], perturb=True
+    )
     test_set = MultiTaskDataset([raw[i] for i in perm[n_train:]])
 
     print(f"Train: {n_train}  Test: {n_test}\n")
