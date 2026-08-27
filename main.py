@@ -19,7 +19,7 @@ feeling = [
 
 # De-duplicate emojis string while retaining unique items
 emojis = sorted(set(
-    "😀😂😍🥰😎🤔😅😭🥳🙃👍👎👏🙏💪🔥💯❤️✨⭐🎉🚀🍕🍔🍟🍦🍩🍺🍷☕🏀⚽🎮🎲🎸🎨✈️🚗🚲🌴🌈☀️🌙⭐🐶🐱🦁🐼🦊🍎🍌🥑🌶️🍿🍻🥂🏆🎯🎶🎤💡🔑📌⚡💥🎉👑💍💎💖💔💤🤖👽💀👻💩🎃🔮🚀🚢⛵🚗🚲🚨🏆⚽🏀🏈⚾🎾🎱🎮🎯🎲🎨🎤🎶🎷🎸🎹🎺🥁📱💻🎥📷📸🔍💡🔦🕯️💰💎⚖️🛒🎁🎈🎉🎊✉️📦📌📍🔑🔒🔓❤️‍🔥💖"))
+    "😀😂😍😡😰🥰😎🤔😅😭🥳🙃👍👎👏🙏💪🔥💯❤️✨⭐🎉🚀🍕🍔🍟🍦🍩🍺🍷☕🏀⚽🎮🎲🎸🎨✈️🚗🚲🌴🌈☀️🌙⭐🐶🐱🦁🐼🦊🍎🍌🥑🌶️🍿🍻🥂🏆🎯🎶🎤💡🔑📌⚡💥🎉👑💍💎💖💔💤🤖👽💀👻💩🎃🔮🚀🚢⛵🚗🚲🚨🏆⚽🏀🏈⚾🎾🎱🎮🎯🎲🎨🎤🎶🎷🎸🎹🎺🥁📱💻🎥📷📸🔍💡🔦🕯️💰💎⚖️🛒🎁🎈🎉🎊✉️📦📌📍🔑🔒🔓❤️‍🔥💖"))
 
 char2idx = {char: i for i, char in enumerate(vocab)}
 feeling2idx = {f: i for i, f in enumerate(feeling)}
@@ -100,7 +100,8 @@ def train(
 
     model.train()
 
-    # TODO: print total params in model
+    total_params = sum(p.numel() for p in model.parameters())
+    print(f"Total params: {total_params:,}")
     print("Starting training loop...\n")
     for epoch in range(1, epochs + 1):
         total_loss = 0.0
