@@ -7,6 +7,7 @@ import snowballstemmer
 import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
+from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from config import EMBED_SIZE, EPOCHS, H_SIZE, MAX_TEXT_LEN, NUM_LAYERS
@@ -154,6 +155,14 @@ def load_data(*, path: str) -> MultiTaskDataset:
     return MultiTaskDataset(data)
 
 
+def run_name(*, embed_dim, hidden_dim, num_layers, lr, batch_size, epochs) -> str:
+    """Build a TensorBoard run name that encodes the training configuration."""
+    return (
+        f"emb{embed_dim}-h{hidden_dim}-l{num_layers}"
+        f"-lr{lr}-bs{batch_size}-ep{epochs}"
+    )
+
+
 def train(
     *,
     model: Model,
@@ -161,6 +170,7 @@ def train(
     lr,
     epochs,
     batch_size,
+    writer: SummaryWriter | None = None,
 ):
 
     optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -174,8 +184,10 @@ def train(
     print(f"Total params: {total_params:,}")
     print("Starting training loop...\n")
     epoch_bar = tqdm(range(1, epochs + 1), desc="Training", unit="epoch")
-    for _ in epoch_bar:
+    for epoch in epoch_bar:
         total_loss = 0.0
+        total_emoji_loss = 0.0
+        total_feeling_loss = 0.0
 
         for x, target_emoji, target_feeling in dataloader:
             optimizer.zero_grad()
@@ -192,9 +204,19 @@ def train(
             optimizer.step()
 
             total_loss += loss.item()
+            total_emoji_loss += loss_emoji.item()
+            total_feeling_loss += loss_feeling.item()
 
-        avg_loss = total_loss / len(dataloader)
+        n_batches = len(dataloader)
+        avg_loss = total_loss / n_batches
         epoch_bar.set_postfix(loss=f"{avg_loss:.4f}")
+
+        if writer is not None:
+            writer.add_scalar("loss/total", avg_loss, epoch)
+            writer.add_scalar("loss/emoji", total_emoji_loss / n_batches, epoch)
+            writer.add_scalar(
+                "loss/feeling", total_feeling_loss / n_batches, epoch
+            )
 
     print("\nTraining completed successfully.")
 
