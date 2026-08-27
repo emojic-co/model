@@ -30,7 +30,7 @@ VOCAB_SIZE = len(CHARS)
 # OUTPUTS
 # The label sets live in labels.json so main.py and gen_data.ts share one
 # source of truth. `feelings` are the 7 that all appear in data.jsonl;
-# `emojis` is a fixed 60-emoji palette, fully decoupled from feelings (every
+# `emojis` is a fixed 80-emoji palette, fully decoupled from feelings (every
 # emoji is paired with every feeling). The emoji list is stored explicitly so
 # multi-codepoint glyphs like ❤️, ☀️, ⛈️, 🕊️ index as a single unit.
 _LABELS = json.loads(
@@ -65,14 +65,16 @@ def feeling_colors(feeling_name: str) -> dict:
     Returns a dict with keys bg1, bg2, text_color. Unknown feelings fall back
     to the Neutral palette.
     """
-    bg1, bg2, text_color = FEELING_PALETTE.get(feeling_name, FEELING_PALETTE["Neutral"])
+    bg1, bg2, text_color = FEELING_PALETTE.get(
+        feeling_name, FEELING_PALETTE["Neutral"])
     return {"bg1": list(bg1), "bg2": list(bg2), "text_color": list(text_color)}
 
 
 class Model(nn.Module):
     def __init__(self, *, embed_dim: int, hidden_dim: int):
         super().__init__()
-        self.embedding = nn.Embedding(VOCAB_SIZE, embed_dim, padding_idx=PAD_IDX)
+        self.embedding = nn.Embedding(
+            VOCAB_SIZE, embed_dim, padding_idx=PAD_IDX)
 
         self.lstm = nn.LSTM(
             input_size=embed_dim,
@@ -211,8 +213,10 @@ def train(
 
         if writer is not None:
             writer.add_scalar("loss/total", avg_loss, epoch)
-            writer.add_scalar("loss/emoji", total_emoji_loss / n_batches, epoch)
-            writer.add_scalar("loss/feeling", total_feeling_loss / n_batches, epoch)
+            writer.add_scalar(
+                "loss/emoji", total_emoji_loss / n_batches, epoch)
+            writer.add_scalar(
+                "loss/feeling", total_feeling_loss / n_batches, epoch)
 
     print("\nTraining completed successfully.")
 
@@ -228,7 +232,8 @@ def evaluate(model: Model, data) -> dict:
     feeling_correct = 0
     for x, target_emoji, target_feeling in dataloader:
         emoji_logits, feeling_logits = model(x)
-        emoji_correct += (emoji_logits.argmax(dim=-1) == target_emoji).sum().item()
+        emoji_correct += (emoji_logits.argmax(dim=-1)
+                          == target_emoji).sum().item()
         feeling_correct += (
             (feeling_logits.argmax(dim=-1) == target_feeling).sum().item()
         )
