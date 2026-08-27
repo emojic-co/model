@@ -1,5 +1,12 @@
 TODO:
-    Web App:
+    Standalone web page:
+        - Build a standalone web page (no backend), here is how:
+            - export the model to ONNX
+            - load it in the webpage using onnxruntime-web
+            - run the inference in the browser
+            - output the page to a docs folder so it can be published on GitHub Pages
+
+
 DONE:
     - at the bottom of the page, show examples of all feelings:
         Make a row of small squares, each square has the feeling name with the feeling font family and the feeling bg gradient.
