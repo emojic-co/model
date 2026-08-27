@@ -6,7 +6,7 @@ import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 
-from config import EMBED_SIZE, H_SIZE, MAX_TEXT_LEN
+from config import DATA_LEN, EMBED_SIZE, H_SIZE, MAX_TEXT_LEN
 
 # INPUT
 vocab = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,!?;:()[]{}<>@#$%^&* "
@@ -160,7 +160,11 @@ def train(
 ):
 
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    dataloader = DataLoader(data, batch_size=batch_size, shuffle=True)
+    dataloader = DataLoader(
+        data,
+        batch_size=batch_size,
+        shuffle=True)
+
     criterion_ce = nn.CrossEntropyLoss()
     criterion_mse = nn.MSELoss()
 
@@ -289,8 +293,14 @@ if __name__ == "__main__":
         len(dataset), generator=torch.Generator().manual_seed(0)
     ).tolist()
     raw = dataset.data
-    train_set = MultiTaskDataset([raw[i] for i in perm[:n_train]], augment=True)
-    test_set = MultiTaskDataset([raw[i] for i in perm[n_train:]], augment=False)
+
+    train_set = MultiTaskDataset(
+        [raw[i] for i in perm[:n_train]],
+        data_len=DATA_LEN,
+        augment=True)
+
+    test_set = MultiTaskDataset(
+        [raw[i] for i in perm[n_train:]], augment=False)
 
     print(f"Train: {n_train}  Test: {n_test}\n")
 
