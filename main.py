@@ -10,7 +10,16 @@ from torch.utils.data import DataLoader, Dataset
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from config import BATCH_SIZE, EMBED_SIZE, EPOCHS, H_SIZE, LR, MAX_TEXT_LEN, NUM_LAYERS
+from config import (
+    BATCH_SIZE,
+    EMBED_SIZE,
+    EPOCHS,
+    GRAD_CLIP,
+    H_SIZE,
+    LR,
+    MAX_TEXT_LEN,
+    NUM_LAYERS,
+)
 
 # INPUT
 # Index 0 is reserved for padding; real characters are numbered from 1.
@@ -197,6 +206,9 @@ def train(
             loss = loss_emoji + loss_feeling
 
             loss.backward()
+            # Clip gradient norm to tame the loss spikes that Adam + a noisy
+            # batch produce late in training.
+            nn.utils.clip_grad_norm_(model.parameters(), GRAD_CLIP)
             optimizer.step()
 
             total_loss += loss.item()
