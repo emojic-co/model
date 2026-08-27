@@ -1,8 +1,5 @@
 TODO:
+    Web App:
+        - Change the gradient color of the Neutral filling to something nicer.
+        - Use different webfont for each filling, you can use Google fonts CDN for that.
 DONE:
-    Data Loader:
-        - Load both data.jsonl and keywords.jsonl into a single dataset, use a config KEYWORDS_UPSAMPLE to upsample the keywords dataset i.e. just duplicate it X times.
-    Keywords:
-        - generate a file keywords.jsonl, the file has the exact same format as data.jsonl but each record has a single keyword related to the emoji.
-            The feeling is always Neutral.
-            Go over the emojis in labels.json and for each emoji try to generate as many keywords as possible related to the emoji.

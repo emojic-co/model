@@ -1,3 +1,5 @@
+import argparse
+import hashlib
 import json
 import re
 from datetime import datetime
@@ -11,6 +13,7 @@ from tqdm import tqdm
 
 from config import (
     BATCH_SIZE,
+    DROPOUT,
     EMBED_SIZE,
     EPOCHS,
     GRAD_CLIP,
@@ -19,6 +22,7 @@ from config import (
     LR,
     MAX_TEXT_LEN,
     NUM_LAYERS,
+    WEIGHT_DECAY,
 )
 
 # INPUT
@@ -93,7 +97,11 @@ class Model(nn.Module):
             hidden_size=H_SIZE,
             num_layers=NUM_LAYERS,
             batch_first=True,
+            dropout=DROPOUT if NUM_LAYERS > 1 else 0.0,
         )
+
+        # Regularize the shared representation before the two heads.
+        self.dropout = nn.Dropout(DROPOUT)
 
         self.emoji = nn.Linear(H_SIZE, len(EMOJIS))
         self.feeling = nn.Linear(H_SIZE, len(feeling))
@@ -109,6 +117,12 @@ class Model(nn.Module):
         conv_in = emb.permute(0, 2, 1)
         conv_out = self.relu(self.conv(conv_in))
 
+        # Zero conv outputs at pad positions: padding_idx keeps pad *embeddings*
+        # zero, but Conv1d's bias still makes pad columns nonzero, which would
+        # leak into the packed RNN. (batch, 1, seq_len) broadcasts over channels.
+        pad_mask = (x != PAD_IDX).unsqueeze(1).to(conv_out.dtype)
+        conv_out = conv_out * pad_mask
+
         # 4. Permute back for RNN: (batch, seq_len, h_size)
         rnn_in = conv_out.permute(0, 2, 1)
 
@@ -122,7 +136,7 @@ class Model(nn.Module):
         _, (h_n, _c_n) = self.rnn(packed)
 
         # h_n shape: (num_layers, batch, hidden_dim)
-        last_step = h_n[-1]
+        last_step = self.dropout(h_n[-1])
 
         return (
             self.emoji(last_step),
@@ -186,22 +200,58 @@ def _read_rows(path: str) -> list[tuple[str, str, str]]:
     return rows
 
 
-def load_data(
+def _dedup(rows: list[tuple[str, str, str]]) -> list[tuple[str, str, str]]:
+    """Drop exact-duplicate (text, emoji, feeling) rows, preserving order."""
+    seen: set[tuple[str, str, str]] = set()
+    out = []
+    for row in rows:
+        if row in seen:
+            continue
+        seen.add(row)
+        out.append(row)
+    return out
+
+
+def _in_test_split(text: str, *, one_in: int) -> bool:
+    """Deterministic hash bucket: True for ~1/`one_in` of distinct texts.
+
+    Keyed on the normalized text so every row sharing a text lands on the same
+    side of the split, and the split stays stable as the corpus grows.
+    """
+    digest = hashlib.sha1(normalize(text).encode("utf-8")).hexdigest()
+    return int(digest, 16) % one_in == 0
+
+
+def load_split(
     *,
     path: str = "data.jsonl",
     keywords_path: str = "keywords.jsonl",
     keywords_upsample: int = KEYWORDS_UPSAMPLE,
-) -> MultiTaskDataset:
-    """Load the main corpus plus the keyword corpus into one MultiTaskDataset.
+    test_one_in: int = 50,
+) -> tuple[MultiTaskDataset, MultiTaskDataset]:
+    """Load the corpus and split it into (train, test) with no leakage.
 
-    The keyword rows (`keywords_path`) are duplicated `keywords_upsample` times
-    so the thin keyword corpus carries more weight during training; 0 leaves it
-    out entirely.
+    The main corpus is de-duplicated and partitioned by a stable per-text hash,
+    so identical or repeated texts never straddle the split. Keyword rows are an
+    upsampled *training* aid: they are de-duplicated, filtered to drop anything
+    whose text falls in the test bucket, and added to the train side only.
+    `keywords_upsample` of 0 leaves the keyword corpus out entirely.
     """
-    data = _read_rows(path)
+    train_rows: list[tuple[str, str, str]] = []
+    test_rows: list[tuple[str, str, str]] = []
+    for row in _dedup(_read_rows(path)):
+        in_test = _in_test_split(row[0], one_in=test_one_in)
+        (test_rows if in_test else train_rows).append(row)
+
     if keywords_upsample:
-        data.extend(_read_rows(keywords_path) * keywords_upsample)
-    return MultiTaskDataset(data)
+        kw = [
+            row
+            for row in _dedup(_read_rows(keywords_path))
+            if not _in_test_split(row[0], one_in=test_one_in)
+        ]
+        train_rows.extend(kw * keywords_upsample)
+
+    return MultiTaskDataset(train_rows), MultiTaskDataset(test_rows)
 
 
 def run_name() -> str:
@@ -219,7 +269,7 @@ def train(
     data,
     writer: SummaryWriter | None = None,
 ):
-    optimizer = optim.Adam(model.parameters(), lr=LR)
+    optimizer = optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
     dataloader = DataLoader(data, batch_size=BATCH_SIZE, shuffle=True)
     criterion_ce = nn.CrossEntropyLoss()
 
@@ -313,23 +363,29 @@ def predict(model: Model, text: str) -> dict:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Train the emojic model.")
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Warm-start from model.pt instead of random init.",
+    )
+    args = parser.parse_args()
+
     torch.manual_seed(0)
 
-    dataset = load_data()
+    train_set, test_set = load_split()
 
-    n_test = min(200, len(dataset) // 10)
-    n_train = len(dataset) - n_test
-    perm = torch.randperm(
-        len(dataset), generator=torch.Generator().manual_seed(0)
-    ).tolist()
-    raw = dataset.data
-
-    train_set = MultiTaskDataset([raw[i] for i in perm[:n_train]])
-    test_set = MultiTaskDataset([raw[i] for i in perm[n_train:]])
-
-    print(f"Train: {n_train}  Test: {n_test}\n")
+    print(f"Train: {len(train_set)}  Test: {len(test_set)}\n")
 
     model = Model()
+    if args.resume:
+        ckpt = Path("model.pt")
+        if not ckpt.is_file():
+            raise SystemExit("--resume: model.pt not found")
+        model.load_state_dict(
+            torch.load(ckpt, map_location="cpu", weights_only=True)
+        )
+        print("Resumed from model.pt (optimizer state is not restored)\n")
 
     name = run_name()
     writer = SummaryWriter(log_dir=str(Path("runs") / name))
