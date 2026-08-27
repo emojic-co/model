@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 `emojic` trains a small multi-task char-level LSTM (`main.py`) that maps a short text string to two labels: an emoji (`EMOJIS`, an 80-emoji palette, fully decoupled from feelings) and a feeling (`feeling`, the 7 that all appear in `data.jsonl`). Both label sets are loaded from `labels.json`. Colors are **not** learned: `feeling_colors(feeling)` in `main.py` looks up a fixed per-feeling Oklab palette (`FEELING_PALETTE`) for `bg1`/`bg2` (gradient background) and `text_color` (foreground), and `predict` merges that into its result so `server.py` / the web page still receive colors.
 
 - `main.py` — data loading, model, training, eval, `predict`, and the `feeling_colors` palette.
-- `config.py` — flat module of training hyperparameters (`LR`, `BATCH_SIZE`, `EMBED_SIZE`, `H_SIZE`, `NUM_LAYERS`, `MAX_TEXT_LEN`, `GRAD_CLIP`, `PERTURB_RATE`, `EPOCHS`); imported by `main.py` and `server.py`.
+- `config.py` — flat module of training hyperparameters (`LR`, `BATCH_SIZE`, `EMBED_SIZE`, `H_SIZE`, `NUM_LAYERS`, `MAX_TEXT_LEN`, `GRAD_CLIP`, `EPOCHS`); imported by `main.py` and `server.py`.
 - `labels.json` — the `feelings` and `emojis` lists, shared by `main.py` and `gen_data.ts` (single source of truth for the label sets).
 - `gen_data.ts` — Bun/TypeScript synthetic-data generator (`bun run gen_data.ts`). Uses the Vercel AI SDK + GPT-5.6 Luna via the AI Gateway to write short WhatsApp-style texts for a randomly chosen `(emoji, feeling)` pair and **appends** them to `data.jsonl` (20 texts/batch × 50 batches per run). Not deterministic; each run grows the corpus. Needs `AI_GATEWAY_API_KEY` (Bun auto-loads it from `.env`).
 - `server.py` — stdlib `http.server` app: loads `model.pt` once and serves `GET /predict?text=...` plus the static page in `web/`. Run with `uv run server.py`.
@@ -19,7 +19,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `torch` is pinned to the PyTorch CPU wheel index (see `[tool.uv.sources]` in `pyproject.toml`). Keep that index config intact when editing dependencies.
 - Quick verify (no training run): `uv run ruff check .` and `uv run ruff format --check .`.
 - Full run: `uv run main.py` trains for `EPOCHS` epochs (see `config.py`), writes `model.pt`, and prints a sample inference. This is slow — don't use it as a smoke test.
-- Training writes TensorBoard logs to `runs/<config-name>/` (run name, from `run_name()`, encodes embed/hidden/layers/lr/batch/epochs/perturb-rate); view with `uv run tensorboard --logdir runs`.
+- Training writes TensorBoard logs to `runs/<config-name>/` (run name, from `run_name()`, encodes embed/hidden/layers/lr/batch/epochs); view with `uv run tensorboard --logdir runs`.
 - The generator toolchain is Bun, not `uv`: `bun install` then `bun run gen_data.ts`.
 - Python 3.11.
 

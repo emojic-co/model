@@ -1,6 +1,5 @@
 TODO:
 Done:
-    Write a function to perturb the input
     Add grad clipping to the training loop.
     Tensorboard:
         Add tensorboard logging, name the model using the configuration params.

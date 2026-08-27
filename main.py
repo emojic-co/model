@@ -65,22 +65,20 @@ def feeling_colors(feeling_name: str) -> dict:
     Returns a dict with keys bg1, bg2, text_color. Unknown feelings fall back
     to the Neutral palette.
     """
-    bg1, bg2, text_color = FEELING_PALETTE.get(
-        feeling_name, FEELING_PALETTE["Neutral"])
+    bg1, bg2, text_color = FEELING_PALETTE.get(feeling_name, FEELING_PALETTE["Neutral"])
     return {"bg1": list(bg1), "bg2": list(bg2), "text_color": list(text_color)}
 
 
 class Model(nn.Module):
     def __init__(self, *, embed_dim: int, hidden_dim: int):
         super().__init__()
-        self.embedding = nn.Embedding(
-            VOCAB_SIZE, embed_dim, padding_idx=PAD_IDX)
+        self.embedding = nn.Embedding(VOCAB_SIZE, embed_dim, padding_idx=PAD_IDX)
 
         self.lstm = nn.LSTM(
             input_size=embed_dim,
             hidden_size=hidden_dim,
             num_layers=NUM_LAYERS,
-            batch_first=True
+            batch_first=True,
         )
         self.emoji = nn.Linear(hidden_dim, len(EMOJIS))
         self.feeling = nn.Linear(hidden_dim, len(feeling))
@@ -104,8 +102,8 @@ class Model(nn.Module):
 
 
 def normalize(text: str) -> str:
-    # Collapse whitespace, lowercase, Porter2-stem each word, then drop any
-    # character not in the model vocab.
+    # Collapse whitespace, lowercase, then drop any character not in the model
+    # vocab.
     text = re.sub(r"\s+", " ", text).strip().lower()
     return "".join(c for c in text if c in char2idx)
 
@@ -124,12 +122,9 @@ def encode(text: str, *, normalized: bool = False) -> torch.Tensor:
 
 
 class MultiTaskDataset(Dataset):
-    def __init__(
-        self, data, *, perturb: bool = False
-    ):
+    def __init__(self, data):
         self.data = data
         self.data_len = len(data)
-        self.perturb = perturb
 
     def __len__(self):
         return self.data_len
@@ -160,16 +155,12 @@ def load_data(*, path: str) -> MultiTaskDataset:
             row = json.loads(line)
             data.append((row["text"], row["emoji"], row["feeling"]))
 
-    # Augmentation is the caller's choice: rebuild with perturb=True for training.
     return MultiTaskDataset(data)
 
 
 def run_name() -> str:
     """Build a TensorBoard run name that encodes the training configuration."""
-    return (
-        f"emb{EMBED_SIZE}-h{H_SIZE}-l{NUM_LAYERS}"
-        f"-lr{LR}-bs{BATCH_SIZE}-ep{EPOCHS}"
-    )
+    return f"emb{EMBED_SIZE}-h{H_SIZE}-l{NUM_LAYERS}-lr{LR}-bs{BATCH_SIZE}-ep{EPOCHS}"
 
 
 def train(
@@ -178,10 +169,6 @@ def train(
     data,
     writer: SummaryWriter | None = None,
 ):
-    # Input perturbation is a property of the dataset (set `perturb=True` when
-    # building the training set); evaluate/predict keep the clean text.
-    active_rate = 0.0
-
     optimizer = optim.Adam(model.parameters(), lr=LR)
     dataloader = DataLoader(data, batch_size=BATCH_SIZE, shuffle=True)
     criterion_ce = nn.CrossEntropyLoss()
@@ -190,7 +177,6 @@ def train(
 
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Total params: {total_params:,}")
-    print(f"Input perturbation rate: {active_rate}")
     print("Starting training loop...\n")
     epoch_bar = tqdm(range(1, EPOCHS + 1), desc="Training", unit="epoch")
     for epoch in epoch_bar:
@@ -225,11 +211,8 @@ def train(
 
         if writer is not None:
             writer.add_scalar("loss/total", avg_loss, epoch)
-            writer.add_scalar(
-                "loss/emoji", total_emoji_loss / n_batches, epoch)
-            writer.add_scalar(
-                "loss/feeling", total_feeling_loss / n_batches, epoch
-            )
+            writer.add_scalar("loss/emoji", total_emoji_loss / n_batches, epoch)
+            writer.add_scalar("loss/feeling", total_feeling_loss / n_batches, epoch)
 
     print("\nTraining completed successfully.")
 
@@ -245,8 +228,7 @@ def evaluate(model: Model, data) -> dict:
     feeling_correct = 0
     for x, target_emoji, target_feeling in dataloader:
         emoji_logits, feeling_logits = model(x)
-        emoji_correct += (emoji_logits.argmax(dim=-1)
-                          == target_emoji).sum().item()
+        emoji_correct += (emoji_logits.argmax(dim=-1) == target_emoji).sum().item()
         feeling_correct += (
             (feeling_logits.argmax(dim=-1) == target_feeling).sum().item()
         )
@@ -289,8 +271,7 @@ if __name__ == "__main__":
     ).tolist()
     raw = dataset.data
 
-    train_set = MultiTaskDataset(
-        [raw[i] for i in perm[:n_train]], perturb=True)
+    train_set = MultiTaskDataset([raw[i] for i in perm[:n_train]])
     test_set = MultiTaskDataset([raw[i] for i in perm[n_train:]])
 
     print(f"Train: {n_train}  Test: {n_test}\n")
