@@ -22,3 +22,5 @@ runs/
 
 # Node / Bun (gen_data.ts)
 node_modules/
+
+data.jsonl.dry

@@ -10,9 +10,9 @@
  *   - emoji:   the single best-fit emoji, chosen freely (no list given)
  *
  * It then rebuilds labels.json from the annotations, keeping only labels with at
- * least MIN_COUNT examples, drops corpus / keyword rows that used a
- * below-threshold label, and writes fresh data.jsonl / labels.json /
- * keywords.jsonl. Originals are moved aside to *.bak (gitignored).
+ * least MIN_COUNT examples, drops corpus rows that used a below-threshold label,
+ * and writes fresh data.jsonl / labels.json. Originals are moved aside to *.bak
+ * (gitignored).
  *
  * Run:
  *   bun run fix.ts --limit=30     # dry run: annotate 30 texts -> data.jsonl.dry
@@ -39,8 +39,6 @@ const DATA_TMP = "./data.jsonl.tmp"
 const DATA_DRY = "./data.jsonl.dry"
 const LABELS = "./labels.json"
 const LABELS_BAK = "./labels.json.bak"
-const KEYWORDS = "./keywords.jsonl"
-const KEYWORDS_BAK = "./keywords.jsonl.bak"
 
 // Mirror of main.py's `normalize` (CHARS / normalize). The dedup key is the
 // normalized text, so rows that differ only by punctuation the model never sees
@@ -330,25 +328,6 @@ if (import.meta.main) {
     filtered.map((r) => JSON.stringify(r)).join("\n") + "\n",
   )
 
-  // keywords.jsonl: same closed sets, or the next `uv run main.py` KeyErrors.
-  let kwBefore = 0
-  let kwAfter = 0
-  if (existsSync(KEYWORDS) || existsSync(KEYWORDS_BAK)) {
-    if (existsSync(KEYWORDS) && !existsSync(KEYWORDS_BAK)) {
-      await rename(KEYWORDS, KEYWORDS_BAK)
-    }
-    const kw = await readJsonl(KEYWORDS_BAK)
-    kwBefore = kw.length
-    const kwKept = kw.filter(
-      (r) => keepEmoji.has(r.emoji) && keepFeeling.has(r.feeling),
-    )
-    kwAfter = kwKept.length
-    await writeFile(
-      KEYWORDS,
-      kwKept.map((r) => JSON.stringify(r)).join("\n") + "\n",
-    )
-  }
-
   // ------------------------------------------------------------- summary
   const dropEmoji = [...countBy(annotated, "emoji").entries()]
     .filter(([e]) => !keepEmoji.has(e))
@@ -377,7 +356,6 @@ if (import.meta.main) {
     `data.jsonl rows        : ${annotated.length} -> ${filtered.length} ` +
       `(${annotated.length - filtered.length} dropped by threshold)`,
   )
-  console.log(`keywords.jsonl rows    : ${kwBefore} -> ${kwAfter}`)
   console.log(
     "\nnext: review labels.json, ensure FEELING_PALETTE covers every kept " +
       "feeling, then `uv run main.py` and `uv run build_web.py`.",

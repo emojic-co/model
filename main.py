@@ -18,7 +18,6 @@ from config import (
     EPOCHS,
     GRAD_CLIP,
     H_SIZE,
-    KEYWORDS_UPSAMPLE,
     LR,
     MAX_TEXT_LEN,
     NUM_LAYERS,
@@ -227,31 +226,18 @@ def _in_test_split(text: str, *, one_in: int) -> bool:
 def load_split(
     *,
     path: str = "data.jsonl",
-    keywords_path: str = "keywords.jsonl",
-    keywords_upsample: int = KEYWORDS_UPSAMPLE,
     test_one_in: int = 50,
 ) -> tuple[MultiTaskDataset, MultiTaskDataset]:
     """Load the corpus and split it into (train, test) with no leakage.
 
-    The main corpus is de-duplicated and partitioned by a stable per-text hash,
-    so identical or repeated texts never straddle the split. Keyword rows are an
-    upsampled *training* aid: they are de-duplicated, filtered to drop anything
-    whose text falls in the test bucket, and added to the train side only.
-    `keywords_upsample` of 0 leaves the keyword corpus out entirely.
+    The corpus is de-duplicated and partitioned by a stable per-text hash, so
+    identical or repeated texts never straddle the split.
     """
     train_rows: list[tuple[str, str, str]] = []
     test_rows: list[tuple[str, str, str]] = []
     for row in _dedup(_read_rows(path)):
         in_test = _in_test_split(row[0], one_in=test_one_in)
         (test_rows if in_test else train_rows).append(row)
-
-    if keywords_upsample:
-        kw = [
-            row
-            for row in _dedup(_read_rows(keywords_path))
-            if not _in_test_split(row[0], one_in=test_one_in)
-        ]
-        train_rows.extend(kw * keywords_upsample)
 
     return MultiTaskDataset(train_rows), MultiTaskDataset(test_rows)
 
