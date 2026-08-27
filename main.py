@@ -1,5 +1,6 @@
 import functools
 import json
+import random
 import re
 from pathlib import Path
 
@@ -118,6 +119,57 @@ def normalize(text: str) -> str:
     text = re.sub(r"\s+", " ", text).strip().lower()
     text = " ".join(_stem(w) for w in text.split(" "))
     return "".join(c for c in text if c in char2idx)
+
+
+# Letters (plus space) used when a perturbation has to invent a character.
+_PERTURB_ALPHABET = "abcdefghijklmnopqrstuvwxyz "
+
+
+def perturb(text: str, *, rate: float = 0.05, rng: random.Random | None = None) -> str:
+    """Return `text` with random char-level typo noise, for data augmentation.
+
+    Walks the string left to right; each position is independently hit with
+    probability `rate` and, if hit, gets one classic typo edit:
+
+    - ``swap``       transpose this character with the next one
+    - ``delete``     drop this character
+    - ``insert``     emit a random letter before this character
+    - ``substitute`` replace this character with a random letter
+
+    Operates on raw text, so call it *before* `normalize`. Pass an `rng`
+    (a `random.Random`) for deterministic output; otherwise the module-global
+    RNG is used.
+    """
+    r = rng or random
+    chars = list(text)
+    n = len(chars)
+    out: list[str] = []
+    i = 0
+    while i < n:
+        c = chars[i]
+        if r.random() >= rate:
+            out.append(c)
+            i += 1
+            continue
+
+        ops = ["insert", "substitute", "delete"]
+        if i + 1 < n:
+            ops.append("swap")
+        op = r.choice(ops)
+        if op == "swap":
+            out.append(chars[i + 1])
+            out.append(c)
+            i += 2
+        elif op == "delete":
+            i += 1
+        elif op == "insert":
+            out.append(r.choice(_PERTURB_ALPHABET))
+            out.append(c)
+            i += 1
+        else:  # substitute
+            out.append(r.choice(_PERTURB_ALPHABET))
+            i += 1
+    return "".join(out)
 
 
 def encode(text: str) -> torch.Tensor:
