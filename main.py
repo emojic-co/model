@@ -86,7 +86,7 @@ class Model(nn.Module):
         )
         self.relu = nn.ReLU()
 
-        self.rnn = nn.RNN(
+        self.rnn = nn.GRU(
             input_size=H_SIZE,
             hidden_size=H_SIZE,
             num_layers=NUM_LAYERS,
