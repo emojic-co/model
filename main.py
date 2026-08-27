@@ -145,7 +145,7 @@ def train(
     data,
     lr,
     epochs,
-    batch_size=16,
+    batch_size,
 ):
 
     optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -292,7 +292,8 @@ if __name__ == "__main__":
         model=model,
         data=train_set,
         lr=0.005,
-        epochs=200,)
+        batch_size=8,
+        epochs=300,)
 
     metrics = evaluate(model, test_set)
     print(
