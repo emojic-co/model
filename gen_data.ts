@@ -51,7 +51,7 @@ const GEN_BATCH = 25
 const GEN_CONCURRENCY = 10
 const ANNOTATE_BATCH = 10
 const ANNOTATE_CONCURRENCY = 10
-const NEW_EMOJI_MIN_FREQ = 0.009
+const NEW_EMOJI_MIN_FREQ = 0.008
 
 // --- normalized dedup key: mirror of main.py's normalize() ------------------
 const VOCAB = new Set("abcdefghijklmnopqrstuvwxyz!?:()@$%&* ")
