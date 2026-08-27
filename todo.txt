@@ -1,0 +1,12 @@
+TODO:
+    Data:
+        add text_color to the dataset and model train loss
+        make a function load_data that reads the .jsonl file and returns a MultiTaskDataset object
+    Training + Eval:
+        load the data.jsonl, split to train, test, train the model, and evaluate on the test set save the model to disk
+    Web App:
+        create a simple web app that takes a text input and returns the predicted emoji, feeling, and background colors
+        make it predict on each key stroke, the output should be a 512x512 div with the typed text, the predicted emoji and the feeling
+        Use the bg colors to set the background gradient of the div
+        Use the text color to set the text color of the div
+DONE:

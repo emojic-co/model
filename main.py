@@ -37,6 +37,8 @@ class Model(nn.Module):
         self.bg1 = nn.Linear(hidden_dim, 3)
         # Oklab values for gradient background end color (L, a, b)
         self.bg2 = nn.Linear(hidden_dim, 3)
+        # Oklab values for text color (L, a, b)
+        self.text_color = nn.Linear(hidden_dim, 3)
 
     def forward(self, x, state=None):
         x = self.embedding(x)  # (batch_size, seq_len, embed_dim)
@@ -49,8 +51,10 @@ class Model(nn.Module):
         feeling_logits = self.feeling(last_step)  # (batch_size, len(feeling))
         bg1 = self.bg1(last_step)  # (batch_size, 3) -> Oklab (L, a, b)
         bg2 = self.bg2(last_step)  # (batch_size, 3) -> Oklab (L, a, b)
+        # (batch_size, 3) -> Oklab (L, a, b)
+        text_color = self.text_color(last_step)
 
-        return emoji_logits, feeling_logits, bg1, bg2, (h_n, c_n)
+        return emoji_logits, feeling_logits, bg1, bg2, text_color, (h_n, c_n)
 
 
 def normalize(text: str) -> str:
@@ -149,7 +153,7 @@ if __name__ == "__main__":
          0.50, -0.10, -0.05], [0.40, -0.05, -0.15]),
         ("feeling down", "😭", "Sad", [
          0.30, -0.02, -0.12], [0.20, -0.05, -0.08]),
-    ] * 16
+    ]
 
     dataset = MultiTaskDataset(raw_data, max_len=16)
     model = Model(embed_dim=16, hidden_dim=32)
