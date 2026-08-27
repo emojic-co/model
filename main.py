@@ -1,7 +1,9 @@
+import functools
 import json
 import re
 from pathlib import Path
 
+import snowballstemmer
 import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
@@ -11,9 +13,7 @@ from config import EMBED_SIZE, EPOCHS, H_SIZE, MAX_TEXT_LEN
 # INPUT
 # Index 0 is reserved for padding; real characters are numbered from 1.
 PAD = "·"
-CHARS = (
-    PAD + "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,!?;:()[]{}<>@#$%^&* "
-)
+CHARS = PAD + "abcdefghijklmnopqrstuvwxyz!?:()@$%&* "
 PAD_IDX = 0
 VOCAB_SIZE = len(CHARS) + 1
 
@@ -86,9 +86,19 @@ class Model(nn.Module):
         )
 
 
+_stemmer = snowballstemmer.stemmer("english")
+
+
+@functools.lru_cache(maxsize=4096)
+def _stem(word: str) -> str:
+    return _stemmer.stemWord(word)
+
+
 def normalize(text: str) -> str:
-    # Collapse any whitespace run to a single space, then drop non-vocab chars.
-    text = re.sub(r"\s+", " ", text).strip()
+    # Collapse whitespace, lowercase, Porter2-stem each word, then drop any
+    # character not in the model vocab.
+    text = re.sub(r"\s+", " ", text).strip().lower()
+    text = " ".join(_stem(w) for w in text.split(" "))
     return "".join(c for c in text if c in char2idx)
 
 
