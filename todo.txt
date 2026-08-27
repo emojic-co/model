@@ -1,22 +1,9 @@
 TODO:
-    Fix data.jsonl:
-        Write a fix.ts script that:
-        - mv data.jsonl data.jsonl.bak
-        - mv labels.json labels.json.bak
-        - read all records from data.jsonl.bak and deduplicate them by text.
-        - send them in batches to a cheap model (openai/gpt-5.6-luna ?) with the instructions annotate the text.
-        - give all feelings and emojis upfront.
-        - request the annotator to return just the feeling and emojis like so {"feeling": "Happy", "emoji": "😀"}
-        - Instruct the annotator to choose feeling and emoji from the closed lists but accept any answer.
-        - merge them into a new record and append to a new data.jsonl file.
-        - after done with data.jsonl create a new labels.json file with the emojis and feelings used in the new data.jsonl file.
-        Example prompt (adjust for batch):
-        ```
-        You are an annotator. You will be given a text and you will annotate it with a feeling and an emoji. You will choose the feeling and emoji from the following lists:
-        Feelings: Happy, Excited, Calm, Sad, Angry, Anxious, Neutral
-        Emojis: 😀, 😂, 🥹, 😍, 🤔, �
-
-        return your answer in the following JSON format:
-        {"feeling": "Happy", "emoji": "😀"}
-        ```
+    Generating new data:
+        update the gen_data.ts script:
+            - generate raw texts - WhatsApp style, short, diverse topics, 1 message per line, no schema.
+            - save the texts in a raw .txt file.
+            - send the texts for annotations, similar to fix.ts:
+                - batches of 10, assign id for each text and ask the model to annotate with emoji (any) and a feeling (from a closed list in labels.json).
+                - keep records if either emoji already exists in the labels.json or if it has >= 1% frequency (in the current generation run).
 DONE:
