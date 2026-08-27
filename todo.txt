@@ -1,7 +1,13 @@
 TODO:
 
-
 DONE:
+    - Github Page: "click to copy" button on the output card. Hand-draws the
+      card (135deg gradient + emoji + wrapped text + feeling label, in the
+      feeling's webfont) onto a 512x512 canvas -- no html2canvas-style dep --
+      and writes the PNG to the clipboard via navigator.clipboard.write /
+      ClipboardItem. oklab palette is converted to sRGB in JS so the export
+      matches even where <canvas> doesn't accept oklab(). site/ only.
+
     - Standalone web page (no backend):
         - export the model to ONNX (build_web.py -> docs/model.onnx)
         - load it in the webpage using onnxruntime-web (vendored in vendor/ort/)

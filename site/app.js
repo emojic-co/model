@@ -8,9 +8,30 @@ const card = document.getElementById("card");
 const emojiEl = document.getElementById("emoji");
 const typedEl = document.getElementById("typed");
 const feelingEl = document.getElementById("feeling");
+const copyBtn = document.getElementById("copy");
 
 // Oklab [L, a, b] -> CSS oklab() color string.
 const oklab = ([L, a, b]) => `oklab(${L.toFixed(4)} ${a.toFixed(4)} ${b.toFixed(4)})`;
+
+// Oklab [L, a, b] -> CSS "rgb(r g b)". The DOM can use oklab() directly; the
+// canvas fill path (cardToBlob) converts here so the exported PNG matches even
+// on engines whose <canvas> does not yet accept oklab().
+function oklabToRgb([L, a, b]) {
+  const l_ = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m_ = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s_ = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
+  const lin = [
+    4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699292 * s_,
+    -1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_,
+    -0.0041960863 * l_ - 0.7034186147 * m_ + 1.707614701 * s_,
+  ];
+  const enc = (x) => {
+    x = Math.min(1, Math.max(0, x));
+    const s = x <= 0.0031308 ? 12.92 * x : 1.055 * x ** (1 / 2.4) - 0.055;
+    return Math.round(s * 255);
+  };
+  return `rgb(${enc(lin[0])} ${enc(lin[1])} ${enc(lin[2])})`;
+}
 
 // One Google-fonts webfont per feeling (loaded in index.html). The mood of the
 // typeface is meant to echo the mood of the feeling.
@@ -34,6 +55,8 @@ let META;
 let CHAR2IDX;
 let session;
 let seq = 0;
+// Latest prediction, mirrored so the "copy" button can redraw it on a canvas.
+let current = null;
 
 // Mirror main.py's normalize(): collapse whitespace, lowercase, drop anything
 // not in the model vocab.
@@ -71,6 +94,124 @@ async function update() {
   card.style.background = `linear-gradient(135deg, ${oklab(pal.bg1)}, ${oklab(pal.bg2)})`;
   card.style.color = oklab(pal.text_color);
   card.style.fontFamily = FEELING_FONTS[feeling] ?? FEELING_FONTS.Neutral;
+
+  current = { text, emoji, feeling, pal };
+}
+
+// The primary family name (the quoted token) out of a FEELING_FONTS stack,
+// e.g. '"Playfair Display", Georgia, serif' -> 'Playfair Display'.
+const fontName = (stack) => stack.match(/"([^"]+)"/)?.[1] ?? null;
+
+// Wait for the feeling's webfont so canvas text is not drawn in a fallback
+// face before the real one loads. Best-effort: a load failure just falls back.
+async function ensureFont(stack) {
+  const name = fontName(stack);
+  if (!name || !document.fonts) return;
+  try {
+    await Promise.all([
+      document.fonts.load(`600 24px "${name}"`),
+      document.fonts.load(`400 13px "${name}"`),
+    ]);
+  } catch {
+    /* fallback face is acceptable */
+  }
+}
+
+// Greedy word wrap against a pixel width, capped at `maxLines`.
+function wrapLines(ctx, text, maxWidth, maxLines) {
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines = [];
+  let line = "";
+  for (const w of words) {
+    const next = line ? `${line} ${w}` : w;
+    if (line && ctx.measureText(next).width > maxWidth) {
+      lines.push(line);
+      line = w;
+    } else {
+      line = next;
+    }
+  }
+  if (line) lines.push(line);
+  return lines.slice(0, maxLines);
+}
+
+// Redraw the current card onto a 512x512 canvas and hand back a PNG blob.
+// Hand-drawn (gradient + emoji + text) rather than a DOM snapshot so it needs
+// no html2canvas-style dependency.
+async function cardToBlob() {
+  const S = 512;
+  const { text, emoji, feeling, pal } = current;
+  const stack = FEELING_FONTS[feeling] ?? FEELING_FONTS.Neutral;
+  await ensureFont(stack);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = S;
+  canvas.height = S;
+  const ctx = canvas.getContext("2d");
+
+  // Rounded square (20/600 of the card, scaled), transparent outside.
+  const r = Math.round((20 / 600) * S);
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(0, 0, S, S, r);
+  else ctx.rect(0, 0, S, S);
+  ctx.clip();
+
+  // linear-gradient(135deg, ...): top-left -> bottom-right on a square.
+  const grad = ctx.createLinearGradient(0, 0, S, S);
+  grad.addColorStop(0, oklabToRgb(pal.bg1));
+  grad.addColorStop(1, oklabToRgb(pal.bg2));
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, S, S);
+
+  ctx.fillStyle = oklabToRgb(pal.text_color);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  // Emoji: a dedicated emoji stack so the glyph renders regardless of `stack`.
+  ctx.font = `120px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+  ctx.fillText(emoji, S / 2, S * 0.36);
+
+  // Typed text, wrapped.
+  ctx.font = `600 24px ${stack}`;
+  const lines = wrapLines(ctx, text, S - 96, 4);
+  let ty = S * 0.6;
+  for (const line of lines) {
+    ctx.fillText(line, S / 2, ty);
+    ty += 32;
+  }
+
+  // Feeling label.
+  ctx.font = `600 13px ${stack}`;
+  if ("letterSpacing" in ctx) ctx.letterSpacing = "3.5px";
+  ctx.globalAlpha = 0.85;
+  ctx.fillText(feeling.toUpperCase(), S / 2, S * 0.84);
+  ctx.globalAlpha = 1;
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png");
+  });
+}
+
+let flashTimer;
+function flash(msg) {
+  copyBtn.textContent = msg;
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => (copyBtn.textContent = "copy"), 1400);
+}
+
+async function copyCard() {
+  if (!current) {
+    flash("nothing yet");
+    return;
+  }
+  try {
+    const blob = await cardToBlob();
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+    flash("copied ✓");
+  } catch (err) {
+    console.error(err);
+    flash("copy failed");
+  }
 }
 
 // Bottom-of-page reference row: one small square per feeling, each rendered
@@ -102,5 +243,6 @@ function buildFeelingRow() {
   session = await ort.InferenceSession.create("./model.onnx");
 
   input.addEventListener("input", update);
+  copyBtn.addEventListener("click", copyCard);
   update();
 })();
