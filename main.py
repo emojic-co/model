@@ -39,7 +39,7 @@ emoji2idx = {e: i for i, e in enumerate(emojis)}
 
 
 class Model(nn.Module):
-    def __init__(self, embed_dim=8, hidden_dim=16):
+    def __init__(self, *, embed_dim: int, hidden_dim: int):
         super().__init__()
         self.embedding = nn.Embedding(len(vocab), embed_dim, padding_idx=0)
         self.lstm = nn.LSTM(embed_dim, hidden_dim, batch_first=True)
@@ -113,7 +113,7 @@ class MultiTaskDataset(Dataset):
         )
 
 
-def load_data(path: str = "data.jsonl", max_len: int = 64) -> MultiTaskDataset:
+def load_data(*, path: str, max_len: int) -> MultiTaskDataset:
     """Read a .jsonl file of samples and return a MultiTaskDataset.
 
     Each line must be a JSON object with keys: text, emoji, feeling, bg1, bg2,
@@ -143,11 +143,11 @@ def train(
     *,
     model: Model,
     data,
-    epochs=100,
+    epochs,
     batch_size=16,
 ):
 
-    optimizer = optim.Adam(model.parameters(), lr=0.005)
+    optimizer = optim.Adam(model.parameters(), lr=0.01)
     dataloader = DataLoader(data, batch_size=batch_size, shuffle=True)
     criterion_ce = nn.CrossEntropyLoss()
     criterion_mse = nn.MSELoss()
@@ -267,7 +267,11 @@ def predict(model: Model, text: str, max_len: int = 16) -> dict:
 if __name__ == "__main__":
     torch.manual_seed(0)
 
-    dataset = load_data("data.jsonl", max_len=16)
+    dataset = load_data(
+        path="data.jsonl",
+        max_len=32
+    )
+
     n_test = max(1, len(dataset) // 5)
     n_train = len(dataset) - n_test
     train_set, test_set = random_split(
@@ -275,8 +279,15 @@ if __name__ == "__main__":
     )
     print(f"Train: {n_train}  Test: {n_test}\n")
 
-    model = Model(embed_dim=16, hidden_dim=32)
-    train(model=model, data=train_set)
+    model = Model(
+        embed_dim=8,
+        hidden_dim=16
+    )
+
+    train(
+        model=model,
+        data=train_set,
+        epochs=200,)
 
     metrics = evaluate(model, test_set)
     print(
