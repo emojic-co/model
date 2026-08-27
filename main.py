@@ -76,12 +76,18 @@ class Model(nn.Module):
         self.embedding = nn.Embedding(
             VOCAB_SIZE, embed_dim, padding_idx=PAD_IDX)
 
-        self.lstm = nn.LSTM(
+        self.net = nn.RNN(
             input_size=embed_dim,
             hidden_size=hidden_dim,
             num_layers=NUM_LAYERS,
             batch_first=True,
         )
+        # self.net = nn.LSTM(
+        #     input_size=embed_dim,
+        #     hidden_size=hidden_dim,
+        #     num_layers=NUM_LAYERS,
+        #     batch_first=True,
+        # )
         self.emoji = nn.Linear(hidden_dim, len(EMOJIS))
         self.feeling = nn.Linear(hidden_dim, len(feeling))
 
@@ -93,7 +99,8 @@ class Model(nn.Module):
         packed = nn.utils.rnn.pack_padded_sequence(
             emb, lengths.cpu(), batch_first=True, enforce_sorted=False
         )
-        _, (h_n, _) = self.lstm(packed)
+        # _, (h_n, _) = self.net(packed)
+        _, (h_n, _) = self.net(packed)
         # h_n[-1] is the hidden state at each row's last real character.
         last_step = h_n[-1]  # (batch_size, hidden_dim)
 
