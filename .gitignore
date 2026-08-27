@@ -13,3 +13,6 @@ wheels/
 *.pt
 *.bak
 .env
+
+# Node / Bun (gen_data.ts)
+node_modules/

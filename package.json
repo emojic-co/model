@@ -1,0 +1,15 @@
+{
+  "name": "emojic-gen",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "gen": "bun run gen_data.ts"
+  },
+  "dependencies": {
+    "ai": "^7.0.83",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.0"
+  }
+}
