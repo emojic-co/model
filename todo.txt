@@ -1,4 +1,6 @@
 TODO:
+    Data:
+        generate 1,000 more samples that covers all the emojis and feelings in the dataset and append them to data.jsonl
 DONE:
     Data:
         create a claude code command that adds 500 samples to the existing dataset.
