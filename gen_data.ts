@@ -61,11 +61,11 @@ if (import.meta.main) {
     }),
     prompt: [
       'Generate a list of short (1-6 words, no more than 64 characters), WhatsApp-style diverse messages.',
-      'Mix diverse intents, e.g. complaining, joking, celebrating, best wishes, questions, etc.',
+      'Ensure high variance in tone, intent, and style (e.g., quick updates, dry humor, complaints, sudden news, invitations, reactions, low-effort replies). Avoid repetitive or cliché text.',
       `For each message associate one of the feelings: ${feelings.join(", ")}`,
       `For each message associate one of the emojis: ${emojis.join(", ")}`,
       `Note that emojis and feelings are independent; the same emoji can be used for different feelings, and vice versa.`,
-      'Return at least 100 records, e.g.',
+      'Return at least 200 records, e.g.',
       JSON.stringify([EXAMPLE_RECORD]),
     ].join("\n")
   })
