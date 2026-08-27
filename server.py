@@ -1,8 +1,9 @@
 """Tiny http.server app for emojic.
 
-Serves the static page in web/ and a single JSON endpoint:
+Serves the static page in web/ and two JSON endpoints:
 
     GET /predict?text=...  ->  {emoji, feeling, bg1, bg2, text_color}
+    GET /feelings          ->  [{feeling, bg1, bg2, text_color}, ...] (all feelings)
 
 The trained checkpoint (model.pt, produced by `uv run main.py`) is loaded once
 at startup and a forward pass is run per request.
@@ -16,7 +17,8 @@ from urllib.parse import parse_qs, urlparse
 
 import torch
 
-from main import Model, predict
+from main import Model, feeling_colors, predict
+from main import feeling as FEELINGS
 
 WEB_DIR = Path(__file__).parent / "web"
 MODEL_PATH = Path(__file__).parent / "model.pt"
@@ -48,6 +50,17 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urlparse(self.path)
+
+        if parsed.path == "/feelings":
+            payload = [
+                {"feeling": name, **feeling_colors(name)} for name in FEELINGS
+            ]
+            self._send(
+                200,
+                json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+                "application/json; charset=utf-8",
+            )
+            return
 
         if parsed.path == "/predict":
             text = parse_qs(parsed.query).get("text", [""])[0]

@@ -44,3 +44,26 @@ async function update() {
 
 input.addEventListener("input", update);
 update();
+
+// Bottom-of-page reference row: one small square per feeling, each rendered
+// with that feeling's own font family and gradient background.
+async function buildFeelingRow() {
+  const row = document.getElementById("feelings");
+  let feelings;
+  try {
+    feelings = await (await fetch("/feelings")).json();
+  } catch {
+    return;
+  }
+  row.replaceChildren();
+  for (const f of feelings) {
+    const sq = document.createElement("div");
+    sq.className = "swatch";
+    sq.textContent = f.feeling;
+    sq.style.background = `linear-gradient(135deg, ${oklab(f.bg1)}, ${oklab(f.bg2)})`;
+    sq.style.color = oklab(f.text_color);
+    sq.style.fontFamily = FEELING_FONTS[f.feeling] ?? FEELING_FONTS.Neutral;
+    row.appendChild(sq);
+  }
+}
+buildFeelingRow();
