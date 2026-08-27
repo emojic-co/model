@@ -354,9 +354,6 @@ if __name__ == "__main__":
 
     print(f"Train: {n_train}  Test: {n_test}\n")
 
-    lr = 0.005
-    batch_size = 8
-
     model = Model(embed_dim=EMBED_SIZE, hidden_dim=H_SIZE)
 
     name = run_name()
@@ -383,8 +380,8 @@ if __name__ == "__main__":
             "h_size": H_SIZE,
             "num_layers": NUM_LAYERS,
             "max_text_len": MAX_TEXT_LEN,
-            "lr": lr,
-            "batch_size": batch_size,
+            "lr": LR,
+            "batch_size": BATCH_SIZE,
             "epochs": EPOCHS,
             "perturb_rate": PERTURB_RATE,
         },
