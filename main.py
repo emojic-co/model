@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader, Dataset
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from config import EMBED_SIZE, EPOCHS, H_SIZE, MAX_TEXT_LEN, NUM_LAYERS
+from config import BATCH_SIZE, EMBED_SIZE, EPOCHS, H_SIZE, LR, MAX_TEXT_LEN, NUM_LAYERS
 
 # INPUT
 # Index 0 is reserved for padding; real characters are numbered from 1.
@@ -155,11 +155,11 @@ def load_data(*, path: str) -> MultiTaskDataset:
     return MultiTaskDataset(data)
 
 
-def run_name(*, embed_dim, hidden_dim, num_layers, lr, batch_size, epochs) -> str:
+def run_name() -> str:
     """Build a TensorBoard run name that encodes the training configuration."""
     return (
-        f"emb{embed_dim}-h{hidden_dim}-l{num_layers}"
-        f"-lr{lr}-bs{batch_size}-ep{epochs}"
+        f"emb{EMBED_SIZE}-h{H_SIZE}-l{NUM_LAYERS}"
+        f"-lr{LR}-bs{BATCH_SIZE}-ep{EPOCHS}"
     )
 
 
@@ -167,15 +167,11 @@ def train(
     *,
     model: Model,
     data,
-    lr,
-    epochs,
-    batch_size,
     writer: SummaryWriter | None = None,
 ):
 
-    optimizer = optim.Adam(model.parameters(), lr=lr)
-    dataloader = DataLoader(data, batch_size=batch_size, shuffle=True)
-
+    optimizer = optim.Adam(model.parameters(), lr=LR)
+    dataloader = DataLoader(data, batch_size=BATCH_SIZE, shuffle=True)
     criterion_ce = nn.CrossEntropyLoss()
 
     model.train()
@@ -183,7 +179,7 @@ def train(
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Total params: {total_params:,}")
     print("Starting training loop...\n")
-    epoch_bar = tqdm(range(1, epochs + 1), desc="Training", unit="epoch")
+    epoch_bar = tqdm(range(1, EPOCHS + 1), desc="Training", unit="epoch")
     for epoch in epoch_bar:
         total_loss = 0.0
         total_emoji_loss = 0.0
@@ -213,7 +209,8 @@ def train(
 
         if writer is not None:
             writer.add_scalar("loss/total", avg_loss, epoch)
-            writer.add_scalar("loss/emoji", total_emoji_loss / n_batches, epoch)
+            writer.add_scalar(
+                "loss/emoji", total_emoji_loss / n_batches, epoch)
             writer.add_scalar(
                 "loss/feeling", total_feeling_loss / n_batches, epoch
             )
@@ -286,23 +283,13 @@ if __name__ == "__main__":
 
     model = Model(embed_dim=EMBED_SIZE, hidden_dim=H_SIZE)
 
-    name = run_name(
-        embed_dim=EMBED_SIZE,
-        hidden_dim=H_SIZE,
-        num_layers=NUM_LAYERS,
-        lr=lr,
-        batch_size=batch_size,
-        epochs=EPOCHS,
-    )
+    name = run_name()
     writer = SummaryWriter(log_dir=str(Path("runs") / name))
     print(f"TensorBoard run: runs/{name}\n")
 
     train(
         model=model,
         data=train_set,
-        lr=lr,
-        batch_size=batch_size,
-        epochs=EPOCHS,
         writer=writer,
     )
 
