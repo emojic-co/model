@@ -30,9 +30,7 @@ STATIC = {
 }
 
 model = Model(embed_dim=EMBED_SIZE, hidden_dim=H_SIZE)
-model.load_state_dict(
-    torch.load(MODEL_PATH, map_location="cpu", weights_only=True)
-)
+model.load_state_dict(torch.load(MODEL_PATH, map_location="cpu", weights_only=True))
 model.eval()
 
 # ThreadingHTTPServer runs each request on its own thread; serialize the shared
@@ -57,9 +55,7 @@ class Handler(BaseHTTPRequestHandler):
                 with _model_lock:
                     result = predict(model, text)
             except Exception:
-                self._send(
-                    500, b"prediction failed", "text/plain; charset=utf-8"
-                )
+                self._send(500, b"prediction failed", "text/plain; charset=utf-8")
                 return
             self._send(
                 200,

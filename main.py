@@ -253,7 +253,8 @@ def train(
 ):
     # Input perturbation is a property of the dataset (set `perturb=True` when
     # building the training set); evaluate/predict keep the clean text.
-    active_rate = data.perturb_rate if getattr(data, "perturb", False) else 0.0
+    perturbed = getattr(data, "perturb", False)
+    active_rate = getattr(data, "perturb_rate", 0.0) if perturbed else 0.0
 
     optimizer = optim.Adam(model.parameters(), lr=LR)
     dataloader = DataLoader(data, batch_size=BATCH_SIZE, shuffle=True)
@@ -362,9 +363,7 @@ if __name__ == "__main__":
     ).tolist()
     raw = dataset.data
 
-    train_set = MultiTaskDataset(
-        [raw[i] for i in perm[:n_train]], perturb=True
-    )
+    train_set = MultiTaskDataset([raw[i] for i in perm[:n_train]], perturb=True)
     test_set = MultiTaskDataset([raw[i] for i in perm[n_train:]])
 
     print(f"Train: {n_train}  Test: {n_test}\n")
