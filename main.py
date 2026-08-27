@@ -1,3 +1,5 @@
+import re
+
 import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
@@ -51,9 +53,10 @@ class Model(nn.Module):
         return emoji_logits, feeling_logits, bg1, bg2, (h_n, c_n)
 
 
-def normalize(text: str):
-    # TODO: replace all whitespaces with a single space, then remove all non vocabulary characters
-    ...
+def normalize(text: str) -> str:
+    # Collapse any whitespace run to a single space, then drop non-vocab chars.
+    text = re.sub(r"\s+", " ", text).strip()
+    return "".join(c for c in text if c in char2idx)
 
 
 class MultiTaskDataset(Dataset):
@@ -65,8 +68,9 @@ class MultiTaskDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        # TODO: replace all whitespaces with
         text, emoji_target, feeling_target, bg1_oklab, bg2_oklab = self.data[idx]
+
+        text = normalize(text)
 
         indices = [char2idx.get(c, 0) for c in text[:self.max_len]]
         padding = [0] * (self.max_len - len(indices))
@@ -96,6 +100,7 @@ def train(
 
     model.train()
 
+    # TODO: print total params in model
     print("Starting training loop...\n")
     for epoch in range(1, epochs + 1):
         total_loss = 0.0
