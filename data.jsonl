@@ -8991,3 +8991,636 @@
 {"emoji":"😒","feeling":"Angry","text":"The editor moved the deadline to tomorrow. Cheerful news."}
 {"emoji":"😟","feeling":"Sad","text":"Page 87 has vanished from the shared folder."}
 {"emoji":"😤","feeling":"Angry","text":"I can polish the blurb, but it needs an actual blurb first."}
+{"emoji":"😄","feeling":"Happy","text":"Three hours of sleep, and I feel almost professionally human."}
+{"emoji":"😰","feeling":"Anxious","text":"She sneezed once. I Googled for twenty minutes."}
+{"emoji":"😱","feeling":"Anxious","text":"Doctor says it's a cold. Baby says it's a crisis."}
+{"emoji":"😟","feeling":"Anxious","text":"Update: rash is harmless, my panic is not."}
+{"emoji":"🎉","feeling":"Happy","text":"His first vaccine went better than my morning coffee."}
+{"emoji":"😬","feeling":"Anxious","text":"Do newborns ever breathe quietly, or is this just ours?"}
+{"emoji":"👏","feeling":"Happy","text":"Nina got promoted before replying to my message. Iconic."}
+{"emoji":"📚","feeling":"Neutral","text":"I found your book under the office microwave."}
+{"emoji":"😩","feeling":"Sad","text":"I accidentally replied all, so that's my afternoon ruined."}
+{"emoji":"😄","feeling":"Happy","text":"The boss asked for fun ideas, so I suggested leaving early."}
+{"emoji":"📦","feeling":"Happy","text":"Joe's moving flats again. I think he just likes boxes."}
+{"emoji":"📍","feeling":"Neutral","text":"Send me the address when you can."}
+{"emoji":"😕","feeling":"Sad","text":"I missed lunch, but found a mint in my desk drawer."}
+{"emoji":"☕","feeling":"Angry","text":"You still owe me that coffee from February."}
+{"emoji":"🌧️","feeling":"Neutral","text":"Morning, it’s raining sideways again. Bring the washing in."}
+{"emoji":"🌤️","feeling":"Neutral","text":"The sun’s out, but don’t trust it. It was lying yesterday."}
+{"emoji":"😂","feeling":"Happy","text":"Wind’s knocked the bins over. Your uncle is chasing them."}
+{"emoji":"🌙","feeling":"Anxious","text":"Unexpected update: the baby promoted me to night shift."}
+{"emoji":"📝","feeling":"Neutral","text":"Does anyone have the notes from yesterday’s meeting?"}
+{"emoji":"⏰","feeling":"Anxious","text":"Joining five minutes late; tiny stakeholder required attention."}
+{"emoji":"🙂","feeling":"Happy","text":"Quick status: everyone alive, deliverables mostly alive."}
+{"emoji":"😌","feeling":"Calm","text":"I’ll be quiet on camera; the bassinet is finally winning."}
+{"emoji":"😩","feeling":"Sad","text":"I opened the curtains and immediately regretted it."}
+{"emoji":"🍵","feeling":"Calm","text":"Cold hands, warm tea. That’s the arrangement today."}
+{"emoji":"🌧️","feeling":"Neutral","text":"The garden needs rain, but not all at once, thank you."}
+{"emoji":"😔","feeling":"Sad","text":"Sun’s gone in. I knew it wouldn’t last."}
+{"emoji":"🤗","feeling":"Love","text":"If you’re nearby, come for tea and shelter from this rain."}
+{"emoji":"☀️","feeling":"Happy","text":"Bright sunshine here. I’ve forgotten where I put my hat."}
+{"emoji":"🌧️","feeling":"Happy","text":"Looks like rain at lunch. Fancy coming over before it starts?"}
+{"emoji":"🌤️","feeling":"Anxious","text":"Blue sky here, which feels suspicious."}
+{"emoji":"🌿","feeling":"Happy","text":"Lovely morning, though the garden is still dripping."}
+{"emoji":"✨","feeling":"Happy","text":"The washing is finally dry. A small miracle."}
+{"emoji":"😰","feeling":"Anxious","text":"Sudden update: we're heading to urgent care."}
+{"emoji":"🙂","feeling":"Happy","text":"Her cough vanished, naturally after I called the doctor."}
+{"emoji":"😄","feeling":"Happy","text":"Come over if you want to hold a baby and judge my snacks."}
+{"emoji":"😌","feeling":"Calm","text":"Today's wellness plan: shower, nap, repeat."}
+{"emoji":"😟","feeling":"Anxious","text":"Thanks, we're monitoring it and trying not to spiral."}
+{"emoji":"🙂","feeling":"Happy","text":"Baby slept; I may now reopen the spreadsheet."}
+{"emoji":"😵‍💫","feeling":"Neutral","text":"I’m online, but operating at reduced parental bandwidth."}
+{"emoji":"😩","feeling":"Anxious","text":"Can we move the 10 a.m.? Feeding schedule says no."}
+{"emoji":"😄","feeling":"Happy","text":"The nursery has better incident response than our team."}
+{"emoji":"😴","feeling":"Neutral","text":"I’ll review the deck after this very short nap."}
+{"emoji":"🐶","feeling":"Happy","text":"Maya's bringing her dog to lunch, so meetings just improved."}
+{"emoji":"😤","feeling":"Angry","text":"Running five late; the printer chose violence again."}
+{"emoji":"☕","feeling":"Calm","text":"I can grab coffee after 3, if you're still nearby."}
+{"emoji":"😬","feeling":"Anxious","text":"Temperature normal. I am choosing to believe it."}
+{"emoji":"😟","feeling":"Anxious","text":"She slept five hours. I checked her pulse twice."}
+{"emoji":"😅","feeling":"Anxious","text":"Good news: no fever. Bad news: diaper situation."}
+{"emoji":"🤨","feeling":"Neutral","text":"I've had water, toast, and one suspicious vitamin."}
+{"emoji":"😩","feeling":"Sad","text":"Baby is fine; my back has filed a formal complaint."}
+{"emoji":"🤔","feeling":"Anxious","text":"Could you remind me what normal spit-up looks like?"}
+{"emoji":"😅","feeling":"Anxious","text":"Please invite me, but not during the 3 p.m. meltdown."}
+{"emoji":"🙌","feeling":"Happy","text":"New development: I’m typing one-handed again."}
+{"emoji":"🙂","feeling":"Neutral","text":"Thanks, saw this. Replying properly after the next feed."}
+{"emoji":"😬","feeling":"Sad","text":"I missed the deadline by seven minutes and one burp."}
+{"emoji":"😰","feeling":"Anxious","text":"Can someone cover the client call while I negotiate bedtime?"}
+{"emoji":"😩","feeling":"Sad","text":"The baby is asleep, so naturally the Wi-Fi has failed."}
+{"emoji":"😅","feeling":"Neutral","text":"I’m free after noon, unless the nap forecast changes."}
+{"emoji":"🤷","feeling":"Neutral","text":"I approve this plan, pending approval from the household."}
+{"emoji":"👑","feeling":"Happy","text":"I accidentally became mayor in the village game."}
+{"emoji":"😰","feeling":"Anxious","text":"The grandkids taught me crouch, sprint, and panic."}
+{"emoji":"😣","feeling":"Sad","text":"I’m stuck on a puzzle meant for children."}
+{"emoji":"🏆","feeling":"Happy","text":"Good news: new high score. Bad news: nobody saw it."}
+{"emoji":"😡","feeling":"Angry","text":"My controller batteries died during the final boss."}
+{"emoji":"🤔","feeling":"Neutral","text":"I’ll join at seven, assuming I can find the invite."}
+{"emoji":"😩","feeling":"Sad","text":"Bought the wrong expansion. Again."}
+{"emoji":"🏆","feeling":"Happy","text":"Finally beat the tutorial. Retirement has prepared me."}
+{"emoji":"😩","feeling":"Sad","text":"I fell off the same bridge six times."}
+{"emoji":"😤","feeling":"Angry","text":"The dog unplugged the console during my best run."}
+{"emoji":"🤫","feeling":"Calm","text":"Is there a quiet server for people who dislike shouting?"}
+{"emoji":"😠","feeling":"Angry","text":"Patch notes say “minor fix.” My save file disagrees."}
+{"emoji":"🍵","feeling":"Calm","text":"Tea first, raid later."}
+{"emoji":"😞","feeling":"Sad","text":"Bought tomatoes. They look better than they taste."}
+{"emoji":"🤔","feeling":"Neutral","text":"Why are light bulbs sold in packs of ten?"}
+{"emoji":"😤","feeling":"Angry","text":"I'm outside the chemist, arguing with the card machine."}
+{"emoji":"😩","feeling":"Sad","text":"On my way back. Forgot the one thing I went for."}
+{"emoji":"🍵","feeling":"Excited","text":"There's a sale on tea. This feels like my moment."}
+{"emoji":"😟","feeling":"Anxious","text":"Can you send the exact size? My eyesight is guessing."}
+{"emoji":"😊","feeling":"Happy","text":"I bought the slippers. They are aggressively comfortable."}
+{"emoji":"😒","feeling":"Angry","text":"The market was busy, so I bought nothing out of spite."}
+{"emoji":"😅","feeling":"Happy","text":"Yes, I found it. No, I cannot explain where."}
+{"emoji":"😤","feeling":"Angry","text":"The console fan sounds like my old lawnmower."}
+{"emoji":"🏆","feeling":"Happy","text":"Won a match by hiding behind a bush. Tactics."}
+{"emoji":"😅","feeling":"Anxious","text":"Bedtime soon. One more turn is never one more turn."}
+{"emoji":"❤️","feeling":"Love","text":"Bought your cereal. The expensive one, naturally."}
+{"emoji":"😠","feeling":"Angry","text":"The trolley has one bad wheel and a grudge."}
+{"emoji":"🎉","feeling":"Excited","text":"Found a bargain on socks. This is exciting now."}
+{"emoji":"😕","feeling":"Sad","text":"Found my old staff pass. Still opens nothing."}
+{"emoji":"☕","feeling":"Happy","text":"Coffee at 10? I can discuss the old office gossip."}
+{"emoji":"😰","feeling":"Anxious","text":"Retirement update: the printer still haunts my dreams."}
+{"emoji":"🤔","feeling":"Neutral","text":"Do you remember who kept stealing the good staplers?"}
+{"emoji":"🌤️","feeling":"Happy","text":"Rain stopped, so I finally cleared the shed."}
+{"emoji":"😌","feeling":"Calm","text":"Got a call about my pension. False alarm, thankfully."}
+{"emoji":"😤","feeling":"Angry","text":"Bad news: the kettle has joined the union."}
+{"emoji":"🎉","feeling":"Happy","text":"Good news, I fixed the drawer without submitting a form."}
+{"emoji":"☕","feeling":"Neutral","text":"Apparently I still have a company mug in the cupboard."}
+{"emoji":"😒","feeling":"Angry","text":"Who approved those beige office carpets?"}
+{"emoji":"😩","feeling":"Sad","text":"Just heard Dave retired too. Productivity is finished."}
+{"emoji":"😄","feeling":"Happy","text":"Sorry, missed your call. I was doing absolutely nothing."}
+{"emoji":"😔","feeling":"Sad","text":"Practice ran late, so I missed the first 20 minutes of Dune."}
+{"emoji":"🍿","feeling":"Happy","text":"Coach says film study; I brought popcorn by accident."}
+{"emoji":"😤","feeling":"Angry","text":"The theater seats have less support than our bench."}
+{"emoji":"😰","feeling":"Anxious","text":"I have a quiz tomorrow and still need to finish Oppenheimer."}
+{"emoji":"☕","feeling":"Neutral","text":"Meeting at the cafe, 11ish? No minutes required."}
+{"emoji":"🕯️","feeling":"Happy","text":"Power cut here. I've been promoted to candle manager."}
+{"emoji":"😄","feeling":"Happy","text":"Was there a deadline today, or am I safely retired?"}
+{"emoji":"🍽️","feeling":"Happy","text":"Anyone want lunch before I forget what I was doing?"}
+{"emoji":"🤫","feeling":"Calm","text":"Lost my voice at practice, so subtitles are ideal."}
+{"emoji":"😴","feeling":"Neutral","text":"No review yet; I fell asleep during the opening scene."}
+{"emoji":"😕","feeling":"Anxious","text":"We need a team movie, but nobody can agree on a genre."}
+{"emoji":"😄","feeling":"Happy","text":"That sports movie had fewer injuries than our Tuesday."}
+{"emoji":"🤔","feeling":"Neutral","text":"Why do movie villains always have better locker rooms?"}
+{"emoji":"🍿","feeling":"Sad","text":"The popcorn cost more than my post-practice dinner."}
+{"emoji":"🤯","feeling":"Excited","text":"That plot twist hit harder than yesterday’s conditioning."}
+{"emoji":"😞","feeling":"Sad","text":"Movie night is canceled; my ankle disagrees with everything."}
+{"emoji":"🤔","feeling":"Neutral","text":"Is the new Spider-Verse actually worth losing sleep over?"}
+{"emoji":"😤","feeling":"Angry","text":"Just finished practice. The villain was definitely the referee."}
+{"emoji":"😄","feeling":"Neutral","text":"I can watch one movie, unless warmups count as a feature."}
+{"emoji":"😩","feeling":"Sad","text":"Got tickets, then remembered we have an away game."}
+{"emoji":"🙄","feeling":"Angry","text":"The sequel was three hours of people avoiding one door."}
+{"emoji":"🍿","feeling":"Excited","text":"Film study at 6, actual movie at 8. Bring snacks."}
+{"emoji":"😡","feeling":"Angry","text":"My roommate spoiled the ending before the opening credits."}
+{"emoji":"😤","feeling":"Angry","text":"Supermarket queue longer than my patience."}
+{"emoji":"😠","feeling":"Angry","text":"The butcher says Thursday. I say Tuesday."}
+{"emoji":"🤩","feeling":"Excited","text":"News: the shop finally stocks proper marmalade."}
+{"emoji":"📦","feeling":"Neutral","text":"Your parcel arrived. It is heavier than expected."}
+{"emoji":"😄","feeling":"Happy","text":"The cashier called me young man. We both knew better."}
+{"emoji":"🍿","feeling":"Anxious","text":"Who's bringing snacks? I'm not surviving on vending crisps"}
+{"emoji":"😰","feeling":"Anxious","text":"Don't tell me the Wi-Fi died again"}
+{"emoji":"🙄","feeling":"Angry","text":"I left my notes for this. Priorities, apparently."}
+{"emoji":"🤯","feeling":"Excited","text":"Keeper just pulled off a ridiculous save"}
+{"emoji":"🎉","feeling":"Happy","text":"2-1! I take back everything I said for now"}
+{"emoji":"😬","feeling":"Anxious","text":"Are we defending or just watching them attack?"}
+{"emoji":"😩","feeling":"Anxious","text":"Extra time? My assignment is getting ignored professionally"}
+{"emoji":"😨","feeling":"Anxious","text":"Penalties. I suddenly believe in nothing"}
+{"emoji":"😟","feeling":"Anxious","text":"Kickoff's at 8, right? I don't want another empty lecture hall"}
+{"emoji":"😩","feeling":"Sad","text":"Found a stream, but the quality is basically CCTV"}
+{"emoji":"😎","feeling":"Excited","text":"Tom's already claiming we're winning 4-0"}
+{"emoji":"😤","feeling":"Angry","text":"Why is our striker allergic to the penalty box"}
+{"emoji":"😠","feeling":"Angry","text":"That offside call looked personal"}
+{"emoji":"😩","feeling":"Sad","text":"Halftime. We have had zero shots and three arguments."}
+{"emoji":"😭","feeling":"Sad","text":"Professor moved the quiz to tomorrow, tragic timing"}
+{"emoji":"☕","feeling":"Happy","text":"Honestly the tea is better than the first half"}
+{"emoji":"🏆","feeling":"Excited","text":"Our office pool is somehow more competitive than work."}
+{"emoji":"😞","feeling":"Sad","text":"Missed the bus by seconds. Olympic-level disappointment."}
+{"emoji":"😞","feeling":"Sad","text":"Missed the goal because I was replying to you"}
+{"emoji":"😰","feeling":"Anxious","text":"Full time. Campus is going to be unbearable tomorrow"}
+{"emoji":"😠","feeling":"Angry","text":"Good game, bad result, worse commentary"}
+{"emoji":"📚","feeling":"Neutral","text":"Anyway, library at nine? Need to pretend I studied"}
+{"emoji":"😤","feeling":"Angry","text":"Never watching with Ben again, he jinxed every attack"}
+{"emoji":"🍽️","feeling":"Calm","text":"Booked us a table for Friday at 12. No rushing, obviously."}
+{"emoji":"🍵","feeling":"Neutral","text":"The café has changed owners, but the tea remains apologetic."}
+{"emoji":"❓","feeling":"Neutral","text":"Can you check whether that restaurant still does liver?"}
+{"emoji":"😋","feeling":"Happy","text":"Nice steak, dreadful music. I ate faster than dignity allows."}
+{"emoji":"😵‍💫","feeling":"Anxious","text":"Bring your reading glasses; the menu is printed for ants."}
+{"emoji":"😔","feeling":"Sad","text":"I’m at table six, beside a plant that looks more social."}
+{"emoji":"😌","feeling":"Calm","text":"No need to cook tonight. The takeaway has found us again."}
+{"emoji":"😬","feeling":"Anxious","text":"The restaurant rang. Apparently I booked for twelve, not two."}
+{"emoji":"😤","feeling":"Angry","text":"Coffee was £4. I may start carrying beans and a kettle."}
+{"emoji":"😋","feeling":"Happy","text":"Want to split pudding? I have room and very little principle."}
+{"emoji":"😩","feeling":"Sad","text":"Closed Mondays. This is information I could have used yesterday."}
+{"emoji":"😄","feeling":"Happy","text":"Dinner was lovely. I even stayed awake through the dessert."}
+{"emoji":"⏳","feeling":"Anxious","text":"Still waiting for approval. Defensive tactics from finance."}
+{"emoji":"🎉","feeling":"Happy","text":"Good news: the office sweepstake finally paid out."}
+{"emoji":"😞","feeling":"Sad","text":"Bad news: I drew the worst team again."}
+{"emoji":"😩","feeling":"Sad","text":"Why does being tired count as my whole personality"}
+{"emoji":"😞","feeling":"Sad","text":"I slept eight hours and still feel broken"}
+{"emoji":"🤨","feeling":"Anxious","text":"The nurse said it’s probably nothing, which feels suspicious"}
+{"emoji":"😟","feeling":"Anxious","text":"Anyone know if headaches from screens are normal"}
+{"emoji":"🧘","feeling":"Neutral","text":"Reminder to stretch before PE, unlike me"}
+{"emoji":"👻","feeling":"Happy","text":"Feeling better, but my voice still sounds haunted"}
+{"emoji":"😅","feeling":"Neutral","text":"The meeting room booking has more fixtures than the league."}
+{"emoji":"⏰","feeling":"Neutral","text":"Can we move the call? Kickoff starts at six."}
+{"emoji":"🍿","feeling":"Happy","text":"Lost 3-1, but at least the snacks were elite."}
+{"emoji":"☕","feeling":"Neutral","text":"Meeting Alan for coffee. He says ten; I expect half past."}
+{"emoji":"⚡","feeling":"Angry","text":"I asked for decaf and received a small electrical storm."}
+{"emoji":"😩","feeling":"Sad","text":"Home early. Too much garlic, not enough chair."}
+{"emoji":"😊","feeling":"Happy","text":"The waiter called me young man. I nearly tipped him twice."}
+{"emoji":"😞","feeling":"Sad","text":"Rain check on dinner. My knees have made other plans."}
+{"emoji":"👍","feeling":"Happy","text":"They serve breakfast all day. Finally, sensible management."}
+{"emoji":"😔","feeling":"Sad","text":"I am home all day, apparently guarding an empty doorstep."}
+{"emoji":"😬","feeling":"Anxious","text":"Package update: still pending, like my crossword."}
+{"emoji":"🍵","feeling":"Calm","text":"Come for tea while we wait for this famous delivery."}
+{"emoji":"😠","feeling":"Angry","text":"The tracking page has stopped pretending to know anything."}
+{"emoji":"😤","feeling":"Angry","text":"It says delivered. To whom? Certainly not this house."}
+{"emoji":"🤨","feeling":"Anxious","text":"Do parcels get lost on purpose, or is this a talent?"}
+{"emoji":"😊","feeling":"Happy","text":"If it turns up, I shall put the kettle on immediately."}
+{"emoji":"😞","feeling":"Sad","text":"The dog barked at the gate. False alarm. Just Mr Patel."}
+{"emoji":"🙌","feeling":"Happy","text":"I found my inhaler under three hoodies"}
+{"emoji":"😬","feeling":"Anxious","text":"Blood test tomorrow, pretending I’m totally chill"}
+{"emoji":"👏","feeling":"Happy","text":"I drank water before noon. Please applaud quietly"}
+{"emoji":"😅","feeling":"Happy","text":"Good news: fever’s gone. Bad news: homework remains"}
+{"emoji":"😟","feeling":"Anxious","text":"The spreadsheet is moving slightly. Is that normal?"}
+{"emoji":"🤫","feeling":"Calm","text":"Please send the agenda in large, quiet letters."}
+{"emoji":"😵‍💫","feeling":"Anxious","text":"Can someone cover my 10 a.m.? I look medically confused."}
+{"emoji":"😠","feeling":"Angry","text":"The printer noise feels aggressively personal today."}
+{"emoji":"😟","feeling":"Anxious","text":"Still no parcel. The hallway is beginning to look suspicious."}
+{"emoji":"🙄","feeling":"Angry","text":"The postman waved, then brought me nothing. Very elegant."}
+{"emoji":"🤔","feeling":"Anxious","text":"Tracking says Tuesday. Which Tuesday, nobody can say."}
+{"emoji":"⏳","feeling":"Calm","text":"If it arrives after lunch, I'll forgive it."}
+{"emoji":"🌧️","feeling":"Sad","text":"Rain has come and gone. The box remains mythical."}
+{"emoji":"😄","feeling":"Happy","text":"Mix is uploaded; the hi-hat still has opinions."}
+{"emoji":"😤","feeling":"Angry","text":"Rehearsal moved to 8. The bassist forgot again."}
+{"emoji":"🎉","feeling":"Happy","text":"I found the missing cable inside the snare case."}
+{"emoji":"😊","feeling":"Happy","text":"That bridge works now, somehow."}
+{"emoji":"🤔","feeling":"Neutral","text":"Do we need three synths for one chord?"}
+{"emoji":"☕","feeling":"Calm","text":"Coffee first, then I’ll fix the vocal timing."}
+{"emoji":"🎶","feeling":"Happy","text":"Your demo has a great chorus and a dangerous intro."}
+{"emoji":"😰","feeling":"Anxious","text":"Joining the call now. Please ignore the pale complexion."}
+{"emoji":"😵‍💫","feeling":"Anxious","text":"Anyone else hearing the fluorescent lights?"}
+{"emoji":"😌","feeling":"Happy","text":"The client call went fine, despite my internal weather."}
+{"emoji":"😞","feeling":"Sad","text":"Bad news: the venue double-booked us."}
+{"emoji":"😀","feeling":"Happy","text":"Good news: the backup venue has a piano."}
+{"emoji":"🙂","feeling":"Calm","text":"I can deliver the edit tonight if the files behave."}
+{"emoji":"🤔","feeling":"Anxious","text":"Which version are we calling final this time?"}
+{"emoji":"😤","feeling":"Angry","text":"The kick sounds like a cupboard falling downstairs."}
+{"emoji":"😒","feeling":"Angry","text":"Track notes received. I disagree with half of them."}
+{"emoji":"😭","feeling":"Sad","text":"I accidentally muted the best take."}
+{"emoji":"😠","feeling":"Angry","text":"Can’t make soundcheck; the train is being dramatic."}
+{"emoji":"🎶","feeling":"Happy","text":"New single is out, and my mother already reviewed it."}
+{"emoji":"✅","feeling":"Calm","text":"Yep, that key change is staying."}
+{"emoji":"📦","feeling":"Anxious","text":"Still no parcel—tracking says out for delivery since Tuesday."}
+{"emoji":"😤","feeling":"Angry","text":"Courier moved the ETA to tomorrow. Again."}
+{"emoji":"😞","feeling":"Sad","text":"Good news: it reached my city. Bad news: last week."}
+{"emoji":"📦","feeling":"Neutral","text":"Can you grab it if it finally shows up while I’m out?"}
+{"emoji":"😩","feeling":"Anxious","text":"Is your delivery late too, or am I cursed?"}
+{"emoji":"🤨","feeling":"Anxious","text":"The tracking page has stopped pretending to know."}
+{"emoji":"📦","feeling":"Sad","text":"Package status: emotionally unavailable."}
+{"emoji":"⏳","feeling":"Anxious","text":"Sorry, running late—I’m waiting for the driver."}
+{"emoji":"😤","feeling":"Angry","text":"Apparently 2 stops away means 9 hours."}
+{"emoji":"☕","feeling":"Neutral","text":"Want coffee while I haunt the front door?"}
+{"emoji":"🤞","feeling":"Excited","text":"Maybe it’ll arrive before the thing I ordered for it."}
+{"emoji":"⏰","feeling":"Anxious","text":"Support said to wait 48 hours. It’s been 49."}
+{"emoji":"😤","feeling":"Angry","text":"Parcel’s marked delivered. My hallway disagrees."}
+{"emoji":"🔍","feeling":"Neutral","text":"Could you check reception? Tracking says delivered."}
+{"emoji":"😔","feeling":"Sad","text":"Still waiting. It may be building a life elsewhere."}
+{"emoji":"🙄","feeling":"Angry","text":"Driver called, then vanished. Impressive."}
+{"emoji":"😒","feeling":"Angry","text":"New ETA: Friday. I admire the confidence."}
+{"emoji":"❓","feeling":"Anxious","text":"Do we call it lost after three missed ETAs?"}
+{"emoji":"🎉","feeling":"Happy","text":"Breaking: it arrived. Box looks like it fought a dog."}
+{"emoji":"🙂","feeling":"Calm","text":"Would you like me to wait in tomorrow as well?"}
+{"emoji":"📦","feeling":"Neutral","text":"Your package has more travel experience than I do."}
+{"emoji":"🌙","feeling":"Neutral","text":"No parcel, dear. Shall we blame the weather or the moon?"}
+{"emoji":"😴","feeling":"Sad","text":"Morning team, I’m online, but only technically."}
+{"emoji":"😩","feeling":"Anxious","text":"Coffee has stopped helping. Escalating to mineral water."}
+{"emoji":"⏰","feeling":"Anxious","text":"I may be five minutes late; my head filed an objection."}
+{"emoji":"😠","feeling":"Angry","text":"Who approved tequila on a Wednesday?"}
+{"emoji":"😞","feeling":"Sad","text":"Made it to the gate; the meeting did not make it."}
+{"emoji":"🤞","feeling":"Anxious","text":"Landing around 2, assuming the board agrees."}
+{"emoji":"😤","feeling":"Angry","text":"Coffee number three. Delay number two."}
+{"emoji":"😕","feeling":"Sad","text":"Update: crew arrived, optimism remains limited."}
+{"emoji":"😰","feeling":"Anxious","text":"Can I present last if I miss the first half?"}
+{"emoji":"☕","feeling":"Anxious","text":"Need coffee before I attempt the second coat."}
+{"emoji":"✨","feeling":"Happy","text":"The trolley wheel is fixed. Miracles are billable."}
+{"emoji":"😅","feeling":"Neutral","text":"I cut the trim short. Please admire my confidence."}
+{"emoji":"⏰","feeling":"Anxious","text":"Handover in ten; sawdust everywhere."}
+{"emoji":"😟","feeling":"Sad","text":"Bad news: the shelf fell. Nobody was under it."}
+{"emoji":"❓","feeling":"Neutral","text":"Please tell me which way this bracket faces."}
+{"emoji":"🎉","feeling":"Happy","text":"Tiny victory: drawer closes without a fight."}
+{"emoji":"😤","feeling":"Angry","text":"I brought the wrong screws. Again."}
+{"emoji":"😔","feeling":"Sad","text":"The new hooks are up; my keys remain homeless."}
+{"emoji":"😌","feeling":"Calm","text":"Done for tonight. The wall survived, mostly."}
+{"emoji":"😰","feeling":"Anxious","text":"Flight's delayed 90 mins. I may join the 10am call from gate 14."}
+{"emoji":"😟","feeling":"Anxious","text":"Still at the airport. Boarding moved to 11:20."}
+{"emoji":"🙏","feeling":"Anxious","text":"Can someone cover the client check-in?"}
+{"emoji":"😬","feeling":"Anxious","text":"Apparently the plane is waiting for paperwork."}
+{"emoji":"😩","feeling":"Sad","text":"New departure time: 12:05. The day has stalled."}
+{"emoji":"😠","feeling":"Angry","text":"The drill bit vanished. I suspect the night shift."}
+{"emoji":"😅","feeling":"Happy","text":"Painted one wall; it looks aggressively beige."}
+{"emoji":"😎","feeling":"Happy","text":"I used tongue depressors as shims. No regrets."}
+{"emoji":"😤","feeling":"Angry","text":"The instructions say easy. They lied again."}
+{"emoji":"🎉","feeling":"Happy","text":"Found the missing screw in my scrub pocket."}
+{"emoji":"🤝","feeling":"Happy","text":"I can host shelf assembly at 7, if you're free."}
+{"emoji":"😰","feeling":"Anxious","text":"Interview starts in ten. My Wi-Fi chose violence."}
+{"emoji":"😒","feeling":"Angry","text":"They asked for my rates before asking my name."}
+{"emoji":"😞","feeling":"Sad","text":"Good news: they liked my portfolio. Bad news: unpaid test."}
+{"emoji":"😣","feeling":"Anxious","text":"Running five minutes late; client sent a calendar maze."}
+{"emoji":"😄","feeling":"Happy","text":"Just finished. I think I interviewed them back."}
+{"emoji":"😤","feeling":"Angry","text":"They want senior work at a trainee budget."}
+{"emoji":"🤔","feeling":"Anxious","text":"Do you know if this company actually pays on time?"}
+{"emoji":"😵‍💫","feeling":"Anxious","text":"The call is at 9, but their invite says 8:30. Classic."}
+{"emoji":"👻","feeling":"Sad","text":"Quick update: recruiter vanished after saying urgent."}
+{"emoji":"😞","feeling":"Sad","text":"Good news: the flight exists. Bad news: it's later."}
+{"emoji":"😣","feeling":"Anxious","text":"Sorry, stuck in row 18 of the terminal, not the plane."}
+{"emoji":"🤔","feeling":"Anxious","text":"Are we still doing lunch, or should I cancel?"}
+{"emoji":"😬","feeling":"Anxious","text":"Boarding in 25, unless that means something different now."}
+{"emoji":"🤞","feeling":"Anxious","text":"Sending the slides from airport Wi-Fi. Wish them luck."}
+{"emoji":"😤","feeling":"Angry","text":"Apparently weather is fine; the plane is not."}
+{"emoji":"🙄","feeling":"Angry","text":"I'll dial in if they stop announcing boarding over us."}
+{"emoji":"😩","feeling":"Sad","text":"Small delay has become a travel day."}
+{"emoji":"😤","feeling":"Angry","text":"Their brief says flexible, then lists 14 fixed meetings."}
+{"emoji":"🤔","feeling":"Neutral","text":"I forgot the company name. The logo looks familiar."}
+{"emoji":"😟","feeling":"Anxious","text":"Offer arrived. The salary is hiding somewhere."}
+{"emoji":"😬","feeling":"Anxious","text":"Want to mock-interview me for ten minutes?"}
+{"emoji":"😔","feeling":"Sad","text":"Update: no interview. They hired internally yesterday."}
+{"emoji":"🎉","feeling":"Happy","text":"Exam results came in. My grandson passed maths."}
+{"emoji":"😠","feeling":"Angry","text":"The exam timetable arrived; my calendar looks offended."}
+{"emoji":"❓","feeling":"Anxious","text":"Anyone know if calculators count as essential equipment?"}
+{"emoji":"😅","feeling":"Sad","text":"Failed the practice test, but the tea was excellent."}
+{"emoji":"🤞","feeling":"Love","text":"Good luck today. I’ll keep the phone nearby."}
+{"emoji":"📚","feeling":"Neutral","text":"Revision starts after lunch, apparently."}
+{"emoji":"🤔","feeling":"Neutral","text":"Can someone explain what a mock exam actually mocks?"}
+{"emoji":"😟","feeling":"Sad","text":"Mary’s grandson has three exams this week. Poor lad."}
+{"emoji":"😓","feeling":"Sad","text":"The history paper was difficult, even for someone who was there."}
+{"emoji":"🤨","feeling":"Neutral","text":"Do they still call it cheating if you share the answers?"}
+{"emoji":"😰","feeling":"Anxious","text":"Results at four. I’ve already checked twice."}
+{"emoji":"🙂","feeling":"Neutral","text":"I passed my driving test years ago; does that count?"}
+{"emoji":"☕","feeling":"Calm","text":"Bring your notes round. I’ll provide tea and blunt advice."}
+{"emoji":"😟","feeling":"Anxious","text":"I’m not sitting the exam, but I’m stressed anyway."}
+{"emoji":"😠","feeling":"Angry","text":"The invigilator confiscated my knitting needles."}
+{"emoji":"🌧️","feeling":"Calm","text":"The rain has started, but the gazebo looks surprisingly brave."}
+{"emoji":"⏳","feeling":"Anxious","text":"I’ll call the florist once this deadline stops moving."}
+{"emoji":"☕","feeling":"Happy","text":"Wedding prep update: coffee levels are now operational."}
+{"emoji":"🎉","feeling":"Happy","text":"I found the missing tie under a stack of place cards."}
+{"emoji":"😴","feeling":"Sad","text":"Missed bowls. Apparently the sofa won."}
+{"emoji":"🍵","feeling":"Calm","text":"Strong tea has been prescribed by the household."}
+{"emoji":"😄","feeling":"Happy","text":"I am vertical, which feels ambitious."}
+{"emoji":"🐶","feeling":"Anxious","text":"The dog is judging my whisky breath."}
+{"emoji":"🤪","feeling":"Happy","text":"Found my glasses in the fridge. Still no regrets."}
+{"emoji":"😳","feeling":"Anxious","text":"Was that thunder, or did I sneeze?"}
+{"emoji":"🤞","feeling":"Anxious","text":"Send good luck. My backup plan is refreshing LinkedIn."}
+{"emoji":"😅","feeling":"Neutral","text":"They asked where I see myself in five years. Still freelancing."}
+{"emoji":"😤","feeling":"Angry","text":"Interview moved to Friday. Again."}
+{"emoji":"😊","feeling":"Happy","text":"Can I mention your project as my favorite client?"}
+{"emoji":"😬","feeling":"Sad","text":"Got the job, apparently. They emailed the wrong freelancer."}
+{"emoji":"😰","feeling":"Anxious","text":"Please tell me this blazer looks intentional."}
+{"emoji":"😵‍💫","feeling":"Anxious","text":"They want a call, a test, and references by lunch."}
+{"emoji":"😔","feeling":"Sad","text":"Rejected politely, which is still better than silence."}
+{"emoji":"😬","feeling":"Anxious","text":"Joining in two minutes, unless Zoom has other plans."}
+{"emoji":"😬","feeling":"Anxious","text":"The seating chart is fixed, unless someone moves again."}
+{"emoji":"📝","feeling":"Neutral","text":"I sent the vows draft. Please ignore version seven."}
+{"emoji":"😒","feeling":"Angry","text":"Can we make the welcome sign less aggressively beige?"}
+{"emoji":"🎶","feeling":"Calm","text":"I’m editing the playlist between client calls."}
+{"emoji":"🍰","feeling":"Happy","text":"The cake arrived early and is taking over the kitchen."}
+{"emoji":"😟","feeling":"Anxious","text":"Quick update: the groom lost one cufflink."}
+{"emoji":"😰","feeling":"Anxious","text":"Do we have a backup plan for outdoor photos?"}
+{"emoji":"🤞","feeling":"Anxious","text":"I can finish the table cards tonight, probably."}
+{"emoji":"😤","feeling":"Angry","text":"The venue Wi-Fi has finally stopped pretending to work."}
+{"emoji":"😬","feeling":"Anxious","text":"Toast is currently too adventurous."}
+{"emoji":"🌿","feeling":"Calm","text":"The garden can wait. So can I."}
+{"emoji":"😅","feeling":"Happy","text":"Good news: no hangover. Bad news: not my coat."}
+{"emoji":"😟","feeling":"Anxious","text":"My blood pressure monitor looks disappointed."}
+{"emoji":"😄","feeling":"Happy","text":"I have retired from retiring early."}
+{"emoji":"🐶","feeling":"Neutral","text":"All sorted. Dog still suspicious of the new tap"}
+{"emoji":"🌧️","feeling":"Calm","text":"Rain’s here, dog’s indoors, and I’m packing up"}
+{"emoji":"😤","feeling":"Angry","text":"That was not a dog-sized hole, but here we are"}
+{"emoji":"🙌","feeling":"Happy","text":"Tell the dog I said cheers for moving the screws"}
+{"emoji":"🤔","feeling":"Neutral","text":"Please confirm whether “smart casual” includes trainers."}
+{"emoji":"😊","feeling":"Happy","text":"The bride approved the menu after three tiny changes."}
+{"emoji":"😞","feeling":"Sad","text":"Bad news: the confetti order says 500, not 5,000."}
+{"emoji":"😣","feeling":"Anxious","text":"Can someone send me the final guest list, seriously?"}
+{"emoji":"😬","feeling":"Anxious","text":"The DJ just asked for a playlist, so that’s going well."}
+{"emoji":"❓","feeling":"Neutral","text":"Are we still doing speeches before dinner?"}
+{"emoji":"😴","feeling":"Neutral","text":"The old lab slept through the whole boiler replacement"}
+{"emoji":"🐶","feeling":"Happy","text":"I’ve fixed the latch. Dog tested it immediately"}
+{"emoji":"😔","feeling":"Sad","text":"Sorry, can’t make today. Dog-related emergency, long story"}
+{"emoji":"😤","feeling":"Angry","text":"Your dog has hidden my tape measure again"}
+{"emoji":"🍵","feeling":"Happy","text":"Tea at yours after the job? I’ll bring dog biscuits"}
+{"emoji":"🍽️","feeling":"Neutral","text":"Just clocked out. Is dinner still a thing tonight?"}
+{"emoji":"😵‍💫","feeling":"Anxious","text":"Night shift made me forget what day your date is."}
+{"emoji":"😞","feeling":"Sad","text":"Sorry, fell asleep in my uniform again."}
+{"emoji":"🐶","feeling":"Neutral","text":"The dog watched me fit that shelf, no notes offered"}
+{"emoji":"😰","feeling":"Anxious","text":"Running ten late, dog blocked the van door again"}
+{"emoji":"😊","feeling":"Happy","text":"Your spaniel has better site manners than most customers"}
+{"emoji":"😤","feeling":"Angry","text":"The dog’s barking at the drill, so progress is slow"}
+{"emoji":"😞","feeling":"Sad","text":"Bad news: dog ate the pencil with my measurements on it"}
+{"emoji":"☕","feeling":"Happy","text":"You like coffee? I know a place open at 5am."}
+{"emoji":"😟","feeling":"Anxious","text":"I swapped shifts for Friday, so don't vanish now."}
+{"emoji":"😩","feeling":"Angry","text":"Be honest: is dating always this much calendar admin?"}
+{"emoji":"😄","feeling":"Happy","text":"I look tired, but the vending machine knows my name."}
+{"emoji":"😔","feeling":"Sad","text":"Can we reschedule? Someone called in sick."}
+{"emoji":"😅","feeling":"Sad","text":"Your goodnight text arrived during my lunch break."}
+{"emoji":"😴","feeling":"Anxious","text":"I’m free Tuesday, technically. My sleep disagrees."}
+{"emoji":"🌙","feeling":"Anxious","text":"Are you awake, or am I texting the wrong time zone?"}
+{"emoji":"🤨","feeling":"Anxious","text":"I have two days off and no plans. Suspicious, right?"}
+{"emoji":"😔","feeling":"Sad","text":"Sorry, I replied in my head during overtime."}
+{"emoji":"🌿","feeling":"Calm","text":"You pick the place; I’ll pick the least crowded hour."}
+{"emoji":"😅","feeling":"Anxious","text":"I’m not late, my handover was unusually dramatic."}
+{"emoji":"🍽️","feeling":"Happy","text":"Dinner sounds good, provided nobody says “quick drink.”"}
+{"emoji":"😩","feeling":"Sad","text":"My roster changed. Apparently romance needs approval."}
+{"emoji":"🤔","feeling":"Neutral","text":"I'm at the builders' merchants debating track seven."}
+{"emoji":"🎉","feeling":"Happy","text":"Friday listening session at mine, if you're about."}
+{"emoji":"😤","feeling":"Angry","text":"Who mixed this? My cement mixer has more balance."}
+{"emoji":"🥳","feeling":"Happy","text":"Sudden news: album's out and the van passed MOT."}
+{"emoji":"😬","feeling":"Anxious","text":"Two songs in, and I've missed the turning again."}
+{"emoji":"😊","feeling":"Happy","text":"New album on. Plastering has unexpectedly improved."}
+{"emoji":"🤞","feeling":"Happy","text":"Can’t hear anything yet, which feels promising"}
+{"emoji":"😞","feeling":"Sad","text":"Setlist looks decent. They skipped my favourite, obviously."}
+{"emoji":"😤","feeling":"Angry","text":"Actually, doors moved to 6:30. Why do they do this?"}
+{"emoji":"🤨","feeling":"Anxious","text":"Want my spare ticket? Sam bailed with suspicious timing."}
+{"emoji":"🙄","feeling":"Sad","text":"The support act is better than the headliner so far."}
+{"emoji":"🌧️","feeling":"Angry","text":"Rain has started. The venue’s roof has not."}
+{"emoji":"😬","feeling":"Anxious","text":"If I cancel, blame the fluorescent lighting, not you."}
+{"emoji":"🎶","feeling":"Neutral","text":"New album's on, but I'm still chasing that mixer."}
+{"emoji":"😞","feeling":"Sad","text":"Screwed the shelf up, soundtrack was decent though."}
+{"emoji":"😄","feeling":"Happy","text":"Album's louder than the SDS drill, somehow."}
+{"emoji":"🤔","feeling":"Anxious","text":"Need a second opinion: opener or skip?"}
+{"emoji":"🍵","feeling":"Calm","text":"New album landed. Tea first, proper listen later."}
+{"emoji":"😔","feeling":"Sad","text":"Back home. Ears ringing, fridge empty."}
+{"emoji":"😤","feeling":"Angry","text":"My package was due Tuesday and is still sightseeing."}
+{"emoji":"😟","feeling":"Anxious","text":"Tracking says “out for delivery” since this morning."}
+{"emoji":"😠","feeling":"Angry","text":"I’m about to file a missing persons report for this box."}
+{"emoji":"🙄","feeling":"Angry","text":"It says delayed due to weather. The weather is literally normal."}
+{"emoji":"😒","feeling":"Angry","text":"Update: still no package, just three flyers and a sock."}
+{"emoji":"😞","feeling":"Sad","text":"I ordered this two weeks ago for one class."}
+{"emoji":"😰","feeling":"Anxious","text":"Could you grab water? I’m trapped near the speakers."}
+{"emoji":"😞","feeling":"Sad","text":"Just heard the encore is happening. We left too early."}
+{"emoji":"😅","feeling":"Neutral","text":"Honestly, the queue for toilets is its own festival."}
+{"emoji":"⏰","feeling":"Neutral","text":"I’ll be late, but apparently the band is later."}
+{"emoji":"🤨","feeling":"Anxious","text":"Sound is weird from here. Maybe it’s my ears."}
+{"emoji":"😔","feeling":"Sad","text":"Do you still want to come, or did adulthood win?"}
+{"emoji":"🎉","feeling":"Happy","text":"They played the one song I came for. Mission complete."}
+{"emoji":"😬","feeling":"Anxious","text":"I’m outside. Which entrance is the least chaotic?"}
+{"emoji":"😬","feeling":"Anxious","text":"Tracking changed from Friday to “we’ll see.”"}
+{"emoji":"😤","feeling":"Angry","text":"I got the delivery notification. There is no delivery."}
+{"emoji":"🤞","feeling":"Anxious","text":"Could be here later, allegedly."}
+{"emoji":"📦","feeling":"Sad","text":"The box has missed more deadlines than I have."}
+{"emoji":"😟","feeling":"Anxious","text":"Please tell me nobody accidentally grabbed a small box."}
+{"emoji":"😠","feeling":"Angry","text":"Good news: it moved. Bad news: to the wrong city."}
+{"emoji":"😵‍💫","feeling":"Anxious","text":"I think question three was written in another language."}
+{"emoji":"👀","feeling":"Anxious","text":"Library at 7? I need witnesses."}
+{"emoji":"😤","feeling":"Angry","text":"Bad news: the calculator has chosen violence."}
+{"emoji":"🥳","feeling":"Happy","text":"Good news, they moved tomorrow's exam to Friday."}
+{"emoji":"🤔","feeling":"Anxious","text":"Did you understand what “evaluate” meant?"}
+{"emoji":"😳","feeling":"Anxious","text":"Just found notes from a module I never attended."}
+{"emoji":"🏆","feeling":"Happy","text":"I submitted with four minutes left. Personal victory."}
+{"emoji":"😟","feeling":"Anxious","text":"Should I wait here or accept that it’s gone?"}
+{"emoji":"🔍","feeling":"Neutral","text":"I’ll check again after class if anyone wants to come."}
+{"emoji":"😤","feeling":"Angry","text":"At this rate, I could’ve walked to the warehouse."}
+{"emoji":"😅","feeling":"Neutral","text":"The mailroom guy knows me by name now."}
+{"emoji":"😩","feeling":"Sad","text":"It finally arrived. Never mind, that was someone else’s box."}
+{"emoji":"😰","feeling":"Anxious","text":"Exam starts at 9, and I’ve already lost my pen."}
+{"emoji":"❓","feeling":"Neutral","text":"Can you send the room number again?"}
+{"emoji":"😅","feeling":"Anxious","text":"The revision plan lasted until 10:17."}
+{"emoji":"😬","feeling":"Anxious","text":"Results dropped. I’m opening them after lunch."}
+{"emoji":"😠","feeling":"Angry","text":"The invigilator ruined my train of thought."}
+{"emoji":"😓","feeling":"Anxious","text":"I can explain the topic, just not in exam language."}
+{"emoji":"😞","feeling":"Sad","text":"I accidentally revised the old syllabus."}
+{"emoji":"🤨","feeling":"Neutral","text":"The paper was fair, which feels suspicious."}
+{"emoji":"😅","feeling":"Anxious","text":"Can we swap notes before I make mine worse?"}
+{"emoji":"😰","feeling":"Anxious","text":"I’m outside the hall. Send distractions."}
+{"emoji":"🤬","feeling":"Angry","text":"One more question and I’m changing careers."}
+{"emoji":"📝","feeling":"Neutral","text":"Album review: solid start, dodgy middle, decent finish."}
+{"emoji":"🎶","feeling":"Happy","text":"The chorus stuck in my head during a boiler service."}
+{"emoji":"🤔","feeling":"Neutral","text":"Is the deluxe version worth losing an evening to?"}
+{"emoji":"😅","feeling":"Excited","text":"Doors are at 7, but I’m already in the queue somehow"}
+{"emoji":"🤞","feeling":"Excited","text":"Do we have a plan for after, or just loud optimism?"}
+{"emoji":"🙄","feeling":"Angry","text":"Film session at 8, then class. Excellent scheduling, truly."}
+{"emoji":"😬","feeling":"Anxious","text":"Warmups felt weird today. Hopefully that's not a plot twist."}
+{"emoji":"🎉","feeling":"Happy","text":"Meet got canceled. Suddenly I have a personality this weekend."}
+{"emoji":"😤","feeling":"Angry","text":"We got new jerseys and somehow the sleeves are tiny."}
+{"emoji":"⏰","feeling":"Anxious","text":"I can study after practice, if practice ends before midnight."}
+{"emoji":"🤔","feeling":"Anxious","text":"Did we qualify, or was that scoreboard just being dramatic?"}
+{"emoji":"👑","feeling":"Happy","text":"Passed the mock by two marks. Academic royalty."}
+{"emoji":"😰","feeling":"Anxious","text":"Practice got moved to 6, so my homework is officially doomed."}
+{"emoji":"😩","feeling":"Sad","text":"Coach says light recovery. My legs disagree pretty loudly."}
+{"emoji":"🤔","feeling":"Neutral","text":"You still coming to the meet or did studying win again?"}
+{"emoji":"😅","feeling":"Sad","text":"Forgot my spikes. Running in trainers like it's middle school."}
+{"emoji":"🏆","feeling":"Excited","text":"We won by one point. I aged about five years."}
+{"emoji":"⏰","feeling":"Anxious","text":"Bus leaves at 5:40. Why is that even a real time?"}
+{"emoji":"📝","feeling":"Neutral","text":"Can you send the notes? I was at lifting during lecture."}
+{"emoji":"🌧️","feeling":"Angry","text":"Rain delay, apparently. We are just standing here becoming damp."}
+{"emoji":"😟","feeling":"Anxious","text":"I think I left my water bottle in the locker room again."}
+{"emoji":"🎉","feeling":"Happy","text":"Goal during my tea break. Best timing all night"}
+{"emoji":"😩","feeling":"Sad","text":"Night shift forecast: tired, loud, and one goal down"}
+{"emoji":"🏆","feeling":"Excited","text":"Clocking out soon. If we win, save me some bragging rights"}
+{"emoji":"😤","feeling":"Angry","text":"That penalty was softer than our vending machine sandwiches"}
+{"emoji":"🙌","feeling":"Excited","text":"Shift swap for Saturday? I need to see the rematch"}
+{"emoji":"😣","feeling":"Sad","text":"Printer jammed, keeper beaten. Rough ten minutes"}
+{"emoji":"⏳","feeling":"Anxious","text":"Are we watching extra time or loading this truck?"}
+{"emoji":"😩","feeling":"Sad","text":"Send the highlights. I'm stuck doing stocktake"}
+{"emoji":"🍽️","feeling":"Excited","text":"Booked the 12:30 table; apparently that's peak fine dining."}
+{"emoji":"😋","feeling":"Happy","text":"Menu looks good, unless you're avoiding joy and dairy."}
+{"emoji":"🤫","feeling":"Calm","text":"They've got a quiet corner, if we pretend to discuss budgets."}
+{"emoji":"😄","feeling":"Happy","text":"Lunch was excellent; productivity remains unconfirmed."}
+{"emoji":"😊","feeling":"Happy","text":"The restaurant just called. Our table is ready early."}
+{"emoji":"😞","feeling":"Sad","text":"Apparently the chef is off, so half the menu is too."}
+{"emoji":"🤨","feeling":"Neutral","text":"The reservation is under my name, so please behave normally."}
+{"emoji":"😰","feeling":"Anxious","text":"They brought sparkling water. I panicked and said yes."}
+{"emoji":"🎉","feeling":"Happy","text":"Meeting cancelled. I am going to the restaurant anyway."}
+{"emoji":"😞","feeling":"Sad","text":"Practice was brutal. Tell my group project I tried."}
+{"emoji":"😤","feeling":"Angry","text":"Apparently attendance counts even when we're traveling."}
+{"emoji":"😬","feeling":"Anxious","text":"My ankle's fine, probably. Don't quote me on that."}
+{"emoji":"😰","feeling":"Anxious","text":"Lost the first set, won the next two. Weirdly stressful."}
+{"emoji":"📦","feeling":"Neutral","text":"Still on the late shift, checking the score between pallets"}
+{"emoji":"😟","feeling":"Anxious","text":"Missed kickoff. Did we actually defend this time?"}
+{"emoji":"😫","feeling":"Anxious","text":"Halftime in five, if the scanner stops screaming"}
+{"emoji":"😠","feeling":"Angry","text":"Boss says break is over; the match says otherwise"}
+{"emoji":"😰","feeling":"Anxious","text":"Manager walked past during the replay. Nearly cost me"}
+{"emoji":"🙌","feeling":"Excited","text":"Good save. I actually woke up for that one"}
+{"emoji":"🙏","feeling":"Excited","text":"One more goal before handover, please"}
+{"emoji":"😩","feeling":"Sad","text":"Your lot look knackered. Ours aren't much better"}
+{"emoji":"⏰","feeling":"Calm","text":"Full time before clock-out would be ideal"}
+{"emoji":"📝","feeling":"Neutral","text":"Can you send me that scone recipe again?"}
+{"emoji":"⏰","feeling":"Happy","text":"The timer went off. I ignored it professionally."}
+{"emoji":"🌧️","feeling":"Anxious","text":"My gravy has become a separate weather system."}
+{"emoji":"🤞","feeling":"Anxious","text":"Lasagne assembled. Whether it's edible is pending."}
+{"emoji":"🍵","feeling":"Calm","text":"Tea first, then I'll consider the vegetables."}
+{"emoji":"😄","feeling":"Happy","text":"Forgot the salt. Calling it heart-healthy."}
+{"emoji":"🌿","feeling":"Neutral","text":"Are you free Sunday? I have too much rhubarb."}
+{"emoji":"🍰","feeling":"Happy","text":"Dessert menu just arrived; negotiations can wait."}
+{"emoji":"😊","feeling":"Happy","text":"I got us the booth near the window."}
+{"emoji":"😒","feeling":"Sad","text":"Vegetarian options exist, but mostly as decorative leaves."}
+{"emoji":"😅","feeling":"Sad","text":"Made soup. Forgot the soup."}
+{"emoji":"😞","feeling":"Sad","text":"The oven is sulking again. So am I."}
+{"emoji":"🤔","feeling":"Anxious","text":"Do we still have cumin, or did I dream that?"}
+{"emoji":"🌿","feeling":"Neutral","text":"Can you bring coriander? I forgot it again."}
+{"emoji":"😴","feeling":"Sad","text":"The roast needs two hours. I need eight."}
+{"emoji":"🔥","feeling":"Neutral","text":"Can you check the oven? I’m still with a patient."}
+{"emoji":"🌿","feeling":"Sad","text":"I bought fresh herbs and misplaced them immediately."}
+{"emoji":"😬","feeling":"Anxious","text":"Dinner update: one pan, zero confidence."}
+{"emoji":"📝","feeling":"Sad","text":"The potatoes are done, unlike my paperwork."}
+{"emoji":"🤝","feeling":"Happy","text":"Want to help knead dough after my shift?"}
+{"emoji":"⏰","feeling":"Happy","text":"The timer rang, and I ignored it professionally."}
+{"emoji":"😅","feeling":"Anxious","text":"Do we have eggs, or am I improvising again?"}
+{"emoji":"🍽️","feeling":"Sad","text":"Please save me a plate. I’m stuck on nights."}
+{"emoji":"📚","feeling":"Anxious","text":"Watching Dune instead of studying again"}
+{"emoji":"😩","feeling":"Angry","text":"I forgot popcorn costs almost rent now"}
+{"emoji":"👏","feeling":"Happy","text":"That villain had better dialogue than everyone"}
+{"emoji":"🙂","feeling":"Calm","text":"I’m free after lab if you want to go"}
+{"emoji":"😤","feeling":"Angry","text":"The streaming app crashed at the best part"}
+{"emoji":"😨","feeling":"Anxious","text":"Not watching horror alone tonight, absolutely not"}
+{"emoji":"🍿","feeling":"Neutral","text":"I have snacks and zero movie recommendations"}
+{"emoji":"😅","feeling":"Neutral","text":"I’m pretending this assignment can wait"}
+{"emoji":"😠","feeling":"Angry","text":"The theater was empty except for one loud guy"}
+{"emoji":"⏰","feeling":"Anxious","text":"Movie starts in five, where are you?"}
+{"emoji":"😣","feeling":"Anxious","text":"The onions are louder than my thoughts tonight."}
+{"emoji":"🤔","feeling":"Neutral","text":"Do we have cumin, or did I imagine buying it?"}
+{"emoji":"😒","feeling":"Angry","text":"That plot twist was completely unnecessary"}
+{"emoji":"😀","feeling":"Happy","text":"Professor cancelled class, movie night is on"}
+{"emoji":"😅","feeling":"Anxious","text":"I’m ten minutes late, save me a seat"}
+{"emoji":"🤩","feeling":"Excited","text":"This sequel has no business being this good"}
+{"emoji":"🤔","feeling":"Neutral","text":"Did anyone understand the ending?"}
+{"emoji":"😬","feeling":"Anxious","text":"I picked the movie, so blame me later"}
+{"emoji":"🤯","feeling":"Excited","text":"Just found out the lead is in everything"}
+{"emoji":"😡","feeling":"Angry","text":"My roommate spoiled it before the opening scene"}
+{"emoji":"😤","feeling":"Angry","text":"I’ve washed three pans and somehow created more."}
+{"emoji":"😠","feeling":"Angry","text":"I’ll eat whatever’s in the fridge. This is a threat."}
+{"emoji":"🌶️","feeling":"Neutral","text":"Do you want chilli in yours, or are we being sensible?"}
+{"emoji":"😩","feeling":"Sad","text":"The fridge is full, yet there is no actual food."}
+{"emoji":"😊","feeling":"Happy","text":"I made enough lasagne for a small committee."}
+{"emoji":"😡","feeling":"Angry","text":"Driver says five minutes, which apparently means twenty."}
+{"emoji":"🤬","feeling":"Angry","text":"Order's here, but they forgot the chips. Again."}
+{"emoji":"🔍","feeling":"Happy","text":"Just found the slow cooker I bought in 2021."}
+{"emoji":"😬","feeling":"Sad","text":"No, the cake is not meant to look like that."}
+{"emoji":"😅","feeling":"Calm","text":"I forgot the oven was on. Good news: nothing is smoking."}
+{"emoji":"😬","feeling":"Anxious","text":"Just got the tracking update: rider is doing laps."}
+{"emoji":"😐","feeling":"Neutral","text":"Food arrived warm-ish. A bold middle ground."}
+{"emoji":"🤔","feeling":"Anxious","text":"Did you order extra sauce or was that wishful thinking?"}
+{"emoji":"😞","feeling":"Sad","text":"Bad news: they sent fish instead of the veggie burger."}
+{"emoji":"😄","feeling":"Happy","text":"Good news: free spring rolls. No idea why."}
+{"emoji":"😤","feeling":"Angry","text":"Rider's outside, but the buzzer has chosen violence."}
+{"emoji":"😒","feeling":"Angry","text":"I've tipped already, so please stop staring at the app."}
+{"emoji":"🎉","feeling":"Happy","text":"Found the missing meal under someone else's name."}
+{"emoji":"😅","feeling":"Happy","text":"Never mind, it arrived. Crisis downgraded to mild annoyance."}
+{"emoji":"⏳","feeling":"Anxious","text":"Still waiting on the package. Courier says soon again."}
+{"emoji":"📍","feeling":"Anxious","text":"The tracking page has not moved since Tuesday."}
+{"emoji":"📦","feeling":"Neutral","text":"I can start the install once the box actually arrives."}
+{"emoji":"💻","feeling":"Angry","text":"I am online, the parcel is not."}
+{"emoji":"😰","feeling":"Anxious","text":"Client call in ten; still no cables."}
+{"emoji":"😩","feeling":"Sad","text":"Soup has leaked into the bag. It's now a beverage."}
+{"emoji":"🍕","feeling":"Anxious","text":"Can you check if the lobby has my pizza?"}
+{"emoji":"😠","feeling":"Angry","text":"Apparently no-contact means leave it on the pavement."}
+{"emoji":"😰","feeling":"Anxious","text":"Courier called; my directions have failed once again."}
+{"emoji":"😳","feeling":"Anxious","text":"Please tell me you didn't order the family bucket for two."}
+{"emoji":"🤬","feeling":"Angry","text":"Update: the restaurant cancelled after taking my money."}
+{"emoji":"🚀","feeling":"Excited","text":"Door's open, dog secured, delivery mission underway."}
+{"emoji":"😞","feeling":"Sad","text":"Bad news: delivery moved to tomorrow. Again."}
+{"emoji":"😊","feeling":"Happy","text":"Good news, it reached the local depot."}
+{"emoji":"🙄","feeling":"Angry","text":"Local depot means local in theory, I guess."}
+{"emoji":"😟","feeling":"Anxious","text":"Can we push the deadline by two days?"}
+{"emoji":"😕","feeling":"Sad","text":"I have the invoice ready, just not the hardware."}
+{"emoji":"☕","feeling":"Happy","text":"Nothing here except coffee and optimism."}
+{"emoji":"😠","feeling":"Angry","text":"Courier marked it delivered. My desk disagrees."}
+{"emoji":"🔍","feeling":"Anxious","text":"Do you have a photo of where they left it?"}
+{"emoji":"⏳","feeling":"Anxious","text":"I will keep the afternoon open for this."}
+{"emoji":"📦","feeling":"Neutral","text":"Quick one: has the parcel shown up your side?"}
+{"emoji":"😕","feeling":"Sad","text":"Plot twist: it went to the wrong postcode."}
+{"emoji":"😐","feeling":"Neutral","text":"Please ignore my last message; no new update."}
+{"emoji":"😤","feeling":"Angry","text":"Can I bill the waiting time? Kidding. Mostly."}
+{"emoji":"😬","feeling":"Anxious","text":"Package is due by 8, so naturally, maybe."}
+{"emoji":"😟","feeling":"Anxious","text":"Still no parcel; tracking says out for delivery since Tuesday."}
+{"emoji":"😠","feeling":"Angry","text":"Courier app moved delivery to tomorrow. Again."}
+{"emoji":"🔍","feeling":"Anxious","text":"Has anyone seen a box for me at reception?"}
+{"emoji":"🙏","feeling":"Neutral","text":"Any chance we can borrow one until mine arrives?"}
+{"emoji":"😵‍💫","feeling":"Anxious","text":"My playlist just skipped from metal to Disney again"}
+{"emoji":"😤","feeling":"Angry","text":"Who stole my headphones? I need bass immediately"}
+{"emoji":"🌙","feeling":"Excited","text":"New album drops at midnight, I'm staying up"}
+{"emoji":"😩","feeling":"Sad","text":"I practiced guitar for ten minutes and my fingers quit"}
+{"emoji":"🎶","feeling":"Happy","text":"This song is legally too catchy"}
+{"emoji":"😭","feeling":"Sad","text":"Concert tickets are gone already. I'm devastated"}
+{"emoji":"⏳","feeling":"Anxious","text":"Can you tell the supplier we’re still waiting?"}
+{"emoji":"😞","feeling":"Sad","text":"Good news: it reached the city. Bad news: last Friday."}
+{"emoji":"📦","feeling":"Neutral","text":"Did the post room get a delivery with my name on it?"}
+{"emoji":"😤","feeling":"Angry","text":"Tracking says delayed due to weather. It’s sunny here."}
+{"emoji":"🤞","feeling":"Anxious","text":"Parcel’s now due Monday, which feels optimistic."}
+{"emoji":"🙄","feeling":"Sad","text":"I’m checking reception once more, then giving up."}
+{"emoji":"😄","feeling":"Happy","text":"I have one earbud and somehow it's the better one"}
+{"emoji":"🤔","feeling":"Anxious","text":"Be honest, is this chorus good or just loud?"}
+{"emoji":"😩","feeling":"Angry","text":"My brother keeps replaying the same song help"}
+{"emoji":"😭","feeling":"Sad","text":"Found an old playlist and wow my taste was tragic"}
+{"emoji":"🎶","feeling":"Neutral","text":"Meet me by the speakers after school?"}
+{"emoji":"🌙","feeling":"Sad","text":"Why does every sad song sound better at 1am?"}
+{"emoji":"🤩","feeling":"Excited","text":"Just heard a local band and they were actually amazing"}
+{"emoji":"☕","feeling":"Happy","text":"Meeting the old team for coffee Thursday, fancy joining?"}
+{"emoji":"🌿","feeling":"Happy","text":"My desk is now a garden table. Better lighting."}
+{"emoji":"😄","feeling":"Happy","text":"Tried explaining spreadsheets to the grandkids. Lost them."}
+{"emoji":"😢","feeling":"Sad","text":"I miss the kettle, not the deadlines."}
+{"emoji":"🤔","feeling":"Anxious","text":"Is the staff discount still valid after leaving?"}
+{"emoji":"😟","feeling":"Anxious","text":"Please hold the invoice; the hardware hasn’t arrived."}
+{"emoji":"😊","feeling":"Happy","text":"Small miracle: the driver just called."}
+{"emoji":"😅","feeling":"Neutral","text":"Never mind, false alarm. Someone else’s box."}
+{"emoji":"😬","feeling":"Anxious","text":"Can someone cover my desk if the courier appears?"}
+{"emoji":"😕","feeling":"Anxious","text":"The box has apparently been at the depot since 6am."}
+{"emoji":"🙄","feeling":"Neutral","text":"I’ve opened a support ticket. Thrilling stuff."}
+{"emoji":"🎉","feeling":"Happy","text":"Update: delivered. It was left in the loading bay."}
+{"emoji":"🙂","feeling":"Happy","text":"Sorry, joining late—the package finally showed up."}
+{"emoji":"🎶","feeling":"Happy","text":"I made a playlist for the bus. It has 47 songs"}
+{"emoji":"😬","feeling":"Anxious","text":"Please rate this beat before I delete the whole thing"}
+{"emoji":"🤩","feeling":"Excited","text":"The new remix is weirdly better than the original"}
+{"emoji":"🙄","feeling":"Angry","text":"I said one song, not a three-hour album discussion"}
+{"emoji":"😩","feeling":"Sad","text":"Headphones died during the best part. Typical"}
+{"emoji":"🎉","feeling":"Happy","text":"Finally found my old staff pass in the junk drawer."}
+{"emoji":"📝","feeling":"Neutral","text":"Bob says the pension forms need one more signature."}
+{"emoji":"😌","feeling":"Calm","text":"I still wake at six, then remember I don't have to."}
+{"emoji":"😤","feeling":"Angry","text":"No, I won't log in. The password is probably expired."}
+{"emoji":"🎉","feeling":"Happy","text":"The old building has finally got working lifts."}
+{"emoji":"📚","feeling":"Happy","text":"I sorted my paperwork and created three new piles."}
+{"emoji":"🍽️","feeling":"Anxious","text":"Lunch with Pat tomorrow, assuming nobody schedules it."}
+{"emoji":"😒","feeling":"Angry","text":"Someone left me a voicemail marked urgent. It was a survey."}
+{"emoji":"🌱","feeling":"Neutral","text":"I still say back to the grind before gardening."}
+{"emoji":"😰","feeling":"Anxious","text":"Got a call from HR. Apparently I exist in two databases."}
+{"emoji":"🍵","feeling":"Happy","text":"I can help Friday, but only if it involves tea."}

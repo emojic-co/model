@@ -51,7 +51,7 @@ const GEN_BATCH = 25
 const GEN_CONCURRENCY = 10
 const ANNOTATE_BATCH = 10
 const ANNOTATE_CONCURRENCY = 10
-const NEW_EMOJI_MIN_FREQ = 0.01
+const NEW_EMOJI_MIN_FREQ = 0.009
 
 // --- normalized dedup key: mirror of main.py's normalize() ------------------
 const VOCAB = new Set("abcdefghijklmnopqrstuvwxyz!?:()@$%&* ")
@@ -352,7 +352,7 @@ async function step3(records: Row[]): Promise<void> {
     await writeFile(
       LABELS,
       JSON.stringify({ feelings, emojis: [...emojis, ...newEmojis] }, null, 2) +
-        "\n",
+      "\n",
     )
   }
   bar.increment()
@@ -372,7 +372,7 @@ async function step3(records: Row[]): Promise<void> {
   console.log(`kept -> data.jsonl  : ${kept.length}`)
   console.log(
     `dropped             : ${records.length - kept.length} ` +
-      `(new emoji <${NEW_EMOJI_MIN_FREQ * 100}% and not in labels, or feeling off-list)`,
+    `(new emoji <${NEW_EMOJI_MIN_FREQ * 100}% and not in labels, or feeling off-list)`,
   )
   console.log(
     `new emojis added    : ${newEmojis.length ? newEmojis.join(" ") : "none"}`,
