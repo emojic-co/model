@@ -1,5 +1,4 @@
 import json
-import random
 import re
 
 import torch
@@ -9,7 +8,11 @@ from torch.utils.data import DataLoader, Dataset
 from config import EMBED_SIZE, EPOCHS, H_SIZE, MAX_TEXT_LEN
 
 # INPUT
-vocab = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,!?;:()[]{}<>@#$%^&* "
+# Index 0 is reserved for padding; real characters are numbered from 1.
+PAD = '·'
+CHARS = PAD + "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,!?;:()[]{}<>@#$%^&* "
+PAD_IDX = 0
+VOCAB_SIZE = len(CHARS) + 1
 
 # OUTPUTS
 feeling = [
@@ -19,57 +22,69 @@ feeling = [
     "Sad",
     "Angry",
     "Anxious",
+    "Neutral",
 ]
 
-# De-duplicate emojis string while retaining unique items
-emojis = sorted(
-    set(
-        "😀😂😍😡😰🥰😎🤔😅😭🥳🙃👍👎👏🙏💪🔥💯❤️✨⭐🎉🚀🍕🍔🍟🍦🍩🍺🍷☕"
-        "🏀⚽🎮🎲🎸🎨✈️🚗🚲🌴🌈☀️🌙🐶🐱🦁🐼🦊🍎🍌🥑🌶️🍿🍻🥂🏆🎯🎶🎤💡"
-        "🔑📌⚡💥👑💍💎💖💔💤🤖👽💀👻💩🎃🔮🚢⛵🚨🏈⚾🎾🎱🎷🎹🎺🥁📱💻"
-        "🎥📷📸🔍🔦🕯️💰⚖️🛒🎁🎈🎊✉️📦📍🔒🔓❤️‍🔥"
-        # --- 100 additional popular & diverse emojis ---
-        "🥳🤩😜🙈🙉🙊👋🤝🙌💅🧠👀👄🔥🌊🌸🌹🌻🌺🌾🍃🥦🍄🍉🍓🥭🍇🥥🧀"
-        "🥞🥨🥓🥩🍗🌭🥪🌮🌯🍣🍜🍲🍡🧋🍵🍾🍹✈️🚁🚀🛸🚜🏎️🏍️⛵🚢🗺️⛵"
-        "🗼🗽🗿🏰🎡🎢🎪🎨🎭🎫🎖️🏆🏅⚽🏀🏈🎾🏐🏉🎱🎯🧘‍♀️🏄‍♂️🏊‍♂️🏋️‍♂️🚴‍♂️"
-        "🧗‍♂️🐾🦩🦄🐬🐳🐙🐉🌵🌲🪵💫🌟⚡💥🔥✨🎈🎉🎊🎋🎍🎏🧸🔮🧿"
-    )
+# TODO: decouple emojis from feelings, pick 30 popular diverse emojis and backfill the data.jsonl with them.
+emojis = (
+    "😀😂🥹😍🤔"  # Expressions & Feelings
+    "🥳😎😭💀🔥"
+    "❤️💯✨👍👏"  # Symbols & Gestures
+    "🙌🙏💪🧠👀"
+    "🐶🐱🦁🦉🐙"  # Animals & Nature
+    "🌲🌺🌈☀️⭐"
+    "🍕🌮🍣☕🍺"  # Food & Drink
+    "⚽🎉🚀✈️🎸"  # Activities & Travel
+    "💡💎📱🎁🔒"  # Objects & Tools
+    "🌍🏆🎨🔮📍"  # Places & Concepts
 )
-
-char2idx = {char: i for i, char in enumerate(vocab)}
+char2idx = {char: i for i, char in enumerate(CHARS)}
 feeling2idx = {f: i for i, f in enumerate(feeling)}
 emoji2idx = {e: i for i, e in enumerate(emojis)}
+
+
+def squash_oklab(raw: torch.Tensor) -> torch.Tensor:
+    """Map a raw (..., 3) tensor into Oklab range: L in [0, 1], a/b in [-0.4, 0.4]."""
+    L = torch.sigmoid(raw[..., :1])
+    ab = 0.4 * torch.tanh(raw[..., 1:])
+    return torch.cat([L, ab], dim=-1)
 
 
 class Model(nn.Module):
     def __init__(self, *, embed_dim: int, hidden_dim: int):
         super().__init__()
-        self.embedding = nn.Embedding(len(vocab), embed_dim, padding_idx=0)
+        self.embedding = nn.Embedding(
+            VOCAB_SIZE,
+            embed_dim,
+            padding_idx=PAD_IDX)
+
         self.lstm = nn.LSTM(embed_dim, hidden_dim, batch_first=True)
         self.emoji = nn.Linear(hidden_dim, len(emojis))
         self.feeling = nn.Linear(hidden_dim, len(feeling))
-        # Oklab values for gradient background start color (L, a, b)
-        self.bg1 = nn.Linear(hidden_dim, 3)
-        # Oklab values for gradient background end color (L, a, b)
-        self.bg2 = nn.Linear(hidden_dim, 3)
-        # Oklab values for text color (L, a, b)
-        self.text_color = nn.Linear(hidden_dim, 3)
+        # Each head emits raw (L, a, b); `squash_oklab` maps them into Oklab range.
+        self.bg1 = nn.Linear(hidden_dim, 3)  # gradient background start color
+        self.bg2 = nn.Linear(hidden_dim, 3)  # gradient background end color
+        self.text_color = nn.Linear(hidden_dim, 3)  # foreground text color
 
-    def forward(self, x, state=None):
-        x = self.embedding(x)  # (batch_size, seq_len, embed_dim)
-        out, (h_n, c_n) = self.lstm(x, state)
+    def forward(self, x):
+        # True length of each row (chars before padding); clamp so an all-pad
+        # row (empty text) still packs with length 1.
+        lengths = (x != PAD_IDX).sum(dim=1).clamp(min=1)
+        emb = self.embedding(x)  # (batch_size, seq_len, embed_dim)
+        packed = nn.utils.rnn.pack_padded_sequence(
+            emb, lengths.cpu(), batch_first=True, enforce_sorted=False
+        )
+        _, (h_n, _) = self.lstm(packed)
+        # h_n[-1] is the hidden state at each row's last real character.
+        last_step = h_n[-1]  # (batch_size, hidden_dim)
 
-        # Take the hidden state of the final time step
-        last_step = out[:, -1, :]  # (batch_size, hidden_dim)
-        # (batch_size, len(unique_emojis))
-        emoji_logits = self.emoji(last_step)
-        feeling_logits = self.feeling(last_step)  # (batch_size, len(feeling))
-        bg1 = self.bg1(last_step)  # (batch_size, 3) -> Oklab (L, a, b)
-        bg2 = self.bg2(last_step)  # (batch_size, 3) -> Oklab (L, a, b)
-        # (batch_size, 3) -> Oklab (L, a, b)
-        text_color = self.text_color(last_step)
-
-        return emoji_logits, feeling_logits, bg1, bg2, text_color, (h_n, c_n)
+        return (
+            self.emoji(last_step),
+            self.feeling(last_step),
+            squash_oklab(self.bg1(last_step)),
+            squash_oklab(self.bg2(last_step)),
+            squash_oklab(self.text_color(last_step)),
+        )
 
 
 def normalize(text: str) -> str:
@@ -78,19 +93,18 @@ def normalize(text: str) -> str:
     return "".join(c for c in text if c in char2idx)
 
 
-def encode(text: str, max_len=16) -> torch.Tensor:
-    """Normalize `text` and return a (1, max_len) long tensor of char indices."""
+def encode(text: str) -> torch.Tensor:
+    """Normalize `text` and return a (1, MAX_TEXT_LEN) long tensor of char indices."""
     text = normalize(text)
-    indices = [char2idx.get(c, 0) for c in text[:max_len]]
-    padding = [0] * (max_len - len(indices))
+    indices = [char2idx[c] for c in text[:MAX_TEXT_LEN]]
+    padding = [PAD_IDX] * (MAX_TEXT_LEN - len(indices))
     return torch.tensor([indices + padding], dtype=torch.long)
 
 
 class MultiTaskDataset(Dataset):
-    def __init__(self, data, *, augment: bool = False):
+    def __init__(self, data):
         self.data = data
         self.data_len = len(data)
-        self.augment = augment
 
     def __len__(self):
         return self.data_len
@@ -105,13 +119,7 @@ class MultiTaskDataset(Dataset):
             text_color_oklab,
         ) = self.data[idx]
 
-        # Augmentation: half the time, shuffle the word order.
-        if self.augment and random.random() < 0.5:
-            words = text.split()
-            random.shuffle(words)
-            text = " ".join(words)
-
-        x_tensor = encode(text, MAX_TEXT_LEN).squeeze(0)
+        x_tensor = encode(text).squeeze(0)
 
         return (
             x_tensor,
@@ -159,10 +167,7 @@ def train(
 ):
 
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    dataloader = DataLoader(
-        data,
-        batch_size=batch_size,
-        shuffle=True)
+    dataloader = DataLoader(data, batch_size=batch_size, shuffle=True)
 
     criterion_ce = nn.CrossEntropyLoss()
     criterion_mse = nn.MSELoss()
@@ -192,7 +197,6 @@ def train(
                 pred_bg1,
                 pred_bg2,
                 pred_text_color,
-                _,
             ) = model(x)
 
             # Losses for discrete classes
@@ -242,7 +246,7 @@ def evaluate(model: Model, data) -> dict:
         target_bg2,
         target_text_color,
     ) in dataloader:
-        emoji_logits, feeling_logits, pred_bg1, pred_bg2, pred_text_color, _ = model(
+        emoji_logits, feeling_logits, pred_bg1, pred_bg2, pred_text_color = model(
             x)
         emoji_correct += (emoji_logits.argmax(dim=-1)
                           == target_emoji).sum().item()
@@ -263,14 +267,13 @@ def evaluate(model: Model, data) -> dict:
     }
 
 
-def predict(model: Model, text: str, max_len: int = 16) -> dict:
+def predict(model: Model, text: str) -> dict:
     """Run inference for a single string, returning a plain-dict result."""
     model.eval()
     text = normalize(text)[:MAX_TEXT_LEN]
     with torch.no_grad():
-        emoji_logits, feeling_logits, bg1, bg2, text_color, _ = model(
-            encode(text, max_len)
-        )
+        emoji_logits, feeling_logits, bg1, bg2, text_color = model(
+            encode(text))
     return {
         "text": text,
         "emoji": emojis[emoji_logits.argmax(dim=-1).item()],
@@ -283,7 +286,6 @@ def predict(model: Model, text: str, max_len: int = 16) -> dict:
 
 if __name__ == "__main__":
     torch.manual_seed(0)
-    random.seed(0)
 
     dataset = load_data(path="data.jsonl")
 
@@ -294,19 +296,12 @@ if __name__ == "__main__":
     ).tolist()
     raw = dataset.data
 
-    train_set = MultiTaskDataset(
-        [raw[i] for i in perm[:n_train]],
-        augment=True)
-
-    test_set = MultiTaskDataset(
-        [raw[i] for i in perm[n_train:]], augment=False)
+    train_set = MultiTaskDataset([raw[i] for i in perm[:n_train]])
+    test_set = MultiTaskDataset([raw[i] for i in perm[n_train:]])
 
     print(f"Train: {n_train}  Test: {n_test}\n")
 
-    model = Model(
-        embed_dim=EMBED_SIZE,
-        hidden_dim=H_SIZE
-    )
+    model = Model(embed_dim=EMBED_SIZE, hidden_dim=H_SIZE)
 
     train(
         model=model,

@@ -1,4 +1,6 @@
 TODO:
+    Data:
+        Extends the dataset to a total of 
 DONE:
     Data:
         generate 1,000 more samples that covers all the emojis and feelings in the dataset and append them to data.jsonl
