@@ -1,14 +1,15 @@
 TODO:
-    Standalone web page:
-        - Build a standalone web page (no backend), here is how:
-            - export the model to ONNX
-            - load it in the webpage using onnxruntime-web
-            - run the inference in the browser
-            - output the page to a docs folder so it can be published on GitHub Pages
-        
-        - The entire process must be automated so whenever the model is updated, the web page is automatically rebuilt and published (can be triggered manually but must be a single command).
 
 
 DONE:
+    - Standalone web page (no backend):
+        - export the model to ONNX (build_web.py -> docs/model.onnx)
+        - load it in the webpage using onnxruntime-web (vendored in vendor/ort/)
+        - run the inference in the browser (site/app.js)
+        - output the page to docs/ for GitHub Pages
+        - automated: .github/workflows/deploy-pages.yml rebuilds + deploys on
+          push to main (or manual workflow_dispatch); single local command is
+          `uv run build_web.py`
+
     - at the bottom of the page, show examples of all feelings:
         Make a row of small squares, each square has the feeling name with the feeling font family and the feeling bg gradient.

@@ -76,9 +76,7 @@ def export_onnx(dst: Path) -> None:
         raise SystemExit("model.pt not found -- train first with `uv run main.py`")
 
     model = Model()
-    model.load_state_dict(
-        torch.load(MODEL_PATH, map_location="cpu", weights_only=True)
-    )
+    model.load_state_dict(torch.load(MODEL_PATH, map_location="cpu", weights_only=True))
     model.eval()
 
     dummy = torch.zeros(1, MAX_TEXT_LEN, dtype=torch.long)
@@ -107,9 +105,7 @@ def write_meta(dst: Path) -> None:
         "feelings": FEELINGS,
         "feeling_palette": {name: feeling_colors(name) for name in FEELINGS},
     }
-    dst.write_text(
-        json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
+    dst.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def main() -> None:

@@ -10,8 +10,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `config.py` — flat module of training hyperparameters (`LR`, `BATCH_SIZE`, `EMBED_SIZE`, `H_SIZE`, `NUM_LAYERS`, `MAX_TEXT_LEN`, `GRAD_CLIP`, `EPOCHS`); imported by `main.py` and `server.py`.
 - `labels.json` — the `feelings` and `emojis` lists, shared by `main.py` and `gen_data.ts` (single source of truth for the label sets).
 - `gen_data.ts` — Bun/TypeScript synthetic-data generator (`bun run gen_data.ts`). Uses the Vercel AI SDK + GPT-5.6 Luna via the AI Gateway to write short WhatsApp-style texts for a randomly chosen `(emoji, feeling)` pair and **appends** them to `data.jsonl` (20 texts/batch × 50 batches per run). Not deterministic; each run grows the corpus. Needs `AI_GATEWAY_API_KEY` (Bun auto-loads it from `.env`).
-- `server.py` — stdlib `http.server` app: loads `model.pt` once and serves `GET /predict?text=...` plus the static page in `web/`. Run with `uv run server.py`.
+- `server.py` — stdlib `http.server` app: loads `model.pt` once and serves `GET /predict?text=...` plus the static page in `web/`. Run with `uv run server.py`. This is the local-dev path; the published page does not use it.
 - `data.jsonl` — one JSON sample per line: `text`, `emoji`, `feeling` (no color fields).
+- `build_web.py` — builds the standalone, backend-free GitHub Pages site into `docs/` (`uv run build_web.py`): exports `model.pt` to `docs/model.onnx` (an `ExportWrapper` replaces `pack_padded_sequence` with a `gather` at the last real char so the LSTM traces), writes `docs/meta.json` (CHARS / `MAX_TEXT_LEN` / `EMOJIS` / feelings / `FEELING_PALETTE` — so the JS hardcodes nothing `main.py` owns), and copies `site/{index.html,app.js}`, `web/style.css`, and `vendor/ort/` in. `docs/` is gitignored.
+- `site/` — static-page sources for `build_web.py`: `index.html` and `app.js`, the browser variant that runs inference via onnxruntime-web (`ort.Tensor` int64, argmax both heads) and reimplements `normalize`/`encode` from `meta.json`. Styling is `web/style.css` (one source of truth).
+- `vendor/ort/` — committed onnxruntime-web wasm backend (see its README); runs single-threaded so it needs no COOP/COEP headers.
+- `.github/workflows/deploy-pages.yml` — on push to `main` touching the model or any build input (and `workflow_dispatch`), runs `build_web.py` and deploys `docs/` to Pages. Repo Settings → Pages → Source must be "GitHub Actions". `model.pt` is committed so CI can read it.
 
 ## Environment & commands
 
@@ -19,6 +23,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `torch` is pinned to the PyTorch CPU wheel index (see `[tool.uv.sources]` in `pyproject.toml`). Keep that index config intact when editing dependencies.
 - Quick verify (no training run): `uv run ruff check .` and `uv run ruff format --check .`.
 - Full run: `uv run main.py` trains for `EPOCHS` epochs (see `config.py`), writes `model.pt`, and prints a sample inference. This is slow — don't use it as a smoke test.
+- Standalone site: `uv run build_web.py` regenerates `docs/`. After retraining, commit the new `model.pt`; pushing it to `main` triggers the Pages deploy. `onnx` + `onnxscript` (dev deps) are required by the export.
 - Training writes TensorBoard logs to `runs/<config-name>/` (run name, from `run_name()`, encodes embed/hidden/layers/lr/batch/epochs); view with `uv run tensorboard --logdir runs`.
 - The generator toolchain is Bun, not `uv`: `bun install` then `bun run gen_data.ts`.
 - Python 3.11.
@@ -27,4 +32,4 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - Oklab color values are `[L (0..1), a (-0.4..0.4), b (-0.4..0.4)]`. Colors are a fixed lookup, not a model head: `FEELING_PALETTE` in `main.py` holds one `(bg1, bg2, text_color)` triple per feeling (warm/bright for Happy/Excited, cool for Calm, muted/dark for Sad/Anxious, dark saturated red for Angry, neutral grey for Neutral). `web/app.js` renders them via CSS `oklab()`. The model has only two heads (`emoji`, `feeling`), both cross-entropy; there is no color loss.
 - Char indexing reserves index 0 for padding (`PAD_IDX`); real characters in `CHARS` are numbered from 1, and `nn.Embedding` uses `padding_idx=0`. The LSTM is fed via `pack_padded_sequence`, so the classifier reads the hidden state at each row's last real character, not a trailing pad step. Sequences are always encoded to `MAX_TEXT_LEN` (train and inference must match).
-- No test suite or CI yet — for code changes, lint/format with `ruff` (above) before committing. Behavioral verification is a full `uv run main.py`: loss should decrease, `feeling_acc` trains well, `emoji_acc` is weak at the current `H_SIZE`/`EMBED_SIZE` and thin/imbalanced `data.jsonl`. Grow the corpus with `bun run gen_data.ts`; edit `labels.json` if you touch the label sets.
+- No test suite; the only CI is the Pages deploy (`deploy-pages.yml`), which does not gate on lint. For code changes, lint/format with `ruff` (above) before committing. Behavioral verification is a full `uv run main.py`: loss should decrease, `feeling_acc` trains well, `emoji_acc` is weak at the current `H_SIZE`/`EMBED_SIZE` and thin/imbalanced `data.jsonl`. Grow the corpus with `bun run gen_data.ts`; edit `labels.json` if you touch the label sets.

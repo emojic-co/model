@@ -17,6 +17,7 @@
 import { appendFile, readFile } from "node:fs/promises"
 
 import { generateText, Output } from "ai"
+import cliProgress from "cli-progress"
 import { z } from "zod"
 
 // Label sets live in labels.json, shared with main.py (see `EMOJIS` / `feeling`).
@@ -88,16 +89,21 @@ if (import.meta.main) {
     return records
   }
 
-  const records = (await Promise.all(Array.from({ length: BATCH_COUNT }).map(async () => {
-    // TODO: progress bar
-    return batch()
-  }))).flat()
+  const bar = new cliProgress.SingleBar(
+    { format: "generating |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s" },
+    cliProgress.Presets.shades_classic,
+  )
+  bar.start(BATCH_COUNT, 0)
+  await Promise.all(Array.from({ length: BATCH_COUNT }).map(async () => {
+    const records = await batch()
+    bar.increment()
+    if (records.length > 0) {
+      const lines = records
+        .map((r) => JSON.stringify({ emoji: r.emoji, feeling: r.feeling, text: r.text }))
+        .join("\n")
+      await appendFile(OUT_PATH, lines + "\n")
+    }
+  }))
+  bar.stop()
 
-  if (records.length > 0) {
-    const lines = records
-      .map((r) => JSON.stringify({ emoji: r.emoji, feeling: r.feeling, text: r.text }))
-      .join("\n")
-    await appendFile(OUT_PATH, lines + "\n")
-  }
-  console.log(`Appended ${records.length} records to data.jsonl`)
 }

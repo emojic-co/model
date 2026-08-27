@@ -96,7 +96,9 @@ function buildFeelingRow() {
   buildFeelingRow();
 
   ort.env.wasm.numThreads = 1; // GitHub Pages sends no COOP/COEP headers
-  ort.env.wasm.wasmPaths = "./vendor/";
+  // Absolute URL so ORT resolves it against the page, not against ort.wasm.min.js
+  // (which already lives in vendor/ and would give vendor/vendor/).
+  ort.env.wasm.wasmPaths = new URL("./vendor/", document.baseURI).href;
   session = await ort.InferenceSession.create("./model.onnx");
 
   input.addEventListener("input", update);
