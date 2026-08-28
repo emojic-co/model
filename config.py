@@ -31,3 +31,7 @@ CONFIG_NAME = ' | '.join([
     f'TRAIN: lr {LR} bs {BATCH_SIZE} gc {GRAD_CLIP} wd {WEIGHT_DECAY}',
     f'TIME: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
 ])
+
+
+assert KERNEL_1 % 2 == 1, "KERNEL_1 must be odd for 'same' padding"
+assert KERNEL_2 % 2 == 1, "KERNEL_2 must be odd for 'same' padding"

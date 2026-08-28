@@ -32,6 +32,10 @@ class Model(nn.Module):
             ),
             nn.LeakyReLU(),
 
+            nn.MaxPool1d(
+                kernel_size=3,
+                stride=2),
+
             nn.Conv1d(
                 in_channels=CHANNELS_1,
                 out_channels=CHANNELS_2,
@@ -61,29 +65,11 @@ class Model(nn.Module):
         self.feeling = nn.Linear(CHANNELS_2, len(FEELING))
 
     def forward(self, x):
-        pad_mask = (x == PAD_IDX).unsqueeze(1)  # (batch, 1, seq_len)
-
         out = self.embedding(x)
-        out = out.permute(0, 2, 1)  # (batch, embed_dim, seq_len)
+        out = out.permute(0, 2, 1)
         out = self.net(out)
 
-        # The valid (padding=0) convs shrink the time axis by
-        # (KERNEL_1 - 1) + (KERNEL_2 - 1). Padding is always trailing, so conv
-        # column t (receptive field t .. t + shrink) is pad-contaminated iff
-        # input position t + shrink is a pad -- drop that many leading columns
-        # from the mask so it lines up with the conv output.
-        shrink = (KERNEL_1 - 1) + (KERNEL_2 - 1)
-        pad_mask = pad_mask[:, :, shrink:]
-
-        out = out.masked_fill(pad_mask, -1e9)
         out = torch.max(out, dim=2).values  # (batch, CHANNELS_2)
-
-        # A text with <= shrink real chars leaves no pad-free conv column, so
-        # the whole row is masked and max-pools to -1e9. Zero those rows -- an
-        # untouched -1e9 feature vector drives the linear heads (and the loss)
-        # to ~1e9 and destabilises training.
-        row_has_valid = (~pad_mask).any(dim=2).float()  # (batch, 1)
-        out = out * row_has_valid
 
         text_vec = F.normalize(self.text_proj(out), dim=-1)
         emoji_vec = F.normalize(self.emoji_embedding.weight, dim=-1)
