@@ -1,8 +1,5 @@
 TODO:
     Model Testing:
-        Also add to the test:
-            Not <feeling> for each of the feelings, make sure the model does not predict the feeling when the input is "not <feeling>".
-            If not feeling should predict another feeling, e.g. "not happy" should predict "sad", then add that to the test as well.
 DONE:
     Model Testing:
         Write a test suite that:
@@ -12,3 +9,6 @@ DONE:
                 - Then run the model on each of these keywords and check if the emoji is predicted.
             - Generate a detailed report of the results, report/<MM:DD-HH:MM>.md
             - Run the test suite after each training session.
+        Also add to the test:
+            Not <feeling> for each of the feelings, make sure the model does not predict the feeling when the input is "not <feeling>".
+            If not feeling should predict another feeling, e.g. "not happy" should predict "sad", then add that to the test as well.
