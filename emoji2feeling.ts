@@ -5,7 +5,7 @@
  *
  * One run does the whole thing, no intermediate file:
  *
- *   count every emoji in data.jsonl, take the 100 least represented
+ *   count every labels.json emoji's rows in data.jsonl, take the 100 rarest
  *     -> generate 20 short WhatsApp-style texts per emoji           (phase 1)
  *     -> feeling-annotate the fresh texts (closed labels.json set)  (phase 2)
  *     -> append {emoji, text, feeling} to data.jsonl
@@ -82,16 +82,21 @@ function pickVoice(): string {
 }
 
 /**
- * Tally every emoji in data.jsonl and return the `n` least represented,
- * rarest first (ties keep first-seen order, matching gen_labels.ts).
+ * Tally each labels.json emoji's rows in data.jsonl and return the `n` least
+ * represented, rarest first. Palette emojis absent from data.jsonl count as 0;
+ * ties keep labels.json order. Emojis outside the palette are ignored -- they
+ * get dropped by gen_labels.ts / data.py anyway, so upsampling them is wasted.
  */
-function rarestEmojis(rows: Row[], n: number): string[] {
-  const counts = new Map<string, number>()
-  for (const r of rows) counts.set(r.emoji, (counts.get(r.emoji) ?? 0) + 1)
+function rarestEmojis(rows: Row[], palette: string[], n: number): string[] {
+  const counts = new Map<string, number>(palette.map((e) => [e, 0]))
+  for (const r of rows) {
+    const c = counts.get(r.emoji)
+    if (c !== undefined) counts.set(r.emoji, c + 1)
+  }
   const ranked = [...counts.entries()].sort((a, b) => a[1] - b[1])
   const picked = ranked.slice(0, n)
   console.log(
-    `${counts.size} distinct emojis in data.jsonl -> upsampling ${picked.length} rarest ` +
+    `${counts.size} palette emojis -> upsampling ${picked.length} rarest ` +
       `(${picked[0]?.[1]}..${picked[picked.length - 1]?.[1]} rows each)`,
   )
   return picked.map(([e]) => e)
@@ -178,9 +183,11 @@ async function annotateBatch(
 if (import.meta.main) {
   if (!existsSync(LABELS)) throw new Error(`${LABELS} not found`)
   if (!existsSync(DATA)) throw new Error(`${DATA} not found`)
-  const feelings = z
-    .object({ feelings: z.array(z.string()) })
-    .parse(JSON.parse(await readFile(LABELS, "utf8"))).feelings
+  const labels = z
+    .object({ feelings: z.array(z.string()), emojis: z.array(z.string()) })
+    .parse(JSON.parse(await readFile(LABELS, "utf8")))
+  const feelings = labels.feelings
+  const palette = labels.emojis
 
   const rows: Row[] = []
   for (const l of (await readFile(DATA, "utf8")).split("\n")) {
@@ -188,7 +195,7 @@ if (import.meta.main) {
     if (line) rows.push(JSON.parse(line) as Row)
   }
 
-  const targets = rarestEmojis(rows, RARE_EMOJI_COUNT)
+  const targets = rarestEmojis(rows, palette, RARE_EMOJI_COUNT)
 
   // Texts already in the corpus -- never regenerate them.
   const inCorpus = new Set<string>()
