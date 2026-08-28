@@ -26,7 +26,7 @@ class Model(nn.Module):
             nn.ReLU(),
         ]
 
-        for _ in range(NUM_LAYERS):
+        for _ in range(NUM_LAYERS - 1):
             layers.append(
                 nn.Conv1d(
                     in_channels=H_SIZE,

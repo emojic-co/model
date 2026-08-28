@@ -23,7 +23,6 @@ from config import (
     EPOCHS,
     EVAL_EPOCHS,
     GRAD_CLIP,
-    LABEL_SMOOTHING,
     LR,
     MAX_TEXT_LEN,
     NEGATIVE_SAMPLES,
@@ -156,7 +155,7 @@ def train() -> None:
 
     writer = SummaryWriter(log_dir=f"runs/{CONFIG_NAME}")
 
-    emoji_ce = nn.CrossEntropyLoss(label_smoothing=LABEL_SMOOTHING)
+    emoji_ce = nn.CrossEntropyLoss()
     feeling_ce = nn.CrossEntropyLoss()
 
     print(f"Train: {len(train_ds)}  Eval: {len(eval_ds)}")
