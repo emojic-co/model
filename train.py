@@ -164,27 +164,27 @@ class LitEmojic(pl.LightningModule):
 
 
 class ExportBest(pl.Callback):
-    """Save model.pt + refresh docs/ whenever eval f_loss improves."""
+    """Save model.pt + refresh docs/ whenever eval f_acc improves."""
 
     def __init__(self) -> None:
-        self.best_loss = float("inf")
+        self.best_acc = 0.0
 
     def state_dict(self) -> dict:
-        # Persisted into the checkpoint so best_loss survives --resume; without
+        # Persisted into the checkpoint so best_acc survives --resume; without
         # it the first post-resume validation re-saves model.pt + re-exports on
         # a non-improvement.
-        return {"best_loss": self.best_loss}
+        return {"best_acc": self.best_acc}
 
     def load_state_dict(self, state_dict: dict) -> None:
-        self.best_loss = state_dict["best_loss"]
+        self.best_acc = state_dict["best_acc"]
 
     def on_validation_end(self, trainer: pl.Trainer, pl_module: LitEmojic) -> None:
         metric = trainer.callback_metrics.get("eval/f_acc")
         if metric is None:
             return
-        loss = float(metric)
-        if loss < self.best_loss:
-            self.best_loss = loss
+        acc = float(metric)
+        if acc > self.best_acc:
+            self.best_acc = acc
             torch.save(pl_module.model.state_dict(), MODEL_PT)
             export_web(pl_module.model)
 
@@ -238,7 +238,7 @@ def train(resume: bool = False) -> None:
     )
 
     print(
-        f"\nBest eval loss: {export_best.best_loss:.4f}  ->  "
+        f"\nBest eval f_acc: {export_best.best_acc:.4f}  ->  "
         f"{MODEL_PT} and docs/ refreshed"
     )
 
