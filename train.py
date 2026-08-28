@@ -167,6 +167,12 @@ def train() -> None:
     print(
         f"\nBest mean acc: {best_acc:.3f}  ->  {MODEL_PT} and docs/ refreshed")
 
+    # Behavioral test suite + Markdown report (report/<MM-DD-HH:MM>.md).
+    # Runs against the saved best checkpoint (model.pt), i.e. what ships.
+    from test_model import run as run_tests
+
+    run_tests()
+
 
 if __name__ == "__main__":
     train()
