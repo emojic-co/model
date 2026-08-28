@@ -144,6 +144,7 @@ class LitEmojic(pl.LightningModule):
         )
 
     def configure_optimizers(self):
+        return optim.SGD(self.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
         return optim.Adam(self.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
 
 
