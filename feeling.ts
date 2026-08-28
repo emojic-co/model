@@ -3,16 +3,17 @@
  *
  *   bun feeling.ts  ->  bun emoji.ts  ->  bun gen_labels.ts
  *
- * Reads data.jsonl, finds the feeling from labels.json with the least coverage,
- * and generates short, informal, WhatsApp-style messages that convey it -- across
- * a wide spread of speaker voices. The new {feeling, text} records are *appended*
- * to feeling.jsonl. Lines are deduplicated -- against each other and against
+ * Reads data.jsonl, finds the 3 feelings from labels.json with the least
+ * coverage, and generates short, informal, WhatsApp-style messages that convey
+ * them -- one feeling per batch, round-robin across the 3, over a wide spread of
+ * speaker voices. The new {feeling, text} records are *appended* to
+ * feeling.jsonl. Lines are deduplicated -- against each other and against
  * whatever feeling.jsonl already holds -- using the same normalized key as
  * data.py. feeling.jsonl is never truncated or thrown away; emoji.ts is what
  * drains it.
  *
- * One feeling per run: repeated runs keep targeting whatever is now rarest, so
- * the corpus rebalances over time.
+ * Repeated runs keep targeting whatever 3 are now rarest, so the corpus
+ * rebalances over time.
  *
  * Requires AI_GATEWAY_API_KEY (Bun auto-loads it from .env).
  */
@@ -62,24 +63,24 @@ const VOICES = [
 type Row = { emoji: string; feeling: string; text: string }
 
 /**
- * Tally the labels.json feelings across data.jsonl and return the one with the
- * fewest rows (ties: the order feelings appear in labels.json). A feeling with
- * no rows at all still wins.
+ * Tally the labels.json feelings across data.jsonl and return the `n` with the
+ * fewest rows, least-covered first (ties: the order feelings appear in
+ * labels.json). Feelings with no rows at all still rank first.
  */
-function rarestFeeling(feelings: string[], rows: Row[]): string {
+function rarestFeelings(feelings: string[], rows: Row[], n: number): string[] {
   const counts = new Map<string, number>(feelings.map((f) => [f, 0]))
   for (const r of rows) {
     if (counts.has(r.feeling)) counts.set(r.feeling, counts.get(r.feeling)! + 1)
-  }
-  let best = feelings[0]
-  for (const f of feelings) {
-    if (counts.get(f)! < counts.get(best)!) best = f
   }
   console.log(
     "feeling coverage in data.jsonl: " +
       feelings.map((f) => `${f}=${counts.get(f)}`).join(" "),
   )
-  return best
+  return feelings
+    .map((f, i) => ({ f, i }))
+    .sort((a, b) => counts.get(a.f)! - counts.get(b.f)! || a.i - b.i)
+    .slice(0, n)
+    .map((x) => x.f)
 }
 
 async function genBatch(voice: string, feeling: string): Promise<string[]> {
@@ -118,8 +119,8 @@ if (import.meta.main) {
       if (line) rows.push(JSON.parse(line) as Row)
     }
   }
-  const target = rarestFeeling(feelings, rows)
-  console.log(`target feeling: ${target}`)
+  const targets = rarestFeelings(feelings, rows, 3)
+  console.log(`target feelings (round-robin per batch): ${targets.join(", ")}`)
 
   const existing = new Set<string>()
   if (existsSync(FEELING_JSONL)) {
@@ -157,19 +158,20 @@ if (import.meta.main) {
   }
 
   const q = new PQueue({ concurrency: GEN_CONCURRENCY })
-  q.addAll(voices.map((voice) => async () => {
+  q.addAll(voices.map((voice, i) => async () => {
+    const feeling = targets[i % targets.length]
     try {
-      const batch = await genBatch(voice, target)
+      const batch = await genBatch(voice, feeling)
       const fresh: string[] = []
       for (const text of batch) {
         const n = normalize(text)
         if (!n || existing.has(n) || seen.has(n)) continue
         seen.add(n)
-        fresh.push(JSON.stringify({ feeling: target, text }))
+        fresh.push(JSON.stringify({ feeling, text }))
       }
       if (fresh.length) await append(fresh.join("\n") + "\n")
     } catch (err) {
-      console.warn(`\n  gen batch (${voice}) failed: ${err}`)
+      console.warn(`\n  gen batch (${voice}, ${feeling}) failed: ${err}`)
     }
     bar.increment()
   }))
