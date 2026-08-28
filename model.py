@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from config import EMBED_SIZE, EMOJI_EMBED_SIZE, H_SIZE, NUM_LAYERS
+from config import CHANNELS, EMBED_SIZE, EMOJI_EMBED_SIZE, NUM_LAYERS
 from data import EMOJIS, FEELING, PAD_IDX, VOCAB_SIZE
 
 
@@ -19,7 +19,7 @@ class Model(nn.Module):
         layers = [
             nn.Conv1d(
                 in_channels=EMBED_SIZE,
-                out_channels=H_SIZE,
+                out_channels=CHANNELS,
                 kernel_size=3,
                 padding=1,
             ),
@@ -29,8 +29,8 @@ class Model(nn.Module):
         for _ in range(NUM_LAYERS - 1):
             layers.append(
                 nn.Conv1d(
-                    in_channels=H_SIZE,
-                    out_channels=H_SIZE,
+                    in_channels=CHANNELS,
+                    out_channels=CHANNELS,
                     kernel_size=3,
                     padding=1,
                 )
@@ -46,7 +46,7 @@ class Model(nn.Module):
         # emojis as negatives -- pulls the matching pair together, pushes the
         # rest apart.
         self.text_proj = nn.Linear(
-            H_SIZE,
+            CHANNELS,
             EMOJI_EMBED_SIZE)
 
         self.emoji_embedding = nn.Embedding(
@@ -56,7 +56,7 @@ class Model(nn.Module):
         # log temperature, initialised to ln(1 / 0.07) as in CLIP
         self.logit_scale = nn.Parameter(torch.tensor(2.6593))
 
-        self.feeling = nn.Linear(H_SIZE, len(FEELING))
+        self.feeling = nn.Linear(CHANNELS, len(FEELING))
 
     def forward(self, x):
         pad_mask = (x == PAD_IDX).unsqueeze(1)  # (batch, 1, seq_len)

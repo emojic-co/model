@@ -51,13 +51,13 @@ def evaluate(
     emoji_ce: nn.Module,
     feeling_ce: nn.Module,
 ) -> dict:
-    """Return emoji/feeling loss and accuracy over ``loader``.
+    """Return emoji/feeling loss over ``loader``.
 
-    Losses use the same criteria as training (label smoothing included) and are
-    reported as per-sample means, weighting each batch by its size.
+    Losses use the same criteria as training and are reported as per-sample
+    means, weighting each batch by its size.
     """
     model.eval()
-    n = emoji_correct = feeling_correct = 0
+    n = 0
     emoji_loss_sum = feeling_loss_sum = 0.0
     for x, target_emoji, target_feeling in loader:
         bs = x.size(0)
@@ -65,15 +65,10 @@ def evaluate(
         emoji_loss_sum += emoji_ce(emoji_logits, target_emoji).item() * bs
         feeling_loss_sum += feeling_ce(feeling_logits,
                                        target_feeling).item() * bs
-        emoji_correct += (emoji_logits.argmax(-1) == target_emoji).sum().item()
-        feeling_correct += (feeling_logits.argmax(-1) ==
-                            target_feeling).sum().item()
         n += bs
     return {
         "emoji_loss": emoji_loss_sum / n,
         "feeling_loss": feeling_loss_sum / n,
-        "emoji_acc": emoji_correct / n,
-        "feeling_acc": feeling_correct / n,
     }
 
 
