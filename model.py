@@ -1,4 +1,3 @@
-import torch
 from torch import nn
 
 from config import EMBED_SIZE, H_SIZE, NUM_LAYERS
@@ -15,7 +14,7 @@ class Model(nn.Module):
             padding_idx=PAD_IDX,
         )
 
-        layers = [
+        self.conv = nn.Sequential(
             nn.Conv1d(
                 in_channels=EMBED_SIZE,
                 out_channels=H_SIZE,
@@ -23,34 +22,40 @@ class Model(nn.Module):
                 padding=1,
             ),
             nn.ReLU(),
-        ]
+        )
 
-        for _ in range(NUM_LAYERS):
-            layers.append(
-                nn.Conv1d(
-                    in_channels=H_SIZE,
-                    out_channels=H_SIZE,
-                    kernel_size=3,
-                    padding=1,
-                )
-            )
-            layers.append(nn.ReLU())
-
-        self.net = nn.Sequential(*layers)
+        self.rnn = nn.RNN(
+            input_size=H_SIZE,
+            hidden_size=H_SIZE,
+            num_layers=NUM_LAYERS,
+            batch_first=True,
+        )
 
         self.emoji = nn.Linear(H_SIZE, len(EMOJIS))
         self.feeling = nn.Linear(H_SIZE, len(FEELING))
 
     def forward(self, x):
-        pad_mask = (x == PAD_IDX).unsqueeze(1)  # (batch, 1, seq_len)
+        lengths = (x != PAD_IDX).sum(dim=1).clamp(min=1)
 
-        out = self.embedding(x)
-        out = out.permute(0, 2, 1)  # (batch, embed_dim, seq_len)
-        out = self.net(out)
-        out = out.masked_fill(pad_mask, -1e9)
-        out = torch.max(out, dim=2).values  # (batch, H_SIZE)
+        out = self.embedding(x).permute(0, 2, 1)
+        out = self.conv(out)
+        out = out.masked_fill((x == PAD_IDX).unsqueeze(1), 0)
+        out = out.permute(0, 2, 1)
 
+        # 4. Pack sequence to skip padding computation in the RNN
+        packed = nn.utils.rnn.pack_padded_sequence(
+            out,
+            lengths.cpu(),
+            batch_first=True,
+            enforce_sorted=False
+        )
+
+        # 5. RNN forward pass: extract final hidden state across all layers
+        _, h_n = self.rnn(packed)
+        last_step = h_n[-1]  # Shape: (batch, H_SIZE)
+
+        # 6. Classification heads
         return (
-            self.emoji(out),
-            self.feeling(out),
+            self.emoji(last_step),
+            self.feeling(last_step),
         )
