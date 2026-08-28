@@ -1,28 +1,7 @@
 TODO:
+
 DONE:
-    DATA GEN:
-        - make sure to add samples that use negative feelings, e.g. "I'm not happy today" etc...
-            Update the prompt to generate negative feelings as well.
-    Web App:
-        - limit the input text to 64 characters
-    Tensorboard:
-        Log the following (exactly):
-            Train:
-                - emoji loss
-                - feeling loss
-            Eval:
-                - emoji loss
-                - feeling loss
-                - emoji acc
-                - feeling acc
-    Model Testing:
-        Write a test suite that:
-            - Tests all feelings by running the model on the feeling name.
-            - Test most popular emojis:
-                - pick the top 50 emojis and for each one generate a list of keywords that are strongly associated with it.
-                - Then run the model on each of these keywords and check if the emoji is predicted.
-            - Generate a detailed report of the results, report/<MM:DD-HH:MM>.md
-            - Run the test suite after each training session.
-        Also add to the test:
-            Not <feeling> for each of the feelings, make sure the model does not predict the feeling when the input is "not <feeling>".
-            If not feeling should predict another feeling, e.g. "not happy" should predict "sad", then add that to the test as well.
+    Emoji Embedding:
+        Lets move to learnable emoji embeddings and use contrastive loss to train the model.
+        Update the model to reflect this change.
+        Start with the simplest possible model implementation.

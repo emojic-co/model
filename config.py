@@ -1,4 +1,6 @@
 # DATA
+import datetime
+
 MAX_TEXT_LEN = 64
 TEST_LEN = 200
 
@@ -6,6 +8,7 @@ TEST_LEN = 200
 EMBED_SIZE = 16
 H_SIZE = 32
 NUM_LAYERS = 1
+EMOJI_EMBED_SIZE = 32
 
 # TRAINING
 LR = 0.005
@@ -21,6 +24,7 @@ EVAL_EPOCHS = 10
 
 CONFIG_NAME = ' | '.join([
     f'DATA: mtl {MAX_TEXT_LEN} tl {TEST_LEN}',
-    f'MODEL: es {EMBED_SIZE}  hs {H_SIZE} nl {NUM_LAYERS}',
-    f'TRAIN: lr {LR} bs {BATCH_SIZE} gc {GRAD_CLIP} wd {WEIGHT_DECAY} ls {LABEL_SMOOTHING}'  # noqa: E501
+    f'MODEL: es {EMBED_SIZE}  hs {H_SIZE} nl {NUM_LAYERS} ee {EMOJI_EMBED_SIZE}',
+    f'TRAIN: lr {LR} bs {BATCH_SIZE} gc {GRAD_CLIP} wd {WEIGHT_DECAY} ls {LABEL_SMOOTHING}',  # noqa: E501
+    f'TIME: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
 ])

@@ -1,7 +1,8 @@
 import torch
 from torch import nn
+from torch.nn import functional as F
 
-from config import EMBED_SIZE, H_SIZE, NUM_LAYERS
+from config import EMBED_SIZE, EMOJI_EMBED_SIZE, H_SIZE, NUM_LAYERS
 from data import EMOJIS, FEELING, PAD_IDX, VOCAB_SIZE
 
 
@@ -38,7 +39,17 @@ class Model(nn.Module):
 
         self.net = nn.Sequential(*layers)
 
-        self.emoji = nn.Linear(H_SIZE, len(EMOJIS))
+        # Emoji head: a learnable embedding per emoji, scored contrastively.
+        # The text encoding is projected into the emoji space and matched
+        # against every emoji vector by cosine similarity (CLIP-style). With a
+        # plain cross-entropy on the true emoji this is InfoNCE against all
+        # emojis as negatives -- pulls the matching pair together, pushes the
+        # rest apart.
+        self.text_proj = nn.Linear(H_SIZE, EMOJI_EMBED_SIZE)
+        self.emoji_embedding = nn.Embedding(len(EMOJIS), EMOJI_EMBED_SIZE)
+        # log temperature, initialised to ln(1 / 0.07) as in CLIP
+        self.logit_scale = nn.Parameter(torch.tensor(2.6593))
+
         self.feeling = nn.Linear(H_SIZE, len(FEELING))
 
     def forward(self, x):
@@ -50,7 +61,11 @@ class Model(nn.Module):
         out = out.masked_fill(pad_mask, -1e9)
         out = torch.max(out, dim=2).values  # (batch, H_SIZE)
 
+        text_vec = F.normalize(self.text_proj(out), dim=-1)
+        emoji_vec = F.normalize(self.emoji_embedding.weight, dim=-1)
+        emoji_logits = self.logit_scale.exp() * text_vec @ emoji_vec.t()
+
         return (
-            self.emoji(out),
+            emoji_logits,
             self.feeling(out),
         )
