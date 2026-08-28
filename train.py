@@ -1,10 +1,14 @@
-"""Train the emojic CNN baseline.
+"""Train the emojic CNN feeling classifier.
 
-Runs the training loop, evaluates on the held-out split after every epoch, and
-keeps the best checkpoint (by total eval loss, emoji + feeling). Every time the
+Runs the training loop, evaluates on the held-out split every ``EVAL_EPOCHS``
+epochs, and keeps the best checkpoint (by eval feeling loss). Every time the
 best improves it rewrites both ``model.pt`` and the static web app's artifacts
 in ``docs/`` (``model.onnx`` + ``meta.json``), so the page can be watched live
 during a run.
+
+The data pipeline (``data.py``) still carries the emoji label per row, so an
+emoji head can be added back later; the model and this script currently train
+the feeling head only.
 """
 
 import json
@@ -25,7 +29,6 @@ from config import (
     GRAD_CLIP,
     LR,
     MAX_TEXT_LEN,
-    NEGATIVE_SAMPLES,
     WEIGHT_DECAY,
 )
 from data import (
@@ -48,28 +51,22 @@ ONNX_OPSET = 18
 def evaluate(
     model: nn.Module,
     loader: DataLoader,
-    emoji_ce: nn.Module,
     feeling_ce: nn.Module,
 ) -> dict:
-    """Return emoji/feeling loss over ``loader``.
+    """Return feeling loss over ``loader``.
 
-    Losses use the same criteria as training and are reported as per-sample
-    means, weighting each batch by its size.
+    The loss uses the same criterion as training and is reported as a
+    per-sample mean, weighting each batch by its size.
     """
     model.eval()
     n = 0
-    emoji_loss_sum = feeling_loss_sum = 0.0
-    for x, target_emoji, target_feeling in loader:
+    feeling_loss_sum = 0.0
+    for x, _, target_feeling in loader:
         bs = x.size(0)
-        emoji_logits, feeling_logits = model(x)
-        emoji_loss_sum += emoji_ce(emoji_logits, target_emoji).item() * bs
-        feeling_loss_sum += feeling_ce(feeling_logits,
-                                       target_feeling).item() * bs
+        feeling_logits = model(x)
+        feeling_loss_sum += feeling_ce(feeling_logits, target_feeling).item() * bs
         n += bs
-    return {
-        "emoji_loss": emoji_loss_sum / n,
-        "feeling_loss": feeling_loss_sum / n,
-    }
+    return {"feeling_loss": feeling_loss_sum / n}
 
 
 def export_onnx(model: nn.Module, dst: Path) -> None:
@@ -83,12 +80,11 @@ def export_onnx(model: nn.Module, dst: Path) -> None:
             (dummy,),
             str(dst),
             input_names=["input"],
-            output_names=["emoji_logits", "feeling_logits"],
+            output_names=["feeling_logits"],
             opset_version=ONNX_OPSET,
             dynamo=False,
             dynamic_axes={
                 "input": {0: "batch"},
-                "emoji_logits": {0: "batch"},
                 "feeling_logits": {0: "batch"},
             },
         )
@@ -98,8 +94,10 @@ def export_web(model: nn.Module) -> None:
     """Refresh docs/model.onnx + docs/meta.json for the backend-free web app.
 
     meta.json carries everything docs/app.js must not hardcode from the Python
-    side: the char vocab, MAX_TEXT_LEN, and the label sets. (The feeling color
-    palette is not here -- it lives in docs/palette.json, read directly by app.js.)
+    side: the char vocab, MAX_TEXT_LEN, and the label sets. The emoji list is
+    still emitted so the front-end scaffolding can stay in place, even though
+    the current model only has a feeling head. (The feeling color palette is
+    not here -- it lives in docs/palette.json, read directly by app.js.)
     """
     DOCS.mkdir(exist_ok=True)
     export_onnx(model, DOCS / "model.onnx")
@@ -113,25 +111,6 @@ def export_web(model: nn.Module) -> None:
     (DOCS / "meta.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-
-
-def sample_negatives(
-    emoji_logits: torch.Tensor,
-    target_emoji: torch.Tensor,
-) -> tuple[torch.Tensor, torch.Tensor]:
-    """Restrict the emoji cross-entropy to the true emoji + NEGATIVE_SAMPLES
-    random negatives per row (sampled softmax instead of the full ~133-way
-    InfoNCE). Column 0 of the returned logits is always the positive, so the
-    matching targets are all zero.
-    """
-    bs, num_emojis = emoji_logits.shape
-    weights = torch.ones(bs, num_emojis)
-    weights.scatter_(
-        1,
-        target_emoji.unsqueeze(1), 0.0)  # never sample the positive
-    neg = torch.multinomial(weights, NEGATIVE_SAMPLES, replacement=False)
-    cand = torch.cat([target_emoji.unsqueeze(1), neg], dim=1)
-    return emoji_logits.gather(1, cand), torch.zeros(bs, dtype=torch.long)
 
 
 def train() -> None:
@@ -150,7 +129,6 @@ def train() -> None:
 
     writer = SummaryWriter(log_dir=f"runs/{CONFIG_NAME}")
 
-    emoji_ce = nn.CrossEntropyLoss()
     feeling_ce = nn.CrossEntropyLoss()
 
     print(f"Train: {len(train_ds)}  Eval: {len(eval_ds)}")
@@ -160,39 +138,29 @@ def train() -> None:
     pbar = tqdm(range(1, EPOCHS + 1), desc="Training", unit="epoch")
     for epoch in pbar:
         model.train()
-        total_emoji_loss = total_feeling_loss = 0.0
-        for x, target_emoji, target_feeling in train_loader:
+        total_feeling_loss = 0.0
+        for x, _, target_feeling in train_loader:
             optimizer.zero_grad()
-            emoji_logits, feeling_logits = model(x)
-            cand_logits, cand_target = sample_negatives(
-                emoji_logits, target_emoji)
-            emoji_loss = emoji_ce(cand_logits, cand_target)
+            feeling_logits = model(x)
             feeling_loss = feeling_ce(feeling_logits, target_feeling)
-            loss = emoji_loss + feeling_loss
-            loss.backward()
+            feeling_loss.backward()
             nn.utils.clip_grad_norm_(model.parameters(), GRAD_CLIP)
             optimizer.step()
-            total_emoji_loss += emoji_loss.item()
             total_feeling_loss += feeling_loss.item()
 
-        avg_emoji_loss = total_emoji_loss / len(train_loader)
         avg_feeling_loss = total_feeling_loss / len(train_loader)
-        postfix = {"loss": f"{avg_emoji_loss + avg_feeling_loss:.4f}"}
-        writer.add_scalar("train/emoji_loss", avg_emoji_loss, epoch)
+        pbar.set_postfix({"loss": f"{avg_feeling_loss:.4f}"})
         writer.add_scalar("train/feeling_loss", avg_feeling_loss, epoch)
 
         if epoch % EVAL_EPOCHS == 0 or epoch == EPOCHS:
-            m = evaluate(model, eval_loader, emoji_ce, feeling_ce)
-            eval_loss = m["emoji_loss"] + m["feeling_loss"]
+            m = evaluate(model, eval_loader, feeling_ce)
+            eval_loss = m["feeling_loss"]
             if eval_loss < best_loss:
                 best_loss = eval_loss
                 torch.save(model.state_dict(), MODEL_PT)
                 # keep docs/ (model.onnx + meta.json) in sync
                 export_web(model)
-            writer.add_scalar("eval/emoji_loss", m["emoji_loss"], epoch)
             writer.add_scalar("eval/feeling_loss", m["feeling_loss"], epoch)
-
-        pbar.set_postfix(postfix)
 
     writer.close()
     print(

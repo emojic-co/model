@@ -5,30 +5,26 @@ from torch.nn import functional as F
 from config import (
     CHANNELS_1,
     CHANNELS_2,
-    EMBED_SIZE,
-    EMOJI_EMBED_SIZE,
     KERNEL_1,
     KERNEL_2,
 )
-from data import EMOJIS, FEELING, PAD_IDX, VOCAB_SIZE
+from data import FEELING, VOCAB_SIZE
 
 
 class Model(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.embedding = nn.Embedding(
-            num_embeddings=VOCAB_SIZE,
-            embedding_dim=EMBED_SIZE,
-            padding_idx=PAD_IDX,
-        )
-
+        # Vocab is one-hot, not a learned embedding: forward() expands each
+        # char index to a one-hot vector and drops channel 0 (PAD_IDX), so a
+        # pad step is all zeros -- exactly what padding_idx=0 gave before.
+        #
         # bias=False so a conv window lying entirely in the pad region produces
-        # exactly 0 (pad embeddings are zero via padding_idx). That keeps pad
-        # steps from winning the global max below, so no pad mask is needed.
+        # exactly 0 (pad steps are zero vectors). That keeps pad steps from
+        # winning the global max below, so no pad mask is needed.
         self.net = nn.Sequential(
             nn.Conv1d(
-                in_channels=EMBED_SIZE,
+                in_channels=VOCAB_SIZE - 1,
                 out_channels=CHANNELS_1,
                 kernel_size=KERNEL_1,
                 padding=0,
@@ -50,40 +46,13 @@ class Model(nn.Module):
             nn.LeakyReLU(),
         )
 
-        # Emoji head: a learnable embedding per emoji, scored contrastively.
-        # The text encoding is projected into the emoji space and matched
-        # against every emoji vector by cosine similarity (CLIP-style). With a
-        # plain cross-entropy on the true emoji this is InfoNCE against all
-        # emojis as negatives -- pulls the matching pair together, pushes the
-        # rest apart.
-        self.text_proj = nn.Linear(
-            CHANNELS_2,
-            EMOJI_EMBED_SIZE)
-
-        self.emoji_embedding = nn.Embedding(
-            len(EMOJIS),
-            EMOJI_EMBED_SIZE)
-
-        # log temperature, initialized to ln(1 / 0.07) as in CLIP
-        self.logit_scale = nn.Parameter(torch.tensor(2.6593))
-
         self.feeling = nn.Linear(CHANNELS_2, len(FEELING))
 
     def forward(self, x):
-        with torch.no_grad():
-            self.logit_scale.clamp_(max=torch.log(torch.tensor(100.0)))
-
-        out = self.embedding(x)
+        out = F.one_hot(x, VOCAB_SIZE)[..., 1:].float()  # drop PAD channel
         out = out.permute(0, 2, 1)
         out = self.net(out)
 
         out = torch.max(out, dim=2).values  # (batch, CHANNELS_2)
 
-        text_vec = F.normalize(self.text_proj(out), dim=-1)
-        emoji_vec = F.normalize(self.emoji_embedding.weight, dim=-1)
-        emoji_logits = self.logit_scale.exp() * text_vec @ emoji_vec.t()
-
-        return (
-            emoji_logits,
-            self.feeling(out),
-        )
+        return self.feeling(out)

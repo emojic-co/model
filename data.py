@@ -36,12 +36,28 @@ def text_to_tensor(text: str) -> torch.Tensor:
 
 
 def read():
+    """Load data.jsonl, dropping any record the current label set can't train.
+
+    labels.json (see gen_labels.ts) is the closed vocabulary: a record is kept
+    only if its feeling and emoji are both in it and its normalized text fits
+    MAX_TEXT_LEN. Rows are never removed from data.jsonl itself -- filtering is
+    purely a runtime concern.
+    """
     with open('data.jsonl', encoding='utf-8') as f:
-        data = [json.loads(line) for line in f]
-        return [(
-            text_to_tensor(normalize(d["text"])[:MAX_TEXT_LEN]),
+        rows = [json.loads(line) for line in f]
+
+    out = []
+    for d in rows:
+        if d["feeling"] not in feeling2idx or d["emoji"] not in emoji2idx:
+            continue
+        text = normalize(d["text"])
+        if len(text) > MAX_TEXT_LEN:
+            continue
+        out.append((
+            text_to_tensor(text),
             emoji2idx[d["emoji"]],
-            feeling2idx[d["feeling"]]) for d in data]
+            feeling2idx[d["feeling"]]))
+    return out
 
 
 def split():
