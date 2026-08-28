@@ -1,10 +1,11 @@
-"""Train the emojic CNN feeling classifier.
+"""Train the emojic CNN feeling classifier (PyTorch Lightning).
 
-Runs the training loop, evaluates on the held-out split every ``EVAL_EPOCHS``
-epochs, and keeps the best checkpoint (by eval feeling loss). Every time the
-best improves it rewrites both ``model.pt`` and the static web app's artifacts
-in ``docs/`` (``model.onnx`` + ``meta.json``), so the page can be watched live
-during a run.
+A ``LitEmojic`` LightningModule wraps ``model.Model`` and trains the feeling
+head only. Validation runs every ``EVAL_EPOCHS`` epochs; the ``ExportBest``
+callback keeps the best checkpoint (by eval feeling loss) and, every time the
+best improves, rewrites both ``model.pt`` and the static web app's artifacts in
+``docs/`` (``model.onnx`` + ``meta.json`` + ``config.json``), so the page can be
+watched live during a run.
 
 The data pipeline (``data.py``) still carries the emoji label per row, so an
 emoji head can be added back later; the model and this script currently train
@@ -15,11 +16,11 @@ import json
 import warnings
 from pathlib import Path
 
+import lightning as pl
 import torch
+from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
 from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
-from tqdm import tqdm
 
 from config import (
     BATCH_SIZE,
@@ -45,28 +46,6 @@ from model import Model
 MODEL_PT = Path("model.pt")
 DOCS = Path("docs")
 ONNX_OPSET = 18
-
-
-@torch.no_grad()
-def evaluate(
-    model: nn.Module,
-    loader: DataLoader,
-    feeling_ce: nn.Module,
-) -> dict:
-    """Return feeling loss over ``loader``.
-
-    The loss uses the same criterion as training and is reported as a
-    per-sample mean, weighting each batch by its size.
-    """
-    model.eval()
-    n = 0
-    feeling_loss_sum = 0.0
-    for x, _, target_feeling in loader:
-        bs = x.size(0)
-        feeling_logits = model(x)
-        feeling_loss_sum += feeling_ce(feeling_logits, target_feeling).item() * bs
-        n += bs
-    return {"feeling_loss": feeling_loss_sum / n}
 
 
 def export_onnx(model: nn.Module, dst: Path) -> None:
@@ -119,58 +98,92 @@ def export_web(model: nn.Module) -> None:
     )
 
 
+class LitEmojic(pl.LightningModule):
+    """Feeling-head training wrapper around ``model.Model``."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.model = Model()
+        self.feeling_ce = nn.CrossEntropyLoss()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.model(x)
+
+    def training_step(self, batch, batch_idx) -> torch.Tensor:
+        x, _, target_feeling = batch
+        loss = self.feeling_ce(self.model(x), target_feeling)
+        self.log(
+            "train/feeling_loss", loss, on_step=False, on_epoch=True, prog_bar=True
+        )
+        return loss
+
+    def validation_step(self, batch, batch_idx) -> None:
+        x, _, target_feeling = batch
+        loss = self.feeling_ce(self.model(x), target_feeling)
+        # batch_size weights the epoch mean, matching the old size-weighted eval.
+        self.log(
+            "eval/feeling_loss",
+            loss,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            batch_size=x.size(0),
+        )
+
+    def configure_optimizers(self):
+        return optim.Adam(self.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
+
+
+class ExportBest(pl.Callback):
+    """Save model.pt + refresh docs/ whenever eval feeling loss improves."""
+
+    def __init__(self) -> None:
+        self.best_loss = float("inf")
+
+    def on_validation_end(self, trainer: pl.Trainer, pl_module: LitEmojic) -> None:
+        metric = trainer.callback_metrics.get("eval/feeling_loss")
+        if metric is None:
+            return
+        loss = float(metric)
+        if loss < self.best_loss:
+            self.best_loss = loss
+            torch.save(pl_module.model.state_dict(), MODEL_PT)
+            export_web(pl_module.model)
+
+
 def train() -> None:
-    torch.manual_seed(0)
+    pl.seed_everything(0, workers=True)
 
     train_ds, eval_ds = data_sets()
     train_loader = train_data_loader(train_ds)
     eval_loader = DataLoader(
         eval_ds, batch_size=BATCH_SIZE, collate_fn=collate_fn)
 
-    model = Model()
-    optimizer = optim.Adam(
-        model.parameters(),
-        lr=LR,
-        weight_decay=WEIGHT_DECAY)
-
-    writer = SummaryWriter(log_dir=f"runs/{CONFIG_NAME}")
-
-    feeling_ce = nn.CrossEntropyLoss()
+    lit = LitEmojic()
+    export_best = ExportBest()
 
     print(f"Train: {len(train_ds)}  Eval: {len(eval_ds)}")
-    print(f"Params: {sum(p.numel() for p in model.parameters()):,}\n")
+    print(f"Params: {sum(p.numel() for p in lit.model.parameters()):,}\n")
 
-    best_loss = float("inf")
-    pbar = tqdm(range(1, EPOCHS + 1), desc="Training", unit="epoch")
-    for epoch in pbar:
-        model.train()
-        total_feeling_loss = 0.0
-        for x, _, target_feeling in train_loader:
-            optimizer.zero_grad()
-            feeling_logits = model(x)
-            feeling_loss = feeling_ce(feeling_logits, target_feeling)
-            feeling_loss.backward()
-            nn.utils.clip_grad_norm_(model.parameters(), GRAD_CLIP)
-            optimizer.step()
-            total_feeling_loss += feeling_loss.item()
+    trainer = pl.Trainer(
+        max_epochs=EPOCHS,
+        # config guarantees EPOCHS % EVAL_EPOCHS == 0, so the last epoch validates.
+        check_val_every_n_epoch=EVAL_EPOCHS,
+        gradient_clip_val=GRAD_CLIP,
+        accelerator="cpu",
+        devices=1,
+        logger=TensorBoardLogger("runs", name=CONFIG_NAME, version=""),
+        callbacks=[export_best],
+        enable_checkpointing=False,
+        num_sanity_val_steps=0,
+        log_every_n_steps=1,
+    )
+    trainer.fit(lit, train_loader, eval_loader)
 
-        avg_feeling_loss = total_feeling_loss / len(train_loader)
-        pbar.set_postfix({"loss": f"{avg_feeling_loss:.4f}"})
-        writer.add_scalar("train/feeling_loss", avg_feeling_loss, epoch)
-
-        if epoch % EVAL_EPOCHS == 0 or epoch == EPOCHS:
-            m = evaluate(model, eval_loader, feeling_ce)
-            eval_loss = m["feeling_loss"]
-            if eval_loss < best_loss:
-                best_loss = eval_loss
-                torch.save(model.state_dict(), MODEL_PT)
-                # keep docs/ (model.onnx + meta.json) in sync
-                export_web(model)
-            writer.add_scalar("eval/feeling_loss", m["feeling_loss"], epoch)
-
-    writer.close()
     print(
-        f"\nBest eval loss: {best_loss:.4f}  ->  {MODEL_PT} and docs/ refreshed")
+        f"\nBest eval loss: {export_best.best_loss:.4f}  ->  "
+        f"{MODEL_PT} and docs/ refreshed"
+    )
 
     # Behavioral test suite + Markdown report (report/<MM-DD-HH:MM>.md).
     # Runs against the saved best checkpoint (model.pt), i.e. what ships.
