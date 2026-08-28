@@ -76,7 +76,14 @@ class Model(nn.Module):
         pad_mask = pad_mask[:, :, shrink:]
 
         out = out.masked_fill(pad_mask, -1e9)
-        out = torch.max(out, dim=2).values  # (batch, H_SIZE)
+        out = torch.max(out, dim=2).values  # (batch, CHANNELS_2)
+
+        # A text with <= shrink real chars leaves no pad-free conv column, so
+        # the whole row is masked and max-pools to -1e9. Zero those rows -- an
+        # untouched -1e9 feature vector drives the linear heads (and the loss)
+        # to ~1e9 and destabilises training.
+        row_has_valid = (~pad_mask).any(dim=2).float()  # (batch, 1)
+        out = out * row_has_valid
 
         text_vec = F.normalize(self.text_proj(out), dim=-1)
         emoji_vec = F.normalize(self.emoji_embedding.weight, dim=-1)
