@@ -16,6 +16,7 @@ import { appendFile, readFile } from "node:fs/promises"
 
 import { generateText } from "ai"
 import cliProgress from "cli-progress"
+import PQueue from "p-queue"
 
 const MODEL = "openai/gpt-5.6-luna"
 const RAW = "./raw.txt"
@@ -39,54 +40,32 @@ function normalize(text: string): string {
   return [...t].filter((c) => VOCAB.has(c)).join("")
 }
 
-async function pMap<T>(
-  items: T[],
-  fn: (x: T, i: number) => Promise<void>,
-  concurrency: number,
-): Promise<void> {
-  let idx = 0
-  async function worker() {
-    while (idx < items.length) {
-      const cur = idx++
-      await fn(items[cur], cur)
-    }
-  }
-  await Promise.all(
-    Array.from({ length: Math.min(concurrency, items.length) }, worker),
-  )
-}
-
-// Topic + speaker-voice pools. Each generation batch draws one of each so the
-// corpus spans ages, interests, and registers rather than one default persona.
-const TOPICS = [
-  "sports", "a football match", "basketball", "going for a run", "the gym",
-  "music", "a concert", "a new album", "movies", "a TV series",
-  "gaming", "politics", "the news", "the weather", "work",
-  "a job interview", "school", "exams", "family", "the kids",
-  "a partner", "dating", "friends", "a night out", "cooking",
-  "a food delivery", "a restaurant", "travel plans", "a flight delay",
-  "a road trip", "pets", "the dog", "money", "rent", "shopping",
-  "a package that's late", "health", "a doctor visit", "the commute",
-  "traffic", "a birthday", "a wedding", "moving house", "a DIY project",
-  "gardening", "a book", "art", "photography", "the beach", "a hangover",
-]
-
 const VOICES = [
   "a teenager", "a college student", "a new parent", "a retiree",
   "a shift worker", "a freelancer", "someone in their 30s", "a grandparent",
   "an office worker", "a nurse", "a tradesperson", "a student athlete",
+  "a girl", "a boy",
+  "a father", "a mother", "a sibling", "a cousin", "a friend", "a neighbor",
+  "a coworker", "a classmate", "a teammate", "a mentor", "a mentee",
+  "someone from a different country", "someone from a different culture",
+  "someone with a disability", "someone with a chronic illness",
+  "someone who is introverted", "someone who is extroverted",
+  "someone who is optimistic", "someone who is pessimistic",
+  "someone who is sarcastic", "someone who is sincere",
+  "someone who is humorous", "someone who is serious",
+  "someone who is adventurous", "someone who is cautious",
+  "someone who is spontaneous", "someone who is organized",
 ]
 
-async function genBatch(topic: string, voice: string): Promise<string[]> {
+async function genBatch(voice: string): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
     prompt: [
-      `Write ${GEN_BATCH} short WhatsApp-style messages as if sent by ${voice}, loosely about ${topic}.`,
+      `Write ${GEN_BATCH} short WhatsApp-style messages as if sent by ${voice}.`,
       `One message per line. No numbering, no bullets, no quotes, no emoji, no commentary.`,
       `Each message at most ${MAX_RAW_LEN} characters.`,
       `Vary tone and intent: quick updates, dry humor, complaints, questions, sudden news, invitations, low-effort replies.`,
-      `Make roughly a quarter of the messages express a feeling by negating one: "not happy about this", "wasn't excited tbh", "no longer angry", "cant say im sad", "not that calm rn". Negate different feelings, not just one.`,
-      `Sound real and specific. Avoid clichés and near-duplicates.`,
+      `Sound real and specific.`,
     ].join("\n"),
   })
   return text
@@ -111,13 +90,12 @@ if (import.meta.main) {
   }
 
   const nBatches = Math.ceil(TARGET_TEXTS / GEN_BATCH)
-  const jobs = Array.from({ length: nBatches }, () => ({
-    topic: TOPICS[Math.floor(Math.random() * TOPICS.length)],
-    voice: VOICES[Math.floor(Math.random() * VOICES.length)],
-  }))
+  const voices = Array.from(
+    { length: nBatches },
+    () => VOICES[Math.floor(Math.random() * VOICES.length)],
+  )
 
   const seen = new Set<string>()
-  const kept: string[] = []
   const bar = new cliProgress.SingleBar(
     {
       format:
@@ -126,29 +104,19 @@ if (import.meta.main) {
     cliProgress.Presets.shades_classic,
   )
   bar.start(nBatches, 0)
-  await pMap(
-    jobs,
-    async (job) => {
-      try {
-        for (const line of await genBatch(job.topic, job.voice)) {
-          if (line.length > MAX_RAW_LEN) continue
-          const n = normalize(line)
-          if (!n || existing.has(n) || seen.has(n)) continue
-          seen.add(n)
-          kept.push(line)
-        }
-      } catch (err) {
-        console.warn(`\n  gen batch (${job.topic}) failed: ${err}`)
-      }
-      bar.increment()
-    },
-    GEN_CONCURRENCY,
-  )
+  const q = new PQueue({ concurrency: GEN_CONCURRENCY })
+  q.addAll(voices.map((voice) => async () => {
+    try {
+      const batch = await genBatch(voice)
+      await appendFile(RAW, batch.join("\n") + "\n")
+    } catch (err) {
+      console.warn(`\n  gen batch (${voice}) failed: ${err}`)
+    }
+    bar.increment()
+  }))
+
+  await q.onIdle()
   bar.stop()
 
-  if (kept.length) {
-    await appendFile(RAW, kept.join("\n") + "\n")
-  }
-  console.log(`step 1: ${kept.length} unique new texts appended -> ${RAW}`)
   process.exit(0)
 }
