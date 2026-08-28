@@ -2,7 +2,7 @@
 import datetime
 
 MAX_TEXT_LEN = 64
-TEST_LEN = 200
+TEST_LEN = 500
 
 # MODEL
 EMBED_SIZE = 16
