@@ -42,17 +42,14 @@ class Model(nn.Module):
         out = out.masked_fill((x == PAD_IDX).unsqueeze(1), 0)
         out = out.permute(0, 2, 1)
 
-        # 4. Pack sequence to skip padding computation in the RNN
-        packed = nn.utils.rnn.pack_padded_sequence(
-            out,
-            lengths.cpu(),
-            batch_first=True,
-            enforce_sorted=False
-        )
-
-        # 5. RNN forward pass: extract final hidden state across all layers
-        _, h_n = self.rnn(packed)
-        last_step = h_n[-1]  # Shape: (batch, H_SIZE)
+        # 4. RNN over the full padded sequence, then read the hidden state at
+        # each row's last real character. This is identical to h_n[-1] from a
+        # packed sequence (the RNN is causal, so trailing pad steps can't affect
+        # an earlier index), but unlike pack_padded_sequence it traces to ONNX
+        # via the legacy exporter (torch.onnx.export(dynamo=False)).
+        out, _ = self.rnn(out)  # (batch, seq, H_SIZE)
+        idx = (lengths - 1).view(-1, 1, 1).expand(-1, 1, out.size(2))
+        last_step = out.gather(1, idx).squeeze(1)  # (batch, H_SIZE)
 
         # 6. Classification heads
         return (
