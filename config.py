@@ -1,7 +1,7 @@
 # DATA
 import datetime
 
-MAX_TEXT_LEN = 48
+MAX_TEXT_LEN = 42
 TEST_LEN = 500
 
 # MODEL
