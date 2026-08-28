@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "gen": "bun run gen_data.ts",
-    "fix": "bun run fix.ts"
+    "fix": "bun run fix.ts",
+    "serve": "live-server docs --port=8000"
   },
   "dependencies": {
     "ai": "^7.0.83",
@@ -14,6 +15,7 @@
   },
   "devDependencies": {
     "@types/bun": "^1.4.0",
-    "@types/cli-progress": "^3.11.6"
+    "@types/cli-progress": "^3.11.6",
+    "live-server": "^1.2.2"
   }
 }

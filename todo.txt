@@ -1,2 +1,9 @@
 TODO:
+    Model Testing:
+        Write a test suite that:
+            - Tests all feelings by running the model on the feeling name.
+            - Test most popular emojis:
+                - pick the top 50 emojis and for each one generate a list of keywords that are strongly associated with it. 
+                - Then run the model on each of these keywords and check if the emoji is predicted.
+            - Generate a detailed report of the results, report-<MM:DD-HH:MM>.md
 DONE:

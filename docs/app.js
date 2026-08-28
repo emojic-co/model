@@ -1,7 +1,7 @@
-// Standalone in-browser inference. The model (model.onnx) and everything
-// main.py owns (char vocab, MAX_TEXT_LEN, emoji/feeling label sets, the feeling
-// color palette) come from meta.json, written by build_web.py -- nothing here
-// is hardcoded from the Python side.
+// Standalone in-browser inference. The model (model.onnx) and everything the
+// Python side owns (char vocab, MAX_TEXT_LEN, emoji/feeling label sets, the
+// feeling color palette) come from meta.json, written by train.py's export_web
+// -- nothing here is hardcoded from the Python side.
 
 const input = document.getElementById("input");
 const card = document.getElementById("card");
@@ -58,13 +58,16 @@ let seq = 0;
 // Latest prediction, mirrored so the "copy" button can redraw it on a canvas.
 let current = null;
 
-// Mirror main.py's normalize(): collapse whitespace, lowercase, drop anything
-// not in the model vocab.
+// Mirror data.py's normalize(): collapse whitespace, lowercase, clamp any run
+// of 3+ identical chars down to 2, then drop anything not in the model vocab.
+// Must stay byte-identical to data.py or browser inference sees a different
+// input distribution than training.
 function normalize(text) {
   const t = text
     .replace(/\s+/g, " ")
     .trim()
-    .toLowerCase();
+    .toLowerCase()
+    .replace(/(.)\1{2,}/g, "$1$1");
   let out = "";
   for (const c of t) if (CHAR2IDX.has(c)) out += c;
   return out;
