@@ -1,8 +1,9 @@
 TODO:
+
+DONE:
     Export Web:
         - export the MAX_TEXT_LEN into docs/config.json load it in the web page and limit the input field to that length
 
-DONE:
     Data Gen:
         New data pipeline, split out of gen_data.ts into three scripts:
             bun raw_txt.ts -> bun annotation.ts -> bun gen_labels.ts

@@ -91,13 +91,16 @@ def export_onnx(model: nn.Module, dst: Path) -> None:
 
 
 def export_web(model: nn.Module) -> None:
-    """Refresh docs/model.onnx + docs/meta.json for the backend-free web app.
+    """Refresh docs/model.onnx + docs/meta.json + docs/config.json for the app.
 
     meta.json carries everything docs/app.js must not hardcode from the Python
     side: the char vocab, MAX_TEXT_LEN, and the label sets. The emoji list is
     still emitted so the front-end scaffolding can stay in place, even though
     the current model only has a feeling head. (The feeling color palette is
     not here -- it lives in docs/palette.json, read directly by app.js.)
+
+    config.json holds the plain app-tuning knobs (currently just max_text_len,
+    used to cap the input field) kept apart from the model metadata.
     """
     DOCS.mkdir(exist_ok=True)
     export_onnx(model, DOCS / "model.onnx")
@@ -110,6 +113,9 @@ def export_web(model: nn.Module) -> None:
     }
     (DOCS / "meta.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    (DOCS / "config.json").write_text(
+        json.dumps({"max_text_len": MAX_TEXT_LEN}, indent=2), encoding="utf-8"
     )
 
 

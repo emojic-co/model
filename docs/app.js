@@ -1,8 +1,10 @@
 // Standalone in-browser inference. The model (model.onnx) and everything the
 // Python side owns (char vocab, MAX_TEXT_LEN, emoji/feeling label sets) come
 // from meta.json, written by train.py's export_web -- nothing here is hardcoded
-// from the Python side. The feeling color palette is separate data (palette.json,
-// not touched by Python) and is fetched alongside it.
+// from the Python side. config.json (also from export_web) carries plain app
+// knobs, currently just max_text_len, which caps the input field. The feeling
+// color palette is separate data (palette.json, not touched by Python) and is
+// fetched alongside them.
 
 const input = document.getElementById("input");
 const card = document.getElementById("card");
@@ -268,11 +270,14 @@ function buildFeelingRow() {
 }
 
 (async () => {
-  [META, PALETTE] = await Promise.all([
+  let CONFIG;
+  [META, CONFIG, PALETTE] = await Promise.all([
     fetch("./meta.json").then((r) => r.json()),
+    fetch("./config.json").then((r) => r.json()),
     fetch("./palette.json").then((r) => r.json()),
   ]);
   CHAR2IDX = new Map([...META.chars].map((c, i) => [c, i]));
+  input.maxLength = CONFIG.max_text_len;
   buildFeelingRow();
 
   ort.env.wasm.numThreads = 1; // GitHub Pages sends no COOP/COEP headers
