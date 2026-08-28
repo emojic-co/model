@@ -14,10 +14,12 @@ from pathlib import Path
 import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from config import (
     BATCH_SIZE,
+    CONFIG_NAME,
     EPOCHS,
     EVAL_EPOCHS,
     GRAD_CLIP,
@@ -113,6 +115,8 @@ def train() -> None:
         lr=LR,
         weight_decay=WEIGHT_DECAY)
 
+    writer = SummaryWriter(log_dir=f"runs/{CONFIG_NAME}")
+
     emoji_ce = nn.CrossEntropyLoss(label_smoothing=LABEL_SMOOTHING)
     feeling_ce = nn.CrossEntropyLoss()
 
@@ -135,7 +139,9 @@ def train() -> None:
             optimizer.step()
             total_loss += loss.item()
 
-        postfix = {"loss": f"{total_loss / len(train_loader):.4f}"}
+        avg_loss = total_loss / len(train_loader)
+        postfix = {"loss": f"{avg_loss:.4f}"}
+        writer.add_scalar("loss/train", avg_loss, epoch)
 
         if epoch % EVAL_EPOCHS == 0 or epoch == EPOCHS:
             m = evaluate(model, eval_loader)
@@ -145,6 +151,10 @@ def train() -> None:
                 torch.save(model.state_dict(), MODEL_PT)
                 # keep docs/ (model.onnx + meta.json) in sync
                 export_web(model)
+            writer.add_scalar("acc/emoji", m["emoji_acc"], epoch)
+            writer.add_scalar("acc/feeling", m["feeling_acc"], epoch)
+            writer.add_scalar("acc/mean", mean_acc, epoch)
+            writer.add_scalar("acc/best", best_acc, epoch)
             postfix |= {
                 "emoji_acc": f"{m['emoji_acc']:.3f}",
                 "feeling_acc": f"{m['feeling_acc']:.3f}",
@@ -153,6 +163,7 @@ def train() -> None:
 
         pbar.set_postfix(postfix)
 
+    writer.close()
     print(
         f"\nBest mean acc: {best_acc:.3f}  ->  {MODEL_PT} and docs/ refreshed")
 
