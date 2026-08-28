@@ -19,6 +19,7 @@ from tqdm import tqdm
 from config import (
     BATCH_SIZE,
     EPOCHS,
+    EVAL_EPOCHS,
     GRAD_CLIP,
     LR,
     MAX_TEXT_LEN,
@@ -113,7 +114,8 @@ def train() -> None:
     print(f"Params: {sum(p.numel() for p in model.parameters()):,}\n")
 
     best_acc = -1.0
-    for epoch in tqdm(range(1, EPOCHS + 1), desc="Training", unit="epoch"):
+    pbar = tqdm(range(1, EPOCHS + 1), desc="Training", unit="epoch")
+    for epoch in pbar:
         model.train()
         total_loss = 0.0
         for x, target_emoji, target_feeling in train_loader:
@@ -127,18 +129,22 @@ def train() -> None:
             optimizer.step()
             total_loss += loss.item()
 
-        m = evaluate(model, eval_loader)
-        mean_acc = (m["emoji_acc"] + m["feeling_acc"]) / 2
-        improved = mean_acc > best_acc
-        tqdm.write(
-            f"epoch {epoch:3d}  loss={total_loss / len(train_loader):.4f}  "
-            f"emoji_acc={m['emoji_acc']:.3f}  feeling_acc={m['feeling_acc']:.3f}"
-            f"{'  *' if improved else ''}"
-        )
-        if improved:
-            best_acc = mean_acc
-            torch.save(model.state_dict(), MODEL_PT)
-            export_web(model)  # keep docs/ (model.onnx + meta.json) in sync
+        postfix = {"loss": f"{total_loss / len(train_loader):.4f}"}
+
+        if epoch % EVAL_EPOCHS == 0 or epoch == EPOCHS:
+            m = evaluate(model, eval_loader)
+            mean_acc = (m["emoji_acc"] + m["feeling_acc"]) / 2
+            if mean_acc > best_acc:
+                best_acc = mean_acc
+                torch.save(model.state_dict(), MODEL_PT)
+                export_web(model)  # keep docs/ (model.onnx + meta.json) in sync
+            postfix |= {
+                "emoji_acc": f"{m['emoji_acc']:.3f}",
+                "feeling_acc": f"{m['feeling_acc']:.3f}",
+                "best": f"{best_acc:.3f}",
+            }
+
+        pbar.set_postfix(postfix)
 
     print(f"\nBest mean acc: {best_acc:.3f}  ->  {MODEL_PT} and docs/ refreshed")
 
