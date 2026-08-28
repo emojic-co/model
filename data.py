@@ -68,8 +68,8 @@ def split():
     rng.shuffle(data)
 
     # Compute split index
-    train_data = data[TEST_LEN:]
     eval_data = data[:TEST_LEN]
+    train_data = data[TEST_LEN:]
 
     return train_data, eval_data
 
