@@ -1,7 +1,8 @@
 // Standalone in-browser inference. The model (model.onnx) and everything the
-// Python side owns (char vocab, MAX_TEXT_LEN, emoji/feeling label sets, the
-// feeling color palette) come from meta.json, written by train.py's export_web
-// -- nothing here is hardcoded from the Python side.
+// Python side owns (char vocab, MAX_TEXT_LEN, emoji/feeling label sets) come
+// from meta.json, written by train.py's export_web -- nothing here is hardcoded
+// from the Python side. The feeling color palette is separate data (palette.json,
+// not touched by Python) and is fetched alongside it.
 
 const input = document.getElementById("input");
 const card = document.getElementById("card");
@@ -9,29 +10,6 @@ const emojiEl = document.getElementById("emoji");
 const typedEl = document.getElementById("typed");
 const feelingEl = document.getElementById("feeling");
 const copyBtn = document.getElementById("copy");
-
-// Oklab [L, a, b] -> CSS oklab() color string.
-const oklab = ([L, a, b]) => `oklab(${L.toFixed(4)} ${a.toFixed(4)} ${b.toFixed(4)})`;
-
-// Oklab [L, a, b] -> CSS "rgb(r g b)". The DOM can use oklab() directly; the
-// canvas fill path (cardToBlob) converts here so the exported PNG matches even
-// on engines whose <canvas> does not yet accept oklab().
-function oklabToRgb([L, a, b]) {
-  const l_ = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
-  const m_ = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
-  const s_ = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
-  const lin = [
-    4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699292 * s_,
-    -1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_,
-    -0.0041960863 * l_ - 0.7034186147 * m_ + 1.707614701 * s_,
-  ];
-  const enc = (x) => {
-    x = Math.min(1, Math.max(0, x));
-    const s = x <= 0.0031308 ? 12.92 * x : 1.055 * x ** (1 / 2.4) - 0.055;
-    return Math.round(s * 255);
-  };
-  return `rgb(${enc(lin[0])} ${enc(lin[1])} ${enc(lin[2])})`;
-}
 
 // One Google-fonts webfont per feeling (loaded in index.html). The mood of the
 // typeface is meant to echo the mood of the feeling.
@@ -52,6 +30,7 @@ const argmax = (arr) => {
 };
 
 let META;
+let PALETTE;
 let CHAR2IDX;
 let session;
 let seq = 0;
@@ -93,12 +72,12 @@ async function update() {
 
   const emoji = META.emojis[argmax(out.emoji_logits.data)];
   const feeling = META.feelings[argmax(out.feeling_logits.data)];
-  const pal = META.feeling_palette[feeling];
+  const pal = PALETTE[feeling] ?? PALETTE.Neutral;
 
   emojiEl.textContent = emoji;
   feelingEl.textContent = feeling;
-  card.style.background = `linear-gradient(135deg, ${oklab(pal.bg1)}, ${oklab(pal.bg2)})`;
-  card.style.color = oklab(pal.text_color);
+  card.style.background = `linear-gradient(135deg, ${pal.bg1}, ${pal.bg2})`;
+  card.style.color = pal.text_color;
   card.style.fontFamily = FEELING_FONTS[feeling] ?? FEELING_FONTS.Neutral;
 
   current = { text, emoji, feeling, pal };
@@ -164,12 +143,12 @@ async function cardToBlob() {
 
   // linear-gradient(135deg, ...): top-left -> bottom-right on a square.
   const grad = ctx.createLinearGradient(0, 0, S, S);
-  grad.addColorStop(0, oklabToRgb(pal.bg1));
-  grad.addColorStop(1, oklabToRgb(pal.bg2));
+  grad.addColorStop(0, pal.bg1);
+  grad.addColorStop(1, pal.bg2);
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, S, S);
 
-  ctx.fillStyle = oklabToRgb(pal.text_color);
+  ctx.fillStyle = pal.text_color;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
@@ -226,19 +205,22 @@ function buildFeelingRow() {
   const row = document.getElementById("feelings");
   row.replaceChildren();
   for (const feeling of META.feelings) {
-    const pal = META.feeling_palette[feeling];
+    const pal = PALETTE[feeling] ?? PALETTE.Neutral;
     const sq = document.createElement("div");
     sq.className = "swatch";
     sq.textContent = feeling;
-    sq.style.background = `linear-gradient(135deg, ${oklab(pal.bg1)}, ${oklab(pal.bg2)})`;
-    sq.style.color = oklab(pal.text_color);
+    sq.style.background = `linear-gradient(135deg, ${pal.bg1}, ${pal.bg2})`;
+    sq.style.color = pal.text_color;
     sq.style.fontFamily = FEELING_FONTS[feeling] ?? FEELING_FONTS.Neutral;
     row.appendChild(sq);
   }
 }
 
 (async () => {
-  META = await (await fetch("./meta.json")).json();
+  [META, PALETTE] = await Promise.all([
+    fetch("./meta.json").then((r) => r.json()),
+    fetch("./palette.json").then((r) => r.json()),
+  ]);
   CHAR2IDX = new Map([...META.chars].map((c, i) => [c, i]));
   buildFeelingRow();
 

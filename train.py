@@ -21,10 +21,10 @@ from config import (
     EPOCHS,
     EVAL_EPOCHS,
     GRAD_CLIP,
+    LABEL_SMOOTHING,
     LR,
     MAX_TEXT_LEN,
     WEIGHT_DECAY,
-    feeling_colors,
 )
 from data import (
     CHARS,
@@ -50,7 +50,8 @@ def evaluate(model: nn.Module, loader: DataLoader) -> dict:
     for x, target_emoji, target_feeling in loader:
         emoji_logits, feeling_logits = model(x)
         emoji_correct += (emoji_logits.argmax(-1) == target_emoji).sum().item()
-        feeling_correct += (feeling_logits.argmax(-1) == target_feeling).sum().item()
+        feeling_correct += (feeling_logits.argmax(-1) ==
+                            target_feeling).sum().item()
         n += x.size(0)
     return {"emoji_acc": emoji_correct / n, "feeling_acc": feeling_correct / n}
 
@@ -81,7 +82,8 @@ def export_web(model: nn.Module) -> None:
     """Refresh docs/model.onnx + docs/meta.json for the backend-free web app.
 
     meta.json carries everything docs/app.js must not hardcode from the Python
-    side: the char vocab, MAX_TEXT_LEN, the label sets, and the feeling palette.
+    side: the char vocab, MAX_TEXT_LEN, and the label sets. (The feeling color
+    palette is not here -- it lives in docs/palette.json, read directly by app.js.)
     """
     DOCS.mkdir(exist_ok=True)
     export_onnx(model, DOCS / "model.onnx")
@@ -91,7 +93,6 @@ def export_web(model: nn.Module) -> None:
         "max_text_len": MAX_TEXT_LEN,
         "emojis": EMOJIS,
         "feelings": FEELING,
-        "feeling_palette": {f: feeling_colors(f) for f in FEELING},
     }
     (DOCS / "meta.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -103,11 +104,16 @@ def train() -> None:
 
     train_ds, eval_ds = data_sets()
     train_loader = train_data_loader(train_ds)
-    eval_loader = DataLoader(eval_ds, batch_size=BATCH_SIZE, collate_fn=collate_fn)
+    eval_loader = DataLoader(
+        eval_ds, batch_size=BATCH_SIZE, collate_fn=collate_fn)
 
     model = Model()
-    optimizer = optim.Adam(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
-    emoji_ce = nn.CrossEntropyLoss(label_smoothing=0.1)
+    optimizer = optim.Adam(
+        model.parameters(),
+        lr=LR,
+        weight_decay=WEIGHT_DECAY)
+
+    emoji_ce = nn.CrossEntropyLoss(label_smoothing=LABEL_SMOOTHING)
     feeling_ce = nn.CrossEntropyLoss()
 
     print(f"Train: {len(train_ds)}  Eval: {len(eval_ds)}")
@@ -137,7 +143,8 @@ def train() -> None:
             if mean_acc > best_acc:
                 best_acc = mean_acc
                 torch.save(model.state_dict(), MODEL_PT)
-                export_web(model)  # keep docs/ (model.onnx + meta.json) in sync
+                # keep docs/ (model.onnx + meta.json) in sync
+                export_web(model)
             postfix |= {
                 "emoji_acc": f"{m['emoji_acc']:.3f}",
                 "feeling_acc": f"{m['feeling_acc']:.3f}",
@@ -146,7 +153,8 @@ def train() -> None:
 
         pbar.set_postfix(postfix)
 
-    print(f"\nBest mean acc: {best_acc:.3f}  ->  {MODEL_PT} and docs/ refreshed")
+    print(
+        f"\nBest mean acc: {best_acc:.3f}  ->  {MODEL_PT} and docs/ refreshed")
 
 
 if __name__ == "__main__":
