@@ -11,6 +11,7 @@ static web app's artifacts in ``docs/`` (``model.onnx`` + ``meta.json`` +
 import argparse
 import json
 import warnings
+from datetime import UTC, datetime
 from pathlib import Path
 
 import lightning as pl
@@ -106,9 +107,9 @@ def export_web(model: nn.Module) -> None:
     """Refresh docs/model.onnx + docs/meta.json + docs/config.json for the app.
 
     meta.json carries everything docs/app.js must not hardcode from the Python
-    side: the char vocab, MAX_TEXT_LEN, and the label sets for both heads. (The
-    feeling color palette is not here -- it lives in docs/palette.json, read
-    directly by app.js.)
+    side: the char vocab, MAX_TEXT_LEN, the label sets for both heads, and the
+    export date (footer). (The feeling color palette is not here -- it lives in
+    docs/palette.json, read directly by app.js.)
 
     config.json holds the plain app-tuning knobs (currently just max_text_len,
     used to cap the input field) kept apart from the model metadata.
@@ -121,6 +122,8 @@ def export_web(model: nn.Module) -> None:
         "max_text_len": MAX_TEXT_LEN,
         "emojis": EMOJIS,
         "feelings": FEELING,
+        # UTC date + time of this export ("YYYY-MM-DD HH:MM"); web app footer.
+        "exported_at": datetime.now(UTC).strftime("%Y-%m-%d %H:%M"),
     }
     (DOCS / "meta.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"

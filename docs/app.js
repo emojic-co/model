@@ -281,6 +281,9 @@ function buildFeelingRow() {
   ]);
   CHAR2IDX = new Map([...META.chars].map((c, i) => [c, i]));
   input.maxLength = CONFIG.max_text_len;
+  if (META.exported_at) {
+    document.getElementById("model-date").textContent = `${META.exported_at} UTC`;
+  }
   buildFeelingRow();
 
   ort.env.wasm.numThreads = 1; // GitHub Pages sends no COOP/COEP headers

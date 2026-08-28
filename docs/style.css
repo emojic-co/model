@@ -37,6 +37,12 @@ h1 {
   color: var(--muted);
 }
 
+#footer {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
 #input {
   width: var(--w);
   max-width: 100%;
