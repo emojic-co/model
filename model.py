@@ -1,3 +1,4 @@
+import torch
 from torch import nn
 
 from config import EMBED_SIZE, H_SIZE, NUM_LAYERS
@@ -14,7 +15,7 @@ class Model(nn.Module):
             padding_idx=PAD_IDX,
         )
 
-        self.conv = nn.Sequential(
+        layers = [
             nn.Conv1d(
                 in_channels=EMBED_SIZE,
                 out_channels=H_SIZE,
@@ -22,37 +23,34 @@ class Model(nn.Module):
                 padding=1,
             ),
             nn.ReLU(),
-        )
+        ]
 
-        self.rnn = nn.RNN(
-            input_size=H_SIZE,
-            hidden_size=H_SIZE,
-            num_layers=NUM_LAYERS,
-            batch_first=True,
-        )
+        for _ in range(NUM_LAYERS):
+            layers.append(
+                nn.Conv1d(
+                    in_channels=H_SIZE,
+                    out_channels=H_SIZE,
+                    kernel_size=3,
+                    padding=1,
+                )
+            )
+            layers.append(nn.ReLU())
+
+        self.net = nn.Sequential(*layers)
 
         self.emoji = nn.Linear(H_SIZE, len(EMOJIS))
         self.feeling = nn.Linear(H_SIZE, len(FEELING))
 
     def forward(self, x):
-        lengths = (x != PAD_IDX).sum(dim=1).clamp(min=1)
+        pad_mask = (x == PAD_IDX).unsqueeze(1)  # (batch, 1, seq_len)
 
-        out = self.embedding(x).permute(0, 2, 1)
-        out = self.conv(out)
-        out = out.masked_fill((x == PAD_IDX).unsqueeze(1), 0)
-        out = out.permute(0, 2, 1)
+        out = self.embedding(x)
+        out = out.permute(0, 2, 1)  # (batch, embed_dim, seq_len)
+        out = self.net(out)
+        out = out.masked_fill(pad_mask, -1e9)
+        out = torch.max(out, dim=2).values  # (batch, H_SIZE)
 
-        # 4. RNN over the full padded sequence, then read the hidden state at
-        # each row's last real character. This is identical to h_n[-1] from a
-        # packed sequence (the RNN is causal, so trailing pad steps can't affect
-        # an earlier index), but unlike pack_padded_sequence it traces to ONNX
-        # via the legacy exporter (torch.onnx.export(dynamo=False)).
-        out, _ = self.rnn(out)  # (batch, seq, H_SIZE)
-        idx = (lengths - 1).view(-1, 1, 1).expand(-1, 1, out.size(2))
-        last_step = out.gather(1, idx).squeeze(1)  # (batch, H_SIZE)
-
-        # 6. Classification heads
         return (
-            self.emoji(last_step),
-            self.feeling(last_step),
+            self.emoji(out),
+            self.feeling(out),
         )
