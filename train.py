@@ -27,6 +27,7 @@ from config import (
     GRAD_CLIP,
     LR,
     MAX_TEXT_LEN,
+    TRIPLET_MARGIN,
     WEIGHT_DECAY,
 )
 from data import (
@@ -49,14 +50,44 @@ DOCS = Path("docs")
 ONNX_OPSET = 18
 
 
+class ExportWrapper(nn.Module):
+    """Collapse the emoji embedding head into a single ``emoji_logits`` tensor.
+
+    ``Model.forward`` returns ``(feeling_logits, q, emoji_embed)`` -- the raw
+    pieces the triplet loss needs. The browser only wants a class score per
+    emoji, so this wrapper scores ``q`` against every emoji embedding as the
+    negative squared L2 distance: ``argmax`` then picks the nearest embedding,
+    matching the metric the triplet loss trains and ``validation_step``'s
+    ``torch.cdist`` accuracy. Keeps the ONNX contract at
+    ``(feeling_logits, emoji_logits)`` so ``app.js`` stays a plain argmax path.
+    """
+
+    def __init__(self, model: nn.Module) -> None:
+        super().__init__()
+        self.model = model
+
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        feeling_logits, q, emoji_embed = self.model(x)
+        # ||q - e||^2 = ||q||^2 - 2 q.e + ||e||^2. Expanded rather than
+        # torch.cdist so it traces to matmul/reduce ops that every ONNX opset
+        # supports. The ||q||^2 term is constant per row (doesn't move argmax)
+        # but is kept so the values are true negative distances for the panel.
+        d2 = (
+            q.pow(2).sum(-1, keepdim=True)
+            - 2.0 * q @ emoji_embed.t()
+            + emoji_embed.pow(2).sum(-1)
+        )
+        return feeling_logits, -d2
+
+
 def export_onnx(model: nn.Module, dst: Path) -> None:
     """Trace ``model`` to an ONNX file with a dynamic batch axis."""
-    model.eval()
+    wrapper = ExportWrapper(model).eval()
     dummy = torch.zeros(1, MAX_TEXT_LEN, dtype=torch.long)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         torch.onnx.export(
-            model,
+            wrapper,
             (dummy,),
             str(dst),
             input_names=["input"],
@@ -106,17 +137,31 @@ class LitEmojic(pl.LightningModule):
         super().__init__()
         self.model = Model()
         self.feeling_ce = nn.CrossEntropyLoss()
-        self.emoji_ce = nn.CrossEntropyLoss(label_smoothing=0.1)
+        # Emoji head is trained by metric learning: pull the projected hidden
+        # state toward its true emoji vector and push it off one sampled wrong
+        # emoji vector, by TRIPLET_MARGIN in L2.
+        self.emoji_triplet = nn.TripletMarginLoss(margin=TRIPLET_MARGIN)
 
-    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, ...]:
         return self.model(x)
 
     def training_step(self, batch, batch_idx) -> torch.Tensor:
         x, target_emoji, target_feeling = batch
 
-        logits_feeling, logits_emoji = self.model(x)
+        logits_feeling, q, emoji_embed = self.model(x)
         loss_feeling = self.feeling_ce(logits_feeling, target_feeling)
-        loss_emoji = self.emoji_ce(logits_emoji, target_emoji)
+
+        # One negative emoji per row: shift the true index by a random 1..N-1
+        # offset (mod N) -- uniform over the wrong classes, never the target.
+        n = emoji_embed.size(0)
+        offset = torch.randint(1, n, target_emoji.shape, device=self.device)
+        neg_emoji = (target_emoji + offset) % n
+
+        loss_emoji = self.emoji_triplet(
+            q,                          # anchor: projected hidden state
+            emoji_embed[target_emoji],  # positive: true emoji vector
+            emoji_embed[neg_emoji],     # negative: sampled wrong emoji vector
+        )
 
         def log(k, v):
             self.log(
@@ -133,15 +178,14 @@ class LitEmojic(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx) -> None:
         x, target_emoji, target_feeling = batch
-        (logits_feeling, logits_emoji) = self.model(x)
-        # loss_feeling = self.feeling_ce(logits_feeling, target_feeling)
-        # loss_emoji = self.emoji_ce(logits_emoji, target_emoji)
+        logits_feeling, q, emoji_embed = self.model(x)
 
         acc_feeling = (
             logits_feeling.argmax(dim=-1) == target_feeling).float().mean()
 
-        acc_emoji = (
-            logits_emoji.argmax(dim=-1) == target_emoji).float().mean()
+        # Nearest emoji embedding under the same L2 metric the triplet loss trains.
+        pred_emoji = torch.cdist(q, emoji_embed).argmin(dim=-1)
+        acc_emoji = (pred_emoji == target_emoji).float().mean()
 
         # batch_size weights the epoch mean, matching the old size-weighted eval.
 

@@ -40,13 +40,8 @@ class Model(nn.Module):
 
         self.feeling = nn.Linear(HIDDEN, len(FEELING))
 
-        # Embedding-based emoji head: project the hidden state into an
-        # EMOJI_EMBED_SIZE space and score it (dot product + per-emoji bias)
-        # against a learned vector per emoji. A low-rank bottleneck in place of
-        # a full Linear(HIDDEN, len(EMOJIS)); output shape is unchanged.
         self.emoji_proj = nn.Linear(HIDDEN, EMOJI_EMBED_SIZE)
         self.emoji_embed = nn.Embedding(len(EMOJIS), EMOJI_EMBED_SIZE)
-        self.emoji_bias = nn.Parameter(torch.zeros(len(EMOJIS)))
 
     def forward(self, x):
         out = F \
@@ -58,10 +53,7 @@ class Model(nn.Module):
         _, (h, _) = self.lstm(out.transpose(1, 2))
         # out = torch.max(out, dim=1).values
 
-        q = self.emoji_proj(h[-1])
-        emoji_logits = q @ self.emoji_embed.weight.t() + self.emoji_bias
-
         return (
             self.feeling(h[-1]),
-            emoji_logits,
-        )
+            self.emoji_proj(h[-1]),
+            self.emoji_embed.weight)
