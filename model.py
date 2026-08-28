@@ -23,12 +23,16 @@ class Model(nn.Module):
             padding_idx=PAD_IDX,
         )
 
+        # bias=False so a conv window lying entirely in the pad region produces
+        # exactly 0 (pad embeddings are zero via padding_idx). That keeps pad
+        # steps from winning the global max below, so no pad mask is needed.
         self.net = nn.Sequential(
             nn.Conv1d(
                 in_channels=EMBED_SIZE,
                 out_channels=CHANNELS_1,
                 kernel_size=KERNEL_1,
                 padding=0,
+                bias=False,
             ),
             nn.LeakyReLU(),
 
@@ -41,6 +45,7 @@ class Model(nn.Module):
                 out_channels=CHANNELS_2,
                 kernel_size=KERNEL_2,
                 padding=0,
+                bias=False,
             ),
             nn.LeakyReLU(),
         )

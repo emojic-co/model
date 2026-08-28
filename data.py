@@ -3,7 +3,6 @@ import random
 import re
 
 import torch
-from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader, Dataset
 
 from config import BATCH_SIZE, MAX_TEXT_LEN, TEST_LEN
@@ -76,15 +75,13 @@ def data_sets():
 
 
 def collate_fn(batch):
-    """Dynamically pad text sequences to the max length in the current batch."""
-    # Unpack samples from MultiTaskDataset
+    """Right-pad every text to MAX_TEXT_LEN, matching the ONNX/browser path."""
     texts, emojis, feelings = zip(*batch, strict=False)
 
-    # pad_sequence handles variable length tensors and pads with PAD_IDX
-    padded_texts = pad_sequence(
-        list(texts),
-        batch_first=True,
-        padding_value=PAD_IDX)
+    padded_texts = torch.full(
+        (len(texts), MAX_TEXT_LEN), PAD_IDX, dtype=torch.long)
+    for i, t in enumerate(texts):
+        padded_texts[i, : t.size(0)] = t[:MAX_TEXT_LEN]
 
     target_emojis = torch.tensor(emojis, dtype=torch.long)
     target_feelings = torch.tensor(feelings, dtype=torch.long)

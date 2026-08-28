@@ -67,8 +67,7 @@ def load_model(path: Path = MODEL_PT) -> Model:
 
 def _encode(text: str) -> torch.Tensor:
     ids = [char2idx[c] for c in normalize(text)[:MAX_TEXT_LEN]]
-    if not ids:
-        ids = [PAD_IDX]
+    ids += [PAD_IDX] * (MAX_TEXT_LEN - len(ids))
     return torch.tensor(ids, dtype=torch.long).unsqueeze(0)
 
 
