@@ -1,7 +1,7 @@
 TODO:
+DONE:
     Web App:
         - limit the input text to 64 characters
-DONE:
     Tensorboard:
         Log the following (exactly):
             Train:
