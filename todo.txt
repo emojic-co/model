@@ -1,6 +1,10 @@
 TODO:
-
 DONE:
+    Tensorboard:
+        Eval:
+        - Only log feeling loss and emoji loss (no accuracy)
+    Training:
+        - Do not select model based on accuracy, use the loss to select the best model.
     Emoji Embedding:
         Lets move to learnable emoji embeddings and use contrastive loss to train the model.
         Update the model to reflect this change.

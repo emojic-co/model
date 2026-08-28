@@ -45,8 +45,14 @@ class Model(nn.Module):
         # plain cross-entropy on the true emoji this is InfoNCE against all
         # emojis as negatives -- pulls the matching pair together, pushes the
         # rest apart.
-        self.text_proj = nn.Linear(H_SIZE, EMOJI_EMBED_SIZE)
-        self.emoji_embedding = nn.Embedding(len(EMOJIS), EMOJI_EMBED_SIZE)
+        self.text_proj = nn.Linear(
+            H_SIZE,
+            EMOJI_EMBED_SIZE)
+
+        self.emoji_embedding = nn.Embedding(
+            len(EMOJIS),
+            EMOJI_EMBED_SIZE)
+
         # log temperature, initialised to ln(1 / 0.07) as in CLIP
         self.logit_scale = nn.Parameter(torch.tensor(2.6593))
 

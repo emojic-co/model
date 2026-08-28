@@ -1,7 +1,7 @@
 """Train the emojic CNN baseline.
 
 Runs the training loop, evaluates on the held-out split after every epoch, and
-keeps the best checkpoint (by mean of emoji/feeling accuracy). Every time the
+keeps the best checkpoint (by total eval loss, emoji + feeling). Every time the
 best improves it rewrites both ``model.pt`` and the static web app's artifacts
 in ``docs/`` (``model.onnx`` + ``meta.json``), so the page can be watched live
 during a run.
@@ -141,7 +141,7 @@ def train() -> None:
     print(f"Train: {len(train_ds)}  Eval: {len(eval_ds)}")
     print(f"Params: {sum(p.numel() for p in model.parameters()):,}\n")
 
-    best_acc = -1.0
+    best_loss = float("inf")
     pbar = tqdm(range(1, EPOCHS + 1), desc="Training", unit="epoch")
     for epoch in pbar:
         model.train()
@@ -166,27 +166,24 @@ def train() -> None:
 
         if epoch % EVAL_EPOCHS == 0 or epoch == EPOCHS:
             m = evaluate(model, eval_loader, emoji_ce, feeling_ce)
-            mean_acc = (m["emoji_acc"] + m["feeling_acc"]) / 2
-            if mean_acc > best_acc:
-                best_acc = mean_acc
+            eval_loss = m["emoji_loss"] + m["feeling_loss"]
+            if eval_loss < best_loss:
+                best_loss = eval_loss
                 torch.save(model.state_dict(), MODEL_PT)
                 # keep docs/ (model.onnx + meta.json) in sync
                 export_web(model)
             writer.add_scalar("eval/emoji_loss", m["emoji_loss"], epoch)
             writer.add_scalar("eval/feeling_loss", m["feeling_loss"], epoch)
-            writer.add_scalar("eval/emoji_acc", m["emoji_acc"], epoch)
-            writer.add_scalar("eval/feeling_acc", m["feeling_acc"], epoch)
             postfix |= {
                 "emoji_acc": f"{m['emoji_acc']:.3f}",
                 "feeling_acc": f"{m['feeling_acc']:.3f}",
-                "best": f"{best_acc:.3f}",
+                "best_loss": f"{best_loss:.4f}",
             }
 
         pbar.set_postfix(postfix)
 
     writer.close()
-    print(
-        f"\nBest mean acc: {best_acc:.3f}  ->  {MODEL_PT} and docs/ refreshed")
+    print(f"\nBest eval loss: {best_loss:.4f}  ->  {MODEL_PT} and docs/ refreshed")
 
     # Behavioral test suite + Markdown report (report/<MM-DD-HH:MM>.md).
     # Runs against the saved best checkpoint (model.pt), i.e. what ships.
