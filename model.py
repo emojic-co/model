@@ -3,8 +3,8 @@ from torch import nn
 from torch.nn import functional as F
 
 from config import (
-    CHANNELS_1,
-    CHANNELS_2,
+    CHANNELS,
+    HIDDEN,
     KERNEL_1,
 )
 from data import FEELING, VOCAB_SIZE
@@ -17,7 +17,7 @@ class Model(nn.Module):
         self.conv = nn.Sequential(
             nn.Conv1d(
                 in_channels=VOCAB_SIZE - 1,
-                out_channels=CHANNELS_1,
+                out_channels=CHANNELS,
                 kernel_size=KERNEL_1,
                 padding=0,
                 bias=False,
@@ -30,14 +30,14 @@ class Model(nn.Module):
         )
 
         self.lstm = nn.LSTM(
-            input_size=CHANNELS_1,
-            hidden_size=CHANNELS_2,
+            input_size=CHANNELS,
+            hidden_size=HIDDEN,
             num_layers=1,
             batch_first=True,
             bidirectional=False,
         )
 
-        self.feeling = nn.Linear(CHANNELS_2, len(FEELING))
+        self.feeling = nn.Linear(HIDDEN, len(FEELING))
 
     def forward(self, x):
         out = F \

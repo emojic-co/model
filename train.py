@@ -114,9 +114,10 @@ class LitEmojic(pl.LightningModule):
         loss = self.feeling_ce(logits, target_feeling)
         acc = (logits.argmax(dim=-1) == target_feeling).float().mean()
         self.log(
-            "train/feeling_loss", loss, on_step=False, on_epoch=True, prog_bar=True
+            "train/f_loss", loss, on_step=False, on_epoch=True, prog_bar=True
         )
-        self.log("train/feeling_acc", acc, on_step=False, on_epoch=True, prog_bar=True)
+        self.log("train/f_acc", acc, on_step=False,
+                 on_epoch=True, prog_bar=True)
         return loss
 
     def validation_step(self, batch, batch_idx) -> None:
@@ -126,7 +127,7 @@ class LitEmojic(pl.LightningModule):
         acc = (logits.argmax(dim=-1) == target_feeling).float().mean()
         # batch_size weights the epoch mean, matching the old size-weighted eval.
         self.log(
-            "eval/feeling_loss",
+            "eval/f_loss",
             loss,
             on_step=False,
             on_epoch=True,
@@ -134,7 +135,7 @@ class LitEmojic(pl.LightningModule):
             batch_size=x.size(0),
         )
         self.log(
-            "eval/feeling_acc",
+            "eval/f_acc",
             acc,
             on_step=False,
             on_epoch=True,
@@ -147,13 +148,13 @@ class LitEmojic(pl.LightningModule):
 
 
 class ExportBest(pl.Callback):
-    """Save model.pt + refresh docs/ whenever eval feeling loss improves."""
+    """Save model.pt + refresh docs/ whenever eval f_loss improves."""
 
     def __init__(self) -> None:
         self.best_loss = float("inf")
 
     def on_validation_end(self, trainer: pl.Trainer, pl_module: LitEmojic) -> None:
-        metric = trainer.callback_metrics.get("eval/feeling_loss")
+        metric = trainer.callback_metrics.get("eval/f_loss")
         if metric is None:
             return
         loss = float(metric)
