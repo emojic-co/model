@@ -110,19 +110,32 @@ class LitEmojic(pl.LightningModule):
 
     def training_step(self, batch, batch_idx) -> torch.Tensor:
         x, _, target_feeling = batch
-        loss = self.feeling_ce(self.model(x), target_feeling)
+        logits = self.model(x)
+        loss = self.feeling_ce(logits, target_feeling)
+        acc = (logits.argmax(dim=-1) == target_feeling).float().mean()
         self.log(
             "train/feeling_loss", loss, on_step=False, on_epoch=True, prog_bar=True
         )
+        self.log("train/feeling_acc", acc, on_step=False, on_epoch=True, prog_bar=True)
         return loss
 
     def validation_step(self, batch, batch_idx) -> None:
         x, _, target_feeling = batch
-        loss = self.feeling_ce(self.model(x), target_feeling)
+        logits = self.model(x)
+        loss = self.feeling_ce(logits, target_feeling)
+        acc = (logits.argmax(dim=-1) == target_feeling).float().mean()
         # batch_size weights the epoch mean, matching the old size-weighted eval.
         self.log(
             "eval/feeling_loss",
             loss,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            batch_size=x.size(0),
+        )
+        self.log(
+            "eval/feeling_acc",
+            acc,
             on_step=False,
             on_epoch=True,
             prog_bar=True,
