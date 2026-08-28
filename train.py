@@ -45,17 +45,35 @@ ONNX_OPSET = 18
 
 
 @torch.no_grad()
-def evaluate(model: nn.Module, loader: DataLoader) -> dict:
-    """Return emoji/feeling accuracy over ``loader``."""
+def evaluate(
+    model: nn.Module,
+    loader: DataLoader,
+    emoji_ce: nn.Module,
+    feeling_ce: nn.Module,
+) -> dict:
+    """Return emoji/feeling loss and accuracy over ``loader``.
+
+    Losses use the same criteria as training (label smoothing included) and are
+    reported as per-sample means, weighting each batch by its size.
+    """
     model.eval()
     n = emoji_correct = feeling_correct = 0
+    emoji_loss_sum = feeling_loss_sum = 0.0
     for x, target_emoji, target_feeling in loader:
+        bs = x.size(0)
         emoji_logits, feeling_logits = model(x)
+        emoji_loss_sum += emoji_ce(emoji_logits, target_emoji).item() * bs
+        feeling_loss_sum += feeling_ce(feeling_logits, target_feeling).item() * bs
         emoji_correct += (emoji_logits.argmax(-1) == target_emoji).sum().item()
         feeling_correct += (feeling_logits.argmax(-1) ==
                             target_feeling).sum().item()
-        n += x.size(0)
-    return {"emoji_acc": emoji_correct / n, "feeling_acc": feeling_correct / n}
+        n += bs
+    return {
+        "emoji_loss": emoji_loss_sum / n,
+        "feeling_loss": feeling_loss_sum / n,
+        "emoji_acc": emoji_correct / n,
+        "feeling_acc": feeling_correct / n,
+    }
 
 
 def export_onnx(model: nn.Module, dst: Path) -> None:
@@ -127,34 +145,37 @@ def train() -> None:
     pbar = tqdm(range(1, EPOCHS + 1), desc="Training", unit="epoch")
     for epoch in pbar:
         model.train()
-        total_loss = 0.0
+        total_emoji_loss = total_feeling_loss = 0.0
         for x, target_emoji, target_feeling in train_loader:
             optimizer.zero_grad()
             emoji_logits, feeling_logits = model(x)
-            loss = emoji_ce(emoji_logits, target_emoji) + feeling_ce(
-                feeling_logits, target_feeling
-            )
+            emoji_loss = emoji_ce(emoji_logits, target_emoji)
+            feeling_loss = feeling_ce(feeling_logits, target_feeling)
+            loss = emoji_loss + feeling_loss
             loss.backward()
             nn.utils.clip_grad_norm_(model.parameters(), GRAD_CLIP)
             optimizer.step()
-            total_loss += loss.item()
+            total_emoji_loss += emoji_loss.item()
+            total_feeling_loss += feeling_loss.item()
 
-        avg_loss = total_loss / len(train_loader)
-        postfix = {"loss": f"{avg_loss:.4f}"}
-        writer.add_scalar("loss/train", avg_loss, epoch)
+        avg_emoji_loss = total_emoji_loss / len(train_loader)
+        avg_feeling_loss = total_feeling_loss / len(train_loader)
+        postfix = {"loss": f"{avg_emoji_loss + avg_feeling_loss:.4f}"}
+        writer.add_scalar("train/emoji_loss", avg_emoji_loss, epoch)
+        writer.add_scalar("train/feeling_loss", avg_feeling_loss, epoch)
 
         if epoch % EVAL_EPOCHS == 0 or epoch == EPOCHS:
-            m = evaluate(model, eval_loader)
+            m = evaluate(model, eval_loader, emoji_ce, feeling_ce)
             mean_acc = (m["emoji_acc"] + m["feeling_acc"]) / 2
             if mean_acc > best_acc:
                 best_acc = mean_acc
                 torch.save(model.state_dict(), MODEL_PT)
                 # keep docs/ (model.onnx + meta.json) in sync
                 export_web(model)
-            writer.add_scalar("acc/emoji", m["emoji_acc"], epoch)
-            writer.add_scalar("acc/feeling", m["feeling_acc"], epoch)
-            writer.add_scalar("acc/mean", mean_acc, epoch)
-            writer.add_scalar("acc/best", best_acc, epoch)
+            writer.add_scalar("eval/emoji_loss", m["emoji_loss"], epoch)
+            writer.add_scalar("eval/feeling_loss", m["feeling_loss"], epoch)
+            writer.add_scalar("eval/emoji_acc", m["emoji_acc"], epoch)
+            writer.add_scalar("eval/feeling_acc", m["feeling_acc"], epoch)
             postfix |= {
                 "emoji_acc": f"{m['emoji_acc']:.3f}",
                 "feeling_acc": f"{m['feeling_acc']:.3f}",

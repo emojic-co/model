@@ -1,6 +1,17 @@
 TODO:
-    Model Testing:
+    Web App:
+        - limit the input text to 64 characters
 DONE:
+    Tensorboard:
+        Log the following (exactly):
+            Train:
+                - emoji loss
+                - feeling loss
+            Eval:
+                - emoji loss
+                - feeling loss
+                - emoji acc
+                - feeling acc
     Model Testing:
         Write a test suite that:
             - Tests all feelings by running the model on the feeling name.
