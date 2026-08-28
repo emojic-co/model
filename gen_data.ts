@@ -35,7 +35,7 @@ import cliProgress from "cli-progress"
 import { z } from "zod"
 
 const MODEL = "openai/gpt-5.6-luna"
-
+const MAX_TEXT_LEN = 42
 const DATA = "./data.jsonl"
 const LABELS = "./labels.json"
 const RAW = "./raw.txt"
@@ -44,7 +44,6 @@ const TMP = "./data.jsonl.tmp"
 // Longest text we keep. main.py's encode() currently truncates at
 // config.MAX_TEXT_LEN (48); we store up to 64 so the corpus survives a future
 // MAX_TEXT_LEN bump without regeneration.
-const MAX_RAW_LEN = 64
 
 const TARGET_TEXTS = 1000
 const GEN_BATCH = 25
@@ -138,7 +137,7 @@ async function genBatch(topic: string, voice: string): Promise<string[]> {
     prompt: [
       `Write ${GEN_BATCH} short WhatsApp-style messages as if sent by ${voice}, loosely about ${topic}.`,
       `One message per line. No numbering, no bullets, no quotes, no emoji, no commentary.`,
-      `Each message at most ${MAX_RAW_LEN} characters.`,
+      `Each message at most ${MAX_TEXT_LEN} characters.`,
       `Vary tone and intent: quick updates, dry humor, complaints, questions, sudden news, invitations, low-effort replies.`,
       `Make roughly a quarter of the messages express a feeling by negating one: "not happy about this", "wasn't excited tbh", "no longer angry", "cant say im sad", "not that calm rn". Negate different feelings, not just one.`,
       `Sound real and specific. Avoid clichés and near-duplicates.`,
