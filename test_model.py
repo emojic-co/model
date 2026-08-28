@@ -9,7 +9,8 @@ Three batteries, all run against the committed ``model.pt``:
    also check it predicts that opposite.
 3. Emojis -- for each of the most frequent emojis in ``data.jsonl`` (see
    ``emoji_keywords.EMOJI_KEYWORDS``), feed a handful of strongly associated
-   keywords and check the emoji head predicts that emoji (top-1 and top-3).
+   keywords and check the emoji head predicts that emoji (top-1, top-3 and
+   top-5).
 
 Writes a Markdown report to ``report/<MM-DD-HH:MM>.md`` and prints a summary.
 ``train.py`` calls :func:`run` at the end of every training run.
@@ -40,7 +41,9 @@ from model import Model
 MODEL_PT = Path("model.pt")
 REPORT_DIR = Path("report")
 DATA = Path("data.jsonl")
-TOP_K = 3
+# Emoji accuracy is reported at each of these ranks (top-1 / top-3 / top-5).
+TOP_KS = (1, 3, 5)
+TOP_K = max(TOP_KS)
 
 # For "not <feeling>" prompts: the feeling we'd expect the model to fall back to.
 # Only the confident opposites are listed; a feeling left out is only checked for
@@ -71,7 +74,11 @@ def _encode(text: str) -> torch.Tensor:
 
 @torch.no_grad()
 def predict(model: Model, text: str) -> dict:
-    """Return top emoji/feeling and the top-K emoji list for ``text``."""
+    """Return top emoji/feeling and the ranked top-K emoji list for ``text``.
+
+    ``emoji_topk`` holds up to ``TOP_K`` emojis best-first, so ``emoji_topk[:k]``
+    is the top-k prediction for any ``k <= TOP_K``.
+    """
     emoji_logits, feeling_logits = model(_encode(text))
     emoji_logits, feeling_logits = emoji_logits[0], feeling_logits[0]
     top_emoji_idx = torch.topk(emoji_logits, k=min(TOP_K, len(EMOJIS))).indices
@@ -134,20 +141,19 @@ def test_emojis(model: Model) -> list[dict]:
     ranks = {e: i + 1 for i, (e, _) in enumerate(freqs.most_common())}
     rows = []
     for emoji, keywords in EMOJI_KEYWORDS.items():
-        hits, top3, cases = 0, 0, []
+        hits = {k: 0 for k in TOP_KS}
+        cases = []
         for kw in keywords:
             got = predict(model, kw)
-            hit = got["emoji"] == emoji
-            in_top3 = emoji in got["emoji_topk"]
-            hits += hit
-            top3 += in_top3
+            in_topk = {k: emoji in got["emoji_topk"][:k] for k in TOP_KS}
+            for k in TOP_KS:
+                hits[k] += in_topk[k]
             cases.append(
                 {
                     "keyword": kw,
                     "predicted": got["emoji"],
                     "topk": got["emoji_topk"],
-                    "pass": hit,
-                    "top3": in_top3,
+                    "in_topk": in_topk,
                 }
             )
         rows.append(
@@ -157,7 +163,6 @@ def test_emojis(model: Model) -> list[dict]:
                 "count": freqs.get(emoji, 0),
                 "n": len(keywords),
                 "hits": hits,
-                "top3": top3,
                 "cases": cases,
             }
         )
@@ -179,8 +184,7 @@ def build_report(
     n_avoided = sum(r["avoided"] for r in negation_rows)
     n_expected = [r for r in negation_rows if r["expected"] is not None]
     n_matched = sum(r["matched_expected"] for r in n_expected)
-    e_hits = sum(r["hits"] for r in emoji_rows)
-    e_top3 = sum(r["top3"] for r in emoji_rows)
+    e_hits = {k: sum(r["hits"][k] for r in emoji_rows) for k in TOP_KS}
     e_total = sum(r["n"] for r in emoji_rows)
 
     out: list[str] = []
@@ -198,9 +202,12 @@ def build_report(
         f"**{n_matched}/{len(n_expected)}** hit the expected opposite"
     )
     out.append(
-        f"- Emojis: **{e_hits}/{e_total}** keyword prompts top-1 "
-        f"({_pct(e_hits, e_total)}), **{e_top3}/{e_total}** top-{TOP_K} "
-        f"({_pct(e_top3, e_total)}), across {len(emoji_rows)} emojis"
+        "- Emojis: "
+        + ", ".join(
+            f"**{e_hits[k]}/{e_total}** top-{k} ({_pct(e_hits[k], e_total)})"
+            for k in TOP_KS
+        )
+        + f" keyword prompts, across {len(emoji_rows)} emojis"
     )
     out.append("")
 
@@ -233,15 +240,16 @@ def build_report(
 
     out.append("## Emojis")
     out.append("")
-    out.append("| emoji | data rank | count | top-1 | top-3 |")
-    out.append("| --- | --- | --- | --- | --- |")
+    out.append(
+        "| emoji | data rank | count | " + " | ".join(f"top-{k}" for k in TOP_KS) + " |"
+    )
+    out.append("| --- | --- | --- | " + " | ".join("---" for _ in TOP_KS) + " |")
     for r in emoji_rows:
         rank = r["rank"] if r["rank"] is not None else "—"
-        out.append(
-            f"| {r['emoji']} | {rank} | {r['count']} | "
-            f"{r['hits']}/{r['n']} ({_pct(r['hits'], r['n'])}) | "
-            f"{r['top3']}/{r['n']} ({_pct(r['top3'], r['n'])}) |"
+        cells = " | ".join(
+            f"{r['hits'][k]}/{r['n']} ({_pct(r['hits'][k], r['n'])})" for k in TOP_KS
         )
+        out.append(f"| {r['emoji']} | {rank} | {r['count']} | {cells} |")
     out.append("")
 
     out.append("### Per-keyword detail")
@@ -249,13 +257,14 @@ def build_report(
     for r in emoji_rows:
         out.append(f"#### {r['emoji']}  (rank {r['rank'] or '—'})")
         out.append("")
-        out.append("| keyword | predicted | top-3 | result |")
+        out.append(f"| keyword | predicted | top-{TOP_K} | result |")
         out.append("| --- | --- | --- | --- |")
         for c in r["cases"]:
-            if c["pass"]:
+            hit_k = next((k for k in TOP_KS if c["in_topk"][k]), None)
+            if hit_k == 1:
                 mark = "✅"
-            elif c["top3"]:
-                mark = "~ top-3"
+            elif hit_k is not None:
+                mark = f"~ top-{hit_k}"
             else:
                 mark = "❌"
             topk = " ".join(c["topk"])
@@ -279,12 +288,16 @@ def run(model: Model | None = None) -> Path:
 
     f_pass = sum(r["pass"] for r in feeling_rows)
     n_avoided = sum(r["avoided"] for r in negation_rows)
-    e_hits = sum(r["hits"] for r in emoji_rows)
+    e_hits = {k: sum(r["hits"][k] for r in emoji_rows) for k in TOP_KS}
     e_total = sum(r["n"] for r in emoji_rows)
+    emoji_summary = " | ".join(
+        f"emoji top-{k} {e_hits[k]}/{e_total} ({_pct(e_hits[k], e_total)})"
+        for k in TOP_KS
+    )
     print(
         f"feelings {f_pass}/{len(feeling_rows)} | "
         f"negations avoided {n_avoided}/{len(negation_rows)} | "
-        f"emoji top-1 {e_hits}/{e_total} ({_pct(e_hits, e_total)}) | "
+        f"{emoji_summary} | "
         f"report -> {path}"
     )
     return path

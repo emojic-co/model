@@ -1,6 +1,6 @@
 TODO:
-    When reporting emoji acc report top-3, and top-5 accuracy.
 DONE:
+    When reporting emoji acc report top-3, and top-5 accuracy.
     Tensorboard:
         Eval:
         - Only log feeling loss and emoji loss (no accuracy)

@@ -9,7 +9,7 @@ copied from any training text.
 
 # emoji -> keywords strongly associated with it
 EMOJI_KEYWORDS: dict[str, list[str]] = {
-    "😤": ["hmph", "so done with this", "fed up", "over it", "steaming mad"],
+    "😤": ["hmph", "steaming mad"],
     "😰": ["cold sweat", "so nervous", "panicking", "worried sick", "dreading this"],
     "😬": ["awkward", "yikes", "cringe", "so tense", "eek"],
     "🎉": ["party", "congrats", "we did it", "let's celebrate", "hooray"],
