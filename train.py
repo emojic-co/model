@@ -12,6 +12,7 @@ emoji head can be added back later; the model and this script currently train
 the feeling head only.
 """
 
+import argparse
 import json
 import warnings
 from pathlib import Path
@@ -19,6 +20,7 @@ from pathlib import Path
 import lightning as pl
 import torch
 import torch.utils.data
+from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
 
@@ -43,6 +45,10 @@ from data import (
 from model import Model
 
 MODEL_PT = Path("model.pt")
+# Full training state (optimizer / epoch / global step / RNG / callback state),
+# written under the gitignored runs/ dir at a fixed path so `--resume` finds it
+# even though CONFIG_NAME (and thus the TensorBoard log dir) is timestamped.
+LAST_CKPT = Path("runs") / "last.ckpt"
 DOCS = Path("docs")
 ONNX_OPSET = 18
 
@@ -154,6 +160,15 @@ class ExportBest(pl.Callback):
     def __init__(self) -> None:
         self.best_loss = float("inf")
 
+    def state_dict(self) -> dict:
+        # Persisted into the checkpoint so best_loss survives --resume; without
+        # it the first post-resume validation re-saves model.pt + re-exports on
+        # a non-improvement.
+        return {"best_loss": self.best_loss}
+
+    def load_state_dict(self, state_dict: dict) -> None:
+        self.best_loss = state_dict["best_loss"]
+
     def on_validation_end(self, trainer: pl.Trainer, pl_module: LitEmojic) -> None:
         metric = trainer.callback_metrics.get("eval/f_loss")
         if metric is None:
@@ -165,7 +180,7 @@ class ExportBest(pl.Callback):
             export_web(pl_module.model)
 
 
-def train() -> None:
+def train(resume: bool = False) -> None:
     pl.seed_everything(0, workers=True)
 
     train_ds, eval_ds = data_sets()
@@ -174,6 +189,16 @@ def train() -> None:
 
     lit = LitEmojic()
     export_best = ExportBest()
+    # Rotating full-state checkpoint: one runs/<name>.ckpt overwritten every
+    # EVAL_EPOCHS (at validation end), plus the runs/last.ckpt copy --resume
+    # reads. model.pt (via ExportBest) stays the "best" artifact, so no top-k.
+    checkpoint = ModelCheckpoint(
+        dirpath=str(LAST_CKPT.parent),
+        filename="ckpt",
+        save_last=True,
+        save_top_k=1,
+        every_n_epochs=EVAL_EPOCHS,
+    )
 
     print(f"Train: {len(train_ds)}  Eval: {len(eval_ds)}")
     print(f"Params: {sum(p.numel() for p in lit.model.parameters()):,}\n")
@@ -186,17 +211,21 @@ def train() -> None:
         accelerator="cpu",
         devices='auto',
         logger=TensorBoardLogger("runs", name=CONFIG_NAME, version=""),
-        callbacks=[export_best],
-        enable_checkpointing=False,
+        callbacks=[export_best, checkpoint],
         num_sanity_val_steps=0,
         log_every_n_steps=10,
     )
+
+    ckpt_path = str(LAST_CKPT) if resume and LAST_CKPT.exists() else None
+    if resume and ckpt_path is None:
+        print(f"--resume: no checkpoint at {LAST_CKPT}, starting fresh")
 
     trainer.fit(
         lit,
         train_loader,
         # train_loader,
-        eval_loader
+        eval_loader,
+        ckpt_path=ckpt_path,
     )
 
     print(
@@ -212,4 +241,12 @@ def train() -> None:
 
 
 if __name__ == "__main__":
-    train()
+    parser = argparse.ArgumentParser(
+        description="Train the emojic feeling classifier (PyTorch Lightning)."
+    )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help=f"resume training from {LAST_CKPT} (optimizer / epoch / RNG state)",
+    )
+    train(resume=parser.parse_args().resume)
