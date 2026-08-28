@@ -1,8 +1,9 @@
+import torch
 from torch import nn
+from torch.nn import functional as F
 
 from config import (
     CHANNELS,
-    EMBED_SIZE,
     HIDDEN,
     KERNEL_1,
 )
@@ -13,14 +14,9 @@ class Model(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.embed = nn.Embedding(
-            VOCAB_SIZE,
-            EMBED_SIZE,
-            padding_idx=0)
-
         self.conv = nn.Sequential(
             nn.Conv1d(
-                in_channels=EMBED_SIZE,
+                in_channels=VOCAB_SIZE - 1,
                 out_channels=CHANNELS,
                 kernel_size=KERNEL_1,
                 padding=0,
@@ -44,7 +40,10 @@ class Model(nn.Module):
         self.feeling = nn.Linear(HIDDEN, len(FEELING))
 
     def forward(self, x):
-        out = self.embed(x).transpose(1, 2)  # (B, EMBED_SIZE, T)
+        out = F \
+            .one_hot(x, VOCAB_SIZE)[:, :, 1:] \
+            .transpose(1, 2) \
+            .to(torch.float32)
 
         out = self.conv(out)
         _, (h, _) = self.lstm(out.transpose(1, 2))
