@@ -196,11 +196,6 @@ def train() -> None:
                 export_web(model)
             writer.add_scalar("eval/emoji_loss", m["emoji_loss"], epoch)
             writer.add_scalar("eval/feeling_loss", m["feeling_loss"], epoch)
-            postfix |= {
-                "emoji_acc": f"{m['emoji_acc']:.3f}",
-                "feeling_acc": f"{m['feeling_acc']:.3f}",
-                "best_loss": f"{best_loss:.4f}",
-            }
 
         pbar.set_postfix(postfix)
 
