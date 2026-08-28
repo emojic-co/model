@@ -1,15 +1,11 @@
-"""Train the emojic CNN feeling classifier (PyTorch Lightning).
+"""Train the emojic CNN classifier (PyTorch Lightning).
 
-A ``LitEmojic`` LightningModule wraps ``model.Model`` and trains the feeling
-head only. Validation runs every ``EVAL_EPOCHS`` epochs; the ``ExportBest``
-callback keeps the best checkpoint (by eval feeling loss) and, every time the
-best improves, rewrites both ``model.pt`` and the static web app's artifacts in
-``docs/`` (``model.onnx`` + ``meta.json`` + ``config.json``), so the page can be
-watched live during a run.
-
-The data pipeline (``data.py``) still carries the emoji label per row, so an
-emoji head can be added back later; the model and this script currently train
-the feeling head only.
+A ``LitEmojic`` LightningModule wraps ``model.Model`` and trains both heads
+(feeling + emoji, summed cross-entropy). Validation runs every ``EVAL_EPOCHS``
+epochs; the ``ExportBest`` callback keeps the best checkpoint (by eval feeling
+loss) and, every time the best improves, rewrites both ``model.pt`` and the
+static web app's artifacts in ``docs/`` (``model.onnx`` + ``meta.json`` +
+``config.json``), so the page can be watched live during a run.
 """
 
 import argparse
@@ -64,12 +60,13 @@ def export_onnx(model: nn.Module, dst: Path) -> None:
             (dummy,),
             str(dst),
             input_names=["input"],
-            output_names=["feeling_logits"],
+            output_names=["feeling_logits", "emoji_logits"],
             opset_version=ONNX_OPSET,
             dynamo=False,
             dynamic_axes={
                 "input": {0: "batch"},
                 "feeling_logits": {0: "batch"},
+                "emoji_logits": {0: "batch"},
             },
         )
 
@@ -78,10 +75,9 @@ def export_web(model: nn.Module) -> None:
     """Refresh docs/model.onnx + docs/meta.json + docs/config.json for the app.
 
     meta.json carries everything docs/app.js must not hardcode from the Python
-    side: the char vocab, MAX_TEXT_LEN, and the label sets. The emoji list is
-    still emitted so the front-end scaffolding can stay in place, even though
-    the current model only has a feeling head. (The feeling color palette is
-    not here -- it lives in docs/palette.json, read directly by app.js.)
+    side: the char vocab, MAX_TEXT_LEN, and the label sets for both heads. (The
+    feeling color palette is not here -- it lives in docs/palette.json, read
+    directly by app.js.)
 
     config.json holds the plain app-tuning knobs (currently just max_text_len,
     used to cap the input field) kept apart from the model metadata.
@@ -112,7 +108,7 @@ class LitEmojic(pl.LightningModule):
         self.feeling_ce = nn.CrossEntropyLoss()
         self.emoji_ce = nn.CrossEntropyLoss(label_smoothing=0.1)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         return self.model(x)
 
     def training_step(self, batch, batch_idx) -> torch.Tensor:
