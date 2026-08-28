@@ -131,6 +131,28 @@ h1 {
   gap: 10px;
 }
 
+/* Transient confirmation for the copy flow (Enter key or the copy button). */
+#toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translate(-50%, 8px);
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  background: rgba(20, 20, 20, 0.9);
+  color: #fafafa;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+#toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
 .swatch {
   width: 76px;
   height: 76px;

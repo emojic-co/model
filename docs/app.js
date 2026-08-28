@@ -10,6 +10,7 @@ const emojiEl = document.getElementById("emoji");
 const typedEl = document.getElementById("typed");
 const feelingEl = document.getElementById("feeling");
 const copyBtn = document.getElementById("copy");
+const toastEl = document.getElementById("toast");
 
 // One Google-fonts webfont per feeling (loaded in index.html). The mood of the
 // typeface is meant to echo the mood of the feeling.
@@ -177,25 +178,26 @@ async function cardToBlob() {
   });
 }
 
-let flashTimer;
-function flash(msg) {
-  copyBtn.textContent = msg;
-  clearTimeout(flashTimer);
-  flashTimer = setTimeout(() => (copyBtn.textContent = "copy"), 1400);
+let toastTimer;
+function toast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove("show"), 1600);
 }
 
 async function copyCard() {
   if (!current) {
-    flash("nothing yet");
+    toast("nothing to copy yet");
     return;
   }
   try {
     const blob = await cardToBlob();
     await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-    flash("copied ✓");
+    toast("copied to clipboard ✓");
   } catch (err) {
     console.error(err);
-    flash("copy failed");
+    toast("copy failed");
   }
 }
 
@@ -231,6 +233,12 @@ function buildFeelingRow() {
   session = await ort.InferenceSession.create("./model.onnx");
 
   input.addEventListener("input", update);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      copyCard();
+    }
+  });
   copyBtn.addEventListener("click", copyCard);
   update();
 })();
