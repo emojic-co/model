@@ -22,7 +22,7 @@ import { z } from "zod"
 
 const DATA = "./data.jsonl"
 const LABELS = "./labels.json"
-const TOP_N = 50
+const TOP_N = 60
 
 type Row = { emoji: string; feeling: string; text: string }
 
