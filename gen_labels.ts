@@ -1,7 +1,7 @@
 /**
  * Step 3 of the data pipeline: (re)generate labels.json from data.jsonl.
  *
- *   bun raw_txt.ts  ->  bun annotation.ts  ->  bun gen_labels.ts
+ *   bun feeling.ts  ->  bun emoji.ts  ->  bun gen_labels.ts
  *
  *   - feelings: a fixed closed set. Copied through from the existing
  *     labels.json untouched -- this script never adds, drops, or reorders one.

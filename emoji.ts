@@ -1,23 +1,24 @@
 /**
- * Step 2 of the data pipeline: label the raw text.
+ * Step 2 of the data pipeline: emoji-annotate the feeling-guided text.
  *
- *   bun raw_txt.ts  ->  bun annotation.ts  ->  bun gen_labels.ts
+ *   bun feeling.ts  ->  bun emoji.ts  ->  bun gen_labels.ts
  *
- * Drains raw.txt: every line is read, the ones worth annotating are sent to the
- * model in batches, and the merged {emoji, feeling, text} records are appended
- * to data.jsonl. Lines that were handled -- annotated, too long, or already in
- * data.jsonl -- are removed from raw.txt; lines whose annotation call failed
- * stay so the next run retries them. data.jsonl is only ever appended to.
+ * Drains feeling.jsonl: every {feeling, text} line is read, the ones worth
+ * annotating are sent to the model in batches, and the merged
+ * {feeling, text, emoji} records are appended to data.jsonl. Lines that were
+ * handled -- annotated, too long, or already in data.jsonl -- are removed from
+ * feeling.jsonl; lines whose annotation call failed stay so the next run retries
+ * them. data.jsonl is only ever appended to.
  *
+ *   - feeling: carried straight through from feeling.jsonl (feeling.ts owns it)
  *   - emoji:   free choice, whatever the model picks
- *   - feeling: exactly one from labels.json (a fixed closed set)
  *
  * No label or length filtering of the corpus happens here -- that is data.py's
  * job at train time. The length check below only decides what is worth an API
  * call now.
  *
  * Run:
- *   bun run annotation.ts
+ *   bun run emoji.ts
  *
  * Requires AI_GATEWAY_API_KEY (Bun auto-loads it from .env).
  */
@@ -31,12 +32,10 @@ import { z } from "zod"
 
 const MODEL = "openai/gpt-5.6-luna"
 const DATA = "./data.jsonl"
-const LABELS = "./labels.json"
-const RAW = "./raw.txt"
+const FEELING_JSONL = "./feeling.jsonl"
 
-// Mirror of config.py's MAX_TEXT_LEN. A raw line whose normalized form is
-// longer is not worth annotating -- data.py would filter the record at train
-// time anyway.
+// Mirror of config.py's MAX_TEXT_LEN. A line whose normalized form is longer is
+// not worth annotating -- data.py would filter the record at train time anyway.
 const MAX_TEXT_LEN = 42
 
 const BATCH_SIZE = 10
@@ -54,15 +53,7 @@ function normalize(text: string): string {
 }
 
 type Row = { emoji: string; feeling: string; text: string }
-
-async function readJsonl(path: string): Promise<Row[]> {
-  const raw = await readFile(path, "utf8")
-  return raw
-    .split("\n")
-    .map((l) => l.trim())
-    .filter(Boolean)
-    .map((l) => JSON.parse(l) as Row)
-}
+type Pending = { feeling: string; text: string }
 
 function chunk<T>(arr: T[], n: number): T[][] {
   const out: T[][] = []
@@ -72,24 +63,19 @@ function chunk<T>(arr: T[], n: number): T[][] {
 
 const Annotation = z.object({
   id: z.number(),
-  feeling: z.string(),
   emoji: z.string(),
 })
 
-type Label = { feeling: string; emoji: string }
-
 /**
- * Annotate one batch. Returns id -> {feeling, emoji} for every id the model
- * answered. Makes up to two attempts (a partial or failed response triggers a
- * retry of the whole batch); whatever is still missing after that is logged
- * and left out.
+ * Annotate one batch. Returns id -> emoji for every id the model answered.
+ * Makes up to two attempts (a partial or failed response triggers a retry of
+ * the whole batch); whatever is still missing after that is logged and left out.
  */
 async function annotateBatch(
   batch: { id: number; text: string }[],
-  feelings: string[],
-): Promise<Map<number, Label>> {
+): Promise<Map<number, string>> {
   const ids = new Set(batch.map((b) => b.id))
-  const byId = new Map<number, Label>()
+  const byId = new Map<number, string>()
 
   for (let attempt = 0; attempt < 2 && byId.size < ids.size; attempt++) {
     try {
@@ -99,13 +85,12 @@ async function annotateBatch(
           schema: z.object({ annotations: z.array(Annotation) }),
         }),
         prompt: [
-          "You are an annotator. For each message below, decide:",
-          `1. feeling: choose exactly one from this list: ${feelings.join(", ")}`,
-          "2. emoji: the single emoji that best fits the message. Any emoji is allowed - pick the most fitting one, not a safe default.",
+          "You are an annotator. For each message below, pick the single emoji that best fits it.",
+          "Any emoji is allowed - pick the most fitting one, not a safe default.",
           "",
           "Return exactly one annotation object per input message, echoing its id.",
           "Do not add, drop, reorder, or merge items.",
-          'Format: {"annotations": [{"id": 0, "feeling": "Happy", "emoji": "\u{1F600}"}]}',
+          'Format: {"annotations": [{"id": 0, "emoji": "\u{1F600}"}]}',
           "",
           "Messages:",
           JSON.stringify(batch),
@@ -113,9 +98,7 @@ async function annotateBatch(
       })
 
       for (const a of output.annotations) {
-        if (ids.has(a.id)) {
-          byId.set(a.id, { feeling: a.feeling.trim(), emoji: a.emoji.trim() })
-        }
+        if (ids.has(a.id)) byId.set(a.id, a.emoji.trim())
       }
     } catch (err) {
       if (attempt === 1) {
@@ -131,43 +114,43 @@ async function annotateBatch(
 }
 
 if (import.meta.main) {
-  if (!existsSync(LABELS)) throw new Error(`${LABELS} not found`)
-  const feelings = z
-    .object({ feelings: z.array(z.string()) })
-    .parse(JSON.parse(await readFile(LABELS, "utf8"))).feelings
-
-  if (!existsSync(RAW)) {
-    console.log(`${RAW} not found -- run \`bun raw_txt.ts\` first`)
+  if (!existsSync(FEELING_JSONL)) {
+    console.log(`${FEELING_JSONL} not found -- run \`bun feeling.ts\` first`)
     process.exit(0)
   }
 
-  // Raw queue, deduped against itself by normalized key (order preserved).
-  const rawLines: string[] = []
-  const rawSeen = new Set<string>()
-  for (const l of (await readFile(RAW, "utf8")).split("\n")) {
+  // Pending queue, deduped against itself by normalized text (order preserved).
+  const pending: Pending[] = []
+  const pendingSeen = new Set<string>()
+  for (const l of (await readFile(FEELING_JSONL, "utf8")).split("\n")) {
     const line = l.trim()
     if (!line) continue
-    const n = normalize(line)
-    if (!n || rawSeen.has(n)) continue
-    rawSeen.add(n)
-    rawLines.push(line)
+    const rec = JSON.parse(line) as Pending
+    const n = normalize(rec.text)
+    if (!n || pendingSeen.has(n)) continue
+    pendingSeen.add(n)
+    pending.push(rec)
   }
 
   // Texts already in the corpus -- don't re-annotate them.
   const inCorpus = new Set<string>()
   if (existsSync(DATA)) {
-    for (const r of await readJsonl(DATA)) inCorpus.add(normalize(r.text))
+    for (const l of (await readFile(DATA, "utf8")).split("\n")) {
+      const line = l.trim()
+      if (line) inCorpus.add(normalize((JSON.parse(line) as Row).text))
+    }
   }
 
-  // Split rawLines into what's worth an API call (`todo`) and what's already
+  // Split pending into what's worth an API call (`todo`) and what's already
   // resolved (`handled`: too long or already in the corpus). Annotated `todo`
-  // rows are added to `handled` below; whatever stays out of it stays in raw.txt.
-  const todo: { id: number; text: string }[] = []
+  // rows are added to `handled` below; whatever stays out of it stays in
+  // feeling.jsonl.
+  const todo: { id: number; feeling: string; text: string }[] = []
   const handled = new Set<string>()
   let nLong = 0
   let nDup = 0
-  for (const text of rawLines) {
-    const n = normalize(text)
+  for (const rec of pending) {
+    const n = normalize(rec.text)
     if (n.length > MAX_TEXT_LEN) {
       nLong++
       handled.add(n)
@@ -175,11 +158,11 @@ if (import.meta.main) {
       nDup++
       handled.add(n)
     } else {
-      todo.push({ id: todo.length, text })
+      todo.push({ id: todo.length, feeling: rec.feeling, text: rec.text })
     }
   }
   console.log(
-    `raw.txt: ${rawLines.length} unique lines ` +
+    `feeling.jsonl: ${pending.length} unique lines ` +
     `(${nLong} too long, ${nDup} already in data.jsonl, ${todo.length} to annotate)`,
   )
 
@@ -204,13 +187,15 @@ if (import.meta.main) {
     const q = new PQueue({ concurrency: CONCURRENCY })
     q.addAll(
       batches.map((batch) => async () => {
-        const byId = await annotateBatch(batch, feelings)
+        const byId = await annotateBatch(
+          batch.map((b) => ({ id: b.id, text: b.text })),
+        )
         const rows: string[] = []
         for (const b of batch) {
-          const a = byId.get(b.id)
-          if (!a) continue
+          const emoji = byId.get(b.id)
+          if (!emoji) continue
           rows.push(
-            JSON.stringify({ emoji: a.emoji, feeling: a.feeling, text: b.text }),
+            JSON.stringify({ feeling: b.feeling, text: b.text, emoji }),
           )
           handled.add(normalize(b.text))
         }
@@ -224,22 +209,25 @@ if (import.meta.main) {
     bar.stop()
   }
 
-  // Rewrite raw.txt without the handled lines; drop the file if nothing's left.
-  const remaining = rawLines.filter((t) => !handled.has(normalize(t)))
+  // Rewrite feeling.jsonl without the handled lines; drop it if nothing's left.
+  const remaining = pending.filter((r) => !handled.has(normalize(r.text)))
   if (remaining.length) {
-    await writeFile(RAW, remaining.join("\n") + "\n")
+    await writeFile(
+      FEELING_JSONL,
+      remaining.map((r) => JSON.stringify(r)).join("\n") + "\n",
+    )
   } else {
-    await rm(RAW, { force: true })
+    await rm(FEELING_JSONL, { force: true })
   }
 
   const annotated = handled.size - nLong - nDup
   console.log("\n--- summary ---")
-  console.log(`annotated -> data.jsonl : ${annotated}`)
-  console.log(`skipped (too long)      : ${nLong}`)
-  console.log(`skipped (duplicate)     : ${nDup}`)
+  console.log(`annotated -> data.jsonl      : ${annotated}`)
+  console.log(`skipped (too long)           : ${nLong}`)
+  console.log(`skipped (duplicate)          : ${nDup}`)
   console.log(
-    `left in raw.txt (retry) : ${remaining.length}` +
-    (remaining.length ? "" : " -- raw.txt removed"),
+    `left in feeling.jsonl (retry): ${remaining.length}` +
+    (remaining.length ? "" : " -- feeling.jsonl removed"),
   )
   console.log("\nnext: bun gen_labels.ts")
   process.exit(0)

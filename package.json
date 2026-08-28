@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "raw": "bun run raw_txt.ts",
-    "annotate": "bun run annotation.ts",
+    "feeling": "bun run feeling.ts",
+    "emoji": "bun run emoji.ts",
     "labels": "bun run gen_labels.ts",
     "fix": "bun run fix.ts",
     "serve": "live-server docs --port=8000"
