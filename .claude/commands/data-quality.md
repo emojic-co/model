@@ -164,7 +164,9 @@ when every individual row is fine.
 
 ## 5. Write the report
 
-Write `report/data/$STAMP.md` with this skeleton:
+Write the report to **both** `report/data/$STAMP.md` (timestamped archive) and
+`data.md` at the repo root (stable copy of the latest run, identical content —
+overwrite it every time). Use this skeleton:
 
 ```markdown
 # Data quality report — <YYYY-MM-DD HH:MM>
@@ -211,7 +213,8 @@ Gaps: <bullets>
 ```
 
 Every number must trace to step 2's output or your step 3/4 tally — no invented
-figures. Nothing to lint (Markdown).
+figures. Nothing to lint (Markdown). Confirm both files were written
+(`report/data/$STAMP.md` and `data.md`).
 
 ## 6. Report back
 

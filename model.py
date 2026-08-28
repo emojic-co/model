@@ -2,7 +2,14 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from config import CHANNELS, EMBED_SIZE, EMOJI_EMBED_SIZE, NUM_LAYERS
+from config import (
+    CHANNELS_1,
+    CHANNELS_2,
+    EMBED_SIZE,
+    EMOJI_EMBED_SIZE,
+    KERNEL_1,
+    KERNEL_2,
+)
 from data import EMOJIS, FEELING, PAD_IDX, VOCAB_SIZE
 
 
@@ -16,28 +23,23 @@ class Model(nn.Module):
             padding_idx=PAD_IDX,
         )
 
-        layers = [
+        self.net = nn.Sequential(
             nn.Conv1d(
                 in_channels=EMBED_SIZE,
-                out_channels=CHANNELS,
-                kernel_size=3,
-                padding=1,
+                out_channels=CHANNELS_1,
+                kernel_size=KERNEL_1,
+                padding=0,
             ),
-            nn.ReLU(),
-        ]
+            nn.LeakyReLU(),
 
-        for _ in range(NUM_LAYERS - 1):
-            layers.append(
-                nn.Conv1d(
-                    in_channels=CHANNELS,
-                    out_channels=CHANNELS,
-                    kernel_size=3,
-                    padding=1,
-                )
-            )
-            layers.append(nn.ReLU())
-
-        self.net = nn.Sequential(*layers)
+            nn.Conv1d(
+                in_channels=CHANNELS_1,
+                out_channels=CHANNELS_2,
+                kernel_size=KERNEL_2,
+                padding=0,
+            ),
+            nn.LeakyReLU(),
+        )
 
         # Emoji head: a learnable embedding per emoji, scored contrastively.
         # The text encoding is projected into the emoji space and matched
@@ -46,7 +48,7 @@ class Model(nn.Module):
         # emojis as negatives -- pulls the matching pair together, pushes the
         # rest apart.
         self.text_proj = nn.Linear(
-            CHANNELS,
+            CHANNELS_2,
             EMOJI_EMBED_SIZE)
 
         self.emoji_embedding = nn.Embedding(
@@ -56,7 +58,7 @@ class Model(nn.Module):
         # log temperature, initialised to ln(1 / 0.07) as in CLIP
         self.logit_scale = nn.Parameter(torch.tensor(2.6593))
 
-        self.feeling = nn.Linear(CHANNELS, len(FEELING))
+        self.feeling = nn.Linear(CHANNELS_2, len(FEELING))
 
     def forward(self, x):
         pad_mask = (x == PAD_IDX).unsqueeze(1)  # (batch, 1, seq_len)
