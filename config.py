@@ -13,6 +13,7 @@ BATCH_SIZE = 64
 GRAD_CLIP = 1.0
 WEIGHT_DECAY = 1e-6
 EPOCHS = 100
+EVAL_EPOCHS = 10
 
 # COLORS
 # Fixed per-feeling Oklab palette for the web app: bg1/bg2 are the gradient
@@ -33,5 +34,6 @@ FEELING_PALETTE = {
 
 def feeling_colors(name: str) -> dict:
     """Map a feeling to its web colors: {bg1, bg2, text_color} Oklab triples."""
-    bg1, bg2, text_color = FEELING_PALETTE.get(name, FEELING_PALETTE["Neutral"])
+    bg1, bg2, text_color = FEELING_PALETTE.get(
+        name, FEELING_PALETTE["Neutral"])
     return {"bg1": list(bg1), "bg2": list(bg2), "text_color": list(text_color)}
