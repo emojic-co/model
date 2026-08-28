@@ -184,7 +184,7 @@ async function step1(): Promise<string[]> {
       try {
         for (const line of await genBatch(job.topic, job.voice)) {
           const n = normalize(line)
-          if (!n || n.length > MAX_RAW_LEN) continue
+          if (!n || n.length > MAX_TEXT_LEN) continue
           if (existing.has(n) || seen.has(n)) continue
           seen.add(n)
           kept.push(line)
