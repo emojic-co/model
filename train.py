@@ -26,6 +26,7 @@ from config import (
     LABEL_SMOOTHING,
     LR,
     MAX_TEXT_LEN,
+    NEGATIVE_SAMPLES,
     WEIGHT_DECAY,
 )
 from data import (
@@ -63,7 +64,8 @@ def evaluate(
         bs = x.size(0)
         emoji_logits, feeling_logits = model(x)
         emoji_loss_sum += emoji_ce(emoji_logits, target_emoji).item() * bs
-        feeling_loss_sum += feeling_ce(feeling_logits, target_feeling).item() * bs
+        feeling_loss_sum += feeling_ce(feeling_logits,
+                                       target_feeling).item() * bs
         emoji_correct += (emoji_logits.argmax(-1) == target_emoji).sum().item()
         feeling_correct += (feeling_logits.argmax(-1) ==
                             target_feeling).sum().item()
@@ -119,6 +121,25 @@ def export_web(model: nn.Module) -> None:
     )
 
 
+def sample_negatives(
+    emoji_logits: torch.Tensor,
+    target_emoji: torch.Tensor,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Restrict the emoji cross-entropy to the true emoji + NEGATIVE_SAMPLES
+    random negatives per row (sampled softmax instead of the full ~133-way
+    InfoNCE). Column 0 of the returned logits is always the positive, so the
+    matching targets are all zero.
+    """
+    bs, num_emojis = emoji_logits.shape
+    weights = torch.ones(bs, num_emojis)
+    weights.scatter_(
+        1,
+        target_emoji.unsqueeze(1), 0.0)  # never sample the positive
+    neg = torch.multinomial(weights, NEGATIVE_SAMPLES, replacement=False)
+    cand = torch.cat([target_emoji.unsqueeze(1), neg], dim=1)
+    return emoji_logits.gather(1, cand), torch.zeros(bs, dtype=torch.long)
+
+
 def train() -> None:
     torch.manual_seed(0)
 
@@ -149,7 +170,9 @@ def train() -> None:
         for x, target_emoji, target_feeling in train_loader:
             optimizer.zero_grad()
             emoji_logits, feeling_logits = model(x)
-            emoji_loss = emoji_ce(emoji_logits, target_emoji)
+            cand_logits, cand_target = sample_negatives(
+                emoji_logits, target_emoji)
+            emoji_loss = emoji_ce(cand_logits, cand_target)
             feeling_loss = feeling_ce(feeling_logits, target_feeling)
             loss = emoji_loss + feeling_loss
             loss.backward()
@@ -183,7 +206,8 @@ def train() -> None:
         pbar.set_postfix(postfix)
 
     writer.close()
-    print(f"\nBest eval loss: {best_loss:.4f}  ->  {MODEL_PT} and docs/ refreshed")
+    print(
+        f"\nBest eval loss: {best_loss:.4f}  ->  {MODEL_PT} and docs/ refreshed")
 
     # Behavioral test suite + Markdown report (report/<MM-DD-HH:MM>.md).
     # Runs against the saved best checkpoint (model.pt), i.e. what ships.
