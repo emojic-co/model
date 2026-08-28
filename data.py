@@ -111,5 +111,17 @@ def train_data_loader(ds: EmojiDataset):
         batch_size=BATCH_SIZE,
         shuffle=True,
         drop_last=True,
-        collate_fn=collate_fn
+        collate_fn=collate_fn,
+        num_workers=4,
+    )
+
+
+def eval_data_loader(ds: EmojiDataset):
+    return DataLoader(
+        ds,
+        batch_size=BATCH_SIZE,
+        shuffle=False,
+        drop_last=False,
+        collate_fn=collate_fn,
+        num_workers=4,
     )

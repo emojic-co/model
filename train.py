@@ -18,12 +18,11 @@ from pathlib import Path
 
 import lightning as pl
 import torch
+import torch.utils.data
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
-from torch.utils.data import DataLoader
 
 from config import (
-    BATCH_SIZE,
     CONFIG_NAME,
     EPOCHS,
     EVAL_EPOCHS,
@@ -37,8 +36,8 @@ from data import (
     EMOJIS,
     FEELING,
     PAD_IDX,
-    collate_fn,
     data_sets,
+    eval_data_loader,
     train_data_loader,
 )
 from model import Model
@@ -156,8 +155,7 @@ def train() -> None:
 
     train_ds, eval_ds = data_sets()
     train_loader = train_data_loader(train_ds)
-    eval_loader = DataLoader(
-        eval_ds, batch_size=BATCH_SIZE, collate_fn=collate_fn)
+    eval_loader = eval_data_loader(eval_ds)
 
     lit = LitEmojic()
     export_best = ExportBest()
@@ -171,14 +169,20 @@ def train() -> None:
         check_val_every_n_epoch=EVAL_EPOCHS,
         gradient_clip_val=GRAD_CLIP,
         accelerator="cpu",
-        devices=1,
+        devices='auto',
         logger=TensorBoardLogger("runs", name=CONFIG_NAME, version=""),
         callbacks=[export_best],
         enable_checkpointing=False,
         num_sanity_val_steps=0,
-        log_every_n_steps=1,
+        log_every_n_steps=10,
     )
-    trainer.fit(lit, train_loader, eval_loader)
+
+    trainer.fit(
+        lit,
+        train_loader,
+        # train_loader,
+        eval_loader
+    )
 
     print(
         f"\nBest eval loss: {export_best.best_loss:.4f}  ->  "
