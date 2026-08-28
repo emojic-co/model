@@ -6,8 +6,8 @@ TEST_LEN = 500
 
 # MODEL
 KERNEL_1 = 3
-CHANNELS = 32
-HIDDEN = 16
+CHANNELS = 16
+HIDDEN = 12
 # NOT IN USE RIGHT NOW
 EMOJI_EMBED_SIZE = 8
 NEGATIVE_SAMPLES = 16
@@ -25,8 +25,8 @@ EVAL_EPOCHS = 5
 
 
 CONFIG_NAME = ' | '.join([
+    f'TIME: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
     f'DATA: mtl {MAX_TEXT_LEN} tl {TEST_LEN}',
     f'MODEL: cs1 {CHANNELS} cs2 {HIDDEN} ee {EMOJI_EMBED_SIZE} ns {NEGATIVE_SAMPLES}',   # noqa: E501
     f'TRAIN: lr {LR} bs {BATCH_SIZE} gc {GRAD_CLIP} wd {WEIGHT_DECAY}',
-    f'TIME: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
 ])
