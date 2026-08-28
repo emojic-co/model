@@ -25,8 +25,8 @@ const RAW = "./raw.txt"
 // runtime concern, applied later by annotation.ts / data.py, not here.
 const MAX_RAW_LEN = 50
 
-const BATCH_COUNT = 20
-const BATCH_SIZE = 100
+const BATCH_COUNT = 50
+const BATCH_SIZE = 50
 const GEN_CONCURRENCY = 10
 
 // --- normalized dedup key: mirror of data.py's normalize() ------------------

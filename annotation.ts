@@ -26,6 +26,7 @@ import { appendFile, readFile, rm, writeFile } from "node:fs/promises"
 
 import { generateText, Output } from "ai"
 import cliProgress from "cli-progress"
+import PQueue from "p-queue"
 import { z } from "zod"
 
 const MODEL = "openai/gpt-5.6-luna"
@@ -69,40 +70,28 @@ function chunk<T>(arr: T[], n: number): T[][] {
   return out
 }
 
-async function pMap<T>(
-  items: T[],
-  fn: (x: T, i: number) => Promise<void>,
-  concurrency: number,
-): Promise<void> {
-  let idx = 0
-  async function worker() {
-    while (idx < items.length) {
-      const cur = idx++
-      await fn(items[cur], cur)
-    }
-  }
-  await Promise.all(
-    Array.from({ length: Math.min(concurrency, items.length) }, worker),
-  )
-}
-
 const Annotation = z.object({
   id: z.number(),
   feeling: z.string(),
   emoji: z.string(),
 })
 
+type Label = { feeling: string; emoji: string }
+
 /**
  * Annotate one batch. Returns id -> {feeling, emoji} for every id the model
- * answered. Retries once on a shape/length mismatch or an API error; whatever
- * is still missing after that is logged and left out.
+ * answered. Makes up to two attempts (a partial or failed response triggers a
+ * retry of the whole batch); whatever is still missing after that is logged
+ * and left out.
  */
 async function annotateBatch(
   batch: { id: number; text: string }[],
   feelings: string[],
-): Promise<Map<number, { feeling: string; emoji: string }>> {
+): Promise<Map<number, Label>> {
   const ids = new Set(batch.map((b) => b.id))
-  for (let attempt = 0; attempt < 2; attempt++) {
+  const byId = new Map<number, Label>()
+
+  for (let attempt = 0; attempt < 2 && byId.size < ids.size; attempt++) {
     try {
       const { output } = await generateText({
         model: MODEL,
@@ -123,33 +112,22 @@ async function annotateBatch(
         ].join("\n"),
       })
 
-      const parsed = z
-        .object({ annotations: z.array(Annotation) })
-        .parse(output)
-
-      const byId = new Map<number, { feeling: string; emoji: string }>()
-      for (const a of parsed.annotations) {
+      for (const a of output.annotations) {
         if (ids.has(a.id)) {
           byId.set(a.id, { feeling: a.feeling.trim(), emoji: a.emoji.trim() })
         }
       }
-
-      const missing = batch.filter((b) => !byId.has(b.id))
-      if (missing.length === 0) return byId
-      if (attempt === 1) {
-        for (const m of missing) {
-          console.warn(`\n  dropped id ${m.id}: no annotation returned`)
-        }
-        return byId
-      }
     } catch (err) {
       if (attempt === 1) {
-        console.warn(`\n  batch of ${batch.length} failed twice, skipped: ${err}`)
-        return new Map()
+        console.warn(`\n  batch of ${batch.length} failed: ${err}`)
       }
     }
   }
-  return new Map()
+
+  for (const b of batch) {
+    if (!byId.has(b.id)) console.warn(`\n  dropped id ${b.id}: no annotation`)
+  }
+  return byId
 }
 
 if (import.meta.main) {
@@ -181,33 +159,29 @@ if (import.meta.main) {
     for (const r of await readJsonl(DATA)) inCorpus.add(normalize(r.text))
   }
 
+  // Split rawLines into what's worth an API call (`todo`) and what's already
+  // resolved (`handled`: too long or already in the corpus). Annotated `todo`
+  // rows are added to `handled` below; whatever stays out of it stays in raw.txt.
   const todo: { id: number; text: string }[] = []
+  const handled = new Set<string>()
   let nLong = 0
   let nDup = 0
   for (const text of rawLines) {
     const n = normalize(text)
     if (n.length > MAX_TEXT_LEN) {
       nLong++
-      continue
-    }
-    if (inCorpus.has(n)) {
+      handled.add(n)
+    } else if (inCorpus.has(n)) {
       nDup++
-      continue
+      handled.add(n)
+    } else {
+      todo.push({ id: todo.length, text })
     }
-    todo.push({ id: todo.length, text })
   }
   console.log(
     `raw.txt: ${rawLines.length} unique lines ` +
-      `(${nLong} too long, ${nDup} already in data.jsonl, ${todo.length} to annotate)`,
+    `(${nLong} too long, ${nDup} already in data.jsonl, ${todo.length} to annotate)`,
   )
-
-  // Keys that got handled this run: everything not in `todo`, plus the `todo`
-  // rows we successfully annotate below. Whatever is left stays in raw.txt.
-  const handled = new Set<string>()
-  for (const text of rawLines) {
-    const n = normalize(text)
-    if (n.length > MAX_TEXT_LEN || inCorpus.has(n)) handled.add(n)
-  }
 
   if (todo.length) {
     const batches = chunk(todo, BATCH_SIZE)
@@ -227,22 +201,25 @@ if (import.meta.main) {
       return writeChain
     }
 
-    await pMap(
-      batches,
-      async (batch) => {
+    const q = new PQueue({ concurrency: CONCURRENCY })
+    q.addAll(
+      batches.map((batch) => async () => {
         const byId = await annotateBatch(batch, feelings)
         const rows: string[] = []
         for (const b of batch) {
           const a = byId.get(b.id)
           if (!a) continue
-          rows.push(JSON.stringify({ emoji: a.emoji, feeling: a.feeling, text: b.text }))
+          rows.push(
+            JSON.stringify({ emoji: a.emoji, feeling: a.feeling, text: b.text }),
+          )
           handled.add(normalize(b.text))
         }
         if (rows.length) await append(rows.join("\n") + "\n")
         bar.increment()
-      },
-      CONCURRENCY,
+      }),
     )
+
+    await q.onIdle()
     await writeChain
     bar.stop()
   }
@@ -262,7 +239,7 @@ if (import.meta.main) {
   console.log(`skipped (duplicate)     : ${nDup}`)
   console.log(
     `left in raw.txt (retry) : ${remaining.length}` +
-      (remaining.length ? "" : " -- raw.txt removed"),
+    (remaining.length ? "" : " -- raw.txt removed"),
   )
   console.log("\nnext: bun gen_labels.ts")
   process.exit(0)

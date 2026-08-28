@@ -6,7 +6,6 @@ from config import (
     CHANNELS_1,
     CHANNELS_2,
     KERNEL_1,
-    KERNEL_2,
 )
 from data import FEELING, VOCAB_SIZE
 
@@ -15,14 +14,7 @@ class Model(nn.Module):
     def __init__(self):
         super().__init__()
 
-        # Vocab is one-hot, not a learned embedding: forward() expands each
-        # char index to a one-hot vector and drops channel 0 (PAD_IDX), so a
-        # pad step is all zeros -- exactly what padding_idx=0 gave before.
-        #
-        # bias=False so a conv window lying entirely in the pad region produces
-        # exactly 0 (pad steps are zero vectors). That keeps pad steps from
-        # winning the global max below, so no pad mask is needed.
-        self.net = nn.Sequential(
+        self.conv = nn.Sequential(
             nn.Conv1d(
                 in_channels=VOCAB_SIZE - 1,
                 out_channels=CHANNELS_1,
@@ -30,20 +22,19 @@ class Model(nn.Module):
                 padding=0,
                 bias=False,
             ),
-            nn.LeakyReLU(),
+            nn.ReLU(),
 
             nn.MaxPool1d(
                 kernel_size=3,
                 stride=2),
+        )
 
-            nn.Conv1d(
-                in_channels=CHANNELS_1,
-                out_channels=CHANNELS_2,
-                kernel_size=KERNEL_2,
-                padding=0,
-                bias=False,
-            ),
-            nn.LeakyReLU(),
+        self.lstm = nn.LSTM(
+            input_size=CHANNELS_1,
+            hidden_size=CHANNELS_2,
+            num_layers=1,
+            batch_first=True,
+            bidirectional=False,
         )
 
         self.feeling = nn.Linear(CHANNELS_2, len(FEELING))
@@ -54,7 +45,8 @@ class Model(nn.Module):
             .transpose(1, 2) \
             .to(torch.float32)
 
-        out = self.net(out)
-        out = torch.max(out, dim=2).values  # (batch, CHANNELS_2)
+        out = self.conv(out)
+        _, (h, _) = self.lstm(out.transpose(1, 2))
+        # out = torch.max(out, dim=1).values
 
-        return self.feeling(out)
+        return self.feeling(h[-1])
