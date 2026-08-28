@@ -112,7 +112,7 @@ class LitEmojic(pl.LightningModule):
         return self.model(x)
 
     def training_step(self, batch, batch_idx) -> torch.Tensor:
-        x, _, target_feeling, target_emoji = batch
+        x, target_emoji, target_feeling = batch
 
         logits_feeling, logits_emoji = self.model(x)
         loss_feeling = self.feeling_ce(logits_feeling, target_feeling)
@@ -132,7 +132,7 @@ class LitEmojic(pl.LightningModule):
         return loss_feeling + loss_emoji
 
     def validation_step(self, batch, batch_idx) -> None:
-        x, _, target_feeling, target_emoji = batch
+        x, target_emoji, target_feeling = batch
         (logits_feeling, logits_emoji) = self.model(x)
         # loss_feeling = self.feeling_ce(logits_feeling, target_feeling)
         # loss_emoji = self.emoji_ce(logits_emoji, target_emoji)
@@ -179,7 +179,7 @@ class ExportBest(pl.Callback):
         self.best_loss = state_dict["best_loss"]
 
     def on_validation_end(self, trainer: pl.Trainer, pl_module: LitEmojic) -> None:
-        metric = trainer.callback_metrics.get("eval/f_loss")
+        metric = trainer.callback_metrics.get("eval/f_acc")
         if metric is None:
             return
         loss = float(metric)
