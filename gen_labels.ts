@@ -22,7 +22,7 @@ import { z } from "zod"
 
 const DATA = "./data.jsonl"
 const LABELS = "./labels.json"
-const TOP_N = 100
+const TOP_N = 50
 
 type Row = { emoji: string; feeling: string; text: string }
 
@@ -56,17 +56,17 @@ if (import.meta.main) {
   const cutoff = ranked[TOP_N - 1]?.[1]
   console.log(
     `${counts.size} distinct emojis in data.jsonl -> kept top ${emojis.length}` +
-      (cutoff !== undefined ? ` (>= ${cutoff} occurrences)` : ""),
+    (cutoff !== undefined ? ` (>= ${cutoff} occurrences)` : ""),
   )
   const dropped = ranked.slice(TOP_N)
   if (dropped.length) {
     console.log(
       `dropped ${dropped.length}: ` +
-        dropped
-          .slice(0, 20)
-          .map(([e, n]) => `${e}:${n}`)
-          .join(" ") +
-        (dropped.length > 20 ? " ..." : ""),
+      dropped
+        .slice(0, 20)
+        .map(([e, n]) => `${e}:${n}`)
+        .join(" ") +
+      (dropped.length > 20 ? " ..." : ""),
     )
   }
   process.exit(0)
