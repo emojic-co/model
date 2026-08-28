@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from config import EMBED_SIZE, H_SIZE
+from config import EMBED_SIZE, H_SIZE, NUM_LAYERS
 from data import EMOJIS, FEELING, PAD_IDX, VOCAB_SIZE
 
 
@@ -15,7 +15,7 @@ class Model(nn.Module):
             padding_idx=PAD_IDX,
         )
 
-        self.net = nn.Sequential(
+        layers = [
             nn.Conv1d(
                 in_channels=EMBED_SIZE,
                 out_channels=H_SIZE,
@@ -23,7 +23,20 @@ class Model(nn.Module):
                 padding=1,
             ),
             nn.ReLU(),
-        )
+        ]
+
+        for _ in range(NUM_LAYERS):
+            layers.append(
+                nn.Conv1d(
+                    in_channels=H_SIZE,
+                    out_channels=H_SIZE,
+                    kernel_size=3,
+                    padding=1,
+                )
+            )
+            layers.append(nn.ReLU())
+
+        self.net = nn.Sequential(*layers)
 
         self.emoji = nn.Linear(H_SIZE, len(EMOJIS))
         self.feeling = nn.Linear(H_SIZE, len(FEELING))
