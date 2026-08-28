@@ -7,7 +7,7 @@ from config import (
     HIDDEN,
     KERNEL_1,
 )
-from data import FEELING, VOCAB_SIZE
+from data import EMOJIS, FEELING, VOCAB_SIZE
 
 
 class Model(nn.Module):
@@ -38,6 +38,7 @@ class Model(nn.Module):
         )
 
         self.feeling = nn.Linear(HIDDEN, len(FEELING))
+        self.emoji = nn.Linear(HIDDEN, len(EMOJIS))
 
     def forward(self, x):
         out = F \
@@ -49,4 +50,7 @@ class Model(nn.Module):
         _, (h, _) = self.lstm(out.transpose(1, 2))
         # out = torch.max(out, dim=1).values
 
-        return self.feeling(h[-1])
+        return (
+            self.feeling(h[-1]),
+            self.emoji(h[-1]),
+        )

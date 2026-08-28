@@ -110,44 +110,57 @@ class LitEmojic(pl.LightningModule):
         super().__init__()
         self.model = Model()
         self.feeling_ce = nn.CrossEntropyLoss()
+        self.emoji_ce = nn.CrossEntropyLoss(label_smoothing=0.1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.model(x)
 
     def training_step(self, batch, batch_idx) -> torch.Tensor:
-        x, _, target_feeling = batch
-        logits = self.model(x)
-        loss = self.feeling_ce(logits, target_feeling)
-        acc = (logits.argmax(dim=-1) == target_feeling).float().mean()
-        self.log(
-            "train/f_loss", loss, on_step=False, on_epoch=True, prog_bar=True
-        )
-        self.log("train/f_acc", acc, on_step=False,
-                 on_epoch=True, prog_bar=True)
-        return loss
+        x, _, target_feeling, target_emoji = batch
+
+        logits_feeling, logits_emoji = self.model(x)
+        loss_feeling = self.feeling_ce(logits_feeling, target_feeling)
+        loss_emoji = self.emoji_ce(logits_emoji, target_emoji)
+
+        def log(k, v):
+            self.log(
+                k, v,
+                on_step=False,
+                on_epoch=True,
+                prog_bar=True,
+                batch_size=x.size(0))
+
+        log("train/f_loss", loss_feeling)
+        log("train/e_loss", loss_emoji)
+
+        return loss_feeling + loss_emoji
 
     def validation_step(self, batch, batch_idx) -> None:
-        x, _, target_feeling = batch
-        logits = self.model(x)
-        loss = self.feeling_ce(logits, target_feeling)
-        acc = (logits.argmax(dim=-1) == target_feeling).float().mean()
+        x, _, target_feeling, target_emoji = batch
+        (logits_feeling, logits_emoji) = self.model(x)
+        # loss_feeling = self.feeling_ce(logits_feeling, target_feeling)
+        # loss_emoji = self.emoji_ce(logits_emoji, target_emoji)
+
+        acc_feeling = (
+            logits_feeling.argmax(dim=-1) == target_feeling).float().mean()
+
+        acc_emoji = (
+            logits_emoji.argmax(dim=-1) == target_emoji).float().mean()
+
         # batch_size weights the epoch mean, matching the old size-weighted eval.
-        self.log(
-            "eval/f_loss",
-            loss,
-            on_step=False,
-            on_epoch=True,
-            prog_bar=True,
-            batch_size=x.size(0),
-        )
-        self.log(
-            "eval/f_acc",
-            acc,
-            on_step=False,
-            on_epoch=True,
-            prog_bar=True,
-            batch_size=x.size(0),
-        )
+
+        def log(k, v):
+            self.log(
+                k, v,
+                on_step=False,
+                on_epoch=True,
+                prog_bar=True,
+                batch_size=x.size(0))
+
+        # log("eval/f_loss", loss_feeling)
+        # log("eval/e_loss", loss_emoji)
+        log("eval/f_acc", acc_feeling)
+        log("eval/e_acc", acc_emoji)
 
     def configure_optimizers(self):
         return optim.SGD(self.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
