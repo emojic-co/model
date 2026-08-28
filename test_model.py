@@ -1,12 +1,16 @@
-"""Behavioral test suite for the trained emojic feeling model.
+"""Behavioral test suite for the trained emojic model.
 
-Two batteries, both run against the committed ``model.pt``:
+Three batteries, all run against the committed ``model.pt``:
 
 1. Feelings -- feed each feeling's own name to the model and check the feeling
    head predicts that feeling.
 2. Negations -- feed ``not <feeling>`` and check the feeling head does *not*
    predict ``<feeling>``; where an opposite is expected (``NEGATION_EXPECTED``),
    also check it predicts that opposite.
+3. Emojis -- feed each of 20 hand-picked cue words (one per emoji, chosen for a
+   plain-meaning association, not lifted from training text) and check the emoji
+   head's nearest embedding is the paired emoji. The report lists the top 5
+   emojis for every cue.
 
 Writes a Markdown report to ``report/<MM-DD-HH:MM>.md`` and prints a summary.
 ``train.py`` calls :func:`run` at the end of every training run.
@@ -23,6 +27,7 @@ import torch
 
 from config import MAX_TEXT_LEN
 from data import (
+    EMOJIS,
     FEELING,
     PAD_IDX,
     char2idx,
@@ -45,6 +50,32 @@ NEGATION_EXPECTED: dict[str, str] = {
     "Excited": "Neutral",
 }
 
+# 20 (emoji, cue word) pairs for the emoji battery. Each word is a plain-meaning
+# association with the emoji, deliberately not copied from any training text. All
+# 20 emojis are in labels.json's emoji list.
+EMOJI_CUES: list[tuple[str, str]] = [
+    ("🎉", "party"),
+    ("😢", "crying"),
+    ("😡", "furious"),
+    ("😴", "sleepy"),
+    ("🔥", "fire"),
+    ("☕", "coffee"),
+    ("🤔", "thinking"),
+    ("💔", "heartbroken"),
+    ("🥳", "birthday"),
+    ("😰", "nervous"),
+    ("🚀", "rocket"),
+    ("🙏", "grateful"),
+    ("🥰", "adore"),
+    ("😂", "hilarious"),
+    ("🌧️", "rain"),
+    ("🧘", "meditate"),
+    ("😱", "terrified"),
+    ("🙄", "whatever"),
+    ("✨", "sparkle"),
+    ("😔", "down"),
+]
+
 
 def load_model(path: Path = MODEL_PT) -> Model:
     model = Model()
@@ -64,6 +95,19 @@ def predict(model: Model, text: str) -> dict:
     """Return the top feeling for ``text``."""
     feeling_logits = model(_encode(text))[0]
     return {"feeling": FEELING[int(feeling_logits.argmax())]}
+
+
+@torch.no_grad()
+def predict_emojis(model: Model, text: str, k: int = 5) -> list[str]:
+    """Return the ``k`` nearest emojis for ``text``, closest first.
+
+    Uses the same L2 metric between the projected hidden state and the emoji
+    embeddings that the triplet loss trains and ``train.py``'s eval scores with.
+    """
+    _, q, emoji_embed = model(_encode(text))
+    dists = torch.cdist(q, emoji_embed)[0]
+    order = dists.argsort()[:k]
+    return [EMOJIS[int(i)] for i in order]
 
 
 def test_feelings(model: Model) -> list[dict]:
@@ -103,22 +147,53 @@ def test_negations(model: Model) -> list[dict]:
     return rows
 
 
+def test_emojis(model: Model) -> list[dict]:
+    rows = []
+    for emoji, word in EMOJI_CUES:
+        top5 = predict_emojis(model, word, k=5)
+        rows.append(
+            {
+                "word": word,
+                "emoji": emoji,
+                "predicted": top5[0],
+                "top5": top5,
+                "pass": top5[0] == emoji,
+            }
+        )
+    return rows
+
+
 def _pct(num: int, den: int) -> str:
     return f"{100 * num / den:.0f}%" if den else "n/a"
+
+
+def _heading(feeling_rows, negation_rows, emoji_rows) -> str:
+    f_pass = sum(r["pass"] for r in feeling_rows)
+    n_pass = sum(r["pass"] for r in negation_rows)
+    e_pass = sum(r["pass"] for r in emoji_rows)
+    return (
+        f"Feelings Accuracy {f_pass}/{len(feeling_rows)} | "
+        f"Neg Feeling Score {n_pass}/{len(negation_rows)} | "
+        f"Emojis Accuracy {e_pass}/{len(emoji_rows)}"
+    )
 
 
 def build_report(
     feeling_rows: list[dict],
     negation_rows: list[dict],
+    emoji_rows: list[dict],
 ) -> str:
     now = dt.datetime.now()
     f_pass = sum(r["pass"] for r in feeling_rows)
     n_avoided = sum(r["avoided"] for r in negation_rows)
     n_expected = [r for r in negation_rows if r["expected"] is not None]
     n_matched = sum(r["matched_expected"] for r in n_expected)
+    e_pass = sum(r["pass"] for r in emoji_rows)
 
     out: list[str] = []
     out.append(f"# Model test report — {now:%Y-%m-%d %H:%M}")
+    out.append("")
+    out.append(f"**{_heading(feeling_rows, negation_rows, emoji_rows)}**")
     out.append("")
     out.append(f"- Model: `{MODEL_PT}`")
     out.append(
@@ -130,6 +205,10 @@ def build_report(
         f"prompts avoided the negated feeling "
         f"({_pct(n_avoided, len(negation_rows))}); "
         f"**{n_matched}/{len(n_expected)}** hit the expected opposite"
+    )
+    out.append(
+        f"- Emojis: **{e_pass}/{len(emoji_rows)}** cue words whose nearest "
+        f"emoji is the paired one ({_pct(e_pass, len(emoji_rows))})"
     )
     out.append("")
 
@@ -160,27 +239,37 @@ def build_report(
         )
     out.append("")
 
+    out.append("## Emojis")
+    out.append("")
+    out.append(
+        "20 cue words, one per emoji. Pass = the emoji head's nearest embedding "
+        "is the paired emoji. Top 5 is nearest-first."
+    )
+    out.append("")
+    out.append("| word | emoji | prediction | top 5 predictions (sorted) |")
+    out.append("| --- | --- | --- | --- |")
+    for r in emoji_rows:
+        mark = "✅" if r["pass"] else "❌"
+        top5 = " ".join(r["top5"])
+        out.append(f"| {r['word']} | {r['emoji']} | {r['predicted']} {mark} | {top5} |")
+    out.append("")
+
     return "\n".join(out)
 
 
 def run(model: Model | None = None) -> Path:
-    """Run both batteries, write the report, print a summary, return its path."""
+    """Run all batteries, write the report, print a summary, return its path."""
     model = model or load_model()
     feeling_rows = test_feelings(model)
     negation_rows = test_negations(model)
+    emoji_rows = test_emojis(model)
 
-    report = build_report(feeling_rows, negation_rows)
+    report = build_report(feeling_rows, negation_rows, emoji_rows)
     REPORT_DIR.mkdir(exist_ok=True)
     path = REPORT_DIR / f"{dt.datetime.now():%m-%d-%H:%M}.md"
     path.write_text(report, encoding="utf-8")
 
-    f_pass = sum(r["pass"] for r in feeling_rows)
-    n_avoided = sum(r["avoided"] for r in negation_rows)
-    print(
-        f"feelings {f_pass}/{len(feeling_rows)} | "
-        f"negations avoided {n_avoided}/{len(negation_rows)} | "
-        f"report -> {path}"
-    )
+    print(f"{_heading(feeling_rows, negation_rows, emoji_rows)} | report -> {path}")
     return path
 
 
