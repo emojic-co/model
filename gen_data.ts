@@ -140,6 +140,7 @@ async function genBatch(topic: string, voice: string): Promise<string[]> {
       `One message per line. No numbering, no bullets, no quotes, no emoji, no commentary.`,
       `Each message at most ${MAX_RAW_LEN} characters.`,
       `Vary tone and intent: quick updates, dry humor, complaints, questions, sudden news, invitations, low-effort replies.`,
+      `Make roughly a quarter of the messages express a feeling by negating one: "not happy about this", "wasn't excited tbh", "no longer angry", "cant say im sad", "not that calm rn". Negate different feelings, not just one.`,
       `Sound real and specific. Avoid clichés and near-duplicates.`,
     ].join("\n"),
   })

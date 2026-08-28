@@ -93,12 +93,60 @@ also straddle the split (mild leak → eval is even weaker than it looks).
    receptive field covers the full 64-char window.
 2. Concatenate **mean-pool + max-pool** instead of max-only — keeps
    frequency/energy info and reduces attractor collapse.
-3. For negation and word order: a small bi-GRU (1 layer, hidden 64) over the
-   conv features, or a 2-layer Transformer encoder (d_model 64, 2 heads). Still
-   <300k params.
+3. For negation and word order: a **conv + bi-GRU (CRNN)** — conv layers stay a
+   learned n-gram extractor, the bi-RNN adds unbounded order-sensitive context.
+   See §3.1 for a concrete spec. (A 2-layer Transformer encoder is the
+   alternative, but at 12k rows / len 64 the BiGRU is the safer bet.)
 4. Add a word-level path: hash-embed whitespace-split tokens and concat with the
    char features. "peace", "zen", "yoga", "music", "moon" would then map
    directly instead of via char n-grams.
+
+#### 3.1 CRNN spec (the concrete form of A.3)
+
+Conv front-end as a learned n-gram extractor + downsampler, then a bidirectional
+GRU for full-context, order-sensitive features, then the existing two heads.
+
+```
+Embedding(38 → 32, padding_idx=0)
+Conv1d(32 → 64, k=3, pad=1, stride=2) + ReLU      # 64 → 32 steps
+Conv1d(64 → 64, k=3, pad=1, stride=2) + ReLU      # 32 → 16 steps
+BiGRU(64 → 64, num_layers=1, batch_first=True)    # 16 steps, 128-d output
+masked mean-pool ⧺ masked max-pool over GRU outputs   → 256-d
+Dropout(0.2)
+├─ Linear(256 → 133)   emoji
+└─ Linear(256 → 8)     feeling
+```
+
+~150–250k params; still CPU-fine and ONNX-exportable. Rationale:
+
+- **BiGRU over BiLSTM**: fewer params, faster, no long-range dependency at this
+  length. 1 layer is enough; try 2 only if it underfits.
+- **Pool the GRU outputs, don't take the last hidden state.** Keep the current
+  masked-max-pool pattern and add masked mean-pool alongside it (concat). Mean+
+  max is more robust and resists the attractor-class collapse; taking the last
+  valid state forces a gather-by-length, which is what made the *old* LSTM ONNX
+  export need an `ExportWrapper`.
+- **Downsample the pad mask with the conv strides** (max-pool the boolean mask,
+  same kernel/stride) so the GRU pooling still masks the right steps. This is
+  the one fiddly bit.
+- **No `pack_padded_sequence`.** Run the GRU over the full padded sequence and
+  mask afterward. onnxruntime-web supports GRU (incl. bidirectional) at opset
+  18; masked pooling traces cleanly with no wrapper.
+
+Trade-offs:
+
+| vs. | verdict |
+| --- | --- |
+| Dilated CNN (A.1) | CRNN is strictly more expressive for negation/order; ~2–3× slower per epoch but still seconds on 12k rows. Dilated CNN is the minimal diff; CRNN is worth it if negation matters to the product. |
+| 2-layer Transformer | At 12k samples / len 64, BiGRU usually wins — no positional encoding to tune, less regularisation fuss. |
+
+Caveats:
+
+- A model this size on ~12k rows / 133 classes **will** overfit without the
+  rest — pair it with the Dropout(0.2) above, `WEIGHT_DECAY` 1e-4 (rec E), and
+  the larger deterministic eval (rec D) so the train/val gap is visible.
+- CRNN does **not** lift the label-noise / near-synonym ceiling — B (prune the
+  tail) and honest macro-F1 eval still gate how far top-1 can climb.
 
 **B. Fix the label space.**
 - Drop or fold emojis with < ~80 training samples; aim for 40–60 classes each
@@ -157,5 +205,6 @@ keep the negation battery as a release gate.
 3. **A.1/A.2** (dilated convs + mean+max pool) — one small `model.py` change,
    should move negation and multi-word cues immediately.
 4. **C** (rebalance sampler + tail data) and **E** (class weights).
-5. **F** (capacity), then **A.3** (recurrent/transformer head) if top-3 is
-   still short of target.
+5. **F** (capacity), then **A.3 / §3.1** (conv + bi-GRU CRNN) if negation or
+   top-3 is still short of target. Skip straight to it instead of A.1/A.2 if
+   negation is a hard product requirement.

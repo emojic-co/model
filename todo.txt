@@ -1,5 +1,8 @@
 TODO:
 DONE:
+    DATA GEN:
+        - make sure to add samples that use negative feelings, e.g. "I'm not happy today" etc...
+            Update the prompt to generate negative feelings as well.
     Web App:
         - limit the input text to 64 characters
     Tensorboard:
