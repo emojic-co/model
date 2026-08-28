@@ -25,8 +25,8 @@ const RAW = "./raw.txt"
 // runtime concern, applied later by annotation.ts / data.py, not here.
 const MAX_RAW_LEN = 50
 
-const TARGET_TEXTS = 1000
-const GEN_BATCH = 25
+const BATCH_COUNT = 20
+const BATCH_SIZE = 100
 const GEN_CONCURRENCY = 10
 
 // --- normalized dedup key: mirror of data.py's normalize() ------------------
@@ -61,7 +61,7 @@ async function genBatch(voice: string): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
     prompt: [
-      `Write ${GEN_BATCH} short WhatsApp-style messages as if sent by ${voice}.`,
+      `Write ${BATCH_SIZE} short WhatsApp-style messages as if sent by ${voice}.`,
       `One message per line. No numbering, no bullets, no quotes, no emoji, no commentary.`,
       `Each message at most ${MAX_RAW_LEN} characters.`,
       `Vary tone and intent: quick updates, dry humor, complaints, questions, sudden news, invitations, low-effort replies.`,
@@ -89,9 +89,8 @@ if (import.meta.main) {
     console.log(`raw.txt present -> ${existing.size} existing texts to dedup against`)
   }
 
-  const nBatches = Math.ceil(TARGET_TEXTS / GEN_BATCH)
   const voices = Array.from(
-    { length: nBatches },
+    { length: BATCH_COUNT },
     () => VOICES[Math.floor(Math.random() * VOICES.length)],
   )
 
@@ -103,7 +102,7 @@ if (import.meta.main) {
     },
     cliProgress.Presets.shades_classic,
   )
-  bar.start(nBatches, 0)
+  bar.start(BATCH_COUNT, 0)
   const q = new PQueue({ concurrency: GEN_CONCURRENCY })
   q.addAll(voices.map((voice) => async () => {
     try {
