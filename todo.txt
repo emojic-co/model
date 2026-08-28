@@ -1,31 +1,3 @@
 TODO:
 
 DONE:
-    Export Web:
-        - export the MAX_TEXT_LEN into docs/config.json load it in the web page and limit the input field to that length
-
-    Data Gen:
-        New data pipeline, split out of gen_data.ts into three scripts:
-            bun raw_txt.ts -> bun annotation.ts -> bun gen_labels.ts
-        (package.json: bun run raw / annotate / labels)
-
-        Step 1: Generate raw text (raw_txt.ts):
-            - diverse, informal, short (<= 50 chars) WhatsApp-style messages
-            - appends to raw.txt (never truncates)
-            - deduplicated against itself and existing raw.txt via data.py's normalize key
-        Step 2: Label each text with emoji and feeling (annotation.ts):
-            - reads raw.txt, skips lines longer than MAX_TEXT_LEN and lines already in data.jsonl
-            - annotates in batches: emoji free choice, feeling from labels.json feelings
-            - appends records to data.jsonl, removes handled lines from raw.txt (retries the rest)
-        Step 3: (re)generate labels.json (gen_labels.ts):
-            - feelings copied through untouched (fixed closed set)
-            - emojis in data.jsonl tallied, sorted by frequency desc (ties keep first-seen order)
-            - top 100 written back to labels.json in that order
-        Step 4: runtime filtering in data.py read():
-            - drops records whose feeling or emoji is not in labels.json
-            - drops records whose normalized text is longer than MAX_TEXT_LEN
-            - data.jsonl is never modified; filtering is runtime-only
-    Web App:
-        - on the side, output debug info:
-            - feeling probabilities
-            - top 10 emoji probabilities

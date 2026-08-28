@@ -40,6 +40,7 @@ function normalize(text: string): string {
   return [...t].filter((c) => VOCAB.has(c)).join("")
 }
 
+// TODO: add a feeling to the prompt, always pick the feeling with the least coverage in the existing dataset, to balance the dataset better. 
 const VOICES = [
   "a teenager", "a college student", "a new parent", "a retiree",
   "a shift worker", "a freelancer", "someone in their 30s", "a grandparent",
@@ -47,14 +48,6 @@ const VOICES = [
   "a girl", "a boy",
   "a father", "a mother", "a sibling", "a cousin", "a friend", "a neighbor",
   "a coworker", "a classmate", "a teammate", "a mentor", "a mentee",
-  "someone from a different country", "someone from a different culture",
-  "someone with a disability", "someone with a chronic illness",
-  "someone who is introverted", "someone who is extroverted",
-  "someone who is optimistic", "someone who is pessimistic",
-  "someone who is sarcastic", "someone who is sincere",
-  "someone who is humorous", "someone who is serious",
-  "someone who is adventurous", "someone who is cautious",
-  "someone who is spontaneous", "someone who is organized",
 ]
 
 async function genBatch(voice: string): Promise<string[]> {
