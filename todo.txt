@@ -1,4 +1,6 @@
 TODO:
+    Web App:
+        - when pressing enter trigger the copy flow, i.e. copy the image to the clipboard and show a toast message.
 DONE:
     When reporting emoji acc report top-3, and top-5 accuracy.
     Tensorboard:
