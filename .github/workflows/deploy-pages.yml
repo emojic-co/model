@@ -1,23 +1,14 @@
 name: Deploy Pages
 
-# Rebuilds and publishes the standalone site whenever the model or anything the
-# page is built from changes on main. Can also be run by hand from the Actions
-# tab (workflow_dispatch). Repo Settings -> Pages -> Source must be "GitHub
-# Actions".
+# Publishes the committed static site in docs/ whenever it changes on main.
+# There is no build step -- docs/ is served exactly as committed (regenerate its
+# model.onnx / meta.json locally with `uv run main.py`). Can also be run by hand
+# from the Actions tab. Repo Settings -> Pages -> Source must be "GitHub Actions".
 on:
   push:
     branches: [main]
     paths:
-      - model.pt
-      - main.py
-      - config.py
-      - labels.json
-      - build_web.py
-      - site/**
-      - web/style.css
-      - vendor/**
-      - pyproject.toml
-      - uv.lock
+      - docs/**
       - .github/workflows/deploy-pages.yml
   workflow_dispatch:
 
@@ -32,25 +23,15 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-        with:
-          python-version: "3.11"
-      - run: uv sync --frozen
-      - run: uv run build_web.py
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs
-
   deploy:
-    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
       - id: deployment
         uses: actions/deploy-pages@v4

@@ -358,7 +358,7 @@ if (import.meta.main) {
   )
   console.log(
     "\nnext: review labels.json, ensure FEELING_PALETTE covers every kept " +
-      "feeling, then `uv run main.py` and `uv run build_web.py`.",
+      "feeling, then `uv run main.py` (which also refreshes docs/).",
   )
   process.exit(0)
 }

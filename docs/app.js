@@ -61,7 +61,10 @@ let current = null;
 // Mirror main.py's normalize(): collapse whitespace, lowercase, drop anything
 // not in the model vocab.
 function normalize(text) {
-  const t = text.replace(/\s+/g, " ").trim().toLowerCase();
+  const t = text
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
   let out = "";
   for (const c of t) if (CHAR2IDX.has(c)) out += c;
   return out;

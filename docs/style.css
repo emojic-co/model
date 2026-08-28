@@ -73,10 +73,9 @@ h1 {
   transition: background 220ms ease, color 220ms ease;
 }
 
-/* "Copy as image" button, top-right of the output card. Only the standalone
-   GitHub Pages build (site/) wires it up; on the local-dev page it is absent
-   and this rule is inert. Kept out of the rendered PNG -- app.js hand-draws
-   the card onto a canvas rather than snapshotting the DOM. */
+/* "Copy as image" button, top-right of the output card. Kept out of the
+   rendered PNG -- app.js hand-draws the card onto a canvas rather than
+   snapshotting the DOM. */
 #copy {
   position: absolute;
   top: 16px;
