@@ -1,14 +1,16 @@
 ---
-description: Sample 500 rows from data.jsonl and write a data-quality report (label correctness, text quality, coverage)
-allowed-tools: [Bash, Read, Write]
+description: Sample 500 rows from data.jsonl, write a data-quality report (label correctness, text quality, coverage), then rewrite the rows the sample flagged as broken
+allowed-tools: [Bash, Read, Write, Edit]
 ---
 
 # Data quality
 
 Judge the health of `data.jsonl` from a **500-row random sample**. Produce one
 report covering label correctness, text quality, label coverage, and text-style
-coverage. Do not train, do not run `train.py`/`test_model.py`, do not touch
-`data.jsonl`.
+coverage, then repair the flagged rows in place (step 5). Do not train, do not
+run `train.py`/`test_model.py`. Steps 1-4 are read-only; only step 5 writes
+`data.jsonl`, and only to rewrite rows the sample judged broken — it never adds,
+deletes, or reorders rows.
 
 The label sets live in `labels.json` (`feelings`, `emojis`). The training
 pipeline runs every `text` through `normalize` in `data.py` first
@@ -162,7 +164,111 @@ formal writing, no long multi-sentence messages, everything is 1st-person
 present tense, one age register dominates). Style monoculture is a finding even
 when every individual row is fine.
 
-## 5. Write the report
+## 5. Fix the flagged records
+
+Rewrite the rows your step 3 judgment flagged, **in place**. This step changes
+`data.jsonl`; everything above it must be finished first.
+
+### 5a. What is in scope
+
+Only sampled rows you flagged as one of:
+
+- **broken** (step 3b) — grammar/spelling errors, truncation, template
+  artifacts (`{feeling}`, trailing `-`, JSON crumbs), non-English, empty.
+- **emoji or feeling clearly wrong** (step 3a `*_wrong` — **not** `*_weak`).
+- **low-content** (step 3b).
+- **exact/near-duplicate texts** (step 2's duplicate list).
+
+**Out of scope — never touch these:**
+
+- **normalize-fragile** rows. `normalize` / `CHARS` may change later, so never
+  edit a row because of what `normalize` currently deletes.
+- `*_weak` labels, `clean` rows, style-coverage gaps, anything you are not
+  confident is wrong.
+
+### 5b. Rules
+
+- **Rewrite only. Never delete a row, add a row, or reorder rows.** The line
+  count of `data.jsonl` is identical before and after.
+- Per flagged row, produce a corrected `{text, emoji, feeling}`:
+  - **broken** → fix the text; keep its meaning and both labels.
+  - **wrong label** → change only the offending `emoji` / `feeling` to the
+    better fit you recorded in step 3a; leave `text` alone.
+  - **low-content** → rewrite `text` into a concrete short message that fits
+    the existing labels.
+  - **duplicate** → rewrite all but one copy into distinct texts; keep labels.
+- If you cannot fix a row with confidence, **leave it untouched** and list it
+  under "unfixed" in the report.
+
+### 5c. Apply the fixes
+
+Write one correction per line to `report/data/$STAMP.fixes.jsonl`, each
+`{"old": <row verbatim from the sample>, "new": <corrected row>}`. The `old`
+object must be the exact `{text, emoji, feeling}` from the sample file. For a
+duplicate you are splitting, emit one line per copy you are changing (same
+`old`, different `new`); they are consumed in file order.
+
+Snapshot first so the invariant checks compare against the real pre-step state:
+
+```bash
+cp data.jsonl "report/data/$STAMP.data-before.jsonl"
+```
+
+```bash
+uv run python - data.jsonl "report/data/$STAMP.fixes.jsonl" <<'EOF'
+import collections, json, sys
+
+data_path, fixes_path = sys.argv[1], sys.argv[2]
+DUMP = dict(ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+key = lambda r: (r["text"], r["emoji"], r["feeling"])
+
+queues = collections.defaultdict(collections.deque)
+n_fix = 0
+for line in open(fixes_path, encoding="utf-8"):
+    line = line.strip()
+    if not line:
+        continue
+    f = json.loads(line)
+    queues[key(f["old"])].append(f["new"])
+    n_fix += 1
+
+out, applied = [], 0
+for raw in open(data_path, encoding="utf-8"):
+    r = json.loads(raw)
+    q = queues.get(key(r))
+    if q:
+        out.append(json.dumps(q.popleft(), **DUMP) + "\n")
+        applied += 1
+    else:
+        out.append(raw)  # untouched rows pass through byte-for-byte
+
+leftover = sum(len(q) for q in queues.values())
+if leftover:
+    sys.exit(f"ERROR: {leftover} corrections matched no row; nothing written")
+
+with open(data_path, "w", encoding="utf-8") as f:
+    f.writelines(out)
+print(f"corrections: {n_fix}  applied: {applied}")
+EOF
+```
+
+Then verify the edit is exactly what you intended:
+
+```bash
+BEFORE="report/data/$STAMP.data-before.jsonl"
+test "$(wc -l < "$BEFORE")" = "$(wc -l < data.jsonl)" && echo "row count unchanged"
+diff "$BEFORE" data.jsonl | grep -c '^> '   # changed lines; must equal corrections applied
+diff "$BEFORE" data.jsonl | grep '^[<>]' | head -40   # eyeball every change
+```
+
+Because step 5 never reorders rows, `diff` shows only in-place `Nc N` hunks.
+
+Changed-line count must equal the script's `applied:` count and the row count
+must be identical. If either is off, `cp "$BEFORE" data.jsonl` and redo the
+fixes file. Do not commit or retrain here — leave the corrected corpus for the
+next `uv run main.py`.
+
+## 6. Write the report
 
 Write the report to **both** `report/data/$STAMP.md` (timestamped archive) and
 `data.md` at the repo root (stable copy of the latest run, identical content —
@@ -176,6 +282,7 @@ overwrite it every time). Use this skeleton:
 - Text quality: <clean>/500 clean · <broken> broken · <normalize_fragile> normalize-fragile · <low_content> low-content
 - Label coverage: feelings <k>/8 present · emojis <m>/<total> present · imbalance <r>x
 - Style coverage: <one-line gist + biggest gap>
+- Fixes applied: <f> rows rewritten (<b> broken · <l> labels · <c> low-content · <d> dedup) · <u> left unfixed
 
 ## 1. Label correctness
 <rates; systematic patterns first, then a table of the worst individual rows>
@@ -208,15 +315,23 @@ overwrite it every time). Use this skeleton:
 
 Gaps: <bullets>
 
-## 5. Verdict & recommendations
+## 5. Fixes applied
+- rewritten: <f> rows (<b> broken · <l> labels · <c> low-content · <d> dedup); fixes file `report/data/<STAMP>.fixes.jsonl`
+- unfixed (flagged but not confidently fixable): <u> — <examples>
+
+| before (text — emoji / feeling) | after | why |
+| --- | --- | --- |
+
+## 6. Verdict & recommendations
 <3-6 prioritised bullets: what to fix in the generator / labels / normalize, in impact order>
 ```
 
-Every number must trace to step 2's output or your step 3/4 tally — no invented
-figures. Nothing to lint (Markdown). Confirm both files were written
-(`report/data/$STAMP.md` and `data.md`).
+Every number must trace to step 2's output, your step 3/4 tally, or step 5's
+`applied:` count — no invented figures. Nothing to lint (Markdown). Confirm both
+files were written (`report/data/$STAMP.md` and `data.md`).
 
-## 6. Report back
+## 7. Report back
 
 In 2-3 sentences: the sample size and corpus size, the headline correctness and
-coverage numbers, and the single biggest data-quality problem you found.
+coverage numbers, how many rows step 5 rewrote, and the single biggest
+data-quality problem you found.

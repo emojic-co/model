@@ -11,6 +11,8 @@ const typedEl = document.getElementById("typed");
 const feelingEl = document.getElementById("feeling");
 const copyBtn = document.getElementById("copy");
 const toastEl = document.getElementById("toast");
+const dbgFeelingsEl = document.getElementById("dbg-feelings");
+const dbgEmojisEl = document.getElementById("dbg-emojis");
 
 // One Google-fonts webfont per feeling (loaded in index.html). The mood of the
 // typeface is meant to echo the mood of the feeling.
@@ -28,6 +30,15 @@ const argmax = (arr) => {
   let best = 0;
   for (let i = 1; i < arr.length; i++) if (arr[i] > arr[best]) best = i;
   return best;
+};
+
+// Numerically stable softmax over a logit array -> probabilities that sum to 1.
+const softmax = (arr) => {
+  let m = -Infinity;
+  for (const x of arr) if (x > m) m = x;
+  const exps = Array.from(arr, (x) => Math.exp(x - m));
+  const sum = exps.reduce((a, b) => a + b, 0);
+  return exps.map((e) => e / sum);
 };
 
 let META;
@@ -75,6 +86,8 @@ async function update() {
   const feeling = META.feelings[argmax(out.feeling_logits.data)];
   const pal = PALETTE[feeling] ?? PALETTE.Neutral;
 
+  renderDebug(out.feeling_logits.data, out.emoji_logits.data);
+
   emojiEl.textContent = emoji;
   feelingEl.textContent = feeling;
   card.style.background = `linear-gradient(135deg, ${pal.bg1}, ${pal.bg2})`;
@@ -82,6 +95,42 @@ async function update() {
   card.style.fontFamily = FEELING_FONTS[feeling] ?? FEELING_FONTS.Neutral;
 
   current = { text, emoji, feeling, pal };
+}
+
+// Side panel: full feeling distribution + the 10 likeliest emoji, each as a
+// label / proportional bar / percentage row. Both distributions are softmaxed
+// from the raw logits the model returns.
+function renderDebug(feelingLogits, emojiLogits) {
+  const fp = softmax(feelingLogits);
+  const feelings = META.feelings
+    .map((name, i) => ({ label: name, p: fp[i] }))
+    .sort((a, b) => b.p - a.p);
+  dbgFeelingsEl.replaceChildren(...feelings.map(probRow));
+
+  const ep = softmax(emojiLogits);
+  const emojis = META.emojis
+    .map((ch, i) => ({ label: ch, p: ep[i] }))
+    .sort((a, b) => b.p - a.p)
+    .slice(0, 10);
+  dbgEmojisEl.replaceChildren(...emojis.map(probRow));
+}
+
+function probRow({ label, p }) {
+  const li = document.createElement("li");
+  const name = document.createElement("span");
+  name.className = "dbg-label";
+  name.textContent = label;
+  const track = document.createElement("span");
+  track.className = "dbg-track";
+  const fill = document.createElement("span");
+  fill.className = "dbg-fill";
+  fill.style.width = `${(p * 100).toFixed(1)}%`;
+  track.appendChild(fill);
+  const pct = document.createElement("span");
+  pct.className = "dbg-pct";
+  pct.textContent = `${(p * 100).toFixed(1)}%`;
+  li.append(name, track, pct);
+  return li;
 }
 
 // The primary family name (the quoted token) out of a FEELING_FONTS stack,

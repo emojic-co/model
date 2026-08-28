@@ -131,6 +131,83 @@ h1 {
   gap: 10px;
 }
 
+/* Debug side panel: softmaxed feeling distribution + top-5 emoji, fixed to the
+   right edge. Purely diagnostic, so it's hidden when the viewport is too narrow
+   to sit beside the card. */
+#debug {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 244px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--ink);
+}
+
+#debug h2 {
+  margin: 0 0 8px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+#debug h2 + ul + h2 {
+  margin-top: 16px;
+}
+
+#debug ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+#debug li {
+  display: grid;
+  grid-template-columns: 4.75em 1fr 3.25em;
+  align-items: center;
+  gap: 6px;
+}
+
+.dbg-label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dbg-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.dbg-fill {
+  display: block;
+  height: 100%;
+  background: var(--muted);
+  transition: width 160ms ease;
+}
+
+.dbg-pct {
+  text-align: right;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1120px) {
+  #debug {
+    display: none;
+  }
+}
+
 /* Transient confirmation for the copy flow (Enter key or the copy button). */
 #toast {
   position: fixed;

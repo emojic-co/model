@@ -66,6 +66,15 @@ class Model(nn.Module):
         out = self.embedding(x)
         out = out.permute(0, 2, 1)  # (batch, embed_dim, seq_len)
         out = self.net(out)
+
+        # The valid (padding=0) convs shrink the time axis by
+        # (KERNEL_1 - 1) + (KERNEL_2 - 1). Padding is always trailing, so conv
+        # column t (receptive field t .. t + shrink) is pad-contaminated iff
+        # input position t + shrink is a pad -- drop that many leading columns
+        # from the mask so it lines up with the conv output.
+        shrink = (KERNEL_1 - 1) + (KERNEL_2 - 1)
+        pad_mask = pad_mask[:, :, shrink:]
+
         out = out.masked_fill(pad_mask, -1e9)
         out = torch.max(out, dim=2).values  # (batch, H_SIZE)
 
