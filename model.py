@@ -49,10 +49,12 @@ class Model(nn.Module):
         self.feeling = nn.Linear(CHANNELS_2, len(FEELING))
 
     def forward(self, x):
-        out = F.one_hot(x, VOCAB_SIZE)[..., 1:].float()  # drop PAD channel
-        out = out.permute(0, 2, 1)
-        out = self.net(out)
+        out = F \
+            .one_hot(x, VOCAB_SIZE)[:, :, 1:] \
+            .transpose(1, 2) \
+            .to(torch.float32)
 
+        out = self.net(out)
         out = torch.max(out, dim=2).values  # (batch, CHANNELS_2)
 
         return self.feeling(out)

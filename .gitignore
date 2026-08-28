@@ -25,5 +25,4 @@ node_modules/
 data.jsonl.dry
 
 # gen_data.ts scratch (removed on a successful run; left behind for resume on crash)
-raw.txt
 data.jsonl.tmp
