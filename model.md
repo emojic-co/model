@@ -1,206 +1,196 @@
 # Model improvement notes
 
-Based on the latest behavioral report (`report/08-28-12:41.md`), the latest
+Based on the latest behavioral report (`report/08-28-19:48.md`), the latest
 tensorboard run
-(`DATA: mtl 64 tl 500 | MODEL: es 8  cs 32 nl 2 ee 8 ns 16 | TRAIN: lr 0.005 bs 64 gc 1.0 wd 1e-05 | TIME: 2026-08-28 12:39:12`),
+(`DATA: mtl 42 tl 500 | MODEL: cs1 16 cs2 12 ee 8 ns 16 | TRAIN: lr 0.01 bs 128 gc 1.0 wd 1e-05 | TIME: 2026-08-28 19:47:17`),
 and a read of `model.py`, `train.py`, `data.py`, `config.py`, `labels.json`,
 `emoji_keywords.py` and `test_model.py`.
+
+**What changed under the model since the previous notes.** The architecture in
+the old `model.md` (2-layer char-CNN with a learned embedding, a contrastive
+8-d emoji head, sampled softmax) is gone. The current model is a **feeling-only
+classifier**: `F.one_hot(x, 38)[:, :, 1:]` → `Conv1d(37→16, k=3, no bias)` →
+ReLU → `MaxPool1d(k=3, stride=2)` → 1-layer unidirectional `LSTM(16→12)` →
+`Linear(12→8)`. **There is no emoji head.** ~3.3k parameters total (conv 1,776 +
+LSTM 1,440 + head 104). Entry point is `train.py` (PyTorch Lightning); the
+`ExportBest` callback writes `model.pt` + `docs/` whenever `eval/f_loss`
+improves. `emoji_keywords.py` still exists but `test_model.py` no longer imports
+it — the emoji-keyword battery is gone; the suite is now Feelings (8) +
+Negations (8, 6 with an expected opposite).
 
 ## 1. Where the model stands
 
 | Battery | Result | Read |
 | --- | --- | --- |
-| Feelings by name | 6/8 (75%) | `neutral` → Angry, `love` → Excited. Regressed from 8/8 in the previous pass. Love has 190 / 13,537 rows; the feeling head is also past its eval optimum (see §2.4). |
-| Negations | 3/8 avoided the negated feeling, 1/6 hit the expected opposite | Only `not calm` → Anxious actually works. `not neutral` / `not love` "pass" only because they land on Angry. No representation of negation or word order. |
-| Emoji keywords | 37/247 top-1 (15%), 68/247 top-3 (28%), 82/247 top-5 (33%), across 50 emojis | Regressed from 53/250 top-1 (21%) / 86/250 top-3 (34%). The switch to an 8-d contrastive emoji head + sampled softmax + `EMBED_SIZE` 16→8 made emoji worse. |
+| Feelings by name | **4/8 (50%)** | ✅ `happy`, `excited`, `anxious`, `neutral`. ❌ `calm`→Neutral, `sad`→Neutral, `love`→Neutral, `angry`→Happy. Misses collapse onto the majority classes (Neutral/Happy). |
+| Negations (`not <feeling>`) | **4/8** avoided the named feeling; **0/6** hit the expected opposite | `not happy`→Happy, `not excited`→Excited, `not angry`→Angry, `not anxious`→Anxious: for half the set negation is a no-op. The 4 that "avoid" land on an unrelated feeling (`not calm`→Excited, `not sad`→Angry), never the opposite. No representation of negation. |
+| Eval feeling accuracy (tb) | **0.59** at the shipped checkpoint (epoch ~39); **0.60** peak (epoch ~44); **0.578** at epoch 99 | vs a 0.197 majority-class baseline (always-Anxious on the filtered corpus). Real signal, but a hard ceiling. |
+| Eval feeling loss (tb) | min **1.2222** @ step 3839 (epoch ~39), drifts up to **1.3389** by epoch 99 | Overfitting sets in after ~epoch 40; the last ~60 epochs are wasted. `ExportBest` does ship the epoch-39 checkpoint (selection is on `eval/f_loss`), so the drift doesn't reach `model.pt`. |
+| Train (tb) | `f_loss` 1.93 → 0.88 (min 0.878); `f_acc` 0.22 → **0.687** (max 0.690) | The model cannot fit the training set past ~69% — a capacity floor, not just overfitting. |
 
-**Emoji classes that work** (≥60% top-1 in the report): 😊 (100%), 😌 (80%),
-💔 / 😔 / 😭 (60%). All high-frequency and tied to one unambiguous lexical cue.
-
-**Emoji classes at ~0% top-1**: 😤 😩 😅 😣 🔥 🙄 😒 😂 😕 😵‍💫 👻 🎶 💪 ⚡ 🧘 🥳 🙌
-🌙 ☕(1/5). Two clusters fail: (a) object / nature / abstract emojis whose cue is
-a noun several words in, (b) near-synonym negative faces (😣/😩/😞/😔, 😒/🙄).
-
-**Attractor classes**: wrong predictions collapse onto a small set —
-😊 🎉 😌 😤 ✅ 👻 🍣 💻 🌿 🙏. The model falls back on these whenever the input
-lacks a short n-gram it has memorised. `🍣`, `💻`, `🚆` turning up as top-1 for
-`sobbing` / `thinking` / `drained` is the long-tail-noise symptom from §2.2.
+Recent reports (`19:29`–`19:48`, same session) bounce between feelings 3–5/8
+and negations 3–6/8 avoided / 0–2/6 opposite with no trend. This is a weak,
+high-variance baseline, not a regression from a known-good state.
 
 ## 2. Root causes
 
-### 2.1 The emoji head is an 8-dimensional contrastive bottleneck (biggest emoji problem)
-`model.py`'s emoji head is CLIP-style: the 32-d max-pooled conv features go
-through `text_proj = Linear(32 → 8)`, get L2-normalised, and are scored by
-cosine similarity against 133 L2-normalised vectors from
-`emoji_embedding = Embedding(133, 8)`, scaled by `exp(logit_scale)`
-(`logit_scale` a learnable scalar, init 2.6593). `EMOJI_EMBED_SIZE = 8`.
+### 2.1 Capacity floor — the model can't fit its own training data (biggest)
+`CHANNELS = 16`, `HIDDEN = 12`, a single unidirectional LSTM layer, one-hot
+input, ~3.3k parameters. `train/f_acc` plateaus at 0.687 and `train/f_loss` at
+0.88 — the trunk is too small to represent 8-way sentiment over 42-char informal
+text, so both train and eval are capped. Everything downstream (name prompts,
+negation) is gated on this.
 
-Packing 133 classes onto the unit 7-sphere with any usable margin is
-geometrically hopeless, and near-synonym emojis (😔/😞/😢/😭, 😠/😡/🤬) are forced
-to nearly the same point. This is a **regression** from the previous plain
-`Linear(→133)` full-softmax head: emoji top-1 dropped 21% → 15%, top-3 34% → 28%.
+### 2.2 One-hot input, no learned character embedding
+`model.py` feeds `F.one_hot(x, VOCAB_SIZE)[:, :, 1:]` (37 raw channels) straight
+into the conv. There is no `nn.Embedding`, so the 16 conv filters must learn all
+character-similarity structure from scratch. A small learned embedding
+(`nn.Embedding(VOCAB_SIZE, 16..32, padding_idx=0)` in place of the one-hot) is
+nearly free and gives the conv a better basis.
 
-### 2.2 Sampled softmax never teaches the model to suppress the long tail
-`train.py:sample_negatives` trains the emoji head as a **17-way** problem (the
-true emoji + `NEGATIVE_SAMPLES = 16` random negatives per row, positive always in
-column 0), but `evaluate()` and inference score the **full 133-way** softmax.
-`train/emoji_loss` falls 3.27 → 1.32 (min 1.32 @195; ln 17 = 2.83, so the model
-fits the sampled task well) while `eval/emoji_loss` sits at 3.53–3.76 the entire
-run (min 3.525 @160; ln 133 = 4.89, i.e. only ~28% below chance). With median 60
-rows/class and 87 of 133 classes under 80 rows, a rare emoji is seldom a positive
-and seldom sampled as a negative, so its 8-d vector is barely trained and can
-sit anywhere on the sphere — including directly under a common query direction.
-That is exactly the attractor behaviour in the report.
+### 2.3 Overfitting, with no regularisation and no schedule
+Same tb run: `eval/f_loss` bottoms at 1.222 (epoch ~39) then climbs to 1.34 by
+epoch 99 while `train/f_loss` keeps falling to 0.88. `WEIGHT_DECAY = 1e-5` is
+effectively off; there is no dropout, no `label_smoothing`, and `LR = 0.01` runs
+flat for `EPOCHS = 100` with no schedule. `EVAL_EPOCHS = 5` over 100 epochs is a
+lot of compute spent well past the optimum.
 
-### 2.3 Receptive field is ~5 characters
-`model.py` conv stack: `Conv1d(k=3, padding=1)` × `NUM_LAYERS` (= 2), no dilation,
-no stride, then a masked max-pool over time. Effective receptive field =
-1 + 2·(3−1) = **5 chars** — under one word — and the max-pool discards position.
-Consequences match the report:
-- Negation is unrepresentable: "not happy" and "happy" share every 5-gram except
-  "not ".
-- One-word cues work ("angry", "coffee", "sad"); multi-word phrases
-  ("crushing it", "my heart is full", "calm and peaceful") don't.
+### 2.4 Class imbalance, unweighted loss → collapse onto the majority classes
+After `data.py:read()` filtering the trainable feeling counts are Anxious 2786,
+Happy 2594, Sad 2051, Angry 1916, Neutral 1678, Calm 1459, Excited 1458,
+**Love 180** (15.5× under Anxious). `train.py` uses a bare
+`nn.CrossEntropyLoss()` — no `weight=`, no `label_smoothing` — and
+`train_data_loader` has no `WeightedRandomSampler`. The report symptoms are
+exactly this: `love`, `calm`, `sad` name prompts all resolve to Neutral, and
+Love (180 rows) is essentially unlearnable as is.
 
-### 2.4 The feeling head overfits, and the checkpoint is selected on a noisy sum
-Same tensorboard run: `train/feeling_loss` 1.85 → 0.88 (min 0.87 @197) while
-`eval/feeling_loss` bottoms at **1.124 @ epoch 20** then drifts up to 1.244 @200
-— textbook overfitting. `train.py` ships the checkpoint with the lowest
-`eval_emoji_loss + eval_feeling_loss`; that sum is minimised at epoch ~30
-(4.72), but it is dominated by `eval_emoji_loss`, whose entire spread over the
-run is 0.23 and is indistinguishable from noise. Selection is therefore
-effectively random with respect to the only term that moves (feeling), and it
-was luck that it landed near the feeling optimum rather than at epoch 120–180.
-The previous notes flagged *accuracy*-based selection; the code now selects on
-loss, but on a sum where the informative term is drowned out.
+### 2.5 `read()` discards ~11% of usable rows on a dead constraint
+`data.py:read()` keeps a row only if `d["emoji"] in emoji2idx`, but the model
+has no emoji head. `data.jsonl` has 520 distinct emoji; `labels.json` lists 133;
+**1,722 rows (10.9% of the rows with a valid feeling) are dropped purely because
+their emoji is not one of the 133.** That is free training data thrown away, and
+the drop is not uniform across feelings, so it also distorts the class balance
+in 2.4. One-line fix: gate `read()` on feeling only while there is no emoji
+head.
 
-### 2.5 133 emojis, ~two-thirds of them starved
-`labels.json` holds **133** emojis (CLAUDE.md still says an "80-emoji palette" —
-stale, along with its `main.py` / "LSTM" / `pack_padded_sequence` / `ExportWrapper`
-references; the entry point is now `train.py`, the model is a char-CNN, and the
-ONNX export is a plain trace with no wrapper). In `data.jsonl` (13,537 rows):
-max 😤 596, **median 60**, min 😑 8 (then 🎟️ 13, 🥶 14, 🪑 15, 😏 17). **87 of
-133 classes have < 80 rows, 96 have < 100** — unlearnable, and each still takes
-softmax mass at eval. Many survivors are mutual near-synonyms (😔/😞/😢/😭,
-😠/😡/🤬, 😄/😊/😃/😁/🙂), so top-1 is ambiguous even for a perfect model; top-3
-(28%) is the fairer figure and it is still low.
+### 2.6 Eval split is 500 random rows and non-stationary
+`TEST_LEN = 500` is ~3.5% of the 14,122 filtered rows. `data.py:split()` does
+`random.Random(42).shuffle(data)` then takes the first 500, but `data.jsonl` is
+append-only and `read()` returns rows in file order, so every `add-samples` run
+reshuffles which rows are held out — runs from before and after a data add are
+not comparable. `eval/f_acc` visibly jitters ±0.02–0.03 between adjacent evals.
+There is no de-duplication before the split, so near-identical generated texts
+can straddle it (mild leak).
 
-### 2.6 Class imbalance, no compensation
-Feelings: Anxious 2757, Happy 2533, Sad 1975, Angry 1902, Excited 1486,
-Neutral 1390, Calm 1304, **Love 190** (14.5× under Anxious). `train.py` puts no
-`weight=` on either `CrossEntropyLoss`, no `label_smoothing`, and
-`train_data_loader` has no `WeightedRandomSampler`. `love` → Excited in the
-report is the direct symptom; the emoji tail has the same problem, unweighted.
+### 2.7 The name / negation batteries are out-of-distribution and unsupervised
+`test_model.py` feeds bare tokens (`"calm"`, `"not happy"`) — 1–2 words, no
+punctuation — while training texts average ~33 chars of informal sentence.
+Nothing in the loss rewards handling `not`, and there are few explicit
+negation constructions in `data.jsonl`. 0/6 opposites is the expected result
+until the corpus contains negation examples; treat the negation battery as a
+release gate, not a metric that will move on its own.
 
-### 2.7 Eval split is 500 random rows and silently non-stationary
-`TEST_LEN = 500` (~3.7% of the corpus). Across 133 emoji classes that is < 4
-rows/class with many classes absent — which is why `eval/emoji_loss` is the flat
-noise band above. `data.py:split()` does `random.Random(42).shuffle(data)` over
-an **append-only** `data.jsonl`, so every `bun run gen_data.ts` reshuffles which
-rows are held out and runs from before/after a data add are not comparable.
-There is no de-duplication before the split, so near-identical texts from one
-generation batch can straddle it (mild leak).
+### 2.8 The deployed web app is broken against the current export
+`train.py:export_onnx` emits a **single** output, `feeling_logits`. But
+`docs/app.js:87` reads `out.emoji_logits.data` and `renderDebug` (`app.js:105`,
+`:112`) renders an emoji probability row from it. `out.emoji_logits` is now
+`undefined`, so `argmax(undefined.data)` throws on the first inference. The
+emoji `<div>`, `meta.json`'s `emojis` list, and the debug emoji panel are all
+dead weight. Either restore an emoji head or strip the emoji path from
+`app.js` / `index.html` / `export_web`.
 
-### 2.8 Minor
-- `CHARS` in `data.py` still has no digits (`0-9` dropped by `normalize`);
+### 2.9 Minor / hygiene
+- `CHARS` in `data.py` has no digits (`0-9` are dropped by `normalize`);
   `VOCAB_SIZE = 38`.
-- `normalize` now also collapses long character runs
-  (`re.sub(r'(.)\1{2,}', r'\1\1', text)`: "soooo" → "soo"). `docs/app.js`
-  currently mirrors this (`.replace(/(.)\1{2,}/g, "$1$1")`) — keep them
-  byte-identical on any future change.
-- `WEIGHT_DECAY = 1e-5` is effectively off; no dropout; 200 flat epochs at
-  `LR = 5e-3` with no schedule.
-- Train texts average 33 chars (full sentences); the battery feeds 1–3 word
-  keywords. A word-level path would bridge the mismatch; the 5-gram model can't.
+- `emoji_keywords.py` is dead code — `test_model.py` no longer imports it.
+  Delete it, or wire the battery back in once an emoji head returns.
+- `CLAUDE.md` is stale on nearly every technical point: it describes an LSTM
+  with a learned embedding + `pack_padded_sequence` + `ExportWrapper`, two heads
+  (emoji + feeling), `main.py` as the entry point, an "80-emoji palette", and
+  `config.py` names (`EMBED_SIZE` / `H_SIZE` / `NUM_LAYERS`). None of that
+  matches the code. `labels.json` has 133 emoji while `gen_labels.ts` is
+  documented as "top 100".
+- `config.py`'s `EMOJI_EMBED_SIZE` / `NEGATIVE_SAMPLES` are marked "NOT IN USE"
+  but still feed `CONFIG_NAME` (`ee 8 ns 16` in every run name).
+- `normalize`'s run-collapse (`re.sub(r'(.)\1{2,}', r'\1\1', text)`) must stay
+  byte-identical with `docs/app.js` on any future change.
 
 ## 3. Recommendations (prioritised)
 
 ### Done since the previous notes
-- `TEST_LEN` raised 200 → 500 (still far too small for 133 classes — see D).
-- Checkpoint selection moved off a noisy accuracy proxy onto eval loss (but onto
-  the wrong sum — see §2.4 and D).
-- `normalize` run-collapse added and mirrored in `docs/app.js`.
+- Emoji head removed entirely; training is feeling-only (side-steps the old
+  §2.1/§2.2 contrastive-bottleneck problems — at the cost of shipping a broken
+  emoji path in the web app, see §2.8).
+- Checkpoint selection is on `eval/f_loss` (a single, informative term now that
+  the noisy emoji-loss term is gone), and `ExportBest` correctly ships the
+  epoch-39 optimum.
+- `MAX_TEXT_LEN` 64 → 42 (matches the data; `scan_text_len.py` covers this).
 
 ### High impact
 
-**A. Fix the emoji head — this is the regression.** Cheapest first:
-1. Revert to a plain `Linear(CHANNELS → 133)` full-softmax cross-entropy head.
-   The previous notes' 21% / 34% came from this; the contrastive rework lost it.
-2. If the contrastive head is kept for its own sake: raise `EMOJI_EMBED_SIZE` to
-   ≥ 64 **and** drop `sample_negatives` — with only 133 classes, full InfoNCE
-   over all emojis costs nothing and removes the train/eval mismatch in §2.2.
-3. Either way, add inverse-frequency class weights (or focal loss) on the emoji
-   loss so the tail and the near-synonyms stop being trained purely as noise.
+**A. Raise trunk capacity — this is the ceiling.**
+1. Learned embedding instead of one-hot: `nn.Embedding(VOCAB_SIZE, 24,
+   padding_idx=0)` → conv. Nearly free, addresses §2.2.
+2. `CHANNELS` 16 → 48–64, `HIDDEN` 12 → 48–64, and make the LSTM
+   **bidirectional** (pool `mean ⧺ max` over its outputs rather than taking the
+   last state — keeps the ONNX export a plain trace and lets negation be
+   represented). Still well under 1M params.
+3. Re-check `train/f_acc`: if it climbs past ~0.8 the capacity floor is lifted;
+   if not, the data (§2.4/§2.5) is the limit.
 
-**B. Give the model context.** Pick one, cheapest first:
-1. Dilated conv stack: keep kernel 3, dilations 1-2-4-8 (~5 layers) so the
-   receptive field covers the full 64-char window.
-2. Concatenate **masked mean-pool + masked max-pool** instead of max only —
-   keeps frequency/energy information and reduces attractor collapse.
-3. Conv + bidirectional GRU (CRNN): conv layers stay a learned n-gram extractor,
-   the bi-RNN adds unbounded order-sensitive context. Pool the GRU outputs
-   (masked mean ⧺ max), don't gather the last state — that keeps the ONNX export
-   a plain trace. onnxruntime-web supports bidirectional GRU at opset 18. This
-   is the option that can actually represent negation.
+**B. Fix the loss and the schedule (§2.3, §2.4).**
+- Inverse-frequency `weight=` on `CrossEntropyLoss` (or `WeightedRandomSampler`
+  in `train_data_loader`), plus `label_smoothing=0.05–0.1`. Directly targets the
+  `love`/`calm`/`sad` → Neutral collapse.
+- `WEIGHT_DECAY` → 1e-4; add `nn.Dropout(0.1–0.2)` after the conv/LSTM once
+  capacity grows.
+- Cosine or `ReduceLROnPlateau` LR schedule; or just cut `EPOCHS` to ~40 — the
+  optimum is at epoch ~39 and everything after is waste.
 
-**C. Fix the label space.**
-- Drop or fold emojis with < ~100 training rows; target 40–60 classes each with
-  ≥ 100 rows (CLAUDE.md's intended "80" is a sane ceiling). 87 classes are
-  currently under 80.
-- Define explicit synonym groups (sad-faces, angry-faces, laughing-faces) and
-  additionally score top-1 *within group*; 😔 vs 😞 is not recoverable from text.
-- Reconcile `labels.json` (133) and CLAUDE.md (80 / LSTM / `main.py`).
+**C. Stop discarding data (§2.5).** Gate `read()` on `feeling in feeling2idx`
+only. Recovers ~1,722 rows (+12%) and de-skews the class balance for free.
 
-**D. Make eval honest, and select on it.**
-- Raise `TEST_LEN` to ~2000 (~15%).
-- Make the split deterministic per row (hash of normalised text), so it is
-  stable as `data.jsonl` grows; de-duplicate near-identical texts first.
-- Report per-class emoji accuracy and **macro-F1** and top-3, not just micro
-  top-1.
-- Select the checkpoint on `feeling_loss` + an emoji metric that isn't noise
-  (macro-F1 or top-3), and fold the `emoji_keywords` battery into the selection
-  metric. As-is, the epoch-20 feeling optimum is invisible to selection.
-
-**E. Rebalance data and sampling.**
-- Use `add-samples` / `bun run gen_data.ts` but target the **tail**: generate for
-  under-100 emojis and for Love / Calm / Neutral specifically, not random pairs.
-- `WeightedRandomSampler` by inverse emoji frequency in `train_data_loader`,
-  and/or inverse-freq `weight=` on both `CrossEntropyLoss` heads.
+**D. Make eval honest (§2.6).**
+- Deterministic per-row split: hash of the normalised text, not
+  `random.Random(42).shuffle`. Stable as `data.jsonl` grows.
+- De-duplicate on the normalise key before splitting.
+- Raise `TEST_LEN` to ~1500–2000 (~10–15%).
+- Log macro-F1 across the 8 feelings alongside accuracy — with Love at 180 rows,
+  micro-accuracy hides the tail.
 
 ### Medium impact
 
-**F. Loss / regularisation.**
-- Weight the two task losses (e.g. `0.5·emoji + 1.0·feeling`, or uncertainty
-  weighting) so the emoji loss stops dominating the shared trunk.
-- `WEIGHT_DECAY` → ~1e-4; add dropout 0.1–0.2 after the conv stack once capacity
-  grows.
-- Add `label_smoothing` to the feeling head too.
+**E. Fix or remove the web-app emoji path (§2.8).** Until an emoji head is back,
+strip `emoji_logits` handling from `app.js`, drop the emoji `<div>` and debug
+panel, and stop emitting `emojis` from `export_web` / `meta.json`. The Pages
+deploy currently ships a page that errors on first use.
 
-**G. Capacity.** `EMBED_SIZE` 8 → 16 or 32, `CHANNELS` 32 → 64. Still < 1M
-params; the headroom is in the trunk and emoji head, not the feeling head.
-
-**H. Negation coverage** (only after B.3). Add training texts with negations
-("not happy", "wasn't excited", "no longer sad") mapped to sensible labels; keep
-the negation battery as a release gate.
+**F. Grow the corpus toward the tail (`add-samples` / `bun run gen_data.ts`).**
+Target Love, Calm, Excited, Neutral specifically, not random pairs. Also add
+explicit negation texts ("not happy", "wasn't excited", "no longer sad") mapped
+to sensible feelings, and keep the negation battery as a release gate (§2.7).
 
 ### Low impact / hygiene
 
-- Add `0123456789` to `CHARS` (retrain + re-export; invalidates `model.pt`).
-- LR schedule: cosine decay or `ReduceLROnPlateau`.
-- Evaluate every epoch (not every 10) once the eval set is larger.
-- `torch.manual_seed(0)` is set; also seed any DataLoader workers / set
-  deterministic algorithms for fully comparable runs.
+- Add `0123456789` to `CHARS` (retrain + re-export; invalidates `model.pt` and
+  reshuffles the split).
+- Reconcile `CLAUDE.md` with the actual code (entry point, architecture, head
+  count, `config.py` names, emoji count) and delete `emoji_keywords.py` or
+  re-wire it.
+- Drop the unused `ee`/`ns` fields from `CONFIG_NAME`.
+- Seed DataLoader workers / set deterministic algorithms for fully comparable
+  runs (`pl.seed_everything(0, workers=True)` is already set).
 
 ## 4. Suggested order of work
 
-1. **D** — bigger deterministic eval + macro-F1/top-3 + fix the selection
-   metric. Nothing else is measurable until this is done; the feeling head is
-   already overfitting past epoch 20 and the current metric can't see it.
-2. **A** — revert (or properly widen) the emoji head. This is the single change
-   that recovers the 21% → 15% top-1 regression.
-3. **C** — prune the emoji tail to ~50–60 classes with ≥ 100 rows.
-4. **B.1 / B.2** — dilated convs + mean⧺max pool: one small `model.py` change
-   that should move multi-word cues and reduce attractor collapse.
-5. **E** (rebalance + sampler) and **F** (loss weighting / regularisation),
-   then **G** (capacity).
-6. **B.3** (conv + bi-GRU) and **H** if negation or top-3 is still short.
+1. **C** — one-line `read()` fix. Free data, no downside, do it first.
+2. **D** — deterministic bigger eval + macro-F1. Nothing else is measurable
+   until the eval set is stable and large enough to see the Love/Calm tail.
+3. **A** — embedding + wider bidirectional trunk. This is the change that lifts
+   the 0.60 eval-accuracy / 0.69 train-accuracy ceiling and makes negation
+   representable.
+4. **B** — class weights + `label_smoothing` + shorter schedule / LR decay.
+   Kills the majority-class collapse and stops the epoch-40+ drift.
+5. **F** — targeted tail + negation data, once the model can actually use it.
+6. **E** — repair the web app (independent of the modelling work; can be done
+   any time, and should be soon since Pages is serving a broken page).
