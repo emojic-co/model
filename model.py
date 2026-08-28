@@ -59,12 +59,15 @@ class Model(nn.Module):
             len(EMOJIS),
             EMOJI_EMBED_SIZE)
 
-        # log temperature, initialised to ln(1 / 0.07) as in CLIP
+        # log temperature, initialized to ln(1 / 0.07) as in CLIP
         self.logit_scale = nn.Parameter(torch.tensor(2.6593))
 
         self.feeling = nn.Linear(CHANNELS_2, len(FEELING))
 
     def forward(self, x):
+        with torch.no_grad():
+            self.logit_scale.clamp_(max=torch.log(torch.tensor(100.0)))
+
         out = self.embedding(x)
         out = out.permute(0, 2, 1)
         out = self.net(out)
