@@ -28,6 +28,10 @@ class Model(nn.Module):
 
             *[
                 nn.Sequential(
+                    nn.MaxPool1d(
+                        kernel_size=2,
+                        stride=2),
+
                     nn.Conv1d(
                         in_channels=i,
                         out_channels=o,
@@ -37,9 +41,6 @@ class Model(nn.Module):
                     ),
 
                     nn.ReLU(),
-                    nn.MaxPool1d(
-                        kernel_size=2,
-                        stride=2),
                 )
                 for i, o in zip(CHANNELS[:-1], CHANNELS[1:], strict=False)
             ]
