@@ -20,7 +20,6 @@ const dbgEmojisEl = document.getElementById("dbg-emojis");
 // typeface is meant to echo the mood of the feeling.
 const FEELING_FONTS = {
   Happy: '"Fredoka", system-ui, sans-serif',
-  Excited: '"Bangers", system-ui, cursive',
   Calm: '"Quicksand", system-ui, sans-serif',
   Sad: '"Playfair Display", Georgia, serif',
   Angry: '"Anton", system-ui, sans-serif',

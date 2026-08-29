@@ -20,9 +20,19 @@ with open('labels.json', encoding='utf-8') as f:
 FEELING = LABELS["feelings"]
 EMOJIS = LABELS["emojis"]
 
+# Excited was merged into Happy: it is a high-arousal sub-region of positive
+# affect, not a peer category, and the two were the single largest confusion on
+# the gold eval. data.jsonl still carries raw "Excited" rows (it is append-only
+# and never rewritten); they fold into Happy here at load time.
+FEELING_ALIASES = {"Excited": "Happy"}
+
 char2idx = {char: i for i, char in enumerate(CHARS)}
 feeling2idx = {f: i for i, f in enumerate(FEELING)}
 emoji2idx = {e: i for i, e in enumerate(EMOJIS)}
+
+
+def canon_feeling(feeling: str) -> str:
+    return FEELING_ALIASES.get(feeling, feeling)
 
 
 def normalize(text: str) -> str:
@@ -52,7 +62,8 @@ def _load(path):
 
     out = []
     for d in rows:
-        if d["feeling"] not in feeling2idx or d["emoji"] not in emoji2idx:
+        feeling = canon_feeling(d["feeling"])
+        if feeling not in feeling2idx or d["emoji"] not in emoji2idx:
             continue
         text = normalize(d["text"])
         if len(text) > MAX_TEXT_LEN:
@@ -61,7 +72,7 @@ def _load(path):
             text,
             (text_to_tensor(text),
              emoji2idx[d["emoji"]],
-             feeling2idx[d["feeling"]])))
+             feeling2idx[feeling])))
     return out
 
 

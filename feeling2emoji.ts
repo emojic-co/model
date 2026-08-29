@@ -86,8 +86,8 @@ const FEELING_GUIDANCE = [
   '  radiator") is Neutral unless it openly states affection -- only then Love.',
   "  Mild irritation with no heat is Neutral, not Angry. A dry or self-mocking",
   "  complaint is Neutral, not Sad. Plainly stated anticipation is Neutral, not",
-  "  Excited.",
-  "- Reserve Love, Sad, Angry and Excited for messages where that feeling is",
+  "  Happy.",
+  "- Reserve Love, Sad and Angry for messages where that feeling is",
   "  unmistakably on the surface.",
   "- If two feelings fit, pick the milder; if none clearly fits, pick Neutral.",
 ].join("\n")

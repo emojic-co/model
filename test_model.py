@@ -47,7 +47,6 @@ NEGATION_EXPECTED: dict[str, str] = {
     "Calm": "Anxious",
     "Anxious": "Calm",
     "Angry": "Calm",
-    "Excited": "Neutral",
 }
 
 # 20 (emoji, cue word) pairs for the emoji battery. Each word is a plain-meaning

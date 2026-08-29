@@ -1,6 +1,5 @@
 {
   "Happy":   { "bg1": "#ffd571", "bg2": "#ffad22", "text_color": "#2f1100" },
-  "Excited": { "bg1": "#ff986d", "bg2": "#ff6207", "text_color": "#faf5e6" },
   "Calm":    { "bg1": "#92efb5", "bg2": "#5bd9a4", "text_color": "#162f1e" },
   "Sad":     { "bg1": "#4e73a7", "bg2": "#2d5492", "text_color": "#e2f1fd" },
   "Angry":   { "bg1": "#b4000f", "bg2": "#880009", "text_color": "#fff0ed" },
