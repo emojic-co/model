@@ -84,9 +84,8 @@ async function update() {
   const out = await session.run({ input: tensor });
   if (mine !== seq) return; // a newer keystroke already won
 
-  // emoji_logits are negative squared L2 distances from the model's projected
-  // hidden state to each emoji embedding (see train.py's ExportWrapper), so the
-  // argmax is still the predicted emoji and softmax still gives a usable score.
+  // Both heads are plain classifiers now: emoji_logits / feeling_logits are raw
+  // class logits, so argmax is the prediction and softmax gives a usable score.
   const emoji = META.emojis[argmax(out.emoji_logits.data)];
   const feeling = META.feelings[argmax(out.feeling_logits.data)];
   const pal = PALETTE[feeling] ?? PALETTE.Neutral;

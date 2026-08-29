@@ -23,13 +23,12 @@ from torch import nn, optim
 
 from config import (
     CONFIG_NAME,
-    EMOJI_NEGATIVES,
+    EMOJI_LABEL_SMOOTHING,
     EPOCHS,
     EVAL_EPOCHS,
     GRAD_CLIP,
     LR,
     MAX_TEXT_LEN,
-    TRIPLET_MARGIN,
     WEIGHT_DECAY,
 )
 from data import (
@@ -52,38 +51,19 @@ DOCS = Path("docs")
 ONNX_OPSET = 18
 
 
-class ExportWrapper(nn.Module):
-    """Collapse the emoji embedding head into a single ``emoji_logits`` tensor.
-
-    ``Model.forward`` returns ``(feeling_logits, q, emoji_embed)`` -- the raw
-    pieces the triplet loss needs, with ``q`` and every ``emoji_embed`` row
-    L2-normalized. The browser only wants a class score per emoji, so this
-    wrapper scores ``q`` against every emoji embedding by cosine similarity
-    (a plain matmul of unit vectors). Since both sides are unit-norm this is
-    a monotonic function of the L2 distance -- ``-||q - e||^2 = 2(cos - 1)`` --
-    so ``argmax`` picks the same nearest embedding the triplet loss trains and
-    ``training_step`` / ``validation_step`` score with. Keeps the ONNX contract
-    at ``(feeling_logits, emoji_logits)`` so ``app.js`` stays a plain argmax
-    path; a single matmul traces cleanly on every ONNX opset.
-    """
-
-    def __init__(self, model: nn.Module) -> None:
-        super().__init__()
-        self.model = model
-
-    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        feeling_logits, q, emoji_embed = self.model(x)
-        return feeling_logits, q @ emoji_embed.t()
-
-
 def export_onnx(model: nn.Module, dst: Path) -> None:
-    """Trace ``model`` to an ONNX file with a dynamic batch axis."""
-    wrapper = ExportWrapper(model).eval()
+    """Trace ``model`` to an ONNX file with a dynamic batch axis.
+
+    ``Model.forward`` already returns ``(feeling_logits, emoji_logits)`` -- both
+    heads are plain classifiers -- so the ONNX contract is just those two
+    tensors and ``app.js`` stays a plain argmax path.
+    """
+    model = model.eval()
     dummy = torch.zeros(1, MAX_TEXT_LEN, dtype=torch.long)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         torch.onnx.export(
-            wrapper,
+            model,
             (dummy,),
             str(dst),
             input_names=["input"],
@@ -137,11 +117,10 @@ class LitEmojic(pl.LightningModule):
         super().__init__()
         self.model = Model()
         self.feeling_ce = nn.CrossEntropyLoss()
-        # Emoji head is trained by metric learning: pull the projected hidden
-        # state toward its true emoji vector and push it off EMOJI_NEGATIVES
-        # sampled wrong emoji vectors, by TRIPLET_MARGIN in L2. reduction="mean"
-        # averages over all anchor x negative triplets in the batch.
-        self.emoji_triplet = nn.TripletMarginLoss(margin=TRIPLET_MARGIN)
+        # Emoji head is a plain classifier trained with label-smoothed
+        # cross-entropy: the data is single-label but really multi-label, so the
+        # smoothing keeps the one-hot target from being taken too literally.
+        self.emoji_ce = nn.CrossEntropyLoss(label_smoothing=EMOJI_LABEL_SMOOTHING)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, ...]:
         return self.model(x)
@@ -149,41 +128,16 @@ class LitEmojic(pl.LightningModule):
     def training_step(self, batch, batch_idx) -> torch.Tensor:
         x, target_emoji, target_feeling = batch
 
-        logits_feeling, q, emoji_embd = self.model(x)
+        logits_feeling, logits_emoji = self.model(x)
         loss_feeling = self.feeling_ce(logits_feeling, target_feeling)
-
-        # EMOJI_NEGATIVES wrong classes per row: shift the true index by random
-        # 1..N-1 offsets (mod N) -- uniform over the wrong classes, never the
-        # target. Offsets may repeat within a row (negligible at N >> K), which
-        # just weights that negative twice.
-        n = emoji_embd.size(0)
-        offset = torch.randint(
-            1, n,
-            (target_emoji.size(0), EMOJI_NEGATIVES),
-            device=self.device)
-
-        neg_emoji_idx = (target_emoji.unsqueeze(1) + offset) % n  # (B, K)
-
-        # Tile anchor/positive to (B*K, D) so one nn.TripletMarginLoss call
-        # scores every (row, negative) pair, then means over all B*K triplets.
-        pos = emoji_embd[target_emoji].repeat_interleave(EMOJI_NEGATIVES, dim=0)
-        neg = emoji_embd[neg_emoji_idx.reshape(-1)]  # (B*K, D)
-
-        loss_emoji = self.emoji_triplet(
-            # anchor
-            q.repeat_interleave(EMOJI_NEGATIVES, dim=0),
-            pos,  # positive
-            neg,  # negatives
-        )
+        loss_emoji = self.emoji_ce(logits_emoji, target_emoji)
 
         acc_feeling = (
             logits_feeling.argmax(dim=-1) == target_feeling).float().mean()
 
-        # Top-5 nearest emoji embeddings. q and emoji_embed are unit-norm, so
-        # the highest cosine similarities are the smallest L2 distances the
-        # triplet loss trains -- the exact score ExportWrapper ships. Retrieval
-        # over 300 classes is hopeless at top-1, so track the top-5 hit rate.
-        top5 = (q @ emoji_embd.t()).topk(5, dim=-1).indices
+        # Retrieval over 300 emoji classes is hopeless at top-1 (and the data is
+        # really multi-label), so track the top-5 hit rate.
+        top5 = logits_emoji.topk(5, dim=-1).indices
         acc_emoji5 = (top5 == target_emoji.unsqueeze(1)).any(dim=-1).float().mean()
 
         def log(k, v):
@@ -202,16 +156,14 @@ class LitEmojic(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx) -> None:
         x, target_emoji, target_feeling = batch
-        logits_feeling, q, emoji_embed = self.model(x)
+        logits_feeling, logits_emoji = self.model(x)
 
         acc_feeling = (
             logits_feeling.argmax(dim=-1) == target_feeling).float().mean()
 
-        # Top-5 nearest emoji embeddings. q and emoji_embed are unit-norm, so
-        # the highest cosine similarities are the smallest L2 distances the
-        # triplet loss trains -- the exact score ExportWrapper ships. Retrieval
-        # over 300 classes is hopeless at top-1, so track the top-5 hit rate.
-        top5 = (q @ emoji_embed.t()).topk(5, dim=-1).indices
+        # Retrieval over 300 emoji classes is hopeless at top-1 (and the data is
+        # really multi-label), so track the top-5 hit rate.
+        top5 = logits_emoji.topk(5, dim=-1).indices
         acc_emoji5 = (top5 == target_emoji.unsqueeze(1)).any(dim=-1).float().mean()
 
         # batch_size weights the epoch mean, matching the old size-weighted eval.

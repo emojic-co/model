@@ -1,11 +1,9 @@
 import torch
 from torch import nn
-from torch.nn.functional import normalize
 
 from config import (
     CHANNELS,
     CHAR_EMBED_SIZE,
-    EMOJI_EMBED_SIZE,
 )
 from data import EMOJIS, FEELING, PAD_IDX, VOCAB_SIZE
 
@@ -54,9 +52,7 @@ class Model(nn.Module):
         self.emoji = nn.Conv1d(
             kernel_size=1,
             in_channels=CHANNELS[-1],
-            out_channels=EMOJI_EMBED_SIZE)
-
-        self.emoji_embed = nn.Embedding(len(EMOJIS), EMOJI_EMBED_SIZE)
+            out_channels=len(EMOJIS))
 
     def forward(self, x):
         # (B, T) long -> (B, T, CHAR_EMBED_SIZE) -> (B, CHAR_EMBED_SIZE, T)
@@ -68,5 +64,4 @@ class Model(nn.Module):
 
         return (
             self.feeling(out).squeeze(-1),
-            normalize(self.emoji(out).squeeze(-1), p=2, dim=-1),
-            normalize(self.emoji_embed.weight, p=2, dim=-1))
+            self.emoji(out).squeeze(-1))
