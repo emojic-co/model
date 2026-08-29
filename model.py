@@ -27,7 +27,7 @@ class Model(nn.Module):
             ),
             nn.ReLU(),
 
-            nn.MaxPool1d(
+            nn.AvgPool1d(
                 kernel_size=3,
                 stride=2),
         )
