@@ -68,6 +68,25 @@ const VOICES = [
   "a coworker", "a classmate", "a teammate", "a mentor", "a mentee",
 ]
 
+// Calibration for the phase-2 feeling pick. Counters a measured bias (see
+// data.md, 2026-08-29) toward stamping flat, practical text with a strong
+// feeling instead of Neutral.
+const FEELING_GUIDANCE = [
+  "Label the emotion a typical reader would actually feel from the words, not",
+  "one that is merely plausible for the situation.",
+  '- "Neutral" is the right answer for flat, practical or informational',
+  "  messages: logistics, scheduling, quick factual updates, plain questions,",
+  "  low-effort replies. Do not upgrade these to a stronger feeling.",
+  '- Do not inflate. A caring or domestic line ("your socks are on the',
+  '  radiator") is Neutral unless it openly states affection -- only then Love.',
+  "  Mild irritation with no heat is Neutral, not Angry. A dry or self-mocking",
+  "  complaint is Neutral, not Sad. Plainly stated anticipation is Neutral, not",
+  "  Excited.",
+  "- Reserve Love, Sad, Angry and Excited for messages where that feeling is",
+  "  unmistakably on the surface.",
+  "- If two feelings fit, pick the milder; if none clearly fits, pick Neutral.",
+].join("\n")
+
 type Row = { emoji: string; feeling: string; text: string }
 type Candidate = { emoji: string; text: string }
 
@@ -152,8 +171,10 @@ async function annotateBatch(
           schema: z.object({ annotations: z.array(Annotation) }),
         }),
         prompt: [
-          "You are an annotator. For each message below, pick the single feeling that best fits it.",
+          "You are an annotator. For each message below, choose the single feeling that best fits it.",
           `Choose exactly one from this list: ${feelings.join(", ")}.`,
+          "",
+          FEELING_GUIDANCE,
           "",
           "Return exactly one annotation object per input message, echoing its id.",
           "Do not add, drop, reorder, or merge items.",

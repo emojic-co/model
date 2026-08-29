@@ -6,11 +6,14 @@
  * One run does the whole thing, no intermediate file:
  *
  *   pick 3 rarest feelings
- *     -> generate short WhatsApp-style texts that convey them   (phase 1)
- *     -> emoji-annotate the fresh texts                          (phase 2)
- *     -> append {feeling, text, emoji} to data.jsonl
+ *     -> generate short WhatsApp-style texts that convey them        (phase 1)
+ *     -> annotate each fresh text with an emoji + a feeling          (phase 2)
+ *     -> append {feeling, text, emoji}, dropping any row whose
+ *        phase-2 feeling disagrees with the seed feeling
  *
- *   - feeling: carried straight through from generation (this script owns it)
+ *   - feeling: seeded by generation, then kept only if the phase-2 annotator --
+ *              judging the text cold against the closed labels.json list --
+ *              independently lands on the same feeling; drift is dropped
  *   - emoji:   free choice, whatever the annotator picks
  *
  * Both phases are PQueue-parallelized. Nothing is retried across runs: a failed
@@ -70,6 +73,44 @@ const VOICES = [
   "a coworker", "a classmate", "a teammate", "a mentor", "a mentee",
 ]
 
+// Calibration for the phase-2 feeling check. Counters a measured bias (see
+// data.md, 2026-08-29) toward treating flat, practical text as a strong feeling
+// instead of Neutral -- here it decides which seeded rows survive.
+const FEELING_GUIDANCE = [
+  "Label the emotion a typical reader would actually feel from the words, not",
+  "one that is merely plausible for the situation.",
+  '- "Neutral" is the right answer for flat, practical or informational',
+  "  messages: logistics, scheduling, quick factual updates, plain questions,",
+  "  low-effort replies. Do not upgrade these to a stronger feeling.",
+  '- Do not inflate. A caring or domestic line ("your socks are on the',
+  '  radiator") is Neutral unless it openly states affection -- only then Love.',
+  "  Mild irritation with no heat is Neutral, not Angry. A dry or self-mocking",
+  "  complaint is Neutral, not Sad. Plainly stated anticipation is Neutral, not",
+  "  Excited.",
+  "- Reserve Love, Sad, Angry and Excited for messages where that feeling is",
+  "  unmistakably on the surface.",
+  "- If two feelings fit, pick the milder; if none clearly fits, pick Neutral.",
+].join("\n")
+
+// Phase-1 steer for how hard to lean on the seed feeling. Neutral is the one
+// target that is *meant* to be affect-free, so it gets the opposite instruction.
+function conveyInstruction(feeling: string): string[] {
+  if (feeling === "Neutral") {
+    return [
+      "Every message must be genuinely emotion-free: a plain, practical or",
+      "informational note (logistics, scheduling, a quick fact, a low-key",
+      "question), with no detectable mood, positive or negative.",
+    ]
+  }
+  return [
+    `Every message must unmistakably convey the feeling "${feeling}" -- someone`,
+    "reading it cold, with no context, should name that feeling. Convey it",
+    "through what is said and how, never by naming the feeling.",
+    "A flat or logistical message that a person in that mood merely could have",
+    "sent does not count: the feeling has to be visible in the words.",
+  ]
+}
+
 type Row = { emoji: string; feeling: string; text: string }
 type Candidate = { feeling: string; text: string }
 
@@ -121,10 +162,10 @@ async function genBatch(voice: string, feeling: string): Promise<string[]> {
     model: MODEL,
     prompt: [
       `Write ${GEN_BATCH_SIZE} short WhatsApp-style messages as if sent by ${voice}.`,
-      `Every message must genuinely convey the feeling "${feeling}" -- through what is said and how, never by naming the feeling.`,
+      ...conveyInstruction(feeling),
       `One message per line. No numbering, no bullets, no quotes, no emoji, no commentary.`,
       `Each message at most ${MAX_RAW_LEN} characters.`,
-      `Vary tone and intent: quick updates, dry humor, complaints, questions, sudden news, invitations, low-effort replies.`,
+      `Vary the wording, situation and sentence shape, but keep every line firmly in the target feeling -- do not drift toward a different mood for the sake of variety.`,
       `Sound real and specific.`,
     ].join("\n"),
   })
@@ -139,19 +180,26 @@ async function genBatch(voice: string, feeling: string): Promise<string[]> {
     .filter((l) => l && !l.startsWith("```"))
 }
 
-// --- phase 2: emoji annotation -------------------------------------------
-const Annotation = z.object({ id: z.number(), emoji: z.string() })
+// --- phase 2: emoji annotation + feeling cross-check ---------------------
+const Annotation = z.object({
+  id: z.number(),
+  emoji: z.string(),
+  feeling: z.string(),
+})
 
 /**
- * Annotate one batch. Returns id -> emoji for every id the model answered.
- * Makes up to two attempts (a partial or failed response retries the whole
- * batch); whatever is still missing after that is logged and left out.
+ * Annotate one batch. Returns id -> {emoji, feeling} for every id the model
+ * answered: `emoji` is a free pick, `feeling` is the annotator's own cold read
+ * of the text against the closed list (the caller drops rows where it disagrees
+ * with the seed feeling). Makes up to two attempts (a partial or failed
+ * response retries the whole batch); whatever is still missing is logged.
  */
 async function annotateBatch(
   batch: { id: number; text: string }[],
-): Promise<Map<number, string>> {
+  feelings: string[],
+): Promise<Map<number, { emoji: string; feeling: string }>> {
   const ids = new Set(batch.map((b) => b.id))
-  const byId = new Map<number, string>()
+  const byId = new Map<number, { emoji: string; feeling: string }>()
 
   for (let attempt = 0; attempt < 2 && byId.size < ids.size; attempt++) {
     try {
@@ -161,19 +209,24 @@ async function annotateBatch(
           schema: z.object({ annotations: z.array(Annotation) }),
         }),
         prompt: [
-          "You are an annotator. For each message below, pick the single emoji that best fits it.",
-          "Any emoji is allowed - pick the most fitting one, not a safe default.",
+          "You are an annotator. For each message below, do two things:",
+          "1. pick the single emoji that best fits it -- any emoji, the most fitting one, not a safe default.",
+          `2. pick the single feeling that best fits it, exactly one from this list: ${feelings.join(", ")}.`,
+          "",
+          FEELING_GUIDANCE,
           "",
           "Return exactly one annotation object per input message, echoing its id.",
           "Do not add, drop, reorder, or merge items.",
-          'Format: {"annotations": [{"id": 0, "emoji": "\u{1F600}"}]}',
+          `Format: {"annotations": [{"id": 0, "emoji": "\u{1F600}", "feeling": "${feelings[0]}"}]}`,
           "",
           "Messages:",
           JSON.stringify(batch),
         ].join("\n"),
       })
       for (const a of output.annotations) {
-        if (ids.has(a.id)) byId.set(a.id, a.emoji.trim())
+        if (ids.has(a.id)) {
+          byId.set(a.id, { emoji: a.emoji.trim(), feeling: a.feeling.trim() })
+        }
       }
     } catch (err) {
       if (attempt === 1) {
@@ -183,7 +236,7 @@ async function annotateBatch(
   }
 
   for (const b of batch) {
-    if (!byId.has(b.id)) console.warn(`\n  dropped id ${b.id}: no emoji`)
+    if (!byId.has(b.id)) console.warn(`\n  dropped id ${b.id}: no annotation`)
   }
   return byId
 }
@@ -258,6 +311,8 @@ if (import.meta.main) {
   )
 
   let annotated = 0
+  let drifted = 0
+  const validFeelings = new Set(feelings)
   if (todo.length) {
     const batches = chunk(todo, ANNOTATE_BATCH_SIZE)
     const annBar = new cliProgress.SingleBar(
@@ -281,12 +336,20 @@ if (import.meta.main) {
       batches.map((batch) => async () => {
         const byId = await annotateBatch(
           batch.map((b) => ({ id: b.id, text: b.text })),
+          feelings,
         )
         const out: string[] = []
         for (const b of batch) {
-          const emoji = byId.get(b.id)
-          if (!emoji) continue
-          out.push(JSON.stringify({ feeling: b.feeling, text: b.text, emoji }))
+          const rec = byId.get(b.id)
+          if (!rec || !validFeelings.has(rec.feeling)) continue
+          // Seed feeling stands only if a cold read of the text agrees with it.
+          if (rec.feeling !== b.feeling) {
+            drifted++
+            continue
+          }
+          out.push(
+            JSON.stringify({ feeling: b.feeling, text: b.text, emoji: rec.emoji }),
+          )
         }
         if (out.length) {
           annotated += out.length
@@ -303,6 +366,7 @@ if (import.meta.main) {
   console.log("\n--- summary ---")
   console.log(`generated fresh texts   : ${candidates.length}`)
   console.log(`skipped (too long)      : ${nLong}`)
+  console.log(`dropped (feeling drift) : ${drifted}`)
   console.log(`annotated -> data.jsonl : ${annotated}`)
   console.log("\nnext: bun gen_labels.ts")
   process.exit(0)
