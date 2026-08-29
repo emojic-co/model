@@ -336,6 +336,14 @@ def train(resume: bool = False) -> None:
         monitor="acc/f/val",
         mode="max",
         every_n_epochs=EVAL_EPOCHS,
+        # dirpath is a single fixed dir reused by every run, so ckpt.ckpt /
+        # last.ckpt from earlier runs are always already on disk. With the
+        # default version counter Lightning won't overwrite them -- it spills to
+        # ckpt-v1.ckpt, last-v1.ckpt, ... and runs/last.ckpt keeps whatever the
+        # *first* run wrote, so `--resume` (which reads runs/last.ckpt) loads
+        # stale state. Overwrite in place instead: runs/last.ckpt is then always
+        # the latest step and runs/ckpt.ckpt the best-by-acc/f/val.
+        enable_version_counter=False,
     )
 
     print(f"Train: {len(train_ds)}  Eval: {len(eval_ds)}")
