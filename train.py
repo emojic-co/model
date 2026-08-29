@@ -122,8 +122,10 @@ def export_web(model: nn.Module) -> None:
         "max_text_len": MAX_TEXT_LEN,
         "emojis": EMOJIS,
         "feelings": FEELING,
-        # UTC date + time of this export ("YYYY-MM-DD HH:MM"); web app footer.
-        "exported_at": datetime.now(UTC).strftime("%Y-%m-%d %H:%M"),
+        # ISO 8601 UTC instant of this export (minute precision, with the
+        # +00:00 offset kept) so docs/app.js can parse it and render it in the
+        # viewer's own local time zone for the footer.
+        "exported_at": datetime.now(UTC).isoformat(timespec="minutes"),
     }
     (DOCS / "meta.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"

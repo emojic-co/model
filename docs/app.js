@@ -282,7 +282,19 @@ function buildFeelingRow() {
   CHAR2IDX = new Map([...META.chars].map((c, i) => [c, i]));
   input.maxLength = CONFIG.max_text_len;
   if (META.exported_at) {
-    document.getElementById("model-date").textContent = `${META.exported_at} UTC`;
+    // meta.json stores the export instant as ISO 8601 UTC; show it in the
+    // viewer's local time zone. Fall back to the raw string if unparseable.
+    const d = new Date(META.exported_at);
+    document.getElementById("model-date").textContent = Number.isNaN(d.getTime())
+      ? META.exported_at
+      : d.toLocaleString(undefined, {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          timeZoneName: "short",
+        });
   }
   buildFeelingRow();
 
