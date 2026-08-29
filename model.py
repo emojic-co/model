@@ -19,9 +19,7 @@ class Model(nn.Module):
             nn.Conv1d(
                 in_channels=CHAR_EMBED_SIZE,
                 out_channels=CHANNELS[0],
-                kernel_size=3,
-                stride=1,
-                padding=0,
+                kernel_size=2,
                 bias=False
             ),
 
@@ -36,9 +34,7 @@ class Model(nn.Module):
                     nn.Conv1d(
                         in_channels=i,
                         out_channels=o,
-                        kernel_size=3,
-                        stride=1,
-                        padding=0,
+                        kernel_size=2,
                         bias=False
                     ),
 
