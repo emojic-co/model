@@ -1,13 +1,16 @@
+import torch
 from torch import nn
+from torch.nn.functional import normalize
 
 from config import (
     CHANNELS,
     CHAR_EMBED_SIZE,
     EMOJI_EMBED_SIZE,
-    HIDDEN,
     KERNEL_1,
 )
 from data import EMOJIS, FEELING, PAD_IDX, VOCAB_SIZE
+
+CS1, CS2 = CHANNELS
 
 
 class Model(nn.Module):
@@ -20,29 +23,37 @@ class Model(nn.Module):
         self.conv = nn.Sequential(
             nn.Conv1d(
                 in_channels=CHAR_EMBED_SIZE,
-                out_channels=CHANNELS,
+                out_channels=CS1,
                 kernel_size=KERNEL_1,
+                stride=2,
                 padding=0,
                 bias=False,
             ),
+
             nn.ReLU(),
 
-            nn.MaxPool1d(
-                kernel_size=3,
-                stride=2),
+            nn.Conv1d(
+                in_channels=CS1,
+                out_channels=CS2,
+                kernel_size=KERNEL_1,
+                stride=2,
+                padding=0,
+                bias=False,
+            ),
+
+            nn.ReLU(),
         )
 
-        self.lstm = nn.LSTM(
-            input_size=CHANNELS,
-            hidden_size=HIDDEN,
-            num_layers=1,
-            batch_first=True,
-            bidirectional=False,
-        )
+        self.feeling = nn.Conv1d(
+            kernel_size=1,
+            in_channels=CS2,
+            out_channels=len(FEELING))
 
-        self.feeling = nn.Linear(HIDDEN, len(FEELING))
+        self.emoji = nn.Conv1d(
+            kernel_size=1,
+            in_channels=CS2,
+            out_channels=EMOJI_EMBED_SIZE)
 
-        self.emoji_proj = nn.Linear(HIDDEN, EMOJI_EMBED_SIZE)
         self.emoji_embed = nn.Embedding(len(EMOJIS), EMOJI_EMBED_SIZE)
 
     def forward(self, x):
@@ -50,12 +61,10 @@ class Model(nn.Module):
         # for Conv1d. PAD_IDX rows stay a fixed zero vector (padding_idx),
         # matching the old one-hot path that sliced off the PAD channel.
         out = self.char_embed(x).transpose(1, 2)
-
         out = self.conv(out)
-        _, (h, _) = self.lstm(out.transpose(1, 2))
-        # out = torch.max(out, dim=1).values
+        out = torch.max(out, dim=-1).values.unsqueeze(-1)  # (B, CS2, 1)
 
         return (
-            self.feeling(h[-1]),
-            self.emoji_proj(h[-1]),
-            self.emoji_embed.weight)
+            self.feeling(out).squeeze(-1),
+            normalize(self.emoji(out).squeeze(-1), p=2, dim=-1),
+            normalize(self.emoji_embed.weight, p=2, dim=-1))

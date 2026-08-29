@@ -7,9 +7,9 @@ TEST_LEN = 900
 # MODEL
 CHAR_EMBED_SIZE = 20
 KERNEL_1 = 5
-CHANNELS = 100
-HIDDEN = 32
-EMOJI_EMBED_SIZE = 40
+CHANNELS = (128, 64)
+EMOJI_EMBED_SIZE = 32
+
 TRIPLET_MARGIN = 1.0
 
 # TRAINING
@@ -27,6 +27,6 @@ EVAL_EPOCHS = 2
 CONFIG_NAME = ' | '.join([
     f'TIME: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
     f'DATA: mtl {MAX_TEXT_LEN} tl {TEST_LEN}',
-    f'MODEL: cs1 {CHANNELS} cs2 {HIDDEN} ce {CHAR_EMBED_SIZE} ee {EMOJI_EMBED_SIZE} tm {TRIPLET_MARGIN}',   # noqa: E501
+    f'MODEL: cs {CHANNELS}',   # noqa: E501
     f'TRAIN: lr {LR} bs {BATCH_SIZE} gc {GRAD_CLIP} wd {WEIGHT_DECAY}',
 ])
