@@ -1,23 +1,25 @@
-import torch
 from torch import nn
-from torch.nn import functional as F
 
 from config import (
     CHANNELS,
+    CHAR_EMBED_SIZE,
     EMOJI_EMBED_SIZE,
     HIDDEN,
     KERNEL_1,
 )
-from data import EMOJIS, FEELING, VOCAB_SIZE
+from data import EMOJIS, FEELING, PAD_IDX, VOCAB_SIZE
 
 
 class Model(nn.Module):
     def __init__(self):
         super().__init__()
 
+        self.char_embed = nn.Embedding(
+            VOCAB_SIZE, CHAR_EMBED_SIZE, padding_idx=PAD_IDX)
+
         self.conv = nn.Sequential(
             nn.Conv1d(
-                in_channels=VOCAB_SIZE - 1,
+                in_channels=CHAR_EMBED_SIZE,
                 out_channels=CHANNELS,
                 kernel_size=KERNEL_1,
                 padding=0,
@@ -44,10 +46,10 @@ class Model(nn.Module):
         self.emoji_embed = nn.Embedding(len(EMOJIS), EMOJI_EMBED_SIZE)
 
     def forward(self, x):
-        out = F \
-            .one_hot(x, VOCAB_SIZE)[:, :, 1:] \
-            .transpose(1, 2) \
-            .to(torch.float32)
+        # (B, T) long -> (B, T, CHAR_EMBED_SIZE) -> (B, CHAR_EMBED_SIZE, T)
+        # for Conv1d. PAD_IDX rows stay a fixed zero vector (padding_idx),
+        # matching the old one-hot path that sliced off the PAD channel.
+        out = self.char_embed(x).transpose(1, 2)
 
         out = self.conv(out)
         _, (h, _) = self.lstm(out.transpose(1, 2))
