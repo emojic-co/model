@@ -22,7 +22,6 @@ class Model(nn.Module):
                 kernel_size=3,
                 stride=1,
                 padding=0,
-                bias=False,
             ),
 
             nn.ReLU(),
@@ -35,40 +34,39 @@ class Model(nn.Module):
                         kernel_size=3,
                         stride=1,
                         padding=0,
-                        bias=False,
                     ),
 
-                    nn.MaxPool1d(kernel_size=2, stride=2),
                     nn.ReLU(),
+                    nn.MaxPool1d(
+                        kernel_size=2,
+                        stride=2),
                 )
                 for i, o in zip(CHANNELS[:-1], CHANNELS[1:], strict=False)
             ]
         )
 
-        self.feeling = nn.Conv1d(
-            kernel_size=1,
-            in_channels=CHANNELS[-1],
-            out_channels=len(FEELING))
+        self.feeling = nn.Linear(
+            CHANNELS[-1],
+            len(FEELING))
 
-        # self.emoji = nn.Conv1d(
-        #     kernel_size=1,
-        #     in_channels=CHANNELS[-1],
-        #     out_channels=EMOJI_EMBED_SIZE)
+        # self.emoji = nn.Linear(CHANNELS[-1], EMOJI_EMBED_SIZE)
 
         # self.emoji_embed = nn.Embedding(len(EMOJIS), EMOJI_EMBED_SIZE)
 
     def forward(self, x):
         # (B, T) long -> (B, T, CHAR_EMBED_SIZE) -> (B, CHAR_EMBED_SIZE, T)
-        # for Conv1d. PAD_IDX rows stay a fixed zero vector (padding_idx),
-        # matching the old one-hot path that sliced off the PAD channel.
+        # for Conv1d. PAD_IDX rows are a fixed zero vector (padding_idx), but
+        # with conv bias on the padded tail is no longer zero after the first
+        # conv, so pad-contaminated timesteps are masked before the global max.
         out = self.char_embed(x).transpose(1, 2)
-        out = self.conv(out)
-        out = torch.max(out, dim=-1).values.unsqueeze(-1)  # (B, CHANNELS[-1], 1)
+        out = self.conv(out)  # (B, CHANNELS[-1], L)
+
+        out = torch.max(out, dim=-1).values  # (B, CHANNELS[-1])
 
         return (
-            self.feeling(out).squeeze(-1),
+            self.feeling(out),
             None,
             None,
-            # normalize(self.emoji(out).squeeze(-1), p=2, dim=-1),
+            # normalize(self.emoji(out), p=2, dim=-1),
             # normalize(self.emoji_embed.weight, p=2, dim=-1)
         )

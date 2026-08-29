@@ -26,3 +26,5 @@ data.jsonl.dry
 
 # gen_data.ts scratch (removed on a successful run; left behind for resume on crash)
 data.jsonl.tmp
+
+*.pt
