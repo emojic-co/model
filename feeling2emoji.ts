@@ -15,8 +15,9 @@
  *
  * Both phases are PQueue-parallelized. Nothing is retried across runs: a failed
  * generate or annotate batch is logged and dropped, and the next run just
- * regenerates. No label filtering happens here -- that is data.py's job at train
- * time; the length check below only decides what is worth an API call.
+ * regenerates. Coverage counting mirrors data.py's load-time filter (a row
+ * counts only if its feeling and emoji are both in labels.json); the length
+ * check below only decides what is worth an API call.
  *
  * Requires AI_GATEWAY_API_KEY (Bun auto-loads it from .env).
  */
@@ -86,11 +87,22 @@ function pickVoice(): string {
  * Tally the labels.json feelings across data.jsonl and return the `n` with the
  * fewest rows, least-covered first (ties: the order feelings appear in
  * labels.json). Feelings with no rows at all still rank first.
+ *
+ * Only rows data.py would keep are counted: a row contributes to its feeling's
+ * tally only if both its feeling and its emoji are in labels.json. (The
+ * text-length filter is not applied here.)
  */
-function rarestFeelings(feelings: string[], rows: Row[], n: number): string[] {
+function rarestFeelings(
+  feelings: string[],
+  emojis: Set<string>,
+  rows: Row[],
+  n: number,
+): string[] {
   const counts = new Map<string, number>(feelings.map((f) => [f, 0]))
   for (const r of rows) {
-    if (counts.has(r.feeling)) counts.set(r.feeling, counts.get(r.feeling)! + 1)
+    if (counts.has(r.feeling) && emojis.has(r.emoji)) {
+      counts.set(r.feeling, counts.get(r.feeling)! + 1)
+    }
   }
   console.log(
     "feeling coverage in data.jsonl: " +
@@ -178,9 +190,11 @@ async function annotateBatch(
 
 if (import.meta.main) {
   if (!existsSync(LABELS)) throw new Error(`${LABELS} not found`)
-  const feelings = z
-    .object({ feelings: z.array(z.string()) })
-    .parse(JSON.parse(await readFile(LABELS, "utf8"))).feelings
+  const labels = z
+    .object({ feelings: z.array(z.string()), emojis: z.array(z.string()) })
+    .parse(JSON.parse(await readFile(LABELS, "utf8")))
+  const feelings = labels.feelings
+  const emojis = new Set(labels.emojis)
 
   const rows: Row[] = []
   if (existsSync(DATA)) {
@@ -189,7 +203,7 @@ if (import.meta.main) {
       if (line) rows.push(JSON.parse(line) as Row)
     }
   }
-  const targets = rarestFeelings(feelings, rows, FEELINGS_PER_RUN)
+  const targets = rarestFeelings(feelings, emojis, rows, FEELINGS_PER_RUN)
   console.log(`target feelings (round-robin per batch): ${targets.join(", ")}`)
 
   // Texts already in the corpus -- never regenerate them.
