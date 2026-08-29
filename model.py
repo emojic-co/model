@@ -24,7 +24,6 @@ class Model(nn.Module):
                 in_channels=CHAR_EMBED_SIZE,
                 out_channels=CHANNELS[0],
                 kernel_size=2,
-                bias=False
             ),
 
             nn.ReLU(),
@@ -39,7 +38,6 @@ class Model(nn.Module):
                         in_channels=i,
                         out_channels=o,
                         kernel_size=2,
-                        bias=False
                     ),
 
                     nn.ReLU(),
