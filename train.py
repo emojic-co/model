@@ -7,11 +7,15 @@ Validation runs every ``EVAL_EPOCHS`` epochs against the fixed gold holdout
 ``eval.jsonl`` (see gen_eval.ts / data.py). Training and validation each log
 exactly four scalars and nothing else -- ``loss/f/{train,val}`` (feeling
 cross-entropy), ``loss/e/{train,val}`` (emoji triplet), ``acc/f/{train,val}``
-(feeling top-1) and ``acc5/e/{train,val}`` (emoji top-5 retrieval). The
-``ExportBest`` callback keeps the best checkpoint (by ``acc/f/val``) and, every
-time the best improves, rewrites both ``model.pt`` and the static web app's
-artifacts in ``docs/`` (``model.onnx`` + ``meta.json`` + ``config.json``), so
-the page can be watched live during a run.
+(feeling top-1) and ``acc5/e/{train,val}`` (emoji top-5 retrieval).
+
+Two callbacks own the on-disk outputs, on independent schedules. ``SaveLast``
+dumps the full training state to ``runs/last.ckpt`` after every validation pass
+(i.e. every ``EVAL_EPOCHS`` epochs), unconditionally, so ``--resume`` always
+picks up the latest optimizer / epoch / RNG state. ``ExportBest`` fires only
+when ``acc/f/val`` reaches a new best, and then rewrites ``model.pt`` plus the
+static web app's artifacts in ``docs/`` (``model.onnx`` + ``meta.json`` +
+``config.json``), so the page can be watched live during a run.
 """
 
 import argparse
@@ -23,7 +27,6 @@ from pathlib import Path
 import lightning as pl
 import torch
 import torch.utils.data
-from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
 
@@ -287,6 +290,19 @@ class ExportBest(pl.Callback):
             export_web(pl_module.model)
 
 
+class SaveLast(pl.Callback):
+    """Overwrite runs/last.ckpt with full training state after every eval.
+
+    Fires from on_validation_end, which the Trainer runs every
+    check_val_every_n_epoch == EVAL_EPOCHS epochs, so runs/last.ckpt always holds
+    the latest optimizer / epoch / global-step / RNG / callback state for
+    --resume -- regardless of whether acc/f/val improved.
+    """
+
+    def on_validation_end(self, trainer: pl.Trainer, pl_module: LitEmojic) -> None:
+        trainer.save_checkpoint(LAST_CKPT)
+
+
 def param_table(model: nn.Module) -> str:
     """Render a per-module / per-parameter breakdown of ``model``'s params.
 
@@ -324,27 +340,10 @@ def train(resume: bool = False) -> None:
 
     lit = LitEmojic()
     export_best = ExportBest()
-    # Full-state checkpoint for --resume: save_top_k=1 monitored on acc/f/val
-    # keeps the best-by-feeling-accuracy runs/ckpt.ckpt, plus the runs/last.ckpt
-    # copy --resume reads. model.pt / model.onnx (via ExportBest) are the
-    # shipped artifacts, gated on the same acc/f/val.
-    checkpoint = ModelCheckpoint(
-        dirpath=str(LAST_CKPT.parent),
-        filename="ckpt",
-        save_last=True,
-        save_top_k=1,
-        monitor="acc/f/val",
-        mode="max",
-        every_n_epochs=EVAL_EPOCHS,
-        # dirpath is a single fixed dir reused by every run, so ckpt.ckpt /
-        # last.ckpt from earlier runs are always already on disk. With the
-        # default version counter Lightning won't overwrite them -- it spills to
-        # ckpt-v1.ckpt, last-v1.ckpt, ... and runs/last.ckpt keeps whatever the
-        # *first* run wrote, so `--resume` (which reads runs/last.ckpt) loads
-        # stale state. Overwrite in place instead: runs/last.ckpt is then always
-        # the latest step and runs/ckpt.ckpt the best-by-acc/f/val.
-        enable_version_counter=False,
-    )
+    # SaveLast overwrites runs/last.ckpt (the only checkpoint --resume reads)
+    # every EVAL_EPOCHS, unconditionally; ExportBest writes the shipped
+    # model.pt / docs/ artifacts only on a new best acc/f/val.
+    LAST_CKPT.parent.mkdir(parents=True, exist_ok=True)
 
     print(f"Train: {len(train_ds)}  Eval: {len(eval_ds)}")
     print(param_table(lit.model), "\n")
@@ -365,7 +364,7 @@ def train(resume: bool = False) -> None:
         accelerator="cpu",
         devices='auto',
         logger=logger,
-        callbacks=[export_best, checkpoint],
+        callbacks=[export_best, SaveLast()],
         num_sanity_val_steps=0,
         log_every_n_steps=10,
     )
