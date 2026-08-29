@@ -7,7 +7,7 @@ TEST_LEN = 900
 # MODEL
 CHAR_EMBED_SIZE = 16
 CHANNELS = (20, 30, 40)
-EMOJI_EMBED_SIZE = 32
+EMOJI_EMBED_SIZE = 20
 
 # Emoji vectors (q and the embedding rows) are L2-normalized in Model.forward,
 # so the triplet L2 distance is bounded in [0, 2]; margin stays well inside it.
