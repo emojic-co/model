@@ -261,7 +261,10 @@ def run(model: Model | None = None) -> Path:
     model = model or load_model()
     feeling_rows = test_feelings(model)
     negation_rows = test_negations(model)
-    emoji_rows = test_emojis(model)
+    # TEMP: emoji head disabled (model.forward returns q=emoji_embed=None), so
+    # the emoji battery is skipped. build_report handles an empty list.
+    emoji_rows: list[dict] = []
+    # emoji_rows = test_emojis(model)
 
     report = build_report(feeling_rows, negation_rows, emoji_rows)
     REPORT_DIR.mkdir(exist_ok=True)

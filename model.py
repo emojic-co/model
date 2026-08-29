@@ -38,6 +38,7 @@ class Model(nn.Module):
                         bias=False,
                     ),
 
+                    nn.MaxPool1d(kernel_size=2, stride=2),
                     nn.ReLU(),
                 )
                 for i, o in zip(CHANNELS[:-1], CHANNELS[1:], strict=False)

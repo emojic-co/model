@@ -79,7 +79,13 @@ class ExportWrapper(nn.Module):
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         feeling_logits, q, emoji_embed = self.model(x)
-        return feeling_logits, q @ emoji_embed.t()
+        # TEMP: emoji head disabled (q / emoji_embed are None). Ship a zero
+        # placeholder so the (feeling_logits, emoji_logits) ONNX contract and
+        # docs/app.js keep working; the emoji output is meaningless until the
+        # head is re-enabled.
+        emoji_logits = feeling_logits.new_zeros(feeling_logits.size(0), len(EMOJIS))
+        return feeling_logits, emoji_logits
+        # return feeling_logits, q @ emoji_embed.t()
 
 
 def export_onnx(model: nn.Module, dst: Path) -> None:
@@ -212,7 +218,8 @@ class LitEmojic(pl.LightningModule):
 
         loss_feeling, acc_feeling = self._feeling_terms(
             logits_feeling, target_feeling)
-        loss_emoji, acc_emoji5 = self._emoji_terms(q, emoji_embd, target_emoji)
+        # TEMP: emoji path disabled -- model.forward returns q=emoji_embd=None.
+        # loss_emoji, acc_emoji5 = self._emoji_terms(q, emoji_embd, target_emoji)
 
         self._log_split(
             "train", x.size(0),
@@ -224,7 +231,7 @@ class LitEmojic(pl.LightningModule):
 
         # TEMP, Debugging the feeling prediction path.
         return loss_feeling
-        return loss_feeling + loss_emoji
+        # return loss_feeling + loss_emoji
 
     def validation_step(self, batch, batch_idx) -> None:
         x, target_emoji, target_feeling = batch
