@@ -1,69 +1,85 @@
-# Data quality report — 2026-08-28 19:49
+# Data quality report — 2026-08-29 09:30
 
-- Sample: 500 of 13754 rows (`report/data/08-28-19:49.sample.jsonl`)
-- Label correctness: emoji 480/500 ok · 18 weak · 2 wrong; feeling 433/500 ok · 66 weak · 1 wrong
-- Text quality: 476/500 clean · 1 broken · 21 normalize-fragile · 2 low-content
-- Label coverage: feelings 8/8 present (+10 corpus rows carry off-vocab feelings, dropped at load) · emojis 134/134 palette present (corpus holds 456 distinct; 322 off-palette classes dropped at load) · imbalance 501x
-- Style coverage: casual 1st-person present-tense feeling statements dominate; biggest gaps are dialogue/quotes, ALL-CAPS, and any message longer than ~10 words
-- Fixes applied: 6 rows rewritten (1 broken · 2 labels · 2 low-content · 1 dedup) · 1 left unfixed
+- Sample: 500 of 56,041 rows (`report/data/08-29-09:30.sample.jsonl`)
+- Label correctness: emoji 473/500 ok · 25 weak · 2 wrong; feeling 403/500 ok · 90 weak · 7 wrong
+- Text quality: 470/500 clean · 1 broken · 18 normalize-fragile · 11 low-content
+- Label coverage: feelings 8/8 present · emojis 300/300 present · imbalance 954x (raw count, incl. off-palette values)
+- Style coverage: one voice — casual 1st-person present-tense WhatsApp one-liners, 84% are 4–7 words; biggest gap is total absence of formal register and any multi-sentence / longer text.
+- Fixes applied: 19 rows rewritten (1 broken · 7 labels · 11 low-content · 0 dedup) · 0 left unfixed
 
 ## 1. Label correctness
 
-Rates: emoji 480 ok / 18 weak / 2 wrong; feeling 433 ok / 66 weak / 1 wrong. The
-palette is large and full of near-synonyms, so emoji fit is strong — the two
-outright wrong emojis are 🤔 on an angry line and 🥳 on a heartbreak line.
-
-Feeling is the weak head. **66/500 (13%) feelings are defensible-but-not-best,
-and the pattern is one-directional: deadpan / wry one-liners get one of the six
-strong feelings when the actual tone is mild or affect-free.** The annotator
-under-selects `Neutral`. Recurring shapes:
-
-- Mild disappointment or being unimpressed → `Angry` ("I'm not impressed with
-  the DJ", "not impressed by the replacement bus tbh", "New phone, same
-  nonsense").
-- Wry / mock-tragic complaints → `Sad` ("Payday feels suspiciously far away.",
-  "Breaking: cafeteria has run out of samosas.", "The vet bill costs more than
-  my textbook.", "Apparently, sleep is optional.").
-- Flat observations or neutral logistics → `Anxious` ("I'm bringing a jacket.",
-  "It's sunny but somehow still freezing", "The next one is delayed.", "Truck
-  arrived early.").
-- Polite acknowledgements → `Happy` ("Noted, nice work", "Okay, well done",
-  "Understood, good work", "Sure, well done") — a fixed template that is really
-  `Neutral`.
-- "Wasn't excited tbh…" / "Not excited tbh…" openers → `Sad` when the content
-  is neutral or even positive ("Wasn't excited tbh, but it was great").
+Emoji fit is strong. The palette is used mostly as a **literal illustration of the
+text's topic** (beans → 🫘, moose → 🫎, charger → 🔌, clock-time → 🕝), and that
+works. ~25/500 are "weak": an arbitrary decorative glyph that neither illustrates
+nor contradicts (🟡 "putting the kettle on", ⭐ "code brown", 👽 "bring coffee and
+a clean shirt", 🐺 "found the blockage", ➡️ "found the typo", ⛲ "the plan is
+moving"). Only 2 are outright wrong:
 
 | text | labeled emoji / feeling | better fit | note |
 | --- | --- | --- | --- |
-| My heart's broken, yay | 🥳 / Happy | 💔 / Sad | sarcasm; conveyed emotion is not happiness — **fixed** |
-| Why'd you pick this spot | 🤔 / Angry | 😒 / Angry | 🤔 is neutral-valence, clashes with the Angry label — **fixed** |
-| I'm not impressed with the DJ | 😤 / Angry | 😐 / Neutral | unimpressed ≠ raging (no `Annoyed` in vocab) |
-| Truck arrived early. | 🚚 / Happy | 🚚 / Neutral | plain logistics, no affect |
-| I'm bringing a jacket. | 🧥 / Calm | 🧥 / Neutral | statement of fact |
-| Breaking: cafeteria has run out of samosas. | 😞 / Sad | 😤 / Angry or Neutral | mock-news bit, not grief |
-| Noted, nice work | 😊 / Happy | 🙂 / Neutral | acknowledgement template |
-| Apparently, sleep is optional. | 😴 / Sad | 😴 / Neutral | weary wry, not sad |
+| Send help, towels, and a clean onesie | 泥 / Anxious | 🚼 | `emoji` field holds a CJK character (泥 "mud"), not an emoji — drops at load |
+| Vitals are stable, spirits are not. | 📸 / Sad | 😔 | camera points at a different topic; left unfixed (weak-vs-wrong borderline) |
+
+Feeling fit has one **systematic** problem: the generators reach for a strong
+feeling on flat, affect-free logistics text.
+
+- **`Love` as a catch-all for any domestic / caring / practical message.** "You
+  left your headphones in my car." · "I'm outside. Open the door?" · "I brought
+  the charger you forgot." · "Your socks are on the radiator." · "Wear the blue
+  jumper, it's cold out." · "I'm bringing coffee. Your usual." — all `Love`, all
+  better read as `Neutral`. ~15 rows in the sample.
+- **`Excited` / `Calm` on pure scheduling text.** "I'm opening the files right
+  now." → `Excited`. "Meeting moved to four. Breathe." → `Love`. "The new
+  template is in the shared folder." → `Calm`. "I put your flyer in the right
+  box." → `Calm`.
+- **`Sad` for wry self-directed annoyance.** "Back home. Forgot the bread,
+  naturally." · "My hamstrings filed a formal complaint" · "I missed the goal
+  while making tea. Typical." · "Bad news: I still have to work" — these are
+  `Neutral`/annoyed in tone, not sad. (There is no `Annoyed` label, so `Neutral`
+  is the correct sink; instead they land on `Sad`.)
+- **`Angry` inflation.** Mild irritation ("The elevator is broken again", "The
+  cafeteria ran out of everything decent", movie-quality gripes) is routinely
+  labeled `Angry` where `Neutral` would be defensible.
+
+Net: 90/500 feelings are "weak" (defensible but not the best label) and 7 are
+clearly wrong (fixed — see §5). The weak rate is high enough that the feeling
+head is being trained toward "any warm text = Love, any downbeat text = Sad".
+
+| text | labeled feeling | better fit | note |
+| --- | --- | --- | --- |
+| This is me being responsible. Terrifying. | Love | Neutral | self-mocking aside, no 2nd person, no affection |
+| How dare you look gorgeous! | Angry | Love | mock-outrage compliment / flirtation |
+| I'm fine to present. Probably. | Sad | Anxious | the "Probably." undercut is nerves, not sadness |
+| I'm opening the files right now. | Excited | Neutral | zero excitement markers |
+| Meeting moved to four. Breathe. | Love | Calm | "Breathe" = self-reassurance about a schedule change |
+| My hamstrings filed a formal complaint | Sad | Neutral | joke about soreness |
+| Back home. Forgot the bread, naturally. | Sad | Neutral | wry self-annoyance |
 
 ## 2. Text quality
 
-- broken: 1 — `"Sad heart at this place"` (not natural English; templated
-  emotion-slotting). **fixed** → "Being back here just makes my heart hurt".
-  Also watched but **not** fixed: `"Nice and mellow, just chili"` — "chili" is
-  probably a typo for "chill" but could be an intentional food reference;
-  low confidence, left untouched.
-- normalize-fragile: 21 — meaning rides on digits that `normalize` deletes.
-  `"Mum booked the 6am flight. Absolute betrayal."` → `"mum booked the am
-  flight absolute betrayal"`; `"Made it onto the 8:12. Miracles happen."` →
-  `"made it onto the : miracles happen"`; `"My phone is on 2 percent"` → `"my
-  phone is on percent"`; `"Score's 1-0, but my spreadsheet is still losing."`
-  → `"scores but my spreadsheet is still losing"`. Per skill rules these were
-  **not** edited (normalize/CHARS may change).
-- low-content: 2 — `"This belongs there"` (vague, no concrete or emotional
-  hook), `"Keeping it neutral"` (tautological with its label). Both **fixed**
-  into concrete Neutral messages.
-- exact/near duplicates: 0 exact-after-normalize in the sample. One near-dup
-  pair split: `"I’m so excited for donuts"` / `"I’m so excited for donuts!"`
-  (both 🍩 / Excited) — the `!` copy was rewritten.
+- **broken: 1** — row with `泥` (a CJK char) in the `emoji` field (fixed). Two
+  borderline-but-left: `"Bad news: I just said "good news."` (unbalanced quote)
+  and `"Cant say im sad, the song was awful"` (clumsy double-negative, meaning
+  recoverable).
+- **normalize-fragile: 18** — text whose meaning leans on characters `normalize`
+  deletes (digits, `.`, `,`, `-`, `:`). Worst cases:
+  - `2-1! I take back everything I said` -> `! i take back everything i said` (score gone)
+  - `The deadline says 11:59. Which timezone?` -> `the deadline says : which timezone?`
+  - `Who thought an 8 a.m. exam was reasonable?` -> `who thought an  am exam was reasonable?`
+  - `Taco night at mine, 7ish?` -> `taco night at mine ish?`
+  - `I accidentally liked their post from 2021` -> `i accidentally liked their post from`
+  - clock times (`2:30`, `8:30`, `7am`, `8am`) recur — ~11 of the 18 are a time-of-day.
+  Left untouched per skill scope (normalize/CHARS may change).
+- **low-content: 11** — grammatical but nothing a label hangs on: "Working on a
+  task", "That's quite something", "Stay awesome", "Guess it is what it is",
+  "Resting in peaceful energy", "Calmly reading the signs", "All feels fine",
+  "I'm glowing", "Peace in every color", "Savoring this peaceful moment",
+  "Feeling happy and glowing". All rewritten (§5).
+- **exact/near duplicates: 0 exact** after normalize. Near-duplicate *templates*
+  are common though (see §4): `"missed it by ~two seconds"` (rows 108 & 227,
+  both Sad), `"...move our call to 2:30"` / `"...meet around 2:30"`, `"Your
+  <garment> is <place>."` ×3, `"Not (that) calm rn, <x>"` ×3.
 
 ## 3. Label coverage
 
@@ -71,97 +87,112 @@ under-selects `Neutral`. Recurring shapes:
 
 | feeling | corpus count | corpus share | sample count |
 | --- | --- | --- | --- |
-| Anxious | 2651 | 19.3% | 96 |
-| Happy | 2465 | 17.9% | 93 |
-| Sad | 1944 | 14.1% | 69 |
-| Neutral | 1833 | 13.3% | 65 |
-| Angry | 1778 | 12.9% | 66 |
-| Excited | 1489 | 10.8% | 44 |
-| Calm | 1407 | 10.2% | 62 |
-| Love | 177 | 1.3% | 5 |
-| _off-vocab (Annoyed 4, Confused 4, Frustrated 1, Hopeful 1)_ | 10 | 0.07% | 0 |
+| Neutral | 8,495 | 15.2% | 83 |
+| Anxious | 7,197 | 12.8% | 65 |
+| Calm | 7,096 | 12.7% | 76 |
+| Happy | 7,050 | 12.6% | 60 |
+| Excited | 6,831 | 12.2% | 48 |
+| Love | 6,787 | 12.1% | 47 |
+| Sad | 6,431 | 11.5% | 54 |
+| Angry | 6,140 | 11.0% | 67 |
 
-`Love` is ~14x rarer than any other feeling — effectively untrainable as its
-own class. 10 rows carry feelings not in `labels.json` (`Annoyed`, `Confused`,
-`Frustrated`, `Hopeful`) and are silently dropped by `read()` at load;
-`Annoyed` and `Frustrated` in particular would be useful given the Angry
-over-labeling in §1.
+Feelings are well balanced (max/min = 1.4x). **15 corpus rows carry an off-vocab
+feeling** — `Annoyed` ×5, `Confused` ×4, `Frustrated` ×2, `Hopeful`/`Amused`/
+`Relieved` ×1 — leftovers from an older label set; they are silently dropped at
+load by `data.py`'s `read()`. Harmless but worth a one-time `sed` cleanup.
 
 ### Emojis
 
-- palette present 134/134; absent: none.
-- corpus contains 456 distinct emoji classes — **322 are not in the 134-emoji
-  palette and are dropped at load**, discarding real annotation labour.
-- top 10: 😌 501 · 😤 490 · 😰 472 · 😠 420 · 😟 396 · 🎉 382 · 😬 362 · 😊 351 · 😞 332 · 😔 317
-- bottom 10 (all off-palette singletons, dropped at load): 🍎 🤓 📮 🏙️ 😇 💝 🪙 🦊 👓 🃏 — each count 1
-- imbalance max/min = 501/1 = 501x (inflated by off-palette singletons; within
-  the 134-emoji palette the spread is smaller but still steep — a handful of
-  face emojis carry most rows and the topical/object emojis are thin).
+- present: **300/300** palette emojis appear at least once; absent: none.
+- The corpus contains **829 distinct emoji values** — 529 of them are outside the
+  300-emoji palette and drop at load (row 86's `泥`, plus a long tail of
+  count-1 glyphs: 💜 🕥 🥊 🤱 👹 🟣 🫒 🍥 👛 🛞 …).
+- top 10: 😤 954 · 😌 933 · 🎉 904 · ☕ 677 · 😬 666 · 😠 651 · 😰 620 · 😔 614 · 😩 566 · 😟 561
+- bottom 10 (of all values, non-palette): 💜 🕥 🥊 🤱 👹 🟣 🫒 🍥 👛 🛞 — all count 1
+- imbalance max/min = 954/1 = **954x** (raw). Even confined to the palette the
+  spread is steep: a cluster of face-emojis at 500–950 vs. many object emojis in
+  low double digits. The emoji head has ~187 rows/class on average but a heavy
+  head and a thin tail.
 
 ## 4. Text-style coverage
 
 | axis | buckets (approx share) |
 | --- | --- |
-| register | formal ~2% · neutral ~30% · casual ~60% · slang/net-speak ~8% (tbh, rn, lowkey, deadass, u, "gooo", "slaps") |
-| form | 1st-person feeling statement ~45% · narrative/recount ~20% · observation/aphorism ~15% · question ~20% · dialogue/quote ~0% |
-| device | plain ~72% · exclamation ~24% · profanity ~2% (mild only: "pissed", "hell") · ALL-CAPS 0% · in-text emoji 0% |
-| age register | child 0% · teen ~10% · adult ~65% · indeterminate ~25% |
+| register | casual ~70% · neutral ~25% · slang/net-speak ~5% (`rn`, `lol`, `im`, `bro`, `mate`) · formal ~0% |
+| form | 1st-person feeling/statement ~55% · observation/quip ~20% · question ~20% (`Can we…?`, `Want to…?`) · narrative/recount ~5% · dialogue/quote ~0% |
+| device | plain ~75% · exclamation ~24% · all-caps ~0% · in-text emoji 0% · profanity ~1% (mild: "damn", "crap") |
+| age register | adult ~85% · teen ~10% (group-chat, school, "bro") · child ~0% · indeterminate ~5% |
 
 Gaps:
 
-- **No dialogue or quoted speech** anywhere in the sample.
-- **No ALL-CAPS emphasis and no in-text emoji** — two of the most common real
-  texting devices are entirely absent (partly by generator design, but it
-  makes the training distribution unlike real WhatsApp text).
-- **No long messages** — median 5 words, max 10; no multi-sentence venting.
-- **Almost no formal register**, no child voice, thin teen voice.
-- **Present-tense monoculture** — nearly every row is "right now"; little
-  past-tense recounting of a finished event, no forward planning beyond a time.
-- **Heavy template frames**: "Feeling X, Y-ing Z", "X makes me happy/furious",
-  "Can't say I'm sad …", "Wasn't excited tbh, but …", "Not happy about X", "not
-  calm rn, the X", "Noted/Okay, <praise>".
-- **Narrow topic set**: coffee, tacos, donuts, pizza, printers, weddings,
-  sports matches, harvest/farm, commuting, hospital shifts recur constantly.
+- **No formal register at all** — no workplace-formal, customer-service, email,
+  or written-correspondence voice.
+- **Length monoculture** — 84% of rows are 4–7 words, max is 10; nothing
+  multi-sentence, no longer vents or recounts with an arc. Driven by the
+  generators' ≤50-char cap.
+- **Tense/POV monoculture** — almost everything is 1st-person present tense.
+  Little past-tense storytelling, no 3rd-person narration.
+- **Age monoculture** — overwhelmingly adult; essentially no child voice.
+- **No emphasis devices** — zero ALL-CAPS, zero repeated punctuation, zero
+  in-text emoji (all three would be flattened by `normalize` anyway, so this is
+  arguably fine).
+- **Persona / template reuse** — the same handful of scenes recur: domestic
+  partner, hospital ward / nurse, student with a deadline, tradesperson mid-job.
+  Templates `"Not that calm rn, <x>"`, `"Your <garment> is <place>."`, `"Bad
+  news: <x>"` / `"Good news: <x>"`, `"Meet me by <x>"`, `"<time> reschedule"`
+  each appear multiple times in a 500-row sample.
 
 ## 5. Fixes applied
 
-- rewritten: 6 rows (1 broken · 2 labels · 2 low-content · 1 dedup); fixes file
-  `report/data/08-28-19:49.fixes.jsonl`
-- unfixed (flagged but not confidently fixable): 1 — `"Nice and mellow, just
-  chili"` (probable "chill" typo, but possibly deliberate); plus the 66 `_weak`
-  feelings and 21 normalize-fragile rows, which are out of scope by the skill's
-  rules.
+- rewritten: **19 rows** (1 broken · 7 labels · 11 low-content · 0 dedup); fixes
+  file `report/data/08-29-09:30.fixes.jsonl`
+- unfixed (flagged but not confidently fixable): **0**. Deliberately left:
+  normalize-fragile rows (out of scope), all `*_weak` labels, the `📸`/"vitals"
+  emoji (weak-vs-wrong borderline), the two borderline-broken texts in §2.
 
 | before (text — emoji / feeling) | after | why |
 | --- | --- | --- |
-| Sad heart at this place — 💔 / Sad | Being back here just makes my heart hurt — 💔 / Sad | broken: unnatural templated phrasing |
-| This belongs there — 📍 / Neutral | The parcel goes to the flat upstairs, not ours — 📍 / Neutral | low-content: no concrete or emotional hook |
-| Keeping it neutral — 😐 / Neutral | The meeting ran long but nothing got decided — 😐 / Neutral | low-content: tautological with label |
-| Why'd you pick this spot — 🤔 / Angry | Why'd you pick this spot — 😒 / Angry | emoji wrong: 🤔 is neutral-valence, clashes with Angry |
-| My heart's broken, yay — 🥳 / Happy | My heart's broken, yay — 💔 / Sad | labels wrong: sarcasm, conveyed emotion is not happiness |
-| I’m so excited for donuts! — 🍩 / Excited | Bakery opens in ten and I’m first in line — 🍩 / Excited | near-duplicate of "I’m so excited for donuts" |
+| Send help, towels, and a clean onesie — 泥 / Anxious | emoji → 🚼 | `emoji` field was a CJK character, not an emoji |
+| This is me being responsible. Terrifying. — 😅 / Love | feeling → Neutral | self-mocking aside; no affection / 2nd person |
+| How dare you look gorgeous! — 😠 / Angry | feeling → Love | mock-outrage compliment |
+| I'm fine to present. Probably. — 😬 / Sad | feeling → Anxious | the "Probably." is nerves |
+| I'm opening the files right now. — 📂 / Excited | feeling → Neutral | flat logistics, no excitement |
+| Meeting moved to four. Breathe. — 😮‍💨 / Love | feeling → Calm | self-reassurance about a schedule change |
+| My hamstrings filed a formal complaint — 🤸 / Sad | feeling → Neutral | joke about soreness |
+| Back home. Forgot the bread, naturally. — 🙄 / Sad | feeling → Neutral | wry self-annoyance |
+| Working on a task — 📝 / Neutral | "I'm drafting the status update now." | low-content |
+| That's quite something — 🙂 / Neutral | "The new schedule just came through." | low-content |
+| Stay awesome — 😎 / Happy | "You crushed that presentation today." | low-content |
+| Guess it is what it is — 🤷 / Neutral | "The order slipped to next week, not much we can do." | low-content |
+| Resting in peaceful energy — ☮️ / Calm | "Lying in the garden with nowhere to be." | low-content |
+| Calmly reading the signs — 📖 / Calm | "Reading the trail signs, taking my time." | low-content |
+| All feels fine — 🙂 / Happy | "Everything went smoothly today, no complaints." | low-content |
+| I'm glowing — ✨ / Happy | "Nailed the interview and I feel unstoppable." | low-content |
+| Peace in every color — 🌈 / Calm | "Watching the sunset spread across the sky." | low-content |
+| Savoring this peaceful moment — 🕊️ / Calm | "Sitting by the lake before the house wakes up." | low-content |
+| Feeling happy and glowing — ✨ / Happy | "Got the offer this morning and I can't stop smiling." | low-content |
 
 ## 6. Verdict & recommendations
 
-1. **Fix the annotator's feeling bias toward the six strong labels.** 13% of
-   feelings are over-strong; give `Neutral` explicit priority for wry,
-   logistical, and acknowledgement texts, and add the "Wasn't excited tbh" /
-   "Noted, nice work" templates as `Neutral` exemplars in the annotation prompt.
-2. **Decide what to do about `Love` (1.3%) and the 4 off-vocab feelings.**
-   Either drop `Love` from the head, or have the generator/annotator target it
-   (and `Annoyed` / `Frustrated`, which the Angry over-labeling shows are
-   needed) so every class is trainable.
-3. **Reconcile the emoji palette.** `labels.json` has 134 emojis (CLAUDE.md
-   says top 100) and 322 further emoji classes in `data.jsonl` are dropped at
-   load. Re-run `gen_labels.ts`, or widen the cutoff, so annotation labour
-   isn't discarded; consider constraining the annotator to the palette.
-4. **Break the style monoculture in `raw_txt.ts`.** Add dialogue/quoted
-   messages, ALL-CAPS emphasis, longer multi-sentence vents, past-tense
-   recounts, a formal register, and a teen/child voice; widen the topic spread
-   beyond food/printers/weddings/sports.
-5. **Stop generating digit-dependent meaning.** ~4% of rows lose their point
-   after `normalize` strips digits (times like "6am"/"the 8:12", scores "1-0",
-   "2 percent", room/page numbers). Have the generator spell numbers out or
-   avoid leaning on them.
-6. Minor: teach the generator that emotion-slot templates ("Sad heart at this
-   place", "Calm feels nice") read as artifacts, not messages.
+1. **Fix the feeling-annotation prompt in `feeling2emoji.ts` / `emoji2feeling.ts`
+   to allow `Neutral` for flat text.** The dominant defect (90/500 weak
+   feelings) is strong-feeling inflation: `Love` for any caring/domestic line,
+   `Sad` for wry self-annoyance, `Excited`/`Calm` for scheduling. Add explicit
+   instruction + few-shot examples that logistics/practical messages are
+   `Neutral`.
+2. **Add an `Annoyed` sink or fold it explicitly into `Neutral`.** A large share
+   of "weak `Sad`" and "inflated `Angry`" rows are really mild annoyance with no
+   home label, so the annotator scatters them.
+3. **Flatten the emoji distribution.** 954x imbalance and a 529-value off-palette
+   tail. Run `emoji2feeling.ts` (its whole job) a few times, then `gen_labels.ts`;
+   consider capping per-emoji rows on the high end.
+4. **Broaden text style.** Everything is a 4–7-word 1st-person present-tense
+   one-liner. Raise the char cap for a subset, add a formal/workplace voice, add
+   past-tense recounts, and de-duplicate the recurring templates (`"Not that
+   calm rn…"`, `"Your <garment> is <place>"`, `"Bad news: …"`).
+5. **One-time corpus hygiene.** Drop or relabel the 15 off-vocab-feeling rows;
+   strip the 529 off-palette emoji rows (or let `read()` keep doing it, but they
+   inflate `data.jsonl` size for nothing).
+6. **Reduce normalize-fragile generation.** ~11 of 18 casualties are clock times
+   (`2:30`, `7am`). Nudge the generator away from digit-dependent phrasing, or
+   teach it to spell times out ("half two", "seven in the morning").
