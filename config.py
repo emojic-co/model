@@ -10,7 +10,12 @@ KERNEL_1 = 5
 CHANNELS = (128, 64)
 EMOJI_EMBED_SIZE = 32
 
-TRIPLET_MARGIN = 1.0
+# Emoji vectors (q and the embedding rows) are L2-normalized in Model.forward,
+# so the triplet L2 distance is bounded in [0, 2]; margin stays well inside it.
+TRIPLET_MARGIN = 0.5
+# Wrong emoji classes sampled per row for the triplet loss (the anchor/positive
+# pair is scored against each, then averaged).
+EMOJI_NEGATIVES = 5
 
 # TRAINING
 LR = 0.01
