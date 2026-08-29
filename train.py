@@ -198,6 +198,9 @@ class LitEmojic(pl.LightningModule):
         log("train/e_acc5", acc_emoji5)
         log("train/f_loss", loss_feeling)
         log("train/e_loss", loss_emoji)
+
+        # TEMP, Debugging the feeling prediction path.
+        return loss_feeling
         return loss_feeling + loss_emoji
 
     def validation_step(self, batch, batch_idx) -> None:
