@@ -276,6 +276,11 @@ def train(resume: bool = False) -> None:
     print(f"Train: {len(train_ds)}  Eval: {len(eval_ds)}")
     print(f"Params: {sum(p.numel() for p in lit.model.parameters()):,}\n")
 
+    logger = TensorBoardLogger(
+        "runs",
+        name=CONFIG_NAME,
+        version="")
+
     trainer = pl.Trainer(
         max_epochs=EPOCHS,
         # config guarantees EPOCHS % EVAL_EPOCHS == 0, so the last epoch validates.
@@ -283,7 +288,7 @@ def train(resume: bool = False) -> None:
         gradient_clip_val=GRAD_CLIP,
         accelerator="cpu",
         devices='auto',
-        logger=TensorBoardLogger("runs", name=CONFIG_NAME, version=""),
+        logger=logger,
         callbacks=[export_best, checkpoint],
         num_sanity_val_steps=0,
         log_every_n_steps=10,
