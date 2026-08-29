@@ -2,7 +2,7 @@
 import datetime
 
 MAX_TEXT_LEN = 42
-TEST_LEN = 500
+TEST_LEN = 600
 
 # MODEL
 KERNEL_1 = 3
