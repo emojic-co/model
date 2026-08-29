@@ -5,9 +5,9 @@ MAX_TEXT_LEN = 42
 TEST_LEN = 900
 
 # MODEL
-CHAR_EMBED_SIZE = 20
-KERNEL_1 = 5
-CHANNELS = (128, 64)
+CHAR_EMBED_SIZE = 16
+KERNELS = (3, 4)
+CHANNELS = (128, 32)
 EMOJI_EMBED_SIZE = 32
 
 # Emoji vectors (q and the embedding rows) are L2-normalized in Model.forward,
@@ -18,14 +18,14 @@ TRIPLET_MARGIN = 0.5
 EMOJI_NEGATIVES = 5
 
 # TRAINING
-LR = 0.01
+LR = 0.1
 BATCH_SIZE = 128
 GRAD_CLIP = 1.0
 WEIGHT_DECAY = 2e-4
 
 
 # EPOCHS
-EPOCHS = 20
+EPOCHS = 30
 EVAL_EPOCHS = 2
 
 

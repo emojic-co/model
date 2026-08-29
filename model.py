@@ -6,11 +6,12 @@ from config import (
     CHANNELS,
     CHAR_EMBED_SIZE,
     EMOJI_EMBED_SIZE,
-    KERNEL_1,
+    KERNELS,
 )
 from data import EMOJIS, FEELING, PAD_IDX, VOCAB_SIZE
 
 CS1, CS2 = CHANNELS
+KERNEL_1, KERNEL_2 = KERNELS
 
 
 class Model(nn.Module):
@@ -35,7 +36,7 @@ class Model(nn.Module):
             nn.Conv1d(
                 in_channels=CS1,
                 out_channels=CS2,
-                kernel_size=KERNEL_1,
+                kernel_size=KERNEL_2,
                 stride=2,
                 padding=0,
                 bias=False,
