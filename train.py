@@ -230,15 +230,15 @@ class LitEmojic(pl.LightningModule):
         log("eval/e_acc5", acc_emoji5)
 
     def configure_optimizers(self):
-        return optim.SGD(
-            self.parameters(),
-            lr=LR,
-            weight_decay=WEIGHT_DECAY)
-
-        # return optim.Adam(
+        # return optim.SGD(
         #     self.parameters(),
         #     lr=LR,
         #     weight_decay=WEIGHT_DECAY)
+
+        return optim.Adam(
+            self.parameters(),
+            lr=LR,
+            weight_decay=WEIGHT_DECAY)
 
 
 class ExportBest(pl.Callback):
