@@ -253,6 +253,34 @@ class ExportBest(pl.Callback):
             export_web(pl_module.model)
 
 
+def param_table(model: nn.Module) -> str:
+    """Render a per-module / per-parameter breakdown of ``model``'s params.
+
+    One indented row per leaf parameter (with its shape), grouped under each
+    top-level child module with that child's subtotal and share of the total.
+    """
+    named = list(model.named_parameters())
+    total = sum(p.numel() for _, p in named)
+    name_w = max((len(n) for n, _ in named), default=18) + 4
+    head = f"{'module / parameter':<{name_w}}{'shape':>16}{'params':>12}{'%':>8}"
+    rule = "-" * len(head)
+
+    out = [head, rule]
+    for child_name, child in model.named_children():
+        sub = sum(p.numel() for p in child.parameters())
+        pct = 100 * sub / total if total else 0.0
+        out.append(f"{child_name:<{name_w}}{'':>16}{sub:>12,}{pct:>7.1f}%")
+        for pname, p in child.named_parameters():
+            shape = "x".join(map(str, tuple(p.shape)))
+            out.append(f"  {pname:<{name_w - 2}}{shape:>16}{p.numel():>12,}")
+    out.append(rule)
+    trainable = sum(p.numel() for _, p in named if p.requires_grad)
+    out.append(f"{'total':<{name_w}}{'':>16}{total:>12,}{100.0:>7.1f}%")
+    if trainable != total:
+        out.append(f"{'trainable':<{name_w}}{'':>16}{trainable:>12,}")
+    return "\n".join(out)
+
+
 def train(resume: bool = False) -> None:
     pl.seed_everything(0, workers=True)
 
@@ -274,7 +302,7 @@ def train(resume: bool = False) -> None:
     )
 
     print(f"Train: {len(train_ds)}  Eval: {len(eval_ds)}")
-    print(f"Params: {sum(p.numel() for p in lit.model.parameters()):,}\n")
+    print(param_table(lit.model), "\n")
 
     logger = TensorBoardLogger(
         "runs",
