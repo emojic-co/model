@@ -6,7 +6,7 @@ MAX_TEXT_LEN = 42
 # not a slice of data.jsonl -- there is no eval-size knob here any more.
 
 # MODEL
-CHAR_EMBED_SIZE = 10
+CHAR_EMBED_SIZE = 12
 CHANNELS = (20, 30)
 EMOJI_EMBED_SIZE = 20
 
