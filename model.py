@@ -22,6 +22,7 @@ class Model(nn.Module):
                 kernel_size=3,
                 stride=1,
                 padding=0,
+                bias=False
             ),
 
             nn.ReLU(),
@@ -38,6 +39,7 @@ class Model(nn.Module):
                         kernel_size=3,
                         stride=1,
                         padding=0,
+                        bias=False
                     ),
 
                     nn.ReLU(),
