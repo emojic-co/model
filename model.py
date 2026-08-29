@@ -28,7 +28,7 @@ class Model(nn.Module):
             ),
 
             nn.BatchNorm1d(CHANNELS[0]),
-            nn.ReLU(),
+            nn.LeakyReLU(negative_slope=0.1),
 
             *[
                 nn.Sequential(
@@ -44,7 +44,7 @@ class Model(nn.Module):
                     ),
 
                     nn.BatchNorm1d(o),
-                    nn.ReLU(),
+                    nn.LeakyReLU(negative_slope=0.1),
                 )
                 for i, o in zip(CHANNELS[:-1], CHANNELS[1:], strict=False)
             ]
