@@ -44,7 +44,7 @@ Read the train-vs-eval gap: which losses keep falling, which flatten or rise
 (over/underfitting), where the best checkpoint lands.
 
 **Current source** — read `model.py`, `train.py`, `data.py`, `config.py`,
-`labels.json`, `emoji_keywords.py`. The architecture and hyperparameters drift;
+`labels.json`, `test_model.py`. The architecture and hyperparameters drift;
 trust the code, not the previous `model.md`.
 
 **Dataset shape** — never read `data.jsonl` whole:

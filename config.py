@@ -7,7 +7,7 @@ TEST_LEN = 900
 # MODEL
 CHAR_EMBED_SIZE = 16
 KERNELS = (3, 4)
-CHANNELS = (128, 32)
+CHANNELS = (120, 40)
 EMOJI_EMBED_SIZE = 32
 
 # Emoji vectors (q and the embedding rows) are L2-normalized in Model.forward,
@@ -18,7 +18,7 @@ TRIPLET_MARGIN = 0.5
 EMOJI_NEGATIVES = 5
 
 # TRAINING
-LR = 0.1
+LR = 0.01
 BATCH_SIZE = 128
 GRAD_CLIP = 1.0
 WEIGHT_DECAY = 2e-4

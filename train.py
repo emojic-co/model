@@ -179,11 +179,12 @@ class LitEmojic(pl.LightningModule):
         acc_feeling = (
             logits_feeling.argmax(dim=-1) == target_feeling).float().mean()
 
-        # Nearest emoji embedding. q and emoji_embed are unit-norm, so the
-        # highest cosine similarity is the smallest L2 distance the triplet
-        # loss trains -- and it's the exact score ExportWrapper ships.
-        pred_emoji = (q @ emoji_embd.t()).argmax(dim=-1)
-        acc_emoji = (pred_emoji == target_emoji).float().mean()
+        # Top-5 nearest emoji embeddings. q and emoji_embed are unit-norm, so
+        # the highest cosine similarities are the smallest L2 distances the
+        # triplet loss trains -- the exact score ExportWrapper ships. Retrieval
+        # over 300 classes is hopeless at top-1, so track the top-5 hit rate.
+        top5 = (q @ emoji_embd.t()).topk(5, dim=-1).indices
+        acc_emoji5 = (top5 == target_emoji.unsqueeze(1)).any(dim=-1).float().mean()
 
         def log(k, v):
             self.log(
@@ -194,7 +195,7 @@ class LitEmojic(pl.LightningModule):
                 batch_size=x.size(0))
 
         log("train/f_acc", acc_feeling)
-        log("train/e_acc", acc_emoji)
+        log("train/e_acc5", acc_emoji5)
         log("train/f_loss", loss_feeling)
         log("train/e_loss", loss_emoji)
         return loss_feeling + loss_emoji
@@ -206,11 +207,12 @@ class LitEmojic(pl.LightningModule):
         acc_feeling = (
             logits_feeling.argmax(dim=-1) == target_feeling).float().mean()
 
-        # Nearest emoji embedding. q and emoji_embed are unit-norm, so the
-        # highest cosine similarity is the smallest L2 distance the triplet
-        # loss trains -- and it's the exact score ExportWrapper ships.
-        pred_emoji = (q @ emoji_embed.t()).argmax(dim=-1)
-        acc_emoji = (pred_emoji == target_emoji).float().mean()
+        # Top-5 nearest emoji embeddings. q and emoji_embed are unit-norm, so
+        # the highest cosine similarities are the smallest L2 distances the
+        # triplet loss trains -- the exact score ExportWrapper ships. Retrieval
+        # over 300 classes is hopeless at top-1, so track the top-5 hit rate.
+        top5 = (q @ emoji_embed.t()).topk(5, dim=-1).indices
+        acc_emoji5 = (top5 == target_emoji.unsqueeze(1)).any(dim=-1).float().mean()
 
         # batch_size weights the epoch mean, matching the old size-weighted eval.
 
@@ -225,7 +227,7 @@ class LitEmojic(pl.LightningModule):
         # log("eval/f_loss", loss_feeling)
         # log("eval/e_loss", loss_emoji)
         log("eval/f_acc", acc_feeling)
-        log("eval/e_acc", acc_emoji)
+        log("eval/e_acc5", acc_emoji5)
 
     def configure_optimizers(self):
         return optim.SGD(

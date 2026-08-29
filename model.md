@@ -3,8 +3,8 @@
 Based on the latest behavioral report (`report/08-29-19:54.md`), the latest
 completed tensorboard run
 (`TIME: 2026-08-29 19:47:42 | DATA: mtl 42 tl 900 | MODEL: cs (256, 32) | TRAIN: lr 0.1 bs 128 gc 1.0 wd 0.0002`),
-and a read of `model.py`, `train.py`, `data.py`, `config.py`, `labels.json`,
-`test_model.py` and `emoji_keywords.py`. That run trained **50 epochs**, wrote
+and a read of `model.py`, `train.py`, `data.py`, `config.py`, `labels.json`
+and `test_model.py`. That run trained **50 epochs**, wrote
 the shipped `model.pt`, and its end-of-run `test_model.run()` produced the
 `19:54` report — so the report, `model.pt` and the tb run are one training.
 `runs/` also holds a sibling `cs (100, 50)` run (same lr/bs, 50 epochs) and a
@@ -150,9 +150,9 @@ on its own — 2/8 vs 3/8 last run is noise.
 - `ExportBest`'s docstring and `train.py`'s module docstring say the checkpoint
   is chosen "by eval feeling loss"; the code selects on `eval/f_acc` and eval
   loss is not logged. Fix the comments.
-- `emoji_keywords.py` (~50 emoji → keyword lists) is still dead code — nothing
-  imports it; `test_model.py` uses its own inline 20-pair `EMOJI_CUES`. Delete
-  it or wire its list into the battery.
+- The emoji cue battery is `test_model.py`'s own inline 20-pair `EMOJI_CUES`.
+  The old hand-curated ~50-emoji `emoji_keywords.py` was dead code and has been
+  deleted; wire a larger cue list back in here if the emoji head starts working.
 - `data.jsonl` carries 14 out-of-set feeling rows (Annoyed 5, Confused 4,
   Frustrated 2, Hopeful/Amused/Relieved 1). `read()` drops them silently; an
   `annotation.ts` guard would stop the drift.
@@ -181,6 +181,9 @@ on its own — 2/8 vs 3/8 last run is noise.
 - **`EMOJI_EMBED_SIZE` 64 → 32** (old §2.4 / rec B revert done);
   `TRIPLET_MARGIN` 1.0 → 0.5; `LR` 0.2 → 0.1.
 - **`train/f_acc` logging re-enabled** (part of old rec C).
+- **Emoji metric switched to top-5** — `{train,eval}/e_acc5` (target in the 5
+  nearest embeddings) replaces the top-1 `e_acc`, reusing the
+  `q @ emoji_embed.T` matmul already computed, so it's free (rec C item).
 - **Feeling class balance holds** — Love fully populated (7,590 rows).
 - Not done and still #1: the emoji loss (old rec A). `EMOJI_NEGATIVES` 1 → 5 is
   *not* the fix — all 5 negatives are still table rows (§2.1).
@@ -212,9 +215,10 @@ on its own — 2/8 vs 3/8 last run is noise.
   `random.Random(42).shuffle`. Stable as `data.jsonl` grows.
 - De-duplicate on the `normalize` key before splitting.
 - `TEST_LEN` 900 → ~6,000 (~10%).
-- Re-enable `eval/f_loss` + `eval/e_loss`; add **macro-F1** over the 8 feelings;
-  log emoji **top-5** retrieval accuracy (top-1 0.05 hides whether the
-  neighborhood is right — `rain`→🌧️@3 says it sometimes is).
+- Re-enable `eval/f_loss` + `eval/e_loss`; add **macro-F1** over the 8 feelings.
+  Emoji retrieval is now logged as **top-5** hit rate (`{train,eval}/e_acc5`,
+  replacing the top-1 `e_acc`) — top-1 0.05 hid whether the neighborhood was
+  right, and `rain`→🌧️@3 in the battery says it sometimes is.
 
 ### Medium impact
 
@@ -241,7 +245,6 @@ out-of-set feelings stop accumulating in `data.jsonl`.
   names, real `ExportWrapper` role).
 - Fix the "eval feeling loss" comments in `train.py` / `ExportBest` (selection
   is on `eval/f_acc`).
-- Delete `emoji_keywords.py`, or wire its ~50-emoji list into `test_model.py`.
 - Reconcile `config.py` `EPOCHS` (30) with the 50-epoch runs in `runs/`.
 - Add `0123456789` to `CHARS` (retrain + re-export; invalidates `model.pt` and
   reshuffles the split).
@@ -250,16 +253,15 @@ out-of-set feelings stop accumulating in `data.jsonl`.
 ## 4. Suggested order of work
 
 1. **C** — deterministic + larger eval, re-enable the eval-loss scalars,
-   macro-F1, emoji top-5. Nothing below is measurable until the eval set is
-   stable and the losses are visible.
+   macro-F1. Emoji top-5 (`e_acc5`) is now logged. Nothing else here is
+   measurable until the eval set is stable and the losses are visible.
 2. **A** — fix the emoji loss (in-batch negatives / InfoNCE, or a plain 300-way
-   CE head) + loss weighting. This is where the model is worst: `eval/e_acc`
-   0.051, battery 3/20.
+   CE head) + loss weighting. This is where the model is worst: last run's
+   top-1 `eval/e_acc` 0.051, battery 3/20.
 3. **B** — widen `CHANNELS[1]`, `mean ⧺ max` pool, add back an order-sensitive
    layer if negation matters. Unblocks both heads from the 32-channel
    bottleneck.
 4. **D** — regularize, once B makes the model large enough to overfit.
 5. **E** — emoji class weighting.
 6. **F** — negation + annotation guard, once the heads can use it.
-- Hygiene (`CLAUDE.md`, stale `train.py` comments, `emoji_keywords.py`,
-  `EPOCHS`) any time.
+- Hygiene (`CLAUDE.md`, stale `train.py` comments, `EPOCHS`) any time.
