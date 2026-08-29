@@ -41,10 +41,10 @@ const MAX_TEXT_LEN = 42
 
 const RARE_EMOJI_COUNT = 100
 const TEXTS_PER_EMOJI = 20
-const GEN_CONCURRENCY = 10
+const GEN_CONCURRENCY = 20
 
 const ANNOTATE_BATCH_SIZE = 10
-const ANNOTATE_CONCURRENCY = 10
+const ANNOTATE_CONCURRENCY = 20
 
 // --- normalized dedup key: mirror of data.py's normalize() ------------------
 const VOCAB = new Set("abcdefghijklmnopqrstuvwxyz!?:()@$%&* ")
@@ -97,7 +97,7 @@ function rarestEmojis(rows: Row[], palette: string[], n: number): string[] {
   const picked = ranked.slice(0, n)
   console.log(
     `${counts.size} palette emojis -> upsampling ${picked.length} rarest ` +
-      `(${picked[0]?.[1]}..${picked[picked.length - 1]?.[1]} rows each)`,
+    `(${picked[0]?.[1]}..${picked[picked.length - 1]?.[1]} rows each)`,
   )
   return picked.map(([e]) => e)
 }
