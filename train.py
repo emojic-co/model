@@ -4,12 +4,14 @@ A ``LitEmojic`` LightningModule wraps ``model.Model``. Only the feeling head is
 optimized right now (``training_step`` returns ``loss_feeling`` alone -- the
 emoji triplet term is built but not added); feeling is the current priority.
 Validation runs every ``EVAL_EPOCHS`` epochs against the fixed gold holdout
-``eval.jsonl`` (see gen_eval.ts / data.py) and logs ``eval/f_loss``,
-``eval/f_acc``, ``eval/f_macro_f1`` and per-class accuracy. The ``ExportBest``
-callback keeps the best checkpoint (by ``eval/f_acc``) and, every time the best
-improves, rewrites both ``model.pt`` and the static web app's artifacts in
-``docs/`` (``model.onnx`` + ``meta.json`` + ``config.json``), so the page can be
-watched live during a run.
+``eval.jsonl`` (see gen_eval.ts / data.py). Training and validation each log
+exactly four scalars and nothing else -- ``loss/f/{train,val}`` (feeling
+cross-entropy), ``loss/e/{train,val}`` (emoji triplet), ``acc/f/{train,val}``
+(feeling top-1) and ``acc5/e/{train,val}`` (emoji top-5 retrieval). The
+``ExportBest`` callback keeps the best checkpoint (by ``acc/f/val``) and, every
+time the best improves, rewrites both ``model.pt`` and the static web app's
+artifacts in ``docs/`` (``model.onnx`` + ``meta.json`` + ``config.json``), so
+the page can be watched live during a run.
 """
 
 import argparse
@@ -150,118 +152,79 @@ class LitEmojic(pl.LightningModule):
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, ...]:
         return self.model(x)
 
-    def training_step(self, batch, batch_idx) -> torch.Tensor:
-        x, target_emoji, target_feeling = batch
+    def _feeling_terms(self, logits_feeling, target_feeling):
+        """Feeling cross-entropy loss and top-1 accuracy for a batch."""
+        loss = self.feeling_ce(logits_feeling, target_feeling)
+        acc = (logits_feeling.argmax(dim=-1) == target_feeling).float().mean()
+        return loss, acc
 
-        logits_feeling, q, emoji_embd = self.model(x)
-        loss_feeling = self.feeling_ce(logits_feeling, target_feeling)
+    def _emoji_terms(self, q, emoji_embd, target_emoji):
+        """Emoji triplet loss and top-5 retrieval accuracy for a batch.
 
-        # EMOJI_NEGATIVES wrong classes per row: shift the true index by random
-        # 1..N-1 offsets (mod N) -- uniform over the wrong classes, never the
-        # target. Offsets may repeat within a row (negligible at N >> K), which
-        # just weights that negative twice.
+        EMOJI_NEGATIVES wrong classes per row: shift the true index by random
+        1..N-1 offsets (mod N) -- uniform over the wrong classes, never the
+        target. anchor/positive are tiled to (B*K, D) so one
+        nn.TripletMarginLoss call scores every (row, negative) pair and means
+        over all B*K triplets. q and emoji_embd are unit-norm, so the largest
+        cosine similarities are the smallest L2 distances the triplet trains --
+        the exact score ExportWrapper ships -- and top-1 retrieval over the full
+        emoji set is hopeless, so track the top-5 hit rate.
+        """
         n = emoji_embd.size(0)
         offset = torch.randint(
             1, n,
             (target_emoji.size(0), EMOJI_NEGATIVES),
             device=self.device)
-
         neg_emoji_idx = (target_emoji.unsqueeze(1) + offset) % n  # (B, K)
 
-        # Tile anchor/positive to (B*K, D) so one nn.TripletMarginLoss call
-        # scores every (row, negative) pair, then means over all B*K triplets.
         pos = emoji_embd[target_emoji].repeat_interleave(EMOJI_NEGATIVES, dim=0)
         neg = emoji_embd[neg_emoji_idx.reshape(-1)]  # (B*K, D)
-
-        loss_emoji = self.emoji_triplet(
-            # anchor
-            q.repeat_interleave(EMOJI_NEGATIVES, dim=0),
+        loss = self.emoji_triplet(
+            q.repeat_interleave(EMOJI_NEGATIVES, dim=0),  # anchor
             pos,  # positive
             neg,  # negatives
         )
 
-        acc_feeling = (
-            logits_feeling.argmax(dim=-1) == target_feeling).float().mean()
-
-        # Top-5 nearest emoji embeddings. q and emoji_embed are unit-norm, so
-        # the highest cosine similarities are the smallest L2 distances the
-        # triplet loss trains -- the exact score ExportWrapper ships. Retrieval
-        # over 300 classes is hopeless at top-1, so track the top-5 hit rate.
         top5 = (q @ emoji_embd.t()).topk(5, dim=-1).indices
-        acc_emoji5 = (top5 == target_emoji.unsqueeze(1)).any(dim=-1).float().mean()
+        acc5 = (top5 == target_emoji.unsqueeze(1)).any(dim=-1).float().mean()
+        return loss, acc5
 
-        def log(k, v):
-            self.log(
-                k, v,
-                on_step=False,
-                on_epoch=True,
-                prog_bar=True,
-                batch_size=x.size(0))
+    def _log_split(self, split, batch_size, loss_f, loss_e, acc_f, acc5_e):
+        """Log exactly the four scalars for one split (train/val), nothing else."""
+        kw = dict(
+            on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size)
+        self.log(f"loss/f/{split}", loss_f, **kw)
+        self.log(f"loss/e/{split}", loss_e, **kw)
+        self.log(f"acc/f/{split}", acc_f, **kw)
+        self.log(f"acc5/e/{split}", acc5_e, **kw)
 
-        log("train/f_acc", acc_feeling)
-        log("train/e_acc5", acc_emoji5)
-        log("train/f_loss", loss_feeling)
-        log("train/e_loss", loss_emoji)
+    def training_step(self, batch, batch_idx) -> torch.Tensor:
+        x, target_emoji, target_feeling = batch
+        logits_feeling, q, emoji_embd = self.model(x)
+
+        loss_feeling, acc_feeling = self._feeling_terms(
+            logits_feeling, target_feeling)
+        loss_emoji, acc_emoji5 = self._emoji_terms(q, emoji_embd, target_emoji)
+
+        self._log_split(
+            "train", x.size(0),
+            loss_feeling, loss_emoji, acc_feeling, acc_emoji5)
 
         # TEMP, Debugging the feeling prediction path.
         return loss_feeling
         return loss_feeling + loss_emoji
 
-    def on_validation_epoch_start(self) -> None:
-        # (true, pred) feeling counts over the whole eval set, for macro-F1 and
-        # per-class accuracy in on_validation_epoch_end. eval.jsonl is balanced,
-        # so plain eval/f_acc is meaningful again, but macro-F1 still catches a
-        # class the model has collapsed.
-        n = len(FEELING)
-        self._val_conf = torch.zeros(n, n, dtype=torch.long)
-
     def validation_step(self, batch, batch_idx) -> None:
         x, target_emoji, target_feeling = batch
-        logits_feeling, q, emoji_embed = self.model(x)
+        logits_feeling, q, emoji_embd = self.model(x)
 
-        loss_feeling = self.feeling_ce(logits_feeling, target_feeling)
-        pred_feeling = logits_feeling.argmax(dim=-1)
-        acc_feeling = (pred_feeling == target_feeling).float().mean()
+        loss_feeling, acc_feeling = self._feeling_terms(
+            logits_feeling, target_feeling)
+        loss_emoji, acc_emoji5 = self._emoji_terms(q, emoji_embd, target_emoji)
 
-        for t, p in zip(
-            target_feeling.tolist(), pred_feeling.tolist(), strict=True
-        ):
-            self._val_conf[t, p] += 1
-
-        # Top-5 nearest emoji embeddings. q and emoji_embed are unit-norm, so
-        # the highest cosine similarities are the smallest L2 distances the
-        # triplet loss trains -- the exact score ExportWrapper ships. Retrieval
-        # over 300 classes is hopeless at top-1, so track the top-5 hit rate.
-        top5 = (q @ emoji_embed.t()).topk(5, dim=-1).indices
-        acc_emoji5 = (top5 == target_emoji.unsqueeze(1)).any(dim=-1).float().mean()
-
-        # batch_size weights the epoch mean, matching the old size-weighted eval.
-
-        def log(k, v):
-            self.log(
-                k, v,
-                on_step=False,
-                on_epoch=True,
-                prog_bar=True,
-                batch_size=x.size(0))
-
-        log("eval/f_loss", loss_feeling)
-        log("eval/f_acc", acc_feeling)
-        log("eval/e_acc5", acc_emoji5)
-
-    def on_validation_epoch_end(self) -> None:
-        conf = self._val_conf.float()
-        tp = conf.diag()
-        fp = conf.sum(dim=0) - tp
-        fn = conf.sum(dim=1) - tp
-
-        precision = tp / (tp + fp).clamp(min=1)
-        recall = tp / (tp + fn).clamp(min=1)  # == per-class accuracy
-        f1 = 2 * precision * recall / (precision + recall).clamp(min=1e-8)
-
-        self.log("eval/f_macro_f1", f1.mean(), prog_bar=True)
-        for i, name in enumerate(FEELING):
-            self.log(f"eval/f_acc_{name}", recall[i])
+        self._log_split(
+            "val", x.size(0),
+            loss_feeling, loss_emoji, acc_feeling, acc_emoji5)
 
     def configure_optimizers(self):
         # return optim.SGD(
@@ -276,7 +239,7 @@ class LitEmojic(pl.LightningModule):
 
 
 class ExportBest(pl.Callback):
-    """Save model.pt + refresh docs/ whenever eval/f_acc improves (max)."""
+    """Save model.pt + refresh docs/ whenever acc/f/val improves (max)."""
 
     def __init__(self) -> None:
         self.best_acc = 0.0
@@ -291,7 +254,7 @@ class ExportBest(pl.Callback):
         self.best_acc = state_dict["best_acc"]
 
     def on_validation_end(self, trainer: pl.Trainer, pl_module: LitEmojic) -> None:
-        metric = trainer.callback_metrics.get("eval/f_acc")
+        metric = trainer.callback_metrics.get("acc/f/val")
         if metric is None:
             return
         acc = float(metric)
@@ -338,14 +301,17 @@ def train(resume: bool = False) -> None:
 
     lit = LitEmojic()
     export_best = ExportBest()
-    # Rotating full-state checkpoint: one runs/<name>.ckpt overwritten every
-    # EVAL_EPOCHS (at validation end), plus the runs/last.ckpt copy --resume
-    # reads. model.pt (via ExportBest) stays the "best" artifact, so no top-k.
+    # Full-state checkpoint for --resume: save_top_k=1 monitored on acc/f/val
+    # keeps the best-by-feeling-accuracy runs/ckpt.ckpt, plus the runs/last.ckpt
+    # copy --resume reads. model.pt / model.onnx (via ExportBest) are the
+    # shipped artifacts, gated on the same acc/f/val.
     checkpoint = ModelCheckpoint(
         dirpath=str(LAST_CKPT.parent),
         filename="ckpt",
         save_last=True,
         save_top_k=1,
+        monitor="acc/f/val",
+        mode="max",
         every_n_epochs=EVAL_EPOCHS,
     )
 
@@ -355,7 +321,10 @@ def train(resume: bool = False) -> None:
     logger = TensorBoardLogger(
         "runs",
         name=CONFIG_NAME,
-        version="")
+        version="",
+        # Don't emit the placeholder hp_metric scalar -- only the eight
+        # loss/acc scalars from _log_split should appear in TensorBoard.
+        default_hp_metric=False)
 
     trainer = pl.Trainer(
         max_epochs=EPOCHS,
@@ -383,7 +352,7 @@ def train(resume: bool = False) -> None:
     )
 
     print(
-        f"\nBest eval f_acc: {export_best.best_acc:.4f}  ->  "
+        f"\nBest acc/f/val: {export_best.best_acc:.4f}  ->  "
         f"{MODEL_PT} and docs/ refreshed"
     )
 
