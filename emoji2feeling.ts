@@ -40,11 +40,11 @@ const MAX_RAW_LEN = 50
 const MAX_TEXT_LEN = 42
 
 const RARE_EMOJI_COUNT = 100
-const TEXTS_PER_EMOJI = 20
+const TEXTS_PER_EMOJI = 40
 const GEN_CONCURRENCY = 20
 
 const ANNOTATE_BATCH_SIZE = 10
-const ANNOTATE_CONCURRENCY = 20
+const ANNOTATE_CONCURRENCY = 30
 
 // --- normalized dedup key: mirror of data.py's normalize() ------------------
 const VOCAB = new Set("abcdefghijklmnopqrstuvwxyz!?:()@$%&* ")
