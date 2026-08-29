@@ -166,6 +166,13 @@ class LitEmojic(pl.LightningModule):
             emoji_embed[neg_emoji],     # negative: sampled wrong emoji vector
         )
 
+        acc_feeling = (
+            logits_feeling.argmax(dim=-1) == target_feeling).float().mean()
+
+        # Nearest emoji embedding under the same L2 metric the triplet loss trains.
+        pred_emoji = torch.cdist(q, emoji_embed).argmin(dim=-1)
+        acc_emoji = (pred_emoji == target_emoji).float().mean()
+
         def log(k, v):
             self.log(
                 k, v,
@@ -174,9 +181,10 @@ class LitEmojic(pl.LightningModule):
                 prog_bar=True,
                 batch_size=x.size(0))
 
+        log("train/f_acc", acc_feeling)
+        log("train/e_acc", acc_emoji)
         log("train/f_loss", loss_feeling)
         log("train/e_loss", loss_emoji)
-
         return loss_feeling + loss_emoji
 
     def validation_step(self, batch, batch_idx) -> None:
