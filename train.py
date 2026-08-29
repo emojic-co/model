@@ -1,11 +1,15 @@
 """Train the emojic CNN classifier (PyTorch Lightning).
 
-A ``LitEmojic`` LightningModule wraps ``model.Model`` and trains both heads
-(feeling + emoji, summed cross-entropy). Validation runs every ``EVAL_EPOCHS``
-epochs; the ``ExportBest`` callback keeps the best checkpoint (by eval feeling
-loss) and, every time the best improves, rewrites both ``model.pt`` and the
-static web app's artifacts in ``docs/`` (``model.onnx`` + ``meta.json`` +
-``config.json``), so the page can be watched live during a run.
+A ``LitEmojic`` LightningModule wraps ``model.Model``. Only the feeling head is
+optimized right now (``training_step`` returns ``loss_feeling`` alone -- the
+emoji triplet term is built but not added); feeling is the current priority.
+Validation runs every ``EVAL_EPOCHS`` epochs against the fixed gold holdout
+``eval.jsonl`` (see gen_eval.ts / data.py) and logs ``eval/f_loss``,
+``eval/f_acc``, ``eval/f_macro_f1`` and per-class accuracy. The ``ExportBest``
+callback keeps the best checkpoint (by ``eval/f_acc``) and, every time the best
+improves, rewrites both ``model.pt`` and the static web app's artifacts in
+``docs/`` (``model.onnx`` + ``meta.json`` + ``config.json``), so the page can be
+watched live during a run.
 """
 
 import argparse
@@ -203,12 +207,26 @@ class LitEmojic(pl.LightningModule):
         return loss_feeling
         return loss_feeling + loss_emoji
 
+    def on_validation_epoch_start(self) -> None:
+        # (true, pred) feeling counts over the whole eval set, for macro-F1 and
+        # per-class accuracy in on_validation_epoch_end. eval.jsonl is balanced,
+        # so plain eval/f_acc is meaningful again, but macro-F1 still catches a
+        # class the model has collapsed.
+        n = len(FEELING)
+        self._val_conf = torch.zeros(n, n, dtype=torch.long)
+
     def validation_step(self, batch, batch_idx) -> None:
         x, target_emoji, target_feeling = batch
         logits_feeling, q, emoji_embed = self.model(x)
 
-        acc_feeling = (
-            logits_feeling.argmax(dim=-1) == target_feeling).float().mean()
+        loss_feeling = self.feeling_ce(logits_feeling, target_feeling)
+        pred_feeling = logits_feeling.argmax(dim=-1)
+        acc_feeling = (pred_feeling == target_feeling).float().mean()
+
+        for t, p in zip(
+            target_feeling.tolist(), pred_feeling.tolist(), strict=True
+        ):
+            self._val_conf[t, p] += 1
 
         # Top-5 nearest emoji embeddings. q and emoji_embed are unit-norm, so
         # the highest cosine similarities are the smallest L2 distances the
@@ -227,10 +245,23 @@ class LitEmojic(pl.LightningModule):
                 prog_bar=True,
                 batch_size=x.size(0))
 
-        # log("eval/f_loss", loss_feeling)
-        # log("eval/e_loss", loss_emoji)
+        log("eval/f_loss", loss_feeling)
         log("eval/f_acc", acc_feeling)
         log("eval/e_acc5", acc_emoji5)
+
+    def on_validation_epoch_end(self) -> None:
+        conf = self._val_conf.float()
+        tp = conf.diag()
+        fp = conf.sum(dim=0) - tp
+        fn = conf.sum(dim=1) - tp
+
+        precision = tp / (tp + fp).clamp(min=1)
+        recall = tp / (tp + fn).clamp(min=1)  # == per-class accuracy
+        f1 = 2 * precision * recall / (precision + recall).clamp(min=1e-8)
+
+        self.log("eval/f_macro_f1", f1.mean(), prog_bar=True)
+        for i, name in enumerate(FEELING):
+            self.log(f"eval/f_acc_{name}", recall[i])
 
     def configure_optimizers(self):
         # return optim.SGD(
@@ -245,7 +276,7 @@ class LitEmojic(pl.LightningModule):
 
 
 class ExportBest(pl.Callback):
-    """Save model.pt + refresh docs/ whenever eval f_acc improves."""
+    """Save model.pt + refresh docs/ whenever eval/f_acc improves (max)."""
 
     def __init__(self) -> None:
         self.best_acc = 0.0

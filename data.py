@@ -1,11 +1,13 @@
 import json
-import random
 import re
 
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from config import BATCH_SIZE, MAX_TEXT_LEN, TEST_LEN
+from config import BATCH_SIZE, MAX_TEXT_LEN
+
+DATA_PATH = "data.jsonl"
+EVAL_PATH = "eval.jsonl"
 
 PAD = "·"
 PAD_IDX = 0
@@ -35,16 +37,18 @@ def text_to_tensor(text: str) -> torch.Tensor:
         dtype=torch.long)
 
 
-def read():
-    """Load data.jsonl, dropping any record the current label set can't train.
+def _load(path):
+    """Parse a JSONL label file into ``(normalized_text, sample)`` pairs.
 
     labels.json (see gen_labels.ts) is the closed vocabulary: a record is kept
     only if its feeling and emoji are both in it and its normalized text fits
-    MAX_TEXT_LEN. Rows are never removed from data.jsonl itself -- filtering is
-    purely a runtime concern.
+    MAX_TEXT_LEN. ``sample`` is the ``(char_tensor, emoji_idx, feeling_idx)``
+    tuple the datasets yield; the normalized text is returned alongside it so
+    ``split`` can keep the eval holdout leak-free. Files are never modified --
+    filtering is purely a runtime concern.
     """
-    with open('data.jsonl', encoding='utf-8') as f:
-        rows = [json.loads(line) for line in f]
+    with open(path, encoding='utf-8') as f:
+        rows = [json.loads(line) for line in f if line.strip()]
 
     out = []
     for d in rows:
@@ -54,23 +58,30 @@ def read():
         if len(text) > MAX_TEXT_LEN:
             continue
         out.append((
-            text_to_tensor(text),
-            emoji2idx[d["emoji"]],
-            feeling2idx[d["feeling"]]))
+            text,
+            (text_to_tensor(text),
+             emoji2idx[d["emoji"]],
+             feeling2idx[d["feeling"]])))
     return out
 
 
 def split():
-    data = read()
+    """Fixed split: eval.jsonl is the gold holdout, data.jsonl is train.
 
-    # Seed the generator and shuffle a copy of the list
-    rng = random.Random(42)
-    rng.shuffle(data)
+    eval.jsonl is a curated, feeling-balanced, hand/model-verified set (see
+    gen_eval.ts). Any data.jsonl row whose normalized text also appears in
+    eval.jsonl is dropped from train, so the holdout stays leak-free as the
+    append-only data.jsonl grows. Neither file is written here.
+    """
+    eval_pairs = _load(EVAL_PATH)
+    eval_keys = {key for key, _ in eval_pairs}
+    eval_data = [sample for _, sample in eval_pairs]
 
-    # Compute split index
-    eval_data = data[:TEST_LEN]
-    train_data = data[TEST_LEN:]
+    train_data = [
+        sample for key, sample in _load(DATA_PATH) if key not in eval_keys
+    ]
 
+    assert eval_data, f"{EVAL_PATH} is empty or missing"
     return train_data, eval_data
 
 

@@ -2,7 +2,8 @@
 import datetime
 
 MAX_TEXT_LEN = 42
-TEST_LEN = 900
+# The eval holdout is the fixed, curated eval.jsonl (see gen_eval.ts / data.py),
+# not a slice of data.jsonl -- there is no eval-size knob here any more.
 
 # MODEL
 CHAR_EMBED_SIZE = 16

@@ -5,6 +5,7 @@
   "scripts": {
     "feeling2emoji": "bun run feeling2emoji.ts",
     "emoji2feeling": "bun run emoji2feeling.ts",
+    "gen_eval": "bun run gen_eval.ts",
     "labels": "bun run gen_labels.ts",
     "fix": "bun run fix.ts",
     "serve": "live-server docs --port=8000"
