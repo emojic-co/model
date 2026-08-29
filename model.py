@@ -24,8 +24,10 @@ class Model(nn.Module):
                 in_channels=CHAR_EMBED_SIZE,
                 out_channels=CHANNELS[0],
                 kernel_size=2,
+                bias=False
             ),
 
+            nn.BatchNorm1d(CHANNELS[0]),
             nn.ReLU(),
 
             *[
@@ -38,8 +40,10 @@ class Model(nn.Module):
                         in_channels=i,
                         out_channels=o,
                         kernel_size=2,
+                        bias=False
                     ),
 
+                    nn.BatchNorm1d(o),
                     nn.ReLU(),
                 )
                 for i, o in zip(CHANNELS[:-1], CHANNELS[1:], strict=False)
