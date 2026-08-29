@@ -42,11 +42,11 @@ const MAX_TEXT_LEN = 42
 
 const FEELINGS_PER_RUN = 3
 const BATCHES_PER_FEELING = 10
-const GEN_BATCH_SIZE = 50
+const GEN_BATCH_SIZE = 100
 const GEN_CONCURRENCY = 10
 
 const ANNOTATE_BATCH_SIZE = 10
-const ANNOTATE_CONCURRENCY = 10
+const ANNOTATE_CONCURRENCY = 20
 
 // --- normalized dedup key: mirror of data.py's normalize() ------------------
 const VOCAB = new Set("abcdefghijklmnopqrstuvwxyz!?:()@$%&* ")
@@ -106,7 +106,7 @@ function rarestFeelings(
   }
   console.log(
     "feeling coverage in data.jsonl: " +
-      feelings.map((f) => `${f}=${counts.get(f)}`).join(" "),
+    feelings.map((f) => `${f}=${counts.get(f)}`).join(" "),
   )
   return feelings
     .map((f, i) => ({ f, i }))
