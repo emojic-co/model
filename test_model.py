@@ -9,7 +9,7 @@ Three batteries, all run against the committed ``model.pt``:
    also check it predicts that opposite.
 3. Emojis -- feed each of 20 hand-picked cue words (one per emoji, chosen for a
    plain-meaning association, not lifted from training text) and check the emoji
-   head's top prediction is the paired emoji. The report lists the top 5
+   head's nearest embedding is the paired emoji. The report lists the top 5
    emojis for every cue.
 
 Writes a Markdown report to ``report/<MM-DD-HH:MM>.md`` and prints a summary.
@@ -99,13 +99,14 @@ def predict(model: Model, text: str) -> dict:
 
 @torch.no_grad()
 def predict_emojis(model: Model, text: str, k: int = 5) -> list[str]:
-    """Return the ``k`` likeliest emojis for ``text``, most likely first.
+    """Return the ``k`` nearest emojis for ``text``, closest first.
 
-    Reads the emoji head's logits -- the same score ``train.py``'s eval and the
-    exported ONNX model rank by -- and takes the top ``k``.
+    Uses the same L2 metric between the projected hidden state and the emoji
+    embeddings that the triplet loss trains and ``train.py``'s eval scores with.
     """
-    emoji_logits = model(_encode(text))[1][0]
-    order = emoji_logits.argsort(descending=True)[:k]
+    _, q, emoji_embed = model(_encode(text))
+    dists = torch.cdist(q, emoji_embed)[0]
+    order = dists.argsort()[:k]
     return [EMOJIS[int(i)] for i in order]
 
 
@@ -206,7 +207,7 @@ def build_report(
         f"**{n_matched}/{len(n_expected)}** hit the expected opposite"
     )
     out.append(
-        f"- Emojis: **{e_pass}/{len(emoji_rows)}** cue words whose likeliest "
+        f"- Emojis: **{e_pass}/{len(emoji_rows)}** cue words whose nearest "
         f"emoji is the paired one ({_pct(e_pass, len(emoji_rows))})"
     )
     out.append("")
@@ -241,8 +242,8 @@ def build_report(
     out.append("## Emojis")
     out.append("")
     out.append(
-        "20 cue words, one per emoji. Pass = the emoji head's top prediction "
-        "is the paired emoji. Top 5 is likeliest-first."
+        "20 cue words, one per emoji. Pass = the emoji head's nearest embedding "
+        "is the paired emoji. Top 5 is nearest-first."
     )
     out.append("")
     out.append("| word | emoji | prediction | top 5 predictions (sorted) |")
