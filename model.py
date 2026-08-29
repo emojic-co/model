@@ -5,15 +5,19 @@ from config import (
     CHANNELS,
     CHAR_EMBED_SIZE,
 )
-from data import FEELING, PAD_IDX, VOCAB_SIZE
+from data import FEELING, VOCAB_SIZE
 
 
 class Model(nn.Module):
     def __init__(self):
         super().__init__()
 
+        # PAD ("·", index 0) is just another vocab char: it gets its own
+        # trainable embedding row like every other char (no padding_idx), and
+        # nothing downstream masks the padded tail.
         self.char_embed = nn.Embedding(
-            VOCAB_SIZE, CHAR_EMBED_SIZE, padding_idx=PAD_IDX)
+            VOCAB_SIZE,
+            CHAR_EMBED_SIZE)
 
         self.conv = nn.Sequential(
             nn.Conv1d(
@@ -54,9 +58,9 @@ class Model(nn.Module):
 
     def forward(self, x):
         # (B, T) long -> (B, T, CHAR_EMBED_SIZE) -> (B, CHAR_EMBED_SIZE, T)
-        # for Conv1d. PAD_IDX rows are a fixed zero vector (padding_idx), but
-        # with conv bias on the padded tail is no longer zero after the first
-        # conv, so pad-contaminated timesteps are masked before the global max.
+        # for Conv1d. PAD is not special: its embedding is learned and the
+        # padded tail is left in, so the global max over time sees every
+        # timestep, pad-contaminated ones included.
         out = self.char_embed(x).transpose(1, 2)
         out = self.conv(out)  # (B, CHANNELS[-1], L)
 
