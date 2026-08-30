@@ -30,7 +30,7 @@ class Layer(nn.Sequential):
 
             nn.BatchNorm1d(out_channels),
             nn.LeakyReLU(negative_slope=0.1),
-            nn.AvgPool1d(
+            nn.MaxPool1d(
                 kernel_size=POOL_1D_SIZE,
                 stride=POOL_1D_SIZE),
         )
