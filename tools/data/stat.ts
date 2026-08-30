@@ -1,8 +1,9 @@
 import { existsSync } from "node:fs"
 import { mkdir, readFile, writeFile } from "node:fs/promises"
+import { TOP_EMOJIS, TOP_FEELINGS } from "./config"
 
 const FILES = ["./train.jsonl", "./eval.jsonl"]
-const REPORT_DIR = "./report/data-stat"
+const REPORT_DIR = "report/data-stat"
 
 const MIN_LEN = 4
 const MAX_LEN = 48
@@ -52,6 +53,26 @@ function summary(values: number[]): string {
   return `min ${s[0]} · median ${median} · mean ${mean.toFixed(1)} · max ${s[n - 1]}`
 }
 
+function coverage(rows: Row[]): string {
+  if (!rows.length) return "_(no rows)_"
+  const topFeelings = new Set(
+    ranked(counts(rows.map((r) => r.feeling)))
+      .slice(0, TOP_FEELINGS)
+      .map(([f]) => f),
+  )
+  const topEmojis = new Set(
+    ranked(counts(rows.map((r) => r.emoji)))
+      .slice(0, TOP_EMOJIS)
+      .map(([e]) => e),
+  )
+  const pct = (n: number) => `${((100 * n) / rows.length).toFixed(1)}%`
+  const inFeeling = rows.filter((r) => topFeelings.has(r.feeling))
+  const feeling = inFeeling.length
+  const emoji = rows.filter((r) => topEmojis.has(r.emoji)).length
+  const both = inFeeling.filter((r) => topEmojis.has(r.emoji)).length
+  return `both ${pct(both)} · top feelings ${pct(feeling)} · top emojis ${pct(emoji)}`
+}
+
 function section(path: string, rows: Row[]): string[] {
   const out = [`## \`${path}\``, "", `**${rows.length} rows**`, ""]
   if (!rows.length) return out
@@ -94,15 +115,35 @@ if (import.meta.main) {
   const { header, file } = stamp()
   const doc = [`# data stats — ${header}`, ""]
 
+  const parsed: { path: string; rows: Row[] | null }[] = []
   for (const path of FILES) {
     if (!existsSync(path)) {
-      doc.push(`## \`${path}\``, "", "_(missing)_", "")
+      parsed.push({ path, rows: null })
       continue
     }
     const rows = (await readFile(path, "utf8"))
       .split("\n")
       .filter((l) => l.trim())
       .map((l) => JSON.parse(l) as Row)
+    parsed.push({ path, rows })
+  }
+
+  doc.push(
+    "## Top-label coverage",
+    "",
+    `Top ${TOP_FEELINGS} feelings · top ${TOP_EMOJIS} emojis (from \`config.ts\`)`,
+    "",
+  )
+  for (const { path, rows } of parsed) {
+    doc.push(`- \`${path}\` — ${rows ? coverage(rows) : "_(missing)_"}`)
+  }
+  doc.push("")
+
+  for (const { path, rows } of parsed) {
+    if (!rows) {
+      doc.push(`## \`${path}\``, "", "_(missing)_", "")
+      continue
+    }
     doc.push(...section(path, rows))
   }
 
