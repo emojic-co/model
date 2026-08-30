@@ -1,6 +1,4 @@
 TODO:
-
 DONE:
-    - Require minimum of 3 chars before running model, show hint about it.
-    - Debounce model call, wait 100ms after last keypressed.
-    - Set font size according to text length.
+    - Training:
+        log acc@10 (accuracy  @ 10) for emojis.

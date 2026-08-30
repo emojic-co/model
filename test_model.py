@@ -117,14 +117,15 @@ def test_negations(model: Model) -> list[dict]:
 def test_emojis(model: Model) -> list[dict]:
     rows = []
     for emoji, word in EMOJI_CUES:
-        top5 = predict_emojis(model, word, k=5)
+        top10 = predict_emojis(model, word, k=10)
         rows.append(
             {
                 "word": word,
                 "emoji": emoji,
-                "predicted": top5[0],
-                "top5": top5,
-                "pass": top5[0] == emoji,
+                "predicted": top10[0],
+                "top10": top10,
+                "pass": top10[0] == emoji,
+                "in_top10": emoji in top10,
             }
         )
     return rows
@@ -138,10 +139,11 @@ def _heading(feeling_rows, negation_rows, emoji_rows) -> str:
     f_pass = sum(r["pass"] for r in feeling_rows)
     n_pass = sum(r["pass"] for r in negation_rows)
     e_pass = sum(r["pass"] for r in emoji_rows)
+    e_top10 = sum(r["in_top10"] for r in emoji_rows)
     return (
         f"Feelings Accuracy {f_pass}/{len(feeling_rows)} | "
         f"Neg Feeling Score {n_pass}/{len(negation_rows)} | "
-        f"Emojis Accuracy {e_pass}/{len(emoji_rows)}"
+        f"Emojis acc@1 {e_pass}/{len(emoji_rows)} acc@10 {e_top10}/{len(emoji_rows)}"
     )
 
 
@@ -156,6 +158,7 @@ def build_report(
     n_expected = [r for r in negation_rows if r["expected"] is not None]
     n_matched = sum(r["matched_expected"] for r in n_expected)
     e_pass = sum(r["pass"] for r in emoji_rows)
+    e_top10 = sum(r["in_top10"] for r in emoji_rows)
 
     out: list[str] = []
     out.append(f"# Model test report — {now:%Y-%m-%d %H:%M}")
@@ -175,7 +178,9 @@ def build_report(
     )
     out.append(
         f"- Emojis: **{e_pass}/{len(emoji_rows)}** cue words whose nearest "
-        f"emoji is the paired one ({_pct(e_pass, len(emoji_rows))})"
+        f"emoji is the paired one ({_pct(e_pass, len(emoji_rows))}); "
+        f"**{e_top10}/{len(emoji_rows)}** with it in the top 10 "
+        f"({_pct(e_top10, len(emoji_rows))})"
     )
     out.append("")
 
@@ -209,16 +214,20 @@ def build_report(
     out.append("## Emojis")
     out.append("")
     out.append(
-        "20 cue words, one per emoji. Pass = the emoji head's nearest embedding "
-        "is the paired emoji. Top 5 is nearest-first."
+        "20 cue words, one per emoji. acc@1 = the emoji head's nearest embedding "
+        "is the paired emoji; acc@10 = the paired emoji is among the 10 nearest. "
+        "Predictions are nearest-first."
     )
     out.append("")
-    out.append("| word | emoji | prediction | top 5 predictions (sorted) |")
-    out.append("| --- | --- | --- | --- |")
+    out.append("| word | emoji | prediction | in top 10 | top 10 predictions (sorted) |")
+    out.append("| --- | --- | --- | --- | --- |")
     for r in emoji_rows:
         mark = "✅" if r["pass"] else "❌"
-        top5 = " ".join(r["top5"])
-        out.append(f"| {r['word']} | {r['emoji']} | {r['predicted']} {mark} | {top5} |")
+        t10 = "✅" if r["in_top10"] else "❌"
+        top10 = " ".join(r["top10"])
+        out.append(
+            f"| {r['word']} | {r['emoji']} | {r['predicted']} {mark} | {t10} | {top10} |"
+        )
     out.append("")
 
     return "\n".join(out)
@@ -228,7 +237,7 @@ def run(model: Model | None = None) -> Path:
     model = model or load_model()
     feeling_rows = test_feelings(model)
     negation_rows = test_negations(model)
-    emoji_rows: list[dict] = []
+    emoji_rows = test_emojis(model)
 
     report = build_report(feeling_rows, negation_rows, emoji_rows)
     REPORT_DIR.mkdir(parents=True, exist_ok=True)

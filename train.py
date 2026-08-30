@@ -119,9 +119,11 @@ class LitEmojic(pl.LightningModule):
             neg,
         )
 
-        top5 = (q @ emoji_embd.t()).topk(5, dim=-1).indices
-        acc5 = (top5 == target_emoji.unsqueeze(1)).any(dim=-1).float().mean()
-        return loss, acc5
+        top10 = (q @ emoji_embd.t()).topk(10, dim=-1).indices
+        hit10 = top10 == target_emoji.unsqueeze(1)
+        acc5 = hit10[:, :5].any(dim=-1).float().mean()
+        acc10 = hit10.any(dim=-1).float().mean()
+        return loss, acc5, acc10
 
     def _log_split(
             self,
@@ -130,7 +132,8 @@ class LitEmojic(pl.LightningModule):
             loss_f,
             loss_e,
             acc_f,
-            acc5_e
+            acc5_e,
+            acc10_e
     ):
         kw = dict(
             on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size)
@@ -138,6 +141,7 @@ class LitEmojic(pl.LightningModule):
         self.log(f"loss/e/{split}", loss_e, **kw)  # type: ignore
         self.log(f"acc/f/{split}", acc_f, **kw)  # type: ignore
         self.log(f"acc5/e/{split}", acc5_e, **kw)  # type: ignore
+        self.log(f"acc10/e/{split}", acc10_e, **kw)  # type: ignore
 
     def training_step(self, batch, batch_idx) -> torch.Tensor:
         x, target_emoji, target_feeling = batch
@@ -145,14 +149,16 @@ class LitEmojic(pl.LightningModule):
 
         loss_feeling, acc_feeling = self._feeling_terms(
             logits_feeling, target_feeling)
-        loss_emoji, acc_emoji5 = self._emoji_terms(q, emoji_embd, target_emoji)
+        loss_emoji, acc_emoji5, acc_emoji10 = self._emoji_terms(
+            q, emoji_embd, target_emoji)
 
         self._log_split(
             "train", x.size(0),
             loss_feeling,
             loss_emoji,
             acc_feeling,
-            acc_emoji5
+            acc_emoji5,
+            acc_emoji10
         )
 
         return loss_feeling + loss_emoji
@@ -163,14 +169,16 @@ class LitEmojic(pl.LightningModule):
 
         loss_feeling, acc_feeling = self._feeling_terms(
             logits_feeling, target_feeling)
-        loss_emoji, acc_emoji5 = self._emoji_terms(q, emoji_embd, target_emoji)
+        loss_emoji, acc_emoji5, acc_emoji10 = self._emoji_terms(
+            q, emoji_embd, target_emoji)
 
         self._log_split(
             "val", x.size(0),
             loss_feeling,
             loss_emoji,
             acc_feeling,
-            acc_emoji5
+            acc_emoji5,
+            acc_emoji10
         )
 
     def configure_optimizers(self):
