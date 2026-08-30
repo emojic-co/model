@@ -6,9 +6,9 @@ MAX_TEXT_LEN = 42
 # not a slice of data.jsonl -- there is no eval-size knob here any more.
 
 # MODEL
-CHAR_EMBED_SIZE = 16
-KERNELS = (2, 3, 4)
-CHANNELS = (32, 32, 64)
+CHAR_EMBED_SIZE = 8
+KERNELS = (2, 2, 2)
+CHANNELS = (16, 32, 64)
 
 EMOJI_EMBED_SIZE = 20
 TRIPLET_MARGIN = 0.5
