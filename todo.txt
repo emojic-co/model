@@ -1,13 +1,2 @@
 TODO:
-    Update the model to use bigrams only:
-    Each layer does 
-    conv1d with kernel 2, stride 1, padding 0
-    batchnorm1d
-    leakyrelu
-    maxpool1d with kernel 2, stride 2, padding 0
-
-    The model configuration should just specify the number of channels per layer, e.g. [32, 64, 128, 256] for a 4-layer model.
-
-    Does it make sense?
-    If it sounds reasonable please implement it.
 DONE:
