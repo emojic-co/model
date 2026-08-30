@@ -13,13 +13,6 @@ from data import EMOJIS, FEELING, VOCAB_SIZE
 
 
 class Layer(nn.Sequential):
-    """One bigram block: Conv1d(k=2) -> BatchNorm1d -> LeakyReLU -> MaxPool1d(2, 2).
-
-    The kernel-2 conv (stride 1, no padding) drops one time step; the stride-2
-    pool then halves what is left (floor division -- an odd length loses its
-    last step). Stacked, these blocks build a hierarchy of character n-grams.
-    """
-
     def __init__(self, in_channels, out_channels):
         super().__init__(
             nn.Conv1d(
@@ -30,7 +23,7 @@ class Layer(nn.Sequential):
 
             nn.BatchNorm1d(out_channels),
             nn.LeakyReLU(negative_slope=0.1),
-            nn.MaxPool1d(
+            nn.AvgPool1d(
                 kernel_size=POOL_1D_SIZE,
                 stride=POOL_1D_SIZE),
         )
