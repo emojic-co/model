@@ -7,8 +7,8 @@ MAX_TEXT_LEN = 42
 
 # MODEL
 CHAR_EMBED_SIZE = 16
-KERNELS = (4,)
-CHANNELS = (128,)
+KERNELS = (4, 2)
+CHANNELS = (128, 64)
 
 EMOJI_EMBED_SIZE = 20
 TRIPLET_MARGIN = 0.5
@@ -27,6 +27,6 @@ EVAL_EPOCHS = 2
 
 CONFIG_NAME = ' | '.join([
     f'TIME: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
-    f'MODEL: {CHANNELS}',
+    f'MODEL: {KERNELS} {CHANNELS}',
     f'TRAIN: lr {LR} bs {BATCH_SIZE} gc {GRAD_CLIP}',
 ])
