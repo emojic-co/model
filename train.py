@@ -9,17 +9,17 @@ import torch
 from lightning.pytorch.callbacks import EarlyStopping
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
+from torch.nn import functional as F
 
 from config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE,
-    EMOJI_NEGATIVES,
     EPOCHS,
     EVAL_EPOCHS,
     GRAD_CLIP,
+    INFONCE_TEMP,
     LR,
     MAX_TEXT_LEN,
-    TRIPLET_MARGIN,
 )
 from data import (
     CHARS,
@@ -93,7 +93,6 @@ class LitEmojic(pl.LightningModule):
         super().__init__()
         self.model = Model()
         self.feeling_ce = nn.CrossEntropyLoss()
-        self.emoji_triplet = nn.TripletMarginLoss(margin=TRIPLET_MARGIN)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, ...]:
         return self.model(x)
@@ -104,22 +103,10 @@ class LitEmojic(pl.LightningModule):
         return loss, acc
 
     def _emoji_terms(self, q, emoji_embd, target_emoji):
-        n = emoji_embd.size(0)
-        offset = torch.randint(
-            1, n,
-            (target_emoji.size(0), EMOJI_NEGATIVES),
-            device=self.device)
-        neg_emoji_idx = (target_emoji.unsqueeze(1) + offset) % n
+        logits = q @ emoji_embd.t()
+        loss = F.cross_entropy(logits / INFONCE_TEMP, target_emoji)
 
-        pos = emoji_embd[target_emoji].repeat_interleave(EMOJI_NEGATIVES, dim=0)
-        neg = emoji_embd[neg_emoji_idx.reshape(-1)]
-        loss = self.emoji_triplet(
-            q.repeat_interleave(EMOJI_NEGATIVES, dim=0),
-            pos,
-            neg,
-        )
-
-        top10 = (q @ emoji_embd.t()).topk(10, dim=-1).indices
+        top10 = logits.topk(10, dim=-1).indices
         hit10 = top10 == target_emoji.unsqueeze(1)
         acc5 = hit10[:, :5].any(dim=-1).float().mean()
         acc10 = hit10.any(dim=-1).float().mean()
