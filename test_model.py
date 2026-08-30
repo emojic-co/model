@@ -12,7 +12,7 @@ Three batteries, all run against the committed ``model.pt``:
    head's nearest embedding is the paired emoji. The report lists the top 5
    emojis for every cue.
 
-Writes a Markdown report to ``report/<MM-DD-HH:MM>.md`` and prints a summary.
+Writes a Markdown report to ``report/model/<MM-DD-HH:MM>.md`` and prints a summary.
 ``train.py`` calls :func:`run` at the end of every training run.
 
 Standalone: ``uv run test_model.py``
@@ -36,7 +36,7 @@ from data import (
 from model import Model
 
 MODEL_PT = Path("model.pt")
-REPORT_DIR = Path("report")
+REPORT_DIR = Path("report/model")
 
 # For "not <feeling>" prompts: the feeling we'd expect the model to fall back to.
 # Only the confident opposites are listed; a feeling left out is only checked for
@@ -267,7 +267,7 @@ def run(model: Model | None = None) -> Path:
     # emoji_rows = test_emojis(model)
 
     report = build_report(feeling_rows, negation_rows, emoji_rows)
-    REPORT_DIR.mkdir(exist_ok=True)
+    REPORT_DIR.mkdir(parents=True, exist_ok=True)
     path = REPORT_DIR / f"{dt.datetime.now():%m-%d-%H:%M}.md"
     path.write_text(report, encoding="utf-8")
 

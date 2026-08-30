@@ -1,6 +1,6 @@
 # Model improvement notes
 
-Based on the latest behavioral report (`report/08-29-19:54.md`), the latest
+Based on the latest behavioral report (`report/model/08-29-19:54.md`), the latest
 completed tensorboard run
 (`TIME: 2026-08-29 19:47:42 | DATA: mtl 42 tl 900 | MODEL: cs (256, 32) | TRAIN: lr 0.1 bs 128 gc 1.0 wd 0.0002`),
 and a read of `model.py`, `train.py`, `data.py`, `config.py`, `labels.json`

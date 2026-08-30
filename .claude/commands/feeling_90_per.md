@@ -15,21 +15,30 @@ names the single smallest, lowest-risk change most likely to move `acc/f/val`
 next. Reaching 0.90 in one step is not expected; each recommended step should be
 independently accuracy-positive.
 
-The only file this command writes is the ledger `report/feeling_90_per.md`.
+The only file this command writes is a **new** timestamped ledger snapshot
+`report/feeling_90_per/<MM-DD-HH:MM>.md`. It never edits or deletes an older
+snapshot — each invocation carries the full history forward into a fresh file.
 `config.py` guarantees `EPOCHS % EVAL_EPOCHS == 0` — any epoch recommendation must
 keep that true.
 
-## 1. Read the ledger and reconcile the last step
+## 1. Read the latest snapshot and reconcile the last step
 
-Read `report/feeling_90_per.md` (the running log of every change recommended, its
-before/after `acc/f/val`, and whether it helped). Create it from the skeleton at
-the bottom of this file if it is missing.
+Read the newest snapshot in `report/feeling_90_per/` — it holds the full running
+log of every change recommended, its before/after `acc/f/val`, and whether it
+helped:
 
-If the newest `runs/*/` directory is **newer than the last ledger row**, a
+```bash
+ls -1 report/feeling_90_per/*.md 2>/dev/null | sort | tail -1
+```
+
+If the directory is empty or missing, start a fresh log from the skeleton at the
+bottom of this file.
+
+If the newest `runs/*/` directory is **newer than the last row** of that log, a
 recommendation was acted on: measure its `acc/f/val` (step 2) and fill in the
 row's `after` + `outcome` (`kept` if it beat the prior best by > 0.005,
 `no-gain` otherwise, `reverted` if the source no longer shows the change).
-Never re-recommend a change already in the ledger unless its note says
+Never re-recommend a change already in the log unless its note says
 "retry bigger".
 
 ## 2. Measure the current accuracy
@@ -87,8 +96,8 @@ EOF
   `CHAR_EMBED_SIZE`, `LR`, `WEIGHT_DECAY`, conv `padding`, the pooling op
   (`torch.max` over time), the loss (`nn.CrossEntropyLoss`), the optimizer
   (`Adam`, no schedule).
-- newest `report/*.md` — the behavioral batteries (name prompts, negations).
-  Sanity signal only; the metric is `acc/f/val`.
+- newest `report/model/*.md` — the behavioral batteries (name prompts,
+  negations). Sanity signal only; the metric is `acc/f/val`.
 - `model.md` — standing improvement notes. May lag the code; cross-check.
 - `git log --oneline -15` and `git diff` — what changed since the measured run.
 - Train corpus shape (never read `data.jsonl` whole):
@@ -178,7 +187,13 @@ stack, and restore `WEIGHT_DECAY` to 1e-4.
 
 ## 6. Write the recommendation
 
-Append one row to `report/feeling_90_per.md` and print the same content. The row:
+Write a **new** snapshot at `report/feeling_90_per/$(date +%m-%d-%H:%M).md`.
+Start from the newest existing snapshot's full content (header + the entire
+table), apply the step-1 reconciliation to its last row, then append one new
+row. Do not overwrite or delete the previous snapshot — history is the set of
+files in `report/feeling_90_per/`. Print the same content you wrote.
+
+The new row:
 
 - **date**, **current `acc/f/val`** (+ which run), **diagnosis** (one line).
 - **change**: the exact edit — file, symbol, old value → new value.
@@ -193,7 +208,7 @@ Append one row to `report/feeling_90_per.md` and print the same content. The row
 2–3 sentences: current `acc/f/val` vs the 0.90 target and the 0.143 baseline, the
 diagnosis, the single recommended change, and what it is expected to do.
 
-## Ledger skeleton (`report/feeling_90_per.md`)
+## Ledger skeleton (first `report/feeling_90_per/<MM-DD-HH:MM>.md`)
 
 ```markdown
 # feeling_90_per progress
