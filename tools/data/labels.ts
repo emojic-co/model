@@ -1,11 +1,9 @@
 import { existsSync } from "node:fs"
 import { readFile, writeFile } from "node:fs/promises"
+import { TOP_EMOJIS, TOP_FEELINGS } from "./config"
 
 const TRAIN = "./train.jsonl"
 const LABELS = "./labels.json"
-
-const TOP_EMOJIS = 100
-const TOP_FEELINGS = 10
 
 function topN(counts: Map<string, number>, n: number): string[] {
   return [...counts.entries()]

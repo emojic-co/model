@@ -8,14 +8,14 @@ import { annotate, annotateBatchCount } from "./annotate.ts"
 const DATA = "./data.jsonl"
 const TRAIN = "./train.jsonl"
 
-const SAMPLE_SIZE = 2000
+const SAMPLE_SIZE = 5000
 
 function sampleIndices(n: number, k: number): number[] {
   const idx = Array.from({ length: n }, (_, i) => i)
   const take = Math.min(k, n)
   for (let i = 0; i < take; i++) {
     const j = i + Math.floor(Math.random() * (n - i))
-    ;[idx[i], idx[j]] = [idx[j], idx[i]]
+      ;[idx[i], idx[j]] = [idx[j], idx[i]]
   }
   return idx.slice(0, take)
 }
