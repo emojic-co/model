@@ -100,7 +100,9 @@ class LitEmojic(pl.LightningModule):
     def _feeling_terms(self, logits_feeling, target_feeling):
         loss = self.feeling_ce(logits_feeling, target_feeling)
         acc = (logits_feeling.argmax(dim=-1) == target_feeling).float().mean()
-        return loss, acc
+        top5 = logits_feeling.topk(5, dim=-1).indices
+        acc5 = (top5 == target_feeling.unsqueeze(1)).any(dim=-1).float().mean()
+        return loss, acc, acc5
 
     def _emoji_terms(self, q, emoji_embd, target_emoji):
         logits = q @ emoji_embd.t()
@@ -119,6 +121,7 @@ class LitEmojic(pl.LightningModule):
             loss_f,
             loss_e,
             acc_f,
+            acc5_f,
             acc5_e,
             acc10_e
     ):
@@ -127,6 +130,7 @@ class LitEmojic(pl.LightningModule):
         self.log(f"loss/f/{split}", loss_f, **kw)  # type: ignore
         self.log(f"loss/e/{split}", loss_e, **kw)  # type: ignore
         self.log(f"acc/f/{split}", acc_f, **kw)  # type: ignore
+        self.log(f"acc5/f/{split}", acc5_f, **kw)  # type: ignore
         self.log(f"acc5/e/{split}", acc5_e, **kw)  # type: ignore
         self.log(f"acc10/e/{split}", acc10_e, **kw)  # type: ignore
 
@@ -134,7 +138,7 @@ class LitEmojic(pl.LightningModule):
         x, target_emoji, target_feeling = batch
         logits_feeling, q, emoji_embd = self.model(x)
 
-        loss_feeling, acc_feeling = self._feeling_terms(
+        loss_feeling, acc_feeling, acc_feeling5 = self._feeling_terms(
             logits_feeling, target_feeling)
         loss_emoji, acc_emoji5, acc_emoji10 = self._emoji_terms(
             q, emoji_embd, target_emoji)
@@ -144,6 +148,7 @@ class LitEmojic(pl.LightningModule):
             loss_feeling,
             loss_emoji,
             acc_feeling,
+            acc_feeling5,
             acc_emoji5,
             acc_emoji10
         )
@@ -154,7 +159,7 @@ class LitEmojic(pl.LightningModule):
         x, target_emoji, target_feeling = batch
         logits_feeling, q, emoji_embd = self.model(x)
 
-        loss_feeling, acc_feeling = self._feeling_terms(
+        loss_feeling, acc_feeling, acc_feeling5 = self._feeling_terms(
             logits_feeling, target_feeling)
         loss_emoji, acc_emoji5, acc_emoji10 = self._emoji_terms(
             q, emoji_embd, target_emoji)
@@ -164,6 +169,7 @@ class LitEmojic(pl.LightningModule):
             loss_feeling,
             loss_emoji,
             acc_feeling,
+            acc_feeling5,
             acc_emoji5,
             acc_emoji10
         )
