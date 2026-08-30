@@ -123,5 +123,5 @@ other. Anything less does not go in.
      — last line is valid JSON.
    - Print the new per-feeling totals:
      `python3 -c "import json,collections; print(collections.Counter(json.loads(l)['feeling'] for l in open('eval.jsonl') if l.strip()))"`
-   - Refresh the stats report: `uv run python tool/eval-stat.py`.
+   - Refresh the stats report: `uv run python tools/eval/eval-stat.py`.
    - Report old count, new count, rows added per feeling.

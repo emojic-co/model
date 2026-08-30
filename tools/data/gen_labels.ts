@@ -1,7 +1,8 @@
 /**
  * Step 3 of the data pipeline: (re)generate labels.json from data.jsonl.
  *
- *   bun feeling.ts  ->  bun emoji.ts  ->  bun gen_labels.ts
+ *   bun run tools/data/feeling2emoji.ts  ->  bun run tools/data/gen_labels.ts
+ *   bun run tools/data/emoji2feeling.ts  ->  bun run tools/data/gen_labels.ts
  *
  *   - feelings: a fixed closed set. Copied through from the existing
  *     labels.json untouched -- this script never adds, drops, or reorders one.
@@ -12,8 +13,8 @@
  * data.jsonl is only read. Records whose emoji falls outside the top 100 stay
  * in the corpus -- data.py filters them out at train time.
  *
- * Run:
- *   bun run gen_labels.ts
+ * Run (from the repo root):
+ *   bun run tools/data/gen_labels.ts
  */
 import { existsSync } from "node:fs"
 import { readFile, writeFile } from "node:fs/promises"

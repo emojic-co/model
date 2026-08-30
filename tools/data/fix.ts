@@ -14,10 +14,10 @@
  * and writes fresh data.jsonl / labels.json. Originals are moved aside to *.bak
  * (gitignored).
  *
- * Run:
- *   bun run fix.ts --limit=30     # dry run: annotate 30 texts -> data.jsonl.dry
- *   bun run fix.ts                # full run (moves files, rewrites everything)
- *   bun run fix.ts                # re-run after a crash resumes from data.jsonl.tmp
+ * Run (from the repo root):
+ *   bun run tools/data/fix.ts --limit=30   # dry run: annotate 30 texts -> data.jsonl.dry
+ *   bun run tools/data/fix.ts              # full run (moves files, rewrites everything)
+ *   bun run tools/data/fix.ts              # re-run after a crash resumes from data.jsonl.tmp
  *
  * Requires AI_GATEWAY_API_KEY (Bun auto-loads it from .env).
  */

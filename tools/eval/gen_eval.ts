@@ -1,7 +1,7 @@
 /**
  * Gold evaluation set builder.
  *
- *   bun gen_eval.ts [--force]
+ *   bun run tools/eval/gen_eval.ts [--force]   (from the repo root)
  *
  * Writes eval.jsonl: a fixed, balanced, feeling-perfect holdout, kept apart from
  * the append-only data.jsonl training corpus. data.jsonl is never touched.

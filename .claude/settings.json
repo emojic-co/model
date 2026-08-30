@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.tool_input.file_path // .tool_response.filePath // empty' | { read -r f; [ \"$(basename \"$f\")\" = \"eval.jsonl\" ] && cd \"$CLAUDE_PROJECT_DIR\" && uv run python tool/eval-stat.py; } 2>/dev/null || true",
+            "command": "jq -r '.tool_input.file_path // .tool_response.filePath // empty' | { read -r f; [ \"$(basename \"$f\")\" = \"eval.jsonl\" ] && cd \"$CLAUDE_PROJECT_DIR\" && uv run python tools/eval/eval-stat.py; } 2>/dev/null || true",
             "statusMessage": "Refreshing eval.jsonl stats report"
           }
         ]

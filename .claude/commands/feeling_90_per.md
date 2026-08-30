@@ -169,9 +169,9 @@ architecture change unless the ledger shows **either** every Tier 1–3 item tri
 
 11. **`/data-quality`** — fixes mislabeled/broken rows in place, then retrain.
     Recommend when the diagnosis is label-noise ceiling.
-12. **Grow / rebalance the corpus** — `bun feeling2emoji.ts` then
-    `bun gen_labels.ts` (adds ~500 texts each for the least-covered feelings),
-    or `/add-samples`.
+12. **Grow / rebalance the corpus** — `bun run tools/data/feeling2emoji.ts` then
+    `bun run tools/data/gen_labels.ts` (adds ~500 texts each for the
+    least-covered feelings), or `/add-samples`.
 
 ### Tier 4 — architecture (only when Tiers 1–3 are exhausted or 2× no-gain)
 

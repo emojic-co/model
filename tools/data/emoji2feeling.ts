@@ -1,7 +1,7 @@
 /**
  * Data pipeline, emoji-first entry point -- upsamples the rarest emojis.
  *
- *   bun emoji2feeling.ts  ->  bun gen_labels.ts
+ *   bun run tools/data/emoji2feeling.ts  ->  bun run tools/data/gen_labels.ts
  *
  * One run does the whole thing, no intermediate file:
  *
@@ -315,6 +315,6 @@ if (import.meta.main) {
   console.log(`generated fresh texts   : ${candidates.length}`)
   console.log(`skipped (too long)      : ${nLong}`)
   console.log(`annotated -> data.jsonl : ${annotated}`)
-  console.log("\nnext: bun gen_labels.ts")
+  console.log("\nnext: bun run tools/data/gen_labels.ts")
   process.exit(0)
 }
