@@ -18,9 +18,13 @@ const FEELING_FONTS = {
   Angry: '"Anton", system-ui, sans-serif',
   Anxious: '"Shantell Sans", system-ui, cursive',
   Neutral: '"Inter", system-ui, sans-serif',
+  Love: '"Fredoka", system-ui, sans-serif',
 };
 
 const MIN_CHARS = 3;
+
+const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
+const typedFontPx = (len) => Math.round(clamp(32 - Math.max(0, len - 8) * 0.5, 16, 32));
 
 const argmax = (arr) => {
   let best = 0;
@@ -64,7 +68,8 @@ function encode(text) {
 function resetCard() {
   emojiEl.textContent = "🙂";
   feelingEl.textContent = "—";
-  card.style.background = "";
+  card.removeAttribute("data-feeling");
+  card.style.backgroundImage = "";
   card.style.color = "";
   card.style.fontFamily = "";
   dbgFeelingsEl.replaceChildren();
@@ -72,13 +77,17 @@ function resetCard() {
   current = null;
 }
 
-async function update() {
+let modelTimer;
+
+function update() {
   const text = input.value;
   typedEl.textContent = text;
+  typedEl.style.fontSize = `${typedFontPx(text.length)}px`;
   counterEl.firstChild.textContent = String(text.length);
   counterEl.classList.toggle("full", text.length >= input.maxLength);
   if (!session) return;
 
+  clearTimeout(modelTimer);
   if (normalize(text).length < MIN_CHARS) {
     seq++;
     hintEl.textContent = `type at least ${MIN_CHARS} characters…`;
@@ -87,7 +96,11 @@ async function update() {
     return;
   }
   hintEl.classList.remove("show");
+  modelTimer = setTimeout(runModel, 100);
+}
 
+async function runModel() {
+  const text = input.value;
   const mine = ++seq;
   const tensor = new ort.Tensor("int64", encode(text), [1, META.max_text_len]);
   const out = await session.run({ input: tensor });
@@ -101,7 +114,8 @@ async function update() {
 
   emojiEl.textContent = emoji;
   feelingEl.textContent = feeling;
-  card.style.background = `linear-gradient(135deg, ${pal.bg1}, ${pal.bg2})`;
+  card.dataset.feeling = feeling;
+  card.style.backgroundImage = `linear-gradient(135deg, ${pal.bg1}, ${pal.bg2})`;
   card.style.color = pal.text_color;
   card.style.fontFamily = FEELING_FONTS[feeling] ?? FEELING_FONTS.Neutral;
 
@@ -201,12 +215,13 @@ async function cardToBlob() {
   ctx.font = `120px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
   ctx.fillText(emoji, S / 2, S * 0.36);
 
-  ctx.font = `600 24px ${stack}`;
+  const fpx = Math.round(typedFontPx(text.length) * (S / 600));
+  ctx.font = `600 ${fpx}px ${stack}`;
   const lines = wrapLines(ctx, text, S - 96, 4);
   let ty = S * 0.6;
   for (const line of lines) {
     ctx.fillText(line, S / 2, ty);
-    ty += 32;
+    ty += fpx * 1.33;
   }
 
   ctx.font = `600 13px ${stack}`;
@@ -251,7 +266,7 @@ function buildFeelingRow() {
     const sq = document.createElement("div");
     sq.className = "swatch";
     sq.textContent = feeling;
-    sq.style.background = `linear-gradient(135deg, ${pal.bg1}, ${pal.bg2})`;
+    sq.style.backgroundImage = `linear-gradient(135deg, ${pal.bg1}, ${pal.bg2})`;
     sq.style.color = pal.text_color;
     sq.style.fontFamily = FEELING_FONTS[feeling] ?? FEELING_FONTS.Neutral;
     row.appendChild(sq);

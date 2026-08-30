@@ -112,6 +112,273 @@ h1 {
   transition: background 220ms ease, color 220ms ease;
 }
 
+@keyframes drift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes emoji-happy {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-16px);
+  }
+}
+
+@keyframes emoji-calm {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes emoji-sad {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(4px) scale(0.99);
+  }
+}
+
+@keyframes emoji-angry {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0);
+  }
+  20% {
+    transform: translateX(-3px) rotate(-1.5deg);
+  }
+  40% {
+    transform: translateX(3px) rotate(1.5deg);
+  }
+  60% {
+    transform: translateX(-2px) rotate(-1deg);
+  }
+  80% {
+    transform: translateX(2px) rotate(1deg);
+  }
+}
+
+@keyframes emoji-anxious {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-2px, 1px);
+  }
+  50% {
+    transform: translate(2px, -1px);
+  }
+  75% {
+    transform: translate(-1px, -2px);
+  }
+}
+
+@keyframes emoji-love {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  15% {
+    transform: scale(1.15);
+  }
+  30% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.12);
+  }
+  60% {
+    transform: scale(1);
+  }
+}
+
+@keyframes emoji-neutral {
+  0%,
+  100% {
+    transform: rotate(-0.6deg);
+  }
+  50% {
+    transform: rotate(0.6deg);
+  }
+}
+
+@keyframes text-happy {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes text-calm {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.72;
+  }
+}
+
+@keyframes text-sad {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(3px);
+    opacity: 0.78;
+  }
+}
+
+@keyframes text-angry {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-1.5px);
+  }
+  75% {
+    transform: translateX(1.5px);
+  }
+}
+
+@keyframes text-anxious {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-1.5px, 1px);
+  }
+  50% {
+    transform: translate(1.5px, -1px);
+  }
+  75% {
+    transform: translate(-1px, -1.5px);
+  }
+}
+
+@keyframes text-love {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  15% {
+    transform: scale(1.04);
+  }
+  30% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.03);
+  }
+  60% {
+    transform: scale(1);
+  }
+}
+
+@keyframes text-neutral {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+#card[data-feeling] {
+  background-size: 200% 200%;
+  animation: drift 16s ease-in-out infinite;
+}
+
+#card[data-feeling="Happy"] #emoji {
+  animation: emoji-happy 0.9s ease-in-out infinite;
+}
+
+#card[data-feeling="Calm"] #emoji {
+  animation: emoji-calm 4s ease-in-out infinite;
+}
+
+#card[data-feeling="Sad"] #emoji {
+  animation: emoji-sad 3s ease-in-out infinite;
+}
+
+#card[data-feeling="Angry"] #emoji {
+  animation: emoji-angry 0.45s linear infinite;
+}
+
+#card[data-feeling="Anxious"] #emoji {
+  animation: emoji-anxious 0.2s ease-in-out infinite;
+}
+
+#card[data-feeling="Love"] #emoji {
+  animation: emoji-love 1.4s ease-in-out infinite;
+}
+
+#card[data-feeling="Neutral"] #emoji {
+  animation: emoji-neutral 6s ease-in-out infinite;
+}
+
+#card[data-feeling="Happy"] #typed {
+  animation: text-happy 0.9s ease-in-out infinite;
+}
+
+#card[data-feeling="Calm"] #typed {
+  animation: text-calm 4s ease-in-out infinite;
+}
+
+#card[data-feeling="Sad"] #typed {
+  animation: text-sad 3s ease-in-out infinite;
+}
+
+#card[data-feeling="Angry"] #typed {
+  animation: text-angry 0.45s linear infinite;
+}
+
+#card[data-feeling="Anxious"] #typed {
+  animation: text-anxious 0.2s ease-in-out infinite;
+}
+
+#card[data-feeling="Love"] #typed {
+  animation: text-love 1.4s ease-in-out infinite;
+}
+
+#card[data-feeling="Neutral"] #typed {
+  animation: text-neutral 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #card[data-feeling] {
+    animation: none;
+    background-size: auto;
+  }
+
+  #card[data-feeling] #emoji,
+  #card[data-feeling] #typed {
+    animation: none;
+  }
+}
+
 /* "Copy as image" button, top-right of the output card. Kept out of the
    rendered PNG -- app.js hand-draws the card onto a canvas rather than
    snapshotting the DOM. */
@@ -152,6 +419,7 @@ h1 {
   font-weight: 600;
   word-break: break-word;
   min-height: 1.2em;
+  transition: font-size 120ms ease;
 }
 
 #feeling {

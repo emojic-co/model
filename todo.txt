@@ -1,6 +1,6 @@
 TODO:
-    Web APP:
-        - Debounce model call, wait 100ms after last keypressed.
-        - Set font size according to text length.
+
 DONE:
     - Require minimum of 3 chars before running model, show hint about it.
+    - Debounce model call, wait 100ms after last keypressed.
+    - Set font size according to text length.

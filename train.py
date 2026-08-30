@@ -240,6 +240,7 @@ def train(resume: bool = False) -> None:
         monitor="acc/f/val",
         mode="max",
         patience=EARLY_STOP_PATIENCE,
+        check_on_train_epoch_end=False,
     )
     LAST_CKPT.parent.mkdir(parents=True, exist_ok=True)
 
