@@ -6,11 +6,13 @@ from pathlib import Path
 
 import lightning as pl
 import torch
+from lightning.pytorch.callbacks import EarlyStopping
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
 
 from config import (
     CONFIG_NAME,
+    EARLY_STOP_PATIENCE,
     EMOJI_NEGATIVES,
     EPOCHS,
     EVAL_EPOCHS,
@@ -234,6 +236,11 @@ def train(resume: bool = False) -> None:
 
     lit = LitEmojic()
     export_best = ExportBest()
+    early_stop = EarlyStopping(
+        monitor="acc/f/val",
+        mode="max",
+        patience=EARLY_STOP_PATIENCE,
+    )
     LAST_CKPT.parent.mkdir(parents=True, exist_ok=True)
 
     print(f"Train: {len(train_ds)}  Eval: {len(eval_ds)}")
@@ -253,7 +260,7 @@ def train(resume: bool = False) -> None:
         devices='auto',
         logger=logger,
         enable_checkpointing=False,
-        callbacks=[export_best, SaveLast()],
+        callbacks=[export_best, early_stop, SaveLast()],
         num_sanity_val_steps=0,
         log_every_n_steps=10,
     )
