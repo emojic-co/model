@@ -1,11 +1,2 @@
 TODO:
-
-
 DONE:
-    - Data generation pipeline rewrite (open-set feeling + emoji):
-        tools/data/{annotate,train,re-annotate,labels,stat}.ts, the
-        generate-eval-jsonl skill, settings.json stat hook, eval.jsonl.bak.
-        Old pipeline tools/commands removed. Model side (data.py/main.py/web/)
-        not yet migrated off data.jsonl.
-    - Training:
-        log acc@10 (accuracy  @ 10) for emojis.
