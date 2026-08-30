@@ -144,39 +144,21 @@ def export_web(model: nn.Module) -> None:
 
 
 class LitEmojic(pl.LightningModule):
-    """Feeling-head training wrapper around ``model.Model``."""
-
     def __init__(self) -> None:
         super().__init__()
         self.model = Model()
         self.feeling_ce = nn.CrossEntropyLoss()
-        # Emoji head is trained by metric learning: pull the projected hidden
-        # state toward its true emoji vector and push it off EMOJI_NEGATIVES
-        # sampled wrong emoji vectors, by TRIPLET_MARGIN in L2. reduction="mean"
-        # averages over all anchor x negative triplets in the batch.
         self.emoji_triplet = nn.TripletMarginLoss(margin=TRIPLET_MARGIN)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, ...]:
         return self.model(x)
 
     def _feeling_terms(self, logits_feeling, target_feeling):
-        """Feeling cross-entropy loss and top-1 accuracy for a batch."""
         loss = self.feeling_ce(logits_feeling, target_feeling)
         acc = (logits_feeling.argmax(dim=-1) == target_feeling).float().mean()
         return loss, acc
 
     def _emoji_terms(self, q, emoji_embd, target_emoji):
-        """Emoji triplet loss and top-5 retrieval accuracy for a batch.
-
-        EMOJI_NEGATIVES wrong classes per row: shift the true index by random
-        1..N-1 offsets (mod N) -- uniform over the wrong classes, never the
-        target. anchor/positive are tiled to (B*K, D) so one
-        nn.TripletMarginLoss call scores every (row, negative) pair and means
-        over all B*K triplets. q and emoji_embd are unit-norm, so the largest
-        cosine similarities are the smallest L2 distances the triplet trains --
-        the exact score ExportWrapper ships -- and top-1 retrieval over the full
-        emoji set is hopeless, so track the top-5 hit rate.
-        """
         n = emoji_embd.size(0)
         offset = torch.randint(
             1, n,
@@ -205,7 +187,6 @@ class LitEmojic(pl.LightningModule):
             acc_f,
             acc5_e
     ):
-        """Log exactly the four scalars for one split (train/val), nothing else."""
         kw = dict(
             on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size)
         self.log(f"loss/f/{split}", loss_f, **kw)  # type: ignore
@@ -248,20 +229,15 @@ class LitEmojic(pl.LightningModule):
         )
 
     def configure_optimizers(self):
-        # return optim.SGD(self.parameters(), lr=LR)
         return optim.Adam(self.parameters(), lr=LR)
 
 
 class ExportBest(pl.Callback):
-    """Save model.pt + refresh docs/ whenever acc/f/val improves (max)."""
 
     def __init__(self) -> None:
         self.best_acc = 0.0
 
     def state_dict(self) -> dict:
-        # Persisted into the checkpoint so best_acc survives --resume; without
-        # it the first post-resume validation re-saves model.pt + re-exports on
-        # a non-improvement.
         return {"best_acc": self.best_acc}
 
     def load_state_dict(self, state_dict: dict) -> None:
@@ -279,27 +255,11 @@ class ExportBest(pl.Callback):
 
 
 class SaveLast(pl.Callback):
-    """Overwrite runs/last.ckpt with full training state after every eval.
-
-    Fires from on_validation_end, which the Trainer runs every
-    check_val_every_n_epoch == EVAL_EPOCHS epochs, so runs/last.ckpt always holds
-    the latest optimizer / epoch / global-step / RNG / callback state for
-    --resume -- regardless of whether acc/f/val improved.
-    """
-
     def on_validation_end(self, trainer: pl.Trainer, pl_module: LitEmojic) -> None:
-        # weights_only=False is passed explicitly (it is already the default) so
-        # the full optimizer / callback / RNG / loop state is written for
-        # --resume, and Lightning skips its "`weights_only` was not set" log.info.
         trainer.save_checkpoint(LAST_CKPT, weights_only=False)
 
 
 def param_table(model: nn.Module) -> str:
-    """Render a per-module / per-parameter breakdown of ``model``'s params.
-
-    One indented row per leaf parameter (with its shape), grouped under each
-    top-level child module with that child's subtotal and share of the total.
-    """
     named = list(model.named_parameters())
     total = sum(p.numel() for _, p in named)
     name_w = max((len(n) for n, _ in named), default=18) + 4
@@ -331,9 +291,6 @@ def train(resume: bool = False) -> None:
 
     lit = LitEmojic()
     export_best = ExportBest()
-    # SaveLast overwrites runs/last.ckpt (the only checkpoint --resume reads)
-    # every EVAL_EPOCHS, unconditionally; ExportBest writes the shipped
-    # model.pt / docs/ artifacts only on a new best acc/f/val.
     LAST_CKPT.parent.mkdir(parents=True, exist_ok=True)
 
     print(f"Train: {len(train_ds)}  Eval: {len(eval_ds)}")
@@ -343,21 +300,15 @@ def train(resume: bool = False) -> None:
         "runs",
         name=CONFIG_NAME,
         version="",
-        # Don't emit the placeholder hp_metric scalar -- only the eight
-        # loss/acc scalars from _log_split should appear in TensorBoard.
         default_hp_metric=False)
 
     trainer = pl.Trainer(
         max_epochs=EPOCHS,
-        # config guarantees EPOCHS % EVAL_EPOCHS == 0, so the last epoch validates.
         check_val_every_n_epoch=EVAL_EPOCHS,
         gradient_clip_val=GRAD_CLIP,
         accelerator="cpu",
         devices='auto',
         logger=logger,
-        # SaveLast already writes runs/last.ckpt (full state) after every eval
-        # for --resume; Lightning's default ModelCheckpoint would serialize a
-        # second full checkpoint every epoch for nothing.
         enable_checkpointing=False,
         callbacks=[export_best, SaveLast()],
         num_sanity_val_steps=0,
@@ -371,7 +322,6 @@ def train(resume: bool = False) -> None:
     trainer.fit(
         lit,
         train_loader,
-        # train_loader,
         eval_loader,
         ckpt_path=ckpt_path,
     )
@@ -381,8 +331,6 @@ def train(resume: bool = False) -> None:
         f"{MODEL_PT} and docs/ refreshed"
     )
 
-    # Behavioral test suite + Markdown report (report/model/<MM-DD-HH:MM>.md).
-    # Runs against the saved best checkpoint (model.pt), i.e. what ships.
     from test_model import run as run_tests
 
     run_tests()
