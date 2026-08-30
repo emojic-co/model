@@ -34,7 +34,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Training writes TensorBoard logs to `runs/<config-name>/` (run name, from `run_name()`, encodes embed/hidden/layers/lr/batch/epochs); view with `uv run tensorboard --logdir runs`.
 - The generator toolchain is Bun, not `uv`: `bun install`, then (from the repo root) run either generator followed by `gen_labels.ts` — `bun run tools/data/feeling2emoji.ts` → `bun run tools/data/gen_labels.ts` (rebalance feelings) or `bun run tools/data/emoji2feeling.ts` → `bun run tools/data/gen_labels.ts` (upsample rare emojis). package.json aliases (also root-relative): `bun run feeling2emoji` / `emoji2feeling` / `labels` / `gen_eval` / `fix`.
 - Non-model scripts live under `tools/<group>/` (`tools/data/`, `tools/eval/`); the model stack — `config.py`, `data.py`, `model.py`, `train.py` — and the behavioral suite `test_model.py` stay at the repo root. All tool scripts assume the repo root as CWD.
-- Python 3.11.
+- Python 3.13.
 
 ## Conventions
 

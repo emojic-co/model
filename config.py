@@ -5,10 +5,13 @@ MAX_TEXT_LEN = 42
 
 # MODEL
 CHAR_EMBED_SIZE = 16
-KERNEL = 3
-STRIDE = 1
-CHANNELS = [64, 96, 96]
+# (kernel, channels)
+CONV = [
+    (3, 64),
+    (2, 128),
+]
 POOL_1D_SIZE = 2
+DROPOUT = 0.3
 
 EMOJI_EMBED_SIZE = 32
 TRIPLET_MARGIN = .5
@@ -27,6 +30,6 @@ EVAL_EPOCHS = 1
 
 CONFIG_NAME = ' | '.join([
     f'TIME: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
-    f'MODEL: {KERNEL} {STRIDE} {CHAR_EMBED_SIZE} {CHANNELS}',
+    f'MODEL: {CHAR_EMBED_SIZE} {CONV} d{DROPOUT}',
     f'TRAIN: lr {LR} bs {BATCH_SIZE} gc {GRAD_CLIP}',
 ])

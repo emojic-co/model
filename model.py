@@ -1,34 +1,29 @@
+from itertools import chain
+
 import torch
 from torch import nn
 from torch.nn.functional import normalize
 
 from config import (
-    CHANNELS,
     CHAR_EMBED_SIZE,
+    CONV,
+    DROPOUT,
     EMOJI_EMBED_SIZE,
-    KERNEL,
-    POOL_1D_SIZE,
-    STRIDE,
 )
 from data import EMOJIS, FEELING, VOCAB_SIZE
 
 
-class Layer(nn.Sequential):
-    def __init__(self, in_channels, out_channels):
-        super().__init__(
-            nn.Conv1d(
-                in_channels,
-                out_channels,
-                kernel_size=KERNEL,
-                stride=STRIDE,
-                bias=False),
+def layer(*, kernel, in_channels, out_channels):
+    return [
+        nn.Conv1d(
+            in_channels,
+            out_channels,
+            kernel_size=kernel,
+            bias=False),
 
-            nn.BatchNorm1d(out_channels),
-            nn.LeakyReLU(negative_slope=0.1),
-            nn.AvgPool1d(
-                kernel_size=POOL_1D_SIZE,
-                stride=POOL_1D_SIZE),
-        )
+        nn.BatchNorm1d(out_channels),
+        nn.LeakyReLU(negative_slope=0.1),
+    ]
 
 
 class Model(nn.Module):
@@ -36,24 +31,39 @@ class Model(nn.Module):
         super().__init__()
 
         self.char_embed = nn.Embedding(VOCAB_SIZE, CHAR_EMBED_SIZE)
-        in_channels = [CHAR_EMBED_SIZE, *CHANNELS[:-1]]
-        self.conv = nn.Sequential(
-            *(Layer(i, o) for i, o in zip(in_channels, CHANNELS, strict=True))
+        k, o = CONV[0]
+
+        self.net = nn.Sequential(
+            *layer(
+                kernel=k,
+                in_channels=CHAR_EMBED_SIZE,
+                out_channels=o,
+            ),
+            *chain.from_iterable(
+                layer(
+                    kernel=k,
+                    in_channels=i,
+                    out_channels=o,
+                )
+                for (_, i), (k, o) in zip(CONV[:-1], CONV[1:], strict=True)
+            )
         )
 
-        self.feeling = nn.Linear(CHANNELS[-1], len(FEELING))
+        _, o = CONV[-1]
+        self.feeling_dropout = nn.Dropout(DROPOUT)
+        self.feeling = nn.Linear(o, len(FEELING))
 
-        self.emoji = nn.Linear(CHANNELS[-1], EMOJI_EMBED_SIZE)
+        self.emoji = nn.Linear(o, EMOJI_EMBED_SIZE)
         self.emoji_embed = nn.Embedding(len(EMOJIS), EMOJI_EMBED_SIZE)
 
     def forward(self, x):
         out = self.char_embed(x).transpose(1, 2)
-        out = self.conv(out)  # (B, channels, T)
+        out = self.net(out)  # (B, channels, T)
 
-        out = torch.max(out, dim=-1).values  # (B, channels)
+        pooled = torch.max(out, dim=-1).values  # (B, channels)
 
         return (
-            self.feeling(out),
-            normalize(self.emoji(out), p=2, dim=-1),
+            self.feeling(self.feeling_dropout(pooled)),
+            normalize(self.emoji(pooled), p=2, dim=-1),
             normalize(self.emoji_embed.weight, p=2, dim=-1),
         )
