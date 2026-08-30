@@ -124,7 +124,10 @@ def train_data_loader(ds: EmojiDataset):
         shuffle=True,
         drop_last=True,
         collate_fn=collate_fn,
-        num_workers=4,
+        # The dataset is fully materialized in RAM by _load (getitem is a list
+        # index), so worker processes only add fork/pickle/IPC overhead and
+        # contend with the model for CPU cores. In-process loading is faster.
+        num_workers=0,
     )
 
 
@@ -135,5 +138,5 @@ def eval_data_loader(ds: EmojiDataset):
         shuffle=False,
         drop_last=False,
         collate_fn=collate_fn,
-        num_workers=4,
+        num_workers=0,
     )

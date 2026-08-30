@@ -26,7 +26,6 @@ from pathlib import Path
 
 import lightning as pl
 import torch
-import torch.utils.data
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
 
@@ -356,6 +355,10 @@ def train(resume: bool = False) -> None:
         accelerator="cpu",
         devices='auto',
         logger=logger,
+        # SaveLast already writes runs/last.ckpt (full state) after every eval
+        # for --resume; Lightning's default ModelCheckpoint would serialize a
+        # second full checkpoint every epoch for nothing.
+        enable_checkpointing=False,
         callbacks=[export_best, SaveLast()],
         num_sanity_val_steps=0,
         log_every_n_steps=10,
