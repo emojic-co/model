@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useOnnx } from './hooks/useOnnx'
 import { argmax, normalize, softmax } from './model'
 import { Card } from './components/Card'
+import { EmojiList } from './components/EmojiList'
 
 const MIN_CHARS = 3
 const DEBOUNCE_MS = 100
@@ -64,6 +65,11 @@ export function App() {
     <main>
       <h1>emojic</h1>
       <div className="stage">
+        <EmojiList
+          emojiScores={emojiScores}
+          emojis={meta?.emojis ?? []}
+          onPick={(e) => setOverride((o) => ({ ...o, emoji: e }))}
+        />
         <div className="card-col">
           <input
             className="input"
