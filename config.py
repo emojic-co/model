@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 MAX_TEXT_LEN = 42
 
@@ -11,7 +11,6 @@ CONV = [
 POOL_1D_SIZE = 2
 DROPOUT = 0.5
 
-EMOJI_EMBED_SIZE = 32
 INFONCE_TEMP = 0.06
 
 LR = 0.01
@@ -25,7 +24,7 @@ EARLY_STOP_PATIENCE = 12
 
 
 CONFIG_NAME = ' | '.join([
-    f'TIME: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
+    f'TIME: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
     f'MODEL: {CHAR_EMBED_SIZE} {CONV} d{DROPOUT}',
     f'TRAIN: lr {LR} bs {BATCH_SIZE} gc {GRAD_CLIP} tmp {INFONCE_TEMP}',
 ])

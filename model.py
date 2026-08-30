@@ -1,4 +1,5 @@
 from itertools import chain
+from math import ceil, log2
 
 import torch
 from torch import nn
@@ -8,9 +9,10 @@ from config import (
     CHAR_EMBED_SIZE,
     CONV,
     DROPOUT,
-    EMOJI_EMBED_SIZE,
 )
 from data import EMOJIS, FEELING, VOCAB_SIZE
+
+EMOJI_EMBED_SIZE = ceil(8 * log2(len(EMOJIS)))
 
 
 def layer(*, kernel, in_channels, out_channels):

@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader, Dataset
 
 from config import BATCH_SIZE, MAX_TEXT_LEN
 
-DATA_PATH = "data.jsonl"
+TRAIN_PATH = "train.jsonl"
 EVAL_PATH = "eval.jsonl"
 
 PAD = "·"
@@ -19,6 +19,7 @@ with open('labels.json', encoding='utf-8') as f:
 
 FEELING = LABELS["feelings"]
 EMOJIS = LABELS["emojis"]
+
 
 char2idx = {char: i for i, char in enumerate(CHARS)}
 feeling2idx = {f: i for i, f in enumerate(FEELING)}
@@ -37,9 +38,23 @@ def text_to_tensor(text: str) -> torch.Tensor:
         dtype=torch.long)
 
 
-def _load(path):
+def _read_jsonl(path):
+    rows, bad = [], 0
     with open(path, encoding='utf-8') as f:
-        rows = [json.loads(line) for line in f if line.strip()]
+        for line in f:
+            if not line.strip():
+                continue
+            try:
+                rows.append(json.loads(line))
+            except json.JSONDecodeError:
+                bad += 1
+    if bad:
+        print(f"{path}: skipped {bad} malformed line(s)")
+    return rows
+
+
+def _load(path):
+    rows = _read_jsonl(path)
 
     out = []
     for d in rows:
@@ -63,7 +78,7 @@ def split():
     eval_data = [sample for _, sample in eval_pairs]
 
     train_data = [
-        sample for key, sample in _load(DATA_PATH) if key not in eval_keys
+        sample for key, sample in _load(TRAIN_PATH) if key not in eval_keys
     ]
 
     assert eval_data, f"{EVAL_PATH} is empty or missing"

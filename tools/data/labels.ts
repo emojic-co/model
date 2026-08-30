@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs"
-import { readFile, writeFile } from "node:fs/promises"
+import { writeFile } from "node:fs/promises"
 import { TOP_EMOJIS, TOP_FEELINGS } from "./config"
+import { readJsonl } from "./io.ts"
 
 const TRAIN = "./train.jsonl"
 const LABELS = "./labels.json"
@@ -17,9 +18,7 @@ if (import.meta.main) {
 
   const emojis = new Map<string, number>()
   const feelings = new Map<string, number>()
-  for (const line of (await readFile(TRAIN, "utf8")).split("\n")) {
-    if (!line.trim()) continue
-    const row = JSON.parse(line)
+  for (const row of await readJsonl<{ emoji: string; feeling: string }>(TRAIN)) {
     emojis.set(row.emoji, (emojis.get(row.emoji) ?? 0) + 1)
     feelings.set(row.feeling, (feelings.get(row.feeling) ?? 0) + 1)
   }

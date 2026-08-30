@@ -27,24 +27,27 @@ Text-length range: **4–48 code points** on the raw `text` (no normalization).
    `eval.jsonl` does not exist. Record how many rows were folded back — you
    report it at the end.
 
+   The combined corpus is built in `train.jsonl.tmp` and swapped in with a single
+   atomic `os.replace`, so a crash can never leave `train.jsonl` truncated or
+   half-appended. `eval.jsonl` is removed only after the swap succeeds.
+
    ```bash
    wc -l train.jsonl
    test -f eval.jsonl && python3 - <<'EOF' || echo "no eval.jsonl — nothing to fold back"
    import os
 
-   def ensure_trailing_newline(path):
-       if os.path.getsize(path) == 0:
-           return
-       with open(path, "rb+") as f:
-           f.seek(-1, os.SEEK_END)
-           if f.read(1) != b"\n":
-               f.write(b"\n")
-
    norm = lambda s: s if s.endswith("\n") else s + "\n"
    rows = [norm(l) for l in open("eval.jsonl", encoding="utf-8") if l.strip()]
-   ensure_trailing_newline("train.jsonl")
-   with open("train.jsonl", "a", encoding="utf-8") as out:
+
+   with open("train.jsonl", encoding="utf-8") as f:
+       train = f.read()
+   if train and not train.endswith("\n"):
+       train += "\n"
+
+   with open("train.jsonl.tmp", "w", encoding="utf-8") as out:
+       out.write(train)
        out.writelines(rows)
+   os.replace("train.jsonl.tmp", "train.jsonl")
    os.remove("eval.jsonl")
    print(f"folded {len(rows)} rows from eval.jsonl back into train.jsonl; removed eval.jsonl")
    EOF
@@ -101,21 +104,39 @@ Text-length range: **4–48 code points** on the raw `text` (no normalization).
    - **length** — `4 <= len(text) <= 48` counting code points on the raw
      (un-normalized) `text`.
 
-   Keep the row (its **exact original line**) only if all three hold. Do not
-   fix, re-word, or re-label anything. Collect the kept lines into
-   `/tmp/eval_kept.jsonl`, verbatim, one per line.
+   Every candidate goes to **exactly one** of two files, verbatim, one line
+   each: `/tmp/eval_kept.jsonl` if all three hold, `/tmp/eval_dropped.jsonl`
+   otherwise. Do not fix, re-word, or re-label anything. Judge every chunk —
+   none skipped.
 
-4. **Write the kept rows to a fresh `eval.jsonl`.**
+4. **Check the partition, then write a fresh `eval.jsonl`.** `kept ∪ dropped`
+   must equal the candidate set exactly — this is what proves no candidate was
+   silently missed or judged twice.
 
    ```bash
-   cp /tmp/eval_kept.jsonl eval.jsonl
-   wc -l eval.jsonl /tmp/eval_kept.jsonl
+   sort /tmp/eval_candidates.jsonl > /tmp/eval_cand_sorted.jsonl
+   cat /tmp/eval_kept.jsonl /tmp/eval_dropped.jsonl | sort > /tmp/eval_judged_sorted.jsonl
+   if cmp -s /tmp/eval_judged_sorted.jsonl /tmp/eval_cand_sorted.jsonl; then
+     echo "partition OK — every candidate judged exactly once"
+     cp /tmp/eval_kept.jsonl eval.jsonl
+     wc -l eval.jsonl /tmp/eval_kept.jsonl /tmp/eval_dropped.jsonl /tmp/eval_candidates.jsonl
+   else
+     echo "MISMATCH — kept+dropped != candidates; return to step 3, do NOT continue"
+   fi
    ```
 
-5. **Remove the kept rows from `train.jsonl` — count-aware, byte-exact.**
+   If the partition check fails, do not proceed — go back to step 3, find the
+   missing or duplicated candidate, and rebuild both files.
+
+5. **Remove the kept rows from `train.jsonl` — count-aware, byte-exact, atomic.**
+   `train.jsonl` is copied to `train.jsonl.bak` before the rewrite, the new
+   content is written to `train.jsonl.tmp`, and `os.replace` swaps it in as one
+   step — a crash leaves either the untouched original or the `.bak`, never a
+   truncated file.
 
    ```bash
    python3 - <<'EOF'
+   import os, shutil
    from collections import Counter
    norm = lambda s: s if s.endswith("\n") else s + "\n"
    remove = Counter(norm(l) for l in open("/tmp/eval_kept.jsonl", encoding="utf-8") if l.strip())
@@ -126,21 +147,29 @@ Text-length range: **4–48 code points** on the raw `text` (no normalization).
            removed += 1
            continue
        out.append(line)
-   open("train.jsonl", "w", encoding="utf-8").writelines(out)
+   shutil.copyfile("train.jsonl", "train.jsonl.bak")
+   with open("train.jsonl.tmp", "w", encoding="utf-8") as f:
+       f.writelines(out)
+   os.replace("train.jsonl.tmp", "train.jsonl")
    missing = sum(remove.values())
-   print(f"removed {removed} from train.jsonl; unmatched kept lines: {missing}")
+   print(f"removed {removed} from train.jsonl; unmatched kept lines: {missing}; backup at train.jsonl.bak")
    EOF
    ```
 
    `unmatched kept lines` must be `0`. If not, a kept line was altered in
-   step 3 — fix it to the original and re-run this step.
+   step 3 — restore from `train.jsonl.bak`, fix the line to its original, and
+   re-run this step.
 
 6. **Verify and report.**
 
    - `eval.jsonl` has exactly `wc -l /tmp/eval_kept.jsonl` rows (it was created
      fresh in step 4).
+   - The step 4 partition check printed `partition OK` — `kept + dropped` equals
+     the candidate count, so no candidate was skipped.
    - `train.jsonl`'s net change equals `(rows folded back in step 1) − (rows
      removed in step 5)`.
+   - No `train.jsonl.tmp` is left behind; `train.jsonl.bak` holds the pre-removal
+     corpus.
    - Every row in `eval.jsonl` has its `feeling` and `emoji` in `labels.json`
      (guaranteed by the step 2 filter — spot-check a few).
    - `tail -n 1 eval.jsonl | python3 -c "import json,sys; json.loads(sys.stdin.read())"`

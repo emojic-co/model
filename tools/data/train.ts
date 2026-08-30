@@ -1,10 +1,9 @@
-import { appendFile } from "node:fs/promises"
-
 import { generateText } from "ai"
 import cliProgress from "cli-progress"
 import PQueue from "p-queue"
 
 import { MODEL, annotate, annotateBatchCount } from "./annotate.ts"
+import { appendJsonl } from "./io.ts"
 
 const TRAIN = "./train.jsonl"
 
@@ -89,7 +88,7 @@ if (import.meta.main) {
       }),
     )
   }
-  if (lines.length) await appendFile(TRAIN, lines.join("\n") + "\n")
+  await appendJsonl(TRAIN, lines)
 
   console.log("\n--- summary ---")
   console.log(`generated           : ${texts.length}`)

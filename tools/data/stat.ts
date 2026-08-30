@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs"
-import { mkdir, readFile, writeFile } from "node:fs/promises"
+import { mkdir, writeFile } from "node:fs/promises"
 import { TOP_EMOJIS, TOP_FEELINGS } from "./config"
+import { readJsonl } from "./io.ts"
 
 const FILES = ["./train.jsonl", "./eval.jsonl"]
 const REPORT_DIR = "report/data-stat"
@@ -121,11 +122,7 @@ if (import.meta.main) {
       parsed.push({ path, rows: null })
       continue
     }
-    const rows = (await readFile(path, "utf8"))
-      .split("\n")
-      .filter((l) => l.trim())
-      .map((l) => JSON.parse(l) as Row)
-    parsed.push({ path, rows })
+    parsed.push({ path, rows: await readJsonl<Row>(path) })
   }
 
   doc.push(

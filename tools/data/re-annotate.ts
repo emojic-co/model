@@ -1,9 +1,10 @@
 import { existsSync } from "node:fs"
-import { appendFile, readFile, writeFile } from "node:fs/promises"
+import { readFile } from "node:fs/promises"
 
 import cliProgress from "cli-progress"
 
 import { annotate, annotateBatchCount } from "./annotate.ts"
+import { appendJsonl, writeFileAtomic } from "./io.ts"
 
 const DATA = "./data.jsonl"
 const TRAIN = "./train.jsonl"
@@ -33,7 +34,24 @@ if (import.meta.main) {
   }
 
   const picked = sampleIndices(lines.length, SAMPLE_SIZE)
-  const texts = picked.map((i) => JSON.parse(lines[i]).text as string)
+  const source: number[] = []
+  const texts: string[] = []
+  let malformed = 0
+  for (const i of picked) {
+    let text: unknown
+    try {
+      text = JSON.parse(lines[i]).text
+    } catch {
+      malformed++
+      continue
+    }
+    if (typeof text !== "string" || !text) {
+      malformed++
+      continue
+    }
+    source.push(i)
+    texts.push(text)
+  }
   console.log(`re-annotating ${texts.length} rows from ${DATA}`)
 
   const annBar = new cliProgress.SingleBar(
@@ -49,7 +67,7 @@ if (import.meta.main) {
 
   const appended: string[] = []
   const consumed = new Set<number>()
-  for (let p = 0; p < picked.length; p++) {
+  for (let p = 0; p < texts.length; p++) {
     const label = labels.get(p)
     if (!label) continue
     appended.push(
@@ -59,16 +77,17 @@ if (import.meta.main) {
         emoji: label.emoji,
       }),
     )
-    consumed.add(picked[p])
+    consumed.add(source[p])
   }
 
-  if (appended.length) await appendFile(TRAIN, appended.join("\n") + "\n")
+  await appendJsonl(TRAIN, appended)
 
   const kept = lines.filter((_, i) => !consumed.has(i))
-  await writeFile(DATA, kept.length ? kept.join("\n") + "\n" : "")
+  await writeFileAtomic(DATA, kept.length ? kept.join("\n") + "\n" : "", true)
 
   console.log("\n--- summary ---")
-  console.log(`sampled              : ${texts.length}`)
+  console.log(`sampled              : ${picked.length}`)
+  console.log(`malformed (skipped)  : ${malformed}`)
   console.log(`re-annotated -> train: ${appended.length}`)
   console.log(`left in data.jsonl   : ${kept.length} (was ${lines.length})`)
   process.exit(0)
