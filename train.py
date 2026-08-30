@@ -254,17 +254,10 @@ class LitEmojic(pl.LightningModule):
 
 
 class ExportBest(pl.Callback):
-    """Save model.pt + refresh docs/ whenever acc/f/val improves (max).
+    """Save model.pt + refresh docs/ whenever acc/f/val improves (max)."""
 
-    ``export_web_too`` gates only the ``docs/`` refresh (ONNX + meta/config),
-    which is a post-training step and pulls in the onnx / onnxscript deps.
-    ``model.pt`` is always written on a new best, so a Modal run that passes
-    ``export_web_too=False`` still produces the trained checkpoint to bring home.
-    """
-
-    def __init__(self, export_web_too: bool = True) -> None:
+    def __init__(self) -> None:
         self.best_acc = 0.0
-        self.export_web_too = export_web_too
 
     def state_dict(self) -> dict:
         # Persisted into the checkpoint so best_acc survives --resume; without
@@ -283,8 +276,7 @@ class ExportBest(pl.Callback):
         if acc > self.best_acc:
             self.best_acc = acc
             torch.save(pl_module.model.state_dict(), MODEL_PT)
-            if self.export_web_too:
-                export_web(pl_module.model)
+            export_web(pl_module.model)
 
 
 class SaveLast(pl.Callback):
@@ -301,32 +293,6 @@ class SaveLast(pl.Callback):
         # the full optimizer / callback / RNG / loop state is written for
         # --resume, and Lightning skips its "`weights_only` was not set" log.info.
         trainer.save_checkpoint(LAST_CKPT, weights_only=False)
-
-
-class EpochLog(pl.Callback):
-    """One plain log line per training epoch and per validation.
-
-    Readable when stdout is piped (``modal run``, CI); the Rich progress bar
-    renders as carriage-return spam there. Added only on ``--no-post`` runs --
-    local runs keep the progress bar.
-    """
-
-    @staticmethod
-    def _fmt(metrics: dict, *keys: str) -> str:
-        return "  ".join(f"{k}={float(metrics[k]):.4f}" for k in keys if k in metrics)
-
-    def on_train_epoch_end(self, trainer: pl.Trainer, pl_module: "LitEmojic") -> None:
-        line = self._fmt(
-            trainer.callback_metrics, "loss/f/train", "acc/f/train", "acc5/e/train"
-        )
-        print(f"epoch {trainer.current_epoch + 1}/{trainer.max_epochs}  {line}", flush=True)
-
-    def on_validation_end(self, trainer: pl.Trainer, pl_module: "LitEmojic") -> None:
-        line = self._fmt(
-            trainer.callback_metrics, "loss/f/val", "acc/f/val", "acc5/e/val"
-        )
-        if line:
-            print(f"  val @ epoch {trainer.current_epoch + 1}  {line}", flush=True)
 
 
 def param_table(model: nn.Module) -> str:
@@ -357,21 +323,7 @@ def param_table(model: nn.Module) -> str:
     return "\n".join(out)
 
 
-def post_only() -> None:
-    """Local finish step: regenerate docs/ + report/model/ from model.pt.
-
-    No training. Used after a Modal run (which produces only model.pt +
-    TensorBoard logs) so the ONNX/web export and the behavioral report always
-    run on the local machine.
-    """
-    from test_model import load_model
-    from test_model import run as run_tests
-
-    export_web(load_model())
-    run_tests()
-
-
-def train(resume: bool = False, post: bool = True) -> None:
+def train(resume: bool = False) -> None:
     pl.seed_everything(0, workers=True)
 
     train_ds, eval_ds = data_sets()
@@ -379,9 +331,7 @@ def train(resume: bool = False, post: bool = True) -> None:
     eval_loader = eval_data_loader(eval_ds)
 
     lit = LitEmojic()
-    # post=False (Modal): save model.pt on best, but skip the docs/ export and
-    # the behavioral report -- both run locally afterwards via post_only().
-    export_best = ExportBest(export_web_too=post)
+    export_best = ExportBest()
     # SaveLast overwrites runs/last.ckpt (the only checkpoint --resume reads)
     # every EVAL_EPOCHS, unconditionally; ExportBest writes the shipped
     # model.pt / docs/ artifacts only on a new best acc/f/val.
@@ -403,14 +353,10 @@ def train(resume: bool = False, post: bool = True) -> None:
         # config guarantees EPOCHS % EVAL_EPOCHS == 0, so the last epoch validates.
         check_val_every_n_epoch=EVAL_EPOCHS,
         gradient_clip_val=GRAD_CLIP,
-        # "auto" -> CPU locally (CPU-only torch wheel), the GPU on Modal.
-        accelerator="auto",
+        accelerator="cpu",
         devices='auto',
         logger=logger,
-        # post=False (Modal): swap the Rich progress bar for plain per-epoch
-        # log lines, which survive `modal run`'s piped stdout.
-        callbacks=[export_best, SaveLast(), *([] if post else [EpochLog()])],
-        enable_progress_bar=post,
+        callbacks=[export_best, SaveLast()],
         num_sanity_val_steps=0,
         log_every_n_steps=10,
     )
@@ -432,9 +378,6 @@ def train(resume: bool = False, post: bool = True) -> None:
         f"{MODEL_PT} and docs/ refreshed"
     )
 
-    if not post:
-        return
-
     # Behavioral test suite + Markdown report (report/model/<MM-DD-HH:MM>.md).
     # Runs against the saved best checkpoint (model.pt), i.e. what ships.
     from test_model import run as run_tests
@@ -451,21 +394,4 @@ if __name__ == "__main__":
         action="store_true",
         help=f"resume training from {LAST_CKPT} (optimizer / epoch / RNG state)",
     )
-    mode = parser.add_mutually_exclusive_group()
-    mode.add_argument(
-        "--no-post",
-        action="store_true",
-        help="train only: save model.pt on best, skip the docs/ export and the "
-        "behavioral report (they run locally via --post-only). Used on Modal.",
-    )
-    mode.add_argument(
-        "--post-only",
-        action="store_true",
-        help="skip training: regenerate docs/ + report/model/ from the existing "
-        "model.pt. Run locally after a Modal training run.",
-    )
-    args = parser.parse_args()
-    if args.post_only:
-        post_only()
-    else:
-        train(resume=args.resume, post=not args.no_post)
+    train(resume=parser.parse_args().resume)
