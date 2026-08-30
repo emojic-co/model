@@ -3,33 +3,28 @@ from torch import nn
 from torch.nn.functional import normalize
 
 from config import (
+    CHANNELS,
     CHAR_EMBED_SIZE,
     EMOJI_EMBED_SIZE,
-    LAYERS,
-    OUT_CHANNELS,
 )
 from data import EMOJIS, FEELING, VOCAB_SIZE
 
 
-class Layer(nn.Module):
-    def __init__(self, in_channels, layer):
-        super().__init__()
-        self.branches = nn.ModuleList(
-            nn.Sequential(
-                nn.Conv1d(
-                    in_channels=in_channels,
-                    out_channels=out_channels,
-                    kernel_size=kernel_size,
-                    bias=False,
-                ),
-                nn.BatchNorm1d(out_channels),
-                nn.LeakyReLU(negative_slope=0.1),
-            )
-            for kernel_size, out_channels in layer
-        )
+class Layer(nn.Sequential):
+    """One bigram block: Conv1d(k=2) -> BatchNorm1d -> LeakyReLU -> MaxPool1d(2, 2).
 
-    def forward(self, x):
-        return torch.cat([branch(x) for branch in self.branches], dim=1)
+    The kernel-2 conv (stride 1, no padding) drops one time step; the stride-2
+    pool then halves what is left (floor division -- an odd length loses its
+    last step). Stacked, these blocks build a hierarchy of character n-grams.
+    """
+
+    def __init__(self, in_channels, out_channels):
+        super().__init__(
+            nn.Conv1d(in_channels, out_channels, kernel_size=2, bias=False),
+            nn.BatchNorm1d(out_channels),
+            nn.LeakyReLU(negative_slope=0.1),
+            nn.MaxPool1d(kernel_size=2, stride=2),
+        )
 
 
 class Model(nn.Module):
@@ -41,22 +36,19 @@ class Model(nn.Module):
         # nothing downstream masks the padded tail.
         self.char_embed = nn.Embedding(VOCAB_SIZE, CHAR_EMBED_SIZE)
 
-        # Stack the config.MODEL layers, threading each layer's concatenated
-        # channel count into the next. "same" padding keeps the time axis at
-        # MAX_TEXT_LEN the whole way through -- there is no pooling between
-        # layers; the only length reduction is the global max over time below.
-        layers = [
-            Layer(CHAR_EMBED_SIZE, LAYERS[0]),
-            *[
-                Layer(channels, layer)
-                for channels, layer in zip(OUT_CHANNELS, LAYERS[1:], strict=False)
-            ]
-        ]
-        self.conv = nn.Sequential(*layers)
+        # Stack the config.CHANNELS bigram blocks, threading each block's output
+        # channel count into the next. Every block halves the time axis (see
+        # Layer), so after N blocks T is roughly MAX_TEXT_LEN >> N; the global
+        # max over time in forward then collapses whatever remains to one vector
+        # per sequence.
+        in_channels = [CHAR_EMBED_SIZE, *CHANNELS[:-1]]
+        self.conv = nn.Sequential(
+            *(Layer(i, o) for i, o in zip(in_channels, CHANNELS, strict=True))
+        )
 
-        self.feeling = nn.Linear(OUT_CHANNELS[-1], len(FEELING))
+        self.feeling = nn.Linear(CHANNELS[-1], len(FEELING))
 
-        self.emoji = nn.Linear(OUT_CHANNELS[-1], EMOJI_EMBED_SIZE)
+        self.emoji = nn.Linear(CHANNELS[-1], EMOJI_EMBED_SIZE)
         self.emoji_embed = nn.Embedding(len(EMOJIS), EMOJI_EMBED_SIZE)
 
     def forward(self, x):
