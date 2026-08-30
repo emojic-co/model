@@ -1,3 +1,94 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useOnnx } from './hooks/useOnnx'
+import { argmax, normalize, softmax } from './model'
+
+const MIN_CHARS = 3
+const DEBOUNCE_MS = 100
+
+function formatDate(iso) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime())
+    ? iso
+    : d.toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZoneName: 'short',
+      })
+}
+
 export function App() {
-  return <main><h1>emojic</h1></main>
+  const { meta, config, palette, ready, predict } = useOnnx()
+  const [text, setText] = useState('')
+  const [scores, setScores] = useState(null)
+  const [override, setOverride] = useState({ emoji: null, feeling: null })
+  const seq = useRef(0)
+
+  const char2idx = useMemo(
+    () => (meta ? new Map([...meta.chars].map((c, i) => [c, i])) : null),
+    [meta],
+  )
+
+  useEffect(() => {
+    if (!ready || !char2idx) return
+    if (normalize(text, char2idx).length < MIN_CHARS) {
+      seq.current++
+      setScores(null)
+      setOverride({ emoji: null, feeling: null })
+      return
+    }
+    const mine = ++seq.current
+    const timer = setTimeout(async () => {
+      const logits = await predict(text)
+      if (mine !== seq.current) return
+      setScores(logits)
+      setOverride({ emoji: null, feeling: null })
+    }, DEBOUNCE_MS)
+    return () => clearTimeout(timer)
+  }, [text, ready, char2idx, predict])
+
+  const emojiScores = scores && softmax(scores.emoji)
+  const feelingScores = scores && softmax(scores.feeling)
+  const predictedEmoji = scores ? meta.emojis[argmax(scores.emoji)] : null
+  const predictedFeeling = scores ? meta.feelings[argmax(scores.feeling)] : null
+  const shownEmoji = override.emoji ?? predictedEmoji
+  const shownFeeling = override.feeling ?? predictedFeeling
+
+  const maxLen = config?.max_text_len ?? 0
+
+  return (
+    <main>
+      <h1>emojic</h1>
+      <div className="stage">
+        <div className="card-col">
+          <input
+            className="input"
+            type="text"
+            autoComplete="off"
+            autoFocus
+            maxLength={maxLen || undefined}
+            placeholder="type at least 3 characters…"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+          <div className={'counter' + (maxLen && text.length >= maxLen ? ' full' : '')}>
+            {text.length}
+            <span>/{maxLen}</span>
+          </div>
+          <div className="card" data-feeling={shownFeeling || undefined}>
+            <span className="card-emoji">{shownEmoji ?? '🙂'}</span>
+            <p className="card-text">{text}</p>
+            <span className="card-feeling-idle">{shownFeeling ?? '—'}</span>
+          </div>
+        </div>
+      </div>
+      <footer className="footer">
+        model updated <span>{formatDate(meta?.exported_at)}</span>
+      </footer>
+      {feelingScores ? null : null}
+    </main>
+  )
 }
