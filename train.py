@@ -254,10 +254,17 @@ class LitEmojic(pl.LightningModule):
 
 
 class ExportBest(pl.Callback):
-    """Save model.pt + refresh docs/ whenever acc/f/val improves (max)."""
+    """Save model.pt + refresh docs/ whenever acc/f/val improves (max).
 
-    def __init__(self) -> None:
+    ``export_web_too`` gates only the ``docs/`` refresh (ONNX + meta/config),
+    which is a post-training step and pulls in the onnx / onnxscript deps.
+    ``model.pt`` is always written on a new best, so a Modal run that passes
+    ``export_web_too=False`` still produces the trained checkpoint to bring home.
+    """
+
+    def __init__(self, export_web_too: bool = True) -> None:
         self.best_acc = 0.0
+        self.export_web_too = export_web_too
 
     def state_dict(self) -> dict:
         # Persisted into the checkpoint so best_acc survives --resume; without
@@ -276,7 +283,8 @@ class ExportBest(pl.Callback):
         if acc > self.best_acc:
             self.best_acc = acc
             torch.save(pl_module.model.state_dict(), MODEL_PT)
-            export_web(pl_module.model)
+            if self.export_web_too:
+                export_web(pl_module.model)
 
 
 class SaveLast(pl.Callback):
@@ -323,7 +331,21 @@ def param_table(model: nn.Module) -> str:
     return "\n".join(out)
 
 
-def train(resume: bool = False) -> None:
+def post_only() -> None:
+    """Local finish step: regenerate docs/ + report/model/ from model.pt.
+
+    No training. Used after a Modal run (which produces only model.pt +
+    TensorBoard logs) so the ONNX/web export and the behavioral report always
+    run on the local machine.
+    """
+    from test_model import load_model
+    from test_model import run as run_tests
+
+    export_web(load_model())
+    run_tests()
+
+
+def train(resume: bool = False, post: bool = True) -> None:
     pl.seed_everything(0, workers=True)
 
     train_ds, eval_ds = data_sets()
@@ -331,7 +353,9 @@ def train(resume: bool = False) -> None:
     eval_loader = eval_data_loader(eval_ds)
 
     lit = LitEmojic()
-    export_best = ExportBest()
+    # post=False (Modal): save model.pt on best, but skip the docs/ export and
+    # the behavioral report -- both run locally afterwards via post_only().
+    export_best = ExportBest(export_web_too=post)
     # SaveLast overwrites runs/last.ckpt (the only checkpoint --resume reads)
     # every EVAL_EPOCHS, unconditionally; ExportBest writes the shipped
     # model.pt / docs/ artifacts only on a new best acc/f/val.
@@ -353,7 +377,8 @@ def train(resume: bool = False) -> None:
         # config guarantees EPOCHS % EVAL_EPOCHS == 0, so the last epoch validates.
         check_val_every_n_epoch=EVAL_EPOCHS,
         gradient_clip_val=GRAD_CLIP,
-        accelerator="cpu",
+        # "auto" -> CPU locally (CPU-only torch wheel), the GPU on Modal.
+        accelerator="auto",
         devices='auto',
         logger=logger,
         callbacks=[export_best, SaveLast()],
@@ -378,6 +403,9 @@ def train(resume: bool = False) -> None:
         f"{MODEL_PT} and docs/ refreshed"
     )
 
+    if not post:
+        return
+
     # Behavioral test suite + Markdown report (report/model/<MM-DD-HH:MM>.md).
     # Runs against the saved best checkpoint (model.pt), i.e. what ships.
     from test_model import run as run_tests
@@ -394,4 +422,21 @@ if __name__ == "__main__":
         action="store_true",
         help=f"resume training from {LAST_CKPT} (optimizer / epoch / RNG state)",
     )
-    train(resume=parser.parse_args().resume)
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
+        "--no-post",
+        action="store_true",
+        help="train only: save model.pt on best, skip the docs/ export and the "
+        "behavioral report (they run locally via --post-only). Used on Modal.",
+    )
+    mode.add_argument(
+        "--post-only",
+        action="store_true",
+        help="skip training: regenerate docs/ + report/model/ from the existing "
+        "model.pt. Run locally after a Modal training run.",
+    )
+    args = parser.parse_args()
+    if args.post_only:
+        post_only()
+    else:
+        train(resume=args.resume, post=not args.no_post)
