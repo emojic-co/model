@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useOnnx } from './hooks/useOnnx'
 import { argmax, normalize, softmax } from './model'
+import { Card } from './components/Card'
 
 const MIN_CHARS = 3
 const DEBOUNCE_MS = 100
@@ -78,11 +79,15 @@ export function App() {
             {text.length}
             <span>/{maxLen}</span>
           </div>
-          <div className="card" data-feeling={shownFeeling || undefined}>
-            <span className="card-emoji">{shownEmoji ?? '🙂'}</span>
-            <p className="card-text">{text}</p>
-            <span className="card-feeling-idle">{shownFeeling ?? '—'}</span>
-          </div>
+          <Card
+            text={text}
+            emoji={shownEmoji ?? '🙂'}
+            feeling={shownFeeling}
+            feelings={meta?.feelings ?? []}
+            palette={palette}
+            onPickFeeling={(f) => setOverride((o) => ({ ...o, feeling: f }))}
+            onCopy={() => {}}
+          />
         </div>
       </div>
       <footer className="footer">
