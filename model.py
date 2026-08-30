@@ -5,23 +5,14 @@ from torch.nn.functional import normalize
 from config import (
     CHAR_EMBED_SIZE,
     EMOJI_EMBED_SIZE,
-    MODEL,
+    LAYERS,
+    OUT_CHANNELS,
 )
 from data import EMOJIS, FEELING, VOCAB_SIZE
 
 
-class InceptionLayer(nn.Module):
-    """One ``config.MODEL`` layer: parallel Conv1d branches, outputs concatenated.
-
-    Each ``(kernel_size, out_channels)`` pair in the layer spec becomes an
-    independent branch of Conv1d -> BatchNorm1d -> LeakyReLU. Every branch uses
-    ``padding="same"`` (stride 1) so, whatever its kernel size, it returns the
-    same time length as its input -- that is what lets the branch outputs be
-    concatenated along the channel axis. The layer's output channel count is the
-    sum of the branches' ``out_channels``.
-    """
-
-    def __init__(self, in_channels, branches):
+class Layer(nn.Module):
+    def __init__(self, in_channels, layer):
         super().__init__()
         self.branches = nn.ModuleList(
             nn.Sequential(
@@ -35,9 +26,8 @@ class InceptionLayer(nn.Module):
                 nn.BatchNorm1d(out_channels),
                 nn.LeakyReLU(negative_slope=0.1),
             )
-            for kernel_size, out_channels in branches
+            for kernel_size, out_channels in layer
         )
-        self.out_channels = sum(out_channels for _, out_channels in branches)
 
     def forward(self, x):
         return torch.cat([branch(x) for branch in self.branches], dim=1)
@@ -56,17 +46,18 @@ class Model(nn.Module):
         # channel count into the next. "same" padding keeps the time axis at
         # MAX_TEXT_LEN the whole way through -- there is no pooling between
         # layers; the only length reduction is the global max over time below.
-        channels = CHAR_EMBED_SIZE
-        layers = []
-        for branches in MODEL:
-            layer = InceptionLayer(channels, branches)
-            layers.append(layer)
-            channels = layer.out_channels
+        layers = [
+            Layer(CHAR_EMBED_SIZE, LAYERS[0]),
+            *[
+                Layer(channels, layer)
+                for channels, layer in zip(OUT_CHANNELS, LAYERS[1:], strict=False)
+            ]
+        ]
         self.conv = nn.Sequential(*layers)
 
-        self.feeling = nn.Linear(channels, len(FEELING))
+        self.feeling = nn.Linear(OUT_CHANNELS[-1], len(FEELING))
 
-        self.emoji = nn.Linear(channels, EMOJI_EMBED_SIZE)
+        self.emoji = nn.Linear(OUT_CHANNELS[-1], EMOJI_EMBED_SIZE)
         self.emoji_embed = nn.Embedding(len(EMOJIS), EMOJI_EMBED_SIZE)
 
     def forward(self, x):

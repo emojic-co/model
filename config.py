@@ -10,11 +10,16 @@ CHAR_EMBED_SIZE = 16
 
 # Model configuration:
 # Each layer runs multiple kernels in parallel, then concatenates the outputs along the channel axis.  # noqa: E501
-MODEL = [
+LAYERS = [
     # Layer 0: (kernel size, channels)
     [(2, 64), (3, 128), (4, 64)],
     # Layer 1: (kernel size, channels)
-    # [(2, 256)],
+    [(2, 256)],
+]
+
+OUT_CHANNELS = [
+    sum(channels for _, channels in layer)
+    for layer in LAYERS
 ]
 
 EMOJI_EMBED_SIZE = 20
@@ -34,6 +39,6 @@ EVAL_EPOCHS = 2
 
 CONFIG_NAME = ' | '.join([
     f'TIME: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
-    f'MODEL: {CHAR_EMBED_SIZE} {MODEL}',
+    f'MODEL: {CHAR_EMBED_SIZE} {LAYERS}',
     f'TRAIN: lr {LR} bs {BATCH_SIZE} gc {GRAD_CLIP}',
 ])
