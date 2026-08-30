@@ -7,6 +7,8 @@
 // fetched alongside them.
 
 const input = document.getElementById("input");
+const counterEl = document.getElementById("counter");
+const counterMaxEl = document.getElementById("counter-max");
 const card = document.getElementById("card");
 const emojiEl = document.getElementById("emoji");
 const typedEl = document.getElementById("typed");
@@ -76,6 +78,9 @@ function encode(text) {
 async function update() {
   const text = input.value;
   typedEl.textContent = text;
+  // input.maxLength caps text.length (UTF-16 units), so count the same way.
+  counterEl.firstChild.textContent = String(text.length);
+  counterEl.classList.toggle("full", text.length >= input.maxLength);
   if (!session) return;
 
   const mine = ++seq;
@@ -280,6 +285,7 @@ function buildFeelingRow() {
   ]);
   CHAR2IDX = new Map([...META.chars].map((c, i) => [c, i]));
   input.maxLength = CONFIG.max_text_len;
+  counterMaxEl.textContent = `/${CONFIG.max_text_len}`;
   if (META.exported_at) {
     // meta.json stores the export instant as ISO 8601 UTC; show it in the
     // viewer's local time zone. Fall back to the raw string if unparseable.
