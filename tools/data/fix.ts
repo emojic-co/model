@@ -1,26 +1,3 @@
-/**
- * Re-annotate `data.jsonl` for `emojic`.
- *
- * The corpus was built by `gen_data.ts`, which fixes a *random* (emoji, feeling)
- * pair and asks the model to write matching text -- so the emoji labels are weak
- * and often unrelated to the text. This script keeps the texts, throws away the
- * labels, and asks a model to *annotate* each text:
- *
- *   - feeling: exactly one from labels.json (a small closed set)
- *   - emoji:   the single best-fit emoji, chosen freely (no list given)
- *
- * It then rebuilds labels.json from the annotations, keeping only labels with at
- * least MIN_COUNT examples, drops corpus rows that used a below-threshold label,
- * and writes fresh data.jsonl / labels.json. Originals are moved aside to *.bak
- * (gitignored).
- *
- * Run (from the repo root):
- *   bun run tools/data/fix.ts --limit=30   # dry run: annotate 30 texts -> data.jsonl.dry
- *   bun run tools/data/fix.ts              # full run (moves files, rewrites everything)
- *   bun run tools/data/fix.ts              # re-run after a crash resumes from data.jsonl.tmp
- *
- * Requires AI_GATEWAY_API_KEY (Bun auto-loads it from .env).
- */
 import { existsSync } from "node:fs"
 import { appendFile, readFile, rename, writeFile } from "node:fs/promises"
 
@@ -40,9 +17,6 @@ const DATA_DRY = "./data.jsonl.dry"
 const LABELS = "./labels.json"
 const LABELS_BAK = "./labels.json.bak"
 
-// Mirror of main.py's `normalize` (CHARS / normalize). The dedup key is the
-// normalized text, so rows that differ only by punctuation the model never sees
-// (curly quotes, en dashes, ...) collapse to one.
 const VOCAB = new Set("abcdefghijklmnopqrstuvwxyz!?:()@$%&* ")
 function normalize(text: string): string {
   const t = text.replace(/\s+/g, " ").trim().toLowerCase()
@@ -89,11 +63,6 @@ const Annotation = z.object({
   emoji: z.string(),
 })
 
-/**
- * Annotate one batch. Returns id -> {feeling, emoji} for every id the model
- * answered. Retries once on a shape/length mismatch or an API error; whatever is
- * still missing after that is logged and left out.
- */
 async function annotateBatch(
   batch: { id: number; text: string }[],
   feelings: string[],
@@ -149,7 +118,6 @@ async function annotateBatch(
   return new Map()
 }
 
-/** Ordered label set: seed labels that survived first, then the rest by count. */
 function rebuildLabelList(
   counts: Map<string, number>,
   seed: string[],
@@ -194,14 +162,12 @@ if (import.meta.main) {
     )
   }
 
-  // --- feelings seed (labels.json may already be moved aside on resume) ---
   const seedPath = existsSync(LABELS) ? LABELS : LABELS_BAK
   const seed = z
     .object({ feelings: z.array(z.string()), emojis: z.array(z.string()) })
     .parse(JSON.parse(await readFile(seedPath, "utf8")))
   const feelings = seed.feelings
 
-  // --- unique input texts ---
   const inputPath = resuming || DRY ? (existsSync(DATA) ? DATA : DATA_BAK) : DATA
   const rawRows = await readJsonl(existsSync(inputPath) ? inputPath : DATA_BAK)
   const seenNorm = new Set<string>()
@@ -216,7 +182,6 @@ if (import.meta.main) {
     `${rawRows.length} rows -> ${uniqueTexts.length} unique normalized texts`,
   )
 
-  // ---------------------------------------------------------------- dry run
   if (DRY) {
     const sample = uniqueTexts.slice(0, limit)
     const out: Row[] = []
@@ -249,7 +214,6 @@ if (import.meta.main) {
     process.exit(0)
   }
 
-  // ---------------------------------------------------------------- full run
   if (!resuming) {
     await rename(DATA, DATA_BAK)
   }
@@ -257,7 +221,6 @@ if (import.meta.main) {
     await rename(LABELS, LABELS_BAK)
   }
 
-  // already-annotated texts (resume)
   const done = new Set<string>()
   if (existsSync(DATA_TMP)) {
     for (const r of await readJsonl(DATA_TMP)) done.add(normalize(r.text))
@@ -278,7 +241,6 @@ if (import.meta.main) {
   )
   bar.start(batches.length, 0)
 
-  // Serialize appends so concurrent workers don't interleave partial lines.
   let writeChain: Promise<void> = Promise.resolve()
   const append = (text: string) => {
     writeChain = writeChain.then(() => appendFile(DATA_TMP, text))
@@ -308,7 +270,6 @@ if (import.meta.main) {
 
   await rename(DATA_TMP, DATA)
 
-  // ------------------------------------------------ rebuild labels + filter
   const annotated = await readJsonl(DATA)
   const emojiList = rebuildLabelList(countBy(annotated, "emoji"), seed.emojis)
   const feelingList = rebuildLabelList(countBy(annotated, "feeling"), feelings)
@@ -328,7 +289,6 @@ if (import.meta.main) {
     filtered.map((r) => JSON.stringify(r)).join("\n") + "\n",
   )
 
-  // ------------------------------------------------------------- summary
   const dropEmoji = [...countBy(annotated, "emoji").entries()]
     .filter(([e]) => !keepEmoji.has(e))
     .sort((a, b) => b[1] - a[1])

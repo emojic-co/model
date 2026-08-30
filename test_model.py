@@ -1,23 +1,3 @@
-"""Behavioral test suite for the trained emojic model.
-
-Three batteries, all run against the committed ``model.pt``:
-
-1. Feelings -- feed each feeling's own name to the model and check the feeling
-   head predicts that feeling.
-2. Negations -- feed ``not <feeling>`` and check the feeling head does *not*
-   predict ``<feeling>``; where an opposite is expected (``NEGATION_EXPECTED``),
-   also check it predicts that opposite.
-3. Emojis -- feed each of 20 hand-picked cue words (one per emoji, chosen for a
-   plain-meaning association, not lifted from training text) and check the emoji
-   head's nearest embedding is the paired emoji. The report lists the top 5
-   emojis for every cue.
-
-Writes a Markdown report to ``report/model/<MM-DD-HH:MM>.md`` and prints a summary.
-``train.py`` calls :func:`run` at the end of every training run.
-
-Standalone: ``uv run test_model.py``
-"""
-
 from __future__ import annotations
 
 import datetime as dt
@@ -38,9 +18,6 @@ from model import Model
 MODEL_PT = Path("model.pt")
 REPORT_DIR = Path("report/model")
 
-# For "not <feeling>" prompts: the feeling we'd expect the model to fall back to.
-# Only the confident opposites are listed; a feeling left out is only checked for
-# *avoiding* its own negated label, not for landing on a specific alternative.
 NEGATION_EXPECTED: dict[str, str] = {
     "Happy": "Sad",
     "Sad": "Happy",
@@ -49,9 +26,6 @@ NEGATION_EXPECTED: dict[str, str] = {
     "Angry": "Calm",
 }
 
-# 20 (emoji, cue word) pairs for the emoji battery. Each word is a plain-meaning
-# association with the emoji, deliberately not copied from any training text. All
-# 20 emojis are in labels.json's emoji list.
 EMOJI_CUES: list[tuple[str, str]] = [
     ("🎉", "party"),
     ("😢", "crying"),
@@ -91,18 +65,12 @@ def _encode(text: str) -> torch.Tensor:
 
 @torch.no_grad()
 def predict(model: Model, text: str) -> dict:
-    """Return the top feeling for ``text``."""
     feeling_logits = model(_encode(text))[0]
     return {"feeling": FEELING[int(feeling_logits.argmax())]}
 
 
 @torch.no_grad()
 def predict_emojis(model: Model, text: str, k: int = 5) -> list[str]:
-    """Return the ``k`` nearest emojis for ``text``, closest first.
-
-    Uses the same L2 metric between the projected hidden state and the emoji
-    embeddings that the triplet loss trains and ``train.py``'s eval scores with.
-    """
     _, q, emoji_embed = model(_encode(text))
     dists = torch.cdist(q, emoji_embed)[0]
     order = dists.argsort()[:k]
@@ -257,14 +225,10 @@ def build_report(
 
 
 def run(model: Model | None = None) -> Path:
-    """Run all batteries, write the report, print a summary, return its path."""
     model = model or load_model()
     feeling_rows = test_feelings(model)
     negation_rows = test_negations(model)
-    # TEMP: emoji head disabled (model.forward returns q=emoji_embed=None), so
-    # the emoji battery is skipped. build_report handles an empty list.
     emoji_rows: list[dict] = []
-    # emoji_rows = test_emojis(model)
 
     report = build_report(feeling_rows, negation_rows, emoji_rows)
     REPORT_DIR.mkdir(parents=True, exist_ok=True)

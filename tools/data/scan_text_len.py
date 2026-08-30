@@ -1,10 +1,3 @@
-"""Scan data.jsonl for texts that exceed MAX_TEXT_LEN after normalize().
-
-Default: report counts. With --prune: drop those rows from data.jsonl in place.
-
-Run from anywhere: ``uv run tools/data/scan_text_len.py [--prune]``.
-"""
-
 import json
 import sys
 from pathlib import Path

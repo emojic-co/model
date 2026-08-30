@@ -38,15 +38,6 @@ def text_to_tensor(text: str) -> torch.Tensor:
 
 
 def _load(path):
-    """Parse a JSONL label file into ``(normalized_text, sample)`` pairs.
-
-    labels.json (see gen_labels.ts) is the closed vocabulary: a record is kept
-    only if its feeling and emoji are both in it and its normalized text fits
-    MAX_TEXT_LEN. ``sample`` is the ``(char_tensor, emoji_idx, feeling_idx)``
-    tuple the datasets yield; the normalized text is returned alongside it so
-    ``split`` can keep the eval holdout leak-free. Files are never modified --
-    filtering is purely a runtime concern.
-    """
     with open(path, encoding='utf-8') as f:
         rows = [json.loads(line) for line in f if line.strip()]
 
@@ -67,13 +58,6 @@ def _load(path):
 
 
 def split():
-    """Fixed split: eval.jsonl is the gold holdout, data.jsonl is train.
-
-    eval.jsonl is a curated, feeling-balanced, hand/model-verified set (see
-    gen_eval.ts). Any data.jsonl row whose normalized text also appears in
-    eval.jsonl is dropped from train, so the holdout stays leak-free as the
-    append-only data.jsonl grows. Neither file is written here.
-    """
     eval_pairs = _load(EVAL_PATH)
     eval_keys = {key for key, _ in eval_pairs}
     eval_data = [sample for _, sample in eval_pairs]
@@ -103,7 +87,6 @@ def data_sets():
 
 
 def collate_fn(batch):
-    """Right-pad every text to MAX_TEXT_LEN, matching the ONNX/browser path."""
     texts, emojis, feelings = zip(*batch, strict=False)
 
     padded_texts = torch.full(
@@ -124,9 +107,6 @@ def train_data_loader(ds: EmojiDataset):
         shuffle=True,
         drop_last=True,
         collate_fn=collate_fn,
-        # The dataset is fully materialized in RAM by _load (getitem is a list
-        # index), so worker processes only add fork/pickle/IPC overhead and
-        # contend with the model for CPU cores. In-process loading is faster.
         num_workers=0,
     )
 

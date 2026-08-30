@@ -58,9 +58,9 @@ class Model(nn.Module):
 
     def forward(self, x):
         out = self.char_embed(x).transpose(1, 2)
-        out = self.net(out)  # (B, channels, T)
+        out = self.net(out)
 
-        pooled = torch.max(out, dim=-1).values  # (B, channels)
+        pooled = torch.max(out, dim=-1).values
 
         return (
             self.feeling(self.feeling_dropout(pooled)),

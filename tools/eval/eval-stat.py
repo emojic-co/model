@@ -1,15 +1,3 @@
-"""Summarize eval.jsonl into a timestamped markdown report.
-
-Reads eval.jsonl (one ``{text, feeling, emoji}`` per line) and writes
-``report/eval/<MM-DD-HH:MM>.md`` with:
-
-  * feeling distribution (samples per feeling, in labels.json order)
-  * text-length distribution (raw len and normalize()d len histograms)
-  * emoji distribution (top 10 / bottom 10 by frequency)
-
-Run after every update to eval.jsonl. No args.
-"""
-
 import json
 import sys
 from collections import Counter
@@ -32,7 +20,6 @@ def read(path):
 
 
 def histogram(values, bucket=BUCKET):
-    """Return markdown lines: one bucket per row, bar scaled to the mode."""
     if not values:
         return ["_(no samples)_"]
     counts = Counter(v // bucket for v in values)
@@ -58,7 +45,6 @@ def build_report(rows):
     out = [f"# eval.jsonl stats — {ts}", ""]
     out += [f"**{len(rows)} samples** from `eval.jsonl`", ""]
 
-    # Feeling distribution
     fc = Counter(r["feeling"] for r in rows)
     out += ["## Feeling distribution", ""]
     out += ["| feeling | count | share |", "| --- | ---: | ---: |"]
@@ -67,7 +53,6 @@ def build_report(rows):
         out.append(f"| {f} | {fc[f]} | {fc[f] / len(rows):.1%} |")
     out.append("")
 
-    # Text length distribution
     raw = [len(r["text"]) for r in rows]
     norm = [len(normalize(r["text"])) for r in rows]
     out += ["## Text length distribution", ""]
@@ -77,7 +62,6 @@ def build_report(rows):
     out += histogram(norm)
     out.append("")
 
-    # Emoji distribution
     ec = Counter(r["emoji"] for r in rows)
     ranked = ec.most_common()
     out += ["## Emoji distribution", "", f"{len(ec)} distinct emojis.", ""]

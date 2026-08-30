@@ -1,29 +1,3 @@
-/**
- * Gold evaluation set builder.
- *
- *   bun run tools/eval/gen_eval.ts [--force]   (from the repo root)
- *
- * Writes eval.jsonl: a fixed, balanced, feeling-perfect holdout, kept apart from
- * the append-only data.jsonl training corpus. data.jsonl is never touched.
- *
- *   for each labels.json feeling:
- *     phase 1  generate a large over-supply of short WhatsApp-style texts that
- *              convey exactly that feeling                          (seeded)
- *     phase 2  verify each text COLD (seed feeling hidden):
- *                - 3 independent feeling annotations must ALL land on the seed
- *                - an adversarial check must find no second defensible feeling
- *              anything ambiguous or drifted is dropped
- *     repeat until the feeling's bucket is full (TARGETS below)
- *   phase 4  assign the best labels.json emoji to each surviving text, AFTER the
- *            text + feeling are locked (emoji never steers generation; noisy
- *            emoji labels are acceptable)
- *   phase 5  overwrite eval.jsonl with {text, feeling, emoji}, grouped by feeling
- *
- * Dedup (data.py's normalize key) is enforced against data.jsonl and within the
- * run, so eval.jsonl shares no normalized text with the training corpus.
- *
- * Requires AI_GATEWAY_API_KEY (Bun auto-loads it from .env).
- */
 import { existsSync } from "node:fs"
 import { readFile, writeFile } from "node:fs/promises"
 
@@ -37,15 +11,11 @@ const DATA = "./data.jsonl"
 const LABELS = "./labels.json"
 const EVAL = "./eval.jsonl"
 
-// 900 rows, balanced: the first 4 feelings in labels.json order get 113, the
-// last 4 get 112.
 const EVAL_SIZE = 900
 
-const MAX_RAW_LEN = 50 // generation cap (chars, pre-normalize)
-const MAX_TEXT_LEN = 42 // mirror of config.py; a longer normalized form is dropped
+const MAX_RAW_LEN = 50
+const MAX_TEXT_LEN = 42
 
-// Per round, aim to generate this many raw candidates per still-missing row
-// (most are dropped by the cold verification below).
 const OVERGEN = 8
 const MAX_ROUNDS = 6
 
@@ -59,7 +29,6 @@ const VERIFY_CONCURRENCY = 20
 const EMOJI_BATCH_SIZE = 10
 const EMOJI_CONCURRENCY = 20
 
-// --- normalized dedup key: mirror of data.py's normalize() ------------------
 const VOCAB = new Set("abcdefghijklmnopqrstuvwxyz!?:()@$%&* ")
 function normalize(text: string): string {
   const t = text
@@ -70,8 +39,6 @@ function normalize(text: string): string {
   return [...t].filter((c) => VOCAB.has(c)).join("")
 }
 
-// Emotion-neutral speaker roles -- demographic / relationship only, so the
-// feeling comes entirely from the prompt, not from the voice.
 const VOICES = [
   "a teenager", "a college student", "a new parent", "a retiree",
   "a shift worker", "a freelancer", "someone in their 30s", "a grandparent",
@@ -81,9 +48,6 @@ const VOICES = [
   "a coworker", "a classmate", "a teammate", "a mentor", "a mentee",
 ]
 
-// Calibration for the cold feeling check. Counters a measured bias (see data.md,
-// 2026-08-29) toward treating flat, practical text as a strong feeling instead
-// of Neutral.
 const FEELING_GUIDANCE = [
   "Label the emotion a typical reader would actually feel from the words, not",
   "one that is merely plausible for the situation.",
@@ -100,8 +64,6 @@ const FEELING_GUIDANCE = [
   "- If two feelings fit, pick the milder; if none clearly fits, pick Neutral.",
 ].join("\n")
 
-// Phase-1 steer for how hard to lean on the seed feeling. Neutral is the one
-// target that is *meant* to be affect-free, so it gets the opposite instruction.
 function conveyInstruction(feeling: string, feelings: string[]): string[] {
   if (feeling === "Neutral") {
     return [
@@ -137,7 +99,6 @@ function pickVoice(): string {
   return VOICES[Math.floor(Math.random() * VOICES.length)]
 }
 
-// --- phase 1: feeling-guided text generation -------------------------------
 async function genBatch(
   voice: string,
   feeling: string,
@@ -165,7 +126,6 @@ async function genBatch(
     .filter((l) => l && !l.startsWith("```"))
 }
 
-// --- phase 2a: one cold feeling vote --------------------------------------
 const Vote = z.object({ id: z.number(), feeling: z.string() })
 
 async function voteBatch(
@@ -208,7 +168,6 @@ async function voteBatch(
   return byId
 }
 
-// --- phase 2b: adversarial "is a second feeling defensible?" check -------
 const Adv = z.object({
   id: z.number(),
   feeling: z.string(),
@@ -262,11 +221,6 @@ async function adversarialBatch(
   return byId
 }
 
-/**
- * Run the full cold verification over `cands` and return only those where all
- * VERIFY_VOTES independent votes AND the adversarial check agree on the seed
- * feeling, with the adversarial check reporting no second defensible feeling.
- */
 async function verify(
   cands: Candidate[],
   feelings: string[],
@@ -326,7 +280,6 @@ async function verify(
   return kept
 }
 
-// --- phase 4: emoji assignment (text + feeling already locked) ----------
 const EmojiPick = z.object({ id: z.number(), emoji: z.string() })
 
 async function emojiBatch(
@@ -386,14 +339,10 @@ if (import.meta.main) {
   const feelings = labels.feelings
   const palette = labels.emojis
 
-  // Per-feeling targets: distribute EVAL_SIZE as evenly as possible, the
-  // remainder going to the first feelings in labels.json order.
   const base = Math.floor(EVAL_SIZE / feelings.length)
   const rem = EVAL_SIZE % feelings.length
   const target = new Map(feelings.map((f, i) => [f, base + (i < rem ? 1 : 0)]))
 
-  // Normalized texts already in the training corpus -- eval.jsonl must share
-  // none of them.
   const inCorpus = new Set<string>()
   for (const l of (await readFile(DATA, "utf8")).split("\n")) {
     const line = l.trim()
@@ -407,7 +356,7 @@ if (import.meta.main) {
   )
 
   const accepted = new Map<string, Candidate[]>(feelings.map((f) => [f, []]))
-  const seen = new Set<string>() // normalized keys generated this run
+  const seen = new Set<string>()
 
   for (let round = 1; round <= MAX_ROUNDS; round++) {
     const deficit = feelings
@@ -420,7 +369,6 @@ if (import.meta.main) {
       deficit.map((d) => `${d.f}=${d.need}`).join(" "),
     )
 
-    // --- phase 1: generate an over-supply for each short feeling ---------
     const jobs: { feeling: string }[] = []
     for (const d of deficit) {
       const nBatches = Math.max(
@@ -458,7 +406,6 @@ if (import.meta.main) {
     genBar.stop()
     console.log(`  ${fresh.length} fresh candidates`)
 
-    // --- phase 2: cold verification -----------------------------------
     const kept = await verify(fresh, feelings)
     let added = 0
     for (const c of kept) {
@@ -482,7 +429,6 @@ if (import.meta.main) {
     )
   }
 
-  // --- phase 4: assign an emoji to every accepted row ------------------
   const rows = feelings.flatMap((f) =>
     accepted.get(f)!.slice(0, target.get(f)!).map((c) => ({ ...c })),
   )
@@ -520,7 +466,6 @@ if (import.meta.main) {
     return { text: r.text, feeling: r.feeling, emoji }
   })
 
-  // --- phase 5: write eval.jsonl -----------------------------------------
   await writeFile(EVAL, out.map((r) => JSON.stringify(r)).join("\n") + "\n")
 
   const perFeeling = new Map<string, number>(feelings.map((f) => [f, 0]))

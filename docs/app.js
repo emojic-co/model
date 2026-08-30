@@ -1,11 +1,3 @@
-// Standalone in-browser inference. The model (model.onnx) and everything the
-// Python side owns (char vocab, MAX_TEXT_LEN, emoji/feeling label sets) come
-// from meta.json, written by train.py's export_web -- nothing here is hardcoded
-// from the Python side. config.json (also from export_web) carries plain app
-// knobs, currently just max_text_len, which caps the input field. The feeling
-// color palette is separate data (palette.json, not touched by Python) and is
-// fetched alongside them.
-
 const input = document.getElementById("input");
 const counterEl = document.getElementById("counter");
 const counterMaxEl = document.getElementById("counter-max");
@@ -18,8 +10,6 @@ const toastEl = document.getElementById("toast");
 const dbgFeelingsEl = document.getElementById("dbg-feelings");
 const dbgEmojisEl = document.getElementById("dbg-emojis");
 
-// One Google-fonts webfont per feeling (loaded in index.html). The mood of the
-// typeface is meant to echo the mood of the feeling.
 const FEELING_FONTS = {
   Happy: '"Fredoka", system-ui, sans-serif',
   Calm: '"Quicksand", system-ui, sans-serif',
@@ -35,7 +25,6 @@ const argmax = (arr) => {
   return best;
 };
 
-// Numerically stable softmax over a logit array -> probabilities that sum to 1.
 const softmax = (arr) => {
   let m = -Infinity;
   for (const x of arr) if (x > m) m = x;
@@ -49,13 +38,8 @@ let PALETTE;
 let CHAR2IDX;
 let session;
 let seq = 0;
-// Latest prediction, mirrored so the "copy" button can redraw it on a canvas.
 let current = null;
 
-// Mirror data.py's normalize(): collapse whitespace, lowercase, clamp any run
-// of 3+ identical chars down to 2, then drop anything not in the model vocab.
-// Must stay byte-identical to data.py or browser inference sees a different
-// input distribution than training.
 function normalize(text) {
   const t = text
     .replace(/\s+/g, " ")
@@ -67,7 +51,6 @@ function normalize(text) {
   return out;
 }
 
-// Mirror main.py's encode(): char indices, right-padded to max_text_len.
 function encode(text) {
   const norm = normalize(text).slice(0, META.max_text_len);
   const ids = new Array(META.max_text_len).fill(META.pad_idx);
@@ -78,7 +61,6 @@ function encode(text) {
 async function update() {
   const text = input.value;
   typedEl.textContent = text;
-  // input.maxLength caps text.length (UTF-16 units), so count the same way.
   counterEl.firstChild.textContent = String(text.length);
   counterEl.classList.toggle("full", text.length >= input.maxLength);
   if (!session) return;
@@ -86,11 +68,8 @@ async function update() {
   const mine = ++seq;
   const tensor = new ort.Tensor("int64", encode(text), [1, META.max_text_len]);
   const out = await session.run({ input: tensor });
-  if (mine !== seq) return; // a newer keystroke already won
+  if (mine !== seq) return;
 
-  // emoji_logits are negative squared L2 distances from the model's projected
-  // hidden state to each emoji embedding (see train.py's ExportWrapper), so the
-  // argmax is still the predicted emoji and softmax still gives a usable score.
   const emoji = META.emojis[argmax(out.emoji_logits.data)];
   const feeling = META.feelings[argmax(out.feeling_logits.data)];
   const pal = PALETTE[feeling] ?? PALETTE.Neutral;
@@ -106,9 +85,6 @@ async function update() {
   current = { text, emoji, feeling, pal };
 }
 
-// Side panel: full feeling distribution + the 10 likeliest emoji, each as a
-// label / proportional bar / percentage row. Both distributions are softmaxed
-// from the raw logits the model returns.
 function renderDebug(feelingLogits, emojiLogits) {
   const fp = softmax(feelingLogits);
   const feelings = META.feelings
@@ -142,12 +118,8 @@ function probRow({ label, p }) {
   return li;
 }
 
-// The primary family name (the quoted token) out of a FEELING_FONTS stack,
-// e.g. '"Playfair Display", Georgia, serif' -> 'Playfair Display'.
 const fontName = (stack) => stack.match(/"([^"]+)"/)?.[1] ?? null;
 
-// Wait for the feeling's webfont so canvas text is not drawn in a fallback
-// face before the real one loads. Best-effort: a load failure just falls back.
 async function ensureFont(stack) {
   const name = fontName(stack);
   if (!name || !document.fonts) return;
@@ -156,12 +128,9 @@ async function ensureFont(stack) {
       document.fonts.load(`600 24px "${name}"`),
       document.fonts.load(`400 13px "${name}"`),
     ]);
-  } catch {
-    /* fallback face is acceptable */
-  }
+  } catch {}
 }
 
-// Greedy word wrap against a pixel width, capped at `maxLines`.
 function wrapLines(ctx, text, maxWidth, maxLines) {
   const words = text.split(/\s+/).filter(Boolean);
   const lines = [];
@@ -179,9 +148,6 @@ function wrapLines(ctx, text, maxWidth, maxLines) {
   return lines.slice(0, maxLines);
 }
 
-// Redraw the current card onto a 512x512 canvas and hand back a PNG blob.
-// Hand-drawn (gradient + emoji + text) rather than a DOM snapshot so it needs
-// no html2canvas-style dependency.
 async function cardToBlob() {
   const S = 512;
   const { text, emoji, feeling, pal } = current;
@@ -193,14 +159,12 @@ async function cardToBlob() {
   canvas.height = S;
   const ctx = canvas.getContext("2d");
 
-  // Rounded square (20/600 of the card, scaled), transparent outside.
   const r = Math.round((20 / 600) * S);
   ctx.beginPath();
   if (ctx.roundRect) ctx.roundRect(0, 0, S, S, r);
   else ctx.rect(0, 0, S, S);
   ctx.clip();
 
-  // linear-gradient(135deg, ...): top-left -> bottom-right on a square.
   const grad = ctx.createLinearGradient(0, 0, S, S);
   grad.addColorStop(0, pal.bg1);
   grad.addColorStop(1, pal.bg2);
@@ -211,11 +175,9 @@ async function cardToBlob() {
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
-  // Emoji: a dedicated emoji stack so the glyph renders regardless of `stack`.
   ctx.font = `120px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
   ctx.fillText(emoji, S / 2, S * 0.36);
 
-  // Typed text, wrapped.
   ctx.font = `600 24px ${stack}`;
   const lines = wrapLines(ctx, text, S - 96, 4);
   let ty = S * 0.6;
@@ -224,7 +186,6 @@ async function cardToBlob() {
     ty += 32;
   }
 
-  // Feeling label.
   ctx.font = `600 13px ${stack}`;
   if ("letterSpacing" in ctx) ctx.letterSpacing = "3.5px";
   ctx.globalAlpha = 0.85;
@@ -259,8 +220,6 @@ async function copyCard() {
   }
 }
 
-// Bottom-of-page reference row: one small square per feeling, each rendered
-// with that feeling's own font family and gradient background.
 function buildFeelingRow() {
   const row = document.getElementById("feelings");
   row.replaceChildren();
@@ -287,8 +246,6 @@ function buildFeelingRow() {
   input.maxLength = CONFIG.max_text_len;
   counterMaxEl.textContent = `/${CONFIG.max_text_len}`;
   if (META.exported_at) {
-    // meta.json stores the export instant as ISO 8601 UTC; show it in the
-    // viewer's local time zone. Fall back to the raw string if unparseable.
     const d = new Date(META.exported_at);
     document.getElementById("model-date").textContent = Number.isNaN(d.getTime())
       ? META.exported_at
@@ -303,9 +260,7 @@ function buildFeelingRow() {
   }
   buildFeelingRow();
 
-  ort.env.wasm.numThreads = 1; // GitHub Pages sends no COOP/COEP headers
-  // Absolute URL so ORT resolves it against the page, not against ort.wasm.min.js
-  // (which already lives in vendor/ and would give vendor/vendor/).
+  ort.env.wasm.numThreads = 1;
   ort.env.wasm.wasmPaths = new URL("./vendor/", document.baseURI).href;
   session = await ort.InferenceSession.create("./model.onnx");
 

@@ -1,11 +1,8 @@
-# DATA
 import datetime
 
 MAX_TEXT_LEN = 42
 
-# MODEL
 CHAR_EMBED_SIZE = 16
-# (kernel, channels)
 CONV = [
     (3, 64),
     (2, 128),
@@ -17,13 +14,11 @@ EMOJI_EMBED_SIZE = 32
 TRIPLET_MARGIN = .5
 EMOJI_NEGATIVES = 5
 
-# TRAINING
 LR = 0.01
 BATCH_SIZE = 128
 GRAD_CLIP = 1.0
 
 
-# EPOCHS
 EPOCHS = 100
 EVAL_EPOCHS = 1
 

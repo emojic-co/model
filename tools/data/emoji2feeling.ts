@@ -1,25 +1,3 @@
-/**
- * Data pipeline, emoji-first entry point -- upsamples the rarest emojis.
- *
- *   bun run tools/data/emoji2feeling.ts  ->  bun run tools/data/gen_labels.ts
- *
- * One run does the whole thing, no intermediate file:
- *
- *   count every labels.json emoji's rows in data.jsonl, take the 100 rarest
- *     -> generate 20 short WhatsApp-style texts per emoji           (phase 1)
- *     -> feeling-annotate the fresh texts (closed labels.json set)  (phase 2)
- *     -> append {emoji, text, feeling} to data.jsonl
- *
- *   - emoji:   carried straight through from generation (this script owns it)
- *   - feeling: annotated, constrained to the labels.json feelings list
- *
- * Both phases are PQueue-parallelized. Nothing is retried across runs: a failed
- * generate or annotate batch is logged and dropped, and the next run just
- * regenerates. No label filtering happens here -- that is data.py's job at train
- * time; the length check below only decides what is worth an API call.
- *
- * Requires AI_GATEWAY_API_KEY (Bun auto-loads it from .env).
- */
 import { existsSync } from "node:fs"
 import { appendFile, readFile } from "node:fs/promises"
 
@@ -32,11 +10,7 @@ const MODEL = "openai/gpt-5.6-luna"
 const DATA = "./data.jsonl"
 const LABELS = "./labels.json"
 
-// Phase 1 keeps anything <= 50 chars; the tighter MAX_TEXT_LEN cut is a runtime
-// concern, applied in phase 2 (and again by data.py), not during generation.
 const MAX_RAW_LEN = 50
-// Mirror of config.py's MAX_TEXT_LEN. A line whose normalized form is longer is
-// not worth annotating -- data.py would filter the record at train time anyway.
 const MAX_TEXT_LEN = 42
 
 const RARE_EMOJI_COUNT = 100
@@ -46,7 +20,6 @@ const GEN_CONCURRENCY = 20
 const ANNOTATE_BATCH_SIZE = 10
 const ANNOTATE_CONCURRENCY = 30
 
-// --- normalized dedup key: mirror of data.py's normalize() ------------------
 const VOCAB = new Set("abcdefghijklmnopqrstuvwxyz!?:()@$%&* ")
 function normalize(text: string): string {
   const t = text
@@ -57,8 +30,6 @@ function normalize(text: string): string {
   return [...t].filter((c) => VOCAB.has(c)).join("")
 }
 
-// Emotion-neutral speaker roles -- demographic / relationship only, for voice
-// spread. The emoji, not the voice, drives what each message is about.
 const VOICES = [
   "a teenager", "a college student", "a new parent", "a retiree",
   "a shift worker", "a freelancer", "someone in their 30s", "a grandparent",
@@ -68,9 +39,6 @@ const VOICES = [
   "a coworker", "a classmate", "a teammate", "a mentor", "a mentee",
 ]
 
-// Calibration for the phase-2 feeling pick. Counters a measured bias (see
-// data.md, 2026-08-29) toward stamping flat, practical text with a strong
-// feeling instead of Neutral.
 const FEELING_GUIDANCE = [
   "Label the emotion a typical reader would actually feel from the words, not",
   "one that is merely plausible for the situation.",
@@ -100,12 +68,6 @@ function pickVoice(): string {
   return VOICES[Math.floor(Math.random() * VOICES.length)]
 }
 
-/**
- * Tally each labels.json emoji's rows in data.jsonl and return the `n` least
- * represented, rarest first. Palette emojis absent from data.jsonl count as 0;
- * ties keep labels.json order. Emojis outside the palette are ignored -- they
- * get dropped by gen_labels.ts / data.py anyway, so upsampling them is wasted.
- */
 function rarestEmojis(rows: Row[], palette: string[], n: number): string[] {
   const counts = new Map<string, number>(palette.map((e) => [e, 0]))
   for (const r of rows) {
@@ -121,7 +83,6 @@ function rarestEmojis(rows: Row[], palette: string[], n: number): string[] {
   return picked.map(([e]) => e)
 }
 
-// --- phase 1: emoji-guided text generation --------------------------------
 async function genBatch(voice: string, emoji: string): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
@@ -139,22 +100,15 @@ async function genBatch(voice: string, emoji: string): Promise<string[]> {
     .split("\n")
     .map((l) =>
       l
-        .replace(/^\s*(?:[-*•]|\d+[.)])\s+/, "") // strip a list marker
-        .replace(/^["'`]+|["'`]+$/g, "") // strip wrapping quotes/backticks
+        .replace(/^\s*(?:[-*•]|\d+[.)])\s+/, "")
+        .replace(/^["'`]+|["'`]+$/g, "")
         .trim(),
     )
     .filter((l) => l && !l.startsWith("```"))
 }
 
-// --- phase 2: feeling annotation (closed set) --------------------------
 const Annotation = z.object({ id: z.number(), feeling: z.string() })
 
-/**
- * Annotate one batch with a feeling from `feelings`. Returns id -> feeling for
- * every id the model answered with a valid feeling. Makes up to two attempts (a
- * partial or failed response retries the whole batch); whatever is still
- * missing after that is logged and left out.
- */
 async function annotateBatch(
   batch: { id: number; text: string }[],
   feelings: string[],
@@ -218,7 +172,6 @@ if (import.meta.main) {
 
   const targets = rarestEmojis(rows, palette, RARE_EMOJI_COUNT)
 
-  // Texts already in the corpus -- never regenerate them.
   const inCorpus = new Set<string>()
   for (const r of rows) {
     const n = normalize(r.text)
@@ -226,7 +179,6 @@ if (import.meta.main) {
   }
   console.log(`${inCorpus.size} existing texts to dedup against`)
 
-  // --- phase 1: generate --------------------------------------------------
   const genBar = new cliProgress.SingleBar(
     {
       format:
@@ -258,7 +210,6 @@ if (import.meta.main) {
   await genQ.onIdle()
   genBar.stop()
 
-  // --- phase 2: annotate ------------------------------------------------
   const todo = candidates
     .filter((c) => normalize(c.text).length <= MAX_TEXT_LEN)
     .map((c, id) => ({ id, emoji: c.emoji, text: c.text }))
@@ -279,7 +230,6 @@ if (import.meta.main) {
     )
     annBar.start(batches.length, 0)
 
-    // Serialize appends so concurrent workers don't interleave partial lines.
     let writeChain: Promise<unknown> = Promise.resolve()
     const append = (s: string) => {
       writeChain = writeChain.then(() => appendFile(DATA, s))

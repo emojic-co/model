@@ -1,23 +1,3 @@
-"""Train the emojic CNN classifier (PyTorch Lightning).
-
-A ``LitEmojic`` LightningModule wraps ``model.Model``. Only the feeling head is
-optimized right now (``training_step`` returns ``loss_feeling`` alone -- the
-emoji triplet term is built but not added); feeling is the current priority.
-Validation runs every ``EVAL_EPOCHS`` epochs against the fixed gold holdout
-``eval.jsonl`` (see gen_eval.ts / data.py). Training and validation each log
-exactly four scalars and nothing else -- ``loss/f/{train,val}`` (feeling
-cross-entropy), ``loss/e/{train,val}`` (emoji triplet), ``acc/f/{train,val}``
-(feeling top-1) and ``acc5/e/{train,val}`` (emoji top-5 retrieval).
-
-Two callbacks own the on-disk outputs, on independent schedules. ``SaveLast``
-dumps the full training state to ``runs/last.ckpt`` after every validation pass
-(i.e. every ``EVAL_EPOCHS`` epochs), unconditionally, so ``--resume`` always
-picks up the latest optimizer / epoch / RNG state. ``ExportBest`` fires only
-when ``acc/f/val`` reaches a new best, and then rewrites ``model.pt`` plus the
-static web app's artifacts in ``docs/`` (``model.onnx`` + ``meta.json`` +
-``config.json``), so the page can be watched live during a run.
-"""
-
 import argparse
 import json
 import warnings
@@ -51,46 +31,22 @@ from data import (
 from model import Model
 
 MODEL_PT = Path("model.pt")
-# Full training state (optimizer / epoch / global step / RNG / callback state),
-# written under the gitignored runs/ dir at a fixed path so `--resume` finds it
-# even though CONFIG_NAME (and thus the TensorBoard log dir) is timestamped.
 LAST_CKPT = Path("runs") / "last.ckpt"
 DOCS = Path("docs")
 ONNX_OPSET = 18
 
 
 class ExportWrapper(nn.Module):
-    """Collapse the emoji embedding head into a single ``emoji_logits`` tensor.
-
-    ``Model.forward`` returns ``(feeling_logits, q, emoji_embed)`` -- the raw
-    pieces the triplet loss needs, with ``q`` and every ``emoji_embed`` row
-    L2-normalized. The browser only wants a class score per emoji, so this
-    wrapper scores ``q`` against every emoji embedding by cosine similarity
-    (a plain matmul of unit vectors). Since both sides are unit-norm this is
-    a monotonic function of the L2 distance -- ``-||q - e||^2 = 2(cos - 1)`` --
-    so ``argmax`` picks the same nearest embedding the triplet loss trains and
-    ``training_step`` / ``validation_step`` score with. Keeps the ONNX contract
-    at ``(feeling_logits, emoji_logits)`` so ``app.js`` stays a plain argmax
-    path; a single matmul traces cleanly on every ONNX opset.
-    """
-
     def __init__(self, model: nn.Module) -> None:
         super().__init__()
         self.model = model
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         feeling_logits, q, emoji_embed = self.model(x)
-        # TEMP: emoji head disabled (q / emoji_embed are None). Ship a zero
-        # placeholder so the (feeling_logits, emoji_logits) ONNX contract and
-        # docs/app.js keep working; the emoji output is meaningless until the
-        # head is re-enabled.
-        # emoji_logits = feeling_logits.new_zeros(feeling_logits.size(0), len(EMOJIS))
-        # return feeling_logits, emoji_logits
         return feeling_logits, q @ emoji_embed.t()
 
 
 def export_onnx(model: nn.Module, dst: Path) -> None:
-    """Trace ``model`` to an ONNX file with a dynamic batch axis."""
     wrapper = ExportWrapper(model).eval()
     dummy = torch.zeros(1, MAX_TEXT_LEN, dtype=torch.long)
     with warnings.catch_warnings():
@@ -112,16 +68,6 @@ def export_onnx(model: nn.Module, dst: Path) -> None:
 
 
 def export_web(model: nn.Module) -> None:
-    """Refresh docs/model.onnx + docs/meta.json + docs/config.json for the app.
-
-    meta.json carries everything docs/app.js must not hardcode from the Python
-    side: the char vocab, MAX_TEXT_LEN, the label sets for both heads, and the
-    export date (footer). (The feeling color palette is not here -- it lives in
-    docs/palette.json, read directly by app.js.)
-
-    config.json holds the plain app-tuning knobs (currently just max_text_len,
-    used to cap the input field) kept apart from the model metadata.
-    """
     DOCS.mkdir(exist_ok=True)
     export_onnx(model, DOCS / "model.onnx")
     meta = {
@@ -130,9 +76,6 @@ def export_web(model: nn.Module) -> None:
         "max_text_len": MAX_TEXT_LEN,
         "emojis": EMOJIS,
         "feelings": FEELING,
-        # ISO 8601 UTC instant of this export (minute precision, with the
-        # +00:00 offset kept) so docs/app.js can parse it and render it in the
-        # viewer's own local time zone for the footer.
         "exported_at": datetime.now(UTC).isoformat(timespec="minutes"),
     }
     (DOCS / "meta.json").write_text(
@@ -164,14 +107,14 @@ class LitEmojic(pl.LightningModule):
             1, n,
             (target_emoji.size(0), EMOJI_NEGATIVES),
             device=self.device)
-        neg_emoji_idx = (target_emoji.unsqueeze(1) + offset) % n  # (B, K)
+        neg_emoji_idx = (target_emoji.unsqueeze(1) + offset) % n
 
         pos = emoji_embd[target_emoji].repeat_interleave(EMOJI_NEGATIVES, dim=0)
-        neg = emoji_embd[neg_emoji_idx.reshape(-1)]  # (B*K, D)
+        neg = emoji_embd[neg_emoji_idx.reshape(-1)]
         loss = self.emoji_triplet(
-            q.repeat_interleave(EMOJI_NEGATIVES, dim=0),  # anchor
-            pos,  # positive
-            neg,  # negatives
+            q.repeat_interleave(EMOJI_NEGATIVES, dim=0),
+            pos,
+            neg,
         )
 
         top5 = (q @ emoji_embd.t()).topk(5, dim=-1).indices
