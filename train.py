@@ -131,7 +131,7 @@ class LitEmojic(pl.LightningModule):
         self.log(f"loss/e/{split}", loss_e, **kw)  # type: ignore
         self.log(f"acc/f/{split}", acc_f, **kw)  # type: ignore
         self.log(f"acc5/f/{split}", acc5_f, **kw)  # type: ignore
-        self.log(f"acc5/e/{split}", acc5_e, **kw)  # type: ignore
+        # self.log(f"acc5/e/{split}", acc5_e, **kw)  # type: ignore
         self.log(f"acc10/e/{split}", acc10_e, **kw)  # type: ignore
 
     def training_step(self, batch, batch_idx) -> torch.Tensor:
