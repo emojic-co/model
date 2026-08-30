@@ -7,6 +7,7 @@ from config import (
     CHAR_EMBED_SIZE,
     EMOJI_EMBED_SIZE,
     KERNEL,
+    MAX_POOL_SIZE,
 )
 from data import EMOJIS, FEELING, VOCAB_SIZE
 
@@ -29,7 +30,9 @@ class Layer(nn.Sequential):
 
             nn.BatchNorm1d(out_channels),
             nn.LeakyReLU(negative_slope=0.1),
-            nn.MaxPool1d(kernel_size=2, stride=2),
+            nn.MaxPool1d(
+                kernel_size=MAX_POOL_SIZE,
+                stride=MAX_POOL_SIZE),
         )
 
 
