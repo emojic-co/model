@@ -19792,7 +19792,7 @@
 {"feeling":"Love","text":"Payment landed. Buying celebratory noodles.","emoji":"🥳"}
 {"feeling":"Love","text":"Your “tiny change” has become a small novel.","emoji":"📚"}
 {"feeling":"Love","text":"Want to hop on a call and untangle this?","emoji":"🤝"}
-{"feeling":"Love","text":"I’ll stay up with this until it behaves.","emoji":"😤"}
+{"emoji":"😤","feeling":"Angry","text":"I’ll stay up with this until it behaves."}
 {"feeling":"Love","text":"The client said yes. I wish you were here.","emoji":"🥹"}
 {"feeling":"Love","text":"Sent the final files. Don’t disappear on me.","emoji":"🙏"}
 {"feeling":"Love","text":"I made the deck less beige, like you asked.","emoji":"🎨"}
@@ -23569,7 +23569,7 @@
 {"feeling":"Sad","text":"Made coffee for two out of habit.","emoji":"🥀"}
 {"feeling":"Sad","text":"Your birthday card came back unopened.","emoji":"💔"}
 {"feeling":"Sad","text":"Rain started. The roof still leaks.","emoji":"😩"}
-{"feeling":"Sad","text":"Did you get home okay? Just checking.","emoji":"🫶"}
+{"emoji":"🫶","feeling":"Love","text":"Did you get home okay? Just checking."}
 {"feeling":"Sad","text":"I waved at your car. Wrong car.","emoji":"🤦"}
 {"feeling":"Sad","text":"Leftovers are waiting, like me.","emoji":"😔"}
 {"feeling":"Sad","text":"Your old hoodie is on my chair.","emoji":"🥹"}
@@ -27070,7 +27070,7 @@
 {"emoji":"🐬","text":"Skipping the cafeteria for fish and chips?","feeling":"Neutral"}
 {"emoji":"🐬","text":"Just saw something jump near the pier","feeling":"Anxious"}
 {"emoji":"🐬","text":"Homework done, now I deserve the beach","feeling":"Happy"}
-{"emoji":"泥","text":"Tiny hands, enormous amounts of dirt","feeling":"Neutral"}
+{"emoji":"🤦","feeling":"Neutral","text":"Tiny hands, enormous amounts of dirt"}
 {"emoji":"泥","text":"We are home, muddy, and somehow happy","feeling":"Happy"}
 {"emoji":"泥","text":"Quick update: baby ate dirt again","feeling":"Anxious"}
 {"emoji":"泥","text":"Baby's first puddle jump was very committed","feeling":"Excited"}
@@ -27310,7 +27310,7 @@
 {"emoji":"👖","text":"The pockets are disappointingly useless","feeling":"Sad"}
 {"emoji":"👖","text":"I’m overdressed for this meeting","feeling":"Anxious"}
 {"emoji":"👖","text":"Send help, nothing fits right","feeling":"Anxious"}
-{"emoji":"자유","text":"Finally out of that meeting. Alive.","feeling":"Happy"}
+{"emoji":"😅","feeling":"Happy","text":"Finally out of that meeting. Alive."}
 {"emoji":"자유","text":"No plans, no curfew, just vibes tonight","feeling":"Happy"}
 {"emoji":"자유","text":"I quit the group chat. Peace restored.","feeling":"Calm"}
 {"emoji":"자유","text":"Train ticket booked. Seoul, here I come","feeling":"Excited"}
@@ -30419,7 +30419,7 @@
 {"emoji":"🦆","text":"Taking five minutes before round two","feeling":"Calm"}
 {"emoji":"🦆","text":"I made the logo smaller. Everyone wins.","feeling":"Happy"}
 {"emoji":"🦆","text":"No meetings today, just vibes and deadlines","feeling":"Happy"}
-{"emoji":"🦆","text":"Payment received—productivity restored","feeling":"Happy"}
+{"emoji":"💸","feeling":"Happy","text":"Payment received—productivity restored"}
 {"emoji":"自由","text":"Night shift done, I'm disappearing","feeling":"Calm"}
 {"emoji":"自由","text":"Cover found, I'm free tonight","feeling":"Happy"}
 {"emoji":"自由","text":"Can meet after seven, roster's clear","feeling":"Neutral"}
@@ -46034,7 +46034,7 @@
 {"feeling":"Sad","text":"I wish I hadn't read that message.","emoji":"😬"}
 {"feeling":"Excited","text":"We got approval to build it!","emoji":"🎉"}
 {"feeling":"Excited","text":"I found the bug, and it was tiny.","emoji":"🔍"}
-{"feeling":"Excited","text":"Friday suddenly feels very far away.","emoji":"😩"}
+{"emoji":"😩","feeling":"Sad","text":"Friday suddenly feels very far away."}
 {"feeling":"Excited","text":"They put my name on the slide!","emoji":"🌟"}
 {"feeling":"Excited","text":"I’m bringing the first draft tomorrow.","emoji":"📄"}
 {"feeling":"Excited","text":"Wait, the results are in!","emoji":"😳"}
