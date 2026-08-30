@@ -5,7 +5,7 @@ import { z } from "zod"
 export const MODEL = "openai/gpt-5.6-luna"
 
 export const ANNOTATE_BATCH_SIZE = 10
-export const ANNOTATE_CONCURRENCY = 20
+export const ANNOTATE_CONCURRENCY = 25
 
 export type Label = { emoji: string; feeling: string }
 
