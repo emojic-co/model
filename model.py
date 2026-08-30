@@ -4,6 +4,7 @@ from torch import nn
 from config import (
     CHANNELS,
     CHAR_EMBED_SIZE,
+    KERNEL,
 )
 from data import FEELING, VOCAB_SIZE
 
@@ -23,7 +24,7 @@ class Model(nn.Module):
             nn.Conv1d(
                 in_channels=CHAR_EMBED_SIZE,
                 out_channels=CHANNELS[0],
-                kernel_size=2,
+                kernel_size=KERNEL,
                 bias=False
             ),
 
@@ -33,7 +34,7 @@ class Model(nn.Module):
             *[
                 nn.Sequential(
                     nn.MaxPool1d(
-                        kernel_size=2,
+                        kernel_size=KERNEL,
                         stride=2),
 
                     nn.Conv1d(

@@ -300,7 +300,10 @@ class SaveLast(pl.Callback):
     """
 
     def on_validation_end(self, trainer: pl.Trainer, pl_module: LitEmojic) -> None:
-        trainer.save_checkpoint(LAST_CKPT)
+        # weights_only=False is passed explicitly (it is already the default) so
+        # the full optimizer / callback / RNG / loop state is written for
+        # --resume, and Lightning skips its "`weights_only` was not set" log.info.
+        trainer.save_checkpoint(LAST_CKPT, weights_only=False)
 
 
 def param_table(model: nn.Module) -> str:

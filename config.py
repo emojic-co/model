@@ -6,6 +6,7 @@ MAX_TEXT_LEN = 42
 # not a slice of data.jsonl -- there is no eval-size knob here any more.
 
 # MODEL
+KERNEL = 3
 CHAR_EMBED_SIZE = 16
 CHANNELS = (32, 32, 64, 64)
 
@@ -21,7 +22,7 @@ WEIGHT_DECAY = 1e-4
 
 
 # EPOCHS
-EPOCHS = 100
+EPOCHS = 30
 EVAL_EPOCHS = 2
 
 
