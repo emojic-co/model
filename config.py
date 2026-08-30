@@ -12,9 +12,9 @@ CHAR_EMBED_SIZE = 16
 # Each layer runs multiple kernels in parallel, then concatenates the outputs along the channel axis.  # noqa: E501
 LAYERS = [
     # Layer 0: (kernel size, channels)
-    [(2, 64), (3, 128), (4, 64)],
+    [(2, 32), (3, 128), (4, 32)],
     # Layer 1: (kernel size, channels)
-    [(2, 256)],
+    [(2, 196)],
 ]
 
 OUT_CHANNELS = [

@@ -20,7 +20,6 @@ class Layer(nn.Module):
                     in_channels=in_channels,
                     out_channels=out_channels,
                     kernel_size=kernel_size,
-                    padding="same",
                     bias=False,
                 ),
                 nn.BatchNorm1d(out_channels),
