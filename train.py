@@ -39,7 +39,6 @@ from config import (
     LR,
     MAX_TEXT_LEN,
     TRIPLET_MARGIN,
-    WEIGHT_DECAY,
 )
 from data import (
     CHARS,
@@ -252,13 +251,11 @@ class LitEmojic(pl.LightningModule):
     def configure_optimizers(self):
         # return optim.SGD(
         #     self.parameters(),
-        #     lr=LR,
-        #     weight_decay=WEIGHT_DECAY)
+        #     lr=LR)
 
         return optim.Adam(
             self.parameters(),
-            lr=LR,
-            weight_decay=WEIGHT_DECAY)
+            lr=LR)
 
 
 class ExportBest(pl.Callback):
