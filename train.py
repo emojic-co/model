@@ -86,9 +86,9 @@ class ExportWrapper(nn.Module):
         # placeholder so the (feeling_logits, emoji_logits) ONNX contract and
         # docs/app.js keep working; the emoji output is meaningless until the
         # head is re-enabled.
-        emoji_logits = feeling_logits.new_zeros(feeling_logits.size(0), len(EMOJIS))
-        return feeling_logits, emoji_logits
-        # return feeling_logits, q @ emoji_embed.t()
+        # emoji_logits = feeling_logits.new_zeros(feeling_logits.size(0), len(EMOJIS))
+        # return feeling_logits, emoji_logits
+        return feeling_logits, q @ emoji_embed.t()
 
 
 def export_onnx(model: nn.Module, dst: Path) -> None:
@@ -203,17 +203,17 @@ class LitEmojic(pl.LightningModule):
             split,
             batch_size,
             loss_f,
-            # loss_e,
+            loss_e,
             acc_f,
-            # acc5_e
+            acc5_e
     ):
         """Log exactly the four scalars for one split (train/val), nothing else."""
         kw = dict(
             on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size)
         self.log(f"loss/f/{split}", loss_f, **kw)  # type: ignore
-        # self.log(f"loss/e/{split}", loss_e, **kw)  # type: ignore
+        self.log(f"loss/e/{split}", loss_e, **kw)  # type: ignore
         self.log(f"acc/f/{split}", acc_f, **kw)  # type: ignore
-        # self.log(f"acc5/e/{split}", acc5_e, **kw)  # type: ignore
+        self.log(f"acc5/e/{split}", acc5_e, **kw)  # type: ignore
 
     def training_step(self, batch, batch_idx) -> torch.Tensor:
         x, target_emoji, target_feeling = batch
@@ -221,20 +221,17 @@ class LitEmojic(pl.LightningModule):
 
         loss_feeling, acc_feeling = self._feeling_terms(
             logits_feeling, target_feeling)
-        # TEMP: emoji path disabled -- model.forward returns q=emoji_embd=None.
-        # loss_emoji, acc_emoji5 = self._emoji_terms(q, emoji_embd, target_emoji)
+        loss_emoji, acc_emoji5 = self._emoji_terms(q, emoji_embd, target_emoji)
 
         self._log_split(
             "train", x.size(0),
             loss_feeling,
-            # loss_emoji,
+            loss_emoji,
             acc_feeling,
-            # acc_emoji5
+            acc_emoji5
         )
 
-        # TEMP, Debugging the feeling prediction path.
-        return loss_feeling
-        # return loss_feeling + loss_emoji
+        return loss_feeling + loss_emoji
 
     def validation_step(self, batch, batch_idx) -> None:
         x, target_emoji, target_feeling = batch
@@ -242,14 +239,14 @@ class LitEmojic(pl.LightningModule):
 
         loss_feeling, acc_feeling = self._feeling_terms(
             logits_feeling, target_feeling)
-        # loss_emoji, acc_emoji5 = self._emoji_terms(q, emoji_embd, target_emoji)
+        loss_emoji, acc_emoji5 = self._emoji_terms(q, emoji_embd, target_emoji)
 
         self._log_split(
             "val", x.size(0),
             loss_feeling,
-            # loss_emoji,
+            loss_emoji,
             acc_feeling,
-            # acc_emoji5
+            acc_emoji5
         )
 
     def configure_optimizers(self):
