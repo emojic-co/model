@@ -6,6 +6,7 @@ MAX_TEXT_LEN = 42
 # MODEL
 CHAR_EMBED_SIZE = 16
 KERNEL = 5
+STRIDE = 2
 CHANNELS = [512,]
 POOL_1D_SIZE = 2
 
@@ -26,6 +27,6 @@ EVAL_EPOCHS = 1
 
 CONFIG_NAME = ' | '.join([
     f'TIME: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
-    f'MODEL: {KERNEL} {CHAR_EMBED_SIZE} {CHANNELS}',
+    f'MODEL: {KERNEL} {STRIDE} {CHAR_EMBED_SIZE} {CHANNELS}',
     f'TRAIN: lr {LR} bs {BATCH_SIZE} gc {GRAD_CLIP}',
 ])

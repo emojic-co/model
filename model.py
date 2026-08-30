@@ -8,6 +8,7 @@ from config import (
     EMOJI_EMBED_SIZE,
     KERNEL,
     POOL_1D_SIZE,
+    STRIDE,
 )
 from data import EMOJIS, FEELING, VOCAB_SIZE
 
@@ -19,6 +20,7 @@ class Layer(nn.Sequential):
                 in_channels,
                 out_channels,
                 kernel_size=KERNEL,
+                stride=STRIDE,
                 bias=False),
 
             nn.BatchNorm1d(out_channels),
