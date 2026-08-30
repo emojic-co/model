@@ -4,7 +4,7 @@ MAX_TEXT_LEN = 42
 
 CHAR_EMBED_SIZE = 16
 CONV = [
-    (3, 128),
+    (4, 96),
     (2, 128),
 ]
 POOL_1D_SIZE = 2

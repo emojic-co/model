@@ -75,6 +75,23 @@ h1 {
   color: #c0392b;
 }
 
+#hint {
+  width: var(--w);
+  max-width: 100%;
+  margin-top: -8px;
+  min-height: 1.2em;
+  text-align: right;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+#hint.show {
+  opacity: 1;
+}
+
 #card {
   position: relative;
   width: var(--w);

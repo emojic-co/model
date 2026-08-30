@@ -1,6 +1,7 @@
 const input = document.getElementById("input");
 const counterEl = document.getElementById("counter");
 const counterMaxEl = document.getElementById("counter-max");
+const hintEl = document.getElementById("hint");
 const card = document.getElementById("card");
 const emojiEl = document.getElementById("emoji");
 const typedEl = document.getElementById("typed");
@@ -18,6 +19,8 @@ const FEELING_FONTS = {
   Anxious: '"Shantell Sans", system-ui, cursive',
   Neutral: '"Inter", system-ui, sans-serif',
 };
+
+const MIN_CHARS = 3;
 
 const argmax = (arr) => {
   let best = 0;
@@ -58,12 +61,32 @@ function encode(text) {
   return BigInt64Array.from(ids, BigInt);
 }
 
+function resetCard() {
+  emojiEl.textContent = "🙂";
+  feelingEl.textContent = "—";
+  card.style.background = "";
+  card.style.color = "";
+  card.style.fontFamily = "";
+  dbgFeelingsEl.replaceChildren();
+  dbgEmojisEl.replaceChildren();
+  current = null;
+}
+
 async function update() {
   const text = input.value;
   typedEl.textContent = text;
   counterEl.firstChild.textContent = String(text.length);
   counterEl.classList.toggle("full", text.length >= input.maxLength);
   if (!session) return;
+
+  if (normalize(text).length < MIN_CHARS) {
+    seq++;
+    hintEl.textContent = `type at least ${MIN_CHARS} characters…`;
+    hintEl.classList.add("show");
+    resetCard();
+    return;
+  }
+  hintEl.classList.remove("show");
 
   const mine = ++seq;
   const tensor = new ort.Tensor("int64", encode(text), [1, META.max_text_len]);
