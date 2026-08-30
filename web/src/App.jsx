@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOnnx } from './hooks/useOnnx'
-import { argmax, normalize, softmax } from './model'
+import { argmax, normalize } from './model'
 import { Card } from './components/Card'
 import { EmojiList } from './components/EmojiList'
 import { useCardImage } from './hooks/useCardImage'
@@ -30,7 +30,7 @@ export function App() {
   const [scores, setScores] = useState(null)
   const [override, setOverride] = useState({ emoji: null, feeling: null })
   const [toast, setToast] = useState({ msg: '', n: 0 })
-  const showToast = (msg) => setToast((s) => ({ msg, n: s.n + 1 }))
+  const showToast = useCallback((msg) => setToast((s) => ({ msg, n: s.n + 1 })), [])
   const seq = useRef(0)
 
   const char2idx = useMemo(
@@ -56,8 +56,7 @@ export function App() {
     return () => clearTimeout(timer)
   }, [text, ready, char2idx, predict])
 
-  const emojiScores = scores && softmax(scores.emoji)
-  const feelingScores = scores && softmax(scores.feeling)
+  const emojiScores = scores && scores.emoji
   const predictedEmoji = scores ? meta.emojis[argmax(scores.emoji)] : null
   const predictedFeeling = scores ? meta.feelings[argmax(scores.feeling)] : null
   const shownEmoji = override.emoji ?? predictedEmoji

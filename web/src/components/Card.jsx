@@ -1,18 +1,9 @@
 import { useFitText } from '../hooks/useFitText'
+import { FEELING_FONTS } from '../fonts'
 import { FeelingBar } from './FeelingBar'
 
-const FEELING_FONTS = {
-  Happy: '"Fredoka", system-ui, sans-serif',
-  Calm: '"Quicksand", system-ui, sans-serif',
-  Sad: '"Playfair Display", Georgia, serif',
-  Angry: '"Anton", system-ui, sans-serif',
-  Anxious: '"Shantell Sans", system-ui, cursive',
-  Neutral: '"Inter", system-ui, sans-serif',
-  Love: '"Fredoka", system-ui, sans-serif',
-}
-
 export function Card({ text, emoji, feeling, feelings, palette, onPickFeeling, onCopy }) {
-  const [, textRef] = useFitText(text, { min: 32, max: 104 })
+  const textRef = useFitText(text, { min: 32, max: 104, key: feeling })
   const pal = feeling && palette ? palette[feeling] ?? palette.Neutral : null
   const style = pal
     ? {

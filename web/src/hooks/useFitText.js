@@ -1,8 +1,7 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 
-export function useFitText(text, { min = 32, max = 104 } = {}) {
+export function useFitText(text, { min = 32, max = 104, key } = {}) {
   const ref = useRef(null)
-  const [px, setPx] = useState(max)
 
   useLayoutEffect(() => {
     const el = ref.current
@@ -22,13 +21,17 @@ export function useFitText(text, { min = 32, max = 104 } = {}) {
         }
       }
       el.style.fontSize = best + 'px'
-      setPx(best)
     }
     fit()
     const ro = new ResizeObserver(fit)
     ro.observe(el)
+    if (document.fonts && document.fonts.status !== 'loaded') {
+      document.fonts.ready.then(() => {
+        if (ref.current) fit()
+      })
+    }
     return () => ro.disconnect()
-  }, [text, min, max])
+  }, [text, min, max, key])
 
-  return [px, ref]
+  return ref
 }

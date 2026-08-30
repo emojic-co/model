@@ -1,21 +1,13 @@
 import { useCallback } from 'react'
 import { fitCanvasFont, wrapLines } from '../fit'
+import { FEELING_FONTS } from '../fonts'
 
 const S = 512
 const EMOJI_STACK = '"Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif'
-const FEELING_FONTS = {
-  Happy: '"Fredoka", system-ui, sans-serif',
-  Calm: '"Quicksand", system-ui, sans-serif',
-  Sad: '"Playfair Display", Georgia, serif',
-  Angry: '"Anton", system-ui, sans-serif',
-  Anxious: '"Shantell Sans", system-ui, cursive',
-  Neutral: '"Inter", system-ui, sans-serif',
-  Love: '"Fredoka", system-ui, sans-serif',
-}
 
-async function ensureFonts(stack) {
+async function ensureFonts(stack, emoji) {
   if (!document.fonts) return
-  const jobs = [document.fonts.load('400 120px "Noto Color Emoji"')]
+  const jobs = [document.fonts.load(`400 120px "Noto Color Emoji"`, emoji)]
   const name = stack.match(/"([^"]+)"/)?.[1]
   if (name) {
     jobs.push(document.fonts.load(`600 24px "${name}"`))
@@ -28,7 +20,7 @@ async function ensureFonts(stack) {
 
 async function render({ text, emoji, feeling, pal }) {
   const stack = FEELING_FONTS[feeling] ?? FEELING_FONTS.Neutral
-  await ensureFonts(stack)
+  await ensureFonts(stack, emoji)
 
   const canvas = document.createElement('canvas')
   canvas.width = S
@@ -63,7 +55,7 @@ async function render({ text, emoji, feeling, pal }) {
   const fpx = fitCanvasFont({
     text,
     maxWidth,
-    maxHeight: S * 0.34,
+    maxHeight: S * 0.26,
     min: Math.round((32 * S) / 600),
     max: Math.round((104 * S) / 600),
     lineHeight,
@@ -72,7 +64,7 @@ async function render({ text, emoji, feeling, pal }) {
 
   ctx.font = `600 ${fpx}px ${stack}`
   const lines = wrapLines((str) => ctx.measureText(str).width, text, maxWidth, 4)
-  let ty = S * 0.6 - ((lines.length - 1) * fpx * lineHeight) / 2
+  let ty = S * 0.62 - ((lines.length - 1) * fpx * lineHeight) / 2
   for (const line of lines) {
     ctx.fillText(line, S / 2, ty)
     ty += fpx * lineHeight
