@@ -4,11 +4,12 @@ MAX_TEXT_LEN = 42
 
 CHAR_EMBED_SIZE = 16
 CONV = [
+    (4, 96),
     (3, 128),
-    (2, 150),
+    (2, 256),
 ]
 POOL_1D_SIZE = 2
-DROPOUT = 0.4
+DROPOUT = 0.3
 
 EMOJI_EMBED_SIZE = 32
 TRIPLET_MARGIN = .6
