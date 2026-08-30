@@ -98,17 +98,13 @@ All run from `web/` as CWD.
 - `base: './'` so asset URLs are relative and work under the Pages
   project path.
 - `@vitejs/plugin-react`.
-- A copy step (custom plugin or `vite-plugin-static-copy`, decided during
-  implementation) that emits the onnxruntime-web single-threaded wasm
-  backend files (`ort-wasm-simd.wasm` and its `.mjs` glue — exact file
-  names confirmed against the installed package version) into `dist/` at
-  a known path.
+- `optimizeDeps.exclude: ['onnxruntime-web']` and a raised
+  `build.chunkSizeWarningLimit` (the wasm-embedding bundle is large).
 
 At runtime, before creating the session:
 
 ```
 ort.env.wasm.numThreads = 1;
-ort.env.wasm.wasmPaths = <the copied path, resolved from import.meta.env.BASE_URL>;
 ```
 
 This keeps the backend single-threaded, so no cross-origin isolation
@@ -116,9 +112,16 @@ headers are required (matching today's `docs/vendor/` setup).
 
 ## onnxruntime-web
 
-`import * as ort from 'onnxruntime-web'` in `useOnnx.js`. The committed
-`docs/vendor/` blobs are deleted; the wasm backend now comes from the npm
-package and is copied into the build output by Vite config.
+`import * as ort from 'onnxruntime-web/wasm'` in `useOnnx.js` — the
+`/wasm` subpath's default build (`ort.wasm.bundle.min.mjs`) embeds the
+wasm binary, so there is no separate `.wasm` fetch and no `wasmPaths`
+config. The committed `docs/vendor/` blobs are deleted; the backend now
+comes from the npm package and Vite bundles it. Fallback if a version
+stops embedding: add `vite-plugin-static-copy` to emit
+`ort-wasm-simd-threaded.{wasm,mjs}` into `dist/` and set
+`ort.env.wasm.wasmPaths = import.meta.env.BASE_URL`. This is verified in
+`npm run preview` (not just dev) with a real inference and a Network-tab
+check for a failed `.wasm` request.
 
 Session creation and inference match the current `app.js`:
 
@@ -127,9 +130,9 @@ Session creation and inference match the current `app.js`:
 
 ## Model asset pipeline
 
-`main.py`'s `export_web` (and the `--export-only` path) writes
-`model.onnx`, `meta.json`, and `config.json` to `web/public/` instead of
-`docs/`. `palette.json` is moved into `web/public/` and stays
+`train.py`'s `export_web` writes `model.onnx`, `meta.json`, and
+`config.json` to `web/public/` instead of `docs/` (change the `DOCS`
+constant). `palette.json` is moved into `web/public/` and stays
 hand-maintained there.
 
 `CLAUDE.md` is updated:
