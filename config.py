@@ -15,7 +15,7 @@ CHAR_EMBED_SIZE = 16
 # kernel-2 layers grows the receptive field geometrically (~2, ~4, ~8, ~16
 # chars). With MAX_TEXT_LEN = 42 the length runs 42 -> 20 -> 9 -> 4 -> 1 over
 # four layers; more than ~5 layers would drive it to 0.
-CHANNELS = [32, 64, 128, 256]
+CHANNELS = [64, 128]
 
 EMOJI_EMBED_SIZE = 20
 TRIPLET_MARGIN = 0.5
