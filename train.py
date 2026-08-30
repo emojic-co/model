@@ -303,6 +303,32 @@ class SaveLast(pl.Callback):
         trainer.save_checkpoint(LAST_CKPT, weights_only=False)
 
 
+class EpochLog(pl.Callback):
+    """One plain log line per training epoch and per validation.
+
+    Readable when stdout is piped (``modal run``, CI); the Rich progress bar
+    renders as carriage-return spam there. Added only on ``--no-post`` runs --
+    local runs keep the progress bar.
+    """
+
+    @staticmethod
+    def _fmt(metrics: dict, *keys: str) -> str:
+        return "  ".join(f"{k}={float(metrics[k]):.4f}" for k in keys if k in metrics)
+
+    def on_train_epoch_end(self, trainer: pl.Trainer, pl_module: "LitEmojic") -> None:
+        line = self._fmt(
+            trainer.callback_metrics, "loss/f/train", "acc/f/train", "acc5/e/train"
+        )
+        print(f"epoch {trainer.current_epoch + 1}/{trainer.max_epochs}  {line}", flush=True)
+
+    def on_validation_end(self, trainer: pl.Trainer, pl_module: "LitEmojic") -> None:
+        line = self._fmt(
+            trainer.callback_metrics, "loss/f/val", "acc/f/val", "acc5/e/val"
+        )
+        if line:
+            print(f"  val @ epoch {trainer.current_epoch + 1}  {line}", flush=True)
+
+
 def param_table(model: nn.Module) -> str:
     """Render a per-module / per-parameter breakdown of ``model``'s params.
 
@@ -381,7 +407,10 @@ def train(resume: bool = False, post: bool = True) -> None:
         accelerator="auto",
         devices='auto',
         logger=logger,
-        callbacks=[export_best, SaveLast()],
+        # post=False (Modal): swap the Rich progress bar for plain per-epoch
+        # log lines, which survive `modal run`'s piped stdout.
+        callbacks=[export_best, SaveLast(), *([] if post else [EpochLog()])],
+        enable_progress_bar=post,
         num_sanity_val_steps=0,
         log_every_n_steps=10,
     )

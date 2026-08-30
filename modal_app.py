@@ -31,6 +31,10 @@ from pathlib import Path
 import modal
 
 GPU = "T4"  # cheapest Modal GPU; fine for a ~42K-param char-CNN
+# Hard per-run cap: Modal kills the container at this point (no artifacts for
+# that run). Keep it comfortably above a full EPOCHS run; it only bounds cost if
+# something hangs. T4 is ~$0.60/hr, so 20 min ~= $0.20 worst case.
+TIMEOUT = 20 * 60
 REMOTE = "/repo"
 VENV_PY = f"{REMOTE}/.venv/bin/python"
 VENV_TB = f"{REMOTE}/.venv/bin/tensorboard"
@@ -77,7 +81,7 @@ app = modal.App("emojic-train", image=image)
 runs_volume = modal.Volume.from_name("emojic-runs", create_if_missing=True)
 
 
-@app.function(gpu=GPU, cpu=4, timeout=60 * 60, volumes={f"{REMOTE}/runs": runs_volume})
+@app.function(gpu=GPU, cpu=4, timeout=TIMEOUT, volumes={f"{REMOTE}/runs": runs_volume})
 def train_remote(resume: bool = False) -> dict[str, bytes]:
     """Run `train.py --no-post` on the GPU; return model.pt + last.ckpt + logs."""
     import glob
