@@ -1,1 +1,403 @@
-body { margin: 0; font: 16px/1.5 system-ui, sans-serif; }
+:root {
+  color-scheme: light dark;
+  --ink: #1a1a1a;
+  --muted: #6b6b6b;
+  --line: #d8d8d8;
+  --w: 600px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+  font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: #f4f4f5;
+  color: var(--ink);
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.footer {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.stage {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 28px;
+}
+
+.card-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.input {
+  width: var(--w);
+  max-width: 100%;
+  padding: 12px 16px;
+  font-size: 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  outline: none;
+}
+
+.input:focus {
+  border-color: #888;
+}
+
+.counter {
+  width: var(--w);
+  max-width: 100%;
+  margin-top: -14px;
+  text-align: right;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.counter.full {
+  color: #c0392b;
+}
+
+.card {
+  position: relative;
+  width: var(--w);
+  height: var(--w);
+  max-width: 100%;
+  border-radius: 20px;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  text-align: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #dedede, #bebebe);
+  color: #161616;
+  transition: background 220ms ease, color 220ms ease;
+}
+
+@keyframes drift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes emoji-happy {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-16px); }
+}
+@keyframes emoji-calm {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+@keyframes emoji-sad {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(4px) scale(0.99); }
+}
+@keyframes emoji-angry {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  20% { transform: translateX(-3px) rotate(-1.5deg); }
+  40% { transform: translateX(3px) rotate(1.5deg); }
+  60% { transform: translateX(-2px) rotate(-1deg); }
+  80% { transform: translateX(2px) rotate(1deg); }
+}
+@keyframes emoji-anxious {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, 1px); }
+  50% { transform: translate(2px, -1px); }
+  75% { transform: translate(-1px, -2px); }
+}
+@keyframes emoji-love {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.15); }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.12); }
+  60% { transform: scale(1); }
+}
+@keyframes emoji-neutral {
+  0%, 100% { transform: rotate(-0.6deg); }
+  50% { transform: rotate(0.6deg); }
+}
+@keyframes text-happy {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes text-calm {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.72; }
+}
+@keyframes text-sad {
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(3px); opacity: 0.78; }
+}
+@keyframes text-angry {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-1.5px); }
+  75% { transform: translateX(1.5px); }
+}
+@keyframes text-anxious {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-1.5px, 1px); }
+  50% { transform: translate(1.5px, -1px); }
+  75% { transform: translate(-1px, -1.5px); }
+}
+@keyframes text-love {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.04); }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.03); }
+  60% { transform: scale(1); }
+}
+@keyframes text-neutral {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.9; }
+}
+
+.card[data-feeling] {
+  background-size: 200% 200%;
+  animation: drift 16s ease-in-out infinite;
+}
+.card[data-feeling="Happy"] .card-emoji { animation: emoji-happy 0.9s ease-in-out infinite; }
+.card[data-feeling="Calm"] .card-emoji { animation: emoji-calm 4s ease-in-out infinite; }
+.card[data-feeling="Sad"] .card-emoji { animation: emoji-sad 3s ease-in-out infinite; }
+.card[data-feeling="Angry"] .card-emoji { animation: emoji-angry 0.45s linear infinite; }
+.card[data-feeling="Anxious"] .card-emoji { animation: emoji-anxious 0.2s ease-in-out infinite; }
+.card[data-feeling="Love"] .card-emoji { animation: emoji-love 1.4s ease-in-out infinite; }
+.card[data-feeling="Neutral"] .card-emoji { animation: emoji-neutral 6s ease-in-out infinite; }
+.card[data-feeling="Happy"] .card-text { animation: text-happy 0.9s ease-in-out infinite; }
+.card[data-feeling="Calm"] .card-text { animation: text-calm 4s ease-in-out infinite; }
+.card[data-feeling="Sad"] .card-text { animation: text-sad 3s ease-in-out infinite; }
+.card[data-feeling="Angry"] .card-text { animation: text-angry 0.45s linear infinite; }
+.card[data-feeling="Anxious"] .card-text { animation: text-anxious 0.2s ease-in-out infinite; }
+.card[data-feeling="Love"] .card-text { animation: text-love 1.4s ease-in-out infinite; }
+.card[data-feeling="Neutral"] .card-text { animation: text-neutral 6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .card[data-feeling] { animation: none; background-size: auto; }
+  .card[data-feeling] .card-emoji,
+  .card[data-feeling] .card-text { animation: none; }
+}
+
+.copy-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 160ms ease;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.copy-btn:hover,
+.copy-btn:focus-visible {
+  opacity: 1;
+  outline: none;
+}
+
+.card-emoji {
+  font-family: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  font-size: 140px;
+  line-height: 1;
+  flex: none;
+}
+
+.card-text-box {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.card-text {
+  margin: 0;
+  font-weight: 600;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.card-feeling-idle {
+  flex: none;
+  font-size: 13px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.feeling-bar {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 10px;
+}
+
+.feeling-bar button {
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 160ms ease;
+}
+
+.feeling-bar button:hover,
+.feeling-bar button:focus-visible {
+  opacity: 0.8;
+  outline: none;
+}
+
+.feeling-bar button.active {
+  opacity: 1;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.emoji-list {
+  width: 244px;
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.emoji-list-empty {
+  min-height: 360px;
+}
+
+.emoji-list li { display: block; }
+
+.emoji-list button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1.8em 1fr 3.25em;
+  align-items: center;
+  gap: 8px;
+  font: inherit;
+  color: var(--ink);
+  background: none;
+  border: none;
+  padding: 3px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.emoji-list button:hover,
+.emoji-list button:focus-visible {
+  background: #f0f0f2;
+  outline: none;
+}
+
+.emoji-list-glyph {
+  font-family: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  font-size: 18px;
+}
+
+.bar-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--muted);
+  transition: width 160ms ease;
+}
+
+.bar-pct {
+  text-align: right;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translate(-50%, 8px);
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  background: rgba(20, 20, 20, 0.9);
+  color: #fafafa;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+@media (max-width: 980px) {
+  .stage {
+    flex-direction: column;
+    align-items: center;
+  }
+  .emoji-list {
+    order: 2;
+    width: var(--w);
+    max-width: 100%;
+  }
+  .card-col {
+    order: 1;
+  }
+}
