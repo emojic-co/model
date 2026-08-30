@@ -6533,7 +6533,7 @@
 {"emoji":"🍩","feeling":"Happy","text":"Happy donut day!"}
 {"emoji":"😋","feeling":"Happy","text":"Donuts make me so happy!"}
 {"emoji":"🍩","feeling":"Happy","text":"Yay, donut time!"}
-{"emoji":"👑","feeling":"Neutral","text":"Crown still present"}
+{"emoji":"👑","feeling":"Neutral","text":"The paper crown is still on the table."}
 {"emoji":"👑","feeling":"Neutral","text":"The crown stands"}
 {"emoji":"👑","feeling":"Neutral","text":"Crown status noted"}
 {"emoji":"👑","feeling":"Neutral","text":"Royal designation confirmed"}
@@ -29587,7 +29587,7 @@
 {"emoji":"😹","text":"Can someone explain this calendar invite?","feeling":"Anxious"}
 {"emoji":"😹","text":"Lunch at noon, assuming we survive","feeling":"Anxious"}
 {"emoji":"😹","text":"The Wi-Fi left before I did","feeling":"Sad"}
-{"emoji":"😹","text":"Boss said “quick call.” It’s been an hour.","feeling":"Angry"}
+{"emoji":"😤","feeling":"Angry","text":"Boss said “quick call.” It’s been an hour."}
 {"emoji":"😹","text":"I fixed it by turning it off and on","feeling":"Happy"}
 {"emoji":"🍎","text":"The farm stand closes at five","feeling":"Neutral"}
 {"emoji":"🍎","text":"Can you grab cider on your way in?","feeling":"Neutral"}
@@ -31036,7 +31036,7 @@
 {"emoji":"🔴","text":"The boiler light is on again. Great.","feeling":"Angry"}
 {"emoji":"🔴","text":"Stop by the shop on your way home.","feeling":"Neutral"}
 {"emoji":"🔴","text":"Red alert: we're out of milk.","feeling":"Anxious"}
-{"emoji":"🔴","text":"Dinner's ready. Come before it gets cold.","feeling":"Neutral"}
+{"emoji":"🍽️","feeling":"Neutral","text":"Dinner's ready. Come before it gets cold."}
 {"emoji":"🔴","text":"The traffic is terrible near the school.","feeling":"Sad"}
 {"emoji":"🔴","text":"Can you check the freezer tonight?","feeling":"Neutral"}
 {"emoji":"🔴","text":"I found your missing sock.","feeling":"Happy"}
@@ -32639,7 +32639,7 @@
 {"emoji":"🔴","text":"That lipstick is dangerously pretty","feeling":"Happy"}
 {"emoji":"🔴","text":"No, I’m not overreacting this time","feeling":"Anxious"}
 {"emoji":"🔴","text":"Come over before I eat all the snacks","feeling":"Happy"}
-{"emoji":"🔴","text":"My plans just got canceled. Tragic","feeling":"Sad"}
+{"emoji":"😞","feeling":"Sad","text":"My plans just got canceled. Tragic"}
 {"emoji":"🔴","text":"Why is the cafeteria serving ketchup soup?","feeling":"Angry"}
 {"emoji":"🌭","text":"That repair took longer than the hot lunch","feeling":"Sad"}
 {"emoji":"🌭","text":"Want anything from the van café?","feeling":"Neutral"}
@@ -32996,7 +32996,7 @@
 {"emoji":"自由","text":"I’m done for the day, somehow","feeling":"Calm"}
 {"emoji":"自由","text":"Want to ditch the cafeteria and wander?","feeling":"Happy"}
 {"emoji":"自由","text":"The printer is broken, so I’m liberated","feeling":"Happy"}
-{"emoji":"自由","text":"No plans after work, surprisingly","feeling":"Calm"}
+{"emoji":"😌","feeling":"Calm","text":"No plans after work, surprisingly"}
 {"emoji":"自由","text":"Choose the playlist, I’ve surrendered","feeling":"Calm"}
 {"emoji":"自由","text":"I’ve got nothing booked tomorrow","feeling":"Calm"}
 {"emoji":"自由","text":"We survived another week, barely","feeling":"Sad"}
@@ -34119,7 +34119,7 @@
 {"emoji":"🏊‍♀️","text":"Found the blockage by the steps.","feeling":"Neutral"}
 {"emoji":"🏊‍♀️","text":"Weather's perfect for testing it.","feeling":"Happy"}
 {"emoji":"🪦","text":"Just got my grade. It's over.","feeling":"Sad"}
-{"emoji":"🪦","text":"Bring flowers to my desk; calculus won.","feeling":"Happy"}
+{"emoji":"🪦","feeling":"Sad","text":"Bring flowers to my desk; calculus won."}
 {"emoji":"🪦","text":"My motivation left without saying goodbye.","feeling":"Sad"}
 {"emoji":"🪦","text":"Sorry, I can't come. My battery died.","feeling":"Neutral"}
 {"emoji":"🪦","text":"RIP my attendance record.","feeling":"Sad"}
@@ -36306,7 +36306,7 @@
 {"emoji":"😃","text":"The bus is late, but we're vibing","feeling":"Calm"}
 {"emoji":"😃","text":"I scored my first goal this season","feeling":"Happy"}
 {"emoji":"😃","text":"Our coach brought donuts today","feeling":"Happy"}
-{"emoji":"😃","text":"I have three assignments due tonight","feeling":"Anxious"}
+{"emoji":"😰","feeling":"Anxious","text":"I have three assignments due tonight"}
 {"emoji":"😃","text":"Come watch us play Friday","feeling":"Happy"}
 {"emoji":"😃","text":"Hydration break saved my life","feeling":"Happy"}
 {"emoji":"🚒","text":"Back soon, just checking a scorched socket","feeling":"Neutral"}
@@ -46291,7 +46291,7 @@
 {"feeling":"Sad","text":"The office feels colder than usual.","emoji":"🥶"}
 {"feeling":"Sad","text":"Can somebody check if I'm still awake?","emoji":"😴"}
 {"feeling":"Sad","text":"I forgot to celebrate the good news.","emoji":"😕"}
-{"feeling":"Sad","text":"They replaced my chair without asking.","emoji":"😠"}
+{"emoji":"😠","feeling":"Angry","text":"They replaced my chair without asking."}
 {"feeling":"Happy","text":"I'm calling dibs on the front","emoji":"🙋"}
 {"feeling":"Happy","text":"It happened exactly as hoped","emoji":"🎯"}
 {"feeling":"Happy","text":"I may have screamed quietly","emoji":"🤭"}
