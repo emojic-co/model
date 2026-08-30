@@ -12,7 +12,7 @@ from config import (
 )
 from data import EMOJIS, FEELING, VOCAB_SIZE
 
-EMOJI_EMBED_SIZE = ceil(8 * log2(len(EMOJIS)))
+EMOJI_EMBED_SIZE = ceil(7 * log2(len(EMOJIS)))
 
 
 def layer(*, kernel, in_channels, out_channels):
