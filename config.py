@@ -4,8 +4,8 @@ import datetime
 MAX_TEXT_LEN = 42
 
 # MODEL
-KERNEL = 3
 CHAR_EMBED_SIZE = 16
+KERNEL = 5
 CHANNELS = [512,]
 POOL_1D_SIZE = 2
 
