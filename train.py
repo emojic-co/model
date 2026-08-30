@@ -249,9 +249,9 @@ class LitEmojic(pl.LightningModule):
         )
 
     def configure_optimizers(self):
-        # return optim.SGD(
-        #     self.parameters(),
-        #     lr=LR)
+        return optim.SGD(
+            self.parameters(),
+            lr=LR)
 
         return optim.Adam(
             self.parameters(),
