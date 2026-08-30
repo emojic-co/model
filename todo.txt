@@ -1,51 +1,11 @@
 TODO:
-    Data generation:
-    Our new data generation pipeline uses open-set values for both 'feeling' and 'emoji'.
-    Pipeline:
-        Train:
-            - Generate short texts (4 - 48 chars), make sure large coverage of personality, text length, intent and tone but do not steer towards specifics.
-            - annotate each text with a feeling and an emoji (any feeling, any emoji).
-            - save to train.jsonl
-        
-        Labels:
-            - list the top 100 emojis in train.jsonl and save in labels.json
-            - list the top 10 feelings in train.jsonl and save in labels.json 
-        
-        Eval:
-            - Sample 1000 texts from train.jsonl with both feeling and emoji labels
-            - Validate locally that the feeling and emoji labels are correct (using claude code) and that text length is within the specified range.
-            - Save correctly labeled samples to eval.jsonl
-            - Samples that lands in eval.jsonl should be removed from train.jsonl
-
-        Note:
-            - Do not fix annotations.
-            - Do not drop any sample even if you think that is mislabeled or if its too long or too short (but make sure it doesn't land in eval.jsonl).
-            - No need to deduplicate texts.
-            - Instructions for the annotator should be general without steering towards specifics, do not encourage to choose rare emojis nor popular ones, just ask the annotator to choose the best emoji and best feeling.
-            - Neutral feelings are allowed, tell this to the annotator but do not encourage them.
-            - Ask the annotator to use common feelings but do not push hard on it.
-
-        Tasks:
-            - Implement tools/data/train.ts script that appends ~1,000 new samples to train.jsonl every time it is run (using the data generation pipeline described above).
-            - Implement a skill generate-eval-jsonl that samples 1,000 texts from train.jsonl and validates them using claude code, then saves the correctly labeled samples to eval.jsonl and removes them from train.jsonl.
-            - Implement a tools/data/re-annotate.ts scripts that:
-                - read 2,000 samples from data.jsonl
-                - send them to annotation
-                - append them to train.jsonl
-                - remove them from data.jsonl
-            - (re)Implement tools/data/labels.ts script that lists the top 100 emojis and top 10 feelings in train.jsonl and saves them to labels.json.
-            - Implement tools/data/stat.ts script that generate reports/data-stat/<timestamp>.md file with statistics about both train.jsonl and eval.jsonl
-
-        Implementations Notes:
-            - There is already eval.jsonl file, move it to eval.jsonl.bak.
-            - Use the "openai/gpt-5.6-luna" model as current data tools are already using.
-            - Each generation/annotation process should use PQueue and define at the top of the script BATCH_SIZE, BATCH_COUNT and CONCURRENCY
-            - Use common annotation function (in a third file probably) for both the tools/data/train.ts and tools/data/re-annotate.ts scripts.
-            - When you done writing all the tools and skills please remove any existing tools and skills related to the data pipeline.
-            
-            
 
 
 DONE:
+    - Data generation pipeline rewrite (open-set feeling + emoji):
+        tools/data/{annotate,train,re-annotate,labels,stat}.ts, the
+        generate-eval-jsonl skill, settings.json stat hook, eval.jsonl.bak.
+        Old pipeline tools/commands removed. Model side (data.py/main.py/web/)
+        not yet migrated off data.jsonl.
     - Training:
         log acc@10 (accuracy  @ 10) for emojis.

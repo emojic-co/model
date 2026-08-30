@@ -3,11 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "feeling2emoji": "bun run tools/data/feeling2emoji.ts",
-    "emoji2feeling": "bun run tools/data/emoji2feeling.ts",
-    "gen_eval": "bun run tools/eval/gen_eval.ts",
-    "labels": "bun run tools/data/gen_labels.ts",
-    "fix": "bun run tools/data/fix.ts",
+    "train": "bun run tools/data/train.ts",
+    "re-annotate": "bun run tools/data/re-annotate.ts",
+    "labels": "bun run tools/data/labels.ts",
+    "stat": "bun run tools/data/stat.ts",
     "serve": "live-server docs --port=8000"
   },
   "dependencies": {
