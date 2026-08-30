@@ -106,8 +106,9 @@ class LitEmojic(pl.LightningModule):
     def _emoji_terms(self, q, emoji_embd, target_emoji):
         n = emoji_embd.size(0)
         offset = torch.randint(
-            1, n, (target_emoji.size(0), EMOJI_NEGATIVES), device=self.device
-        )
+            1, n,
+            (target_emoji.size(0), EMOJI_NEGATIVES),
+            device=self.device)
         neg_emoji_idx = (target_emoji.unsqueeze(1) + offset) % n
 
         pos = emoji_embd[target_emoji].repeat_interleave(EMOJI_NEGATIVES, dim=0)
@@ -124,8 +125,18 @@ class LitEmojic(pl.LightningModule):
         acc10 = hit10.any(dim=-1).float().mean()
         return loss, acc5, acc10
 
-    def _log_split(self, split, batch_size, loss_f, loss_e, acc_f, acc5_e, acc10_e):
-        kw = dict(on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size)
+    def _log_split(
+            self,
+            split,
+            batch_size,
+            loss_f,
+            loss_e,
+            acc_f,
+            acc5_e,
+            acc10_e
+    ):
+        kw = dict(
+            on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size)
         self.log(f"loss/f/{split}", loss_f, **kw)  # type: ignore
         self.log(f"loss/e/{split}", loss_e, **kw)  # type: ignore
         self.log(f"acc/f/{split}", acc_f, **kw)  # type: ignore
@@ -136,17 +147,18 @@ class LitEmojic(pl.LightningModule):
         x, target_emoji, target_feeling = batch
         logits_feeling, q, emoji_embd = self.model(x)
 
-        loss_feeling, acc_feeling = self._feeling_terms(logits_feeling, target_feeling)
-        loss_emoji, acc_emoji5, acc_emoji10 = self._emoji_terms(q, emoji_embd, target_emoji)
+        loss_feeling, acc_feeling = self._feeling_terms(
+            logits_feeling, target_feeling)
+        loss_emoji, acc_emoji5, acc_emoji10 = self._emoji_terms(
+            q, emoji_embd, target_emoji)
 
         self._log_split(
-            "train",
-            x.size(0),
+            "train", x.size(0),
             loss_feeling,
             loss_emoji,
             acc_feeling,
             acc_emoji5,
-            acc_emoji10,
+            acc_emoji10
         )
 
         return loss_feeling + loss_emoji
@@ -155,11 +167,18 @@ class LitEmojic(pl.LightningModule):
         x, target_emoji, target_feeling = batch
         logits_feeling, q, emoji_embd = self.model(x)
 
-        loss_feeling, acc_feeling = self._feeling_terms(logits_feeling, target_feeling)
-        loss_emoji, acc_emoji5, acc_emoji10 = self._emoji_terms(q, emoji_embd, target_emoji)
+        loss_feeling, acc_feeling = self._feeling_terms(
+            logits_feeling, target_feeling)
+        loss_emoji, acc_emoji5, acc_emoji10 = self._emoji_terms(
+            q, emoji_embd, target_emoji)
 
         self._log_split(
-            "val", x.size(0), loss_feeling, loss_emoji, acc_feeling, acc_emoji5, acc_emoji10
+            "val", x.size(0),
+            loss_feeling,
+            loss_emoji,
+            acc_feeling,
+            acc_emoji5,
+            acc_emoji10
         )
 
     def configure_optimizers(self):
@@ -167,6 +186,7 @@ class LitEmojic(pl.LightningModule):
 
 
 class ExportBest(pl.Callback):
+
     def __init__(self) -> None:
         self.best_acc = 0.0
 
@@ -235,14 +255,18 @@ def train(resume: bool = False) -> None:
     print(f"Train: {len(train_ds)}  Eval: {len(eval_ds)}")
     print(param_table(lit.model), "\n")
 
-    logger = TensorBoardLogger("runs", name=CONFIG_NAME, version="", default_hp_metric=False)
+    logger = TensorBoardLogger(
+        "runs",
+        name=CONFIG_NAME,
+        version="",
+        default_hp_metric=False)
 
     trainer = pl.Trainer(
         max_epochs=EPOCHS,
         check_val_every_n_epoch=EVAL_EPOCHS,
         gradient_clip_val=GRAD_CLIP,
         accelerator="cpu",
-        devices="auto",
+        devices='auto',
         logger=logger,
         enable_checkpointing=False,
         callbacks=[export_best, early_stop, SaveLast()],
