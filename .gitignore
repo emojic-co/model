@@ -28,3 +28,5 @@ data.jsonl.dry
 data.jsonl.tmp
 
 *.pt
+# SDD isolated worktrees
+/.worktrees/
