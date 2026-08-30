@@ -6,9 +6,16 @@ MAX_TEXT_LEN = 42
 # not a slice of data.jsonl -- there is no eval-size knob here any more.
 
 # MODEL
-CHAR_EMBED_SIZE = 20
-KERNELS = (3,)
-CHANNELS = (200,)
+CHAR_EMBED_SIZE = 16
+
+# Model configuration:
+# Each layer runs multiple kernels in parallel, then concatenates the outputs along the channel axis.  # noqa: E501
+MODEL = [
+    # Layer 0: (kernel size, channels)
+    [(2, 32), (3, 128), (4, 64)],
+    # Layer 1: (kernel size, channels)
+    [(2, 256)],
+]
 
 EMOJI_EMBED_SIZE = 20
 TRIPLET_MARGIN = 0.5
@@ -27,6 +34,6 @@ EVAL_EPOCHS = 2
 
 CONFIG_NAME = ' | '.join([
     f'TIME: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
-    f'MODEL: {KERNELS} {CHANNELS}',
+    f'MODEL: {CHAR_EMBED_SIZE} {MODEL}',
     f'TRAIN: lr {LR} bs {BATCH_SIZE} gc {GRAD_CLIP}',
 ])
