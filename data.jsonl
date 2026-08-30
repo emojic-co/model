@@ -8671,7 +8671,7 @@
 {"emoji":"🍵","feeling":"Calm","text":"Tea first, then I'll consider the vegetables."}
 {"emoji":"😄","feeling":"Happy","text":"Forgot the salt. Calling it heart-healthy."}
 {"emoji":"😊","feeling":"Happy","text":"I got us the booth near the window."}
-{"emoji":"😅","feeling":"Sad","text":"Made soup. Forgot the soup."}
+{"emoji":"😅","feeling":"Neutral","text":"Made soup. Forgot the soup."}
 {"emoji":"😞","feeling":"Sad","text":"The oven is sulking again. So am I."}
 {"emoji":"🌿","feeling":"Neutral","text":"Can you bring coriander? I forgot it again."}
 {"emoji":"😴","feeling":"Sad","text":"The roast needs two hours. I need eight."}
@@ -22903,7 +22903,7 @@
 {"feeling":"Sad","text":"Everyone left before the cake.","emoji":"😔"}
 {"feeling":"Sad","text":"I still look for your car.","emoji":"🚗"}
 {"feeling":"Sad","text":"Forgot my umbrella. Again.","emoji":"☔"}
-{"feeling":"Sad","text":"The joke wasn't that funny.","emoji":"😐"}
+{"emoji":"😐","feeling":"Neutral","text":"The joke wasn't that funny."}
 {"feeling":"Sad","text":"I got the job. Wish you knew.","emoji":"🥲"}
 {"feeling":"Sad","text":"It's quiet here now.","emoji":"🤫"}
 {"feeling":"Sad","text":"I won't ask what changed.","emoji":"🤐"}
@@ -27119,7 +27119,7 @@
 {"emoji":"पछ","text":"There’s a strange noise by the meter","feeling":"Anxious"}
 {"emoji":"पछ","text":"I found your missing slipper","feeling":"Happy"}
 {"emoji":"पछ","text":"Rain’s coming, bring the washing in","feeling":"Neutral"}
-{"emoji":"पछ","text":"The hallway light is dead again","feeling":"Angry"}
+{"emoji":"💡","feeling":"Angry","text":"The hallway light is dead again"}
 {"emoji":"पछ","text":"All quiet here for once","feeling":"Calm"}
 {"emoji":"पछ","text":"Sorry, I took your delivery","feeling":"Neutral"}
 {"emoji":"पछ","text":"They’re drilling next door tomorrow","feeling":"Anxious"}
@@ -33024,7 +33024,7 @@
 {"emoji":"🤢","text":"The printer smells like burnt plastic.","feeling":"Anxious"}
 {"emoji":"🤢","text":"Who left the toilet like that?","feeling":"Angry"}
 {"emoji":"🤢","text":"The leftovers are moving on their own.","feeling":"Anxious"}
-{"emoji":"🤢","text":"I just saw the kitchen sink. Never mind.","feeling":"Sad"}
+{"emoji":"🤢","feeling":"Neutral","text":"I just saw the kitchen sink. Never mind."}
 {"emoji":"🤢","text":"Can we postpone this call? I feel awful.","feeling":"Sad"}
 {"emoji":"🤢","text":"The coffee machine made a horrible noise.","feeling":"Anxious"}
 {"emoji":"🤢","text":"Bad news: the quarterly numbers are worse.","feeling":"Sad"}
@@ -48448,7 +48448,7 @@
 {"feeling":"Love","text":"Don’t make me worry, okay?","emoji":"😟"}
 {"feeling":"Love","text":"You looked cute being annoyed.","emoji":"😏"}
 {"feeling":"Love","text":"I’m rooting for you quietly.","emoji":"🤞"}
-{"feeling":"Love","text":"Actually, loudly in my head.","emoji":"📣"}
+{"emoji":"📣","feeling":"Love","text":"I'm cheering you on, loudly, even from here."}
 {"feeling":"Love","text":"You can call me whenever.","emoji":"📞"}
 {"feeling":"Love","text":"I’ll answer, even half asleep.","emoji":"😴"}
 {"feeling":"Love","text":"That’s friendship. Probably.","emoji":"🤝"}
@@ -61528,7 +61528,7 @@
 {"emoji":"📹","text":"The new kettle has finally arrived","feeling":"Neutral"}
 {"emoji":"📹","text":"Watch the dog steal my slipper","feeling":"Neutral"}
 {"emoji":"📹","text":"This takes me back to Blackpool","feeling":"Neutral"}
-{"emoji":"📹","text":"The garden survived the storm","feeling":"Neutral"}
+{"emoji":"🌿","feeling":"Neutral","text":"The garden survived the storm"}
 {"emoji":"📹","text":"Is this the right way to prune roses?","feeling":"Neutral"}
 {"emoji":"📹","text":"Here's your man doing his famous dance","feeling":"Neutral"}
 {"emoji":"📹","text":"The gulls have taken over the car park","feeling":"Neutral"}
