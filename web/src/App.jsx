@@ -3,6 +3,8 @@ import { useOnnx } from './hooks/useOnnx'
 import { argmax, normalize, softmax } from './model'
 import { Card } from './components/Card'
 import { EmojiList } from './components/EmojiList'
+import { useCardImage } from './hooks/useCardImage'
+import { Toast } from './components/Toast'
 
 const MIN_CHARS = 3
 const DEBOUNCE_MS = 100
@@ -27,6 +29,8 @@ export function App() {
   const [text, setText] = useState('')
   const [scores, setScores] = useState(null)
   const [override, setOverride] = useState({ emoji: null, feeling: null })
+  const [toast, setToast] = useState({ msg: '', n: 0 })
+  const showToast = (msg) => setToast((s) => ({ msg, n: s.n + 1 }))
   const seq = useRef(0)
 
   const char2idx = useMemo(
@@ -59,6 +63,17 @@ export function App() {
   const shownEmoji = override.emoji ?? predictedEmoji
   const shownFeeling = override.feeling ?? predictedFeeling
 
+  const cardData =
+    shownEmoji && shownFeeling && palette
+      ? {
+          text,
+          emoji: shownEmoji,
+          feeling: shownFeeling,
+          pal: palette[shownFeeling] ?? palette.Neutral,
+        }
+      : null
+  const copyCard = useCardImage(cardData, showToast)
+
   const maxLen = config?.max_text_len ?? 0
 
   return (
@@ -80,6 +95,12 @@ export function App() {
             placeholder="type at least 3 characters…"
             value={text}
             onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                copyCard()
+              }
+            }}
           />
           <div className={'counter' + (maxLen && text.length >= maxLen ? ' full' : '')}>
             {text.length}
@@ -92,14 +113,14 @@ export function App() {
             feelings={meta?.feelings ?? []}
             palette={palette}
             onPickFeeling={(f) => setOverride((o) => ({ ...o, feeling: f }))}
-            onCopy={() => {}}
+            onCopy={copyCard}
           />
         </div>
       </div>
       <footer className="footer">
         model updated <span>{formatDate(meta?.exported_at)}</span>
       </footer>
-      {feelingScores ? null : null}
+      <Toast toast={toast} />
     </main>
   )
 }
