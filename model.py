@@ -57,11 +57,25 @@ class Model(nn.Module):
             ]
         )
 
+        # One order-sensitive layer over the conv feature sequence. The global
+        # max-pool below is otherwise a bag of n-grams -- word order and "not"
+        # are invisible to it (Anxious collapses into Love/Sad, `not happy`
+        # still reads Happy). A single bidirectional GRU reads the CHANNELS[-1]
+        # conv features left-to-right and right-to-left; the heads pool its
+        # 2*CHANNELS[-1] output.
+        self.gru = nn.GRU(
+            input_size=CHANNELS[-1],
+            hidden_size=CHANNELS[-1],
+            num_layers=1,
+            bidirectional=True,
+            batch_first=True,
+        )
+
         self.feeling = nn.Linear(
-            CHANNELS[-1],
+            2 * CHANNELS[-1],
             len(FEELING))
 
-        self.emoji = nn.Linear(CHANNELS[-1], EMOJI_EMBED_SIZE)
+        self.emoji = nn.Linear(2 * CHANNELS[-1], EMOJI_EMBED_SIZE)
         self.emoji_embed = nn.Embedding(len(EMOJIS), EMOJI_EMBED_SIZE)
 
     def forward(self, x):
@@ -72,7 +86,11 @@ class Model(nn.Module):
         out = self.char_embed(x).transpose(1, 2)
         out = self.conv(out)  # (B, CHANNELS[-1], L)
 
-        out = torch.max(out, dim=-1).values  # (B, CHANNELS[-1])
+        # (B, C, L) -> (B, L, C) for the GRU, read the whole sequence (the
+        # pad-contaminated tail included, as above), then max-pool over time
+        # on the bidirectional 2*C output.
+        out, _ = self.gru(out.transpose(1, 2))  # (B, L, 2*CHANNELS[-1])
+        out = torch.max(out, dim=1).values  # (B, 2*CHANNELS[-1])
 
         return (
             self.feeling(out),
