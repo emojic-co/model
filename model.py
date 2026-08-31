@@ -5,7 +5,7 @@ import torch
 from torch import nn
 from torch.nn.functional import normalize
 
-from config import CHAR_EMBED_SIZE, CONV, DROPOUT_EMOJI, DROPOUT_FEELING
+from config import CHAR_EMBED_SIZE, CONV, DROPOUT_COLOR, DROPOUT_EMOJI, DROPOUT_FEELING
 from data import COLOR_DIM, EMOJIS, FEELING, VOCAB_SIZE
 
 EMOJI_EMBED_SIZE = ceil(6 * log2(len(EMOJIS)))
@@ -55,6 +55,7 @@ class Model(nn.Module):
         self.emoji = nn.Linear(o, EMOJI_EMBED_SIZE)
         self.emoji_embed = nn.Embedding(len(EMOJIS), EMOJI_EMBED_SIZE)
 
+        self.color_dropout = nn.Dropout(DROPOUT_COLOR)
         self.color = nn.Linear(o, COLOR_DIM)
 
     def forward(self, x):
@@ -65,10 +66,11 @@ class Model(nn.Module):
 
         feeling_do = self.feeling_dropout(pooled)
         emoji_do = self.emoji_dropout(pooled)
+        color_do = self.color_dropout(pooled)
 
         return (
             self.feeling(feeling_do),
             normalize(self.emoji(emoji_do), p=2, dim=-1),
             normalize(self.emoji_embed.weight, p=2, dim=-1),
-            self.color(pooled),
+            self.color(color_do),
         )
