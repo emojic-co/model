@@ -33,7 +33,7 @@ export const FEELINGS = {
   Anxious: { cluster: 'anxiety', style: {}, dur: { entrance: 560, emoji: 220 } },
   Worried: { cluster: 'anxiety', style: { letterSpacing: '0.01em' }, dur: { entrance: 640, emoji: 420 } },
   Concerned: { cluster: 'anxiety', style: {}, dur: { entrance: 700, emoji: 600 } },
-  Confused: { cluster: 'anxiety', style: { fontStyle: 'italic' }, dur: { entrance: 620, emoji: 900 } },
+  Confused: { cluster: 'anxiety', style: { letterSpacing: '0.02em' }, dur: { entrance: 620, emoji: 900 } },
   Embarrassed: { cluster: 'anxiety', entrance: 'shrinkBack', emoji: 'shrinkBack', style: {}, dur: { entrance: 640, emoji: 3200 } },
   Love: { cluster: 'tender', style: { fontWeight: 700 }, dur: { entrance: 700, emoji: 1300 } },
   Caring: { cluster: 'tender', style: { fontWeight: 600 }, dur: { entrance: 750, emoji: 1600 } },

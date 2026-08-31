@@ -13,10 +13,15 @@ import {
 const readJson = (rel) =>
   JSON.parse(readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8'))
 const meta = readJson('../public/meta.json')
+const css = readFileSync(fileURLToPath(new URL('./styles.css', import.meta.url)), 'utf8')
 
 describe('feelings coverage', () => {
   it('every model feeling has a FEELINGS entry', () => {
     for (const f of meta.feelings) expect(FEELINGS[f], f).toBeTruthy()
+  })
+
+  it('FEELINGS keys are exactly the model feelings', () => {
+    expect([...Object.keys(FEELINGS)].sort()).toEqual([...meta.feelings].sort())
   })
 
   it('every FEELINGS entry points at a real cluster', () => {
@@ -59,6 +64,29 @@ describe('topFeelings', () => {
 
   it('returns [] when scores are missing', () => {
     expect(topFeelings(null, feelings, 'A')).toEqual([])
+  })
+})
+
+describe('css motif contract', () => {
+  it('every entrance motif has a keyframe and a selector', () => {
+    for (const m of ENTRANCE_MOTIFS) {
+      expect(css, m).toContain(`@keyframes entrance-${m}`)
+      expect(css, m).toContain(`[data-entrance="${m}"]`)
+    }
+  })
+  it('every emoji motif has a keyframe and a selector', () => {
+    for (const m of EMOJI_MOTIFS) {
+      expect(css, m).toContain(`@keyframes emoji-${m}`)
+      expect(css, m).toContain(`[data-emoji="${m}"]`)
+    }
+  })
+  it('no keyframe references an unknown motif', () => {
+    const names = [...css.matchAll(/@keyframes (entrance|emoji)-([a-zA-Z]+)/g)].map((x) => `${x[1]}:${x[2]}`)
+    const known = new Set([
+      ...ENTRANCE_MOTIFS.map((m) => `entrance:${m}`),
+      ...EMOJI_MOTIFS.map((m) => `emoji:${m}`),
+    ])
+    for (const n of names) expect(known.has(n), n).toBe(true)
   })
 })
 

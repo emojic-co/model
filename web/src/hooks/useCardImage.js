@@ -20,6 +20,10 @@ async function ensureFonts(stack, emoji) {
 
 async function render({ text, emoji, feeling, pal }) {
   const stack = resolveFeeling(feeling).font
+  const st = resolveFeeling(feeling).style
+  const fw = st.fontWeight ?? 600
+  const fitalic = st.fontStyle === 'italic' ? 'italic ' : ''
+  const headline = st.textTransform === 'uppercase' ? text.toUpperCase() : text
   await ensureFonts(stack, emoji)
 
   const canvas = document.createElement('canvas')
@@ -49,11 +53,12 @@ async function render({ text, emoji, feeling, pal }) {
   const lineHeight = 1.33
   const maxWidth = S - 96
   const widthAt = (str, px) => {
-    ctx.font = `600 ${px}px ${stack}`
+    ctx.font = `${fitalic}${fw} ${px}px ${stack}`
     return ctx.measureText(str).width
   }
+  if ('letterSpacing' in ctx) ctx.letterSpacing = st.letterSpacing ?? '0px'
   const fpx = fitCanvasFont({
-    text,
+    text: headline,
     maxWidth,
     maxHeight: S * 0.26,
     min: Math.round((32 * S) / 600),
@@ -62,14 +67,17 @@ async function render({ text, emoji, feeling, pal }) {
     widthAt,
   })
 
-  ctx.font = `600 ${fpx}px ${stack}`
-  const lines = wrapLines((str) => ctx.measureText(str).width, text, maxWidth, 4)
+  ctx.font = `${fitalic}${fw} ${fpx}px ${stack}`
+  const lines = wrapLines((str) => ctx.measureText(str).width, headline, maxWidth, 4)
   let ty = S * 0.62 - ((lines.length - 1) * fpx * lineHeight) / 2
+  ctx.globalAlpha = st.opacity ?? 1
   for (const line of lines) {
     ctx.fillText(line, S / 2, ty)
     ty += fpx * lineHeight
   }
+  ctx.globalAlpha = 1
 
+  if ('letterSpacing' in ctx) ctx.letterSpacing = '0px'
   ctx.font = `600 13px ${stack}`
   if ('letterSpacing' in ctx) ctx.letterSpacing = '3.5px'
   ctx.globalAlpha = 0.85

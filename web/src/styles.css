@@ -113,7 +113,7 @@ h1 {
 }
 
 @keyframes entrance-slam {
-  0% { opacity: 0; transform: scale(1.6); }
+  0% { opacity: 0; transform: scale(1.25); }
   60% { opacity: 1; transform: scale(0.94); }
   75% { transform: scale(1.03) translateX(-3px); }
   85% { transform: scale(1) translateX(3px); }
@@ -134,7 +134,7 @@ h1 {
   100% { opacity: 1; transform: scale(1); }
 }
 @keyframes entrance-drop {
-  0% { opacity: 0; transform: translateY(-40px); }
+  0% { opacity: 0; transform: translateY(-18px); }
   70% { opacity: 1; transform: translateY(6px); }
   100% { transform: translateY(0); }
 }
@@ -151,7 +151,7 @@ h1 {
   100% { opacity: 1; transform: scale(1); }
 }
 @keyframes entrance-rise {
-  0% { opacity: 0; transform: translateY(28px); }
+  0% { opacity: 0; transform: translateY(18px); }
   100% { opacity: 1; transform: translateY(0); }
 }
 @keyframes entrance-fadeTilt {
@@ -164,7 +164,7 @@ h1 {
   100% { transform: translateY(0) scaleY(1); }
 }
 @keyframes entrance-shrinkBack {
-  0% { opacity: 0; transform: scale(1.15); }
+  0% { opacity: 0; transform: scale(1.12); }
   40% { opacity: 1; transform: scale(0.9); }
   70% { transform: scale(0.97) rotate(-2deg); }
   100% { transform: scale(1) rotate(0); }

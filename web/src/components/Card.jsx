@@ -27,7 +27,7 @@ export function Card({ text, emoji, feeling, feelingOptions, palette, revision, 
     >
       <span className="card-emoji">{emoji}</span>
       <div className="card-text-box" ref={textRef}>
-        <p className="card-text" key={revision} style={r?.style}>
+        <p className="card-text" key={`${revision}:${feeling}`} style={r?.style}>
           {text}
         </p>
       </div>
