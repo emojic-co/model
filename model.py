@@ -65,7 +65,7 @@ class Model(nn.Module):
         emoji_do = self.emoji_dropout(pooled)
 
         return (
-            self.feeling(),
-            normalize(self.emoji(pooled), p=2, dim=-1),
+            self.feeling(feeling_do),
+            normalize(self.emoji(emoji_do), p=2, dim=-1),
             normalize(self.emoji_embed.weight, p=2, dim=-1),
         )
