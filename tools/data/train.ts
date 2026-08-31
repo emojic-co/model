@@ -7,9 +7,9 @@ import { appendJsonl } from "./io.ts"
 
 const TRAIN = "./train.jsonl"
 
-const BATCH_SIZE = 25
-const BATCH_COUNT = 40
-const CONCURRENCY = 20
+const BATCH_SIZE = 50
+const BATCH_COUNT = 50
+const CONCURRENCY = 25
 
 const MIN_LEN = 4
 const MAX_LEN = 48
