@@ -15,11 +15,11 @@ from config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE,
     EPOCHS,
-    EVAL_EPOCHS,
     GRAD_CLIP,
     INFONCE_TEMP,
     LR,
     MAX_TEXT_LEN,
+    VAL_CHECK_INTERVAL,
 )
 from data import (
     CHARS,
@@ -279,7 +279,8 @@ def train(resume: bool = False) -> None:
 
     trainer = pl.Trainer(
         max_epochs=EPOCHS,
-        check_val_every_n_epoch=EVAL_EPOCHS,
+        val_check_interval=VAL_CHECK_INTERVAL,
+        check_val_every_n_epoch=None,
         gradient_clip_val=GRAD_CLIP,
         accelerator="cpu",
         devices='auto',
