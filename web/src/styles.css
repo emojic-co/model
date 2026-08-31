@@ -109,9 +109,11 @@ h1 {
   align-self: start;
 }
 
-.stage>.feeling-bar {
+.stage>.feeling-bar-container {
   grid-area: feelings;
   justify-self: center;
+  container-type: inline-size;
+  width: min(var(--w), 100%);
 }
 
 .input {
@@ -690,7 +692,7 @@ h1 {
 
 .card-emoji {
   font-family: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
-  font-size: 23cqw;
+  font-size: 32cqw;
   line-height: 1;
   flex: none;
   transform: translateY(6.5cqw);
