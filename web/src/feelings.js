@@ -71,6 +71,6 @@ export function topFeelings(feelingScores, feelings, selected) {
     .sort((a, b) => b.p - a.p)
     .map((x) => x.f)
   const top = ranked.slice(0, 5)
-  if (selected && !top.includes(selected)) top.push(selected)
+  if (selected && !top.includes(selected)) return [...ranked.slice(0, 4), selected]
   return top
 }

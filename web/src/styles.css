@@ -17,7 +17,8 @@ body {
   place-items: center;
   padding: 32px;
   font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  background: #f4f4f5;
+  background-color: #faf6ef;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='40'%20height='40'%3E%3Cg%20fill='%23efe1cc'%3E%3Ccircle%20cx='20'%20cy='20'%20r='1.6'/%3E%3Ccircle%20cx='0'%20cy='0'%20r='1.6'/%3E%3Ccircle%20cx='40'%20cy='0'%20r='1.6'/%3E%3Ccircle%20cx='0'%20cy='40'%20r='1.6'/%3E%3Ccircle%20cx='40'%20cy='40'%20r='1.6'/%3E%3C/g%3E%3C/svg%3E");
   color: var(--ink);
 }
 
@@ -44,17 +45,49 @@ h1 {
 }
 
 .stage {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 28px;
+  display: grid;
+  grid-template-columns: 244px var(--w);
+  grid-template-areas:
+    ".     title"
+    ".     input"
+    ".     counter"
+    "emoji card"
+    ".     feelings"
+    ".     footer";
+  column-gap: 28px;
+  row-gap: 20px;
+  justify-content: center;
+  align-items: start;
 }
 
-.card-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
+.stage > h1 {
+  grid-area: title;
+  justify-self: center;
+}
+.stage > .footer {
+  grid-area: footer;
+  justify-self: center;
+}
+.stage > .warn {
+  grid-area: feelings;
+  justify-self: center;
+  align-self: center;
+}
+.stage > .input {
+  grid-area: input;
+}
+.stage > .counter {
+  grid-area: counter;
+}
+.stage > .card {
+  grid-area: card;
+}
+.stage > .emoji-list {
+  grid-area: emoji;
+}
+.stage > .feeling-bar {
+  grid-area: feelings;
+  justify-self: center;
 }
 
 .input {
@@ -86,6 +119,24 @@ h1 {
 
 .counter.full {
   color: #c0392b;
+}
+
+.warn {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: #b06a2c;
+  text-align: center;
+}
+
+.warn,
+.feeling-bar {
+  transition: opacity 200ms ease;
+}
+
+.is-hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .card {
@@ -263,11 +314,9 @@ h1 {
 .card[data-emoji="droop"] .card-emoji { animation-name: emoji-droop; }
 .card[data-emoji="shrinkBack"] .card-emoji { animation-name: emoji-shrinkBack; }
 
-@media (prefers-reduced-motion: reduce) {
-  .card[data-feeling] { animation: none; background-size: auto; }
-  .card[data-feeling] .card-emoji,
-  .card[data-feeling] .card-text { animation: none !important; }
-}
+.card[data-feeling] { animation: none; background-size: auto; }
+.card[data-feeling] .card-emoji,
+.card[data-feeling] .card-text { animation: none !important; }
 
 .copy-btn {
   position: absolute;
@@ -300,6 +349,8 @@ h1 {
   font-size: 140px;
   line-height: 1;
   flex: none;
+  transform: translateY(40px);
+  transition: opacity 150ms ease;
 }
 
 .card-text-box {
@@ -310,6 +361,12 @@ h1 {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  transition: opacity 150ms ease;
+}
+
+.card[data-phase="out"] .card-emoji,
+.card[data-phase="out"] .card-text-box {
+  opacity: 0;
 }
 
 .card-text {
@@ -329,13 +386,13 @@ h1 {
 }
 
 .feeling-bar button {
-  width: 92px;
+  width: 108px;
   aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-size: 13px;
+  font-size: 12.5px;
   line-height: 1.2;
   word-break: break-word;
   border: none;
@@ -361,10 +418,16 @@ h1 {
   box-shadow: 0 0 0 2px currentColor, 0 3px 10px rgba(0, 0, 0, 0.24);
 }
 
+.feeling-bar button.placeholder {
+  background: transparent;
+  box-shadow: none;
+  opacity: 0;
+  cursor: default;
+}
+
 .emoji-list {
   width: 244px;
   height: var(--w);
-  align-self: flex-end;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -374,11 +437,11 @@ h1 {
   gap: 10px;
 }
 
-.emoji-list-empty {
-  display: block;
-}
-
 .emoji-list li { display: block; }
+
+.emoji-list:not([data-ready]) button {
+  opacity: 0;
+}
 
 .emoji-list button {
   width: 100%;
@@ -396,7 +459,8 @@ h1 {
   padding: 6px;
   cursor: pointer;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease,
+    opacity 220ms ease;
 }
 
 .emoji-list button:hover,
@@ -442,18 +506,19 @@ h1 {
 
 @media (max-width: 980px) {
   .stage {
-    flex-direction: column;
-    align-items: center;
+    grid-template-columns: minmax(0, var(--w));
+    grid-template-areas:
+      "title"
+      "input"
+      "counter"
+      "card"
+      "feelings"
+      "emoji"
+      "footer";
   }
   .emoji-list {
-    order: 2;
-    width: var(--w);
-    max-width: 100%;
+    width: 100%;
     height: auto;
-    align-self: center;
     grid-auto-rows: 96px;
-  }
-  .card-col {
-    order: 1;
   }
 }

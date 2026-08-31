@@ -9,7 +9,7 @@ import { useCardImage } from './hooks/useCardImage'
 import { Toast } from './components/Toast'
 
 const MIN_CHARS = 3
-const DEBOUNCE_MS = 100
+const DEBOUNCE_MS = 250
 
 function formatDate(iso) {
   if (!iso) return '—'
@@ -30,7 +30,6 @@ export function App() {
   const { meta, config, palette, ready, predict } = useOnnx()
   const [text, setText] = useState('')
   const [scores, setScores] = useState(null)
-  const [revision, setRevision] = useState(0)
   const [override, setOverride] = useState({ emoji: null, feeling: null })
   const [toast, setToast] = useState({ msg: '', n: 0 })
   const showToast = useCallback((msg) => setToast((s) => ({ msg, n: s.n + 1 })), [])
@@ -54,7 +53,6 @@ export function App() {
       const logits = await predict(text)
       if (mine !== seq.current) return
       setScores(logits)
-      setRevision((n) => n + 1)
       setOverride({ emoji: null, feeling: null })
     }, DEBOUNCE_MS)
     return () => clearTimeout(timer)
@@ -82,58 +80,62 @@ export function App() {
   const copyCard = useCardImage(cardData, showToast)
 
   const maxLen = config?.max_text_len ?? 0
+  const tooShort =
+    ready && char2idx ? normalize(text, char2idx).length < MIN_CHARS : false
+  const displayEmoji = shownEmoji ?? '🙂'
+  const displayFeeling = shownFeeling ?? 'Neutral'
 
   return (
     <main>
-      <h1>emojic</h1>
       <div className="stage">
+        <h1>emojic</h1>
         <EmojiList
           emojiScores={emojiScores}
           emojis={meta?.emojis ?? []}
           onPick={(e) => setOverride((o) => ({ ...o, emoji: e }))}
         />
-        <div className="card-col">
-          <input
-            className="input"
-            type="text"
-            autoComplete="off"
-            autoFocus
-            maxLength={maxLen || undefined}
-            placeholder="type at least 3 characters…"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                copyCard()
-              }
-            }}
-          />
-          <div className={'counter' + (maxLen && text.length >= maxLen ? ' full' : '')}>
-            {text.length}
-            <span>/{maxLen}</span>
-          </div>
-          <Card
-            text={text}
-            emoji={shownEmoji ?? '🙂'}
-            feeling={shownFeeling}
-            revision={revision}
-            palette={palette}
-            onCopy={copyCard}
-          />
-          {shownFeeling ? (
-            <FeelingBar
-              feelings={feelingOptions}
-              active={shownFeeling}
-              palette={palette}
-              onPick={(f) => setOverride((o) => ({ ...o, feeling: f }))}
-            />
-          ) : null}
+        <input
+          className="input"
+          type="text"
+          autoComplete="off"
+          autoFocus
+          maxLength={maxLen || undefined}
+          placeholder="type at least 3 characters…"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              copyCard()
+            }
+          }}
+        />
+        <div className={'counter' + (maxLen && text.length >= maxLen ? ' full' : '')}>
+          {text.length}
+          <span>/{maxLen}</span>
         </div>
+        <Card
+          text={text}
+          emoji={displayEmoji}
+          feeling={displayFeeling}
+          palette={palette}
+          onCopy={copyCard}
+        />
+        <p className={'warn' + (tooShort ? '' : ' is-hidden')}>
+          text is too short — showing a default card
+        </p>
+        <FeelingBar
+          feelings={feelingOptions}
+          active={shownFeeling}
+          palette={palette}
+          ready={!tooShort && !!shownFeeling}
+          hidden={tooShort || !shownFeeling}
+          onPick={(f) => setOverride((o) => ({ ...o, feeling: f }))}
+        />
+        <footer className="footer">
+          model updated <span>{formatDate(meta?.exported_at)}</span>
+        </footer>
       </div>
-      <footer className="footer">
-        model updated <span>{formatDate(meta?.exported_at)}</span>
-      </footer>
       <Toast toast={toast} />
     </main>
   )

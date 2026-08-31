@@ -48,7 +48,7 @@ async function render({ text, emoji, feeling, pal }) {
   ctx.textBaseline = 'middle'
 
   ctx.font = `120px ${EMOJI_STACK}`
-  ctx.fillText(emoji, S / 2, S * 0.36)
+  ctx.fillText(emoji, S / 2, S * 0.4)
 
   const lineHeight = 1.33
   const maxWidth = S - 96

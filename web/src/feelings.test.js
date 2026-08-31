@@ -58,8 +58,8 @@ describe('topFeelings', () => {
     expect(topFeelings(scores, feelings, 'B')).toEqual(['B', 'D', 'F', 'C', 'E'])
   })
 
-  it('appends the selected feeling when it is outside the top 5', () => {
-    expect(topFeelings(scores, feelings, 'G')).toEqual(['B', 'D', 'F', 'C', 'E', 'G'])
+  it('replaces the 5th with the selected feeling when it is outside the top 5', () => {
+    expect(topFeelings(scores, feelings, 'G')).toEqual(['B', 'D', 'F', 'C', 'G'])
   })
 
   it('returns [] when scores are missing', () => {
