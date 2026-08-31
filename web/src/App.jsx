@@ -3,6 +3,7 @@ import { useOnnx } from './hooks/useOnnx'
 import { argmax, normalize } from './model'
 import { topFeelings } from './feelings'
 import { Card } from './components/Card'
+import { FeelingBar } from './components/FeelingBar'
 import { EmojiList } from './components/EmojiList'
 import { useCardImage } from './hooks/useCardImage'
 import { Toast } from './components/Toast'
@@ -116,12 +117,18 @@ export function App() {
             text={text}
             emoji={shownEmoji ?? '🙂'}
             feeling={shownFeeling}
-            feelingOptions={feelingOptions}
             revision={revision}
             palette={palette}
-            onPickFeeling={(f) => setOverride((o) => ({ ...o, feeling: f }))}
             onCopy={copyCard}
           />
+          {shownFeeling ? (
+            <FeelingBar
+              feelings={feelingOptions}
+              active={shownFeeling}
+              palette={palette}
+              onPick={(f) => setOverride((o) => ({ ...o, feeling: f }))}
+            />
+          ) : null}
         </div>
       </div>
       <footer className="footer">

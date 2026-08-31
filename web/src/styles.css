@@ -319,111 +319,102 @@ h1 {
   overflow-wrap: anywhere;
 }
 
-.card-feeling-idle {
-  flex: none;
-  font-size: 13px;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  opacity: 0.85;
-}
-
 .feeling-bar {
-  flex: none;
+  width: var(--w);
+  max-width: 100%;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 4px 10px;
+  gap: 10px;
 }
 
 .feeling-bar button {
-  font: inherit;
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: inherit;
-  background: none;
+  width: 92px;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.2;
+  word-break: break-word;
   border: none;
-  padding: 2px 4px;
+  border-radius: 16px;
+  padding: 8px;
   cursor: pointer;
-  opacity: 0.4;
-  transition: opacity 160ms ease;
+  opacity: 0.8;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  transition: opacity 160ms ease, transform 160ms ease, box-shadow 160ms ease;
 }
 
 .feeling-bar button:hover,
 .feeling-bar button:focus-visible {
-  opacity: 0.8;
+  opacity: 1;
+  transform: translateY(-2px);
   outline: none;
 }
 
 .feeling-bar button.active {
   opacity: 1;
   font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 2px currentColor, 0 3px 10px rgba(0, 0, 0, 0.24);
 }
 
 .emoji-list {
   width: 244px;
+  height: var(--w);
+  align-self: flex-end;
   margin: 0;
-  padding: 14px 16px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #fff;
+  padding: 0;
   list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: 1fr;
+  gap: 10px;
 }
 
 .emoji-list-empty {
-  min-height: 360px;
+  display: block;
 }
 
 .emoji-list li { display: block; }
 
 .emoji-list button {
   width: 100%;
-  display: grid;
-  grid-template-columns: 1.8em 1fr 3.25em;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 6px;
   font: inherit;
   color: var(--ink);
-  background: none;
-  border: none;
-  padding: 3px 4px;
-  border-radius: 6px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 6px;
   cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
 .emoji-list button:hover,
 .emoji-list button:focus-visible {
-  background: #f0f0f2;
+  border-color: #9a9a9a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
   outline: none;
 }
 
 .emoji-list-glyph {
   font-family: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
-  font-size: 18px;
+  font-size: clamp(30px, 4.4vw, 46px);
+  line-height: 1;
 }
 
-.bar-track {
-  height: 6px;
-  border-radius: 3px;
-  background: var(--line);
-  overflow: hidden;
-}
-
-.bar-fill {
-  display: block;
-  height: 100%;
-  background: var(--muted);
-  transition: width 160ms ease;
-}
-
-.bar-pct {
-  text-align: right;
+.emoji-list-weight {
+  font: 11px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
@@ -458,6 +449,9 @@ h1 {
     order: 2;
     width: var(--w);
     max-width: 100%;
+    height: auto;
+    align-self: center;
+    grid-auto-rows: 96px;
   }
   .card-col {
     order: 1;
