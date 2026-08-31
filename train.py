@@ -48,7 +48,7 @@ class ExportWrapper(nn.Module):
         self.model = model
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        feeling_logits, q, emoji_embed = self.model(x)
+        feeling_logits, q, emoji_embed, _color = self.model(x)
         return feeling_logits, q @ emoji_embed.t()
 
 
@@ -127,7 +127,8 @@ class LitEmojic(pl.LightningModule):
             acc_f,
             acc5_f,
             acc5_e,
-            acc10_e
+            acc10_e,
+            mse_c
     ):
         kw = dict(
             on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size)
@@ -137,15 +138,17 @@ class LitEmojic(pl.LightningModule):
         self.log(f"acc5/f/{split}", acc5_f, **kw)  # type: ignore
         # self.log(f"acc5/e/{split}", acc5_e, **kw)  # type: ignore
         self.log(f"acc10/e/{split}", acc10_e, **kw)  # type: ignore
+        self.log(f"mse/color/{split}", mse_c, **kw)  # type: ignore
 
     def training_step(self, batch, batch_idx) -> torch.Tensor:
-        x, target_emoji, target_feeling = batch
-        logits_feeling, q, emoji_embd = self.model(x)
+        x, target_emoji, target_feeling, target_color = batch
+        logits_feeling, q, emoji_embd, color_pred = self.model(x)
 
         loss_feeling, acc_feeling, acc_feeling5 = self._feeling_terms(
             logits_feeling, target_feeling)
         loss_emoji, acc_emoji5, acc_emoji10 = self._emoji_terms(
             q, emoji_embd, target_emoji)
+        loss_color = F.mse_loss(color_pred, target_color)
 
         self._log_split(
             "train", x.size(0),
@@ -154,19 +157,21 @@ class LitEmojic(pl.LightningModule):
             acc_feeling,
             acc_feeling5,
             acc_emoji5,
-            acc_emoji10
+            acc_emoji10,
+            loss_color
         )
 
-        return loss_feeling + loss_emoji
+        return loss_feeling + loss_emoji + loss_color
 
     def validation_step(self, batch, batch_idx) -> None:
-        x, target_emoji, target_feeling = batch
-        logits_feeling, q, emoji_embd = self.model(x)
+        x, target_emoji, target_feeling, target_color = batch
+        logits_feeling, q, emoji_embd, color_pred = self.model(x)
 
         loss_feeling, acc_feeling, acc_feeling5 = self._feeling_terms(
             logits_feeling, target_feeling)
         loss_emoji, acc_emoji5, acc_emoji10 = self._emoji_terms(
             q, emoji_embd, target_emoji)
+        loss_color = F.mse_loss(color_pred, target_color)
 
         self._log_split(
             "val", x.size(0),
@@ -175,7 +180,8 @@ class LitEmojic(pl.LightningModule):
             acc_feeling,
             acc_feeling5,
             acc_emoji5,
-            acc_emoji10
+            acc_emoji10,
+            loss_color
         )
 
     def on_train_epoch_end(self) -> None:

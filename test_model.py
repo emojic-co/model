@@ -71,7 +71,7 @@ def predict(model: Model, text: str) -> dict:
 
 @torch.no_grad()
 def predict_emojis(model: Model, text: str, k: int = 5) -> list[str]:
-    _, q, emoji_embed = model(_encode(text))
+    _, q, emoji_embed, _ = model(_encode(text))
     dists = torch.cdist(q, emoji_embed)[0]
     order = dists.argsort()[:k]
     return [EMOJIS[int(i)] for i in order]

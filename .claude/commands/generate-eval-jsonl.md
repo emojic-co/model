@@ -1,5 +1,5 @@
 ---
-description: Rebuild eval.jsonl from scratch — fold any existing eval.jsonl back into train.jsonl, then sample 1,000 rows whose feeling and emoji are both in labels.json and which carry a full bg/fg palette, and keep only the ones whose labels and colors are all correct
+description: Rebuild eval.jsonl from scratch — fold any existing eval.jsonl back into train.jsonl, then sample 1,200 rows whose feeling and emoji are both in labels.json and which carry a full bg/fg palette, and keep only the ones whose labels and colors are all correct
 allowed-tools: [Bash, Read, Write, Edit]
 ---
 
@@ -56,7 +56,7 @@ Text-length range: **4–48 code points** on the raw `text` (no normalization).
    wc -l train.jsonl
    ```
 
-2. **Restrict to in-vocabulary rows with a full palette, then sample 1,000 — do
+2. **Restrict to in-vocabulary rows with a full palette, then sample 1,200 — do
    not read `train.jsonl` whole.** A row is eligible only when its `feeling`
    **and** `emoji` both appear in `labels.json` **and** it carries a two-element
    `bg` list plus a string `fg` (rows folded back from a pre-palette `eval.jsonl`
@@ -90,7 +90,7 @@ Text-length range: **4–48 code points** on the raw `text` (no normalization).
    print(f"{kept} of the train.jsonl rows have both labels in labels.json and a full palette")
    EOF
    wc -l /tmp/eval_pool.jsonl
-   shuf -n 1000 /tmp/eval_pool.jsonl > /tmp/eval_candidates.jsonl
+   shuf -n 1200 /tmp/eval_pool.jsonl > /tmp/eval_candidates.jsonl
    wc -l /tmp/eval_candidates.jsonl
    ```
 
@@ -98,7 +98,7 @@ Text-length range: **4–48 code points** on the raw `text` (no normalization).
    byte-for-byte against `train.jsonl` later, so do not re-serialize them.
    `eval.jsonl` no longer exists at this point (step 1 removed it), so there is
    nothing to dedup the sample against. If `/tmp/eval_pool.jsonl` holds fewer
-   than 1,000 rows, `shuf` returns all of them — that is fine.
+   than 1,200 rows, `shuf` returns all of them — that is fine.
 
 3. **Judge every candidate — in this session, in chunks of ~50.** Read
    `/tmp/eval_candidates.jsonl`. For each row, with the labels visible, decide:

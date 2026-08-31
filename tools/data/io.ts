@@ -21,6 +21,7 @@ export async function appendJsonl(path: string, rows: string[]): Promise<void> {
   const fh = await open(path, "a")
   try {
     await fh.write(rows.join("\n") + "\n")
+    await fh.sync()
   } finally {
     await fh.close()
   }

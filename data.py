@@ -25,6 +25,34 @@ char2idx = {char: i for i, char in enumerate(CHARS)}
 feeling2idx = {f: i for i, f in enumerate(FEELING)}
 emoji2idx = {e: i for i, e in enumerate(EMOJIS)}
 
+COLOR_DIM = 9
+
+
+def _srgb_to_linear(c: float) -> float:
+    return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+
+def hex_to_oklab(h: str) -> tuple[float, float, float]:
+    h = h.lstrip("#")
+    r, g, b = (_srgb_to_linear(int(h[i:i + 2], 16) / 255) for i in (0, 2, 4))
+
+    lm = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b
+    mm = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b
+    sm = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b
+
+    lm, mm, sm = lm ** (1 / 3), mm ** (1 / 3), sm ** (1 / 3)
+
+    return (
+        0.2104542553 * lm + 0.7936177850 * mm - 0.0040720468 * sm,
+        1.9779984951 * lm - 2.4285922050 * mm + 0.4505937099 * sm,
+        0.0259040371 * lm + 0.7827717662 * mm - 0.8086757660 * sm,
+    )
+
+
+def color_to_tensor(bg: list[str], fg: str) -> torch.Tensor:
+    vals = [c for h in (*bg, fg) for c in hex_to_oklab(h)]
+    return torch.tensor(vals, dtype=torch.float32)
+
 
 def normalize(text: str) -> str:
     text = re.sub(r"\s+", " ", text).strip().lower()
@@ -61,6 +89,8 @@ def _load(path):
         feeling = d["feeling"]
         if feeling not in feeling2idx or d["emoji"] not in emoji2idx:
             continue
+        if "bg" not in d or "fg" not in d:
+            continue
         text = normalize(d["text"])
         if len(text) > MAX_TEXT_LEN:
             continue
@@ -68,7 +98,8 @@ def _load(path):
             text,
             (text_to_tensor(text),
              emoji2idx[d["emoji"]],
-             feeling2idx[feeling])))
+             feeling2idx[feeling],
+             color_to_tensor(d["bg"], d["fg"]))))
     return out
 
 
@@ -102,7 +133,7 @@ def data_sets():
 
 
 def collate_fn(batch):
-    texts, emojis, feelings = zip(*batch, strict=False)
+    texts, emojis, feelings, colors = zip(*batch, strict=False)
 
     padded_texts = torch.full(
         (len(texts), MAX_TEXT_LEN), PAD_IDX, dtype=torch.long)
@@ -111,8 +142,9 @@ def collate_fn(batch):
 
     target_emojis = torch.tensor(emojis, dtype=torch.long)
     target_feelings = torch.tensor(feelings, dtype=torch.long)
+    target_colors = torch.stack(list(colors))
 
-    return padded_texts, target_emojis, target_feelings
+    return padded_texts, target_emojis, target_feelings, target_colors
 
 
 def train_data_loader(ds: EmojiDataset):

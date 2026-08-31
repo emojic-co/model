@@ -105,10 +105,19 @@ if (import.meta.main) {
     consumed.add(source[p])
   }
 
-  await appendJsonl(TRAIN, appended)
+  try {
+    await appendJsonl(TRAIN, appended)
+  } catch (err) {
+    console.error(`\nappend to ${TRAIN} failed, ${DATA} left untouched: ${err}`)
+    process.exit(1)
+  }
 
-  const kept = lines.filter((_, i) => !consumed.has(i))
-  await writeFileAtomic(DATA, kept.length ? kept.join("\n") + "\n" : "", true)
+  const kept = consumed.size
+    ? lines.filter((_, i) => !consumed.has(i))
+    : lines
+  if (consumed.size) {
+    await writeFileAtomic(DATA, kept.length ? kept.join("\n") + "\n" : "", true)
+  }
 
   console.log("\n--- summary ---")
   console.log(`sampled              : ${picked.length}`)
