@@ -1,7 +1,9 @@
 from datetime import datetime
 
+# DATA
 MAX_TEXT_LEN = 42
 
+# MODEL
 CHAR_EMBED_SIZE = 16
 CONV = [
     (4, 96),
@@ -9,14 +11,17 @@ CONV = [
     (2, 196)
 ]
 POOL_1D_SIZE = 2
-DROPOUT = 0.5
 
-INFONCE_TEMP = 0.2
+# DROPOUT
+DROPOUT_FEELING = 0.4
+DROPOUT_EMOJI = 0.2
 
+
+# TRAINING
 LR = 0.01
 BATCH_SIZE = 128
 GRAD_CLIP = 1.0
-
+INFONCE_TEMP = 0.1
 
 EPOCHS = 300
 EVAL_EPOCHS = 1
@@ -25,6 +30,6 @@ EARLY_STOP_PATIENCE = 12
 
 CONFIG_NAME = ' | '.join([
     f'TIME: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
-    f'MODEL: {CHAR_EMBED_SIZE} {CONV} d{DROPOUT}',
+    f'MODEL: {CHAR_EMBED_SIZE} {CONV} d{DROPOUT_FEELING}',
     f'TRAIN: lr {LR} bs {BATCH_SIZE} gc {GRAD_CLIP} tmp {INFONCE_TEMP}',
 ])

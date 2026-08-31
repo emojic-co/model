@@ -38,6 +38,10 @@ WEB_PUBLIC = Path("web/public")
 ONNX_OPSET = 18
 
 
+def f1(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
+    return 2 * a * b / (a + b + 1e-8)
+
+
 class ExportWrapper(nn.Module):
     def __init__(self, model: nn.Module) -> None:
         super().__init__()
@@ -174,6 +178,19 @@ class LitEmojic(pl.LightningModule):
             acc_emoji10
         )
 
+    def on_train_epoch_end(self) -> None:
+        self._log_f1("train")
+
+    def on_validation_epoch_end(self) -> None:
+        self._log_f1("val")
+
+    def _log_f1(self, split: str) -> None:
+        m = self.trainer.callback_metrics
+        a = m.get(f"acc5/f/{split}")
+        b = m.get(f"acc10/e/{split}")
+        if a is not None and b is not None:
+            self.log(f"f1/{split}", f1(a, b), prog_bar=True)
+
     def configure_optimizers(self):
         return optim.Adam(self.parameters(), lr=LR)
 
@@ -190,7 +207,7 @@ class ExportBest(pl.Callback):
         self.best_acc = state_dict["best_acc"]
 
     def on_validation_end(self, trainer: pl.Trainer, pl_module: LitEmojic) -> None:
-        metric = trainer.callback_metrics.get("acc/f/val")
+        metric = trainer.callback_metrics.get("f1/val")
         if metric is None:
             return
         acc = float(metric)
@@ -238,7 +255,7 @@ def train(resume: bool = False) -> None:
     lit = LitEmojic()
     export_best = ExportBest()
     early_stop = EarlyStopping(
-        monitor="acc/f/val",
+        monitor="f1/val",
         mode="max",
         patience=EARLY_STOP_PATIENCE,
         check_on_train_epoch_end=False,
@@ -279,7 +296,7 @@ def train(resume: bool = False) -> None:
     )
 
     print(
-        f"\nBest acc/f/val: {export_best.best_acc:.4f}  ->  "
+        f"\nBest f1/val: {export_best.best_acc:.4f}  ->  "
         f"{MODEL_PT} and web/public/ refreshed"
     )
 
