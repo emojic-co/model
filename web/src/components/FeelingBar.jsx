@@ -3,10 +3,8 @@ import { resolveFeeling } from '../feelings'
 const PLACEHOLDERS = 5
 
 function FeelingButton({ feeling, active, style, onPick }) {
-  // const ref = useFitText(feeling, { min: 8, max: 20, key: feeling })
   return (
     <button
-      // ref={ref}
       type="button"
       className={active ? 'active' : undefined}
       style={style}
