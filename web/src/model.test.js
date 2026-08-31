@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { normalize, encode, argmax, softmax } from './model'
+import { normalize, encode, argmax, softmax, oklabToHex, decodeColors } from './model'
 
 const CHARS = '·abcdefghijklmnopqrstuvwxyz!?:()@$%&* '
 const idx = new Map([...CHARS].map((c, i) => [c, i]))
@@ -29,6 +29,41 @@ describe('encode', () => {
   })
   it('returns a BigInt64Array', () => {
     expect(encode('a', meta, idx)).toBeInstanceOf(BigInt64Array)
+  })
+})
+
+describe('oklabToHex', () => {
+  const cases = [
+    ['#b4000f', [0.484144, 0.175408, 0.090798]],
+    ['#ffd571', [0.889335, 0.006905, 0.127403]],
+    ['#2f1100', [0.220989, 0.036459, 0.044766]],
+    ['#5bd9a4', [0.800294, -0.130398, 0.040409]],
+    ['#78c9f4', [0.800108, -0.060116, -0.080137]],
+    ['#ffffff', [1, 0, 0]],
+    ['#000000', [0, 0, 0]],
+  ]
+  for (const [hex, lab] of cases) {
+    it(`round-trips ${hex}`, () => {
+      expect(oklabToHex(lab[0], lab[1], lab[2])).toBe(hex)
+    })
+  }
+  it('clamps out-of-gamut values into #000000–#ffffff', () => {
+    expect(oklabToHex(2, 1, 1)).toMatch(/^#[0-9a-f]{6}$/)
+    expect(oklabToHex(-1, -1, -1)).toBe('#000000')
+  })
+})
+
+describe('decodeColors', () => {
+  it('splits the 9-vector into bg1/bg2/text_color', () => {
+    const c = [
+      0.484144, 0.175408, 0.090798, 0.889335, 0.006905, 0.127403, 0.220989,
+      0.036459, 0.044766,
+    ]
+    expect(decodeColors(c)).toEqual({
+      bg1: '#b4000f',
+      bg2: '#ffd571',
+      text_color: '#2f1100',
+    })
   })
 })
 

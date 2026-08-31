@@ -16,6 +16,33 @@ export function encode(text, meta, char2idx) {
   return BigInt64Array.from(ids, BigInt)
 }
 
+function linearToSrgb(c) {
+  const v = c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055
+  return Math.min(255, Math.max(0, Math.round(v * 255)))
+}
+
+export function oklabToHex(L, a, b) {
+  const l_ = L + 0.3963377774 * a + 0.2158037573 * b
+  const m_ = L - 0.1055613458 * a - 0.0638541728 * b
+  const s_ = L - 0.0894841775 * a - 1.291485548 * b
+  const l = l_ ** 3
+  const m = m_ ** 3
+  const s = s_ ** 3
+  const r = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s
+  const g = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s
+  const bl = -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s
+  const hex = (n) => n.toString(16).padStart(2, '0')
+  return '#' + hex(linearToSrgb(r)) + hex(linearToSrgb(g)) + hex(linearToSrgb(bl))
+}
+
+export function decodeColors(color) {
+  return {
+    bg1: oklabToHex(color[0], color[1], color[2]),
+    bg2: oklabToHex(color[3], color[4], color[5]),
+    text_color: oklabToHex(color[6], color[7], color[8]),
+  }
+}
+
 export function argmax(arr) {
   let best = 0
   for (let i = 1; i < arr.length; i++) if (arr[i] > arr[best]) best = i

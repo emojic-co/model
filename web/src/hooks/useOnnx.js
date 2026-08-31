@@ -7,7 +7,6 @@ const BASE = import.meta.env.BASE_URL
 export function useOnnx() {
   const [meta, setMeta] = useState(null)
   const [config, setConfig] = useState(null)
-  const [palette, setPalette] = useState(null)
   const [ready, setReady] = useState(false)
   const sessionRef = useRef(null)
   const char2idxRef = useRef(null)
@@ -17,15 +16,13 @@ export function useOnnx() {
     let cancelled = false
     ;(async () => {
       try {
-        const [m, c, p] = await Promise.all([
+        const [m, c] = await Promise.all([
           fetch(BASE + 'meta.json').then((r) => r.json()),
           fetch(BASE + 'config.json').then((r) => r.json()),
-          fetch(BASE + 'palette.json').then((r) => r.json()),
         ])
         if (cancelled) return
         setMeta(m)
         setConfig(c)
-        setPalette(p)
         metaRef.current = m
         char2idxRef.current = new Map([...m.chars].map((ch, i) => [ch, i]))
         ort.env.wasm.numThreads = 1
@@ -50,8 +47,9 @@ export function useOnnx() {
     return {
       feeling: Array.from(out.feeling_logits.data),
       emoji: Array.from(out.emoji_logits.data),
+      color: Array.from(out.color.data),
     }
   }, [])
 
-  return { meta, config, palette, ready, predict }
+  return { meta, config, ready, predict }
 }

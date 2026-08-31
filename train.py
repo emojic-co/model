@@ -47,9 +47,11 @@ class ExportWrapper(nn.Module):
         super().__init__()
         self.model = model
 
-    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        feeling_logits, q, emoji_embed, _color = self.model(x)
-        return feeling_logits, q @ emoji_embed.t()
+    def forward(
+        self, x: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        feeling_logits, q, emoji_embed, color = self.model(x)
+        return feeling_logits, q @ emoji_embed.t(), color
 
 
 def export_onnx(model: nn.Module, dst: Path) -> None:
@@ -62,13 +64,14 @@ def export_onnx(model: nn.Module, dst: Path) -> None:
             (dummy,),
             str(dst),
             input_names=["input"],
-            output_names=["feeling_logits", "emoji_logits"],
+            output_names=["feeling_logits", "emoji_logits", "color"],
             opset_version=ONNX_OPSET,
             dynamo=False,
             dynamic_axes={
                 "input": {0: "batch"},
                 "feeling_logits": {0: "batch"},
                 "emoji_logits": {0: "batch"},
+                "color": {0: "batch"},
             },
         )
 
@@ -321,4 +324,17 @@ if __name__ == "__main__":
         action="store_true",
         help=f"resume training from {LAST_CKPT} (optimizer / epoch / RNG state)",
     )
-    train(resume=parser.parse_args().resume)
+    parser.add_argument(
+        "--export-only",
+        action="store_true",
+        help=f"reload {MODEL_PT} and rewrite web/public/ assets, no training",
+    )
+    args = parser.parse_args()
+    if args.export_only:
+        model = Model()
+        model.load_state_dict(torch.load(MODEL_PT, map_location="cpu"))
+        model.eval()
+        export_web(model)
+        print(f"{MODEL_PT} -> web/public/ refreshed")
+    else:
+        train(resume=args.resume)
