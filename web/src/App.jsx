@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOnnx } from './hooks/useOnnx'
-import { argmax, normalize, decodeColors } from './model'
+import { argmax, normalize, paletteVariants } from './model'
 import { topFeelings, DEFAULT_COLORS } from './feelings'
 import { cycle } from './nav'
 import GitHubButton from 'react-github-btn'
 import { Card } from './components/Card'
 import { FeelingBar } from './components/FeelingBar'
+import { ColorBar } from './components/ColorBar'
 import { EmojiList } from './components/EmojiList'
 import { KeyHints } from './components/KeyHints'
 import { useCardImage } from './hooks/useCardImage'
@@ -35,9 +36,10 @@ export function App() {
   const mobile = useMediaQuery('(max-width: 56.25em)')
   const emojiSlots = mobile ? 9 : 10
   const feelingCount = mobile ? 4 : 5
+  const colorCount = mobile ? 4 : 5
   const [text, setText] = useState('')
   const [scores, setScores] = useState(null)
-  const [override, setOverride] = useState({ emoji: null, feeling: null })
+  const [override, setOverride] = useState({ emoji: null, feeling: null, color: 0 })
   const [toast, setToast] = useState({ msg: '', n: 0 })
   const showToast = useCallback((msg) => setToast((s) => ({ msg, n: s.n + 1 })), [])
   const seq = useRef(0)
@@ -53,7 +55,7 @@ export function App() {
     if (normalize(text, char2idx).length < MIN_CHARS) {
       seq.current++
       setScores(null)
-      setOverride({ emoji: null, feeling: null })
+      setOverride({ emoji: null, feeling: null, color: 0 })
       return
     }
     const mine = ++seq.current
@@ -61,7 +63,7 @@ export function App() {
       const logits = await predict(text)
       if (mine !== seq.current) return
       setScores(logits)
-      setOverride({ emoji: null, feeling: null })
+      setOverride({ emoji: null, feeling: null, color: 0 })
     }, DEBOUNCE_MS)
     return () => clearTimeout(timer)
   }, [text, ready, char2idx, predict])
@@ -87,10 +89,11 @@ export function App() {
   )
   const emojiList = useMemo(() => emojiTop?.map((x) => x.emoji) ?? [], [emojiTop])
 
-  const colors = useMemo(
-    () => (scores?.color ? decodeColors(scores.color) : DEFAULT_COLORS),
+  const palettes = useMemo(
+    () => (scores?.color ? paletteVariants(scores.color) : [DEFAULT_COLORS]),
     [scores],
   )
+  const colors = palettes[override.color] ?? palettes[0]
 
   const cardData =
     shownEmoji && shownFeeling
@@ -122,13 +125,27 @@ export function App() {
         }))
         return
       }
-      if (e.shiftKey || e.altKey || e.metaKey || !emojiList.length) return
+      if (e.altKey) {
+        if (e.shiftKey || e.metaKey || palettes.length <= 1) return
+        e.preventDefault()
+        setOverride((o) => ({ ...o, color: (o.color + dir + colorCount) % colorCount }))
+        return
+      }
+      if (e.shiftKey || e.metaKey || !emojiList.length) return
       e.preventDefault()
       setOverride((o) => ({ ...o, emoji: cycle(emojiList, o.emoji ?? predictedEmoji, dir) }))
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [emojiList, feelingOptions, predictedEmoji, predictedFeeling, copyCard])
+  }, [
+    emojiList,
+    feelingOptions,
+    predictedEmoji,
+    predictedFeeling,
+    copyCard,
+    palettes,
+    colorCount,
+  ])
 
   const maxLen = config?.max_text_len ?? 0
   const tooShort =
@@ -181,10 +198,16 @@ export function App() {
         />
         <KeyHints />
         <div className="feelings-col">
+          <ColorBar
+            palettes={palettes}
+            active={override.color}
+            count={colorCount}
+            ready={!tooShort && !!scores}
+            onPick={(i) => setOverride((o) => ({ ...o, color: i }))}
+          />
           <FeelingBar
             feelings={feelingOptions}
             active={shownFeeling}
-            colors={colors}
             count={feelingCount}
             ready={!tooShort && !!shownFeeling}
             onPick={(f) => setOverride((o) => ({ ...o, feeling: f }))}

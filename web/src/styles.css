@@ -3,6 +3,8 @@
   --ink: #1a1a1a;
   --muted: #6b6b6b;
   --line: #d8d8d8;
+  --feeling-swatch-bg: #e7e4df;
+  --feeling-swatch-ink: #33312e;
   --card-w: 37.5em;
   --emoji-w: 15em;
   --col-gap: 1.75em;
@@ -758,6 +760,8 @@ h1 .tld {
   padding: 0.5em;
   cursor: pointer;
   opacity: 0.8;
+  background: var(--feeling-swatch-bg);
+  color: var(--feeling-swatch-ink);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
   transition: opacity 160ms ease, transform 160ms ease, box-shadow 160ms ease;
 }
@@ -773,10 +777,64 @@ h1 .tld {
   opacity: 1;
   font-weight: 700;
   transform: translateY(-2px);
-  box-shadow: 0 0 0 2px currentColor, 0 3px 10px rgba(0, 0, 0, 0.24);
+  box-shadow: 0 0 0 2px var(--ink), 0 3px 10px rgba(0, 0, 0, 0.24);
 }
 
 .feeling-bar button.placeholder {
+  background: rgba(0, 0, 0, 0.05);
+  box-shadow: none;
+  opacity: 1;
+  cursor: default;
+}
+
+.color-bar-container {
+  container-type: inline-size;
+  width: 100%;
+}
+
+.color-bar {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.625em;
+}
+
+.color-bar button {
+  aspect-ratio: 1;
+  min-width: 0;
+  min-height: 0;
+  container-type: inline-size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 1em;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.85;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  transition: opacity 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.color-bar button span {
+  font: 600 30cqw/1 "Inter", system-ui, sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.color-bar button:hover,
+.color-bar button:focus-visible {
+  opacity: 1;
+  transform: translateY(-2px);
+  outline: none;
+}
+
+.color-bar button.active {
+  opacity: 1;
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 2px var(--ink), 0 3px 10px rgba(0, 0, 0, 0.24);
+}
+
+.color-bar button.placeholder {
   background: rgba(0, 0, 0, 0.05);
   box-shadow: none;
   opacity: 1;
@@ -955,7 +1013,8 @@ h1 .tld {
     aspect-ratio: 1;
   }
 
-  .feeling-bar {
+  .feeling-bar,
+  .color-bar {
     grid-template-columns: repeat(2, 1fr);
   }
 

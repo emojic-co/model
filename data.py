@@ -27,6 +27,17 @@ emoji2idx = {e: i for i, e in enumerate(EMOJIS)}
 
 COLOR_DIM = 9
 
+COLOR_MEAN = torch.tensor(
+    [0.809946, 0.006661, 0.018747, 0.721956, 0.019043,
+     0.013285, 0.370698, 0.008323, 0.001856],
+    dtype=torch.float32,
+)
+COLOR_STD = torch.tensor(
+    [0.148909, 0.040569, 0.057178, 0.131150, 0.058753,
+     0.060955, 0.242255, 0.033875, 0.035447],
+    dtype=torch.float32,
+)
+
 
 def _srgb_to_linear(c: float) -> float:
     return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
@@ -51,7 +62,7 @@ def hex_to_oklab(h: str) -> tuple[float, float, float]:
 
 def color_to_tensor(bg: list[str], fg: str) -> torch.Tensor:
     vals = [c for h in (*bg, fg) for c in hex_to_oklab(h)]
-    return torch.tensor(vals, dtype=torch.float32)
+    return (torch.tensor(vals, dtype=torch.float32) - COLOR_MEAN) / COLOR_STD
 
 
 def normalize(text: str) -> str:

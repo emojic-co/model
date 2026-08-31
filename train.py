@@ -23,6 +23,8 @@ from config import (
 )
 from data import (
     CHARS,
+    COLOR_MEAN,
+    COLOR_STD,
     EMOJIS,
     FEELING,
     PAD_IDX,
@@ -49,7 +51,7 @@ class ExportWrapper(nn.Module):
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, ...]:
         feeling_logits, q, emoji_embed, color = self.model(x)
-        return feeling_logits, q @ emoji_embed.t(), color
+        return feeling_logits, q @ emoji_embed.t(), color * COLOR_STD + COLOR_MEAN
 
 
 def export_onnx(model: nn.Module, dst: Path) -> None:

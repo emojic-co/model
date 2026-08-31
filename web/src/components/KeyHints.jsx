@@ -1,5 +1,6 @@
 const HINTS = [
   { keys: ['↑', '↓'], label: 'emoji' },
+  { keys: ['Alt', '↑', '↓'], label: 'color' },
   { keys: ['Ctrl', '↑', '↓'], label: 'feeling' },
   { keys: ['Enter'], label: 'copy image' },
   { keys: ['Esc'], label: 'clear text' },

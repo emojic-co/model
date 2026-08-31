@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { normalize, encode, argmax, softmax, oklabToHex, decodeColors } from './model'
+import {
+  normalize,
+  encode,
+  argmax,
+  softmax,
+  oklabToHex,
+  decodeColors,
+  paletteVariants,
+} from './model'
 
 const CHARS = '·abcdefghijklmnopqrstuvwxyz!?:()@$%&* '
 const idx = new Map([...CHARS].map((c, i) => [c, i]))
@@ -65,6 +73,40 @@ describe('decodeColors', () => {
       bg2: '#ffd571',
       text_color: '#2f1100',
     })
+  })
+})
+
+describe('paletteVariants', () => {
+  const color = [
+    0.484144, 0.175408, 0.090798, 0.889335, 0.006905, 0.127403, 0.220989,
+    0.036459, 0.044766,
+  ]
+  const hex = /^#[0-9a-f]{6}$/
+
+  it('returns the model palette plus n variants', () => {
+    expect(paletteVariants(color)).toHaveLength(5)
+    expect(paletteVariants(color, 2)).toHaveLength(3)
+  })
+
+  it('keeps the model prediction as the first entry', () => {
+    expect(paletteVariants(color)[0]).toEqual(decodeColors(color))
+  })
+
+  it('every entry is three valid hex colors', () => {
+    for (const p of paletteVariants(color)) {
+      expect(p.bg1).toMatch(hex)
+      expect(p.bg2).toMatch(hex)
+      expect(p.text_color).toMatch(hex)
+    }
+  })
+
+  it('each variant differs from the model prediction', () => {
+    const [base, ...variants] = paletteVariants(color)
+    for (const v of variants) expect(v).not.toEqual(base)
+  })
+
+  it('is deterministic for the same input', () => {
+    expect(paletteVariants(color)).toEqual(paletteVariants(color))
   })
 })
 
