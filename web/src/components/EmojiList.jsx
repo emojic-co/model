@@ -1,13 +1,8 @@
 const SLOTS = 10
 
-export function EmojiList({ emojiScores, emojis, onPick }) {
-  const ready = !!emojiScores
-  const top = ready
-    ? emojiScores
-        .map((p, i) => ({ emoji: emojis[i], p }))
-        .sort((a, b) => b.p - a.p)
-        .slice(0, SLOTS)
-    : []
+export function EmojiList({ items, active, onPick }) {
+  const ready = !!items
+  const top = ready ? items : []
   return (
     <ul className="emoji-list" data-ready={ready ? 'true' : undefined}>
       {Array.from({ length: SLOTS }, (_, i) => {
@@ -16,6 +11,7 @@ export function EmojiList({ emojiScores, emojis, onPick }) {
           <li key={i}>
             <button
               type="button"
+              className={item && item.emoji === active ? 'active' : undefined}
               disabled={!item}
               aria-hidden={item ? undefined : 'true'}
               tabIndex={item ? undefined : -1}

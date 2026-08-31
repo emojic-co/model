@@ -48,16 +48,21 @@ h1 {
   color: var(--muted);
 }
 
+.footer .gh {
+  margin-top: 6px;
+  line-height: 0;
+}
+
 .stage {
   display: grid;
-  grid-template-columns: 244px var(--w);
+  grid-template-columns: 244px var(--w) 200px;
   grid-template-areas:
-    ".     title"
-    ".     input"
-    ".     counter"
-    "emoji card"
-    ".     feelings"
-    ".     footer";
+    ".     title    ."
+    ".     input    ."
+    ".     counter  ."
+    "emoji card     keys"
+    ".     feelings ."
+    ".     footer   .";
   column-gap: 28px;
   row-gap: 20px;
   justify-content: center;
@@ -91,6 +96,10 @@ h1 {
 }
 .stage > .emoji-list {
   grid-area: emoji;
+}
+.stage > .keys {
+  grid-area: keys;
+  align-self: start;
 }
 .stage > .feeling-bar {
   grid-area: feelings;
@@ -491,6 +500,53 @@ h1 {
   font-variant-numeric: tabular-nums;
 }
 
+.emoji-list button.active {
+  border-color: currentColor;
+  box-shadow: 0 0 0 2px var(--ink), 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.keys {
+  margin-top: 4px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.keys dl {
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.keys dl > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.keys dt {
+  flex: none;
+  display: flex;
+  gap: 4px;
+}
+
+.keys kbd {
+  min-width: 20px;
+  padding: 2px 6px;
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+}
+
+.keys dd {
+  margin: 0;
+}
+
 .toast {
   position: fixed;
   left: 50%;
@@ -510,6 +566,22 @@ h1 {
 .toast.show {
   opacity: 1;
   transform: translate(-50%, 0);
+}
+
+@media (max-width: 1180px) {
+  .stage {
+    grid-template-columns: 244px var(--w);
+    grid-template-areas:
+      ".     title"
+      ".     input"
+      ".     counter"
+      "emoji card"
+      ".     feelings"
+      ".     footer";
+  }
+  .keys {
+    display: none;
+  }
 }
 
 @media (max-width: 980px) {

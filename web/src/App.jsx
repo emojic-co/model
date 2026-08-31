@@ -2,10 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOnnx } from './hooks/useOnnx'
 import { argmax, normalize } from './model'
 import { topFeelings } from './feelings'
+import { cycle } from './nav'
 import GitHubButton from 'react-github-btn'
 import { Card } from './components/Card'
 import { FeelingBar } from './components/FeelingBar'
 import { EmojiList } from './components/EmojiList'
+import { KeyHints } from './components/KeyHints'
 import { useCardImage } from './hooks/useCardImage'
 import { Toast } from './components/Toast'
 
@@ -35,6 +37,7 @@ export function App() {
   const [toast, setToast] = useState({ msg: '', n: 0 })
   const showToast = useCallback((msg) => setToast((s) => ({ msg, n: s.n + 1 })), [])
   const seq = useRef(0)
+  const inputRef = useRef(null)
 
   const char2idx = useMemo(
     () => (meta ? new Map([...meta.chars].map((c, i) => [c, i])) : null),
@@ -68,6 +71,17 @@ export function App() {
     () => topFeelings(scores?.feeling, meta?.feelings ?? [], shownFeeling),
     [scores, meta, shownFeeling],
   )
+  const emojiTop = useMemo(
+    () =>
+      emojiScores
+        ? emojiScores
+            .map((p, i) => ({ emoji: meta.emojis[i], p }))
+            .sort((a, b) => b.p - a.p)
+            .slice(0, 10)
+        : null,
+    [emojiScores, meta],
+  )
+  const emojiList = useMemo(() => emojiTop?.map((x) => x.emoji) ?? [], [emojiTop])
 
   const cardData =
     shownEmoji && shownFeeling && palette
@@ -80,6 +94,38 @@ export function App() {
       : null
   const copyCard = useCardImage(cardData, showToast)
 
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        setText('')
+        inputRef.current?.focus()
+        return
+      }
+      if (e.key === 'Enter') {
+        if (e.target instanceof HTMLButtonElement) return
+        e.preventDefault()
+        copyCard()
+        return
+      }
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
+      const dir = e.key === 'ArrowDown' ? 1 : -1
+      if (e.ctrlKey) {
+        if (!feelingOptions.length) return
+        e.preventDefault()
+        setOverride((o) => ({
+          ...o,
+          feeling: cycle(feelingOptions, o.feeling ?? predictedFeeling, dir),
+        }))
+        return
+      }
+      if (e.shiftKey || e.altKey || e.metaKey || !emojiList.length) return
+      e.preventDefault()
+      setOverride((o) => ({ ...o, emoji: cycle(emojiList, o.emoji ?? predictedEmoji, dir) }))
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [emojiList, feelingOptions, predictedEmoji, predictedFeeling, copyCard])
+
   const maxLen = config?.max_text_len ?? 0
   const tooShort =
     ready && char2idx ? normalize(text, char2idx).length < MIN_CHARS : false
@@ -91,18 +137,10 @@ export function App() {
       <div className="stage">
         <header className="masthead">
           <h1>emojic</h1>
-          <GitHubButton
-            href="https://github.com/emojic-co/model"
-            data-icon="octicon-star"
-            data-show-count="true"
-            aria-label="Star emojic-co/model on GitHub"
-          >
-            Star
-          </GitHubButton>
         </header>
         <EmojiList
-          emojiScores={emojiScores}
-          emojis={meta?.emojis ?? []}
+          items={emojiTop}
+          active={shownEmoji}
           onPick={(e) => setOverride((o) => ({ ...o, emoji: e }))}
         />
         <input
@@ -110,16 +148,11 @@ export function App() {
           type="text"
           autoComplete="off"
           autoFocus
+          ref={inputRef}
           maxLength={maxLen || undefined}
           placeholder="type at least 3 characters…"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              copyCard()
-            }
-          }}
         />
         <div className={'counter' + (maxLen && text.length >= maxLen ? ' full' : '')}>
           {text.length}
@@ -132,6 +165,7 @@ export function App() {
           palette={palette}
           onCopy={copyCard}
         />
+        <KeyHints />
         <p className={'warn' + (tooShort ? '' : ' is-hidden')}>
           text is too short — showing a default card
         </p>
@@ -148,6 +182,16 @@ export function App() {
             model updated <span>{formatDate(meta?.exported_at)}</span>
           </span>
           <span>made with ❤️ by Gilad</span>
+          <span className="gh">
+            <GitHubButton
+              href="https://github.com/emojic-co/model"
+              data-icon="octicon-star"
+              data-show-count="true"
+              aria-label="Star emojic-co/model on GitHub"
+            >
+              Star
+            </GitHubButton>
+          </span>
         </footer>
       </div>
       <Toast toast={toast} />
