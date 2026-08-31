@@ -705,6 +705,7 @@ h1 .tld {
   flex: 1 1 auto;
   min-height: 0;
   width: 100%;
+  padding: 5% 3%;
   display: flex;
   align-items: center;
   justify-content: center;

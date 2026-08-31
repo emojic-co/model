@@ -7,29 +7,36 @@ MAX_TEXT_LEN = 42
 CHAR_EMBED_SIZE = 16
 CONV = [
     (4, 128),
-    (2, 256),
+    (3, 256),
     # (2, 196)
 ]
 POOL_1D_SIZE = 2
-
-# DROPOUT
-DROPOUT_FEELING = 0.4
-DROPOUT_EMOJI = 0.4
-
 
 # TRAINING
 LR = 0.01
 BATCH_SIZE = 128
 GRAD_CLIP = 1.0
+
+DROPOUT_FEELING = 0.2
+DROPOUT_EMOJI = 0.2
+
 INFONCE_TEMP = 0.1
 
 EPOCHS = 500
 EVAL_EPOCHS = 1
 EARLY_STOP_PATIENCE = 12
 
+model_str = ' '.join([
+    str(p) for p in
+    (CHAR_EMBED_SIZE, CONV, DROPOUT_FEELING, DROPOUT_EMOJI)])
+
+train_str = ' '.join([
+    str(p) for p in
+    (LR, BATCH_SIZE, GRAD_CLIP, DROPOUT_FEELING, DROPOUT_EMOJI, INFONCE_TEMP)])
+
 
 CONFIG_NAME = ' | '.join([
     f'TIME: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
-    f'MODEL: {CHAR_EMBED_SIZE} {CONV} d{DROPOUT_FEELING}',
-    f'TRAIN: lr {LR} bs {BATCH_SIZE} gc {GRAD_CLIP} tmp {INFONCE_TEMP}',
+    f'MODEL: {model_str}',
+    f'TRAIN: {train_str}',
 ])

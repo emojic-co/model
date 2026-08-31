@@ -22,15 +22,6 @@ export function useFitText(text, { min = 5, max = 20, key } = {}) {
       el.style.fontSize = lo + 'cqw'
     }
     fit()
-    const p = el.firstElementChild
-    el.dataset.dbg = JSON.stringify({
-      boxSW: el.scrollWidth, boxCW: el.clientWidth,
-      boxSH: el.scrollHeight, boxCH: el.clientHeight,
-      pSW: p && p.scrollWidth, pSH: p && p.scrollHeight,
-      pRectW: p && Math.round(p.getBoundingClientRect().width),
-      pRectH: p && Math.round(p.getBoundingClientRect().height),
-      fontSize: el.style.fontSize,
-    })
     const ro = new ResizeObserver(fit)
     ro.observe(el)
     if (document.fonts && document.fonts.status !== 'loaded') {
