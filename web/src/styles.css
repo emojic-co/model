@@ -59,9 +59,7 @@ h1 {
 .stage {
   display: grid;
   grid-template-columns:
-    minmax(10em, var(--emoji-w))
-    minmax(0, var(--card-w))
-    minmax(0, max-content);
+    minmax(10em, var(--emoji-w)) minmax(0, var(--card-w)) minmax(0, max-content);
   grid-template-areas:
     ".      head      ."
     "emoji  card      keys"
@@ -72,7 +70,7 @@ h1 {
   align-items: start;
 }
 
-.stage > .head {
+.stage>.head {
   grid-area: head;
   display: flex;
   flex-direction: column;
@@ -80,7 +78,7 @@ h1 {
   gap: 0.5em;
 }
 
-.head > .masthead {
+.head>.masthead {
   align-self: center;
   display: flex;
   align-items: center;
@@ -88,21 +86,21 @@ h1 {
   margin-bottom: 0.25em;
 }
 
-.stage > .card {
+.stage>.card {
   grid-area: card;
 }
 
-.stage > .emoji-list {
+.stage>.emoji-list {
   grid-area: emoji;
   align-self: stretch;
 }
 
-.stage > .keys {
+.stage>.keys {
   grid-area: keys;
   align-self: start;
 }
 
-.stage > .feelings-col {
+.stage>.feelings-col {
   grid-area: feelings;
   width: 100%;
   display: flex;
@@ -116,11 +114,11 @@ h1 {
   width: 100%;
 }
 
-.feeling-slot > * {
+.feeling-slot>* {
   grid-area: 1 / 1;
 }
 
-.feeling-slot > .warn {
+.feeling-slot>.warn {
   align-self: center;
   justify-self: center;
 }
@@ -746,7 +744,7 @@ h1 {
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-size: 3.2cqw;
+  font-size: 2.9cqw;
   line-height: 1.2;
   white-space: nowrap;
   border: none;
@@ -857,7 +855,7 @@ h1 {
   gap: 0.75em;
 }
 
-.keys dl > div {
+.keys dl>div {
   display: flex;
   align-items: center;
   gap: 0.625em;
@@ -921,11 +919,11 @@ h1 {
       "feelings";
   }
 
-  .stage > .keys {
+  .stage>.keys {
     display: none;
   }
 
-  .stage > .emoji-list {
+  .stage>.emoji-list {
     align-self: auto;
   }
 
