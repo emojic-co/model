@@ -8,7 +8,7 @@ CHAR_EMBED_SIZE = 16
 CONV = [
     (4, 96),
     (3, 96),
-    (2, 128),
+    (2, 256),
 ]
 POOL_1D_SIZE = 2
 
