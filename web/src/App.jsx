@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOnnx } from './hooks/useOnnx'
 import { argmax, normalize } from './model'
+import { topFeelings } from './feelings'
 import { Card } from './components/Card'
 import { EmojiList } from './components/EmojiList'
 import { useCardImage } from './hooks/useCardImage'
@@ -28,6 +29,7 @@ export function App() {
   const { meta, config, palette, ready, predict } = useOnnx()
   const [text, setText] = useState('')
   const [scores, setScores] = useState(null)
+  const [revision, setRevision] = useState(0)
   const [override, setOverride] = useState({ emoji: null, feeling: null })
   const [toast, setToast] = useState({ msg: '', n: 0 })
   const showToast = useCallback((msg) => setToast((s) => ({ msg, n: s.n + 1 })), [])
@@ -51,6 +53,7 @@ export function App() {
       const logits = await predict(text)
       if (mine !== seq.current) return
       setScores(logits)
+      setRevision((n) => n + 1)
       setOverride({ emoji: null, feeling: null })
     }, DEBOUNCE_MS)
     return () => clearTimeout(timer)
@@ -61,6 +64,10 @@ export function App() {
   const predictedFeeling = scores ? meta.feelings[argmax(scores.feeling)] : null
   const shownEmoji = override.emoji ?? predictedEmoji
   const shownFeeling = override.feeling ?? predictedFeeling
+  const feelingOptions = useMemo(
+    () => topFeelings(scores?.feeling, meta?.feelings ?? [], shownFeeling),
+    [scores, meta, shownFeeling],
+  )
 
   const cardData =
     shownEmoji && shownFeeling && palette
@@ -109,7 +116,8 @@ export function App() {
             text={text}
             emoji={shownEmoji ?? '🙂'}
             feeling={shownFeeling}
-            feelings={meta?.feelings ?? []}
+            feelingOptions={feelingOptions}
+            revision={revision}
             palette={palette}
             onPickFeeling={(f) => setOverride((o) => ({ ...o, feeling: f }))}
             onCopy={copyCard}

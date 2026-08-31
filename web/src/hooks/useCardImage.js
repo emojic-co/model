@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { fitCanvasFont, wrapLines } from '../fit'
-import { FEELING_FONTS } from '../fonts'
+import { resolveFeeling } from '../feelings'
 
 const S = 512
 const EMOJI_STACK = '"Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif'
@@ -19,7 +19,7 @@ async function ensureFonts(stack, emoji) {
 }
 
 async function render({ text, emoji, feeling, pal }) {
-  const stack = FEELING_FONTS[feeling] ?? FEELING_FONTS.Neutral
+  const stack = resolveFeeling(feeling).font
   await ensureFonts(stack, emoji)
 
   const canvas = document.createElement('canvas')
