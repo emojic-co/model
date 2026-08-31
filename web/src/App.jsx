@@ -156,9 +156,14 @@ export function App() {
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
-          <div className={'counter' + (maxLen && text.length >= maxLen ? ' full' : '')}>
-            {text.length}
-            <span>/{maxLen}</span>
+          <div className="input-meta">
+            <p className={'warn' + (text.trim() && tooShort ? '' : ' is-hidden')}>
+              text is too short — showing a default card
+            </p>
+            <div className={'counter' + (maxLen && text.length >= maxLen ? ' full' : '')}>
+              {text.length}
+              <span>/{maxLen}</span>
+            </div>
           </div>
         </div>
         <EmojiList
@@ -176,19 +181,14 @@ export function App() {
         />
         <KeyHints />
         <div className="feelings-col">
-          <div className="feeling-slot">
-            <FeelingBar
-              feelings={feelingOptions}
-              active={shownFeeling}
-              palette={palette}
-              count={feelingCount}
-              ready={!tooShort && !!shownFeeling}
-              onPick={(f) => setOverride((o) => ({ ...o, feeling: f }))}
-            />
-            {text.trim() && tooShort && (
-              <p className="warn">text is too short — showing a default card</p>
-            )}
-          </div>
+          <FeelingBar
+            feelings={feelingOptions}
+            active={shownFeeling}
+            palette={palette}
+            count={feelingCount}
+            ready={!tooShort && !!shownFeeling}
+            onPick={(f) => setOverride((o) => ({ ...o, feeling: f }))}
+          />
           <footer className="footer">
             <span>
               model updated <span>{formatDate(meta?.exported_at)}</span>

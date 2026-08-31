@@ -1,2 +1,4 @@
 TODO:
+    Web APP:
 DONE:
+    - Add og and meta information, generate a png image from the classic smile emoji for the og image.
