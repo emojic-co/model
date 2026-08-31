@@ -61,3 +61,44 @@ describe('topFeelings', () => {
     expect(topFeelings(null, feelings, 'A')).toEqual([])
   })
 })
+
+const palette = readJson('../public/palette.json')
+
+describe('palette', () => {
+  const HEX = /^#[0-9a-f]{6}$/
+
+  const luminance = (hex) => {
+    const n = parseInt(hex.slice(1), 16)
+    const lin = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c) => {
+      const s = c / 255
+      return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
+    })
+    return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+  }
+
+  const contrast = (a, b) => {
+    const la = luminance(a)
+    const lb = luminance(b)
+    const hi = Math.max(la, lb)
+    const lo = Math.min(la, lb)
+    return (hi + 0.05) / (lo + 0.05)
+  }
+
+  it('every model feeling has a palette entry with a hex triplet', () => {
+    for (const f of meta.feelings) {
+      const p = palette[f]
+      expect(p, f).toBeTruthy()
+      expect(p.bg1, `${f}.bg1`).toMatch(HEX)
+      expect(p.bg2, `${f}.bg2`).toMatch(HEX)
+      expect(p.text_color, `${f}.text_color`).toMatch(HEX)
+    }
+  })
+
+  it('text colour clears 4.5 contrast against both gradient stops', () => {
+    for (const f of meta.feelings) {
+      const p = palette[f]
+      expect(contrast(p.text_color, p.bg1), `${f} text vs bg1`).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(p.text_color, p.bg2), `${f} text vs bg2`).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+})
