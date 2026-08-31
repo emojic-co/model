@@ -69,39 +69,47 @@ h1 {
   align-items: start;
 }
 
-.stage > .masthead {
+.stage>.masthead {
   grid-area: title;
   justify-self: center;
   display: flex;
   align-items: center;
   gap: 14px;
 }
-.stage > .footer {
+
+.stage>.footer {
   grid-area: footer;
   justify-self: center;
 }
-.stage > .warn {
+
+.stage>.warn {
   grid-area: feelings;
   justify-self: center;
   align-self: center;
 }
-.stage > .input {
+
+.stage>.input {
   grid-area: input;
 }
-.stage > .counter {
+
+.stage>.counter {
   grid-area: counter;
 }
-.stage > .card {
+
+.stage>.card {
   grid-area: card;
 }
-.stage > .emoji-list {
+
+.stage>.emoji-list {
   grid-area: emoji;
 }
-.stage > .keys {
+
+.stage>.keys {
   grid-area: keys;
   align-self: start;
 }
-.stage > .feeling-bar {
+
+.stage>.feeling-bar {
   grid-area: feelings;
   justify-self: center;
 }
@@ -175,119 +183,364 @@ h1 {
 }
 
 @keyframes drift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 @keyframes entrance-slam {
-  0% { opacity: 0; transform: scale(1.25); }
-  60% { opacity: 1; transform: scale(0.94); }
-  75% { transform: scale(1.03) translateX(-3px); }
-  85% { transform: scale(1) translateX(3px); }
-  100% { transform: scale(1) translateX(0); }
+  0% {
+    opacity: 0;
+    transform: scale(1.25);
+  }
+
+  60% {
+    opacity: 1;
+    transform: scale(0.94);
+  }
+
+  75% {
+    transform: scale(1.03) translateX(-3px);
+  }
+
+  85% {
+    transform: scale(1) translateX(3px);
+  }
+
+  100% {
+    transform: scale(1) translateX(0);
+  }
 }
+
 @keyframes entrance-pop {
-  0% { opacity: 0; transform: scale(0.5) translateY(12px); }
-  70% { opacity: 1; transform: scale(1.08) translateY(-4px); }
-  100% { transform: scale(1) translateY(0); }
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateY(12px);
+  }
+
+  70% {
+    opacity: 1;
+    transform: scale(1.08) translateY(-4px);
+  }
+
+  100% {
+    transform: scale(1) translateY(0);
+  }
 }
+
 @keyframes entrance-spin {
-  0% { opacity: 0; transform: rotate(-12deg) scale(0.6); }
-  70% { opacity: 1; transform: rotate(4deg) scale(1.05); }
-  100% { transform: rotate(0) scale(1); }
+  0% {
+    opacity: 0;
+    transform: rotate(-12deg) scale(0.6);
+  }
+
+  70% {
+    opacity: 1;
+    transform: rotate(4deg) scale(1.05);
+  }
+
+  100% {
+    transform: rotate(0) scale(1);
+  }
 }
+
 @keyframes entrance-settle {
-  0% { opacity: 0; transform: scale(1.03); }
-  100% { opacity: 1; transform: scale(1); }
+  0% {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
+
 @keyframes entrance-drop {
-  0% { opacity: 0; transform: translateY(-18px); }
-  70% { opacity: 1; transform: translateY(6px); }
-  100% { transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+
+  70% {
+    opacity: 1;
+    transform: translateY(6px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
 }
+
 @keyframes entrance-jitter {
-  0% { opacity: 0; transform: translate(0, 0); }
-  20% { opacity: 0.6; transform: translate(-3px, 2px); }
-  40% { transform: translate(3px, -2px); }
-  60% { opacity: 1; transform: translate(-2px, 1px); }
-  80% { transform: translate(2px, -1px); }
-  100% { transform: translate(0, 0); }
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+
+  20% {
+    opacity: 0.6;
+    transform: translate(-3px, 2px);
+  }
+
+  40% {
+    transform: translate(3px, -2px);
+  }
+
+  60% {
+    opacity: 1;
+    transform: translate(-2px, 1px);
+  }
+
+  80% {
+    transform: translate(2px, -1px);
+  }
+
+  100% {
+    transform: translate(0, 0);
+  }
 }
+
 @keyframes entrance-bloom {
-  0% { opacity: 0; transform: scale(0.9); }
-  100% { opacity: 1; transform: scale(1); }
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
+
 @keyframes entrance-rise {
-  0% { opacity: 0; transform: translateY(18px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 @keyframes entrance-fadeTilt {
-  0% { opacity: 0; transform: rotate(-2deg) translateY(6px); }
-  100% { opacity: 1; transform: rotate(0) translateY(0); }
+  0% {
+    opacity: 0;
+    transform: rotate(-2deg) translateY(6px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: rotate(0) translateY(0);
+  }
 }
+
 @keyframes entrance-droop {
-  0% { opacity: 0; transform: translateY(-10px) scaleY(1.06); }
-  60% { opacity: 1; transform: translateY(4px) scaleY(0.97); }
-  100% { transform: translateY(0) scaleY(1); }
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scaleY(1.06);
+  }
+
+  60% {
+    opacity: 1;
+    transform: translateY(4px) scaleY(0.97);
+  }
+
+  100% {
+    transform: translateY(0) scaleY(1);
+  }
 }
+
 @keyframes entrance-shrinkBack {
-  0% { opacity: 0; transform: scale(1.12); }
-  40% { opacity: 1; transform: scale(0.9); }
-  70% { transform: scale(0.97) rotate(-2deg); }
-  100% { transform: scale(1) rotate(0); }
+  0% {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+
+  40% {
+    opacity: 1;
+    transform: scale(0.9);
+  }
+
+  70% {
+    transform: scale(0.97) rotate(-2deg);
+  }
+
+  100% {
+    transform: scale(1) rotate(0);
+  }
 }
 
 @keyframes emoji-shake {
-  0%, 100% { transform: translateX(0) rotate(0); }
-  20% { transform: translateX(-3px) rotate(-2deg); }
-  40% { transform: translateX(3px) rotate(2deg); }
-  60% { transform: translateX(-2px) rotate(-1deg); }
-  80% { transform: translateX(2px) rotate(1deg); }
+
+  0%,
+  100% {
+    transform: translateX(0) rotate(0);
+  }
+
+  20% {
+    transform: translateX(-3px) rotate(-2deg);
+  }
+
+  40% {
+    transform: translateX(3px) rotate(2deg);
+  }
+
+  60% {
+    transform: translateX(-2px) rotate(-1deg);
+  }
+
+  80% {
+    transform: translateX(2px) rotate(1deg);
+  }
 }
+
 @keyframes emoji-hop {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-16px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-16px);
+  }
 }
+
 @keyframes emoji-wobble {
-  0%, 100% { transform: rotate(-8deg); }
-  50% { transform: rotate(8deg); }
+
+  0%,
+  100% {
+    transform: rotate(-8deg);
+  }
+
+  50% {
+    transform: rotate(8deg);
+  }
 }
+
 @keyframes emoji-breathe {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.06); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.06);
+  }
 }
+
 @keyframes emoji-sink {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(6px) scale(0.98); }
+
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(6px) scale(0.98);
+  }
 }
+
 @keyframes emoji-tremor {
-  0%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(-2px, 1px); }
-  50% { transform: translate(2px, -1px); }
-  75% { transform: translate(-1px, -2px); }
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  25% {
+    transform: translate(-2px, 1px);
+  }
+
+  50% {
+    transform: translate(2px, -1px);
+  }
+
+  75% {
+    transform: translate(-1px, -2px);
+  }
 }
+
 @keyframes emoji-heartbeat {
-  0%, 100% { transform: scale(1); }
-  15% { transform: scale(1.18); }
-  30% { transform: scale(1); }
-  45% { transform: scale(1.12); }
-  60% { transform: scale(1); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  15% {
+    transform: scale(1.18);
+  }
+
+  30% {
+    transform: scale(1);
+  }
+
+  45% {
+    transform: scale(1.12);
+  }
+
+  60% {
+    transform: scale(1);
+  }
 }
+
 @keyframes emoji-lift {
-  0%, 100% { transform: translateY(4px); }
-  50% { transform: translateY(-10px); }
+
+  0%,
+  100% {
+    transform: translateY(4px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
 }
+
 @keyframes emoji-tilt {
-  0%, 100% { transform: rotate(-3deg); }
-  50% { transform: rotate(3deg); }
+
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+
+  50% {
+    transform: rotate(3deg);
+  }
 }
+
 @keyframes emoji-droop {
-  0%, 100% { transform: translateY(0) rotate(0); }
-  50% { transform: translateY(8px) rotate(4deg); }
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+
+  50% {
+    transform: translateY(8px) rotate(4deg);
+  }
 }
+
 @keyframes emoji-shrinkBack {
-  0%, 100% { transform: scale(1) rotate(0); }
-  50% { transform: scale(0.86) rotate(8deg); }
+
+  0%,
+  100% {
+    transform: scale(1) rotate(0);
+  }
+
+  50% {
+    transform: scale(0.86) rotate(8deg);
+  }
 }
 
 .card[data-feeling] {
@@ -301,38 +554,113 @@ h1 {
   animation-iteration-count: 1;
   animation-fill-mode: both;
 }
-.card[data-entrance="slam"] .card-text { animation-name: entrance-slam; animation-timing-function: cubic-bezier(0.36, 0.07, 0.19, 0.97); }
-.card[data-entrance="pop"] .card-text { animation-name: entrance-pop; }
-.card[data-entrance="spin"] .card-text { animation-name: entrance-spin; }
-.card[data-entrance="settle"] .card-text { animation-name: entrance-settle; }
-.card[data-entrance="drop"] .card-text { animation-name: entrance-drop; }
-.card[data-entrance="jitter"] .card-text { animation-name: entrance-jitter; }
-.card[data-entrance="bloom"] .card-text { animation-name: entrance-bloom; }
-.card[data-entrance="rise"] .card-text { animation-name: entrance-rise; }
-.card[data-entrance="fadeTilt"] .card-text { animation-name: entrance-fadeTilt; }
-.card[data-entrance="droop"] .card-text { animation-name: entrance-droop; }
-.card[data-entrance="shrinkBack"] .card-text { animation-name: entrance-shrinkBack; }
+
+.card[data-entrance="slam"] .card-text {
+  animation-name: entrance-slam;
+  animation-timing-function: cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+.card[data-entrance="pop"] .card-text {
+  animation-name: entrance-pop;
+}
+
+.card[data-entrance="spin"] .card-text {
+  animation-name: entrance-spin;
+}
+
+.card[data-entrance="settle"] .card-text {
+  animation-name: entrance-settle;
+}
+
+.card[data-entrance="drop"] .card-text {
+  animation-name: entrance-drop;
+}
+
+.card[data-entrance="jitter"] .card-text {
+  animation-name: entrance-jitter;
+}
+
+.card[data-entrance="bloom"] .card-text {
+  animation-name: entrance-bloom;
+}
+
+.card[data-entrance="rise"] .card-text {
+  animation-name: entrance-rise;
+}
+
+.card[data-entrance="fadeTilt"] .card-text {
+  animation-name: entrance-fadeTilt;
+}
+
+.card[data-entrance="droop"] .card-text {
+  animation-name: entrance-droop;
+}
+
+.card[data-entrance="shrinkBack"] .card-text {
+  animation-name: entrance-shrinkBack;
+}
 
 .card-emoji {
   animation-duration: var(--emoji-dur, 2400ms);
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
 }
-.card[data-emoji="shake"] .card-emoji { animation-name: emoji-shake; animation-timing-function: linear; }
-.card[data-emoji="hop"] .card-emoji { animation-name: emoji-hop; }
-.card[data-emoji="wobble"] .card-emoji { animation-name: emoji-wobble; }
-.card[data-emoji="breathe"] .card-emoji { animation-name: emoji-breathe; }
-.card[data-emoji="sink"] .card-emoji { animation-name: emoji-sink; }
-.card[data-emoji="tremor"] .card-emoji { animation-name: emoji-tremor; animation-timing-function: linear; }
-.card[data-emoji="heartbeat"] .card-emoji { animation-name: emoji-heartbeat; }
-.card[data-emoji="lift"] .card-emoji { animation-name: emoji-lift; }
-.card[data-emoji="tilt"] .card-emoji { animation-name: emoji-tilt; }
-.card[data-emoji="droop"] .card-emoji { animation-name: emoji-droop; }
-.card[data-emoji="shrinkBack"] .card-emoji { animation-name: emoji-shrinkBack; }
 
-.card[data-feeling] { animation: none; background-size: auto; }
+.card[data-emoji="shake"] .card-emoji {
+  animation-name: emoji-shake;
+  animation-timing-function: linear;
+}
+
+.card[data-emoji="hop"] .card-emoji {
+  animation-name: emoji-hop;
+}
+
+.card[data-emoji="wobble"] .card-emoji {
+  animation-name: emoji-wobble;
+}
+
+.card[data-emoji="breathe"] .card-emoji {
+  animation-name: emoji-breathe;
+}
+
+.card[data-emoji="sink"] .card-emoji {
+  animation-name: emoji-sink;
+}
+
+.card[data-emoji="tremor"] .card-emoji {
+  animation-name: emoji-tremor;
+  animation-timing-function: linear;
+}
+
+.card[data-emoji="heartbeat"] .card-emoji {
+  animation-name: emoji-heartbeat;
+}
+
+.card[data-emoji="lift"] .card-emoji {
+  animation-name: emoji-lift;
+}
+
+.card[data-emoji="tilt"] .card-emoji {
+  animation-name: emoji-tilt;
+}
+
+.card[data-emoji="droop"] .card-emoji {
+  animation-name: emoji-droop;
+}
+
+.card[data-emoji="shrinkBack"] .card-emoji {
+  animation-name: emoji-shrinkBack;
+}
+
+.card[data-feeling] {
+  animation: none;
+  background-size: auto;
+}
+
 .card[data-feeling] .card-emoji,
-.card[data-feeling] .card-text { animation: none !important; }
+.card[data-feeling] .card-text {
+  animation: none !important;
+}
 
 .copy-btn {
   position: absolute;
@@ -402,16 +730,16 @@ h1 {
 }
 
 .feeling-bar button {
+  container-type: inline-size;
   width: 108px;
   aspect-ratio: 1;
-  container-type: inline-size;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-size: 12cqw;
+  font-size: 3cqw;
   line-height: 1.2;
-  word-break: break-word;
+  white-space: nowrap;
   border: none;
   border-radius: 16px;
   padding: 8px;
@@ -453,7 +781,9 @@ h1 {
   gap: 10px;
 }
 
-.emoji-list li { display: block; }
+.emoji-list li {
+  display: block;
+}
 
 .emoji-list:not([data-ready]) button {
   opacity: 0;
@@ -518,7 +848,7 @@ h1 {
   gap: 12px;
 }
 
-.keys dl > div {
+.keys dl>div {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -579,6 +909,7 @@ h1 {
       ".     feelings"
       ".     footer";
   }
+
   .keys {
     display: none;
   }
@@ -596,6 +927,7 @@ h1 {
       "feelings"
       "footer";
   }
+
   .emoji-list {
     width: 100%;
     grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
