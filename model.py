@@ -1,4 +1,3 @@
-from itertools import chain
 from math import ceil, log2
 
 import torch
@@ -31,21 +30,21 @@ class Model(nn.Module):
         self.char_embed = nn.Embedding(VOCAB_SIZE, CHAR_EMBED_SIZE)
         k, o = CONV[0]
 
-        self.net = nn.Sequential(
-            *layer(
+        # Create initial layer block
+        layers = [*layer(
+            kernel=k,
+            in_channels=CHAR_EMBED_SIZE,
+            out_channels=o)]
+
+        # Append MaxPool + downstream layers in a loop
+        for (_, i), (k, o) in zip(CONV[:-1], CONV[1:], strict=True):
+            layers.append(nn.MaxPool1d(kernel_size=2, stride=2))
+            layers.extend(layer(
                 kernel=k,
-                in_channels=CHAR_EMBED_SIZE,
-                out_channels=o,
-            ),
-            *chain.from_iterable(
-                layer(
-                    kernel=k,
-                    in_channels=i,
-                    out_channels=o,
-                )
-                for (_, i), (k, o) in zip(CONV[:-1], CONV[1:], strict=True)
-            )
-        )
+                in_channels=i,
+                out_channels=o))
+
+        self.net = nn.Sequential(*layers)
 
         _, o = CONV[-1]
         self.feeling_dropout = nn.Dropout(DROPOUT_FEELING)
