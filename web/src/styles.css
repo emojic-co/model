@@ -732,14 +732,13 @@ h1 {
 }
 
 .feeling-bar button {
-  container-type: inline-size;
-  width: 108px;
+  width: 18%;
   aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-size: 1cqw;
+  font-size: 3.2cqw;
   line-height: 1.2;
   white-space: nowrap;
   border: none;
