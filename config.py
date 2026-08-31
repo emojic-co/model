@@ -6,9 +6,8 @@ MAX_TEXT_LEN = 42
 # MODEL
 CHAR_EMBED_SIZE = 16
 CONV = [
-    (4, 96),
-    (3, 96),
-    (2, 256),
+    (4, 128),
+    (3, 256),
 ]
 POOL_1D_SIZE = 2
 
