@@ -65,8 +65,9 @@
 - [ ] **Step 1: Write the failing test** — create `web/src/feelings.test.js`:
 
 ```js
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { describe, it, expect } from 'vitest'
-import meta from '../public/meta.json'
 import {
   CLUSTERS,
   FEELINGS,
@@ -75,6 +76,10 @@ import {
   resolveFeeling,
   topFeelings,
 } from './feelings'
+
+const readJson = (rel) =>
+  JSON.parse(readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8'))
+const meta = readJson('../public/meta.json')
 
 describe('feelings coverage', () => {
   it('every model feeling has a FEELINGS entry', () => {
@@ -250,9 +255,11 @@ EOF
 - Consumes: `web/public/meta.json` (`.feelings`), `web/public/palette.json`.
 - Produces: nothing importable — a data file + tests.
 
-- [ ] **Step 1: Write the failing test** — append this block to `web/src/feelings.test.js` (add `import palette from '../public/palette.json'` next to the existing `meta` import):
+- [ ] **Step 1: Write the failing test** — append this block to `web/src/feelings.test.js` (it reuses the `readJson` helper and `meta` from Task 1's header; add the `palette` line shown):
 
 ```js
+const palette = readJson('../public/palette.json')
+
 describe('palette', () => {
   const HEX = /^#[0-9a-f]{6}$/
 
