@@ -743,13 +743,16 @@ h1 .tld {
 
 .feeling-bar button {
   aspect-ratio: 1;
+  min-width: 0;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-size: 2.9cqw;
+  font-size: 2.3cqw;
   line-height: 1.2;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
   border: none;
   border-radius: 1em;
   padding: 0.5em;

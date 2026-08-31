@@ -26,16 +26,12 @@ async function render({ text, emoji, feeling, pal }) {
   const headline = st.textTransform === 'uppercase' ? text.toUpperCase() : text
   await ensureFonts(stack, emoji)
 
+  const scale = 2
   const canvas = document.createElement('canvas')
-  canvas.width = S
-  canvas.height = S
+  canvas.width = S * scale
+  canvas.height = S * scale
   const ctx = canvas.getContext('2d')
-
-  const r = Math.round((20 / 600) * S)
-  ctx.beginPath()
-  if (ctx.roundRect) ctx.roundRect(0, 0, S, S, r)
-  else ctx.rect(0, 0, S, S)
-  ctx.clip()
+  ctx.scale(scale, scale)
 
   const grad = ctx.createLinearGradient(0, 0, S, S)
   grad.addColorStop(0, pal.bg1)
