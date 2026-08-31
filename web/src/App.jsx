@@ -10,6 +10,7 @@ import { EmojiList } from './components/EmojiList'
 import { KeyHints } from './components/KeyHints'
 import { useCardImage } from './hooks/useCardImage'
 import { Toast } from './components/Toast'
+import { useMediaQuery } from './hooks/useMediaQuery'
 
 const MIN_CHARS = 3
 const DEBOUNCE_MS = 250
@@ -31,6 +32,9 @@ function formatDate(iso) {
 
 export function App() {
   const { meta, config, palette, ready, predict } = useOnnx()
+  const mobile = useMediaQuery('(max-width: 56.25em)')
+  const emojiSlots = mobile ? 9 : 10
+  const feelingCount = mobile ? 4 : 5
   const [text, setText] = useState('')
   const [scores, setScores] = useState(null)
   const [override, setOverride] = useState({ emoji: null, feeling: null })
@@ -68,8 +72,8 @@ export function App() {
   const shownEmoji = override.emoji ?? predictedEmoji
   const shownFeeling = override.feeling ?? predictedFeeling
   const feelingOptions = useMemo(
-    () => topFeelings(scores?.feeling, meta?.feelings ?? [], shownFeeling),
-    [scores, meta, shownFeeling],
+    () => topFeelings(scores?.feeling, meta?.feelings ?? [], shownFeeling, feelingCount),
+    [scores, meta, shownFeeling, feelingCount],
   )
   const emojiTop = useMemo(
     () =>
@@ -77,9 +81,9 @@ export function App() {
         ? emojiScores
             .map((p, i) => ({ emoji: meta.emojis[i], p }))
             .sort((a, b) => b.p - a.p)
-            .slice(0, 10)
+            .slice(0, emojiSlots)
         : null,
-    [emojiScores, meta],
+    [emojiScores, meta, emojiSlots],
   )
   const emojiList = useMemo(() => emojiTop?.map((x) => x.emoji) ?? [], [emojiTop])
 
@@ -135,29 +139,32 @@ export function App() {
   return (
     <main>
       <div className="stage">
-        <header className="masthead">
-          <h1>emojic</h1>
-        </header>
+        <div className="head">
+          <header className="masthead">
+            <h1>emojic</h1>
+          </header>
+          <input
+            className="input"
+            type="text"
+            autoComplete="off"
+            autoFocus
+            ref={inputRef}
+            maxLength={maxLen || undefined}
+            placeholder="type at least 3 characters…"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+          <div className={'counter' + (maxLen && text.length >= maxLen ? ' full' : '')}>
+            {text.length}
+            <span>/{maxLen}</span>
+          </div>
+        </div>
         <EmojiList
           items={emojiTop}
           active={shownEmoji}
+          slots={emojiSlots}
           onPick={(e) => setOverride((o) => ({ ...o, emoji: e }))}
         />
-        <input
-          className="input"
-          type="text"
-          autoComplete="off"
-          autoFocus
-          ref={inputRef}
-          maxLength={maxLen || undefined}
-          placeholder="type at least 3 characters…"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        <div className={'counter' + (maxLen && text.length >= maxLen ? ' full' : '')}>
-          {text.length}
-          <span>/{maxLen}</span>
-        </div>
         <Card
           text={text}
           emoji={displayEmoji}
@@ -166,33 +173,38 @@ export function App() {
           onCopy={copyCard}
         />
         <KeyHints />
-        <p className={'warn' + (tooShort ? '' : ' is-hidden')}>
-          text is too short — showing a default card
-        </p>
-        <FeelingBar
-          feelings={feelingOptions}
-          active={shownFeeling}
-          palette={palette}
-          ready={!tooShort && !!shownFeeling}
-          hidden={tooShort || !shownFeeling}
-          onPick={(f) => setOverride((o) => ({ ...o, feeling: f }))}
-        />
-        <footer className="footer">
-          <span>
-            model updated <span>{formatDate(meta?.exported_at)}</span>
-          </span>
-          <span>made with ❤️ by Gilad</span>
-          <span className="gh">
-            <GitHubButton
-              href="https://github.com/emojic-co/model"
-              data-icon="octicon-star"
-              data-show-count="true"
-              aria-label="Star emojic-co/model on GitHub"
-            >
-              Star
-            </GitHubButton>
-          </span>
-        </footer>
+        <div className="feelings-col">
+          <div className="feeling-slot">
+            <FeelingBar
+              feelings={feelingOptions}
+              active={shownFeeling}
+              palette={palette}
+              count={feelingCount}
+              ready={!tooShort && !!shownFeeling}
+              hidden={tooShort || !shownFeeling}
+              onPick={(f) => setOverride((o) => ({ ...o, feeling: f }))}
+            />
+            <p className={'warn' + (tooShort ? '' : ' is-hidden')}>
+              text is too short — showing a default card
+            </p>
+          </div>
+          <footer className="footer">
+            <span>
+              model updated <span>{formatDate(meta?.exported_at)}</span>
+            </span>
+            <span>made with ❤️ by Gilad</span>
+            <span className="gh">
+              <GitHubButton
+                href="https://github.com/emojic-co/model"
+                data-icon="octicon-star"
+                data-show-count="true"
+                aria-label="Star emojic-co/model on GitHub"
+              >
+                Star
+              </GitHubButton>
+            </span>
+          </footer>
+        </div>
       </div>
       <Toast toast={toast} />
     </main>

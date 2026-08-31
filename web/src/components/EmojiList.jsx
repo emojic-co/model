@@ -1,11 +1,9 @@
-const SLOTS = 10
-
-export function EmojiList({ items, active, onPick }) {
+export function EmojiList({ items, active, onPick, slots = 10 }) {
   const ready = !!items
   const top = ready ? items : []
   return (
     <ul className="emoji-list" data-ready={ready ? 'true' : undefined}>
-      {Array.from({ length: SLOTS }, (_, i) => {
+      {Array.from({ length: slots }, (_, i) => {
         const item = top[i]
         return (
           <li key={i}>

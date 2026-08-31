@@ -3,7 +3,10 @@
   --ink: #1a1a1a;
   --muted: #6b6b6b;
   --line: #d8d8d8;
-  --w: 600px;
+  --card-w: 37.5em;
+  --emoji-w: 15em;
+  --col-gap: 1.75em;
+  --row-gap: 1.25em;
 }
 
 * {
@@ -15,8 +18,8 @@ body {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: 32px;
-  font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding: 2em;
+  font: 1em/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   background-color: #faf6ef;
   background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='40'%20height='40'%3E%3Cg%20fill='%23efe1cc'%3E%3Ccircle%20cx='20'%20cy='20'%20r='1.6'/%3E%3Ccircle%20cx='0'%20cy='0'%20r='1.6'/%3E%3Ccircle%20cx='40'%20cy='0'%20r='1.6'/%3E%3Ccircle%20cx='0'%20cy='40'%20r='1.6'/%3E%3Ccircle%20cx='40'%20cy='40'%20r='1.6'/%3E%3C/g%3E%3C/svg%3E");
   color: var(--ink);
@@ -26,12 +29,12 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 1.25em;
 }
 
 h1 {
   margin: 0;
-  font-size: 14px;
+  font-size: 0.875em;
   font-weight: 600;
   letter-spacing: 0.24em;
   text-transform: uppercase;
@@ -42,87 +45,92 @@ h1 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
+  gap: 0.25em;
+  font-size: 0.75em;
   letter-spacing: 0.08em;
   color: var(--muted);
 }
 
 .footer .gh {
-  margin-top: 6px;
+  margin-top: 0.375em;
   line-height: 0;
 }
 
 .stage {
   display: grid;
-  grid-template-columns: 244px var(--w) 200px;
+  grid-template-columns:
+    minmax(10em, var(--emoji-w))
+    minmax(0, var(--card-w))
+    minmax(0, max-content);
   grid-template-areas:
-    ".     title    ."
-    ".     input    ."
-    ".     counter  ."
-    "emoji card     keys"
-    ".     feelings ."
-    ".     footer   .";
-  column-gap: 28px;
-  row-gap: 20px;
+    ".      head      ."
+    "emoji  card      keys"
+    ".      feelings  .";
+  column-gap: var(--col-gap);
+  row-gap: var(--row-gap);
   justify-content: center;
   align-items: start;
 }
 
-.stage>.masthead {
-  grid-area: title;
-  justify-self: center;
+.stage > .head {
+  grid-area: head;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5em;
+}
+
+.head > .masthead {
+  align-self: center;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 0.875em;
+  margin-bottom: 0.25em;
 }
 
-.stage>.footer {
-  grid-area: footer;
-  justify-self: center;
-}
-
-.stage>.warn {
-  grid-area: feelings;
-  justify-self: center;
-  align-self: center;
-}
-
-.stage>.input {
-  grid-area: input;
-}
-
-.stage>.counter {
-  grid-area: counter;
-}
-
-.stage>.card {
+.stage > .card {
   grid-area: card;
 }
 
-.stage>.emoji-list {
+.stage > .emoji-list {
   grid-area: emoji;
+  align-self: stretch;
 }
 
-.stage>.keys {
+.stage > .keys {
   grid-area: keys;
   align-self: start;
 }
 
-.stage>.feeling-bar-container {
+.stage > .feelings-col {
   grid-area: feelings;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1em;
+}
+
+.feeling-slot {
+  display: grid;
+  width: 100%;
+}
+
+.feeling-slot > * {
+  grid-area: 1 / 1;
+}
+
+.feeling-slot > .warn {
+  align-self: center;
   justify-self: center;
-  container-type: inline-size;
-  width: min(var(--w), 100%);
 }
 
 .input {
-  width: var(--w);
-  max-width: 100%;
-  padding: 12px 16px;
-  font-size: 18px;
+  width: 100%;
+  padding: 0.75em 1em;
+  font-size: 1.125em;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 0.625em;
   background: #fff;
   color: var(--ink);
   outline: none;
@@ -133,11 +141,8 @@ h1 {
 }
 
 .counter {
-  width: var(--w);
-  max-width: 100%;
-  margin-top: -14px;
-  text-align: right;
-  font-size: 12px;
+  align-self: flex-end;
+  font-size: 0.75em;
   letter-spacing: 0.08em;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
@@ -149,7 +154,7 @@ h1 {
 
 .warn {
   margin: 0;
-  font-size: 13px;
+  font-size: 0.8125em;
   letter-spacing: 0.04em;
   color: #b06a2c;
   text-align: center;
@@ -168,9 +173,10 @@ h1 {
 .card {
   position: relative;
   container-type: inline-size;
-  width: min(var(--w), 100%);
+  width: 100%;
+  max-width: var(--card-w);
   aspect-ratio: 1;
-  border-radius: 20px;
+  border-radius: 1.25em;
   padding: 7%;
   display: flex;
   flex-direction: column;
@@ -666,11 +672,11 @@ h1 {
 
 .copy-btn {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  padding: 6px 12px;
+  top: 1em;
+  right: 1em;
+  padding: 0.375em 0.75em;
   font: inherit;
-  font-size: 12px;
+  font-size: 0.75em;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: inherit;
@@ -722,17 +728,19 @@ h1 {
   overflow-wrap: anywhere;
 }
 
+.feeling-bar-container {
+  container-type: inline-size;
+  width: 100%;
+}
+
 .feeling-bar {
-  width: var(--w);
-  max-width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.625em;
 }
 
 .feeling-bar button {
-  width: 18%;
   aspect-ratio: 1;
   display: flex;
   align-items: center;
@@ -742,8 +750,8 @@ h1 {
   line-height: 1.2;
   white-space: nowrap;
   border: none;
-  border-radius: 16px;
-  padding: 8px;
+  border-radius: 1em;
+  padding: 0.5em;
   cursor: pointer;
   opacity: 0.8;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
@@ -772,18 +780,19 @@ h1 {
 }
 
 .emoji-list {
-  width: 244px;
   margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-auto-rows: auto;
-  gap: 10px;
+  grid-auto-rows: 1fr;
+  gap: 0.625em;
+  height: 100%;
 }
 
 .emoji-list li {
-  display: block;
+  display: grid;
+  min-height: 0;
 }
 
 .emoji-list:not([data-ready]) button {
@@ -792,19 +801,19 @@ h1 {
 
 .emoji-list button {
   width: 100%;
-  aspect-ratio: 1;
+  height: 100%;
   container-type: inline-size;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 0.375em;
   font: inherit;
   color: var(--ink);
   background: #fff;
   border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 6px;
+  border-radius: 0.875em;
+  padding: 0.375em;
   cursor: pointer;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease,
@@ -837,8 +846,7 @@ h1 {
 }
 
 .keys {
-  margin-top: 4px;
-  font-size: 12px;
+  font-size: 0.75em;
   letter-spacing: 0.06em;
   color: var(--muted);
 }
@@ -846,32 +854,32 @@ h1 {
 .keys dl {
   margin: 0;
   display: grid;
-  gap: 12px;
+  gap: 0.75em;
 }
 
-.keys dl>div {
+.keys dl > div {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.625em;
 }
 
 .keys dt {
   flex: none;
   display: flex;
-  gap: 4px;
+  gap: 0.25em;
 }
 
 .keys kbd {
-  min-width: 20px;
-  padding: 2px 6px;
+  min-width: 1.5em;
+  padding: 0.15em 0.4em;
   font: inherit;
-  font-size: 11px;
+  font-size: 0.9em;
   line-height: 1.4;
   text-align: center;
   color: var(--ink);
   background: #fff;
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: 0.35em;
 }
 
 .keys dd {
@@ -881,11 +889,11 @@ h1 {
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 32px;
-  transform: translate(-50%, 8px);
-  padding: 10px 18px;
+  bottom: 2em;
+  transform: translate(-50%, 0.5em);
+  padding: 0.625em 1.125em;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 0.8125em;
   letter-spacing: 0.08em;
   background: rgba(20, 20, 20, 0.9);
   color: #fafafa;
@@ -899,42 +907,48 @@ h1 {
   transform: translate(-50%, 0);
 }
 
-@media (max-width: 1180px) {
-  .stage {
-    grid-template-columns: 244px var(--w);
-    grid-template-areas:
-      ".     title"
-      ".     input"
-      ".     counter"
-      "emoji card"
-      ".     feelings"
-      ".     footer";
+@media (max-width: 56.25em) {
+  body {
+    padding: 1em;
   }
 
-  .keys {
-    display: none;
-  }
-}
-
-@media (max-width: 980px) {
   .stage {
-    grid-template-columns: minmax(0, var(--w));
+    grid-template-columns: minmax(0, var(--card-w));
     grid-template-areas:
-      "title"
-      "input"
-      "counter"
+      "head"
       "card"
       "emoji"
-      "feelings"
-      "footer";
+      "feelings";
+  }
+
+  .stage > .keys {
+    display: none;
+  }
+
+  .stage > .emoji-list {
+    align-self: auto;
   }
 
   .emoji-list {
-    width: 100%;
-    grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: auto;
+    height: auto;
   }
 
-  .emoji-list li:last-child {
+  .emoji-list li:nth-child(n + 10) {
     display: none;
+  }
+
+  .emoji-list button {
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .feeling-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .feeling-bar button {
+    font-size: 4.5cqw;
   }
 }

@@ -1,7 +1,5 @@
 import { resolveFeeling } from '../feelings'
 
-const PLACEHOLDERS = 5
-
 function FeelingButton({ feeling, active, style, onPick }) {
   return (
     <button
@@ -15,7 +13,15 @@ function FeelingButton({ feeling, active, style, onPick }) {
   )
 }
 
-export function FeelingBar({ feelings, active, palette, onPick, ready = true, hidden = false }) {
+export function FeelingBar({
+  feelings,
+  active,
+  palette,
+  onPick,
+  ready = true,
+  hidden = false,
+  count = 5,
+}) {
   const items = ready && feelings.length ? feelings : null
   return (
     <div className="feeling-bar-container">
@@ -45,7 +51,7 @@ export function FeelingBar({ feelings, active, palette, onPick, ready = true, hi
               />
             )
           })
-          : Array.from({ length: PLACEHOLDERS }, (_, i) => (
+          : Array.from({ length: count }, (_, i) => (
             <button
               key={i}
               type="button"

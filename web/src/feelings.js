@@ -64,13 +64,13 @@ export function resolveFeeling(feeling) {
   }
 }
 
-export function topFeelings(feelingScores, feelings, selected) {
+export function topFeelings(feelingScores, feelings, selected, count = 5) {
   if (!feelingScores) return []
   const ranked = feelings
     .map((f, i) => ({ f, p: feelingScores[i] }))
     .sort((a, b) => b.p - a.p)
     .map((x) => x.f)
-  const top = ranked.slice(0, 5)
-  if (selected && !top.includes(selected)) return [...ranked.slice(0, 4), selected]
+  const top = ranked.slice(0, count)
+  if (selected && !top.includes(selected)) return [...ranked.slice(0, count - 1), selected]
   return top
 }
