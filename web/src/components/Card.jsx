@@ -20,7 +20,7 @@ export function Card({ text, emoji, feeling, palette, onCopy }) {
     return () => clearTimeout(t)
   }, [emoji, feeling])
 
-  const textRef = useFitText(text, { min: 32, max: 104, key: shown.feeling })
+  const textRef = useFitText(text, { min: 5, max: 20, key: shown.feeling })
   const pal = shown.feeling && palette ? palette[shown.feeling] ?? palette.Neutral : null
   const r = shown.feeling ? resolveFeeling(shown.feeling) : null
   const style =

@@ -1,26 +1,25 @@
 import { useLayoutEffect, useRef } from 'react'
 
-export function useFitText(text, { min = 32, max = 104, key } = {}) {
+export function useFitText(text, { min = 5, max = 20, key } = {}) {
   const ref = useRef(null)
 
   useLayoutEffect(() => {
     const el = ref.current
     if (!el) return
+    const fits = () =>
+      el.scrollWidth <= el.clientWidth && el.scrollHeight <= el.clientHeight
     const fit = () => {
       let lo = min
       let hi = max
-      let best = min
-      while (lo <= hi) {
-        const mid = (lo + hi) >> 1
-        el.style.fontSize = mid + 'px'
-        if (el.scrollWidth <= el.clientWidth && el.scrollHeight <= el.clientHeight) {
-          best = mid
-          lo = mid + 1
-        } else {
-          hi = mid - 1
-        }
+      el.style.fontSize = lo + 'cqw'
+      if (!fits()) return
+      for (let i = 0; i < 22; i++) {
+        const mid = (lo + hi) / 2
+        el.style.fontSize = mid + 'cqw'
+        if (fits()) lo = mid
+        else hi = mid
       }
-      el.style.fontSize = best + 'px'
+      el.style.fontSize = lo + 'cqw'
     }
     fit()
     const ro = new ResizeObserver(fit)

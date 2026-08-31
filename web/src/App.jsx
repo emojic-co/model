@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOnnx } from './hooks/useOnnx'
 import { argmax, normalize } from './model'
 import { topFeelings } from './feelings'
+import GitHubButton from 'react-github-btn'
 import { Card } from './components/Card'
 import { FeelingBar } from './components/FeelingBar'
 import { EmojiList } from './components/EmojiList'
@@ -88,7 +89,17 @@ export function App() {
   return (
     <main>
       <div className="stage">
-        <h1>emojic</h1>
+        <header className="masthead">
+          <h1>emojic</h1>
+          <GitHubButton
+            href="https://github.com/emojic-co/model"
+            data-icon="octicon-star"
+            data-show-count="true"
+            aria-label="Star emojic-co/model on GitHub"
+          >
+            Star
+          </GitHubButton>
+        </header>
         <EmojiList
           emojiScores={emojiScores}
           emojis={meta?.emojis ?? []}
@@ -133,7 +144,10 @@ export function App() {
           onPick={(f) => setOverride((o) => ({ ...o, feeling: f }))}
         />
         <footer className="footer">
-          model updated <span>{formatDate(meta?.exported_at)}</span>
+          <span>
+            model updated <span>{formatDate(meta?.exported_at)}</span>
+          </span>
+          <span>made with ❤️ by Gilad</span>
         </footer>
       </div>
       <Toast toast={toast} />

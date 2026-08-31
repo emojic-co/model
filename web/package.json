@@ -11,7 +11,8 @@
   "dependencies": {
     "onnxruntime-web": "1.29.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "react-github-btn": "^1.4.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^6.1.1",
