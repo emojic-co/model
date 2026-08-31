@@ -9,7 +9,7 @@ import { appendJsonl, writeFileAtomic } from "./io.ts"
 const DATA = "./data.jsonl"
 const TRAIN = "./train.jsonl"
 
-const SAMPLE_SIZE = 10_000
+const SAMPLE_SIZE = 50_000
 
 function sampleIndices(n: number, k: number): number[] {
   const idx = Array.from({ length: n }, (_, i) => i)

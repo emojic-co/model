@@ -80,10 +80,10 @@ function section(path: string, rows: Row[]): string[] {
 
   const fc = ranked(counts(rows.map((r) => r.feeling)))
   out.push("### Feeling distribution", "")
-  out.push("| feeling | count | share |", "| --- | ---: | ---: |")
-  for (const [f, n] of fc) {
-    out.push(`| ${f} | ${n} | ${((100 * n) / rows.length).toFixed(1)}% |`)
-  }
+  out.push("|  | feeling | count | share |", "| --- | --- | ---: | ---: |")
+  fc.forEach(([f, n], i) => {
+    out.push(`| ${i + 1} | ${f} | ${n} | ${((100 * n) / rows.length).toFixed(1)}% |`)
+  })
   out.push("")
 
   const lens = rows.map((r) => [...r.text].length)
