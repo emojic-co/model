@@ -20,7 +20,9 @@ export function Card({ text, emoji, feeling, palette, onCopy }) {
     return () => clearTimeout(t)
   }, [emoji, feeling])
 
-  const textRef = useFitText(text, { min: 5, max: 20, key: shown.feeling })
+  const placeholder = !text.trim()
+  const displayText = placeholder ? "What's on your mind?" : text
+  const textRef = useFitText(displayText, { min: 5, max: 20, key: shown.feeling })
   const pal = shown.feeling && palette ? palette[shown.feeling] ?? palette.Neutral : null
   const r = shown.feeling ? resolveFeeling(shown.feeling) : null
   const style =
@@ -45,8 +47,11 @@ export function Card({ text, emoji, feeling, palette, onCopy }) {
     >
       <span className="card-emoji">{shown.emoji}</span>
       <div className="card-text-box" ref={textRef}>
-        <p className="card-text" style={r?.style}>
-          {text}
+        <p
+          className={'card-text' + (placeholder ? ' card-text-placeholder' : '')}
+          style={r?.style}
+        >
+          {displayText}
         </p>
       </div>
       <button className="copy-btn" type="button" aria-label="Copy card as image" onClick={onCopy}>

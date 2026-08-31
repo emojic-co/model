@@ -141,7 +141,9 @@ export function App() {
       <div className="stage">
         <div className="head">
           <header className="masthead">
-            <h1>emojic</h1>
+            <h1>
+              emojify<span className="tld">.ing</span>
+            </h1>
           </header>
           <input
             className="input"
@@ -181,12 +183,11 @@ export function App() {
               palette={palette}
               count={feelingCount}
               ready={!tooShort && !!shownFeeling}
-              hidden={tooShort || !shownFeeling}
               onPick={(f) => setOverride((o) => ({ ...o, feeling: f }))}
             />
-            <p className={'warn' + (tooShort ? '' : ' is-hidden')}>
-              text is too short — showing a default card
-            </p>
+            {text.trim() && tooShort && (
+              <p className="warn">text is too short — showing a default card</p>
+            )}
           </div>
           <footer className="footer">
             <span>

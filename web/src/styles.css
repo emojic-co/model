@@ -41,6 +41,10 @@ h1 {
   color: var(--muted);
 }
 
+h1 .tld {
+  opacity: 0.5;
+}
+
 .footer {
   display: flex;
   flex-direction: column;
@@ -110,17 +114,11 @@ h1 {
 }
 
 .feeling-slot {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
   width: 100%;
-}
-
-.feeling-slot>* {
-  grid-area: 1 / 1;
-}
-
-.feeling-slot>.warn {
-  align-self: center;
-  justify-self: center;
 }
 
 .input {
@@ -726,6 +724,10 @@ h1 {
   overflow-wrap: anywhere;
 }
 
+.card-text-placeholder {
+  opacity: 0.6;
+}
+
 .feeling-bar-container {
   container-type: inline-size;
   width: 100%;
@@ -771,9 +773,9 @@ h1 {
 }
 
 .feeling-bar button.placeholder {
-  background: transparent;
+  background: rgba(0, 0, 0, 0.05);
   box-shadow: none;
-  opacity: 0;
+  opacity: 1;
   cursor: default;
 }
 
@@ -794,7 +796,14 @@ h1 {
 }
 
 .emoji-list:not([data-ready]) button {
-  opacity: 0;
+  opacity: 0.4;
+}
+
+.emoji-list:not([data-ready]) button:hover,
+.emoji-list:not([data-ready]) button:focus-visible {
+  border-color: var(--line);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transform: none;
 }
 
 .emoji-list button {

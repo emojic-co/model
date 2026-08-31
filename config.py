@@ -6,7 +6,7 @@ MAX_TEXT_LEN = 42
 # MODEL
 CHAR_EMBED_SIZE = 16
 CONV = [
-    (4, 96),
+    (3, 128),
     (3, 256),
     # (2, 196)
 ]
