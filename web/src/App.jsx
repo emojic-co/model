@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOnnx } from './hooks/useOnnx'
-import { argmax, normalize } from './model'
-import { topFeelings } from './feelings'
+import { argmax, normalize, decodeColors } from './model'
+import { topFeelings, DEFAULT_COLORS } from './feelings'
 import { cycle } from './nav'
 import GitHubButton from 'react-github-btn'
 import { Card } from './components/Card'
@@ -31,7 +31,7 @@ function formatDate(iso) {
 }
 
 export function App() {
-  const { meta, config, palette, ready, predict } = useOnnx()
+  const { meta, config, ready, predict } = useOnnx()
   const mobile = useMediaQuery('(max-width: 56.25em)')
   const emojiSlots = mobile ? 9 : 10
   const feelingCount = mobile ? 4 : 5
@@ -87,14 +87,14 @@ export function App() {
   )
   const emojiList = useMemo(() => emojiTop?.map((x) => x.emoji) ?? [], [emojiTop])
 
+  const colors = useMemo(
+    () => (scores?.color ? decodeColors(scores.color) : DEFAULT_COLORS),
+    [scores],
+  )
+
   const cardData =
-    shownEmoji && shownFeeling && palette
-      ? {
-          text,
-          emoji: shownEmoji,
-          feeling: shownFeeling,
-          pal: palette[shownFeeling] ?? palette.Neutral,
-        }
+    shownEmoji && shownFeeling
+      ? { text, emoji: shownEmoji, feeling: shownFeeling, colors }
       : null
   const copyCard = useCardImage(cardData, showToast)
 
@@ -176,7 +176,7 @@ export function App() {
           text={text}
           emoji={displayEmoji}
           feeling={displayFeeling}
-          palette={palette}
+          colors={colors}
           onCopy={copyCard}
         />
         <KeyHints />
@@ -184,7 +184,7 @@ export function App() {
           <FeelingBar
             feelings={feelingOptions}
             active={shownFeeling}
-            palette={palette}
+            colors={colors}
             count={feelingCount}
             ready={!tooShort && !!shownFeeling}
             onPick={(f) => setOverride((o) => ({ ...o, feeling: f }))}

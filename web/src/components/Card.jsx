@@ -4,7 +4,7 @@ import { resolveFeeling } from '../feelings'
 
 const FADE_MS = 150
 
-export function Card({ text, emoji, feeling, palette, onCopy }) {
+export function Card({ text, emoji, feeling, colors, onCopy }) {
   const [shown, setShown] = useState({ emoji, feeling })
   const [phase, setPhase] = useState('in')
   const prev = useRef({ emoji, feeling })
@@ -23,13 +23,12 @@ export function Card({ text, emoji, feeling, palette, onCopy }) {
   const placeholder = !text.trim()
   const displayText = placeholder ? "What's on your mind?" : text
   const textRef = useFitText(displayText, { min: 5, max: 13, key: shown.feeling })
-  const pal = shown.feeling && palette ? palette[shown.feeling] ?? palette.Neutral : null
   const r = shown.feeling ? resolveFeeling(shown.feeling) : null
   const style =
-    pal && r
+    colors && r
       ? {
-          backgroundImage: `linear-gradient(135deg, ${pal.bg1}, ${pal.bg2})`,
-          color: pal.text_color,
+          backgroundImage: `linear-gradient(135deg, ${colors.bg1}, ${colors.bg2})`,
+          color: colors.text_color,
           fontFamily: r.font,
           ...r.vars,
         }

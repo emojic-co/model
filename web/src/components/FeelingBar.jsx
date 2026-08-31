@@ -16,7 +16,7 @@ function FeelingButton({ feeling, active, style, onPick }) {
 export function FeelingBar({
   feelings,
   active,
-  palette,
+  colors,
   onPick,
   ready = true,
   hidden = false,
@@ -31,12 +31,11 @@ export function FeelingBar({
       >
         {items
           ? items.map((f) => {
-            const pal = palette ? palette[f] ?? palette.Neutral : null
             const r = resolveFeeling(f)
-            const style = pal
+            const style = colors
               ? {
-                backgroundImage: `linear-gradient(135deg, ${pal.bg1}, ${pal.bg2})`,
-                color: pal.text_color,
+                backgroundImage: `linear-gradient(135deg, ${colors.bg1}, ${colors.bg2})`,
+                color: colors.text_color,
                 fontFamily: r.font,
                 ...r.style,
               }

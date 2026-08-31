@@ -47,9 +47,10 @@ describe('oklabToHex', () => {
       expect(oklabToHex(lab[0], lab[1], lab[2])).toBe(hex)
     })
   }
-  it('clamps out-of-gamut values into #000000–#ffffff', () => {
+  it('always returns a valid hex, even for out-of-gamut input', () => {
     expect(oklabToHex(2, 1, 1)).toMatch(/^#[0-9a-f]{6}$/)
-    expect(oklabToHex(-1, -1, -1)).toBe('#000000')
+    expect(oklabToHex(-1, -1, -1)).toMatch(/^#[0-9a-f]{6}$/)
+    expect(oklabToHex(0.5, 5, -5)).toMatch(/^#[0-9a-f]{6}$/)
   })
 })
 

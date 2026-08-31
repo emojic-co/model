@@ -18,7 +18,7 @@ async function ensureFonts(stack, emoji) {
   } catch {}
 }
 
-async function render({ text, emoji, feeling, pal }) {
+async function render({ text, emoji, feeling, colors }) {
   const stack = resolveFeeling(feeling).font
   const st = resolveFeeling(feeling).style
   const fw = st.fontWeight ?? 600
@@ -34,12 +34,12 @@ async function render({ text, emoji, feeling, pal }) {
   ctx.scale(scale, scale)
 
   const grad = ctx.createLinearGradient(0, 0, S, S)
-  grad.addColorStop(0, pal.bg1)
-  grad.addColorStop(1, pal.bg2)
+  grad.addColorStop(0, colors.bg1)
+  grad.addColorStop(1, colors.bg2)
   ctx.fillStyle = grad
   ctx.fillRect(0, 0, S, S)
 
-  ctx.fillStyle = pal.text_color
+  ctx.fillStyle = colors.text_color
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
 

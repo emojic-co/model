@@ -47,9 +47,7 @@ class ExportWrapper(nn.Module):
         super().__init__()
         self.model = model
 
-    def forward(
-        self, x: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, ...]:
         feeling_logits, q, emoji_embed, color = self.model(x)
         return feeling_logits, q @ emoji_embed.t(), color
 
