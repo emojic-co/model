@@ -85,6 +85,8 @@ if (import.meta.main) {
         text: texts[i],
         feeling: label.feeling,
         emoji: label.emoji,
+        bg: label.bg,
+        fg: label.fg,
       }),
     )
   }

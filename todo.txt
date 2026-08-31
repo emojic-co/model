@@ -1,4 +1,25 @@
 TODO:
-    Web APP:
+    Data generation:
+        Currently the annotator labels the text with a single feeling and emoji.
+        We want to also label the text with 3 colors, 2 for background gradient and 1 for the text color.
+        The colors should express the content of the text and form a visual 3 color palette.
+
+        You tasks:
+            - update the tools/data/train.ts script to generate the 3 color labels for each text.
+            - update the tools/data/re-annotate.ts to also generate the 3 color labels for each text.
+            - update the generate-eval.md skill to validate the 3 color labels for each text.
+        Note:
+            1.  The train.jsonl file already contains feeling and emoji, when re-annotating the data ask for all 3 labels (feeling, emoji, colors).
+                In case the new labels are different from the old one keep both both examples (use same colors for both)
+            
+            2. Move the train.jsonl to data.jsonl (so the logic of the tools/data/re-annotate.ts stays the same)
+
+            3. The data format is {text:'', emoji:'', feeling:'', bg:[''#rrggbb, '#rrggbb'], fg:'#rrggbb'}
+
+        Discussion:
+            - should we ask for 3 colors or should we ask for 1 and generate the rest deterministically?
+            - does the data format make sense? Want to suggest a different one?
+        
+        Explain to me in simple words what are you going to implement before you start.
+
 DONE:
-    - Add og and meta information, generate a png image from the classic smile emoji for the og image.

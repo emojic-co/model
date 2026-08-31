@@ -1,5 +1,5 @@
 ---
-description: Rebuild eval.jsonl from scratch — fold any existing eval.jsonl back into train.jsonl, then sample 1,000 rows whose feeling and emoji are both in labels.json and keep only the correctly-labeled ones
+description: Rebuild eval.jsonl from scratch — fold any existing eval.jsonl back into train.jsonl, then sample 1,000 rows whose feeling and emoji are both in labels.json and which carry a full bg/fg palette, and keep only the ones whose labels and colors are all correct
 allowed-tools: [Bash, Read, Write, Edit]
 ---
 
@@ -11,13 +11,15 @@ new holdout is drawn from the full corpus and never silently accumulates stale
 rows. Then sample **only from rows whose `feeling` and `emoji` are both present
 in `labels.json`** — those are exactly the labels the model can predict, so a row
 carrying an out-of-vocab label could never be scored in the validation step —
-keep only rows whose **both** labels are correct and whose text length is in
-range, and move every kept row **out** of `train.jsonl` so the holdout never
-overlaps the training corpus.
+keep only rows whose **both** labels are correct, whose `bg`/`fg` palette is
+present, valid, and on-mood, and whose text length is in range, and move every
+kept row **out** of `train.jsonl` so the holdout never overlaps the training
+corpus.
 
 Labels are open-set: `feeling` is any single capitalized word, `emoji` is any
-emoji. You are judging whether the existing labels are right — **never rewrite a
-label**. A row is keep-or-drop only.
+emoji, and the palette (`bg` = two `#rrggbb` strings, `fg` = one `#rrggbb`) is
+free-form. You are judging whether the existing labels are right — **never
+rewrite a label or a color**. A row is keep-or-drop only.
 
 Text-length range: **4–48 code points** on the raw `text` (no normalization).
 
@@ -54,9 +56,11 @@ Text-length range: **4–48 code points** on the raw `text` (no normalization).
    wc -l train.jsonl
    ```
 
-2. **Restrict to in-vocabulary rows, then sample 1,000 — do not read
-   `train.jsonl` whole.** Only rows whose `feeling` **and** `emoji` both appear
-   in `labels.json` are eligible. The filter parses each line only to test
+2. **Restrict to in-vocabulary rows with a full palette, then sample 1,000 — do
+   not read `train.jsonl` whole.** A row is eligible only when its `feeling`
+   **and** `emoji` both appear in `labels.json` **and** it carries a two-element
+   `bg` list plus a string `fg` (rows folded back from a pre-palette `eval.jsonl`
+   lack these and drop out here). The filter parses each line only to test
    membership and writes the surviving line **verbatim**, so the byte-for-byte
    match in step 5 still holds.
 
@@ -74,11 +78,16 @@ Text-length range: **4–48 code points** on the raw `text` (no normalization).
        if not line.strip():
            continue
        row = json.loads(line)
-       if row.get("feeling") in feelings and row.get("emoji") in emojis:
+       has_palette = (
+           isinstance(row.get("bg"), list)
+           and len(row["bg"]) == 2
+           and isinstance(row.get("fg"), str)
+       )
+       if row.get("feeling") in feelings and row.get("emoji") in emojis and has_palette:
            out.write(line)
            kept += 1
    out.close()
-   print(f"{kept} of the train.jsonl rows have both labels in labels.json")
+   print(f"{kept} of the train.jsonl rows have both labels in labels.json and a full palette")
    EOF
    wc -l /tmp/eval_pool.jsonl
    shuf -n 1000 /tmp/eval_pool.jsonl > /tmp/eval_candidates.jsonl
@@ -101,13 +110,17 @@ Text-length range: **4–48 code points** on the raw `text` (no normalization).
    - **emoji** — is the row's `emoji` a defensible best emoji for `text`? A
      reasonable person could attach it to that message. Off-topic or contrary
      → drop.
+   - **colors** — `bg` is two `#rrggbb` strings that read as one gradient (not a
+     clash), `fg` is one `#rrggbb` that stays clearly readable over both `bg`
+     stops, and the palette plausibly reflects the mood or imagery of `text`.
+     Malformed hex, garish, unreadable, or off-mood → drop.
    - **length** — `4 <= len(text) <= 48` counting code points on the raw
      (un-normalized) `text`.
 
    Every candidate goes to **exactly one** of two files, verbatim, one line
-   each: `/tmp/eval_kept.jsonl` if all three hold, `/tmp/eval_dropped.jsonl`
-   otherwise. Do not fix, re-word, or re-label anything. Judge every chunk —
-   none skipped.
+   each: `/tmp/eval_kept.jsonl` if all four hold, `/tmp/eval_dropped.jsonl`
+   otherwise. Do not fix, re-word, re-label, or restyle anything. Judge every
+   chunk — none skipped.
 
 4. **Check the partition, then write a fresh `eval.jsonl`.** `kept ∪ dropped`
    must equal the candidate set exactly — this is what proves no candidate was
@@ -171,10 +184,11 @@ Text-length range: **4–48 code points** on the raw `text` (no normalization).
    - No `train.jsonl.tmp` is left behind; `train.jsonl.bak` holds the pre-removal
      corpus.
    - Every row in `eval.jsonl` has its `feeling` and `emoji` in `labels.json`
-     (guaranteed by the step 2 filter — spot-check a few).
+     and a two-stop `bg` plus an `fg` (guaranteed by the step 2 filter —
+     spot-check a few).
    - `tail -n 1 eval.jsonl | python3 -c "import json,sys; json.loads(sys.stdin.read())"`
      — last line is valid JSON.
    - Refresh the stats report: `bun run tools/data/stat.ts`.
    - Report: rows folded back from a prior `eval.jsonl` (0 if none), the
-     in-vocabulary pool size, rows sampled, dropped by feeling / emoji / length,
-     rows kept, and the old/new line counts of both files.
+     in-vocabulary pool size, rows sampled, dropped by feeling / emoji / colors
+     / length, rows kept, and the old/new line counts of both files.

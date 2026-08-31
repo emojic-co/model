@@ -36,21 +36,32 @@ if (import.meta.main) {
   const picked = sampleIndices(lines.length, SAMPLE_SIZE)
   const source: number[] = []
   const texts: string[] = []
+  const olds: { feeling?: string; emoji?: string }[] = []
   let malformed = 0
   for (const i of picked) {
-    let text: unknown
+    let parsed: unknown
     try {
-      text = JSON.parse(lines[i]).text
+      parsed = JSON.parse(lines[i])
     } catch {
       malformed++
       continue
     }
+    if (!parsed || typeof parsed !== "object") {
+      malformed++
+      continue
+    }
+    const row = parsed as Record<string, unknown>
+    const text = row.text
     if (typeof text !== "string" || !text) {
       malformed++
       continue
     }
     source.push(i)
     texts.push(text)
+    olds.push({
+      feeling: typeof row.feeling === "string" ? row.feeling : undefined,
+      emoji: typeof row.emoji === "string" ? row.emoji : undefined,
+    })
   }
   console.log(`re-annotating ${texts.length} rows from ${DATA}`)
 
@@ -67,16 +78,30 @@ if (import.meta.main) {
 
   const appended: string[] = []
   const consumed = new Set<number>()
+  let keptBoth = 0
   for (let p = 0; p < texts.length; p++) {
     const label = labels.get(p)
     if (!label) continue
-    appended.push(
-      JSON.stringify({
-        text: texts[p],
-        feeling: label.feeling,
-        emoji: label.emoji,
-      }),
-    )
+    const emit = (feeling: string, emoji: string) =>
+      appended.push(
+        JSON.stringify({
+          text: texts[p],
+          feeling,
+          emoji,
+          bg: label.bg,
+          fg: label.fg,
+        }),
+      )
+    emit(label.feeling, label.emoji)
+    const old = olds[p]
+    if (
+      old.feeling &&
+      old.emoji &&
+      (old.feeling !== label.feeling || old.emoji !== label.emoji)
+    ) {
+      emit(old.feeling, old.emoji)
+      keptBoth++
+    }
     consumed.add(source[p])
   }
 
@@ -89,6 +114,7 @@ if (import.meta.main) {
   console.log(`sampled              : ${picked.length}`)
   console.log(`malformed (skipped)  : ${malformed}`)
   console.log(`re-annotated -> train: ${appended.length}`)
+  console.log(`kept both (old+new)  : ${keptBoth}`)
   console.log(`left in data.jsonl   : ${kept.length} (was ${lines.length})`)
   process.exit(0)
 }
