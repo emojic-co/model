@@ -101,10 +101,15 @@ class ColorGen(nn.Module):
         self.encoder = Encoder([(3, dim)])
         self.head = nn.Linear(dim + self.z_dim, COLOR_DIM)
 
-    def forward(self, text: torch.Tensor) -> torch.Tensor:
-        # text, emoji, feeling, colors
+    def sample_z(self, n: int, device: torch.device | None = None) -> torch.Tensor:
+        return torch.randn(n, self.z_dim, device=device)
+
+    def forward(
+        self, text: torch.Tensor, z: torch.Tensor | None = None
+    ) -> torch.Tensor:
         enc = self.encoder(text)
-        z = torch.randn(enc.size(0), self.z_dim, device=enc.device)
+        if z is None:
+            z = self.sample_z(enc.size(0), enc.device)
         colors = self.head(torch.cat([enc, z], dim=-1))
         colors = tanh(colors) * 127.5
 
@@ -124,7 +129,8 @@ class LitGAN(pl.LightningModule):
         text, _, _, colors = batch
         opt_gen, opt_tst = self.optimizers()  # type: ignore
 
-        fake = self.gen(text)
+        z = self.gen.sample_z(text.size(0), text.device)
+        fake = self.gen(text, z)
         tst_real = self.tst((text, colors))
         tst_fake = self.tst((text, fake))
 

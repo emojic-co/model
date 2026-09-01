@@ -41,6 +41,6 @@ if (import.meta.main) {
   await mkdir(OUT_DIR, { recursive: true })
   const dest = `${OUT_DIR}/pred-${stamp()}.html`
   await writeFile(dest, html)
-  console.log(`wrote ${dest}`)
+  console.log(dest)
   process.exit(0)
 }
