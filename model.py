@@ -67,7 +67,7 @@ class MLP(nn.Module):
             nn.Conv1d(cs[-2], cs[-1], kernel_size=1, bias=True))
 
     def forward(self, x):
-        return self.net(x).squeeze(-1)
+        return self.net(x).squeeze(2)
 
 
 class ColorCritic(nn.Module):
@@ -92,7 +92,7 @@ class LitColorCritic(pl.LightningModule):
         super().__init__()
         self.model = ColorCritic()
 
-    def training_step(self, batch):
+    def training_step(self, batch, batch_idx):
         # text, emoji, feeling, colors
         text, _, _, colors = batch
 
