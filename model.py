@@ -1,6 +1,6 @@
 from math import ceil, log2
 
-import pytorch_lightning as pl
+import lightning as pl
 import torch
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
@@ -122,9 +122,11 @@ class LitColorCritic(pl.LightningModule):
 
 if __name__ == "__main__":
     logger = TensorBoardLogger("runs", name="color_critic")
+
     trainer = pl.Trainer(
         devices="auto",
         accelerator="auto",
+        logger=logger,
         max_epochs=10,
     )
 
