@@ -30,3 +30,5 @@ data.jsonl.tmp
 *.pt
 # SDD isolated worktrees
 /.worktrees/
+pred.jsonl
+lightning_logs
