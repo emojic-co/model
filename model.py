@@ -90,7 +90,7 @@ class ColorTst(nn.Module):
         super().__init__()
 
         # self.encoder = Encoder([(3, dim)])
-        self.net = MLP([COLOR_DIM, 64, 32, 1])
+        self.net = MLP([COLOR_DIM, 512, 128, 32, 1])
 
     def forward(self, text: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
         # enc = self.encoder(text)
