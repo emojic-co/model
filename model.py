@@ -2,25 +2,98 @@ from math import ceil, log2
 
 import torch
 from torch import nn
-from torch.nn.functional import normalize
+from torch.nn.functional import normalize, sigmoid
 
-from config import CHAR_EMBED_SIZE, CONV, DROPOUT_COLOR, DROPOUT_EMOJI, DROPOUT_FEELING
+from config import (
+    CHAR_EMBED_SIZE,
+    DROPOUT_COLOR,
+    DROPOUT_EMOJI,
+    DROPOUT_FEELING,
+    ENCODER,
+    conv,
+)
 from data import COLOR_DIM, EMOJIS, FEELING, VOCAB_SIZE
 
 EMOJI_EMBED_SIZE = ceil(6 * log2(len(EMOJIS)))
 
 
-def layer(*, kernel, in_channels, out_channels):
-    return [
+def conv_bn_relu(*, k, i, o):
+    return nn.Sequential(
         nn.Conv1d(
-            in_channels,
-            out_channels,
-            kernel_size=kernel,
+            i,
+            o,
+            kernel_size=k,
             bias=False),
 
-        nn.BatchNorm1d(out_channels),
+        nn.BatchNorm1d(o),
         nn.LeakyReLU(negative_slope=0.1),
-    ]
+    )
+
+
+def pool_conv_bn_relu(*, k, i, o):
+    return nn.Sequential(
+        nn.MaxPool1d(kernel_size=2, stride=2),
+        conv_bn_relu(
+            k=k,
+            i=i,
+            o=o),
+    )
+
+
+class Encoder(nn.Module):
+    def __init__(self, config: list[conv]):
+        super().__init__()
+
+        self.char_embed = nn.Embedding(
+            VOCAB_SIZE,
+            CHAR_EMBED_SIZE)
+
+        k, o = config[0]
+
+        self.encoder = nn.Sequential(
+            conv_bn_relu(k=k, i=CHAR_EMBED_SIZE, o=o),
+            *[
+                pool_conv_bn_relu(k=k, i=i, o=o)
+                for (k, i), (k, o) in
+                zip(config[:-1], config[1:], strict=True)]
+        )
+
+    def forward(self, x):
+        out = self.char_embed(x).transpose(1, 2)
+        out = self.encoder(out)
+
+        return torch.max(out, dim=-1).values
+
+
+class MLP(nn.Module):
+    # Expecting (B, D, 1) input
+    def __init__(self, cs: list[int]):
+        super().__init__()
+        self.net = nn.Sequential(*[
+            conv_bn_relu(k=1, i=i, o=o)
+            for i, o in zip(cs[:-1], cs[1:], strict=True)
+        ]
+        )
+
+    def forward(self, x):
+        return self.net(x).squeeze(-1)
+
+
+class ColorCritic(nn.Module):
+    # Input is a pair of text and 3 RGB colors, output is a single score
+    def __init__(self):
+        super().__init__()
+
+        dim = 64
+        self.encoder = Encoder([(3, dim)])
+        self.net = MLP([dim + COLOR_DIM, 32, 1])
+
+    def forward(self, x):
+        text, colors = x
+        enc = self.encoder(text)
+        logit = self.net(torch.cat([enc, colors], dim=-1).unsqueeze(-1))
+
+        return sigmoid(logit)
 
 
 class Model(nn.Module):
@@ -28,7 +101,7 @@ class Model(nn.Module):
         super().__init__()
 
         self.char_embed = nn.Embedding(VOCAB_SIZE, CHAR_EMBED_SIZE)
-        k, o = CONV[0]
+        k, o = ENCODER[0]
 
         # Create initial layer block
         layers = [*layer(
@@ -37,7 +110,7 @@ class Model(nn.Module):
             out_channels=o)]
 
         # Append MaxPool + downstream layers in a loop
-        for (_, i), (k, o) in zip(CONV[:-1], CONV[1:], strict=True):
+        for (_, i), (k, o) in zip(ENCODER[:-1], ENCODER[1:], strict=True):
             layers.append(nn.MaxPool1d(kernel_size=2, stride=2))
             layers.extend(layer(
                 kernel=k,
@@ -46,7 +119,7 @@ class Model(nn.Module):
 
         self.net = nn.Sequential(*layers)
 
-        _, o = CONV[-1]
+        _, o = ENCODER[-1]
         self.feeling_dropout = nn.Dropout(DROPOUT_FEELING)
         self.feeling = nn.Linear(o, len(FEELING))
 

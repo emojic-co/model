@@ -4,11 +4,16 @@ from datetime import datetime
 MAX_TEXT_LEN = 42
 
 # MODEL
+
+
+type conv = tuple[int, int]  # (kernel, out_channels)
+
 CHAR_EMBED_SIZE = 16
-CONV = [
+ENCODER = [
     (4, 128),
     (3, 256),
 ]
+
 POOL_1D_SIZE = 2
 
 # TRAINING
@@ -28,7 +33,7 @@ EARLY_STOP_PATIENCE = 30
 
 model_str = ' '.join([
     str(p) for p in
-    (CHAR_EMBED_SIZE, CONV)])
+    (CHAR_EMBED_SIZE, ENCODER)])
 
 train_str = ' '.join([
     str(p) for p in

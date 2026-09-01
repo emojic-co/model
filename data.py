@@ -27,42 +27,22 @@ emoji2idx = {e: i for i, e in enumerate(EMOJIS)}
 
 COLOR_DIM = 9
 
-COLOR_MEAN = torch.tensor(
-    [0.809946, 0.006661, 0.018747, 0.721956, 0.019043,
-     0.013285, 0.370698, 0.008323, 0.001856],
-    dtype=torch.float32,
-)
-COLOR_STD = torch.tensor(
-    [0.148909, 0.040569, 0.057178, 0.131150, 0.058753,
-     0.060955, 0.242255, 0.033875, 0.035447],
-    dtype=torch.float32,
-)
 
-
-def _srgb_to_linear(c: float) -> float:
-    return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
-
-
-def hex_to_oklab(h: str) -> tuple[float, float, float]:
+def hex2rgb(h: str) -> tuple[int, int, int]:
     h = h.lstrip("#")
-    r, g, b = (_srgb_to_linear(int(h[i:i + 2], 16) / 255) for i in (0, 2, 4))
-
-    lm = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b
-    mm = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b
-    sm = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b
-
-    lm, mm, sm = lm ** (1 / 3), mm ** (1 / 3), sm ** (1 / 3)
-
     return (
-        0.2104542553 * lm + 0.7936177850 * mm - 0.0040720468 * sm,
-        1.9779984951 * lm - 2.4285922050 * mm + 0.4505937099 * sm,
-        0.0259040371 * lm + 0.7827717662 * mm - 0.8086757660 * sm,
-    )
+        int(h[0:2], 16),
+        int(h[2:4], 16),
+        int(h[4:6], 16))
 
 
-def color_to_tensor(bg: list[str], fg: str) -> torch.Tensor:
-    vals = [c for h in (*bg, fg) for c in hex_to_oklab(h)]
-    return (torch.tensor(vals, dtype=torch.float32) - COLOR_MEAN) / COLOR_STD
+def colors2tensor(bg: tuple[str, str], fg: str) -> torch.Tensor:
+    vals = [c for h in (*bg, fg) for c in hex2rgb(h)]
+    return torch.tensor(vals, dtype=torch.float32) - 127.5
+
+
+def rnd_color_tensor() -> torch.Tensor:
+    return torch.randint(0, 256, (COLOR_DIM,), dtype=torch.float32) - 127.5
 
 
 def normalize(text: str) -> str:
@@ -77,54 +57,22 @@ def text_to_tensor(text: str) -> torch.Tensor:
         dtype=torch.long)
 
 
-def _read_jsonl(path):
-    rows, bad = [], 0
-    with open(path, encoding='utf-8') as f:
-        for line in f:
-            if not line.strip():
-                continue
-            try:
-                rows.append(json.loads(line))
-            except json.JSONDecodeError:
-                bad += 1
-    if bad:
-        print(f"{path}: skipped {bad} malformed line(s)")
-    return rows
+def read(path):
+    def read_jsonl():
+        with open(path, encoding='utf-8') as f:
+            for line in f:
+                yield json.loads(line)
 
-
-def _load(path):
-    rows = _read_jsonl(path)
-
-    out = []
-    for d in rows:
-        feeling = d["feeling"]
-        if feeling not in feeling2idx or d["emoji"] not in emoji2idx:
-            continue
-        if "bg" not in d or "fg" not in d:
-            continue
-        text = normalize(d["text"])
-        if len(text) > MAX_TEXT_LEN:
-            continue
-        out.append((
-            text,
-            (text_to_tensor(text),
-             emoji2idx[d["emoji"]],
-             feeling2idx[feeling],
-             color_to_tensor(d["bg"], d["fg"]))))
-    return out
-
-
-def split():
-    eval_pairs = _load(EVAL_PATH)
-    eval_keys = {key for key, _ in eval_pairs}
-    eval_data = [sample for _, sample in eval_pairs]
-
-    train_data = [
-        sample for key, sample in _load(TRAIN_PATH) if key not in eval_keys
-    ]
-
-    assert eval_data, f"{EVAL_PATH} is empty or missing"
-    return train_data, eval_data
+    for d in read_jsonl():
+        match d:
+            case {
+                "text": text,
+                "emoji": emoji,
+                "feeling": feeling,
+                'bg': bg,
+                'fg': fg
+            }:
+                yield (text, emoji, feeling, [*bg, fg])
 
 
 class EmojiDataset(Dataset):
@@ -178,3 +126,8 @@ def eval_data_loader(ds: EmojiDataset):
         collate_fn=collate_fn,
         num_workers=0,
     )
+
+
+if __name__ == "__main__":
+    for r, _ in zip(read(TRAIN_PATH), range(3), strict=False):
+        print(r)
