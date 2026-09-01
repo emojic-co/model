@@ -46,7 +46,7 @@ class Encoder(nn.Module):
             conv_bn_relu(k=k, i=CHAR_EMBED_SIZE, o=o),
             *[
                 pool_conv_bn_relu(k=k, i=i, o=o)
-                for (k, i), (k, o) in
+                for (_, i), (k, o) in
                 zip(config[:-1], config[1:], strict=True)]
         )
 
