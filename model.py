@@ -17,6 +17,7 @@ from config import (
     ENCODER_KERNEL,
     ENCODER_RELU_SLOPE,
     GEN_CHANNELS,
+    GEN_RELU_SLOPE,
     GEN_Z_DIM,
     POOL_1D_SIZE,
     TEXT_EMBED_SIZE,
@@ -92,14 +93,15 @@ class ColorGen(nn.Module):
         io = zip(GEN_CHANNELS[:-1], GEN_CHANNELS[1:], strict=True)
         self.net = nn.Sequential(
             nn.Linear(GEN_Z_DIM + EMOJI_EMBED_SIZE, GEN_CHANNELS[0]),
-            nn.LeakyReLU(negative_slope=0.2),
+            nn.LeakyReLU(negative_slope=GEN_RELU_SLOPE),
             *[
                 nn.Sequential(
                     nn.Linear(i, o),
-                    nn.LeakyReLU(negative_slope=0.2)
+                    nn.LeakyReLU(negative_slope=GEN_RELU_SLOPE)
                 )
                 for i, o in io
             ],
+            nn.Linear(GEN_CHANNELS[-1], COLOR_DIM),
         )
 
     def sample_z(self, n: int, device: torch.device | None = None) -> torch.Tensor:
@@ -152,6 +154,6 @@ class EmojiHead(nn.Module):
         self,
         text_embedding: torch.Tensor
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        q = normalize(tanh(self.net(text_embedding)), dim=-1)
+        q = normalize(tanh(self.net(self.dropout(text_embedding))), dim=-1)
         emoji_vec = normalize(self.embed.weight, dim=-1)
         return q, emoji_vec
