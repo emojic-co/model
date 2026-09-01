@@ -67,7 +67,7 @@ class ColorTst(nn.Module):
     def __init__(self):
         super().__init__()
 
-        cs = [COLOR_DIM, 512, 128, 32, 1]
+        cs = [COLOR_DIM, 512, 128, 32]
         io = zip(cs[:-1], cs[1:], strict=True)
         self.net = nn.Sequential(
             *[
@@ -77,7 +77,7 @@ class ColorTst(nn.Module):
                 )
                 for i, o in io
             ],
-            nn.Conv1d(cs[-2], cs[-1], kernel_size=1, bias=True),
+            nn.Conv1d(cs[-1], 1, kernel_size=1, bias=True),
         )
 
     def forward(self, text_embedding: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
