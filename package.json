@@ -5,6 +5,8 @@
   "scripts": {
     "train": "bun run tools/data/train.ts",
     "re-annotate": "bun run tools/data/re-annotate.ts",
+    "upsample-emojis": "bun run tools/data/upsample-emojis.ts",
+    "upsample-feelings": "bun run tools/data/upsample-feelings.ts",
     "labels": "bun run tools/data/labels.ts",
     "stat": "bun run tools/data/stat.ts",
     "preview": "bun run tools/data/preview.ts",
