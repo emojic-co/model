@@ -2,6 +2,7 @@ from math import ceil, log2
 
 import lightning as pl
 import torch
+from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
 from torch.nn.functional import binary_cross_entropy_with_logits, normalize, tanh
@@ -30,28 +31,29 @@ class TextEncoder(nn.Module):
 
         self.char_embed = nn.Embedding(VOCAB_SIZE, CHAR_EMBED_SIZE)
 
-        def conv_bn(*, k: int, i: int, o: int) -> nn.Sequential:
+        def conv_sn(*, k: int, i: int, o: int) -> nn.Sequential:
             return nn.Sequential(
-                nn.Conv1d(i, o, kernel_size=k, bias=False),
-                nn.BatchNorm1d(o))
+                sn(nn.Conv1d(i, o, kernel_size=k, bias=False)),
+                # nn.BatchNorm1d(o)
+            )
 
-        def conv_bn_relu(*, k: int, i: int, o: int) -> nn.Sequential:
+        def conv_sn_relu(*, k: int, i: int, o: int) -> nn.Sequential:
             return nn.Sequential(
-                conv_bn(k=k, i=i, o=o),
+                conv_sn(k=k, i=i, o=o),
                 nn.LeakyReLU(negative_slope=0.1))
 
-        def pool_conv_bn_relu(*, k: int, i: int, o: int) -> nn.Sequential:
+        def pool_conv_sn_relu(*, k: int, i: int, o: int) -> nn.Sequential:
             return nn.Sequential(
                 nn.MaxPool1d(kernel_size=2, stride=2),
-                conv_bn_relu(k=k, i=i, o=o))
+                conv_sn_relu(k=k, i=i, o=o))
 
         cs = [32, 64, TEXT_EMBED_SIZE]
         io = zip(cs[:-1], cs[1:], strict=True)
 
         self.encoder = nn.Sequential(
-            conv_bn_relu(k=3, i=CHAR_EMBED_SIZE, o=cs[0]),
+            conv_sn_relu(k=3, i=CHAR_EMBED_SIZE, o=cs[0]),
             *[
-                pool_conv_bn_relu(k=3, i=i, o=o)
+                pool_conv_sn_relu(k=3, i=i, o=o)
                 for i, o in io])
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -113,12 +115,16 @@ class FeelingHead(nn.Module):
     def __init__(self):
         super().__init__()
 
+        self.dropout = nn.Dropout(p=0.4)
         self.net = nn.Linear(
             TEXT_EMBED_SIZE,
             len(FEELINGS))
 
     def forward(self, text_embedding: torch.Tensor) -> torch.Tensor:
-        return self.net(text_embedding)
+        out = self.dropout(text_embedding)
+        out = self.net(out)
+
+        return out
 
 
 class EmojiHead(nn.Module):
@@ -203,23 +209,23 @@ class LitGAN(pl.LightningModule):
         top5 = feels_pred.topk(5, dim=-1).indices
         acc5 = (top5 == feels.unsqueeze(1)).any(dim=-1).float().mean()
 
-        self.log("loss/tst", loss_tst, prog_bar=True)  # type: ignore
-        self.log("loss/gen", loss_gen, prog_bar=True)  # type: ignore
+        self.log("loss/tst", loss_tst, prog_bar=True)
+        self.log("loss/gen", loss_gen, prog_bar=True)
         self.log(
             "loss/f/train", loss_feel,
             on_step=False, on_epoch=True, prog_bar=True,
-            batch_size=text.size(0))  # type: ignore
+            batch_size=text.size(0))
         self.log(
             "acc/f/train", acc,
             on_step=False, on_epoch=True, prog_bar=True,
-            batch_size=text.size(0))  # type: ignore
+            batch_size=text.size(0))
         self.log(
             "acc5/f/train", acc5,
             on_step=False, on_epoch=True, prog_bar=True,
-            batch_size=text.size(0))  # type: ignore
+            batch_size=text.size(0))
 
     def validation_step(self, batch, batch_idx):
-        text, emoji, feels, colors = batch
+        text, _, feels, _ = batch
 
         enc = self.enc(text)
 
@@ -233,15 +239,15 @@ class LitGAN(pl.LightningModule):
         self.log(
             "loss/f/val", loss_feel,
             on_step=False, on_epoch=True, prog_bar=True,
-            batch_size=text.size(0))  # type: ignore
+            batch_size=text.size(0))
         self.log(
             "acc/f/val", acc,
             on_step=False, on_epoch=True, prog_bar=True,
-            batch_size=text.size(0))  # type: ignore
+            batch_size=text.size(0))
         self.log(
             "acc5/f/val", acc5,
             on_step=False, on_epoch=True, prog_bar=True,
-            batch_size=text.size(0))  # type: ignore
+            batch_size=text.size(0))
 
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=0.01)
@@ -258,6 +264,16 @@ if __name__ == "__main__":
 
     logger = TensorBoardLogger("runs", name="color_critic")
 
+    ckpt = ModelCheckpoint(
+        monitor="acc5/f/val",
+        mode="max",
+        save_top_k=1,
+        filename="best-{step}")
+    early_stop = EarlyStopping(
+        monitor="acc5/f/val",
+        mode="max",
+        patience=20)
+
     trainer = pl.Trainer(
         devices="auto",
         accelerator="auto",
@@ -265,6 +281,7 @@ if __name__ == "__main__":
         deterministic=True,
         max_epochs=100,
         val_check_interval=100,
+        callbacks=[ckpt, early_stop],
     )
 
     model = LitGAN()
@@ -272,6 +289,9 @@ if __name__ == "__main__":
     val_dl = eval_data_loader()
 
     trainer.fit(model, dl, val_dl)
+
+    if ckpt.best_model_path:
+        model = LitGAN.load_from_checkpoint(ckpt.best_model_path)
 
     torch.save(model.state_dict(), "gan.pt")
     for name, mod in (
