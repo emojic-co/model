@@ -1,8 +1,9 @@
 TODO:
-    I have a dataset of <text, color pallette> pairs
-    The goal is to create cards with gradient background and text overlay.
-    Each color pallette has 3 RGB colors.
-    The text is short, 4 - 48 chars.
-    I want to train a GAN that given a text input, generates a color pallette.
-    What do you think.
+    Color GAN:
+        We build a tiny, lightweight and super simple GAN to generate color pallette given a short text.
+        The GAN must be simple and lightweight.
+        The loss of the generator in the current implementation drops instantly to 0, but the actual results look bad visually.
+        Suggest, one simple step to improve the GAN results.
+        Avoid big architectures, complex loss functions, or any other complex changes.
+
 DONE:
