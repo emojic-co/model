@@ -5,8 +5,9 @@ from pathlib import Path
 
 import torch
 from torch import nn
+from torch.nn.functional import normalize
 
-from config import EMOJIS, FEELINGS, GEN_Z_DIM, MAX_TEXT_LEN, SEED
+from config import EMOJI_EMBED_SIZE, EMOJIS, FEELINGS, MAX_TEXT_LEN, SEED, Z_WEIGHT
 from data import CHARS, PAD_IDX
 from model import ColorGen, EmojiHead, FeelingHead, TextEncoder
 
@@ -14,8 +15,13 @@ WEB_PUBLIC = Path("web/public")
 ONNX_OPSET = 18
 COLOR_SAMPLES = 5
 
-CONST_Z = torch.randn(
-    COLOR_SAMPLES, GEN_Z_DIM, generator=torch.Generator().manual_seed(SEED)
+CONST_Z = normalize(
+    torch.randn(
+        COLOR_SAMPLES,
+        EMOJI_EMBED_SIZE,
+        generator=torch.Generator().manual_seed(SEED),
+    ),
+    dim=-1,
 )
 
 
@@ -53,8 +59,8 @@ class ExportWrapper(nn.Module):
         feeling_logits = self.feels(emb)
         q, emoji_vec = self.emoji(emb)
         emoji_logits = q @ emoji_vec.t()
-        cond = q.expand(self.z.shape[0], -1)
-        color = self.gen(cond, self.z) + 127.5
+        seed = (1 - Z_WEIGHT) * q + Z_WEIGHT * self.z
+        color = torch.tanh(self.gen.net(seed)) * 127.5 + 127.5
         return feeling_logits, emoji_logits, color
 
 
