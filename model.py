@@ -90,7 +90,7 @@ class ColorTst(nn.Module):
         super().__init__()
 
         # self.encoder = Encoder([(3, dim)])
-        self.net = MLP([COLOR_DIM, 256, 128, 64, 32, 1])
+        self.net = MLP([COLOR_DIM, 64, 32, 1])
 
     def forward(self, text: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
         # enc = self.encoder(text)
@@ -102,10 +102,10 @@ class ColorGen(nn.Module):
     def __init__(self):
         super().__init__()
 
-        dim = 128
+        # dim = 128
         self.z_dim = 16
-        self.encoder = Encoder([(3, dim)])
-        self.head = nn.Linear(dim + self.z_dim, COLOR_DIM)
+        # self.encoder = Encoder([(3, dim)])
+        self.head = nn.Linear(self.z_dim, COLOR_DIM)
 
     def sample_z(self, n: int, device: torch.device | None = None) -> torch.Tensor:
         return torch.randn(n, self.z_dim, device=device)
@@ -113,10 +113,11 @@ class ColorGen(nn.Module):
     def forward(
         self, text: torch.Tensor, z: torch.Tensor | None = None
     ) -> torch.Tensor:
-        enc = self.encoder(text)
+        # enc = self.encoder(text)
         if z is None:
-            z = self.sample_z(enc.size(0), enc.device)
-        colors = self.head(torch.cat([enc, z], dim=-1))
+            z = self.sample_z(text.size(0), text.device)
+
+        colors = self.head(z)
         colors = tanh(colors) * 127.5
 
         return colors
