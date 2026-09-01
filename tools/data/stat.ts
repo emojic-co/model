@@ -1,9 +1,9 @@
 import { existsSync } from "node:fs"
 import { mkdir, writeFile } from "node:fs/promises"
 import { EKMAN_FEELINGS, TOP_EMOJIS } from "./config"
+import { readJsonl } from "./io.ts"
 
 const TOP_FEELINGS = EKMAN_FEELINGS.length
-import { readJsonl } from "./io.ts"
 
 const FILES = ["./train.jsonl", "./eval.jsonl"]
 const REPORT_DIR = "report/data-stat"
@@ -149,6 +149,6 @@ if (import.meta.main) {
   await mkdir(REPORT_DIR, { recursive: true })
   const dest = `${REPORT_DIR}/${file}.md`
   await writeFile(dest, doc.join("\n"))
-  console.log(`wrote ${dest}`)
+  console.log(dest)
   process.exit(0)
 }
