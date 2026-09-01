@@ -1,2 +1,2 @@
-export const TOP_EMOJIS = 200
-export const TOP_FEELINGS = 32
+export const TOP_EMOJIS = 264
+export const TOP_FEELINGS = 30

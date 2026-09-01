@@ -63,14 +63,14 @@
 {"text":"Your name is still on the old invoices.","feeling":"Annoyed","emoji":"🧾","bg":["#d9c7a8","#b99b78"],"fg":"#2b2119"}
 {"text":"Today's vibe is damp and confusing","feeling":"Confused","emoji":"😵‍💫","bg":["#aebbc2","#8798a3"],"fg":"#17242b"}
 {"text":"What if they don't show up?","feeling":"Anxious","emoji":"😟","bg":["#b9cfe0","#91aec4"],"fg":"#172c3d"}
-{"text":"Did anyone lock the back door?","feeling":"Worried","emoji":"🔒","bg":["#b9c7d5","#8fa4b7"],"fg":"#182936"}
+{"text":"Did anyone lock the back door?","feeling":"Concerned","emoji":"🔒","bg":["#b9c7d5","#8fa4b7"],"fg":"#182936","meta":{"feeling_merge":{"from":"Worried","to":"Concerned","at":"2026-09-01"}}}
 {"text":"You would've ordered pizza.","feeling":"Amused","emoji":"🍕","bg":["#d98b5f","#b9684e"],"fg":"#321b17"}
 {"text":"The printer is broken, so I’m eating cake","feeling":"Amused","emoji":"🍰","bg":["#ffd2c2","#f2b6a0"],"fg":"#4a2017"}
 {"text":"Found the problem. Tiny wire, huge drama","feeling":"Amused","emoji":"😅","bg":["#ffd09b","#f39b68"],"fg":"#421d0b"}
 {"text":"I’m leaving before I say something worse.","feeling":"Angry","emoji":"😠","bg":["#b94b4b","#7d252d"],"fg":"#fff4f0"}
 {"text":"I'm anxiously waiting here","feeling":"Anxious","emoji":"😰","bg":["#c9d4e3","#9eafc4"],"fg":"#182536"}
 {"text":"The dog is asleep under my desk.","feeling":"Calm","emoji":"😌","bg":["#d8c3a5","#a98f78"],"fg":"#241b16"}
-{"text":"Morning, darling. You make work feel lighter.","feeling":"Loving","emoji":"💛","bg":["#ffe7a3","#ffd07b"],"fg":"#3d2708"}
+{"text":"Morning, darling. You make work feel lighter.","feeling":"Love","emoji":"💛","bg":["#ffe7a3","#ffd07b"],"fg":"#3d2708","meta":{"feeling_merge":{"from":"Loving","to":"Love","at":"2026-09-01"}}}
 {"text":"The rain stopped right before I left.","feeling":"Relieved","emoji":"🌤️","bg":["#b9dce8","#8fc4d0"],"fg":"#12313a"}
 {"text":"This is your fault, own it.","feeling":"Angry","emoji":"😠","bg":["#ef8a82","#d1495b"],"fg":"#3b0808"}
 {"text":"Let’s postpone this until Monday.","feeling":"Calm","emoji":"🗓️","bg":["#aebed0","#8295ad"],"fg":"#172334"}
@@ -83,7 +83,7 @@
 {"text":"One thing at a time. Right.","feeling":"Determined","emoji":"🧘","bg":["#b5d9d1","#8dbcc4"],"fg":"#102d35"}
 {"text":"I sat in the van until dark","feeling":"Lonely","emoji":"🌙","bg":["#39465f","#202b42"],"fg":"#f2eadb"}
 {"text":"The lift is broken, so leg day it is.","feeling":"Annoyed","emoji":"😩","bg":["#d8d0e5","#b9c5d8"],"fg":"#202033"}
-{"text":"I keep your silly notes in my wallet.","feeling":"Loving","emoji":"🥰","bg":["#f7d8e5","#e7c5dc"],"fg":"#421d32"}
+{"text":"I keep your silly notes in my wallet.","feeling":"Love","emoji":"🥰","bg":["#f7d8e5","#e7c5dc"],"fg":"#421d32","meta":{"feeling_merge":{"from":"Loving","to":"Love","at":"2026-09-01"}}}
 {"text":"Cold hands, warm scanner, weird shift","feeling":"Confused","emoji":"😵‍💫","bg":["#b8dce3","#86b7c2"],"fg":"#12343b"}
 {"text":"These waves are pissing me off","feeling":"Angry","emoji":"😠","bg":["#c2410c","#dc2626"],"fg":"#ffffff"}
 {"text":"I wish I could pause moments with you.","feeling":"Love","emoji":"🥹","bg":["#f3d3df","#c99ab5"],"fg":"#3b1728"}
@@ -111,7 +111,7 @@
 {"text":"I'm done hearing the same lame story.","feeling":"Annoyed","emoji":"😒","bg":["#f2c2a3","#d99a9a"],"fg":"#431b1b"}
 {"text":"The 2 a.m. meeting went smoothly","feeling":"Relieved","emoji":"😌","bg":["#26364a","#40566b"],"fg":"#ffffff"}
 {"text":"I handled it without tightening up.","feeling":"Relieved","emoji":"😮‍💨","bg":["#b9dfd0","#8fc6b6"],"fg":"#12352b"}
-{"text":"Call me when you get home, my heart.","feeling":"Loving","emoji":"💕","bg":["#f7b3b8","#e98591"],"fg":"#3b1018"}
+{"text":"Call me when you get home, my heart.","feeling":"Love","emoji":"💕","bg":["#f7b3b8","#e98591"],"fg":"#3b1018","meta":{"feeling_merge":{"from":"Loving","to":"Love","at":"2026-09-01"}}}
 {"text":"Finally, the weekend is visible.","feeling":"Excited","emoji":"🎉","bg":["#ffe27a","#ffae68"],"fg":"#452000"}
 {"text":"That was nearly graceful. Progress.","feeling":"Amused","emoji":"😏","bg":["#ffe0b2","#ffc27d"],"fg":"#482300"}
 {"text":"I’m thankful for your trust in me.","feeling":"Grateful","emoji":"🙏","bg":["#d8f3dc","#95d5b2"],"fg":"#123524"}
@@ -125,7 +125,7 @@
 {"text":"Please stop blocking the emergency exit","feeling":"Concerned","emoji":"🚨","bg":["#f4d58e","#efb36f"],"fg":"#3b2108"}
 {"text":"The rain sounds so good right now","feeling":"Calm","emoji":"🌧️","bg":["#9fc5dc","#718eae"],"fg":"#102536"}
 {"text":"I have lit one lamp; the room feels tender.","feeling":"Calm","emoji":"🕯️","bg":["#d9a85f","#8f6b63"],"fg":"#211a1a"}
-{"text":"I would hold you forever if I could","feeling":"Loving","emoji":"🫂","bg":["#f5c8d2","#e99eae"],"fg":"#481b29"}
+{"text":"I would hold you forever if I could","feeling":"Love","emoji":"🫂","bg":["#f5c8d2","#e99eae"],"fg":"#481b29","meta":{"feeling_merge":{"from":"Loving","to":"Love","at":"2026-09-01"}}}
 {"text":"Ten minutes in and we're ahead of target.","feeling":"Excited","emoji":"🚀","bg":["#ffe08a","#ffb45f"],"fg":"#4a2600"}
 {"text":"The baby monitor has nothing to report.","feeling":"Relieved","emoji":"😮‍💨","bg":["#c8e8f0","#b9dfcc"],"fg":"#173c43"}
 {"text":"You bring meaning to this journey.","feeling":"Grateful","emoji":"💛","bg":["#f6df9b","#d9c276"],"fg":"#302500"}
@@ -207,7 +207,7 @@
 {"text":"Dinner for one, apparently.","feeling":"Sad","emoji":"😔","bg":["#cbd5e1","#aab7c8"],"fg":"#182433"}
 {"text":"New workout top, same old excuses","feeling":"Amused","emoji":"😅","bg":["#f6b35f","#e98752"],"fg":"#3b1d12"}
 {"text":"The trip bus has working air conditioning.","feeling":"Relieved","emoji":"😊","bg":["#a9dff0","#6bb8d1"],"fg":"#102b38"}
-{"text":"I left my keys at the café.","feeling":"Worried","emoji":"😟","bg":["#c6c9e2","#9ea5cf"],"fg":"#1c2142"}
+{"text":"I left my keys at the café.","feeling":"Concerned","emoji":"😟","bg":["#c6c9e2","#9ea5cf"],"fg":"#1c2142","meta":{"feeling_merge":{"from":"Worried","to":"Concerned","at":"2026-09-01"}}}
 {"text":"Can you call after lunch?","feeling":"Neutral","emoji":"📞","bg":["#b9dce0","#8fc5cc"],"fg":"#12343a"}
 {"text":"Found a quiet table. Miracles do happen.","feeling":"Relieved","emoji":"😌","bg":["#c6ddd0","#a8c8d2"],"fg":"#19353a"}
 {"text":"Sleep early tonight, bossy instruction.","feeling":"Annoyed","emoji":"😤","bg":["#405579","#1e304f"],"fg":"#f3ead8"}
@@ -216,7 +216,7 @@
 {"text":"I left tea by your keyboard.","feeling":"Thoughtful","emoji":"☕","bg":["#cfe8d2","#a9d0b0"],"fg":"#173b25"}
 {"text":"Lab ended early, I’m heading home","feeling":"Relieved","emoji":"🏠","bg":["#b8d8e8","#9fc9b5"],"fg":"#17324d"}
 {"text":"The office is quieter today.","feeling":"Calm","emoji":"🤫","bg":["#c9e1dc","#a9c9d6"],"fg":"#17343a"}
-{"text":"You’re worth every late-night edit.","feeling":"Loving","emoji":"❤️","bg":["#40305f","#1d294d"],"fg":"#ffffff"}
+{"text":"You’re worth every late-night edit.","feeling":"Love","emoji":"❤️","bg":["#40305f","#1d294d"],"fg":"#ffffff","meta":{"feeling_merge":{"from":"Loving","to":"Love","at":"2026-09-01"}}}
 {"text":"Everyone went home. I'm still here.","feeling":"Lonely","emoji":"😔","bg":["#52627d","#313b58"],"fg":"#f2f4fa"}
 {"text":"All clear on the launch checklist","feeling":"Relieved","emoji":"✅","bg":["#b8e0d2","#8fc9d9"],"fg":"#12343b"}
 {"text":"I can’t study, I’m anxious","feeling":"Anxious","emoji":"😰","bg":["#4f6fa8","#66538f"],"fg":"#ffffff"}
@@ -231,8 +231,8 @@
 {"text":"I have news, but you’re going to laugh.","feeling":"Amused","emoji":"😂","bg":["#ffe08a","#f7b36b"],"fg":"#4a2608"}
 {"text":"I finally mastered that tricky dressing.","feeling":"Proud","emoji":"🍽️","bg":["#f8d477","#efa95b"],"fg":"#422300"}
 {"text":"Keep the receipt for returns.","feeling":"Neutral","emoji":"🧾","bg":["#e8e1d2","#cec4b0"],"fg":"#2d291f"}
-{"text":"I’m outside, and nobody’s answering","feeling":"Worried","emoji":"😟","bg":["#c9d6df","#9aaabd"],"fg":"#17212b"}
-{"text":"My whole world fits in this little onesie.","feeling":"Loving","emoji":"🥰","bg":["#ffd6e7","#f7b6c8"],"fg":"#4a1730"}
+{"text":"I’m outside, and nobody’s answering","feeling":"Concerned","emoji":"😟","bg":["#c9d6df","#9aaabd"],"fg":"#17212b","meta":{"feeling_merge":{"from":"Worried","to":"Concerned","at":"2026-09-01"}}}
+{"text":"My whole world fits in this little onesie.","feeling":"Love","emoji":"🥰","bg":["#ffd6e7","#f7b6c8"],"fg":"#4a1730","meta":{"feeling_merge":{"from":"Loving","to":"Love","at":"2026-09-01"}}}
 {"text":"I’m moving gently through the rest of today.","feeling":"Calm","emoji":"🌿","bg":["#c8dfc2","#9fc4a2"],"fg":"#19321d"}
 {"text":"There’s no storm in my head today.","feeling":"Calm","emoji":"🌤️","bg":["#b9dce0","#8fc5b3"],"fg":"#17383a"}
 {"text":"Your hug is still my favorite reset.","feeling":"Love","emoji":"🫂","bg":["#e4d7f5","#bca8df"],"fg":"#291b45"}
@@ -271,7 +271,7 @@
 {"text":"At the petrol station by the roundabout.","feeling":"Neutral","emoji":"📍","bg":["#d7e0e4","#b7c5cc"],"fg":"#1c2b31"}
 {"text":"Are you free, or should I miss you quietly?","feeling":"Longing","emoji":"🥺","bg":["#d8c9e8","#aebbdc"],"fg":"#241c3b"}
 {"text":"I am still thinking about it.","feeling":"Thoughtful","emoji":"🤔","bg":["#c6d2e8","#a9b7d3"],"fg":"#19243a"}
-{"text":"My savings jar has seen better days","feeling":"Worried","emoji":"😟","bg":["#d9c2b0","#b99383"],"fg":"#241914"}
+{"text":"My savings jar has seen better days","feeling":"Concerned","emoji":"😟","bg":["#d9c2b0","#b99383"],"fg":"#241914","meta":{"feeling_merge":{"from":"Worried","to":"Concerned","at":"2026-09-01"}}}
 {"text":"I waited two hours. Unbelievable.","feeling":"Annoyed","emoji":"😤","bg":["#e99a83","#d9655d"],"fg":"#3b0d12"}
 {"text":"I wish I could call you one more time.","feeling":"Longing","emoji":"😢","bg":["#58627f","#2e3555"],"fg":"#fff4e6"}
 {"text":"Where are you? Answer your father.","feeling":"Frustrated","emoji":"😠","bg":["#f2c078","#d9822b"],"fg":"#3b1f00"}
@@ -294,7 +294,7 @@
 {"text":"I'm proud of how far you've come.","feeling":"Proud","emoji":"🌟","bg":["#f6d77a","#efb58b"],"fg":"#42280d"}
 {"text":"I’m mad, still choosing us","feeling":"Love","emoji":"❤️","bg":["#f08a86","#d65c72"],"fg":"#32131d"}
 {"text":"Found the missing one under my bed","feeling":"Happy","emoji":"😊","bg":["#c8dfc2","#99c49e"],"fg":"#17351f"}
-{"text":"Dinner after training? I need your company.","feeling":"Loving","emoji":"🥰","bg":["#f7c77e","#e99a6b"],"fg":"#3b1d16"}
+{"text":"Dinner after training? I need your company.","feeling":"Love","emoji":"🥰","bg":["#f7c77e","#e99a6b"],"fg":"#3b1d16","meta":{"feeling_merge":{"from":"Loving","to":"Love","at":"2026-09-01"}}}
 {"text":"I have an extra pen if needed","feeling":"Helpful","emoji":"🤝","bg":["#c6e6b8","#9ed3b0"],"fg":"#17351f"}
 {"text":"I’m excited beyond reason","feeling":"Excited","emoji":"🤩","bg":["#ffe16b","#ffb347"],"fg":"#402000"}
 {"text":"Your presence makes bad days manageable","feeling":"Grateful","emoji":"🤝","bg":["#b9dff0","#c8c2e8"],"fg":"#17263d"}
@@ -317,14 +317,14 @@
 {"text":"My retirement plan now involves weeding.","feeling":"Amused","emoji":"😅","bg":["#b7c98b","#7fa66d"],"fg":"#1d321b"}
 {"text":"Found a weird one in Safari.","feeling":"Curious","emoji":"🤔","bg":["#4f9c9a","#356d91"],"fg":"#ffffff"}
 {"text":"Good news: the appointment went well","feeling":"Relieved","emoji":"🎉","bg":["#9ed9a5","#65bfa2"],"fg":"#103324"}
-{"text":"I love hearing about your little wins.","feeling":"Loving","emoji":"🥰","bg":["#ffd6e0","#f7b2c4"],"fg":"#4a1425"}
+{"text":"I love hearing about your little wins.","feeling":"Love","emoji":"🥰","bg":["#ffd6e0","#f7b2c4"],"fg":"#4a1425","meta":{"feeling_merge":{"from":"Loving","to":"Love","at":"2026-09-01"}}}
 {"text":"I’m bringing snacks, so invite me properly.","feeling":"Playful","emoji":"🍿","bg":["#ffd28a","#f5a66f"],"fg":"#3a1d00"}
 {"text":"This place sells absolutely everything","feeling":"Neutral","emoji":"🛒","bg":["#b9e4e0","#83c7d0"],"fg":"#12343d"}
 {"text":"Guess who just called me from work?","feeling":"Surprised","emoji":"📞","bg":["#ffe08a","#ffb27a"],"fg":"#43210d"}
 {"text":"Emergency: I found the best lunch spot","feeling":"Excited","emoji":"🚨","bg":["#ffd36b","#ff9b5e"],"fg":"#3b1d08"}
 {"text":"What a strange coincidence.","feeling":"Surprised","emoji":"😲","bg":["#c7ceea","#a0c4ff"],"fg":"#18233d"}
 {"text":"Do your part instead of forwarding it.","feeling":"Annoyed","emoji":"😒","bg":["#e9a36a","#cc654f"],"fg":"#35150e"}
-{"text":"I left the keys inside.","feeling":"Worried","emoji":"😟","bg":["#b9c6d8","#8fa3bc"],"fg":"#182638"}
+{"text":"I left the keys inside.","feeling":"Concerned","emoji":"😟","bg":["#b9c6d8","#8fa3bc"],"fg":"#182638","meta":{"feeling_merge":{"from":"Worried","to":"Concerned","at":"2026-09-01"}}}
 {"text":"I’m outside. Bring the keys, genius.","feeling":"Annoyed","emoji":"😒","bg":["#b9c4cc","#8f9da8"],"fg":"#17232b"}
 {"text":"I found your keys by the sink.","feeling":"Helpful","emoji":"🔑","bg":["#c9eee2","#9ed6d0"],"fg":"#123936"}
 {"text":"The boss wants a live demo. Bold choice.","feeling":"Anxious","emoji":"😬","bg":["#f3d6a4","#e8b77a"],"fg":"#3b2410"}
@@ -405,7 +405,7 @@
 {"text":"Dinner's cold because you couldn't answer.","feeling":"Annoyed","emoji":"😒","bg":["#f6d365","#fda085"],"fg":"#3a1608"}
 {"text":"I’ll handle the inbox while you reset.","feeling":"Caring","emoji":"🤝","bg":["#b9e3d0","#83c7b5"],"fg":"#12352f"}
 {"text":"No, I won’t pretend this was funny.","feeling":"Annoyed","emoji":"😑","bg":["#b7b1a8","#8e8982"],"fg":"#211f1c"}
-{"text":"I still see my baby in your sleepy eyes.","feeling":"Loving","emoji":"🥹","bg":["#f4c6d9","#c9b3e6"],"fg":"#3a1836"}
+{"text":"I still see my baby in your sleepy eyes.","feeling":"Love","emoji":"🥹","bg":["#f4c6d9","#c9b3e6"],"fg":"#3a1836","meta":{"feeling_merge":{"from":"Loving","to":"Love","at":"2026-09-01"}}}
 {"text":"No issue here","feeling":"Neutral","emoji":"🙂","bg":["#e8f0f2","#cbd9de"],"fg":"#1f2d33"}
 {"text":"Low-key celebrating tonight.","feeling":"Happy","emoji":"🥳","bg":["#e9d5ff","#fed7aa"],"fg":"#3b1764"}
 {"text":"Got it. I’m on it.","feeling":"Determined","emoji":"💪","bg":["#f7d58a","#e9b96e"],"fg":"#35220b"}
@@ -426,7 +426,7 @@
 {"text":"Another group project disaster.","feeling":"Frustrated","emoji":"😩","bg":["#a86657","#c78368"],"fg":"#ffffff"}
 {"text":"Your uncle is giving coaching again.","feeling":"Annoyed","emoji":"🙄","bg":["#ead2a2","#d8b98c"],"fg":"#382616"}
 {"text":"Your package came here. Again.","feeling":"Annoyed","emoji":"🙄","bg":["#e5d7ed","#c7add6"],"fg":"#32153d"}
-{"text":"I want all my future plans to include you.","feeling":"Loving","emoji":"🫶","bg":["#fbcfe8","#f9a8d4"],"fg":"#4a044e"}
+{"text":"I want all my future plans to include you.","feeling":"Love","emoji":"🫶","bg":["#fbcfe8","#f9a8d4"],"fg":"#4a044e","meta":{"feeling_merge":{"from":"Loving","to":"Love","at":"2026-09-01"}}}
 {"text":"Who left the lights on?","feeling":"Concerned","emoji":"💡","bg":["#e8d98b","#c9c5a8"],"fg":"#292817"}
 {"text":"Can you call me when you see this?","feeling":"Anxious","emoji":"📞","bg":["#f6d58c","#e9b88a"],"fg":"#3b2412"}
 {"text":"My stomach picked the worst timing","feeling":"Annoyed","emoji":"😣","bg":["#f6d0cf","#e9aaa9"],"fg":"#401b20"}
@@ -480,7 +480,7 @@
 {"text":"My plans just got canceled. Tragic","feeling":"Disappointed","emoji":"😩","bg":["#c7d2df","#94a3b8"],"fg":"#172333"}
 {"text":"Lowkey proud I fixed it myself","feeling":"Proud","emoji":"😎","bg":["#d9f0b1","#a8d982"],"fg":"#1f3a16"}
 {"text":"My vase survived the trip home somehow","feeling":"Relieved","emoji":"😮","bg":["#fed7aa","#fdba74"],"fg":"#431407"}
-{"text":"Missed your call. Everything fine?","feeling":"Worried","emoji":"😟","bg":["#d8e4f2","#b6cde5"],"fg":"#172b40"}
+{"text":"Missed your call. Everything fine?","feeling":"Concerned","emoji":"😟","bg":["#d8e4f2","#b6cde5"],"fg":"#172b40","meta":{"feeling_merge":{"from":"Worried","to":"Concerned","at":"2026-09-01"}}}
 {"text":"Running late, save me a seat near the back","feeling":"Anxious","emoji":"🏃","bg":["#d8e6f2","#a9bfd8"],"fg":"#17283c"}
 {"text":"Come inside, it's freezing out there","feeling":"Caring","emoji":"🏠","bg":["#9ed0e3","#6ea2c0"],"fg":"#102333"}
 {"text":"Meet me by the old fountain after lunch.","feeling":"Neutral","emoji":"📍","bg":["#9fd1d4","#7fb8c5"],"fg":"#12313b"}
@@ -602,7 +602,7 @@
 {"text":"I’m not chasing any thoughts today.","feeling":"Calm","emoji":"🧘","bg":["#b8d8e8","#c8c1e8"],"fg":"#1e2940"}
 {"text":"Quiet flames quiet mind","feeling":"Calm","emoji":"🔥","bg":["#243447","#51415f"],"fg":"#fff4dc"}
 {"text":"Just arrived, mildly overdressed.","feeling":"Embarrassed","emoji":"😅","bg":["#e7d4cf","#c3a5b5"],"fg":"#28182b"}
-{"text":"The confirmation email is gone","feeling":"Worried","emoji":"😟","bg":["#d9d7e8","#aaa8c5"],"fg":"#24223b"}
+{"text":"The confirmation email is gone","feeling":"Concerned","emoji":"😟","bg":["#d9d7e8","#aaa8c5"],"fg":"#24223b","meta":{"feeling_merge":{"from":"Worried","to":"Concerned","at":"2026-09-01"}}}
 {"text":"why is everyone calm about this","feeling":"Anxious","emoji":"😟","bg":["#c4c9ed","#aeb7dc"],"fg":"#20253d"}
 {"text":"My ice cream is completely ruined","feeling":"Sad","emoji":"😭","bg":["#d9f0f7","#a9d8e8"],"fg":"#102b3a"}
 {"text":"Absolutely buzzing about the drive","feeling":"Excited","emoji":"🤩","bg":["#7bdff2","#b2f7ef"],"fg":"#073642"}
@@ -683,7 +683,7 @@
 {"text":"I'm sparkling with rage","feeling":"Angry","emoji":"🤬","bg":["#8f1d32","#4b1025"],"fg":"#fff1e8"}
 {"text":"Want to grab food after my appointment?","feeling":"Hopeful","emoji":"🍽️","bg":["#f6d28f","#e8a86c"],"fg":"#3a2412"}
 {"text":"Your old shoes by the door made me cry.","feeling":"Sad","emoji":"😢","bg":["#b9c5d9","#8998b5"],"fg":"#172238"}
-{"text":"You’re worth every mile and minute.","feeling":"Loving","emoji":"💖","bg":["#f6c1c8","#e99aa8"],"fg":"#4b1728"}
+{"text":"You’re worth every mile and minute.","feeling":"Love","emoji":"💖","bg":["#f6c1c8","#e99aa8"],"fg":"#4b1728","meta":{"feeling_merge":{"from":"Loving","to":"Love","at":"2026-09-01"}}}
 {"text":"Your idea might actually work.","feeling":"Hopeful","emoji":"💡","bg":["#f6e7a8","#e9c978"],"fg":"#3b2a08"}
 {"text":"Nothing feels right without you.","feeling":"Lonely","emoji":"💔","bg":["#d9c6d8","#b18eae"],"fg":"#321c35"}
 {"text":"I keep reaching for your number on site.","feeling":"Longing","emoji":"📱","bg":["#a59bc5","#756d9d"],"fg":"#1f1935"}
@@ -734,7 +734,7 @@
 {"text":"I’m taking care of myself slowly.","feeling":"Hopeful","emoji":"🤍","bg":["#c9dfb2","#9fc58f"],"fg":"#1f3a24"}
 {"text":"I'm buzzing for the big moment","feeling":"Excited","emoji":"⚡","bg":["#91e9e1","#9f9bea"],"fg":"#171742"}
 {"text":"Your grandmother says I’m overwatering","feeling":"Embarrassed","emoji":"😅","bg":["#c9dfb1","#a8c98f"],"fg":"#203518"}
-{"text":"I’m counting down to your sleepy smile.","feeling":"Loving","emoji":"😊","bg":["#f3c5b8","#e59b9e"],"fg":"#3a1821"}
+{"text":"I’m counting down to your sleepy smile.","feeling":"Love","emoji":"😊","bg":["#f3c5b8","#e59b9e"],"fg":"#3a1821","meta":{"feeling_merge":{"from":"Loving","to":"Love","at":"2026-09-01"}}}
 {"text":"Break was five minutes. Felt generous.","feeling":"Annoyed","emoji":"🙄","bg":["#d8c7b8","#b89f90"],"fg":"#241b18"}
 {"text":"Happiest when we’re together","feeling":"Love","emoji":"🥰","bg":["#f7b6c8","#e88fae"],"fg":"#4a1830"}
 {"text":"Yep.","feeling":"Neutral","emoji":"🙂","bg":["#e5e7eb","#bfc5cc"],"fg":"#111827"}
@@ -755,7 +755,7 @@
 {"text":"We won! I contributed moral support","feeling":"Proud","emoji":"🏆","bg":["#ffd166","#f29e38"],"fg":"#3a1d00"}
 {"text":"The kettle is doing its best.","feeling":"Amused","emoji":"😄","bg":["#f2d28f","#e9ad70"],"fg":"#3b2414"}
 {"text":"The sun is shining","feeling":"Happy","emoji":"☀️","bg":["#ffe477","#ffb347"],"fg":"#422300"}
-{"text":"The inbox is quiet in the worst way.","feeling":"Worried","emoji":"😟","bg":["#546a8a","#33445f"],"fg":"#ffffff"}
+{"text":"The inbox is quiet in the worst way.","feeling":"Concerned","emoji":"😟","bg":["#546a8a","#33445f"],"fg":"#ffffff","meta":{"feeling_merge":{"from":"Worried","to":"Concerned","at":"2026-09-01"}}}
 {"text":"Train's delayed again.","feeling":"Annoyed","emoji":"😩","bg":["#b8c7d1","#8fa7b8"],"fg":"#1d2b35"}
 {"text":"What if I miss one tiny detail?","feeling":"Anxious","emoji":"😰","bg":["#bfdbfe","#c7d2fe"],"fg":"#172554"}
 {"text":"The fire is low, and I'm right here.","feeling":"Calm","emoji":"🔥","bg":["#f2b36f","#d87d55"],"fg":"#32170d"}
@@ -801,7 +801,7 @@
 {"text":"The lineup just dropped","feeling":"Excited","emoji":"🤩","bg":["#ffd166","#ef8354"],"fg":"#2d1b00"}
 {"text":"The good pens are finally back in stock.","feeling":"Happy","emoji":"😊","bg":["#ffe28a","#f6b65f"],"fg":"#3b2600"}
 {"text":"No rush replying. Just wanted to check in.","feeling":"Caring","emoji":"🙂","bg":["#d9eff5","#c9d8ee"],"fg":"#183047"}
-{"text":"You’re my heart’s favorite teammate.","feeling":"Loving","emoji":"🫶","bg":["#ffd1d9","#f2a6b8"],"fg":"#481c32"}
+{"text":"You’re my heart’s favorite teammate.","feeling":"Love","emoji":"🫶","bg":["#ffd1d9","#f2a6b8"],"fg":"#481c32","meta":{"feeling_merge":{"from":"Loving","to":"Love","at":"2026-09-01"}}}
 {"text":"I dropped it immediately. Tragic.","feeling":"Disappointed","emoji":"💔","bg":["#f3c4c0","#e39a9e"],"fg":"#421b24"}
 {"text":"Do you think I enjoy repeating myself?","feeling":"Annoyed","emoji":"😤","bg":["#f3d0c5","#dfa294"],"fg":"#481b15"}
 {"text":"Quick question: soak them overnight?","feeling":"Curious","emoji":"🤔","bg":["#b9e2e8","#8cc8d2"],"fg":"#12313b"}
@@ -895,7 +895,7 @@
 {"text":"The coach asked if I'm fine; I lied.","feeling":"Sad","emoji":"😔","bg":["#9b8fb5","#6c628b"],"fg":"#ffffff"}
 {"text":"We got upgraded seats!!!","feeling":"Excited","emoji":"🥳","bg":["#b9e4f2","#77bedb"],"fg":"#102c3b"}
 {"text":"Running out for more pipe clips","feeling":"Neutral","emoji":"🔧","bg":["#b8d7b0","#76b7a5"],"fg":"#17372f"}
-{"text":"The dog ate something suspicious again.","feeling":"Worried","emoji":"😬","bg":["#d6d09a","#b7b878"],"fg":"#252817"}
+{"text":"The dog ate something suspicious again.","feeling":"Concerned","emoji":"😬","bg":["#d6d09a","#b7b878"],"fg":"#252817","meta":{"feeling_merge":{"from":"Worried","to":"Concerned","at":"2026-09-01"}}}
 {"text":"Your parcel is enormous.","feeling":"Surprised","emoji":"😲","bg":["#d8e8ed","#a9c5d0"],"fg":"#172d3a"}
 {"text":"Traffic was awful. So was everything else.","feeling":"Frustrated","emoji":"😤","bg":["#7b5660","#62454f"],"fg":"#ffffff"}
 {"text":"The post came, but not your letter.","feeling":"Disappointed","emoji":"😔","bg":["#c8d5e3","#9fb3c8"],"fg":"#1d2b3a"}
@@ -941,7 +941,7 @@
 {"text":"The rain finally stopped over the office.","feeling":"Relieved","emoji":"😌","bg":["#b9d7e8","#dceaf0"],"fg":"#183044"}
 {"text":"Honestly, I need a quiet weekend.","feeling":"Tired","emoji":"😌","bg":["#c8d4df","#9eafbf"],"fg":"#1c2a36"}
 {"text":"The group chat feels wrong without her.","feeling":"Lonely","emoji":"😔","bg":["#665477","#3f3b62"],"fg":"#ffffff"}
-{"text":"Sleep well, kiddo. Dad is right here.","feeling":"Loving","emoji":"🌙","bg":["#22365f","#101a38"],"fg":"#fff4cf"}
+{"text":"Sleep well, kiddo. Dad is right here.","feeling":"Love","emoji":"🌙","bg":["#22365f","#101a38"],"fg":"#fff4cf","meta":{"feeling_merge":{"from":"Loving","to":"Love","at":"2026-09-01"}}}
 {"text":"I just got roasted by a ten-year-old","feeling":"Embarrassed","emoji":"😂","bg":["#f6c7a5","#e9a4a4"],"fg":"#3b1b20"}
 {"text":"I can send the notes. I wish you were here.","feeling":"Longing","emoji":"🥺","bg":["#b8c4df","#8d9bc5"],"fg":"#17213a"}
 {"text":"Happy birthday, cousin!","feeling":"Happy","emoji":"🎂","bg":["#ffd86b","#ff9fbd"],"fg":"#40152b"}
@@ -1004,14 +1004,14 @@
 {"text":"The deadline is in three hours.","feeling":"Anxious","emoji":"⏰","bg":["#293b68","#4b5688"],"fg":"#ffffff"}
 {"text":"The reply came in: Love it.","feeling":"Happy","emoji":"❤️","bg":["#ffd1dc","#ffb3c6"],"fg":"#4a1024"}
 {"text":"Happy birthday! Save me a slice of cake","feeling":"Happy","emoji":"🎂","bg":["#ffd76a","#ff9a9e"],"fg":"#3a1d00"}
-{"text":"I keep your messages like tiny treasures.","feeling":"Loving","emoji":"💖","bg":["#ffd9e5","#f3aec7"],"fg":"#4a1728"}
+{"text":"I keep your messages like tiny treasures.","feeling":"Love","emoji":"💖","bg":["#ffd9e5","#f3aec7"],"fg":"#4a1728","meta":{"feeling_merge":{"from":"Loving","to":"Love","at":"2026-09-01"}}}
 {"text":"I need a quiet evening, honestly.","feeling":"Calm","emoji":"😌","bg":["#d9e8e3","#b9d0c8"],"fg":"#1f332c"}
 {"text":"I am done being treated like free labor.","feeling":"Angry","emoji":"😠","bg":["#f6c7a8","#e88978"],"fg":"#35130f"}
 {"text":"Who planted mint in the entire border?","feeling":"Annoyed","emoji":"🤨","bg":["#c9e6b5","#8fc3a2"],"fg":"#183d2c"}
 {"text":"We have a problem with the order.","feeling":"Concerned","emoji":"⚠️","bg":["#f3c4b5","#d88f85"],"fg":"#3a1818"}
 {"text":"You said “five minutes” forty minutes ago.","feeling":"Annoyed","emoji":"⏰","bg":["#d8c9c2","#b9aaa6"],"fg":"#291f1d"}
 {"text":"I’m five minutes late. Blame the elevator.","feeling":"Embarrassed","emoji":"😅","bg":["#f8c6a4","#e99b82"],"fg":"#3b1b14"}
-{"text":"You make my whole heart smile, sweetheart.","feeling":"Loving","emoji":"💖","bg":["#ffd1dc","#f6a6c1"],"fg":"#4a1028"}
+{"text":"You make my whole heart smile, sweetheart.","feeling":"Love","emoji":"💖","bg":["#ffd1dc","#f6a6c1"],"fg":"#4a1028","meta":{"feeling_merge":{"from":"Loving","to":"Love","at":"2026-09-01"}}}
 {"text":"Practice is canceled. Go home, everyone.","feeling":"Relieved","emoji":"🏠","bg":["#f8d98b","#f2b56b"],"fg":"#3b210d"}
 {"text":"This draft shows no serious review.","feeling":"Disappointed","emoji":"😒","bg":["#d8d6d2","#b9b5b1"],"fg":"#292725"}
 {"text":"Your “quick nap” has entered its third hour.","feeling":"Amused","emoji":"😴","bg":["#d8c9e8","#f0c9b8"],"fg":"#30233b"}
@@ -1032,7 +1032,7 @@
 {"text":"That’s seriously messed up","feeling":"Angry","emoji":"🤬","bg":["#e9a39a","#c96767"],"fg":"#3a1015"}
 {"text":"The bus arrives in four minutes","feeling":"Neutral","emoji":"🚌","bg":["#d9e4ec","#b8c9d8"],"fg":"#15232d"}
 {"text":"Meet me by the old fountain.","feeling":"Neutral","emoji":"📍","bg":["#d8e9e8","#a5ceca"],"fg":"#123533"}
-{"text":"Please don't walk home alone.","feeling":"Worried","emoji":"🛡️","bg":["#b8d8e8","#d6e6f2"],"fg":"#10263d"}
+{"text":"Please don't walk home alone.","feeling":"Concerned","emoji":"🛡️","bg":["#b8d8e8","#d6e6f2"],"fg":"#10263d","meta":{"feeling_merge":{"from":"Worried","to":"Concerned","at":"2026-09-01"}}}
 {"text":"I need a second opinion, fast.","feeling":"Anxious","emoji":"😰","bg":["#f1b0a8","#dc7775"],"fg":"#421313"}
 {"text":"I can wait for the right information.","feeling":"Calm","emoji":"🧘","bg":["#b8ddd5","#91c8c0"],"fg":"#123b3a"}
 {"text":"I’m fully ready to celebrate!","feeling":"Excited","emoji":"🎉","bg":["#ffd45c","#ff9a62"],"fg":"#3a1d00"}
@@ -1060,13 +1060,13 @@
 {"text":"Got player of the meet somehow","feeling":"Proud","emoji":"🏆","bg":["#ffe29a","#f6c667"],"fg":"#402900"}
 {"text":"New rule: no drop-ins before coffee.","feeling":"Annoyed","emoji":"☕","bg":["#6b4028","#b87945"],"fg":"#fff3d6"}
 {"text":"Someone left the gate open overnight.","feeling":"Concerned","emoji":"😟","bg":["#d9b1a7","#bd827d"],"fg":"#351512"}
-{"text":"You okay, really?","feeling":"Worried","emoji":"😟","bg":["#a9c4d2","#789bad"],"fg":"#142a38"}
+{"text":"You okay, really?","feeling":"Concerned","emoji":"😟","bg":["#a9c4d2","#789bad"],"fg":"#142a38","meta":{"feeling_merge":{"from":"Worried","to":"Concerned","at":"2026-09-01"}}}
 {"text":"I got you something better than socks","feeling":"Playful","emoji":"🎁","bg":["#f6a0a8","#f08b62"],"fg":"#3d1720"}
 {"text":"Morning. Did you sleep okay?","feeling":"Caring","emoji":"🌅","bg":["#ffe0a8","#f4b183"],"fg":"#3b1f12"}
 {"text":"No, I am not upset.","feeling":"Calm","emoji":"😌","bg":["#d9e7f2","#b8cde0"],"fg":"#172b3a"}
 {"text":"Could you send the revised invoice by noon?","feeling":"Neutral","emoji":"📄","bg":["#f1f5f9","#dbeafe"],"fg":"#0f172a"}
 {"text":"Anxious being shut in","feeling":"Anxious","emoji":"😰","bg":["#6f86a8","#9aa9bd"],"fg":"#17253a"}
-{"text":"My lab partner disappeared.","feeling":"Worried","emoji":"😟","bg":["#65758b","#414d68"],"fg":"#ffffff"}
+{"text":"My lab partner disappeared.","feeling":"Concerned","emoji":"😟","bg":["#65758b","#414d68"],"fg":"#ffffff","meta":{"feeling_merge":{"from":"Worried","to":"Concerned","at":"2026-09-01"}}}
 {"text":"Answer the phone before I come looking.","feeling":"Annoyed","emoji":"😠","bg":["#6b2c3e","#3b1d4a"],"fg":"#ffffff"}
 {"text":"Why is the hallway light on?","feeling":"Curious","emoji":"🤔","bg":["#b8c7d9","#91a8bf"],"fg":"#172432"}
 {"text":"I've got a spare teabag if needed.","feeling":"Helpful","emoji":"🤝","bg":["#ead7b7","#c9a66b"],"fg":"#35200f"}
