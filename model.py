@@ -5,11 +5,17 @@ import torch
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
-from torch.nn.functional import binary_cross_entropy_with_logits, normalize, tanh
+from torch.nn.functional import (
+    binary_cross_entropy_with_logits,
+    cross_entropy,
+    normalize,
+    tanh,
+)
 from torch.nn.utils import spectral_norm as sn
 
 from config import (
     CHAR_EMBED_SIZE,
+    INFONCE_TEMP,
 )
 from data import (
     COLOR_DIM,
@@ -23,6 +29,10 @@ from data import (
 EMOJI_EMBED_SIZE = ceil(6 * log2(len(EMOJIS)))
 TEXT_EMBED_SIZE = 96
 SEED = 42
+
+
+def f1(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
+    return 2 * a * b / (a + b + 1e-8)
 
 
 class TextEncoder(nn.Module):
@@ -134,11 +144,15 @@ class EmojiHead(nn.Module):
         self.net = nn.Linear(
             TEXT_EMBED_SIZE,
             EMOJI_EMBED_SIZE)
+        self.embed = nn.Embedding(len(EMOJIS), EMOJI_EMBED_SIZE)
 
-    def forward(self, text_embedding: torch.Tensor) -> torch.Tensor:
-        out = self.net(text_embedding)
-        out = tanh(out)
-        return normalize(out, dim=-1)
+    def forward(
+        self,
+        text_embedding: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        q = normalize(tanh(self.net(text_embedding)), dim=-1)
+        emoji_vec = normalize(self.embed.weight, dim=-1)
+        return q, emoji_vec
 
 
 class LitGAN(pl.LightningModule):
@@ -157,7 +171,7 @@ class LitGAN(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         text, emoji, feels, colors = batch
-        opt_gen, opt_tst, opt_feel = self.optimizers()  # type: ignore
+        opt_gen, opt_tst, opt_task = self.optimizers()  # type: ignore
 
         enc = self.enc(text)
         enc_d = enc.detach()
@@ -165,12 +179,16 @@ class LitGAN(pl.LightningModule):
         feels_pred = self.feels(enc)
         loss_feel = self.feeling_ce(feels_pred, feels)
 
-        opt_feel.zero_grad()
-        self.manual_backward(loss_feel)
+        q, emoji_vec = self.emoji(enc)
+        emoji_logits = q @ emoji_vec.t()
+        loss_emoji = cross_entropy(emoji_logits / INFONCE_TEMP, emoji)
+
+        opt_task.zero_grad()
+        self.manual_backward(loss_feel + loss_emoji)
         self.clip_gradients(
-            opt_feel,  # type: ignore
+            opt_task,  # type: ignore
             gradient_clip_val=1.0, gradient_clip_algorithm="norm")
-        opt_feel.step()
+        opt_task.step()
 
         z = self.gen.sample_z(text.size(0), text.device)
         fake = self.gen(enc_d, z)
@@ -209,6 +227,9 @@ class LitGAN(pl.LightningModule):
         top5 = feels_pred.topk(5, dim=-1).indices
         acc5 = (top5 == feels.unsqueeze(1)).any(dim=-1).float().mean()
 
+        top10 = emoji_logits.topk(10, dim=-1).indices
+        acc10 = (top10 == emoji.unsqueeze(1)).any(dim=-1).float().mean()
+
         self.log("loss/tst", loss_tst, prog_bar=True)
         self.log("loss/gen", loss_gen, prog_bar=True)
         self.log(
@@ -223,18 +244,33 @@ class LitGAN(pl.LightningModule):
             "acc5/f/train", acc5,
             on_step=False, on_epoch=True, prog_bar=True,
             batch_size=text.size(0))
+        self.log(
+            "loss/e/train", loss_emoji,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))
+        self.log(
+            "acc10/e/train", acc10,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))
 
     def validation_step(self, batch, batch_idx):
-        text, _, feels, _ = batch
+        text, emoji, feels, _ = batch
 
         enc = self.enc(text)
 
         feels_pred = self.feels(enc)
         loss_feel = self.feeling_ce(feels_pred, feels)
 
+        q, emoji_vec = self.emoji(enc)
+        emoji_logits = q @ emoji_vec.t()
+        loss_emoji = cross_entropy(emoji_logits / INFONCE_TEMP, emoji)
+
         acc = (feels_pred.argmax(dim=-1) == feels).float().mean()
         top5 = feels_pred.topk(5, dim=-1).indices
         acc5 = (top5 == feels.unsqueeze(1)).any(dim=-1).float().mean()
+
+        top10 = emoji_logits.topk(10, dim=-1).indices
+        acc10 = (top10 == emoji.unsqueeze(1)).any(dim=-1).float().mean()
 
         self.log(
             "loss/f/val", loss_feel,
@@ -248,15 +284,38 @@ class LitGAN(pl.LightningModule):
             "acc5/f/val", acc5,
             on_step=False, on_epoch=True, prog_bar=True,
             batch_size=text.size(0))
+        self.log(
+            "loss/e/val", loss_emoji,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))
+        self.log(
+            "acc10/e/val", acc10,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))
+
+    def on_train_epoch_end(self):
+        self._log_f1("train")
+
+    def on_validation_epoch_end(self):
+        self._log_f1("val")
+
+    def _log_f1(self, split):
+        m = self.trainer.callback_metrics
+        a = m.get(f"acc5/f/{split}")
+        b = m.get(f"acc10/e/{split}")
+        if a is not None and b is not None:
+            self.log(f"f1/{split}", f1(a, b), prog_bar=True)
 
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=0.01)
         opt_tst = optim.SGD(self.tst.parameters(), lr=0.01)
-        opt_feel = optim.Adam(
-            list(self.enc.parameters()) + list(self.feels.parameters()),
+        opt_task = optim.Adam(
+            list(self.enc.parameters())
+            + list(self.feels.parameters())
+            + list(self.emoji.parameters()),
             lr=0.01)
 
-        return [opt_gen, opt_tst, opt_feel]
+        return [opt_gen, opt_tst, opt_task]
 
 
 if __name__ == "__main__":
@@ -266,12 +325,12 @@ if __name__ == "__main__":
     logger = TensorBoardLogger("runs", name="color_critic")
 
     ckpt = ModelCheckpoint(
-        monitor="acc5/f/val",
+        monitor="f1/val",
         mode="max",
         save_top_k=1,
         filename="best-{step}")
     early_stop = EarlyStopping(
-        monitor="acc5/f/val",
+        monitor="f1/val",
         mode="max",
         patience=20)
 

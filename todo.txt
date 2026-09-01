@@ -39,4 +39,25 @@ TODO:
         NEXT STEPS:
             - Save the model with the best feeling acc @ 5.
             - Add early stopping to the training loop (acc @ 5).
+
+        NEXT STEPS:
+            Also wire the EmojiHead:
+                - Emoji head outputs an emoji embedding and uses in batch InfoNCE loss to train the text encoder (see older commits).
+                - log emoji acc @ 10
+                - log also f1 score on feeling acc @5 and emoji acc @10 to the early stopping criteria.
+
+            Notes:
+                - All was already implemented in older commits.
+                - Recover it to the new code.
+                - Use the new code style and structure and make minimal edits to the new code.
+
+        DISCUSSIONS:
+            1.  Should we first train the text encoder then train the GAN on a frozen text encoder? What would it take code wise?
+            2.  Before conditioned the ColorGen on the text encoding it generated beautiful and diverse color pallettes (but unrelated to text).
+                After conditioning on the text encoding it generates monotone color pallettes that are not diverse at all.
+                You can see examples at:
+                    file:///home/gilad/Work/emojic/report/preview/pred-09-01-15:31.html (before)
+                    file:///home/gilad/Work/emojic/report/preview/pred-09-01-15:55.html (after)
+
+                Also note the loss/gen and loss/tst of the last run.
 DONE:
