@@ -67,7 +67,7 @@ class ColorTst(nn.Module):
     def __init__(self):
         super().__init__()
 
-        cs = [COLOR_DIM, 512, 128, 32]
+        cs = [COLOR_DIM, 64, 32, 16]
         io = zip(cs[:-1], cs[1:], strict=True)
         self.net = nn.Sequential(
             *[
