@@ -113,14 +113,12 @@ class EmojiDataset(Dataset):
         self.emoji = torch.stack([emoji_to_tensor(r.emoji) for r in records])
         self.feeling = torch.stack([feeling_to_tensor(r.feeling) for r in records])
         self.colors = torch.stack([colors2tensor(r.colors) for r in records])
-        self.data = list(
-            zip(self.text, self.emoji, self.feeling, self.colors, strict=True))
 
     def __len__(self):
-        return len(self.data)
+        return len(self.text)
 
     def __getitem__(self, idx):
-        return self.data[idx]
+        return self.text[idx], self.emoji[idx], self.feeling[idx], self.colors[idx]
 
 
 def train_data_loader():
@@ -146,4 +144,3 @@ def eval_data_loader():
 if __name__ == "__main__":
     for r, _ in zip(read(TRAIN_PATH), range(3), strict=False):
         print(r)
-        print(record_to_tensors(r))
