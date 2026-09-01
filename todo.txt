@@ -21,4 +21,18 @@ TODO:
             Please check the code and try to find the root cause.
             If you can't find the root cause, suggest a simple way to debug the GAN and find the root cause.
 
+        NEXT STEPS:
+            The model now has 2 tasks:
+                1. Predict the feeling
+                2. Generate a color palette
+
+            Notes:
+                - We use a common text encoder for both tasks.
+                - The feeling head is the one who send gradient to the text encoder.
+                - gen and tst just use the text encoding but do not send gradient to the text encoder.
+
+            Tasks:
+                - Connect the feeling head and add it to the train loop.
+                - Log the feeling loss, the feeling acc and feeling acc @ 5.
+                - Make the gen and tst conditional on the encoded text. gen is also conditional on z (random noise)
 DONE:
