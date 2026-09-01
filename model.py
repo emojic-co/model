@@ -5,6 +5,7 @@ import torch
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
 from torch.nn.functional import binary_cross_entropy_with_logits, tanh
+from torch.nn.utils import spectral_norm as sn
 
 from config import (
     CHAR_EMBED_SIZE,
@@ -15,12 +16,6 @@ from data import COLOR_DIM, EMOJIS, VOCAB_SIZE, train_data_loader
 EMOJI_EMBED_SIZE = ceil(6 * log2(len(EMOJIS)))
 
 SEED = 42
-
-
-def conv_spectral_relu(*, k: int, i: int, o: int):
-    return nn.Sequential(
-        nn.utils.spectral_norm(nn.Conv1d(i, o, kernel_size=k, bias=True)),
-        nn.LeakyReLU(negative_slope=0.2))
 
 
 def conv_bn(*, k: int, i: int, o: int) -> nn.Sequential:
@@ -44,7 +39,7 @@ def pool_conv_bn_relu(*, k: int, i: int, o: int) -> nn.Sequential:
     )
 
 
-class Encoder(nn.Module):
+class TextEncoder(nn.Module):
     def __init__(self, config: list[conv]):
         super().__init__()
 
@@ -68,34 +63,25 @@ class Encoder(nn.Module):
         return torch.max(out, dim=-1).values
 
 
-class MLP(nn.Module):
-    # Expecting (B, D, 1) input
-    def __init__(self, cs: list[int]):
+class ColorTst(nn.Module):
+    def __init__(self):
         super().__init__()
+
+        cs = [COLOR_DIM, 512, 128, 32, 1]
+        io = zip(cs[:-1], cs[1:], strict=True)
         self.net = nn.Sequential(
             *[
-                conv_spectral_relu(k=1, i=i, o=o)
-                for i, o in zip(cs[:-2], cs[1:-1], strict=True)
+                nn.Sequential(
+                    sn(nn.Conv1d(i, o, kernel_size=1, bias=True)),
+                    nn.LeakyReLU(negative_slope=0.2)
+                )
+                for i, o in io
             ],
             nn.Conv1d(cs[-2], cs[-1], kernel_size=1, bias=True),
         )
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.net(x).squeeze(2)
-
-
-class ColorTst(nn.Module):
-    # Input is a pair of text and 3 RGB colors, output is a single score
-    def __init__(self):
-        super().__init__()
-
-        # self.encoder = Encoder([(3, dim)])
-        self.net = MLP([COLOR_DIM, 512, 128, 32, 1])
-
-    def forward(self, text: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
-        # enc = self.encoder(text)
-        logit = self.net(colors.unsqueeze(-1))
-        return logit
+    def forward(self, text_embedding: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
+        return self.net(colors.unsqueeze(-1))
 
 
 class ColorGen(nn.Module):
