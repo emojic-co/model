@@ -1,5 +1,4 @@
 import json
-import random
 
 import torch
 
@@ -9,7 +8,7 @@ from model import ColorGen, TextEncoder
 
 def sample(n=200):
     records = list(read(EVAL_PATH))
-    return random.sample(records, min(n, len(records)))
+    return records[:n]
 
 
 def rgb_to_hex(rgb: torch.Tensor) -> list[str]:

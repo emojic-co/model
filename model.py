@@ -64,7 +64,7 @@ class ColorTst(nn.Module):
     def __init__(self):
         super().__init__()
 
-        cs = [COLOR_DIM + TEXT_EMBED_SIZE, *CRITIC_CHANNELS]
+        cs = [COLOR_DIM + EMOJI_EMBED_SIZE, *CRITIC_CHANNELS]
         io = zip(cs[:-1], cs[1:], strict=True)
         self.net = nn.Sequential(
             *[
@@ -77,9 +77,9 @@ class ColorTst(nn.Module):
             nn.Conv1d(cs[-1], 1, kernel_size=1, bias=True),
         )
 
-    def forward(self, text_embedding: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
+    def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
         x = torch.cat(
-            [colors.unsqueeze(-1), text_embedding.unsqueeze(-1)], dim=1)
+            [colors.unsqueeze(-1), cond.unsqueeze(-1)], dim=1)
         return self.net(x)
 
 
@@ -88,22 +88,22 @@ class ColorGen(nn.Module):
         super().__init__()
 
         self.z_dim = GEN_Z_DIM
-        self.head = nn.Linear(self.z_dim + TEXT_EMBED_SIZE, COLOR_DIM)
+        self.head = nn.Linear(self.z_dim + EMOJI_EMBED_SIZE, COLOR_DIM)
 
     def sample_z(self, n: int, device: torch.device | None = None) -> torch.Tensor:
         return torch.randn(n, self.z_dim, device=device)
 
     def forward(
         self,
-        text_embedding: torch.Tensor,
+        cond: torch.Tensor,
         z: torch.Tensor | None = None
     ) -> torch.Tensor:
         if z is None:
             z = self.sample_z(
-                text_embedding.size(0),
-                text_embedding.device)
+                cond.size(0),
+                cond.device)
 
-        colors = self.head(torch.cat([z, text_embedding], dim=-1))
+        colors = self.head(torch.cat([z, cond], dim=-1))
         colors = tanh(colors) * 127.5
 
         return colors

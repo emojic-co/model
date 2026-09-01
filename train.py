@@ -43,7 +43,6 @@ class LitGAN(pl.LightningModule):
         opt_gen, opt_tst, opt_task = self.optimizers()  # type: ignore
 
         enc = self.enc(text)
-        enc_d = enc.detach()
 
         feels_pred = self.feels(enc)
         loss_feel = self.feeling_ce(feels_pred, feels)
@@ -60,10 +59,12 @@ class LitGAN(pl.LightningModule):
 
         opt_task.step()
 
+        cond = q.detach()
+
         z = self.gen.sample_z(text.size(0), text.device)
-        fake = self.gen(enc_d, z)
-        tst_real = self.tst(enc_d, colors)
-        tst_fake = self.tst(enc_d, fake.detach())
+        fake = self.gen(cond, z)
+        tst_real = self.tst(cond, colors)
+        tst_fake = self.tst(cond, fake.detach())
 
         loss_tst_real = binary_cross_entropy_with_logits(
             tst_real, torch.ones_like(tst_real))
@@ -81,7 +82,7 @@ class LitGAN(pl.LightningModule):
 
         opt_tst.step()
 
-        tst_fake = self.tst(enc_d, fake)
+        tst_fake = self.tst(cond, fake)
         loss_gen = binary_cross_entropy_with_logits(
             tst_fake, torch.ones_like(tst_fake))
 

@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises"
 import { readJsonl } from "./io.ts"
-import { cardHtml, page, sample, stamp } from "./preview-card.ts"
+import { cardHtml, page, stamp } from "./preview-card.ts"
 
 const EVAL = "eval.jsonl"
 const OUT_DIR = "report/preview"
@@ -23,7 +23,7 @@ body { place-items: start center; padding: 2em 1em; }
 
 if (import.meta.main) {
   const rows = await readJsonl<Row>(EVAL)
-  const picked = sample(rows, COUNT)
+  const picked = rows.slice(0, COUNT)
   const cards = picked
     .map((r) =>
       cardHtml({
