@@ -143,4 +143,5 @@ def eval_data_loader():
 
 if __name__ == "__main__":
     ds = EmojiDataset(TRAIN_PATH)
-    print(ds[0])
+    for t in ds[0]:
+        print(t.shape, t.dtype)

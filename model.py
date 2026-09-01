@@ -1,18 +1,15 @@
 from math import ceil, log2
 
+import pytorch_lightning as pl
 import torch
-from torch import nn
-from torch.nn.functional import normalize, sigmoid
+from torch import nn, optim
+from torch.nn.functional import binary_cross_entropy, sigmoid
 
 from config import (
     CHAR_EMBED_SIZE,
-    DROPOUT_COLOR,
-    DROPOUT_EMOJI,
-    DROPOUT_FEELING,
-    ENCODER,
     conv,
 )
-from data import COLOR_DIM, EMOJIS, FEELING, VOCAB_SIZE
+from data import COLOR_DIM, EMOJIS, VOCAB_SIZE
 
 EMOJI_EMBED_SIZE = ceil(6 * log2(len(EMOJIS)))
 
@@ -96,53 +93,28 @@ class ColorCritic(nn.Module):
         return sigmoid(logit)
 
 
-class Model(nn.Module):
+class LitColorCritic(pl.LightningModule):
     def __init__(self):
         super().__init__()
+        self.model = ColorCritic()
 
-        self.char_embed = nn.Embedding(VOCAB_SIZE, CHAR_EMBED_SIZE)
-        k, o = ENCODER[0]
+    def training_step(self, batch):
+        text, emoji, feeling, colors = batch
 
-        # Create initial layer block
-        layers = [*layer(
-            kernel=k,
-            in_channels=CHAR_EMBED_SIZE,
-            out_channels=o)]
+        assert (emoji)
+        assert (feeling)
 
-        # Append MaxPool + downstream layers in a loop
-        for (_, i), (k, o) in zip(ENCODER[:-1], ENCODER[1:], strict=True):
-            layers.append(nn.MaxPool1d(kernel_size=2, stride=2))
-            layers.extend(layer(
-                kernel=k,
-                in_channels=i,
-                out_channels=o))
+        fake = torch.tensor(
+            torch.randint_like(colors, 0, 256) - 127.5,
+            dtype=torch.float32)
 
-        self.net = nn.Sequential(*layers)
+        out_real = self.model((text, colors))
+        out_fake = self.model((text, fake))
 
-        _, o = ENCODER[-1]
-        self.feeling_dropout = nn.Dropout(DROPOUT_FEELING)
-        self.feeling = nn.Linear(o, len(FEELING))
+        loss_real = binary_cross_entropy(out_real, torch.ones_like(out_real))
+        loss_fake = binary_cross_entropy(out_fake, torch.zeros_like(out_fake))
 
-        self.emoji_dropout = nn.Dropout(DROPOUT_EMOJI)
-        self.emoji = nn.Linear(o, EMOJI_EMBED_SIZE)
-        self.emoji_embed = nn.Embedding(len(EMOJIS), EMOJI_EMBED_SIZE)
+        return loss_real + loss_fake
 
-        self.color_dropout = nn.Dropout(DROPOUT_COLOR)
-        self.color = nn.Linear(o, COLOR_DIM)
-
-    def forward(self, x):
-        out = self.char_embed(x).transpose(1, 2)
-        out = self.net(out)
-
-        pooled = torch.max(out, dim=-1).values
-
-        feeling_do = self.feeling_dropout(pooled)
-        emoji_do = self.emoji_dropout(pooled)
-        color_do = self.color_dropout(pooled)
-
-        return (
-            self.feeling(feeling_do),
-            normalize(self.emoji(emoji_do), p=2, dim=-1),
-            normalize(self.emoji_embed.weight, p=2, dim=-1),
-            self.color(color_do),
-        )
+    def configure_optimizers(self):
+        return optim.Adam(self.parameters(), lr=0.001)

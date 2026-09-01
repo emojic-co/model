@@ -1,6 +1,5 @@
 import argparse
 import json
-import warnings
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -23,12 +22,9 @@ from config import (
 )
 from data import (
     CHARS,
-    COLOR_MEAN,
-    COLOR_STD,
     EMOJIS,
     FEELING,
     PAD_IDX,
-    data_sets,
     eval_data_loader,
     train_data_loader,
 )
@@ -44,41 +40,9 @@ def f1(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     return 2 * a * b / (a + b + 1e-8)
 
 
-class ExportWrapper(nn.Module):
-    def __init__(self, model: nn.Module) -> None:
-        super().__init__()
-        self.model = model
-
-    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, ...]:
-        feeling_logits, q, emoji_embed, color = self.model(x)
-        return feeling_logits, q @ emoji_embed.t(), color * COLOR_STD + COLOR_MEAN
-
-
-def export_onnx(model: nn.Module, dst: Path) -> None:
-    wrapper = ExportWrapper(model).eval()
-    dummy = torch.zeros(1, MAX_TEXT_LEN, dtype=torch.long)
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        torch.onnx.export(
-            wrapper,
-            (dummy,),
-            str(dst),
-            input_names=["input"],
-            output_names=["feeling_logits", "emoji_logits", "color"],
-            opset_version=ONNX_OPSET,
-            dynamo=False,
-            dynamic_axes={
-                "input": {0: "batch"},
-                "feeling_logits": {0: "batch"},
-                "emoji_logits": {0: "batch"},
-                "color": {0: "batch"},
-            },
-        )
-
-
 def export_web(model: nn.Module) -> None:
     WEB_PUBLIC.mkdir(parents=True, exist_ok=True)
-    export_onnx(model, WEB_PUBLIC / "model.onnx")
+    # export_onnx(model, WEB_PUBLIC / "model.onnx")
     meta = {
         "chars": CHARS,
         "pad_idx": PAD_IDX,
@@ -231,35 +195,11 @@ class SaveLast(pl.Callback):
         trainer.save_checkpoint(LAST_CKPT, weights_only=False)
 
 
-def param_table(model: nn.Module) -> str:
-    named = list(model.named_parameters())
-    total = sum(p.numel() for _, p in named)
-    name_w = max((len(n) for n, _ in named), default=18) + 4
-    head = f"{'module / parameter':<{name_w}}{'shape':>16}{'params':>12}{'%':>8}"
-    rule = "-" * len(head)
-
-    out = [head, rule]
-    for child_name, child in model.named_children():
-        sub = sum(p.numel() for p in child.parameters())
-        pct = 100 * sub / total if total else 0.0
-        out.append(f"{child_name:<{name_w}}{'':>16}{sub:>12,}{pct:>7.1f}%")
-        for pname, p in child.named_parameters():
-            shape = "x".join(map(str, tuple(p.shape)))
-            out.append(f"  {pname:<{name_w - 2}}{shape:>16}{p.numel():>12,}")
-    out.append(rule)
-    trainable = sum(p.numel() for _, p in named if p.requires_grad)
-    out.append(f"{'total':<{name_w}}{'':>16}{total:>12,}{100.0:>7.1f}%")
-    if trainable != total:
-        out.append(f"{'trainable':<{name_w}}{'':>16}{trainable:>12,}")
-    return "\n".join(out)
-
-
 def train(resume: bool = False) -> None:
     pl.seed_everything(0, workers=True)
 
-    train_ds, eval_ds = data_sets()
-    train_loader = train_data_loader(train_ds)
-    eval_loader = eval_data_loader(eval_ds)
+    train_loader = train_data_loader()
+    eval_loader = eval_data_loader()
 
     lit = LitEmojic()
     export_best = ExportBest()
@@ -270,9 +210,6 @@ def train(resume: bool = False) -> None:
         check_on_train_epoch_end=False,
     )
     LAST_CKPT.parent.mkdir(parents=True, exist_ok=True)
-
-    print(f"Train: {len(train_ds)}  Eval: {len(eval_ds)}")
-    print(param_table(lit.model), "\n")
 
     logger = TensorBoardLogger(
         "runs",
