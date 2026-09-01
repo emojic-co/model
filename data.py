@@ -116,8 +116,11 @@ def read(path):
 
 
 class EmojiDataset(Dataset):
-    def __init__(self, data):
-        self.data = data
+    def __init__(self, path):
+        self.data = [
+            record_ro_tensors(r)
+            for r in read(path)
+        ]
 
     def __len__(self):
         return len(self.data)
@@ -126,24 +129,22 @@ class EmojiDataset(Dataset):
         return self.data[idx]
 
 
-def train_data_loader(ds: EmojiDataset):
+def train_data_loader():
     return DataLoader(
-        ds,
+        EmojiDataset(TRAIN_PATH),
         batch_size=BATCH_SIZE,
         shuffle=True,
         drop_last=True,
-        collate_fn=collate_fn,
         num_workers=0,
     )
 
 
-def eval_data_loader(ds: EmojiDataset):
+def eval_data_loader():
     return DataLoader(
-        ds,
+        EmojiDataset(EVAL_PATH),
         batch_size=BATCH_SIZE,
         shuffle=False,
         drop_last=False,
-        collate_fn=collate_fn,
         num_workers=0,
     )
 
