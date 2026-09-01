@@ -1,8 +1,8 @@
 import json
 import re
+from dataclasses import dataclass
 
 import torch
-from attr import dataclass
 from torch.utils.data import DataLoader, Dataset
 
 from config import BATCH_SIZE, MAX_TEXT_LEN
@@ -77,15 +77,6 @@ class record:
     colors: list[str]
 
 
-def record_to_tensors(record: record):
-    return (
-        text_to_tensor(record.text),
-        emoji_to_tensor(record.emoji),
-        feeling_to_tensor(record.feeling),
-        colors2tensor(record.colors),
-    )
-
-
 def read(path):
     def read_jsonl():
         with open(path, encoding='utf-8') as f:
@@ -117,10 +108,13 @@ def read(path):
 
 class EmojiDataset(Dataset):
     def __init__(self, path):
-        self.data = [
-            record_to_tensors(r)
-            for r in read(path)
-        ]
+        records = list(read(path))
+        self.text = torch.stack([text_to_tensor(r.text) for r in records])
+        self.emoji = torch.stack([emoji_to_tensor(r.emoji) for r in records])
+        self.feeling = torch.stack([feeling_to_tensor(r.feeling) for r in records])
+        self.colors = torch.stack([colors2tensor(r.colors) for r in records])
+        self.data = list(
+            zip(self.text, self.emoji, self.feeling, self.colors, strict=True))
 
     def __len__(self):
         return len(self.data)
