@@ -57,7 +57,7 @@ class ColorTst(nn.Module):
     def __init__(self):
         super().__init__()
 
-        cs = [COLOR_DIM, 128, 64, 32, 16]
+        cs = [COLOR_DIM + TEXT_EMBED_SIZE, 128, 64, 32, 16]
         io = zip(cs[:-1], cs[1:], strict=True)
         self.net = nn.Sequential(
             *[
@@ -71,7 +71,9 @@ class ColorTst(nn.Module):
         )
 
     def forward(self, text_embedding: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
-        return self.net(colors.unsqueeze(-1))
+        x = torch.cat(
+            [colors.unsqueeze(-1), text_embedding.unsqueeze(-1)], dim=1)
+        return self.net(x)
 
 
 class ColorGen(nn.Module):
@@ -79,7 +81,7 @@ class ColorGen(nn.Module):
         super().__init__()
 
         self.z_dim = 16
-        self.head = nn.Linear(self.z_dim, COLOR_DIM)
+        self.head = nn.Linear(self.z_dim + TEXT_EMBED_SIZE, COLOR_DIM)
 
     def sample_z(self, n: int, device: torch.device | None = None) -> torch.Tensor:
         return torch.randn(n, self.z_dim, device=device)
@@ -89,13 +91,12 @@ class ColorGen(nn.Module):
         text_embedding: torch.Tensor,
         z: torch.Tensor | None = None
     ) -> torch.Tensor:
-        # enc = self.encoder(text)
         if z is None:
             z = self.sample_z(
                 text_embedding.size(0),
                 text_embedding.device)
 
-        colors = self.head(z)
+        colors = self.head(torch.cat([z, text_embedding], dim=-1))
         colors = tanh(colors) * 127.5
 
         return colors
@@ -139,22 +140,30 @@ class LitGAN(pl.LightningModule):
         self.emoji = EmojiHead()
 
         self.automatic_optimization = False
+        self.feeling_ce = nn.CrossEntropyLoss()
 
     def training_step(self, batch, batch_idx):
-        text, feels, emoji, colors = batch
-        opt_gen, opt_tst = self.optimizers()  # type: ignore
+        text, emoji, feels, colors = batch
+        opt_gen, opt_tst, opt_feel = self.optimizers()  # type: ignore
+
+        enc = self.enc(text)
+        enc_d = enc.detach()
+
+        feels_pred = self.feels(enc)
+        loss_feel = self.feeling_ce(feels_pred, feels)
+
+        opt_feel.zero_grad()
+        self.manual_backward(loss_feel)
+        self.clip_gradients(
+            opt_feel,  # type: ignore
+            gradient_clip_val=1.0, gradient_clip_algorithm="norm")
+        opt_feel.step()
 
         z = self.gen.sample_z(text.size(0), text.device)
-        fake = self.gen(text, z)
-        tst_real = self.tst(text, colors)
-        tst_fake = self.tst(text, fake.detach())
+        fake = self.gen(enc_d, z)
+        tst_real = self.tst(enc_d, colors)
+        tst_fake = self.tst(enc_d, fake.detach())
 
-        # TEXT ENCODER
-        enc = self.enc(text)
-
-        # FEELING
-        feels_pred = self.feels(enc)
-        # TST
         loss_tst_real = binary_cross_entropy_with_logits(
             tst_real, torch.ones_like(tst_real))
 
@@ -171,8 +180,7 @@ class LitGAN(pl.LightningModule):
 
         opt_tst.step()
 
-        # GEN
-        tst_fake = self.tst(text, fake)
+        tst_fake = self.tst(enc_d, fake)
         loss_gen = binary_cross_entropy_with_logits(
             tst_fake, torch.ones_like(tst_fake))
 
@@ -184,20 +192,32 @@ class LitGAN(pl.LightningModule):
 
         opt_gen.step()
 
-        # LOG
-        self.log("loss/tst", loss_tst, prog_bar=True)
-        self.log("loss/gen", loss_gen, prog_bar=True)
+        acc = (feels_pred.argmax(dim=-1) == feels).float().mean()
+        top5 = feels_pred.topk(5, dim=-1).indices
+        acc5 = (top5 == feels.unsqueeze(1)).any(dim=-1).float().mean()
+
+        self.log("loss/tst", loss_tst, prog_bar=True)  # type: ignore
+        self.log("loss/gen", loss_gen, prog_bar=True)  # type: ignore
+        self.log(
+            "loss/f/train", loss_feel,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))  # type: ignore
+        self.log(
+            "acc/f/train", acc,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))  # type: ignore
+        self.log(
+            "acc5/f/train", acc5,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))  # type: ignore
 
     def configure_optimizers(self):
-        # Betas (0.5, 0.999) and lower learning rates for GAN stability
-        opt_cls = optim.Adam(
-            # TODO enc + feeling + emoji params
-            self.enc.parameters(),
-            lr=0.01,
-        )
         opt_gen = optim.SGD(self.gen.parameters(), lr=0.01)
         opt_tst = optim.SGD(self.tst.parameters(), lr=0.01)
-        return [opt_gen, opt_tst]
+        opt_feel = optim.Adam(
+            list(self.enc.parameters()) + list(self.feels.parameters()),
+            lr=0.01)
+        return [opt_gen, opt_tst, opt_feel]
 
 
 if __name__ == "__main__":
@@ -219,4 +239,5 @@ if __name__ == "__main__":
 
     trainer.fit(model, dl)
 
-    torch.save(model.gen.state_dict(), "gen.pt")
+    # TODO: export each component separately, not just the whole model
+    torch.save(model.state_dict(), "gan.pt")

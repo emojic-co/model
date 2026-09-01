@@ -4,7 +4,7 @@ import random
 import torch
 
 from data import EVAL_PATH, EmojiDataset, read
-from model import ColorGen
+from model import LitGAN
 
 
 def sample(n=20):
@@ -27,10 +27,10 @@ def rgb_to_hex(rgb: torch.Tensor) -> list[str]:
     ]
 
 
-def predict(weights_path: str = "gen.pt"):
-    gen = ColorGen()
-    gen.load_state_dict(torch.load(weights_path, map_location="cpu"))
-    gen.eval()
+def predict(weights_path: str = "gan.pt"):
+    model = LitGAN()
+    model.load_state_dict(torch.load(weights_path, map_location="cpu"))
+    model.eval()
 
     records = sample(20)
     ds = EmojiDataset(records)
@@ -43,7 +43,8 @@ def predict(weights_path: str = "gen.pt"):
                 text_tensor = ds[i][0].unsqueeze(0)
 
                 # Generate palette output -> shape (9,)
-                output = gen(text_tensor).squeeze(0)
+                enc = model.enc(text_tensor)
+                output = model.gen(enc).squeeze(0)
                 generated_hexes = rgb_to_hex(output)
 
                 # Reconstruct output matching the original JSONL schema ('bg', 'fg')
