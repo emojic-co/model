@@ -1,163 +1,175 @@
-import argparse
-import json
-from datetime import UTC, datetime
-from pathlib import Path
-
 import lightning as pl
 import torch
-from lightning.pytorch.callbacks import EarlyStopping
+from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
-from torch.nn import functional as F
+from torch.nn.functional import binary_cross_entropy_with_logits, cross_entropy
 
 from config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE,
     EPOCHS,
+    GAN_LR,
     GRAD_CLIP,
     INFONCE_TEMP,
     LR,
-    MAX_TEXT_LEN,
+    SEED,
     VAL_CHECK_INTERVAL,
 )
-from data import (
-    CHARS,
-    EMOJIS,
-    FEELINGS,
-    PAD_IDX,
-    eval_data_loader,
-    train_data_loader,
-)
-from model import Model
-
-MODEL_PT = Path("model.pt")
-LAST_CKPT = Path("runs") / "last.ckpt"
-WEB_PUBLIC = Path("web/public")
-ONNX_OPSET = 18
+from data import eval_data_loader, train_data_loader
+from model import ColorGen, ColorTst, EmojiHead, FeelingHead, TextEncoder
 
 
 def f1(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     return 2 * a * b / (a + b + 1e-8)
 
 
-def export_web(model: nn.Module) -> None:
-    WEB_PUBLIC.mkdir(parents=True, exist_ok=True)
-    # export_onnx(model, WEB_PUBLIC / "model.onnx")
-    meta = {
-        "chars": CHARS,
-        "pad_idx": PAD_IDX,
-        "max_text_len": MAX_TEXT_LEN,
-        "emojis": EMOJIS,
-        "feelings": FEELINGS,
-        "exported_at": datetime.now(UTC).isoformat(timespec="minutes"),
-    }
-    (WEB_PUBLIC / "meta.json").write_text(
-        json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-    (WEB_PUBLIC / "config.json").write_text(
-        json.dumps({"max_text_len": MAX_TEXT_LEN}, indent=2), encoding="utf-8"
-    )
-
-
-class LitEmojic(pl.LightningModule):
-    def __init__(self) -> None:
+class LitGAN(pl.LightningModule):
+    def __init__(self):
         super().__init__()
-        self.model = Model()
+
+        self.enc = TextEncoder()
+        self.gen = ColorGen()
+        self.tst = ColorTst()
+
+        self.feels = FeelingHead()
+        self.emoji = EmojiHead()
+
+        self.automatic_optimization = False
         self.feeling_ce = nn.CrossEntropyLoss()
 
-    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, ...]:
-        return self.model(x)
+    def training_step(self, batch, batch_idx):
+        text, emoji, feels, colors = batch
+        opt_gen, opt_tst, opt_task = self.optimizers()  # type: ignore
 
-    def _feeling_terms(self, logits_feeling, target_feeling):
-        loss = self.feeling_ce(logits_feeling, target_feeling)
-        acc = (logits_feeling.argmax(dim=-1) == target_feeling).float().mean()
-        top5 = logits_feeling.topk(5, dim=-1).indices
-        acc5 = (top5 == target_feeling.unsqueeze(1)).any(dim=-1).float().mean()
-        return loss, acc, acc5
+        enc = self.enc(text)
+        enc_d = enc.detach()
 
-    def _emoji_terms(self, q, emoji_embd, target_emoji):
-        logits = q @ emoji_embd.t()
-        loss = F.cross_entropy(logits / INFONCE_TEMP, target_emoji)
+        feels_pred = self.feels(enc)
+        loss_feel = self.feeling_ce(feels_pred, feels)
 
-        top10 = logits.topk(10, dim=-1).indices
-        hit10 = top10 == target_emoji.unsqueeze(1)
-        acc5 = hit10[:, :5].any(dim=-1).float().mean()
-        acc10 = hit10.any(dim=-1).float().mean()
-        return loss, acc5, acc10
+        q, emoji_vec = self.emoji(enc)
+        emoji_logits = q @ emoji_vec.t()
+        loss_emoji = cross_entropy(emoji_logits / INFONCE_TEMP, emoji)
 
-    def _log_split(
-            self,
-            split,
-            batch_size,
-            loss_f,
-            loss_e,
-            acc_f,
-            acc5_f,
-            acc5_e,
-            acc10_e,
-            mse_c
-    ):
-        kw = dict(
-            on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size)
-        self.log(f"loss/f/{split}", loss_f, **kw)  # type: ignore
-        self.log(f"loss/e/{split}", loss_e, **kw)  # type: ignore
-        self.log(f"acc/f/{split}", acc_f, **kw)  # type: ignore
-        self.log(f"acc5/f/{split}", acc5_f, **kw)  # type: ignore
-        # self.log(f"acc5/e/{split}", acc5_e, **kw)  # type: ignore
-        self.log(f"acc10/e/{split}", acc10_e, **kw)  # type: ignore
-        self.log(f"mse/color/{split}", mse_c, **kw)  # type: ignore
+        opt_task.zero_grad()
+        self.manual_backward(loss_feel + loss_emoji)
+        self.clip_gradients(
+            opt_task,  # type: ignore
+            gradient_clip_val=GRAD_CLIP, gradient_clip_algorithm="norm")
 
-    def training_step(self, batch, batch_idx) -> torch.Tensor:
-        x, target_emoji, target_feeling, target_color = batch
-        logits_feeling, q, emoji_embd, color_pred = self.model(x)
+        opt_task.step()
 
-        loss_feeling, acc_feeling, acc_feeling5 = self._feeling_terms(
-            logits_feeling, target_feeling)
-        loss_emoji, acc_emoji5, acc_emoji10 = self._emoji_terms(
-            q, emoji_embd, target_emoji)
-        loss_color = F.mse_loss(color_pred, target_color)
+        z = self.gen.sample_z(text.size(0), text.device)
+        fake = self.gen(enc_d, z)
+        tst_real = self.tst(enc_d, colors)
+        tst_fake = self.tst(enc_d, fake.detach())
 
-        self._log_split(
-            "train", x.size(0),
-            loss_feeling,
-            loss_emoji,
-            acc_feeling,
-            acc_feeling5,
-            acc_emoji5,
-            acc_emoji10,
-            loss_color
-        )
+        loss_tst_real = binary_cross_entropy_with_logits(
+            tst_real, torch.ones_like(tst_real))
 
-        return loss_feeling + loss_emoji + loss_color
+        loss_tst_fake = binary_cross_entropy_with_logits(
+            tst_fake, torch.zeros_like(tst_fake))
 
-    def validation_step(self, batch, batch_idx) -> None:
-        x, target_emoji, target_feeling, target_color = batch
-        logits_feeling, q, emoji_embd, color_pred = self.model(x)
+        loss_tst = loss_tst_real + loss_tst_fake
 
-        loss_feeling, acc_feeling, acc_feeling5 = self._feeling_terms(
-            logits_feeling, target_feeling)
-        loss_emoji, acc_emoji5, acc_emoji10 = self._emoji_terms(
-            q, emoji_embd, target_emoji)
-        loss_color = F.mse_loss(color_pred, target_color)
+        opt_tst.zero_grad()
+        self.manual_backward(loss_tst)
+        self.clip_gradients(
+            opt_tst,  # type: ignore
+            gradient_clip_val=GRAD_CLIP, gradient_clip_algorithm="norm")
 
-        self._log_split(
-            "val", x.size(0),
-            loss_feeling,
-            loss_emoji,
-            acc_feeling,
-            acc_feeling5,
-            acc_emoji5,
-            acc_emoji10,
-            loss_color
-        )
+        opt_tst.step()
 
-    def on_train_epoch_end(self) -> None:
+        tst_fake = self.tst(enc_d, fake)
+        loss_gen = binary_cross_entropy_with_logits(
+            tst_fake, torch.ones_like(tst_fake))
+
+        opt_gen.zero_grad()
+        self.manual_backward(loss_gen)
+        self.clip_gradients(
+            opt_gen,  # type: ignore
+            gradient_clip_val=GRAD_CLIP, gradient_clip_algorithm="norm")
+
+        opt_gen.step()
+
+        acc = (feels_pred.argmax(dim=-1) == feels).float().mean()
+        top5 = feels_pred.topk(5, dim=-1).indices
+        acc5 = (top5 == feels.unsqueeze(1)).any(dim=-1).float().mean()
+
+        top10 = emoji_logits.topk(10, dim=-1).indices
+        acc10 = (top10 == emoji.unsqueeze(1)).any(dim=-1).float().mean()
+
+        self.log("loss/tst", loss_tst, prog_bar=True)
+        self.log("loss/gen", loss_gen, prog_bar=True)
+        self.log(
+            "loss/f/train", loss_feel,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))
+        self.log(
+            "acc/f/train", acc,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))
+        self.log(
+            "acc5/f/train", acc5,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))
+        self.log(
+            "loss/e/train", loss_emoji,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))
+        self.log(
+            "acc10/e/train", acc10,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))
+
+    def validation_step(self, batch, batch_idx):
+        text, emoji, feels, _ = batch
+
+        enc = self.enc(text)
+
+        feels_pred = self.feels(enc)
+        loss_feel = self.feeling_ce(feels_pred, feels)
+
+        q, emoji_vec = self.emoji(enc)
+        emoji_logits = q @ emoji_vec.t()
+        loss_emoji = cross_entropy(emoji_logits / INFONCE_TEMP, emoji)
+
+        acc = (feels_pred.argmax(dim=-1) == feels).float().mean()
+        top5 = feels_pred.topk(5, dim=-1).indices
+        acc5 = (top5 == feels.unsqueeze(1)).any(dim=-1).float().mean()
+
+        top10 = emoji_logits.topk(10, dim=-1).indices
+        acc10 = (top10 == emoji.unsqueeze(1)).any(dim=-1).float().mean()
+
+        self.log(
+            "loss/f/val", loss_feel,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))
+        self.log(
+            "acc/f/val", acc,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))
+        self.log(
+            "acc5/f/val", acc5,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))
+        self.log(
+            "loss/e/val", loss_emoji,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))
+        self.log(
+            "acc10/e/val", acc10,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))
+
+    def on_train_epoch_end(self):
         self._log_f1("train")
 
-    def on_validation_epoch_end(self) -> None:
+    def on_validation_epoch_end(self):
         self._log_f1("val")
 
-    def _log_f1(self, split: str) -> None:
+    def _log_f1(self, split):
         m = self.trainer.callback_metrics
         a = m.get(f"acc5/f/{split}")
         b = m.get(f"acc10/e/{split}")
@@ -165,51 +177,21 @@ class LitEmojic(pl.LightningModule):
             self.log(f"f1/{split}", f1(a, b), prog_bar=True)
 
     def configure_optimizers(self):
-        return optim.Adam(self.parameters(), lr=LR)
+        opt_gen = optim.SGD(self.gen.parameters(), lr=GAN_LR)
+        opt_tst = optim.SGD(self.tst.parameters(), lr=GAN_LR)
+
+        opt_task = optim.Adam(
+            list(self.enc.parameters())
+            + list(self.feels.parameters())
+            + list(self.emoji.parameters()),
+            lr=LR)
+
+        return [opt_gen, opt_tst, opt_task]
 
 
-class ExportBest(pl.Callback):
-
-    def __init__(self) -> None:
-        self.best_acc = 0.0
-
-    def state_dict(self) -> dict:
-        return {"best_acc": self.best_acc}
-
-    def load_state_dict(self, state_dict: dict) -> None:
-        self.best_acc = state_dict["best_acc"]
-
-    def on_validation_end(self, trainer: pl.Trainer, pl_module: LitEmojic) -> None:
-        metric = trainer.callback_metrics.get("f1/val")
-        if metric is None:
-            return
-        acc = float(metric)
-        if acc > self.best_acc:
-            self.best_acc = acc
-            torch.save(pl_module.model.state_dict(), MODEL_PT)
-            export_web(pl_module.model)
-
-
-class SaveLast(pl.Callback):
-    def on_validation_end(self, trainer: pl.Trainer, pl_module: LitEmojic) -> None:
-        trainer.save_checkpoint(LAST_CKPT, weights_only=False)
-
-
-def train(resume: bool = False) -> None:
-    pl.seed_everything(0, workers=True)
-
-    train_loader = train_data_loader()
-    eval_loader = eval_data_loader()
-
-    lit = LitEmojic()
-    export_best = ExportBest()
-    early_stop = EarlyStopping(
-        monitor="f1/val",
-        mode="max",
-        patience=EARLY_STOP_PATIENCE,
-        check_on_train_epoch_end=False,
-    )
-    LAST_CKPT.parent.mkdir(parents=True, exist_ok=True)
+if __name__ == "__main__":
+    pl.seed_everything(SEED, workers=True)
+    torch.backends.cudnn.benchmark = False
 
     logger = TensorBoardLogger(
         "runs",
@@ -217,61 +199,41 @@ def train(resume: bool = False) -> None:
         version="",
         default_hp_metric=False)
 
+    ckpt = ModelCheckpoint(
+        monitor="f1/val",
+        mode="max",
+        save_top_k=1,
+        filename="best-{step}")
+    early_stop = EarlyStopping(
+        monitor="f1/val",
+        mode="max",
+        patience=EARLY_STOP_PATIENCE)
+
     trainer = pl.Trainer(
+        devices="auto",
+        accelerator="auto",
+        logger=logger,
+        deterministic=True,
         max_epochs=EPOCHS,
         val_check_interval=VAL_CHECK_INTERVAL,
-        check_val_every_n_epoch=None,
-        gradient_clip_val=GRAD_CLIP,
-        accelerator="cpu",
-        devices='auto',
-        logger=logger,
-        enable_checkpointing=False,
-        callbacks=[export_best, early_stop, SaveLast()],
-        num_sanity_val_steps=0,
-        log_every_n_steps=10,
+        callbacks=[ckpt, early_stop],
     )
 
-    ckpt_path = str(LAST_CKPT) if resume and LAST_CKPT.exists() else None
-    if resume and ckpt_path is None:
-        print(f"--resume: no checkpoint at {LAST_CKPT}, starting fresh")
+    model = LitGAN()
+    dl = train_data_loader()
+    val_dl = eval_data_loader()
 
-    trainer.fit(
-        lit,
-        train_loader,
-        eval_loader,
-        ckpt_path=ckpt_path,
-    )
+    trainer.fit(model, dl, val_dl)
 
-    print(
-        f"\nBest f1/val: {export_best.best_acc:.4f}  ->  "
-        f"{MODEL_PT} and web/public/ refreshed"
-    )
+    if ckpt.best_model_path:
+        model = LitGAN.load_from_checkpoint(ckpt.best_model_path)
 
-    from test_model import run as run_tests
-
-    run_tests()
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Train the emojic feeling classifier (PyTorch Lightning)."
-    )
-    parser.add_argument(
-        "--resume",
-        action="store_true",
-        help=f"resume training from {LAST_CKPT} (optimizer / epoch / RNG state)",
-    )
-    parser.add_argument(
-        "--export-only",
-        action="store_true",
-        help=f"reload {MODEL_PT} and rewrite web/public/ assets, no training",
-    )
-    args = parser.parse_args()
-    if args.export_only:
-        model = Model()
-        model.load_state_dict(torch.load(MODEL_PT, map_location="cpu"))
-        model.eval()
-        export_web(model)
-        print(f"{MODEL_PT} -> web/public/ refreshed")
-    else:
-        train(resume=args.resume)
+    torch.save(model.state_dict(), "gan.pt")
+    for name, mod in (
+        ("enc", model.enc),
+        ("gen", model.gen),
+        ("tst", model.tst),
+        ("feels", model.feels),
+        ("emoji", model.emoji),
+    ):
+        torch.save(mod.state_dict(), f"{name}.pt")

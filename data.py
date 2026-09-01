@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from config import BATCH_SIZE, MAX_TEXT_LEN
+from config import BATCH_SIZE, EMOJIS, FEELINGS, MAX_TEXT_LEN
 
 TRAIN_PATH = "train.jsonl"
 EVAL_PATH = "eval.jsonl"
@@ -14,12 +14,6 @@ PAD = "·"
 PAD_IDX = 0
 CHARS = PAD + "abcdefghijklmnopqrstuvwxyz!?:()@$%&* "
 VOCAB_SIZE = len(CHARS)
-
-with open('labels.json', encoding='utf-8') as f:
-    LABELS = json.load(f)
-
-FEELINGS = LABELS["feelings"]
-EMOJIS = LABELS["emojis"]
 
 
 char2idx = {char: i for i, char in enumerate(CHARS)}

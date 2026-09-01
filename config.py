@@ -1,44 +1,53 @@
+import json
 from datetime import datetime
+from math import ceil, log2
 
 # DATA
+with open('labels.json', encoding='utf-8') as f:
+    LABELS = json.load(f)
+
+FEELINGS = LABELS["feelings"]
+EMOJIS = LABELS["emojis"]
+
 MAX_TEXT_LEN = 42
+BATCH_SIZE = 512
 
 # MODEL
-
-
-type conv = tuple[int, int]  # (kernel, out_channels)
-
 CHAR_EMBED_SIZE = 16
-ENCODER = [
-    (4, 128),
-    (3, 256),
-]
-
+TEXT_ENCODER_CHANNELS = [32, 64, 96]
+ENCODER_KERNEL = 3
+ENCODER_RELU_SLOPE = 0.1
 POOL_1D_SIZE = 2
 
-# TRAINING
-LR = 0.01
-BATCH_SIZE = 512
-GRAD_CLIP = 1.0
+EMOJI_EMBED_SIZE = ceil(6 * log2(len(EMOJIS)))
+TEXT_EMBED_SIZE = TEXT_ENCODER_CHANNELS[-1]
+
+CRITIC_CHANNELS = [128, 64, 32, 16]
+CRITIC_RELU_SLOPE = 0.2
+
+GEN_Z_DIM = 16
 
 DROPOUT_FEELING = 0.2
-DROPOUT_EMOJI = 0.2
-DROPOUT_COLOR = 0.2
 
+# TRAINING
+SEED = 42
+LR = 0.01
+GAN_LR = 0.01
+GRAD_CLIP = 1.0
 INFONCE_TEMP = 0.1
 
-EPOCHS = 500
+EPOCHS = 100
 VAL_CHECK_INTERVAL = 100
-EARLY_STOP_PATIENCE = 30
+EARLY_STOP_PATIENCE = 20
 
+# TENSORBOARD RUN NAME
 model_str = ' '.join([
     str(p) for p in
-    (CHAR_EMBED_SIZE, ENCODER)])
+    (CHAR_EMBED_SIZE, TEXT_ENCODER_CHANNELS, ENCODER_KERNEL, GEN_Z_DIM, DROPOUT_FEELING)])
 
 train_str = ' '.join([
     str(p) for p in
-    (LR, BATCH_SIZE, GRAD_CLIP, DROPOUT_FEELING, DROPOUT_COLOR, DROPOUT_EMOJI, INFONCE_TEMP)])
-
+    (LR, GAN_LR, BATCH_SIZE, GRAD_CLIP, INFONCE_TEMP)])
 
 CONFIG_NAME = ' | '.join([
     f'TIME: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',

@@ -51,6 +51,15 @@ TODO:
                 - Recover it to the new code.
                 - Use the new code style and structure and make minimal edits to the new code.
 
+        NEXT STEPS:
+            - Extract the training loop from the model.py file to train.py
+            - Extract all configuration constants to config.py
+            - Recover the tensorboard naming convention from older commits where the name was derived from the timestamp + config in config.py.
+
+            Notes:
+                - Do not export the web app or anything related to it.
+                - Do not export onnx model at this point.
+                
         DISCUSSIONS:
             1.  Should we first train the text encoder then train the GAN on a frozen text encoder? What would it take code wise?
             2.  Before conditioned the ColorGen on the text encoding it generated beautiful and diverse color pallettes (but unrelated to text).
