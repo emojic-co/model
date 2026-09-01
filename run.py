@@ -2,8 +2,9 @@ import json
 
 import torch
 
-from data import EVAL_PATH, EmojiDataset, read
-from model import ColorGen, TextEncoder
+from config import SEED
+from data import EMOJIS, EVAL_PATH, FEELINGS, read, text_to_tensor
+from model import ColorGen, EmojiHead, FeelingHead, TextEncoder
 
 
 def sample(n=200):
@@ -14,49 +15,56 @@ def sample(n=200):
 def rgb_to_hex(rgb: torch.Tensor) -> list[str]:
     assert rgb.shape == (9,), "Input tensor must be of shape (9,)"
 
-    # Shift from [-127.5, 127.5] back to [0, 255] and clamp bounds
     ints = (rgb + 127.5).clamp(0, 255).to(torch.int32).cpu().tolist()
 
     def f2h(val: int) -> str:
         return f"{val:02x}"
 
-    return [
-        f"#{f2h(ints[i])}{f2h(ints[i+1])}{f2h(ints[i+2])}"
-        for i in range(0, 9, 3)
-    ]
+    return [f"#{f2h(ints[i])}{f2h(ints[i + 1])}{f2h(ints[i + 2])}" for i in range(0, 9, 3)]
 
 
-def predict(enc_path: str = "enc.pt", gen_path: str = "gen.pt"):
-    enc = TextEncoder()
-    enc.load_state_dict(torch.load(enc_path, map_location="cpu"))
-    enc.eval()
+def _load(mod: torch.nn.Module, path: str) -> torch.nn.Module:
+    mod.load_state_dict(torch.load(path, map_location="cpu"))
+    mod.eval()
+    return mod
 
-    gen = ColorGen()
-    gen.load_state_dict(torch.load(gen_path, map_location="cpu"))
-    gen.eval()
+
+def predict(
+    enc_path: str = "enc.pt",
+    gen_path: str = "gen.pt",
+    feels_path: str = "feels.pt",
+    emoji_path: str = "emoji.pt",
+):
+    torch.manual_seed(SEED)
+
+    enc = _load(TextEncoder(), enc_path)
+    gen = _load(ColorGen(), gen_path)
+    feels = _load(FeelingHead(), feels_path)
+    emoji = _load(EmojiHead(), emoji_path)
 
     records = sample()
-    ds = EmojiDataset(records)
 
     with open("pred.jsonl", "w", encoding="utf-8") as f:
         with torch.no_grad():
-            for i, rec in enumerate(records):
-                # ds[i] returns (text, emoji, feeling, colors)
-                # We need text (index 0) with a batch dimension: (1, MAX_TEXT_LEN)
-                text_tensor = ds[i][0].unsqueeze(0)
-
-                # Generate palette output -> shape (9,)
+            for rec in records:
+                text_tensor = text_to_tensor(rec.text).unsqueeze(0)
                 emb = enc(text_tensor)
-                output = gen(emb).squeeze(0)
-                generated_hexes = rgb_to_hex(output)
 
-                # Reconstruct output matching the original JSONL schema ('bg', 'fg')
+                feeling = FEELINGS[int(feels(emb).argmax(dim=-1).item())]
+
+                q, emoji_vec = emoji(emb)
+                emoji_logits = q @ emoji_vec.t()
+                emoji_pred = EMOJIS[int(emoji_logits.argmax(dim=-1).item())]
+
+                colors = gen(q).squeeze(0)
+                hexes = rgb_to_hex(colors)
+
                 out_record = {
                     "text": rec.text,
-                    "emoji": rec.emoji,
-                    "feeling": rec.feeling,
-                    "bg": generated_hexes[:2],
-                    "fg": generated_hexes[2],
+                    "emoji": emoji_pred,
+                    "feeling": feeling,
+                    "bg": hexes[:2],
+                    "fg": hexes[2],
                 }
 
                 f.write(json.dumps(out_record, ensure_ascii=False) + "\n")

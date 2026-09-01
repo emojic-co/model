@@ -64,12 +64,13 @@ TODO:
             - Update the GAN, condition on the emoji embedding instead of the text encoding, hold on if you think this is a bad call.
 
         DISCUSSIONS:
-            1.  Should we first train the text encoder then train the GAN on a frozen text encoder? What would it take code wise?
+            1.  Should we first train the model (feeling + emoji) then train the GAN on a frozen model? What would it take code wise?
             2.  Before conditioned the ColorGen on the text encoding it generated beautiful and diverse color pallettes (but unrelated to text).
                 After conditioning on the text encoding it generates monotone color pallettes that are not diverse at all.
                 You can see examples at:
                     file:///home/gilad/Work/emojic/report/preview/pred-09-01-15:31.html (before)
                     file:///home/gilad/Work/emojic/report/preview/pred-09-01-15:55.html (after)
 
-                Also note the loss/gen and loss/tst of the last run.
+                What can we do about it? How can we increase the capacity of the generator.
+
 DONE:
