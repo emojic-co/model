@@ -11,10 +11,12 @@ from config import (
     CHAR_EMBED_SIZE,
     CRITIC_CHANNELS,
     CRITIC_RELU_SLOPE,
+    DROPOUT_EMOJI,
     DROPOUT_FEELING,
     EMOJI_EMBED_SIZE,
     ENCODER_KERNEL,
     ENCODER_RELU_SLOPE,
+    GEN_CHANNELS,
     GEN_Z_DIM,
     POOL_1D_SIZE,
     TEXT_EMBED_SIZE,
@@ -87,11 +89,21 @@ class ColorGen(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.z_dim = GEN_Z_DIM
-        self.head = nn.Linear(self.z_dim + EMOJI_EMBED_SIZE, COLOR_DIM)
+        io = zip(GEN_CHANNELS[:-1], GEN_CHANNELS[1:], strict=True)
+        self.net = nn.Sequential(
+            nn.Linear(GEN_Z_DIM + EMOJI_EMBED_SIZE, GEN_CHANNELS[0]),
+            nn.LeakyReLU(negative_slope=0.2),
+            *[
+                nn.Sequential(
+                    nn.Linear(i, o),
+                    nn.LeakyReLU(negative_slope=0.2)
+                )
+                for i, o in io
+            ],
+        )
 
     def sample_z(self, n: int, device: torch.device | None = None) -> torch.Tensor:
-        return torch.randn(n, self.z_dim, device=device)
+        return torch.randn(n, GEN_Z_DIM, device=device)
 
     def forward(
         self,
@@ -103,7 +115,7 @@ class ColorGen(nn.Module):
                 cond.size(0),
                 cond.device)
 
-        colors = self.head(torch.cat([z, cond], dim=-1))
+        colors = self.net(torch.cat([z, cond], dim=-1))
         colors = tanh(colors) * 127.5
 
         return colors
@@ -129,9 +141,11 @@ class EmojiHead(nn.Module):
     def __init__(self):
         super().__init__()
 
+        self.dropout = nn.Dropout(p=DROPOUT_EMOJI)
         self.net = nn.Linear(
             TEXT_EMBED_SIZE,
             EMOJI_EMBED_SIZE)
+
         self.embed = nn.Embedding(len(EMOJIS), EMOJI_EMBED_SIZE)
 
     def forward(

@@ -1,6 +1,5 @@
 import json
 from datetime import datetime
-from math import ceil, log2
 
 # DATA
 with open('labels.json', encoding='utf-8') as f:
@@ -19,15 +18,17 @@ ENCODER_KERNEL = 3
 ENCODER_RELU_SLOPE = 0.1
 POOL_1D_SIZE = 2
 
-EMOJI_EMBED_SIZE = ceil(6 * log2(len(EMOJIS)))
+EMOJI_EMBED_SIZE = 32
 TEXT_EMBED_SIZE = TEXT_ENCODER_CHANNELS[-1]
 
-CRITIC_CHANNELS = [128, 64, 32, 16]
+GEN_CHANNELS = [32, 32]
+CRITIC_CHANNELS = [96, 64, 32, 16]
 CRITIC_RELU_SLOPE = 0.2
 
 GEN_Z_DIM = 16
 
-DROPOUT_FEELING = 0.2
+DROPOUT_FEELING = 0.3
+DROPOUT_EMOJI = 0.2
 
 # TRAINING
 SEED = 42

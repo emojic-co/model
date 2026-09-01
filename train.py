@@ -155,34 +155,6 @@ class LitColorGAN(pl.LightningModule):
         self.log("loss/tst", loss_tst, prog_bar=True)
         self.log("loss/gen", loss_gen, prog_bar=True)
 
-    def validation_step(self, batch, batch_idx):
-        text, _, _, colors = batch
-
-        cond = self._cond(text)
-
-        z = self.gen.sample_z(text.size(0), text.device)
-        fake = self.gen(cond, z)
-
-        tst_real = self.tst(cond, colors)
-        tst_fake = self.tst(cond, fake)
-
-        loss_tst = binary_cross_entropy_with_logits(
-            tst_real, torch.ones_like(tst_real)
-        ) + binary_cross_entropy_with_logits(
-            tst_fake, torch.zeros_like(tst_fake))
-
-        loss_gen = binary_cross_entropy_with_logits(
-            tst_fake, torch.ones_like(tst_fake))
-
-        self.log(
-            "loss/tst/val", loss_tst,
-            on_step=False, on_epoch=True, prog_bar=True,
-            batch_size=text.size(0))
-        self.log(
-            "loss/gen/val", loss_gen,
-            on_step=False, on_epoch=True, prog_bar=True,
-            batch_size=text.size(0))
-
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=GAN_LR)
         opt_tst = optim.SGD(self.tst.parameters(), lr=GAN_LR)
@@ -238,12 +210,11 @@ if __name__ == "__main__":
             "runs", name=CONFIG_NAME, version="gan", default_hp_metric=False),
         deterministic=True,
         max_epochs=GAN_EPOCHS,
-        val_check_interval=VAL_CHECK_INTERVAL,
         enable_checkpointing=False,
     )
 
     gan = LitColorGAN(task.enc, task.emoji)
-    gan_trainer.fit(gan, dl, val_dl)
+    gan_trainer.fit(gan, dl)
 
     for name, mod in (
         ("gen", gan.gen),
