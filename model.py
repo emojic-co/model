@@ -9,7 +9,7 @@ from config import (
     CHAR_EMBED_SIZE,
     conv,
 )
-from data import COLOR_DIM, EMOJIS, VOCAB_SIZE
+from data import COLOR_DIM, EMOJIS, VOCAB_SIZE, train_data_loader
 
 EMOJI_EMBED_SIZE = ceil(6 * log2(len(EMOJIS)))
 
@@ -110,3 +110,14 @@ class LitColorCritic(pl.LightningModule):
 
     def configure_optimizers(self):
         return optim.Adam(self.parameters(), lr=0.001)
+
+
+if __name__ == "__main__":
+    trainer = pl.Trainer(
+        devices='auto',
+    )
+
+    model = LitColorCritic()
+    dl = train_data_loader()
+
+    trainer.fit(model, dl)
