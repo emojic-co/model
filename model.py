@@ -181,6 +181,7 @@ if __name__ == "__main__":
     logger = TensorBoardLogger("runs", name="color_critic")
 
     trainer = pl.Trainer(
+        gradient_clip_val=1.0,
         devices="auto",
         accelerator="auto",
         logger=logger,
