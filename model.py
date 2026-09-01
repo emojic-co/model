@@ -152,6 +152,10 @@ class LitGAN(pl.LightningModule):
 
         opt_tst.zero_grad()
         self.manual_backward(loss_tst)
+        self.clip_gradients(
+            opt_tst,  # type: ignore
+            gradient_clip_val=1.0, gradient_clip_algorithm="norm")
+
         opt_tst.step()
 
         # GEN
@@ -161,6 +165,10 @@ class LitGAN(pl.LightningModule):
 
         opt_gen.zero_grad()
         self.manual_backward(loss_gen)
+        self.clip_gradients(
+            opt_gen,  # type: ignore
+            gradient_clip_val=1.0, gradient_clip_algorithm="norm")
+
         opt_gen.step()
 
         # LOG
@@ -181,7 +189,6 @@ if __name__ == "__main__":
     logger = TensorBoardLogger("runs", name="color_critic")
 
     trainer = pl.Trainer(
-        gradient_clip_val=1.0,
         devices="auto",
         accelerator="auto",
         logger=logger,
