@@ -140,6 +140,7 @@ class LitGAN(pl.LightningModule):
         opt_tst.step()
 
         # GEN
+        tst_fake = self.tst((text, fake))
         loss_gen = binary_cross_entropy_with_logits(
             tst_fake, torch.ones_like(tst_fake))
 
