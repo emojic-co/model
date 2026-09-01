@@ -7,6 +7,8 @@
     "re-annotate": "bun run tools/data/re-annotate.ts",
     "labels": "bun run tools/data/labels.ts",
     "stat": "bun run tools/data/stat.ts",
+    "preview": "bun run tools/data/preview.ts",
+    "preview-model": "bun run tools/data/preview-model.ts",
     "serve": "live-server docs --port=8000",
     "web": "cd web && bun install && bun run dev",
     "web:build": "cd web && bun install && bun run build",

@@ -1,2 +1,8 @@
 TODO:
+    I have a dataset of <text, color pallette> pairs
+    The goal is to create cards with gradient background and text overlay.
+    Each color pallette has 3 RGB colors.
+    The text is short, 4 - 48 chars.
+    I want to train a GAN that given a text input, generates a color pallette.
+    What do you think.
 DONE:
