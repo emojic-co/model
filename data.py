@@ -142,5 +142,5 @@ def eval_data_loader():
 
 
 if __name__ == "__main__":
-    for r, _ in zip(read(TRAIN_PATH), range(3), strict=False):
-        print(r)
+    ds = EmojiDataset(TRAIN_PATH)
+    print(ds[0])
