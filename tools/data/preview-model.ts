@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import * as ort from "onnxruntime-web"
-import { argmax, decodeColors, encode } from "../../web/src/model.js"
+import { argmax, decodeColorList, encode } from "../../web/src/model.js"
 import { readJsonl } from "./io.ts"
 import { cardHtml, esc, page, sample, stamp } from "./preview-card.ts"
 
@@ -64,7 +64,7 @@ if (import.meta.main) {
     const out = await session.run({ input: tensor })
     const pf: string = meta.feelings[argmax(Array.from(out.feeling_logits.data as Float32Array))]
     const pe: string = meta.emojis[argmax(Array.from(out.emoji_logits.data as Float32Array))]
-    const pc = decodeColors(Array.from(out.color.data as Float32Array))
+    const pc = decodeColorList(out.color.data as Float32Array)[0]
     const truth = cardHtml({
       text: r.text,
       emoji: r.emoji,
@@ -94,6 +94,6 @@ if (import.meta.main) {
   await mkdir(OUT_DIR, { recursive: true })
   const dest = `${OUT_DIR}/${stamp()}.html`
   await writeFile(dest, html)
-  console.log(`wrote ${dest}`)
+  console.log(dest)
   process.exit(0)
 }

@@ -16,53 +16,22 @@ export function encode(text, meta, char2idx) {
   return BigInt64Array.from(ids, BigInt)
 }
 
-function linearToSrgb(c) {
-  const v = c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055
-  return Math.min(255, Math.max(0, Math.round(v * 255)))
-}
-
-export function oklabToHex(L, a, b) {
-  const l_ = L + 0.3963377774 * a + 0.2158037573 * b
-  const m_ = L - 0.1055613458 * a - 0.0638541728 * b
-  const s_ = L - 0.0894841775 * a - 1.291485548 * b
-  const l = l_ ** 3
-  const m = m_ ** 3
-  const s = s_ ** 3
-  const r = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s
-  const g = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s
-  const bl = -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s
-  const hex = (n) => n.toString(16).padStart(2, '0')
-  return '#' + hex(linearToSrgb(r)) + hex(linearToSrgb(g)) + hex(linearToSrgb(bl))
-}
-
 export function decodeColors(color) {
+  const b = (v) =>
+    Math.max(0, Math.min(255, Math.round(v)))
+      .toString(16)
+      .padStart(2, '0')
   return {
-    bg1: oklabToHex(color[0], color[1], color[2]),
-    bg2: oklabToHex(color[3], color[4], color[5]),
-    text_color: oklabToHex(color[6], color[7], color[8]),
+    bg1: '#' + b(color[0]) + b(color[1]) + b(color[2]),
+    bg2: '#' + b(color[3]) + b(color[4]) + b(color[5]),
+    text_color: '#' + b(color[6]) + b(color[7]) + b(color[8]),
   }
 }
 
-const HUE_ANGLES = [12, -12, 24, -24]
-const L_NUDGES = [0.03, -0.03, 0.05, -0.05]
-
-export function paletteVariants(color, n = 4) {
-  const out = [decodeColors(color)]
-  for (let k = 0; k < n; k++) {
-    const rad = (HUE_ANGLES[k % HUE_ANGLES.length] * Math.PI) / 180
-    const cos = Math.cos(rad)
-    const sin = Math.sin(rad)
-    const dL = L_NUDGES[k % L_NUDGES.length]
-    const v = new Array(9)
-    for (let i = 0; i < 9; i += 3) {
-      const a = color[i + 1]
-      const b = color[i + 2]
-      v[i] = Math.min(1, Math.max(0, color[i] + dL))
-      v[i + 1] = a * cos - b * sin
-      v[i + 2] = a * sin + b * cos
-    }
-    out.push(decodeColors(v))
-  }
+export function decodeColorList(flat) {
+  const arr = Array.from(flat)
+  const out = []
+  for (let i = 0; i + 9 <= arr.length; i += 9) out.push(decodeColors(arr.slice(i, i + 9)))
   return out
 }
 

@@ -4,9 +4,8 @@ import {
   encode,
   argmax,
   softmax,
-  oklabToHex,
   decodeColors,
-  paletteVariants,
+  decodeColorList,
 } from './model'
 
 const CHARS = '·abcdefghijklmnopqrstuvwxyz!?:()@$%&* '
@@ -40,73 +39,42 @@ describe('encode', () => {
   })
 })
 
-describe('oklabToHex', () => {
-  const cases = [
-    ['#b4000f', [0.484144, 0.175408, 0.090798]],
-    ['#ffd571', [0.889335, 0.006905, 0.127403]],
-    ['#2f1100', [0.220989, 0.036459, 0.044766]],
-    ['#5bd9a4', [0.800294, -0.130398, 0.040409]],
-    ['#78c9f4', [0.800108, -0.060116, -0.080137]],
-    ['#ffffff', [1, 0, 0]],
-    ['#000000', [0, 0, 0]],
-  ]
-  for (const [hex, lab] of cases) {
-    it(`round-trips ${hex}`, () => {
-      expect(oklabToHex(lab[0], lab[1], lab[2])).toBe(hex)
-    })
-  }
-  it('always returns a valid hex, even for out-of-gamut input', () => {
-    expect(oklabToHex(2, 1, 1)).toMatch(/^#[0-9a-f]{6}$/)
-    expect(oklabToHex(-1, -1, -1)).toMatch(/^#[0-9a-f]{6}$/)
-    expect(oklabToHex(0.5, 5, -5)).toMatch(/^#[0-9a-f]{6}$/)
-  })
-})
-
 describe('decodeColors', () => {
-  it('splits the 9-vector into bg1/bg2/text_color', () => {
-    const c = [
-      0.484144, 0.175408, 0.090798, 0.889335, 0.006905, 0.127403, 0.220989,
-      0.036459, 0.044766,
-    ]
-    expect(decodeColors(c)).toEqual({
-      bg1: '#b4000f',
-      bg2: '#ffd571',
-      text_color: '#2f1100',
+  it('splits a 9-vector of 0..255 values into bg1/bg2/text_color hex', () => {
+    expect(decodeColors([255, 0, 0, 0, 127.5, 255, 16, 16, 16])).toEqual({
+      bg1: '#ff0000',
+      bg2: '#0080ff',
+      text_color: '#101010',
+    })
+  })
+  it('clamps values outside 0..255', () => {
+    expect(decodeColors([300, -5, 128, 300, 300, 300, 0, 0, 0])).toEqual({
+      bg1: '#ff0080',
+      bg2: '#ffffff',
+      text_color: '#000000',
     })
   })
 })
 
-describe('paletteVariants', () => {
-  const color = [
-    0.484144, 0.175408, 0.090798, 0.889335, 0.006905, 0.127403, 0.220989,
-    0.036459, 0.044766,
-  ]
+describe('decodeColorList', () => {
   const hex = /^#[0-9a-f]{6}$/
 
-  it('returns the model palette plus n variants', () => {
-    expect(paletteVariants(color)).toHaveLength(5)
-    expect(paletteVariants(color, 2)).toHaveLength(3)
-  })
-
-  it('keeps the model prediction as the first entry', () => {
-    expect(paletteVariants(color)[0]).toEqual(decodeColors(color))
-  })
-
-  it('every entry is three valid hex colors', () => {
-    for (const p of paletteVariants(color)) {
+  it('chunks a flat 45-value buffer into 5 palettes', () => {
+    const list = decodeColorList(new Float32Array(45).fill(0))
+    expect(list).toHaveLength(5)
+    for (const p of list) {
       expect(p.bg1).toMatch(hex)
       expect(p.bg2).toMatch(hex)
       expect(p.text_color).toMatch(hex)
     }
   })
 
-  it('each variant differs from the model prediction', () => {
-    const [base, ...variants] = paletteVariants(color)
-    for (const v of variants) expect(v).not.toEqual(base)
-  })
-
-  it('is deterministic for the same input', () => {
-    expect(paletteVariants(color)).toEqual(paletteVariants(color))
+  it('decodes each chunk independently', () => {
+    const flat = [...Array(9).fill(0), ...Array(9).fill(255)]
+    expect(decodeColorList(flat)).toEqual([
+      { bg1: '#000000', bg2: '#000000', text_color: '#000000' },
+      { bg1: '#ffffff', bg2: '#ffffff', text_color: '#ffffff' },
+    ])
   })
 })
 

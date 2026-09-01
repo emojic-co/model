@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOnnx } from './hooks/useOnnx'
-import { argmax, normalize, paletteVariants } from './model'
+import { argmax, normalize } from './model'
 import { topFeelings, DEFAULT_COLORS } from './feelings'
 import { cycle } from './nav'
 import GitHubButton from 'react-github-btn'
@@ -89,10 +89,7 @@ export function App() {
   )
   const emojiList = useMemo(() => emojiTop?.map((x) => x.emoji) ?? [], [emojiTop])
 
-  const palettes = useMemo(
-    () => (scores?.color ? paletteVariants(scores.color) : [DEFAULT_COLORS]),
-    [scores],
-  )
+  const palettes = useMemo(() => scores?.palettes ?? [DEFAULT_COLORS], [scores])
   const colors = palettes[override.color] ?? palettes[0]
 
   const cardData =

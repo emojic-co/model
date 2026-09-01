@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import * as ort from 'onnxruntime-web/wasm'
-import { encode } from '../model'
+import { encode, decodeColorList } from '../model'
 
 const BASE = import.meta.env.BASE_URL
 
@@ -47,7 +47,7 @@ export function useOnnx() {
     return {
       feeling: Array.from(out.feeling_logits.data),
       emoji: Array.from(out.emoji_logits.data),
-      color: Array.from(out.color.data),
+      palettes: decodeColorList(out.color.data),
     }
   }, [])
 

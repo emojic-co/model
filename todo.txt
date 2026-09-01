@@ -73,4 +73,11 @@ TODO:
 
                 What can we do about it? How can we increase the capacity of the generator.
 
+        NEXT STEPS:
+            Reenable the web page:
+            - Create a script onnx.py that loads all the exported .pt models and exports them to onnx.
+            - Adjust the web app to use the new architecture.
+            - Emojis and Feeling bars stay the same (or almost the same)
+            - Colors bar need to sample from the GAN 5 times.
+
 DONE:
