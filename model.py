@@ -20,7 +20,7 @@ SEED = 42
 def conv_spectral_relu(*, k: int, i: int, o: int):
     return nn.Sequential(
         nn.utils.spectral_norm(nn.Conv1d(i, o, kernel_size=k, bias=True)),
-        nn.LeakyReLU(negative_slope=0.1))
+        nn.LeakyReLU(negative_slope=0.2))
 
 
 def conv_bn(*, k: int, i: int, o: int) -> nn.Sequential:
@@ -177,8 +177,8 @@ class LitGAN(pl.LightningModule):
 
     def configure_optimizers(self):
         # Betas (0.5, 0.999) and lower learning rates for GAN stability
-        opt_gen = optim.SGD(self.gen.parameters(), lr=0.0002)
-        opt_tst = optim.SGD(self.tst.parameters(), lr=0.0002)
+        opt_gen = optim.SGD(self.gen.parameters(), lr=0.01)
+        opt_tst = optim.SGD(self.tst.parameters(), lr=0.01)
         return [opt_gen, opt_tst]
 
 
