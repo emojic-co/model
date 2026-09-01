@@ -103,7 +103,7 @@ def read(path):
             }:
                 text = normalize(text)
 
-                if len(text) > MAX_TEXT_LEN:
+                if not text or len(text) > MAX_TEXT_LEN:
                     continue
 
                 if emoji not in EMOJIS:
