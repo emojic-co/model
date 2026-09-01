@@ -80,4 +80,12 @@ TODO:
             - Emojis and Feeling bars stay the same (or almost the same)
             - Colors bar need to sample from the GAN 5 times.
 
+        DATA QUALITY:
+            - It seems that there isn't enough emoji coverage, like basic items, objects, nouns, etc..
+            - We should check again the bun/data/train.ts prompt to understand if the core problem is there.
+            - If it seems fine, the plan is to get more data, then export top 200 emojis to labels.json then upsample rare emojis.
+            - we already have a script emoji2feelings.ts that should upsample but it might be outdated, please check it and change its name to upsample-emojis.ts.
+            - e.g. for the text "I want to watch TV" I get the following emojis "🚶0.42🥰0.42👀0.40🙂0.37👋0.37❤️0.36🤔0.35🌟0.35🤝0.34💪0.33"
+            - we also need to upsample feelings, check if the existing script feeling2emojis.ts is still relevant and change its name to upsample-feelings.ts.
+            - finally, at some point we need a method to clean bad data, no need to implement yet, but maybe we should already add some metadata to the dataset so it can help us clean it later.
 DONE:

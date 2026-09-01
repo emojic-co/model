@@ -18,9 +18,9 @@ from config import (
     ENCODER_RELU_SLOPE,
     GEN_CHANNELS,
     GEN_RELU_SLOPE,
-    GEN_Z_DIM,
     TEXT_EMBED_SIZE,
     TEXT_ENCODER_CHANNELS,
+    Z_WEIGHT,
 )
 from data import COLOR_DIM, EMOJIS, FEELINGS, VOCAB_SIZE
 
@@ -62,66 +62,6 @@ class TextEncoder(nn.Module):
         return torch.max(out, dim=-1).values
 
 
-class ColorTst(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-        cs = [COLOR_DIM + EMOJI_EMBED_SIZE, *CRITIC_CHANNELS]
-        io = zip(cs[:-1], cs[1:], strict=True)
-        self.net = nn.Sequential(
-            *[
-                nn.Sequential(
-                    sn(nn.Conv1d(i, o, kernel_size=1, bias=True)),
-                    nn.LeakyReLU(negative_slope=CRITIC_RELU_SLOPE)
-                )
-                for i, o in io
-            ],
-            nn.Conv1d(cs[-1], 1, kernel_size=1, bias=True),
-        )
-
-    def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
-        x = torch.cat(
-            [colors.unsqueeze(-1), cond.unsqueeze(-1)], dim=1)
-        return self.net(x)
-
-
-class ColorGen(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-        io = zip(GEN_CHANNELS[:-1], GEN_CHANNELS[1:], strict=True)
-        self.net = nn.Sequential(
-            nn.Linear(GEN_Z_DIM + EMOJI_EMBED_SIZE, GEN_CHANNELS[0]),
-            nn.LeakyReLU(negative_slope=GEN_RELU_SLOPE),
-            *[
-                nn.Sequential(
-                    nn.Linear(i, o),
-                    nn.LeakyReLU(negative_slope=GEN_RELU_SLOPE)
-                )
-                for i, o in io
-            ],
-            nn.Linear(GEN_CHANNELS[-1], COLOR_DIM),
-        )
-
-    def sample_z(self, n: int, device: torch.device | None = None) -> torch.Tensor:
-        return torch.randn(n, GEN_Z_DIM, device=device)
-
-    def forward(
-        self,
-        cond: torch.Tensor,
-        z: torch.Tensor | None = None
-    ) -> torch.Tensor:
-        if z is None:
-            z = self.sample_z(
-                cond.size(0),
-                cond.device)
-
-        colors = self.net(torch.cat([z, cond], dim=-1))
-        colors = tanh(colors) * 127.5
-
-        return colors
-
-
 class FeelingHead(nn.Module):
     def __init__(self):
         super().__init__()
@@ -156,3 +96,57 @@ class EmojiHead(nn.Module):
         q = normalize(tanh(self.net(self.dropout(text_embedding))), dim=-1)
         emoji_vec = normalize(self.embed.weight, dim=-1)
         return q, emoji_vec
+
+
+# GAN
+class ColorGen(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        io = zip(GEN_CHANNELS[:-1], GEN_CHANNELS[1:], strict=True)
+        self.net = nn.Sequential(
+            nn.Linear(EMOJI_EMBED_SIZE, GEN_CHANNELS[0]),
+            nn.LeakyReLU(negative_slope=GEN_RELU_SLOPE),
+            *[
+                nn.Sequential(
+                    nn.Linear(i, o),
+                    nn.LeakyReLU(negative_slope=GEN_RELU_SLOPE)
+                )
+                for i, o in io
+            ],
+            nn.Linear(GEN_CHANNELS[-1], COLOR_DIM),
+        )
+
+    def forward(
+        self,
+        cond: torch.Tensor,
+    ) -> torch.Tensor:
+        z = normalize(torch.randn_like(cond), dim=-1)
+        seed = (1 - Z_WEIGHT) * cond + Z_WEIGHT * z
+        colors = self.net(seed)
+        colors = tanh(colors) * 127.5
+
+        return colors
+
+
+class ColorDsc(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        cs = [COLOR_DIM + EMOJI_EMBED_SIZE, *CRITIC_CHANNELS]
+        io = zip(cs[:-1], cs[1:], strict=True)
+        self.net = nn.Sequential(
+            *[
+                nn.Sequential(
+                    sn(nn.Conv1d(i, o, kernel_size=1, bias=True)),
+                    nn.LeakyReLU(negative_slope=CRITIC_RELU_SLOPE)
+                )
+                for i, o in io
+            ],
+            nn.Conv1d(cs[-1], 1, kernel_size=1, bias=True),
+        )
+
+    def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
+        x = torch.cat(
+            [colors.unsqueeze(-1), cond.unsqueeze(-1)], dim=1)
+        return self.net(x)

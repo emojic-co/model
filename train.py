@@ -18,7 +18,7 @@ from config import (
     VAL_CHECK_INTERVAL,
 )
 from data import eval_data_loader, train_data_loader
-from model import ColorGen, ColorTst, EmojiHead, FeelingHead, TextEncoder
+from model import ColorDsc, ColorGen, EmojiHead, FeelingHead, TextEncoder
 
 
 def f1(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
@@ -99,7 +99,7 @@ class LitColorGAN(pl.LightningModule):
         self.emoji = emoji.requires_grad_(False).eval()
 
         self.gen = ColorGen()
-        self.tst = ColorTst()
+        self.tst = ColorDsc()
 
         self.automatic_optimization = False
 
@@ -118,8 +118,7 @@ class LitColorGAN(pl.LightningModule):
 
         cond = self._cond(text)
 
-        z = self.gen.sample_z(text.size(0), text.device)
-        fake = self.gen(cond, z)
+        fake = self.gen(cond)
 
         tst_real = self.tst(cond, colors)
         tst_fake = self.tst(cond, fake.detach())
