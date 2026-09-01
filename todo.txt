@@ -88,4 +88,20 @@ TODO:
             - e.g. for the text "I want to watch TV" I get the following emojis "🚶0.42🥰0.42👀0.40🙂0.37👋0.37❤️0.36🤔0.35🌟0.35🤝0.34💪0.33"
             - we also need to upsample feelings, check if the existing script feeling2emojis.ts is still relevant and change its name to upsample-feelings.ts.
             - finally, at some point we need a method to clean bad data, no need to implement yet, but maybe we should already add some metadata to the dataset so it can help us clean it later.
+
+        TOOLS:
+            Create a tool tools/data/preview-labels.ts
+            The tool should read the labels.json file and generate a static html preview page with:
+            - a grid of all the feelings and their corresponding style.
+            - a grid of all the emojis.
+            Design the page and the layout so the two grids always fill up the entire page (exactly)
+            You should probably use grid layout for both emojis and feelings.
+            Feeling cells should contain the name of the feeling and should have a wide aspect ratio.
+            Emojis should be square.
+            Use some padding but let the feeling and emojis take most of the space.
+            The goal of this page is to let me review the content of the labels.json file in a single glance.
+
+        DISCUSSION:
+            When generating new data, do you think we can condition the text on a feeling and an emoji? Will 'openai/gpt-5.6-luna' handle this?
+            If so, should we take this approach and replace both the emoji upsampling and the feeling upsampling scripts?
 DONE:

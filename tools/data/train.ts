@@ -13,7 +13,7 @@ const BATCH_COUNT = 50
 const CONCURRENCY = 25
 
 const MIN_LEN = 4
-const MAX_LEN = 48
+const MAX_LEN = 42
 
 export const TOPICS = [
   "food & cooking",
