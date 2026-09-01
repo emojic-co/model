@@ -4,7 +4,7 @@ from lightning.pytorch.loggers import TensorBoardLogger
 
 from config import CONFIG_NAME, GAN_EPOCHS, SEED
 from data import train_data_loader
-from model import EmojiHead, TextEncoder
+from model import TextEncoder
 from train import LitColorGAN
 
 
@@ -18,7 +18,6 @@ if __name__ == "__main__":
     torch.backends.cudnn.benchmark = False
 
     enc = load(TextEncoder(), "enc.pt")
-    emoji = load(EmojiHead(), "emoji.pt")
 
     gan_trainer = pl.Trainer(
         devices="auto",
@@ -30,7 +29,7 @@ if __name__ == "__main__":
         enable_checkpointing=False,
     )
 
-    gan = LitColorGAN(enc, emoji)
+    gan = LitColorGAN(enc)
     gan_trainer.fit(gan, train_data_loader())
 
     for name, mod in (

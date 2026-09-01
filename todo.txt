@@ -111,5 +111,46 @@ TODO:
             1. propose how to merge the feelings.
             2. write a report report/merge/<timestamp>.md about the feeling distribution after the merge.
             3. If we decide to merge do not use alias map, instead update the feeling label, but keep the original feeling in the meta field.
+
+        Feelings:
+            Look at all the feelings that we have in the train.jsonl and make a list of feelings you think I should use.
+            Do not consider existing frequency or anything else, just make a list (any length) that you think is a complete list:
+            - No two feelings that are too similar 
+            - No missing feelings.
+
+            Write it to report/feelings/<timestamp>.md.
+
+        Color GAN:
+            We must replace the emoji embedding passed to the ColorGen with the text embedding instead.
+            Make sure the train and inference code are all updated to reflect this change.
+            Also make sure the onnx export code is updated to reflect this change.
+
+        Ekman's six 
+            We should go with Ekman's six basic emotions (anger, disgust, fear, happiness, sadness, surprise) + Neutral.
+            Write a detailed report how this migration affect the product (model, web app, data, etc...)
+            Especially, consider what should we do with all the existing data that we have.
+            The report should be written to report/ekman/<timestamp>.md.
+            The report must contains a practical, high level plan to migrate the existing project to Ekman's six basic emotions + Neutral.
+
+        Implement The Migration:
+            Implement according to the report you wrote at report/ekman/09-02-01:10.md
+            Implement Phase 1 and 2.
+            Then report and wait for me to run the upsampling scripts before rebuilding the eval.jsonl set (Phase 4)
+            
+
+            Comments:
+                Important:
+                - Feeling metric is now acc @ 1, that is correct.
+                - Do not weight the classes in the nn.CrossEntropyLoss() loss, we will balance the classes by either upsampling or downsampling the data.
+                - Design premise: make sure every feeling has a truly unique and distinct style.
+                - Use Deterministic fold to map the existing data into the new feelings, remove the metadata field.
+                - Drop feelings that are not clearly mapped to the new feelings.
+                - No META field in the new data at all, remove it from the pipeline completely.
+                - During the migration deduplicate text based on its normalized form, pick one of the annotations and drop the rest.
+                - Rebuild eval.json as per the existing skill. eval.jsonl must be flawless and top quality set.
+                - Use the canonical strings (Angry, Disgusted, Afraid, Happy, Sad, Surprised, Neutral).
+
+                Minor:
+                - Your information about the Colour GAN is a bit out-dated but does not affect the migration.
 DONE:
 

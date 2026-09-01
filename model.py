@@ -59,7 +59,7 @@ class TextEncoder(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         out = self.char_embed(x).transpose(1, 2)
         out = self.encoder(out)
-        return torch.max(out, dim=-1).values
+        return normalize(torch.max(out, dim=-1).values, dim=-1)
 
 
 class FeelingHead(nn.Module):
@@ -105,7 +105,7 @@ class ColorGen(nn.Module):
 
         io = zip(GEN_CHANNELS[:-1], GEN_CHANNELS[1:], strict=True)
         self.net = nn.Sequential(
-            nn.Linear(EMOJI_EMBED_SIZE, GEN_CHANNELS[0]),
+            nn.Linear(TEXT_EMBED_SIZE, GEN_CHANNELS[0]),
             nn.LeakyReLU(negative_slope=GEN_RELU_SLOPE),
             *[
                 nn.Sequential(
@@ -133,7 +133,7 @@ class ColorDsc(nn.Module):
     def __init__(self):
         super().__init__()
 
-        cs = [COLOR_DIM + EMOJI_EMBED_SIZE, *CRITIC_CHANNELS]
+        cs = [COLOR_DIM + TEXT_EMBED_SIZE, *CRITIC_CHANNELS]
         io = zip(cs[:-1], cs[1:], strict=True)
         self.net = nn.Sequential(
             *[

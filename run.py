@@ -56,7 +56,7 @@ def predict(
                 emoji_logits = q @ emoji_vec.t()
                 emoji_pred = EMOJIS[int(emoji_logits.argmax(dim=-1).item())]
 
-                colors = gen(q).squeeze(0)
+                colors = gen(emb).squeeze(0)
                 hexes = rgb_to_hex(colors)
 
                 out_record = {

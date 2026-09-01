@@ -92,11 +92,10 @@ class LitTask(pl.LightningModule):
 
 
 class LitColorGAN(pl.LightningModule):
-    def __init__(self, enc: TextEncoder, emoji: EmojiHead):
+    def __init__(self, enc: TextEncoder):
         super().__init__()
 
         self.enc = enc.requires_grad_(False).eval()
-        self.emoji = emoji.requires_grad_(False).eval()
 
         self.gen = ColorGen()
         self.tst = ColorDsc()
@@ -105,12 +104,10 @@ class LitColorGAN(pl.LightningModule):
 
     def on_train_epoch_start(self):
         self.enc.eval()
-        self.emoji.eval()
 
     def _cond(self, text: torch.Tensor) -> torch.Tensor:
         with torch.no_grad():
-            q, _ = self.emoji(self.enc(text))
-        return q
+            return self.enc(text)
 
     def training_step(self, batch, batch_idx):
         text, _, _, colors = batch
@@ -212,7 +209,7 @@ if __name__ == "__main__":
         enable_checkpointing=False,
     )
 
-    gan = LitColorGAN(task.enc, task.emoji)
+    gan = LitColorGAN(task.enc)
     gan_trainer.fit(gan, dl)
 
     for name, mod in (
