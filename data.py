@@ -102,9 +102,17 @@ def read(path):
                 'fg': fg
             }:
                 text = normalize(text)
+
                 if len(text) > MAX_TEXT_LEN:
                     continue
-                yield record(normalize(text), emoji, feeling, [*bg, fg])
+
+                if emoji not in EMOJIS:
+                    continue
+
+                if feeling not in FEELING:
+                    continue
+
+                yield record(text, emoji, feeling, [*bg, fg])
 
 
 class EmojiDataset(Dataset):
