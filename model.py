@@ -64,7 +64,7 @@ class MLP(nn.Module):
         self.net = nn.Sequential(*[
             conv_bn_relu(k=1, i=i, o=o)
             for i, o in zip(cs[:-2], cs[1:-1], strict=True)],
-            conv_bn(k=1, i=cs[-2], o=cs[-1]))
+            nn.Conv1d(cs[-2], cs[-1], kernel_size=1, bias=True))
 
     def forward(self, x):
         return self.net(x).squeeze(-1)
