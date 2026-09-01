@@ -97,13 +97,15 @@ class ColorGen(nn.Module):
         super().__init__()
 
         dim = 128
+        self.z_dim = 16
         self.encoder = Encoder([(3, dim)])
-        self.head = nn.Linear(dim, COLOR_DIM)
+        self.head = nn.Linear(dim + self.z_dim, COLOR_DIM)
 
     def forward(self, text: torch.Tensor) -> torch.Tensor:
         # text, emoji, feeling, colors
         enc = self.encoder(text)
-        colors = self.head(enc)
+        z = torch.randn(enc.size(0), self.z_dim, device=enc.device)
+        colors = self.head(torch.cat([enc, z], dim=-1))
         colors = tanh(colors) * 127.5
 
         return colors

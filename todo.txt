@@ -3,7 +3,12 @@ TODO:
         We build a tiny, lightweight and super simple GAN to generate color pallette given a short text.
         The GAN must be simple and lightweight.
         The loss of the generator in the current implementation drops instantly to 0, but the actual results look bad visually.
-        Suggest, one simple step to improve the GAN results.
-        Avoid big architectures, complex loss functions, or any other complex changes.
+
+        Tasks:
+            Suggest, one simple step to improve the GAN results.
+            Avoid big architectures, complex loss functions, or any other complex changes.
+
+        Note:
+            Avoid L1 (or any other) reconstruction loss, the colors in the train set have large variance and many different colors can fit the same text.
 
 DONE:
