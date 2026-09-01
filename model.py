@@ -3,7 +3,7 @@ from math import ceil, log2
 import pytorch_lightning as pl
 import torch
 from torch import nn, optim
-from torch.nn.functional import binary_cross_entropy, sigmoid
+from torch.nn.functional import binary_cross_entropy_with_logits
 
 from config import (
     CHAR_EMBED_SIZE,
@@ -14,27 +14,22 @@ from data import COLOR_DIM, EMOJIS, VOCAB_SIZE
 EMOJI_EMBED_SIZE = ceil(6 * log2(len(EMOJIS)))
 
 
+def conv_bn(*, k, i, o):
+    return nn.Sequential(
+        nn.Conv1d(i, o, kernel_size=k, bias=False),
+        nn.BatchNorm1d(o))
+
+
 def conv_bn_relu(*, k, i, o):
     return nn.Sequential(
-        nn.Conv1d(
-            i,
-            o,
-            kernel_size=k,
-            bias=False),
-
-        nn.BatchNorm1d(o),
-        nn.LeakyReLU(negative_slope=0.1),
-    )
+        conv_bn(k=k, i=i, o=o),
+        nn.LeakyReLU(negative_slope=0.1))
 
 
 def pool_conv_bn_relu(*, k, i, o):
     return nn.Sequential(
         nn.MaxPool1d(kernel_size=2, stride=2),
-        conv_bn_relu(
-            k=k,
-            i=i,
-            o=o),
-    )
+        conv_bn_relu(k=k, i=i, o=o))
 
 
 class Encoder(nn.Module):
@@ -68,9 +63,8 @@ class MLP(nn.Module):
         super().__init__()
         self.net = nn.Sequential(*[
             conv_bn_relu(k=1, i=i, o=o)
-            for i, o in zip(cs[:-1], cs[1:], strict=True)
-        ]
-        )
+            for i, o in zip(cs[:-2], cs[1:-1], strict=True)],
+            conv_bn(k=1, i=cs[-2], o=cs[-1]))
 
     def forward(self, x):
         return self.net(x).squeeze(-1)
@@ -90,7 +84,7 @@ class ColorCritic(nn.Module):
         enc = self.encoder(text)
         logit = self.net(torch.cat([enc, colors], dim=-1).unsqueeze(-1))
 
-        return sigmoid(logit)
+        return logit
 
 
 class LitColorCritic(pl.LightningModule):
@@ -104,15 +98,15 @@ class LitColorCritic(pl.LightningModule):
         assert (emoji)
         assert (feeling)
 
-        fake = torch.tensor(
-            torch.randint_like(colors, 0, 256) - 127.5,
-            dtype=torch.float32)
+        fake = torch.randint_like(colors, 0, 256, dtype=torch.float32) - 127.5
 
         out_real = self.model((text, colors))
         out_fake = self.model((text, fake))
 
-        loss_real = binary_cross_entropy(out_real, torch.ones_like(out_real))
-        loss_fake = binary_cross_entropy(out_fake, torch.zeros_like(out_fake))
+        loss_real = binary_cross_entropy_with_logits(
+            out_real, torch.ones_like(out_real))
+        loss_fake = binary_cross_entropy_with_logits(
+            out_fake, torch.zeros_like(out_fake))
 
         return loss_real + loss_fake
 
