@@ -177,8 +177,8 @@ class LitGAN(pl.LightningModule):
 
     def configure_optimizers(self):
         # Betas (0.5, 0.999) and lower learning rates for GAN stability
-        opt_gen = optim.Adam(self.gen.parameters(), lr=0.0002, betas=(0.5, 0.999))
-        opt_tst = optim.Adam(self.tst.parameters(), lr=0.0002, betas=(0.5, 0.999))
+        opt_gen = optim.SGD(self.gen.parameters(), lr=0.0002)
+        opt_tst = optim.SGD(self.tst.parameters(), lr=0.0002)
         return [opt_gen, opt_tst]
 
 
