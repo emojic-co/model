@@ -77,7 +77,7 @@ class record:
     colors: list[str]
 
 
-def record_ro_tensors(record: record):
+def record_to_tensors(record: record):
     return (
         text_to_tensor(record.text),
         emoji_to_tensor(record.emoji),
@@ -118,7 +118,7 @@ def read(path):
 class EmojiDataset(Dataset):
     def __init__(self, path):
         self.data = [
-            record_ro_tensors(r)
+            record_to_tensors(r)
             for r in read(path)
         ]
 
@@ -152,4 +152,4 @@ def eval_data_loader():
 if __name__ == "__main__":
     for r, _ in zip(read(TRAIN_PATH), range(3), strict=False):
         print(r)
-        print(record_ro_tensors(r))
+        print(record_to_tensors(r))
