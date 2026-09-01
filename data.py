@@ -18,12 +18,12 @@ VOCAB_SIZE = len(CHARS)
 with open('labels.json', encoding='utf-8') as f:
     LABELS = json.load(f)
 
-FEELING = LABELS["feelings"]
+FEELINGS = LABELS["feelings"]
 EMOJIS = LABELS["emojis"]
 
 
 char2idx = {char: i for i, char in enumerate(CHARS)}
-feeling2idx = {f: i for i, f in enumerate(FEELING)}
+feeling2idx = {f: i for i, f in enumerate(FEELINGS)}
 emoji2idx = {e: i for i, e in enumerate(EMOJIS)}
 
 COLOR_DIM = 9
@@ -100,7 +100,7 @@ def read(path):
                 if emoji not in EMOJIS:
                     continue
 
-                if feeling not in FEELING:
+                if feeling not in FEELINGS:
                     continue
 
                 yield record(text, emoji, feeling, [*bg, fg])

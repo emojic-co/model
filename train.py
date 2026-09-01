@@ -23,7 +23,7 @@ from config import (
 from data import (
     CHARS,
     EMOJIS,
-    FEELING,
+    FEELINGS,
     PAD_IDX,
     eval_data_loader,
     train_data_loader,
@@ -48,7 +48,7 @@ def export_web(model: nn.Module) -> None:
         "pad_idx": PAD_IDX,
         "max_text_len": MAX_TEXT_LEN,
         "emojis": EMOJIS,
-        "feelings": FEELING,
+        "feelings": FEELINGS,
         "exported_at": datetime.now(UTC).isoformat(timespec="minutes"),
     }
     (WEB_PUBLIC / "meta.json").write_text(

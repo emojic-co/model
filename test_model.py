@@ -8,7 +8,7 @@ import torch
 from config import MAX_TEXT_LEN
 from data import (
     EMOJIS,
-    FEELING,
+    FEELINGS,
     PAD_IDX,
     char2idx,
     normalize,
@@ -66,7 +66,7 @@ def _encode(text: str) -> torch.Tensor:
 @torch.no_grad()
 def predict(model: Model, text: str) -> dict:
     feeling_logits = model(_encode(text))[0]
-    return {"feeling": FEELING[int(feeling_logits.argmax())]}
+    return {"feeling": FEELINGS[int(feeling_logits.argmax())]}
 
 
 @torch.no_grad()
@@ -79,7 +79,7 @@ def predict_emojis(model: Model, text: str, k: int = 5) -> list[str]:
 
 def test_feelings(model: Model) -> list[dict]:
     rows = []
-    for feeling in FEELING:
+    for feeling in FEELINGS:
         got = predict(model, feeling)
         rows.append(
             {
@@ -94,7 +94,7 @@ def test_feelings(model: Model) -> list[dict]:
 
 def test_negations(model: Model) -> list[dict]:
     rows = []
-    for feeling in FEELING:
+    for feeling in FEELINGS:
         prompt = f"not {feeling.lower()}"
         got = predict(model, prompt)["feeling"]
         expected = NEGATION_EXPECTED.get(feeling)
@@ -190,7 +190,8 @@ def build_report(
     out.append("| --- | --- | --- | --- |")
     for r in feeling_rows:
         mark = "✅" if r["pass"] else "❌"
-        out.append(f"| {r['feeling']} | `{r['prompt']}` | {r['predicted']} | {mark} |")
+        out.append(
+            f"| {r['feeling']} | `{r['prompt']}` | {r['predicted']} | {mark} |")
     out.append("")
 
     out.append("## Negations")
