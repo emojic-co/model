@@ -83,14 +83,12 @@ class ColorTst(nn.Module):
     def __init__(self):
         super().__init__()
 
-        dim = 128
-        self.encoder = Encoder([(3, dim)])
-        self.net = MLP([dim + COLOR_DIM, 256, 128, 64, 1])
+        # self.encoder = Encoder([(3, dim)])
+        self.net = MLP([COLOR_DIM, 64, 64, 64, 1])
 
-    def forward(self, x: tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:
-        text, colors = x
-        enc = self.encoder(text)
-        logit = self.net(torch.cat([enc, colors], dim=-1).unsqueeze(-1))
+    def forward(self, text: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
+        # enc = self.encoder(text)
+        logit = self.net(colors.unsqueeze(-1))
         return logit
 
 
@@ -133,8 +131,8 @@ class LitGAN(pl.LightningModule):
 
         z = self.gen.sample_z(text.size(0), text.device)
         fake = self.gen(text, z)
-        tst_real = self.tst((text, colors))
-        tst_fake = self.tst((text, fake))
+        tst_real = self.tst(text, colors)
+        tst_fake = self.tst(text, fake)
 
         # TST
         loss_tst_real = binary_cross_entropy_with_logits(
