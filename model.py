@@ -10,7 +10,14 @@ from torch.nn.utils import spectral_norm as sn
 from config import (
     CHAR_EMBED_SIZE,
 )
-from data import COLOR_DIM, EMOJIS, FEELINGS, VOCAB_SIZE, train_data_loader
+from data import (
+    COLOR_DIM,
+    EMOJIS,
+    FEELINGS,
+    VOCAB_SIZE,
+    eval_data_loader,
+    train_data_loader,
+)
 
 EMOJI_EMBED_SIZE = ceil(6 * log2(len(EMOJIS)))
 TEXT_EMBED_SIZE = 96
@@ -211,6 +218,31 @@ class LitGAN(pl.LightningModule):
             on_step=False, on_epoch=True, prog_bar=True,
             batch_size=text.size(0))  # type: ignore
 
+    def validation_step(self, batch, batch_idx):
+        text, emoji, feels, colors = batch
+
+        enc = self.enc(text)
+
+        feels_pred = self.feels(enc)
+        loss_feel = self.feeling_ce(feels_pred, feels)
+
+        acc = (feels_pred.argmax(dim=-1) == feels).float().mean()
+        top5 = feels_pred.topk(5, dim=-1).indices
+        acc5 = (top5 == feels.unsqueeze(1)).any(dim=-1).float().mean()
+
+        self.log(
+            "loss/f/val", loss_feel,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))  # type: ignore
+        self.log(
+            "acc/f/val", acc,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))  # type: ignore
+        self.log(
+            "acc5/f/val", acc5,
+            on_step=False, on_epoch=True, prog_bar=True,
+            batch_size=text.size(0))  # type: ignore
+
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=0.01)
         opt_tst = optim.SGD(self.tst.parameters(), lr=0.01)
@@ -231,13 +263,15 @@ if __name__ == "__main__":
         accelerator="auto",
         logger=logger,
         deterministic=True,
-        max_epochs=5,
+        max_epochs=100,
+        val_check_interval=100,
     )
 
     model = LitGAN()
     dl = train_data_loader()
+    val_dl = eval_data_loader()
 
-    trainer.fit(model, dl)
+    trainer.fit(model, dl, val_dl)
 
     torch.save(model.state_dict(), "gan.pt")
     for name, mod in (

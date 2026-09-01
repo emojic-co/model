@@ -4,7 +4,7 @@ import { cardHtml, page, sample, stamp } from "./preview-card.ts"
 
 const EVAL = "eval.jsonl"
 const OUT_DIR = "report/preview"
-const COUNT = 100
+const COUNT = 200
 const COLS = 5
 
 type Row = { text: string; feeling: string; emoji: string; bg: [string, string]; fg: string }

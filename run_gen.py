@@ -7,7 +7,7 @@ from data import EVAL_PATH, EmojiDataset, read
 from model import ColorGen, TextEncoder
 
 
-def sample(n=20):
+def sample(n=200):
     records = list(read(EVAL_PATH))
     return random.sample(records, min(n, len(records)))
 
@@ -36,7 +36,7 @@ def predict(enc_path: str = "enc.pt", gen_path: str = "gen.pt"):
     gen.load_state_dict(torch.load(gen_path, map_location="cpu"))
     gen.eval()
 
-    records = sample(20)
+    records = sample()
     ds = EmojiDataset(records)
 
     with open("pred.jsonl", "w", encoding="utf-8") as f:
