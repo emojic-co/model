@@ -231,7 +231,7 @@ if __name__ == "__main__":
         accelerator="auto",
         logger=logger,
         deterministic=True,
-        max_epochs=10,
+        max_epochs=5,
     )
 
     model = LitGAN()
@@ -239,5 +239,12 @@ if __name__ == "__main__":
 
     trainer.fit(model, dl)
 
-    # TODO: export each component separately, not just the whole model
     torch.save(model.state_dict(), "gan.pt")
+    for name, mod in (
+        ("enc", model.enc),
+        ("gen", model.gen),
+        ("tst", model.tst),
+        ("feels", model.feels),
+        ("emoji", model.emoji),
+    ):
+        torch.save(mod.state_dict(), f"{name}.pt")
