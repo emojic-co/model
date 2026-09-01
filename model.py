@@ -93,10 +93,8 @@ class LitColorCritic(pl.LightningModule):
         self.model = ColorCritic()
 
     def training_step(self, batch):
-        text, emoji, feeling, colors = batch
-
-        assert (emoji)
-        assert (feeling)
+        # text, emoji, feeling, colors
+        text, _, _, colors = batch
 
         fake = torch.randint_like(colors, 0, 256, dtype=torch.float32) - 127.5
 
