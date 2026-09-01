@@ -184,8 +184,8 @@ if __name__ == "__main__":
         devices="auto",
         accelerator="auto",
         logger=logger,
-        max_epochs=3,
         deterministic=True,
+        max_epochs=10,
     )
 
     model = LitGAN()
