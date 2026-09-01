@@ -100,9 +100,8 @@ class ColorGenerator(nn.Module):
         self.encoder = Encoder([(3, dim)])
         self.head = nn.Linear(dim, COLOR_DIM)
 
-    def forward(self, x: tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:
+    def forward(self, text: torch.Tensor) -> torch.Tensor:
         # text, emoji, feeling, colors
-        text, *_ = x
         enc = self.encoder(text)
         colors = self.head(enc)
         colors = tanh(colors) * 127.5
