@@ -124,30 +124,29 @@ class LitGAN(pl.LightningModule):
         opt_gen, opt_tst = self.optimizers()  # type: ignore
 
         fake = self.gen(text)
+        tst_real = self.tst((text, colors))
+        tst_fake = self.tst((text, fake))
 
-        out_real = self.tst((text, colors))
-        out_fake = self.tst((text, fake.detach()))
+        # GEN
+        loss_gen = binary_cross_entropy_with_logits(
+            tst_fake, torch.ones_like(tst_fake))
+
+        opt_gen.zero_grad()
+        self.manual_backward(loss_gen, retain_graph=True)
+        opt_gen.step()
 
         # TST
         loss_tst_real = binary_cross_entropy_with_logits(
-            out_real, torch.ones_like(out_real))
+            tst_real, torch.ones_like(tst_real))
 
         loss_tst_fake = binary_cross_entropy_with_logits(
-            out_fake, torch.zeros_like(out_fake))
+            tst_fake.detach(), torch.zeros_like(tst_fake))
 
         loss_tst = loss_tst_real + loss_tst_fake
 
         opt_tst.zero_grad()
         self.manual_backward(loss_tst)
         opt_tst.step()
-
-        # GEN
-        loss_gen = binary_cross_entropy_with_logits(
-            out_fake, torch.ones_like(out_fake))
-
-        opt_gen.zero_grad()
-        self.manual_backward(loss_gen)
-        opt_gen.step()
 
         # LOG
         self.log("loss/tst", loss_tst, prog_bar=True)
