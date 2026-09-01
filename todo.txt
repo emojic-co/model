@@ -11,4 +11,14 @@ TODO:
         Note:
             Avoid L1 (or any other) reconstruction loss, the colors in the train set have large variance and many different colors can fit the same text.
 
+        DEBUG:
+            I want to debug the GAN.
+            The settings right now is that the generator maps z -> colors and the discriminator maps colors -> real/fake.
+            Training ends up with 0 loss for the generator, and high loss for the discriminator (much higher than random guess).
+            This implies a bug in the discriminator or the train loop.
+            Note that when examining the generated colors by hand they look bad (easy to distinguish from the real distribution), so the generator is not doing a good job.
+
+            Please check the code and try to find the root cause.
+            If you can't find the root cause, suggest a simple way to debug the GAN and find the root cause.
+
 DONE:

@@ -139,14 +139,14 @@ class LitGAN(pl.LightningModule):
         z = self.gen.sample_z(text.size(0), text.device)
         fake = self.gen(text, z)
         tst_real = self.tst(text, colors)
-        tst_fake = self.tst(text, fake)
+        tst_fake = self.tst(text, fake.detach())
 
         # TST
         loss_tst_real = binary_cross_entropy_with_logits(
             tst_real, torch.ones_like(tst_real))
 
         loss_tst_fake = binary_cross_entropy_with_logits(
-            tst_fake.detach(), torch.zeros_like(tst_fake))
+            tst_fake, torch.zeros_like(tst_fake))
 
         loss_tst = loss_tst_real + loss_tst_fake
 
