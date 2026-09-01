@@ -1,6 +1,8 @@
 import { existsSync } from "node:fs"
 import { mkdir, writeFile } from "node:fs/promises"
-import { TOP_EMOJIS, TOP_FEELINGS } from "./config"
+import { EKMAN_FEELINGS, TOP_EMOJIS } from "./config"
+
+const TOP_FEELINGS = EKMAN_FEELINGS.length
 import { readJsonl } from "./io.ts"
 
 const FILES = ["./train.jsonl", "./eval.jsonl"]

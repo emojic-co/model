@@ -4,7 +4,6 @@ import PQueue from "p-queue"
 
 import { MODEL, annotate, annotateBatchCount } from "./annotate.ts"
 import { appendJsonl, readJsonl } from "./io.ts"
-import { rowMeta } from "./meta.ts"
 import { rarest } from "./rarest.ts"
 
 const TRAIN = "./train.jsonl"
@@ -14,7 +13,7 @@ const FEELINGS_PER_RUN = 3
 const BATCHES_PER_FEELING = 20
 const GEN_BATCH_SIZE = 100
 const MAX_RAW_LEN = 50
-const GEN_CONCURRENCY = 20
+const GEN_CONCURRENCY = 25
 
 const VOICES = [
   "a teenager", "a college student", "a new parent", "a retiree",
@@ -92,16 +91,14 @@ if (import.meta.main) {
   )
   genBar.start(batchCount, 0)
 
-  const cands: { text: string; target: string; voice: string }[] = []
+  const cands: string[] = []
   const genQ = new PQueue({ concurrency: GEN_CONCURRENCY })
   genQ.addAll(
     Array.from({ length: batchCount }, (_, i) => async () => {
       const feeling = targets[i % targets.length]
       const voice = pickVoice()
       try {
-        for (const t of await genBatch(voice, feeling)) {
-          cands.push({ text: t, target: feeling, voice })
-        }
+        for (const t of await genBatch(voice, feeling)) cands.push(t)
       } catch (err) {
         console.warn(`\n  gen batch (${feeling}) failed: ${err}`)
       }
@@ -121,10 +118,7 @@ if (import.meta.main) {
     cliProgress.Presets.shades_classic,
   )
   annBar.start(annotateBatchCount(cands.length), 0)
-  const annotated = await annotate(
-    cands.map((c) => c.text),
-    () => annBar.increment(),
-  )
+  const annotated = await annotate(cands, () => annBar.increment())
   annBar.stop()
 
   const lines: string[] = []
@@ -133,20 +127,11 @@ if (import.meta.main) {
     if (!label) continue
     lines.push(
       JSON.stringify({
-        text: cands[i].text,
+        text: cands[i],
         feeling: label.feeling,
         emoji: label.emoji,
         bg: label.bg,
         fg: label.fg,
-        meta: rowMeta({
-          src: "upsample-feelings",
-          v: 1,
-          target_feeling: cands[i].target,
-          params: {
-            voice: cands[i].voice,
-            batchesPerFeeling: BATCHES_PER_FEELING,
-          },
-        }),
       }),
     )
   }

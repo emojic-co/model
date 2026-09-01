@@ -4,7 +4,6 @@ import PQueue from "p-queue"
 
 import { MODEL, annotate, annotateBatchCount } from "./annotate.ts"
 import { appendJsonl } from "./io.ts"
-import { rowMeta } from "./meta.ts"
 
 const TRAIN = "./train.jsonl"
 
@@ -84,13 +83,13 @@ if (import.meta.main) {
   )
   genBar.start(BATCH_COUNT, 0)
 
-  const texts: { text: string; topic: string }[] = []
+  const texts: string[] = []
   const genQ = new PQueue({ concurrency: CONCURRENCY })
   genQ.addAll(
     Array.from({ length: BATCH_COUNT }, (_, i) => async () => {
       const topic = topicForBatch(i)
       try {
-        for (const t of await genBatch(topic)) texts.push({ text: t, topic })
+        for (const t of await genBatch(topic)) texts.push(t)
       } catch (err) {
         console.warn(`\n  gen batch failed: ${err}`)
       }
@@ -110,10 +109,7 @@ if (import.meta.main) {
     cliProgress.Presets.shades_classic,
   )
   annBar.start(annotateBatchCount(texts.length), 0)
-  const labels = await annotate(
-    texts.map((t) => t.text),
-    () => annBar.increment(),
-  )
+  const labels = await annotate(texts, () => annBar.increment())
   annBar.stop()
 
   const lines: string[] = []
@@ -122,17 +118,11 @@ if (import.meta.main) {
     if (!label) continue
     lines.push(
       JSON.stringify({
-        text: texts[i].text,
+        text: texts[i],
         feeling: label.feeling,
         emoji: label.emoji,
         bg: label.bg,
         fg: label.fg,
-        meta: rowMeta({
-          src: "train",
-          v: 1,
-          topic: texts[i].topic,
-          params: { batchSize: BATCH_SIZE, minLen: MIN_LEN, maxLen: MAX_LEN },
-        }),
       }),
     )
   }

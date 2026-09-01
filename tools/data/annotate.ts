@@ -2,7 +2,11 @@ import { generateText, Output } from "ai"
 import PQueue from "p-queue"
 import { z } from "zod"
 
+import { EKMAN_FEELINGS } from "./config"
+
 export const MODEL = "openai/gpt-5.6-luna"
+
+const FEELING_SET = new Set<string>(EKMAN_FEELINGS)
 
 export const ANNOTATE_BATCH_SIZE = 10
 export const ANNOTATE_CONCURRENCY = 40
@@ -29,12 +33,13 @@ const INSTRUCTIONS = [
   "1. emoji - the single emoji that best fits the message. Any emoji is",
   "   allowed. Pick the one that fits best, not a safe default. Do not favor",
   "   rare emojis and do not favor common ones - just the best fit.",
-  "2. feeling - one word for the emotion the message best conveys, e.g.",
-  "   Happy, Sad, Angry, Calm, Anxious, Love, Excited, Grateful, Tired,",
-  "   Annoyed, Hopeful, Proud. This list is not exhaustive; use whatever",
-  "   single word fits best, capitalized. Prefer common, everyday feeling",
-  "   words over unusual ones when both fit. \"Neutral\" is allowed for a",
-  "   message that carries no real emotion, but do not reach for it.",
+  "2. feeling - exactly one of these eight words, capitalized:",
+  "   Angry, Disgusted, Afraid, Happy, Sad, Surprised, Love, Neutral.",
+  "   Pick the one the message best conveys. Afraid covers worry, anxiety",
+  "   and stress; Happy covers every other positive shade (calm, relieved,",
+  "   excited, grateful, proud); Love covers affection, romance, tenderness",
+  "   and caring for someone. Use \"Neutral\" only when the message carries",
+  "   no real emotion; do not reach for it otherwise.",
   "3. colors - a 3-color palette that captures the mood and imagery of the",
   "   message. \"bg\" is two colors [top, bottom] for a background gradient;",
   "   they must sit close enough to read as one gradient, not a clash. \"fg\"",
@@ -123,7 +128,7 @@ async function annotateBatch(
         const emoji = cleanEmoji(a.emoji)
         const feeling = cleanFeeling(a.feeling)
         const palette = cleanPalette(a.bg, a.fg)
-        if (emoji && feeling && palette) {
+        if (emoji && FEELING_SET.has(feeling) && palette) {
           byId.set(a.id, { emoji, feeling, ...palette })
         }
       }

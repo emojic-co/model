@@ -4,10 +4,12 @@ from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
 from torch.nn.functional import binary_cross_entropy_with_logits, cross_entropy
+from torchmetrics.classification import MulticlassRecall
 
 from config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE,
+    FEELINGS,
     GAN_EPOCHS,
     GAN_LR,
     GRAD_CLIP,
@@ -35,6 +37,11 @@ class LitTask(pl.LightningModule):
 
         self.feeling_ce = nn.CrossEntropyLoss()
 
+        self.feel_recall = nn.ModuleDict({
+            split: MulticlassRecall(num_classes=len(FEELINGS), average="macro")
+            for split in ("train", "val")
+        })
+
     def _step(self, batch, split):
         text, emoji, feels, _ = batch
 
@@ -48,8 +55,9 @@ class LitTask(pl.LightningModule):
         loss_emoji = cross_entropy(emoji_logits / INFONCE_TEMP, emoji)
 
         acc = (feels_pred.argmax(dim=-1) == feels).float().mean()
-        top5 = feels_pred.topk(5, dim=-1).indices
-        acc5 = (top5 == feels.unsqueeze(1)).any(dim=-1).float().mean()
+
+        recall = self.feel_recall[split]
+        recall.update(feels_pred, feels)
 
         top10 = emoji_logits.topk(10, dim=-1).indices
         acc10 = (top10 == emoji.unsqueeze(1)).any(dim=-1).float().mean()
@@ -57,7 +65,7 @@ class LitTask(pl.LightningModule):
         for name, val in (
             (f"loss/f/{split}", loss_feel),
             (f"acc/f/{split}", acc),
-            (f"acc5/f/{split}", acc5),
+            (f"recall/f/{split}", recall),
             (f"loss/e/{split}", loss_emoji),
             (f"acc10/e/{split}", acc10),
         ):
@@ -82,7 +90,7 @@ class LitTask(pl.LightningModule):
 
     def _log_f1(self, split):
         m = self.trainer.callback_metrics
-        a = m.get(f"acc5/f/{split}")
+        a = m.get(f"acc/f/{split}")
         b = m.get(f"acc10/e/{split}")
         if a is not None and b is not None:
             self.log(f"f1/{split}", f1(a, b), prog_bar=True)

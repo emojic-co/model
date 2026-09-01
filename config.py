@@ -2,11 +2,18 @@ import json
 from datetime import datetime
 
 # DATA
+# Ekman's six + Love + Neutral
+EKMAN_FEELINGS = [
+    "Angry", "Disgusted", "Afraid", "Happy", "Sad", "Surprised", "Love", "Neutral",
+]
+
 with open('labels.json', encoding='utf-8') as f:
     LABELS = json.load(f)
 
 FEELINGS = LABELS["feelings"]
 EMOJIS = LABELS["emojis"]
+
+assert FEELINGS == EKMAN_FEELINGS, (FEELINGS, EKMAN_FEELINGS)
 
 MAX_TEXT_LEN = 42
 BATCH_SIZE = 512

@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs"
 import { writeFile } from "node:fs/promises"
-import { TOP_EMOJIS, TOP_FEELINGS } from "./config"
+import { EKMAN_FEELINGS, TOP_EMOJIS } from "./config"
 import { readJsonl } from "./io.ts"
 
 const TRAIN = "./train.jsonl"
@@ -17,14 +17,12 @@ if (import.meta.main) {
   if (!existsSync(TRAIN)) throw new Error(`${TRAIN} not found`)
 
   const emojis = new Map<string, number>()
-  const feelings = new Map<string, number>()
-  for (const row of await readJsonl<{ emoji: string; feeling: string }>(TRAIN)) {
+  for (const row of await readJsonl<{ emoji: string }>(TRAIN)) {
     emojis.set(row.emoji, (emojis.get(row.emoji) ?? 0) + 1)
-    feelings.set(row.feeling, (feelings.get(row.feeling) ?? 0) + 1)
   }
 
   const out = {
-    feelings: topN(feelings, TOP_FEELINGS),
+    feelings: [...EKMAN_FEELINGS],
     emojis: topN(emojis, TOP_EMOJIS),
   }
   await writeFile(LABELS, JSON.stringify(out, null, 2) + "\n")
@@ -33,6 +31,6 @@ if (import.meta.main) {
     `wrote ${LABELS}: ${out.feelings.length} feelings, ${out.emojis.length} emojis`,
   )
   console.log(`  feelings: ${out.feelings.join(" ")}`)
-  console.log(`  distinct in train: ${feelings.size} feelings, ${emojis.size} emojis`)
+  console.log(`  distinct emojis in train: ${emojis.size}`)
   process.exit(0)
 }

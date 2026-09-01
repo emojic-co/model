@@ -4,16 +4,15 @@ import PQueue from "p-queue"
 
 import { MODEL, annotate, annotateBatchCount } from "./annotate.ts"
 import { appendJsonl, readJsonl } from "./io.ts"
-import { rowMeta } from "./meta.ts"
 import { rarest } from "./rarest.ts"
 
 const TRAIN = "./train.jsonl"
 const LABELS = "./labels.json"
 
-const RARE_EMOJI_COUNT = 60
-const TEXTS_PER_EMOJI = 40
-const MAX_RAW_LEN = 50
-const GEN_CONCURRENCY = 20
+const RARE_EMOJI_COUNT = 40
+const TEXTS_PER_EMOJI = 50
+const MAX_RAW_LEN = 42
+const GEN_CONCURRENCY = 25
 
 const VOICES = [
   "a teenager", "a college student", "a new parent", "a retiree",
@@ -76,7 +75,7 @@ if (import.meta.main) {
   const targets = rarest(palette, counts, RARE_EMOJI_COUNT)
   console.log(
     `${palette.length} palette emojis -> upsampling ${targets.length} rarest ` +
-      `(${counts.get(targets[0])}..${counts.get(targets[targets.length - 1])} rows each)`,
+    `(${counts.get(targets[0])}..${counts.get(targets[targets.length - 1])} rows each)`,
   )
 
   const genBar = new cliProgress.SingleBar(
@@ -88,15 +87,13 @@ if (import.meta.main) {
   )
   genBar.start(targets.length, 0)
 
-  const cands: { text: string; target: string; voice: string }[] = []
+  const cands: string[] = []
   const genQ = new PQueue({ concurrency: GEN_CONCURRENCY })
   genQ.addAll(
     targets.map((emoji) => async () => {
       const voice = pickVoice()
       try {
-        for (const t of await genBatch(voice, emoji)) {
-          cands.push({ text: t, target: emoji, voice })
-        }
+        for (const t of await genBatch(voice, emoji)) cands.push(t)
       } catch (err) {
         console.warn(`\n  gen batch (${emoji}) failed: ${err}`)
       }
@@ -116,10 +113,7 @@ if (import.meta.main) {
     cliProgress.Presets.shades_classic,
   )
   annBar.start(annotateBatchCount(cands.length), 0)
-  const annotated = await annotate(
-    cands.map((c) => c.text),
-    () => annBar.increment(),
-  )
+  const annotated = await annotate(cands, () => annBar.increment())
   annBar.stop()
 
   const lines: string[] = []
@@ -128,17 +122,11 @@ if (import.meta.main) {
     if (!label) continue
     lines.push(
       JSON.stringify({
-        text: cands[i].text,
+        text: cands[i],
         feeling: label.feeling,
         emoji: label.emoji,
         bg: label.bg,
         fg: label.fg,
-        meta: rowMeta({
-          src: "upsample-emojis",
-          v: 1,
-          target_emoji: cands[i].target,
-          params: { voice: cands[i].voice, textsPerEmoji: TEXTS_PER_EMOJI },
-        }),
       }),
     )
   }
