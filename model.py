@@ -113,39 +113,51 @@ class ColorGenerator(nn.Module):
 class LitGAN(pl.LightningModule):
     def __init__(self):
         super().__init__()
+
         self.gen = ColorGenerator()
         self.tst = ColorCritic()
 
+        self.automatic_optimization = False
+
     def training_step(self, batch, batch_idx):
         text, _, _, colors = batch
+        opt_gen, opt_tst = self.optimizers()  # type: ignore
 
         fake = self.gen(text)
 
         out_real = self.tst((text, colors))
         out_fake = self.tst((text, fake))
 
+        # TST
         loss_tst_real = binary_cross_entropy_with_logits(
-            out_real, torch.ones_like(out_real)
-        )
+            out_real, torch.ones_like(out_real))
 
         loss_tst_fake = binary_cross_entropy_with_logits(
-            out_fake, torch.zeros_like(out_fake)
-        )
+            out_fake, torch.zeros_like(out_fake))
 
         loss_tst = loss_tst_real + loss_tst_fake
+
+        opt_tst.zero_grad()
+        self.manual_backward(loss_tst)
+        opt_tst.step()
+
+        # GEN
         loss_gen = binary_cross_entropy_with_logits(
-            out_fake, torch.ones_like(out_fake)
-        )
+            out_fake, torch.ones_like(out_fake))
 
-        loss = loss_tst + loss_gen
+        opt_gen.zero_grad()
+        self.manual_backward(loss_gen)
+        opt_gen.step()
 
+        # LOG
         self.log("loss/tst", loss_tst, prog_bar=True)
         self.log("loss/gen", loss_gen, prog_bar=True)
 
-        return loss
-
     def configure_optimizers(self):
-        return optim.Adam(self.parameters(), lr=0.001)
+        # Betas (0.5, 0.999) and lower learning rates for GAN stability
+        opt_gen = optim.Adam(self.gen.parameters(), lr=0.0002, betas=(0.5, 0.999))
+        opt_tst = optim.Adam(self.tst.parameters(), lr=0.0002, betas=(0.5, 0.999))
+        return [opt_gen, opt_tst]
 
 
 if __name__ == "__main__":
