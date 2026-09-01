@@ -67,7 +67,7 @@ class ColorTst(nn.Module):
     def __init__(self):
         super().__init__()
 
-        cs = [COLOR_DIM, 64, 32, 16]
+        cs = [COLOR_DIM, 128, 64, 32, 16]
         io = zip(cs[:-1], cs[1:], strict=True)
         self.net = nn.Sequential(
             *[
@@ -88,21 +88,20 @@ class ColorGen(nn.Module):
     def __init__(self):
         super().__init__()
 
-        # dim = 128
         self.z_dim = 16
-        # self.encoder = Encoder([(3, dim)])
         self.head = nn.Linear(self.z_dim, COLOR_DIM)
 
     def sample_z(self, n: int, device: torch.device | None = None) -> torch.Tensor:
         return torch.randn(n, self.z_dim, device=device)
 
     def forward(
-        self, text: torch.Tensor, z: torch.Tensor | None = None
+        self,
+        text_embedding: torch.Tensor,
+        z: torch.Tensor | None = None
     ) -> torch.Tensor:
         # enc = self.encoder(text)
         if z is None:
-            z = self.sample_z(text.size(0), text.device)
-
+            z = self.sample_z(text_embedding.size(0), text_embedding.device)
         colors = self.head(z)
         colors = tanh(colors) * 127.5
 
