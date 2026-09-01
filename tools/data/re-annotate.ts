@@ -5,6 +5,7 @@ import cliProgress from "cli-progress"
 
 import { annotate, annotateBatchCount } from "./annotate.ts"
 import { appendJsonl, writeFileAtomic } from "./io.ts"
+import { rowMeta } from "./meta.ts"
 
 const DATA = "./data.jsonl"
 const TRAIN = "./train.jsonl"
@@ -90,6 +91,11 @@ if (import.meta.main) {
           emoji,
           bg: label.bg,
           fg: label.fg,
+          meta: rowMeta({
+            src: "re-annotate",
+            v: 1,
+            params: { sampleSize: SAMPLE_SIZE },
+          }),
         }),
       )
     emit(label.feeling, label.emoji)
