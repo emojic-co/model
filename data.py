@@ -2,6 +2,7 @@ import json
 import re
 
 import torch
+from attr import dataclass
 from torch.utils.data import DataLoader, Dataset
 
 from config import BATCH_SIZE, MAX_TEXT_LEN
@@ -36,8 +37,8 @@ def hex2rgb(h: str) -> tuple[int, int, int]:
         int(h[4:6], 16))
 
 
-def colors2tensor(bg: tuple[str, str], fg: str) -> torch.Tensor:
-    vals = [c for h in (*bg, fg) for c in hex2rgb(h)]
+def colors2tensor(colors: list[str]) -> torch.Tensor:
+    vals = [c for h in colors for c in hex2rgb(h)]
     return torch.tensor(vals, dtype=torch.float32) - 127.5
 
 
@@ -52,9 +53,37 @@ def normalize(text: str) -> str:
 
 
 def text_to_tensor(text: str) -> torch.Tensor:
-    return torch.tensor(
-        [char2idx[c] for c in text],
-        dtype=torch.long)
+    assert len(text) <= MAX_TEXT_LEN
+    idxs = [char2idx[c] for c in text]
+    idxs.extend([PAD_IDX] * (MAX_TEXT_LEN - len(idxs)))
+    return torch.tensor(idxs, dtype=torch.long)
+
+
+def emoji_to_tensor(emoji: str) -> torch.Tensor:
+    idx = emoji2idx[emoji]
+    return torch.tensor(idx, dtype=torch.long)
+
+
+def feeling_to_tensor(feeling: str) -> torch.Tensor:
+    idx = feeling2idx[feeling]
+    return torch.tensor(idx, dtype=torch.long)
+
+
+@dataclass
+class record:
+    text: str
+    emoji: str
+    feeling: str
+    colors: list[str]
+
+
+def record_ro_tensors(record: record):
+    return (
+        text_to_tensor(record.text),
+        emoji_to_tensor(record.emoji),
+        feeling_to_tensor(record.feeling),
+        colors2tensor(record.colors),
+    )
 
 
 def read(path):
@@ -72,7 +101,10 @@ def read(path):
                 'bg': bg,
                 'fg': fg
             }:
-                yield (text, emoji, feeling, [*bg, fg])
+                text = normalize(text)
+                if len(text) > MAX_TEXT_LEN:
+                    continue
+                yield record(normalize(text), emoji, feeling, [*bg, fg])
 
 
 class EmojiDataset(Dataset):
@@ -84,26 +116,6 @@ class EmojiDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.data[idx]
-
-
-def data_sets():
-    train_data, eval_data = split()
-    return EmojiDataset(train_data), EmojiDataset(eval_data)
-
-
-def collate_fn(batch):
-    texts, emojis, feelings, colors = zip(*batch, strict=False)
-
-    padded_texts = torch.full(
-        (len(texts), MAX_TEXT_LEN), PAD_IDX, dtype=torch.long)
-    for i, t in enumerate(texts):
-        padded_texts[i, : t.size(0)] = t[:MAX_TEXT_LEN]
-
-    target_emojis = torch.tensor(emojis, dtype=torch.long)
-    target_feelings = torch.tensor(feelings, dtype=torch.long)
-    target_colors = torch.stack(list(colors))
-
-    return padded_texts, target_emojis, target_feelings, target_colors
 
 
 def train_data_loader(ds: EmojiDataset):
@@ -131,3 +143,4 @@ def eval_data_loader(ds: EmojiDataset):
 if __name__ == "__main__":
     for r, _ in zip(read(TRAIN_PATH), range(3), strict=False):
         print(r)
+        print(record_ro_tensors(r))
