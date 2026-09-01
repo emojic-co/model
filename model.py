@@ -11,6 +11,7 @@ from config import (
     conv,
 )
 from data import COLOR_DIM, EMOJIS, VOCAB_SIZE, train_data_loader
+from model import ColorGenerator
 
 EMOJI_EMBED_SIZE = ceil(6 * log2(len(EMOJIS)))
 
@@ -109,28 +110,38 @@ class ColorGenerator(nn.Module):
         return colors
 
 
-class LitColorCritic(pl.LightningModule):
+class LitGAN(pl.LightningModule):
     def __init__(self):
         super().__init__()
-        self.model = ColorCritic()
+        self.gen = ColorGenerator()
+        self.tst = ColorCritic()
 
     def training_step(self, batch, batch_idx):
         text, _, _, colors = batch
 
-        fake = torch.randint_like(colors, 0, 256, dtype=torch.float32) - 127.5
+        fake = self.gen(text)
 
-        out_real = self.model((text, colors))
-        out_fake = self.model((text, fake))
+        out_real = self.tst((text, colors))
+        out_fake = self.tst((text, fake))
 
-        loss_real = binary_cross_entropy_with_logits(
+        loss_tst_real = binary_cross_entropy_with_logits(
             out_real, torch.ones_like(out_real)
         )
-        loss_fake = binary_cross_entropy_with_logits(
+
+        loss_tst_fake = binary_cross_entropy_with_logits(
             out_fake, torch.zeros_like(out_fake)
         )
 
-        loss = loss_real + loss_fake
-        self.log("train_loss", loss, prog_bar=True)
+        loss_tst = loss_tst_real + loss_tst_fake
+        loss_gen = binary_cross_entropy_with_logits(
+            out_fake, torch.ones_like(out_fake)
+        )
+
+        loss = loss_tst + loss_gen
+
+        self.log("loss/tst", loss_tst, prog_bar=True)
+        self.log("loss/gen", loss_gen, prog_bar=True)
+
         return loss
 
     def configure_optimizers(self):
@@ -147,7 +158,7 @@ if __name__ == "__main__":
         max_epochs=10,
     )
 
-    model = LitColorCritic()
+    model = LitGAN()
     dl = train_data_loader()
 
     trainer.fit(model, dl)
