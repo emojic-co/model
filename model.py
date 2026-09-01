@@ -11,7 +11,6 @@ from config import (
     conv,
 )
 from data import COLOR_DIM, EMOJIS, VOCAB_SIZE, train_data_loader
-from model import ColorGenerator
 
 EMOJI_EMBED_SIZE = ceil(6 * log2(len(EMOJIS)))
 
@@ -166,10 +165,12 @@ if __name__ == "__main__":
         devices="auto",
         accelerator="auto",
         logger=logger,
-        max_epochs=10,
+        max_epochs=3,
     )
 
     model = LitGAN()
     dl = train_data_loader()
 
     trainer.fit(model, dl)
+
+    torch.save(model.gen.state_dict(), "gen.pt")

@@ -107,8 +107,7 @@ def read(path):
 
 
 class EmojiDataset(Dataset):
-    def __init__(self, path):
-        records = list(read(path))
+    def __init__(self, records: list[record]):
         self.text = torch.stack([text_to_tensor(r.text) for r in records])
         self.emoji = torch.stack([emoji_to_tensor(r.emoji) for r in records])
         self.feeling = torch.stack([feeling_to_tensor(r.feeling) for r in records])
@@ -123,7 +122,7 @@ class EmojiDataset(Dataset):
 
 def train_data_loader():
     return DataLoader(
-        EmojiDataset(TRAIN_PATH),
+        EmojiDataset(list(read(TRAIN_PATH))),
         batch_size=BATCH_SIZE,
         shuffle=True,
         drop_last=True,
@@ -133,15 +132,9 @@ def train_data_loader():
 
 def eval_data_loader():
     return DataLoader(
-        EmojiDataset(EVAL_PATH),
+        EmojiDataset(list(read(EVAL_PATH))),
         batch_size=BATCH_SIZE,
         shuffle=False,
         drop_last=False,
         num_workers=0,
     )
-
-
-if __name__ == "__main__":
-    ds = EmojiDataset(TRAIN_PATH)
-    for t in ds[0]:
-        print(t.shape, t.dtype)
