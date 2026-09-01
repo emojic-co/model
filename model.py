@@ -4,7 +4,7 @@ import lightning as pl
 import torch
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
-from torch.nn.functional import binary_cross_entropy_with_logits
+from torch.nn.functional import binary_cross_entropy_with_logits, tanh
 
 from config import (
     CHAR_EMBED_SIZE,
@@ -90,6 +90,24 @@ class ColorCritic(nn.Module):
         enc = self.encoder(text)
         logit = self.net(torch.cat([enc, colors], dim=-1).unsqueeze(-1))
         return logit
+
+
+class ColorGenerator(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        dim = 128
+        self.encoder = Encoder([(3, dim)])
+        self.head = nn.Linear(dim, COLOR_DIM)
+
+    def forward(self, x: tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:
+        # text, emoji, feeling, colors
+        text, *_ = x
+        enc = self.encoder(text)
+        colors = self.head(enc)
+        colors = tanh(colors) * 127.5
+
+        return colors
 
 
 class LitColorCritic(pl.LightningModule):
