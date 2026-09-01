@@ -76,14 +76,14 @@ class MLP(nn.Module):
         return self.net(x).squeeze(2)
 
 
-class ColorCritic(nn.Module):
+class ColorTst(nn.Module):
     # Input is a pair of text and 3 RGB colors, output is a single score
     def __init__(self):
         super().__init__()
 
         dim = 64
         self.encoder = Encoder([(3, dim)])
-        self.net = MLP([dim + COLOR_DIM, 32, 1])
+        self.net = MLP([dim + COLOR_DIM, 64, 32, 1])
 
     def forward(self, x: tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:
         text, colors = x
@@ -92,7 +92,7 @@ class ColorCritic(nn.Module):
         return logit
 
 
-class ColorGenerator(nn.Module):
+class ColorGen(nn.Module):
     def __init__(self):
         super().__init__()
 
@@ -113,8 +113,8 @@ class LitGAN(pl.LightningModule):
     def __init__(self):
         super().__init__()
 
-        self.gen = ColorGenerator()
-        self.tst = ColorCritic()
+        self.gen = ColorGen()
+        self.tst = ColorTst()
 
         self.automatic_optimization = False
 

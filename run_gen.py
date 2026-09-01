@@ -4,7 +4,7 @@ import random
 import torch
 
 from data import EVAL_PATH, EmojiDataset, read
-from model import ColorGenerator
+from model import ColorGen
 
 
 def sample(n=20):
@@ -28,7 +28,7 @@ def rgb_to_hex(rgb: torch.Tensor) -> list[str]:
 
 
 def predict(weights_path: str = "gen.pt"):
-    gen = ColorGenerator()
+    gen = ColorGen()
     gen.load_state_dict(torch.load(weights_path, map_location="cpu"))
     gen.eval()
 
