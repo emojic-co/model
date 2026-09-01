@@ -115,7 +115,7 @@ class FeelingHead(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.dropout = nn.Dropout(p=0.4)
+        self.dropout = nn.Dropout(p=0.2)
         self.net = nn.Linear(
             TEXT_EMBED_SIZE,
             len(FEELINGS))
@@ -255,6 +255,7 @@ class LitGAN(pl.LightningModule):
         opt_feel = optim.Adam(
             list(self.enc.parameters()) + list(self.feels.parameters()),
             lr=0.01)
+
         return [opt_gen, opt_tst, opt_feel]
 
 
