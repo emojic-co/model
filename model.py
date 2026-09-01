@@ -17,6 +17,12 @@ EMOJI_EMBED_SIZE = ceil(6 * log2(len(EMOJIS)))
 SEED = 42
 
 
+def conv_spectral_relu(*, k: int, i: int, o: int):
+    return nn.Sequential(
+        nn.utils.spectral_norm(nn.Conv1d(i, o, kernel_size=k, bias=True)),
+        nn.LeakyReLU(negative_slope=0.1))
+
+
 def conv_bn(*, k: int, i: int, o: int) -> nn.Sequential:
     return nn.Sequential(
         nn.Conv1d(i, o, kernel_size=k, bias=False),
@@ -68,7 +74,7 @@ class MLP(nn.Module):
         super().__init__()
         self.net = nn.Sequential(
             *[
-                conv_bn_relu(k=1, i=i, o=o)
+                conv_spectral_relu(k=1, i=i, o=o)
                 for i, o in zip(cs[:-2], cs[1:-1], strict=True)
             ],
             nn.Conv1d(cs[-2], cs[-1], kernel_size=1, bias=True),
