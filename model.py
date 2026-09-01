@@ -19,7 +19,6 @@ from config import (
     GEN_CHANNELS,
     GEN_RELU_SLOPE,
     GEN_Z_DIM,
-    POOL_1D_SIZE,
     TEXT_EMBED_SIZE,
     TEXT_ENCODER_CHANNELS,
 )
@@ -45,7 +44,7 @@ class TextEncoder(nn.Module):
 
         def pool_conv_sn_relu(*, k: int, i: int, o: int) -> nn.Sequential:
             return nn.Sequential(
-                nn.MaxPool1d(kernel_size=POOL_1D_SIZE, stride=POOL_1D_SIZE),
+                nn.MaxPool1d(kernel_size=2, stride=2),
                 conv_sn_relu(k=k, i=i, o=o))
 
         cs = TEXT_ENCODER_CHANNELS
