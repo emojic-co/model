@@ -14,6 +14,8 @@ from data import COLOR_DIM, EMOJIS, VOCAB_SIZE, train_data_loader
 
 EMOJI_EMBED_SIZE = ceil(6 * log2(len(EMOJIS)))
 
+SEED = 42
+
 
 def conv_bn(*, k: int, i: int, o: int) -> nn.Sequential:
     return nn.Sequential(
@@ -81,9 +83,9 @@ class ColorTst(nn.Module):
     def __init__(self):
         super().__init__()
 
-        dim = 64
+        dim = 128
         self.encoder = Encoder([(3, dim)])
-        self.net = MLP([dim + COLOR_DIM, 64, 32, 1])
+        self.net = MLP([dim + COLOR_DIM, 256, 128, 64, 1])
 
     def forward(self, x: tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:
         text, colors = x
@@ -168,6 +170,9 @@ class LitGAN(pl.LightningModule):
 
 
 if __name__ == "__main__":
+    pl.seed_everything(SEED, workers=True)
+    torch.backends.cudnn.benchmark = False
+
     logger = TensorBoardLogger("runs", name="color_critic")
 
     trainer = pl.Trainer(
@@ -175,6 +180,7 @@ if __name__ == "__main__":
         accelerator="auto",
         logger=logger,
         max_epochs=3,
+        deterministic=True,
     )
 
     model = LitGAN()
