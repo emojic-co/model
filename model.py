@@ -126,7 +126,7 @@ class LitGAN(pl.LightningModule):
         fake = self.gen(text)
 
         out_real = self.tst((text, colors))
-        out_fake = self.tst((text, fake))
+        out_fake = self.tst((text, fake.detach()))
 
         # TST
         loss_tst_real = binary_cross_entropy_with_logits(
