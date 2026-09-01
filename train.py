@@ -37,10 +37,10 @@ class LitTask(pl.LightningModule):
 
         self.feeling_ce = nn.CrossEntropyLoss()
 
-        self.feel_recall = nn.ModuleDict({
-            split: MulticlassRecall(num_classes=len(FEELINGS), average="macro")
-            for split in ("train", "val")
-        })
+        self.feel_recall_train = MulticlassRecall(
+            num_classes=len(FEELINGS), average="macro")
+        self.feel_recall_val = MulticlassRecall(
+            num_classes=len(FEELINGS), average="macro")
 
     def _step(self, batch, split):
         text, emoji, feels, _ = batch
@@ -56,7 +56,7 @@ class LitTask(pl.LightningModule):
 
         acc = (feels_pred.argmax(dim=-1) == feels).float().mean()
 
-        recall = self.feel_recall[split]
+        recall = self.feel_recall_train if split == "train" else self.feel_recall_val
         recall.update(feels_pred, feels)
 
         top10 = emoji_logits.topk(10, dim=-1).indices
