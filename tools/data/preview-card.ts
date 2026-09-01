@@ -12,7 +12,7 @@ export function esc(s: string): string {
     .replace(/"/g, "&quot;")
 }
 
-function styleToCss(obj: Record<string, string | number> | undefined): string {
+export function styleToCss(obj: Record<string, string | number> | undefined): string {
   if (!obj) return ""
   return Object.entries(obj)
     .map(([k, v]) => {
