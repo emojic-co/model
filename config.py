@@ -42,8 +42,8 @@ style_str = ' '.join([str(p) for p in (
     DROPOUT_STYLE)])
 
 # GAN
-Z_WEIGHT = 0.2
-GEN_CHANNELS = [64, 32]
+Z_WEIGHT = 0.1
+GEN_CHANNELS = [64, 32, 16]
 CRITIC_CHANNELS = [32, 16, 8]
 GAN_LR = 0.01
 
@@ -75,7 +75,7 @@ train_str = ' '.join([str(p) for p in (
     FOCAL_GAMMA)])
 
 EPOCHS_TASK = 200
-EPOCHS_GAN = 50
+EPOCHS_GAN = 60
 VAL_CHECK_INTERVAL = 100
 EARLY_STOP_PATIENCE = 20
 
