@@ -12,17 +12,18 @@ from config import (
     CRITIC_CHANNELS,
     CRITIC_RELU_SLOPE,
     DROPOUT_EMOJI,
-    DROPOUT_FEELING,
+    DROPOUT_STYLE,
     EMOJI_EMBED_SIZE,
     ENCODER_KERNEL,
     ENCODER_RELU_SLOPE,
     GEN_CHANNELS,
     GEN_RELU_SLOPE,
+    STYLE_EMBED_SIZE,
     TEXT_EMBED_SIZE,
     TEXT_ENCODER_CHANNELS,
     Z_WEIGHT,
 )
-from data import COLOR_DIM, EMOJIS, FEELINGS, VOCAB_SIZE
+from data import COLOR_DIM, EMOJIS, STYLES, VOCAB_SIZE
 
 
 class TextEncoder(nn.Module):
@@ -62,20 +63,18 @@ class TextEncoder(nn.Module):
         return normalize(torch.max(out, dim=-1).values, dim=-1)
 
 
-class FeelingHead(nn.Module):
+class StyleHead(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.dropout = nn.Dropout(p=DROPOUT_FEELING)
-        self.net = nn.Linear(
-            TEXT_EMBED_SIZE,
-            len(FEELINGS))
+        self.dropout = nn.Dropout(p=DROPOUT_STYLE)
+        self.net = nn.Linear(TEXT_EMBED_SIZE, STYLE_EMBED_SIZE, bias=False)
+        self.embed = nn.Embedding(len(STYLES), STYLE_EMBED_SIZE)
+        self.bias = nn.Parameter(torch.zeros(len(STYLES)))
 
     def forward(self, text_embedding: torch.Tensor) -> torch.Tensor:
-        out = self.dropout(text_embedding)
-        out = self.net(out)
-
-        return out
+        s = self.net(self.dropout(text_embedding))
+        return s @ self.embed.weight.t() + self.bias
 
 
 class EmojiHead(nn.Module):
@@ -83,19 +82,13 @@ class EmojiHead(nn.Module):
         super().__init__()
 
         self.dropout = nn.Dropout(p=DROPOUT_EMOJI)
-        self.net = nn.Linear(
-            TEXT_EMBED_SIZE,
-            EMOJI_EMBED_SIZE)
-
+        self.net = nn.Linear(TEXT_EMBED_SIZE, EMOJI_EMBED_SIZE, bias=False)
         self.embed = nn.Embedding(len(EMOJIS), EMOJI_EMBED_SIZE)
+        self.bias = nn.Parameter(torch.zeros(len(EMOJIS)))
 
-    def forward(
-        self,
-        text_embedding: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor]:
-        q = normalize(tanh(self.net(self.dropout(text_embedding))), dim=-1)
-        emoji_vec = normalize(self.embed.weight, dim=-1)
-        return q, emoji_vec
+    def forward(self, text_embedding: torch.Tensor) -> torch.Tensor:
+        q = self.net(self.dropout(text_embedding))
+        return q @ self.embed.weight.t() + self.bias
 
 
 # GAN

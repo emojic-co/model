@@ -109,18 +109,21 @@ if (import.meta.main) {
     cliProgress.Presets.shades_classic,
   )
   annBar.start(annotateBatchCount(texts.length), 0)
-  const labels = await annotate(texts, () => annBar.increment())
+  const labels = await annotate(texts, {
+    colors: true,
+    onBatchDone: () => annBar.increment(),
+  })
   annBar.stop()
 
   const lines: string[] = []
   for (let i = 0; i < texts.length; i++) {
     const label = labels.get(i)
-    if (!label) continue
+    if (!label || !label.bg || !label.fg) continue
     lines.push(
       JSON.stringify({
         text: texts[i],
-        feeling: label.feeling,
-        emoji: label.emoji,
+        emojis: label.emojis.join(" "),
+        styles: label.styles,
         bg: label.bg,
         fg: label.fg,
       }),

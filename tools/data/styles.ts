@@ -1,0 +1,51 @@
+export const STYLES = [
+  "Joyful",
+  "Excited",
+  "Hopeful",
+  "Serene",
+  "Tender",
+  "Playful",
+  "Whimsical",
+  "Awed",
+  "Earnest",
+  "Determined",
+  "Proud",
+  "Wistful",
+  "Melancholy",
+  "Anxious",
+  "Tense",
+  "Furious",
+  "Irritated",
+  "Disgusted",
+  "Startled",
+  "Sarcastic",
+  "Deadpan",
+] as const
+
+export type Style = (typeof STYLES)[number]
+
+export const STYLE_LINES: Record<Style, string> = {
+  Joyful: "bright, upbeat, celebratory",
+  Excited: "hyped, can't-wait, high energy",
+  Hopeful: "optimistic, looking forward",
+  Serene: "calm, relieved, unbothered",
+  Tender: "affectionate, gentle, caring",
+  Playful: "teasing, silly, mischievous",
+  Whimsical: "dreamy, fanciful, odd-charming",
+  Awed: "wonder, amazement, marvel",
+  Earnest: "sincere, heartfelt, direct",
+  Determined: "resolved, gritty, pushing through",
+  Proud: "pleased with an achievement",
+  Wistful: "nostalgic, bittersweet, longing",
+  Melancholy: "low and heavy - sad, mournful, grieving",
+  Anxious: "worried, nervous, dread, scrambling",
+  Tense: "braced, on edge, urgent",
+  Furious: "angry, outraged, shouting",
+  Irritated: "annoyed, exasperated, over it",
+  Disgusted: "grossed out, repulsed",
+  Startled: "shocked, caught off guard",
+  Sarcastic: "ironic, mocking, dry",
+  Deadpan: "flat, understated, matter-of-fact - the plain everyday voice; use when nothing stronger fits",
+}
+
+export const STYLE_SET: ReadonlySet<string> = new Set(STYLES)

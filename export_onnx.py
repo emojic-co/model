@@ -7,9 +7,9 @@ import torch
 from torch import nn
 from torch.nn.functional import normalize
 
-from config import EMOJIS, FEELINGS, MAX_TEXT_LEN, SEED, TEXT_EMBED_SIZE, Z_WEIGHT
+from config import EMOJIS, MAX_TEXT_LEN, SEED, STYLES, TEXT_EMBED_SIZE, Z_WEIGHT
 from data import CHARS, PAD_IDX
-from model import ColorGen, EmojiHead, FeelingHead, TextEncoder
+from model import ColorGen, EmojiHead, StyleHead, TextEncoder
 
 WEB_PUBLIC = Path("web/public")
 ONNX_OPSET = 18
@@ -43,25 +43,24 @@ class ExportWrapper(nn.Module):
     def __init__(
         self,
         enc: nn.Module,
-        feels: nn.Module,
+        style: nn.Module,
         emoji: nn.Module,
         gen: nn.Module,
     ) -> None:
         super().__init__()
         self.enc = enc
-        self.feels = feels
+        self.style = style
         self.emoji = emoji
         self.gen = gen
         self.register_buffer("z", CONST_Z)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         emb = self.enc(x)
-        feeling_logits = self.feels(emb)
-        q, emoji_vec = self.emoji(emb)
-        emoji_logits = q @ emoji_vec.t()
+        style_logits = self.style(emb)
+        emoji_logits = self.emoji(emb)
         seed = (1 - Z_WEIGHT) * emb + Z_WEIGHT * self.z
         color = torch.tanh(self.gen.net(seed)) * 127.5 + 127.5
-        return feeling_logits, emoji_logits, color
+        return style_logits, emoji_logits, color
 
 
 def export_onnx(wrapper: nn.Module, dst: Path) -> None:
@@ -73,12 +72,12 @@ def export_onnx(wrapper: nn.Module, dst: Path) -> None:
             (dummy,),
             str(dst),
             input_names=["input"],
-            output_names=["feeling_logits", "emoji_logits", "color"],
+            output_names=["style_logits", "emoji_logits", "color"],
             opset_version=ONNX_OPSET,
             dynamo=False,
             dynamic_axes={
                 "input": {0: "batch"},
-                "feeling_logits": {0: "batch"},
+                "style_logits": {0: "batch"},
                 "emoji_logits": {0: "batch"},
             },
         )
@@ -92,7 +91,7 @@ def export_web(wrapper: nn.Module) -> None:
         "pad_idx": PAD_IDX,
         "max_text_len": MAX_TEXT_LEN,
         "emojis": EMOJIS,
-        "feelings": FEELINGS,
+        "styles": STYLES,
         "exported_at": datetime.now(UTC).isoformat(timespec="minutes"),
     }
     (WEB_PUBLIC / "meta.json").write_text(
@@ -105,14 +104,14 @@ def export_web(wrapper: nn.Module) -> None:
 
 if __name__ == "__main__":
     enc = _load(TextEncoder(), "enc.pt")
-    feels = _load(FeelingHead(), "feels.pt")
+    style = _load(StyleHead(), "style.pt")
     emoji = _load(EmojiHead(), "emoji.pt")
     gen = _load(ColorGen(), "gen.pt")
 
-    if feels.net.weight.shape[0] != len(FEELINGS):
+    if style.embed.weight.shape[0] != len(STYLES):
         raise SystemExit(
-            f"feels.pt has {feels.net.weight.shape[0]} feelings, "
-            f"labels.json has {len(FEELINGS)} -- retrain or restore labels.json"
+            f"style.pt has {style.embed.weight.shape[0]} styles, "
+            f"labels.json has {len(STYLES)} -- retrain or restore labels.json"
         )
     if emoji.embed.weight.shape[0] != len(EMOJIS):
         raise SystemExit(
@@ -122,6 +121,6 @@ if __name__ == "__main__":
 
     _strip_spectral_norm(enc)
 
-    wrapper = ExportWrapper(enc, feels, emoji, gen).eval()
+    wrapper = ExportWrapper(enc, style, emoji, gen).eval()
     export_web(wrapper)
     print(f"wrote {WEB_PUBLIC}/model.onnx + meta.json + config.json")

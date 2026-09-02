@@ -1,9 +1,9 @@
 import { existsSync } from "node:fs"
 import { mkdir, writeFile } from "node:fs/promises"
-import { EKMAN_FEELINGS, TOP_EMOJIS } from "./config"
-import { readJsonl } from "./io.ts"
 
-const TOP_FEELINGS = EKMAN_FEELINGS.length
+import { STYLES, TOP_EMOJIS } from "./config"
+import { coarseEmojiGroup, isFaceEmoji, splitEmojis } from "./emoji.ts"
+import { readJsonl } from "./io.ts"
 
 const FILES = ["./train.jsonl", "./eval.jsonl"]
 const REPORT_DIR = "report/data-stat"
@@ -12,7 +12,15 @@ const MIN_LEN = 4
 const MAX_LEN = 48
 const BUCKET = 5
 
-type Row = { text: string; feeling: string; emoji: string }
+type Row = { text: string; emojis?: string; styles?: string[] }
+
+function emojiList(r: Row): string[] {
+  return typeof r.emojis === "string" ? splitEmojis(r.emojis) : []
+}
+
+function styleList(r: Row): string[] {
+  return Array.isArray(r.styles) ? r.styles : []
+}
 
 function stamp(): { header: string; file: string } {
   const d = new Date()
@@ -47,6 +55,20 @@ function histogram(values: number[]): string[] {
   return out
 }
 
+function countHistogram(values: number[]): string[] {
+  if (!values.length) return ["_(no rows)_"]
+  const by = counts(values)
+  const hi = Math.max(...by.keys())
+  const peak = Math.max(...by.values())
+  const out = ["| count | rows | |", "| ---: | ---: | :-- |"]
+  for (let b = 0; b <= hi; b++) {
+    const n = by.get(b) ?? 0
+    const bar = n ? "#".repeat(Math.round((40 * n) / peak)) : ""
+    out.push(`| ${b} | ${n} | ${bar} |`)
+  }
+  return out
+}
+
 function summary(values: number[]): string {
   const s = [...values].sort((a, b) => a - b)
   const n = s.length
@@ -58,35 +80,40 @@ function summary(values: number[]): string {
 
 function coverage(rows: Row[]): string {
   if (!rows.length) return "_(no rows)_"
-  const topFeelings = new Set(
-    ranked(counts(rows.map((r) => r.feeling)))
-      .slice(0, TOP_FEELINGS)
-      .map(([f]) => f),
-  )
   const topEmojis = new Set(
-    ranked(counts(rows.map((r) => r.emoji)))
+    ranked(counts(rows.flatMap((r) => [...new Set(emojiList(r))])))
       .slice(0, TOP_EMOJIS)
       .map(([e]) => e),
   )
   const pct = (n: number) => `${((100 * n) / rows.length).toFixed(1)}%`
-  const inFeeling = rows.filter((r) => topFeelings.has(r.feeling))
-  const feeling = inFeeling.length
-  const emoji = rows.filter((r) => topEmojis.has(r.emoji)).length
-  const both = inFeeling.filter((r) => topEmojis.has(r.emoji)).length
-  return `both ${pct(both)} · top feelings ${pct(feeling)} · top emojis ${pct(emoji)}`
+  const anyIn = rows.filter((r) =>
+    emojiList(r).some((e) => topEmojis.has(e)),
+  ).length
+  const allIn = rows.filter((r) => {
+    const l = emojiList(r)
+    return l.length > 0 && l.every((e) => topEmojis.has(e))
+  }).length
+  const styleOk = rows.filter((r) => {
+    const l = styleList(r)
+    return l.length > 0 && l.every((s) => (STYLES as readonly string[]).includes(s))
+  }).length
+  return `≥1 emoji in top-${TOP_EMOJIS} ${pct(anyIn)} · all emojis in top ${pct(allIn)} · styles valid ${pct(styleOk)}`
 }
 
 function section(path: string, rows: Row[]): string[] {
   const out = [`## \`${path}\``, "", `**${rows.length} rows**`, ""]
   if (!rows.length) return out
 
-  const fc = ranked(counts(rows.map((r) => r.feeling)))
-  out.push("### Feeling distribution", "")
-  out.push("|  | feeling | count | share |", "| --- | --- | ---: | ---: |")
-  fc.forEach(([f, n], i) => {
-    out.push(`| ${i + 1} | ${f} | ${n} | ${((100 * n) / rows.length).toFixed(1)}% |`)
+  const styleMentions = rows.flatMap(styleList)
+  const sc = ranked(counts(styleMentions))
+  out.push("### Style distribution (multi-label)", "")
+  out.push("|  | style | rows | share |", "| --- | --- | ---: | ---: |")
+  sc.forEach(([s, n], i) => {
+    out.push(`| ${i + 1} | ${s} | ${n} | ${((100 * n) / rows.length).toFixed(1)}% |`)
   })
   out.push("")
+  out.push("Styles per row:", "")
+  out.push(...countHistogram(rows.map((r) => styleList(r).length)), "")
 
   const lens = rows.map((r) => [...r.text].length)
   const outOfRange = lens.filter((l) => l < MIN_LEN || l > MAX_LEN).length
@@ -98,16 +125,32 @@ function section(path: string, rows: Row[]): string[] {
   )
   out.push(...histogram(lens), "")
 
-  const ec = ranked(counts(rows.map((r) => r.emoji)))
+  const allMentions = rows.flatMap(emojiList)
+  const ec = ranked(counts(allMentions))
   const singletons = ec.filter(([, n]) => n === 1).length
-  out.push("### Emoji distribution", "")
+  const faceMentions = allMentions.filter(isFaceEmoji).length
+  const rowsWithFace = rows.filter((r) => emojiList(r).some(isFaceEmoji)).length
+  out.push("### Emoji distribution (multi-label)", "")
   out.push(
-    `${ec.length} distinct emojis · ${singletons} appear once`,
+    `${ec.length} distinct emojis · ${singletons} appear once · ${allMentions.length} total mentions`,
     "",
-    "| # | emoji | count | share |",
-    "| ---: | --- | ---: | ---: |",
   )
-  ec.slice(0, 30).forEach(([e, n], i) => {
+  out.push("Emojis per row:", "")
+  out.push(...countHistogram(rows.map((r) => emojiList(r).length)), "")
+  out.push(
+    `**Face emojis: ${((100 * faceMentions) / (allMentions.length || 1)).toFixed(1)}% of mentions · ${((100 * rowsWithFace) / rows.length).toFixed(1)}% of rows**`,
+    "",
+  )
+  const gc = ranked(counts(allMentions.map(coarseEmojiGroup)))
+  out.push("Unicode group coverage (by mention):", "")
+  out.push("| group | mentions | share |", "| --- | ---: | ---: |")
+  gc.forEach(([g, n]) => {
+    out.push(`| ${g} | ${n} | ${((100 * n) / (allMentions.length || 1)).toFixed(1)}% |`)
+  })
+  out.push("")
+  out.push("| # | emoji | rows | share |", "| ---: | --- | ---: | ---: |")
+  const docFreq = ranked(counts(rows.flatMap((r) => [...new Set(emojiList(r))])))
+  docFreq.slice(0, 30).forEach(([e, n], i) => {
     out.push(`| ${i + 1} | ${e} | ${n} | ${((100 * n) / rows.length).toFixed(1)}% |`)
   })
   out.push("")
@@ -130,7 +173,7 @@ if (import.meta.main) {
   doc.push(
     "## Top-label coverage",
     "",
-    `Top ${TOP_FEELINGS} feelings · top ${TOP_EMOJIS} emojis (from \`config.ts\`)`,
+    `${STYLES.length} styles · top ${TOP_EMOJIS} emojis (from \`config.ts\`)`,
     "",
   )
   for (const { path, rows } of parsed) {

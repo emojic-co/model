@@ -2,79 +2,97 @@ import lightning as pl
 import torch
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import TensorBoardLogger
-from torch import nn, optim
-from torch.nn.functional import binary_cross_entropy_with_logits, cross_entropy
-from torchmetrics.classification import MulticlassRecall
+from torch import optim
+from torch.nn.functional import binary_cross_entropy_with_logits
+from torchmetrics.classification import MultilabelAveragePrecision
 
 from config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE,
-    FEELINGS,
+    EMOJIS,
     GAN_EPOCHS,
     GAN_LR,
     GRAD_CLIP,
-    INFONCE_TEMP,
     LR,
     SEED,
+    STYLES,
     TASK_EPOCHS,
     VAL_CHECK_INTERVAL,
 )
 from data import eval_data_loader, train_data_loader
-from model import ColorDsc, ColorGen, EmojiHead, FeelingHead, TextEncoder
+from model import ColorDsc, ColorGen, EmojiHead, StyleHead, TextEncoder
+
+POS_WEIGHT_CLAMP = 10.0
 
 
 def f1(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     return 2 * a * b / (a + b + 1e-8)
 
 
+def pos_weight(multihot: torch.Tensor) -> torch.Tensor:
+    pos = multihot.sum(dim=0).clamp(min=1.0)
+    neg = multihot.size(0) - pos
+    return (neg / pos).sqrt().clamp(max=POS_WEIGHT_CLAMP)
+
+
 class LitTask(pl.LightningModule):
-    def __init__(self):
+    def __init__(self, emoji_pos_weight=None, style_pos_weight=None):
         super().__init__()
 
         self.enc = TextEncoder()
-        self.feels = FeelingHead()
+        self.style = StyleHead()
         self.emoji = EmojiHead()
 
-        self.feeling_ce = nn.CrossEntropyLoss()
+        self.register_buffer(
+            "emoji_pos_weight",
+            torch.ones(len(EMOJIS)) if emoji_pos_weight is None else emoji_pos_weight)
+        self.register_buffer(
+            "style_pos_weight",
+            torch.ones(len(STYLES)) if style_pos_weight is None else style_pos_weight)
 
-        self.feel_recall_train = MulticlassRecall(
-            num_classes=len(FEELINGS), average="macro")
-        self.feel_recall_val = MulticlassRecall(
-            num_classes=len(FEELINGS), average="macro")
+        self.emoji_ap_train = MultilabelAveragePrecision(
+            num_labels=len(EMOJIS), average="macro")
+        self.emoji_ap_val = MultilabelAveragePrecision(
+            num_labels=len(EMOJIS), average="macro")
+        self.style_ap_train = MultilabelAveragePrecision(
+            num_labels=len(STYLES), average="macro")
+        self.style_ap_val = MultilabelAveragePrecision(
+            num_labels=len(STYLES), average="macro")
 
     def _step(self, batch, split):
-        text, emoji, feels, _ = batch
+        text, emoji, style, _ = batch
 
         enc = self.enc(text)
 
-        feels_pred = self.feels(enc)
-        loss_feel = self.feeling_ce(feels_pred, feels)
+        style_logits = self.style(enc)
+        loss_style = binary_cross_entropy_with_logits(
+            style_logits, style, pos_weight=self.style_pos_weight)
 
-        q, emoji_vec = self.emoji(enc)
-        emoji_logits = q @ emoji_vec.t()
-        loss_emoji = cross_entropy(emoji_logits / INFONCE_TEMP, emoji)
+        emoji_logits = self.emoji(enc)
+        loss_emoji = binary_cross_entropy_with_logits(
+            emoji_logits, emoji, pos_weight=self.emoji_pos_weight)
 
-        acc = (feels_pred.argmax(dim=-1) == feels).float().mean()
-
-        recall = self.feel_recall_train if split == "train" else self.feel_recall_val
-        recall.update(feels_pred, feels)
+        emoji_ap = self.emoji_ap_train if split == "train" else self.emoji_ap_val
+        style_ap = self.style_ap_train if split == "train" else self.style_ap_val
+        emoji_ap.update(emoji_logits, emoji.int())
+        style_ap.update(style_logits, style.int())
 
         top10 = emoji_logits.topk(10, dim=-1).indices
-        acc10 = (top10 == emoji.unsqueeze(1)).any(dim=-1).float().mean()
+        hit10 = emoji.gather(1, top10).amax(dim=-1).mean()
 
         for name, val in (
-            (f"loss/f/{split}", loss_feel),
-            (f"acc/f/{split}", acc),
-            (f"recall/f/{split}", recall),
+            (f"loss/s/{split}", loss_style),
             (f"loss/e/{split}", loss_emoji),
-            (f"acc10/e/{split}", acc10),
+            (f"hit10/e/{split}", hit10),
+            (f"mAP/e/{split}", emoji_ap),
+            (f"mAP/s/{split}", style_ap),
         ):
             self.log(
                 name, val,
                 on_step=False, on_epoch=True, prog_bar=True,
                 batch_size=text.size(0))
 
-        return loss_feel + loss_emoji
+        return loss_style + loss_emoji
 
     def training_step(self, batch, batch_idx):
         return self._step(batch, "train")
@@ -90,8 +108,8 @@ class LitTask(pl.LightningModule):
 
     def _log_f1(self, split):
         m = self.trainer.callback_metrics
-        a = m.get(f"acc/f/{split}")
-        b = m.get(f"acc10/e/{split}")
+        a = m.get(f"mAP/e/{split}")
+        b = m.get(f"mAP/s/{split}")
         if a is not None and b is not None:
             self.log(f"f1/{split}", f1(a, b), prog_bar=True)
 
@@ -173,6 +191,7 @@ if __name__ == "__main__":
     dl = train_data_loader()
     val_dl = eval_data_loader()
 
+    ds = dl.dataset
     task_ckpt = ModelCheckpoint(
         monitor="f1/val",
         mode="max",
@@ -186,7 +205,7 @@ if __name__ == "__main__":
             "runs", name=CONFIG_NAME, version="task", default_hp_metric=False),
         deterministic=True,
         max_epochs=TASK_EPOCHS,
-        val_check_interval=VAL_CHECK_INTERVAL,
+        val_check_interval=min(VAL_CHECK_INTERVAL, len(dl)),
         callbacks=[
             task_ckpt,
             EarlyStopping(
@@ -194,7 +213,7 @@ if __name__ == "__main__":
         ],
     )
 
-    task = LitTask()
+    task = LitTask(pos_weight(ds.emoji), pos_weight(ds.style))
     task_trainer.fit(task, dl, val_dl)
 
     if task_ckpt.best_model_path:
@@ -202,7 +221,7 @@ if __name__ == "__main__":
 
     for name, mod in (
         ("enc", task.enc),
-        ("feels", task.feels),
+        ("style", task.style),
         ("emoji", task.emoji),
     ):
         torch.save(mod.state_dict(), f"{name}.pt")

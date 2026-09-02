@@ -2,18 +2,11 @@ import json
 from datetime import datetime
 
 # DATA
-# Ekman's six + Love + Neutral
-EKMAN_FEELINGS = [
-    "Angry", "Disgusted", "Afraid", "Happy", "Sad", "Surprised", "Love", "Neutral",
-]
-
 with open('labels.json', encoding='utf-8') as f:
     LABELS = json.load(f)
 
-FEELINGS = LABELS["feelings"]
+STYLES = LABELS["styles"]
 EMOJIS = LABELS["emojis"]
-
-assert FEELINGS == EKMAN_FEELINGS, (FEELINGS, EKMAN_FEELINGS)
 
 MAX_TEXT_LEN = 42
 BATCH_SIZE = 512
@@ -24,9 +17,10 @@ TEXT_ENCODER_CHANNELS = [64, 96, 128]
 ENCODER_KERNEL = 3
 ENCODER_RELU_SLOPE = 0.1
 
-EMOJI_EMBED_SIZE = 32
+EMOJI_EMBED_SIZE = 48
+STYLE_EMBED_SIZE = 16
 TEXT_EMBED_SIZE = TEXT_ENCODER_CHANNELS[-1]
-DROPOUT_FEELING = 0.2
+DROPOUT_STYLE = 0.2
 DROPOUT_EMOJI = 0.2
 
 # GAN
@@ -52,7 +46,7 @@ EARLY_STOP_PATIENCE = 20
 # TENSORBOARD RUN NAME
 model_str = ' '.join([
     str(p) for p in
-    (CHAR_EMBED_SIZE, TEXT_ENCODER_CHANNELS, ENCODER_KERNEL, DROPOUT_FEELING)])
+    (CHAR_EMBED_SIZE, TEXT_ENCODER_CHANNELS, ENCODER_KERNEL, DROPOUT_STYLE)])
 
 train_str = ' '.join([
     str(p) for p in

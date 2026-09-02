@@ -2,55 +2,113 @@ import { generateText, Output } from "ai"
 import PQueue from "p-queue"
 import { z } from "zod"
 
-import { EKMAN_FEELINGS } from "./config"
+import { splitEmojis } from "./emoji.ts"
+import { STYLES, STYLE_LINES, STYLE_SET } from "./styles.ts"
 
 export const MODEL = "openai/gpt-5.6-luna"
 
-const FEELING_SET = new Set<string>(EKMAN_FEELINGS)
-
 export const ANNOTATE_BATCH_SIZE = 10
-export const ANNOTATE_CONCURRENCY = 40
+export const ANNOTATE_CONCURRENCY = 25
+export const ANNOTATE_ATTEMPTS = 3
 
 export const MIN_CONTRAST = 3
+export const MAX_EMOJIS = 6
+export const MAX_STYLES = 3
 
 export type Label = {
-  emoji: string
-  feeling: string
-  bg: [string, string]
-  fg: string
+  emojis: string[]
+  styles: string[]
+  bg?: [string, string]
+  fg?: string
+}
+
+export type AnnotateOpts = {
+  colors?: boolean
+  onBatchDone?: () => void
+}
+
+export type Usage = {
+  calls: number
+  input: number
+  output: number
+  total: number
+}
+
+export const lastUsage: Usage = { calls: 0, input: 0, output: 0, total: 0 }
+
+function addUsage(u: Usage, raw: unknown): void {
+  const r = (raw ?? {}) as Record<string, number | undefined>
+  const input = r.inputTokens ?? r.promptTokens ?? 0
+  const output = r.outputTokens ?? r.completionTokens ?? 0
+  u.calls += 1
+  u.input += input
+  u.output += output
+  u.total += r.totalTokens ?? input + output
+}
+
+export function formatUsage(u: Usage): string {
+  return (
+    `tokens: input ${u.input.toLocaleString()} · `
+    + `output ${u.output.toLocaleString()} · `
+    + `total ${u.total.toLocaleString()} over ${u.calls} calls`
+  )
 }
 
 const Annotation = z.object({
   id: z.number(),
-  emoji: z.string(),
-  feeling: z.string(),
-  bg: z.array(z.string()),
-  fg: z.string(),
+  emojis: z.string(),
+  styles: z.array(z.string()),
+  bg: z.array(z.string()).optional(),
+  fg: z.string().optional(),
 })
 
-const INSTRUCTIONS = [
-  "You are an annotator. For each message below, choose three things:",
-  "1. emoji - the single emoji that best fits the message. Any emoji is",
-  "   allowed. Pick the one that fits best, not a safe default. Do not favor",
-  "   rare emojis and do not favor common ones - just the best fit.",
-  "2. feeling - exactly one of these eight words, capitalized:",
-  "   Angry, Disgusted, Afraid, Happy, Sad, Surprised, Love, Neutral.",
-  "   Pick the one the message best conveys. Afraid covers worry, anxiety",
-  "   and stress; Happy covers every other positive shade (calm, relieved,",
-  "   excited, grateful, proud); Love covers affection, romance, tenderness",
-  "   and caring for someone. Use \"Neutral\" only when the message carries",
-  "   no real emotion; do not reach for it otherwise.",
-  "3. colors - a 3-color palette that captures the mood and imagery of the",
-  "   message. \"bg\" is two colors [top, bottom] for a background gradient;",
-  "   they must sit close enough to read as one gradient, not a clash. \"fg\"",
-  "   is one color for text laid over that gradient and must stay clearly",
-  "   readable against both \"bg\" stops (strong contrast). All three are",
-  "   lowercase hex in #rrggbb form.",
-  "",
-  "Return exactly one annotation object per input message, echoing its id.",
-  "Do not add, drop, reorder, or merge items.",
-  'Format: {"annotations": [{"id": 0, "emoji": "\u{1F600}", "feeling": "Happy", "bg": ["#ffd76a", "#ff9a5a"], "fg": "#3a1d00"}]}',
-].join("\n")
+const STYLE_BLOCK = STYLES.map((s) => `   ${s} - ${STYLE_LINES[s]}`).join("\n")
+
+const EMOJI_RULES = [
+  "1. emojis - a single space-separated string of the emojis STRONGLY and",
+  "   directly associated with the message:",
+  "   - the concrete things, places, activities, animals, food, or objects it",
+  "     names;",
+  "   - its mood, but ONLY when the mood is strong - many messages need none.",
+  `   Give 1 to ${MAX_EMOJIS} emojis, most associated first. No weak, decorative,`,
+  "   or safe-default picks. Prefer a specific emoji over a generic one. Do not",
+  "   lean on smiley faces.",
+]
+
+const STYLE_RULES = [
+  `2. styles - 1 to ${MAX_STYLES} labels from this fixed set, describing how the`,
+  "   message feels to read (its voice and tone), not only its emotion. These",
+  "   are the ONLY allowed values:",
+  STYLE_BLOCK,
+]
+
+const COLOR_RULES = [
+  "3. bg, fg - a 3-color palette that captures the mood and imagery of the",
+  '   message. "bg" is two colors [top, bottom] for a background gradient; they',
+  '   must sit close enough to read as one gradient, not a clash. "fg" is one',
+  '   color for text over that gradient and must stay clearly readable against',
+  "   both bg stops (strong contrast). All three are lowercase #rrggbb hex.",
+]
+
+function instructions(colors: boolean): string {
+  const parts = [
+    "You are an annotator. For each message below choose"
+    + (colors ? " three things:" : " two things:"),
+    ...EMOJI_RULES,
+    ...STYLE_RULES,
+    ...(colors ? COLOR_RULES : []),
+    "",
+    "Return exactly one object per input message, echoing its id.",
+    "Do not add, drop, reorder, or merge items.",
+    colors
+      ? 'Format: {"annotations": [{"id": 0, "emojis": "\u{1F68C} \u{1F624}",'
+        + ' "styles": ["Irritated"], "bg": ["#c9d8e5", "#9fb4c8"],'
+        + ' "fg": "#172b3a"}]}'
+      : 'Format: {"annotations": [{"id": 0, "emojis": "\u{1F68C} \u{1F624}",'
+        + ' "styles": ["Irritated"]}]}',
+  ]
+  return parts.join("\n")
+}
 
 function chunk<T>(arr: T[], n: number): T[][] {
   const out: T[][] = []
@@ -58,13 +116,9 @@ function chunk<T>(arr: T[], n: number): T[][] {
   return out
 }
 
-function cleanFeeling(raw: string): string {
-  const f = raw.trim().replace(/\s+/g, " ")
-  return f ? f[0].toUpperCase() + f.slice(1) : f
-}
-
-function cleanEmoji(raw: string): string {
-  return raw.trim().split(/\s+/)[0] ?? ""
+function cleanStyle(raw: string): string {
+  const s = raw.trim()
+  return s ? s[0].toUpperCase() + s.slice(1).toLowerCase() : s
 }
 
 const HEX6 = /^#?([0-9a-f]{6})$/i
@@ -108,32 +162,54 @@ function cleanPalette(
   return { bg: [bg0, bg1], fg: fgHex }
 }
 
+function cleanLabel(a: z.infer<typeof Annotation>, colors: boolean): Label | null {
+  const emojis = splitEmojis(a.emojis).slice(0, MAX_EMOJIS)
+  const styles = [
+    ...new Set(a.styles.map(cleanStyle).filter((s) => STYLE_SET.has(s))),
+  ].slice(0, MAX_STYLES)
+  if (!emojis.length || !styles.length) return null
+
+  if (!colors) return { emojis, styles }
+
+  const palette = cleanPalette(a.bg, a.fg)
+  if (!palette) return null
+  return { emojis, styles, ...palette }
+}
+
 async function annotateBatch(
   batch: { id: number; text: string }[],
+  colors: boolean,
+  usage: Usage,
 ): Promise<Map<number, Label>> {
   const ids = new Set(batch.map((b) => b.id))
   const byId = new Map<number, Label>()
 
-  for (let attempt = 0; attempt < 2 && byId.size < ids.size; attempt++) {
+  for (
+    let attempt = 0;
+    attempt < ANNOTATE_ATTEMPTS && byId.size < ids.size;
+    attempt++
+  ) {
     try {
-      const { output } = await generateText({
+      const res = await generateText({
         model: MODEL,
         output: Output.object({
           schema: z.object({ annotations: z.array(Annotation) }),
         }),
-        prompt: [INSTRUCTIONS, "", "Messages:", JSON.stringify(batch)].join("\n"),
+        prompt: [
+          instructions(colors),
+          "",
+          "Messages:",
+          JSON.stringify(batch),
+        ].join("\n"),
       })
-      for (const a of output.annotations) {
+      addUsage(usage, res.usage)
+      for (const a of res.output.annotations) {
         if (!ids.has(a.id) || byId.has(a.id)) continue
-        const emoji = cleanEmoji(a.emoji)
-        const feeling = cleanFeeling(a.feeling)
-        const palette = cleanPalette(a.bg, a.fg)
-        if (emoji && FEELING_SET.has(feeling) && palette) {
-          byId.set(a.id, { emoji, feeling, ...palette })
-        }
+        const label = cleanLabel(a, colors)
+        if (label) byId.set(a.id, label)
       }
     } catch (err) {
-      if (attempt === 1) {
+      if (attempt === ANNOTATE_ATTEMPTS - 1) {
         console.warn(`\n  annotate batch of ${batch.length} failed: ${err}`)
       }
     }
@@ -147,19 +223,29 @@ async function annotateBatch(
 
 export async function annotate(
   texts: string[],
-  onBatchDone?: () => void,
+  opts: AnnotateOpts = {},
 ): Promise<Map<number, Label>> {
+  const colors = opts.colors ?? false
   const items = texts.map((text, id) => ({ id, text }))
   const result = new Map<number, Label>()
   const queue = new PQueue({ concurrency: ANNOTATE_CONCURRENCY })
 
+  lastUsage.calls = 0
+  lastUsage.input = 0
+  lastUsage.output = 0
+  lastUsage.total = 0
+
   queue.addAll(
     chunk(items, ANNOTATE_BATCH_SIZE).map((batch) => async () => {
-      for (const [id, label] of await annotateBatch(batch)) result.set(id, label)
-      onBatchDone?.()
+      for (const [id, label] of await annotateBatch(batch, colors, lastUsage)) {
+        result.set(id, label)
+      }
+      opts.onBatchDone?.()
     }),
   )
   await queue.onIdle()
+
+  console.log(`\n${formatUsage(lastUsage)}`)
   return result
 }
 

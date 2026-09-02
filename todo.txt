@@ -165,5 +165,54 @@ TODO:
         DATA CLEANUP:
             There are too many garbage records in the data, most of them have some kind of face emoji.
             We need to analyze the data understand the problem and the cause and come up with a plan to clean it up.
+
+        Multi Label Classification:
+            I think that we should have multiple emojis per record and treat the problem as a multi class multi label classification.
+            Each record can have an arbitrary number of emojis that are strongly associated with the text.
+            So for example for a text like "I love this dog" both love and dog emojis are fine.
+            
+            Write a detailed plan:
+                1. Data analysis and problems.
+                2. Data re-annotation.
+                3. Model architecture.
+                4. Anything else you think is relevant.
+
+        Comments:
+            We must make the annotation process efficient (time wise and token wise) to achieve this i suggest:
+                - Skip the color palette, we already have them.
+                - Consider have the emojis as a single string (your call, maybe we should compare efficiency of single string vs emoji array)
+                - snapshot the data into data.jsonl
+                - consider a heuristic to sort the snapshot data.jsonl by the most relevant records, e.g. I would push to the end face emojis?
+                - Important: replace feeling with style, make a list of at least 20 or more styles, treat as multi-label as well so the annotator needs to return {emojis: [], styles: []} for each record.
+                - Styles are a closed set, let the annotator know about that.
+                - 2 options for annotation format, either {emojis:[], styles: []} or {emojis:'', styles: []} (I think the second one might be more efficient time wise and token wise but the first option is fine too, choose whichever you think is the better choice)
+                - FeelingHead -> StyleHead, and should output embedding as well.
+                - With the multi-label approach I think we can generate the eval.jsonl simply by sampling the train.jsonl. We can have, independently, a data quality skill that sample the train.jsonl and identify labeling and other issues.
+
+                Discussion:
+                    - Should we keep the emoji embedding normalized? I tend to keep it un-normalized so we can derived independent probability for each emoji, what do you think?
+                    - Same for the StyleHead.
+
+                Important:
+                    - Before we start we must come up with the list of styles.
+                    - We must avoid too many face emojis in the data, lets try a first re-annotation batch and analyze the results.
+                    - Emojis should cover a wide range of topics, objects, animals, nature, people, food, symbols
+
+                Finally:
+                    - When done implementing we need to re-organize all the data tools and skills, remove old tools and skills and update documentation and CLAUDE.md
+
+        Tools:
+            Create a tool tools/data/merge.ts
+            The tool does the following:
+                - Read eval.jsonl, train.jsonl and data.jsonl
+                Deduplicate and Merge:
+                    - Each normalized text is merged into a single record:
+                        - record is merge into the first set it is found in in the following order:
+                             1. eval.jsonl
+                             2. train.jsonl 
+                             3. data.jsonl
+                        - The merged record contains the union of all emojis and styles from all the records that were merged into it.
+                        - After the merge there is exactly one record with the normalized text.
+
 DONE:
 

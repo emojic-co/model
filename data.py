@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from config import BATCH_SIZE, EMOJIS, FEELINGS, MAX_TEXT_LEN
+from config import BATCH_SIZE, EMOJIS, MAX_TEXT_LEN, STYLES
 
 TRAIN_PATH = "train.jsonl"
 EVAL_PATH = "eval.jsonl"
@@ -17,7 +17,7 @@ VOCAB_SIZE = len(CHARS)
 
 
 char2idx = {char: i for i, char in enumerate(CHARS)}
-feeling2idx = {f: i for i, f in enumerate(FEELINGS)}
+style2idx = {s: i for i, s in enumerate(STYLES)}
 emoji2idx = {e: i for i, e in enumerate(EMOJIS)}
 
 COLOR_DIM = 9
@@ -53,21 +53,28 @@ def text_to_tensor(text: str) -> torch.Tensor:
     return torch.tensor(idxs, dtype=torch.long)
 
 
-def emoji_to_tensor(emoji: str) -> torch.Tensor:
-    idx = emoji2idx[emoji]
-    return torch.tensor(idx, dtype=torch.long)
+def multi_hot(items: list[str], index: dict[str, int], size: int) -> torch.Tensor:
+    out = torch.zeros(size, dtype=torch.float32)
+    for it in items:
+        i = index.get(it)
+        if i is not None:
+            out[i] = 1.0
+    return out
 
 
-def feeling_to_tensor(feeling: str) -> torch.Tensor:
-    idx = feeling2idx[feeling]
-    return torch.tensor(idx, dtype=torch.long)
+def emojis_to_tensor(emojis: list[str]) -> torch.Tensor:
+    return multi_hot(emojis, emoji2idx, len(EMOJIS))
+
+
+def styles_to_tensor(styles: list[str]) -> torch.Tensor:
+    return multi_hot(styles, style2idx, len(STYLES))
 
 
 @dataclass
 class record:
     text: str
-    emoji: str
-    feeling: str
+    emojis: list[str]
+    styles: list[str]
     colors: list[str]
 
 
@@ -81,8 +88,8 @@ def read(path):
         match d:
             case {
                 "text": text,
-                "emoji": emoji,
-                "feeling": feeling,
+                "emojis": emojis,
+                "styles": styles,
                 'bg': bg,
                 'fg': fg
             }:
@@ -91,27 +98,27 @@ def read(path):
                 if not text or len(text) > MAX_TEXT_LEN:
                     continue
 
-                if emoji not in EMOJIS:
+                emojis = [e for e in emojis.split() if e in emoji2idx]
+                styles = [s for s in styles if s in style2idx]
+
+                if not emojis or not styles:
                     continue
 
-                if feeling not in FEELINGS:
-                    continue
-
-                yield record(text, emoji, feeling, [*bg, fg])
+                yield record(text, emojis, styles, [*bg, fg])
 
 
 class EmojiDataset(Dataset):
     def __init__(self, records: list[record]):
         self.text = torch.stack([text_to_tensor(r.text) for r in records])
-        self.emoji = torch.stack([emoji_to_tensor(r.emoji) for r in records])
-        self.feeling = torch.stack([feeling_to_tensor(r.feeling) for r in records])
+        self.emoji = torch.stack([emojis_to_tensor(r.emojis) for r in records])
+        self.style = torch.stack([styles_to_tensor(r.styles) for r in records])
         self.colors = torch.stack([colors2tensor(r.colors) for r in records])
 
     def __len__(self):
         return len(self.text)
 
     def __getitem__(self, idx):
-        return self.text[idx], self.emoji[idx], self.feeling[idx], self.colors[idx]
+        return self.text[idx], self.emoji[idx], self.style[idx], self.colors[idx]
 
 
 def train_data_loader():

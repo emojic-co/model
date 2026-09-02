@@ -1,6 +1,8 @@
-export const TOP_EMOJIS = 273
+export { STYLES } from "./styles"
 
-// Ekman's six + Love + Neutral
+export const TOP_EMOJIS = 320
+export const MAX_TEXT_LEN = 42
+
 export const EKMAN_FEELINGS = [
   "Angry",
   "Disgusted",

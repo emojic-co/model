@@ -4,11 +4,15 @@
   "type": "module",
   "scripts": {
     "train": "bun run tools/data/train.ts",
+    "snapshot": "bun run tools/data/snapshot.ts",
     "re-annotate": "bun run tools/data/re-annotate.ts",
+    "merge": "bun run tools/data/merge.ts",
+    "split-eval": "bun run tools/data/split-eval.ts",
     "upsample-emojis": "bun run tools/data/upsample-emojis.ts",
     "upsample-feelings": "bun run tools/data/upsample-feelings.ts",
     "labels": "bun run tools/data/labels.ts",
     "stat": "bun run tools/data/stat.ts",
+    "fails": "bun run tools/analysis/fails.ts",
     "preview": "bun run tools/data/preview.ts",
     "preview-model": "bun run tools/data/preview-model.ts",
     "preview-labels": "bun run tools/data/preview-labels.ts",
@@ -27,6 +31,7 @@
   "devDependencies": {
     "@types/bun": "^1.4.0",
     "@types/cli-progress": "^3.11.6",
+    "emojibase-data": "^17.0.0",
     "live-server": "^1.2.2"
   }
 }
