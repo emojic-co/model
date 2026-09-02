@@ -8,6 +8,7 @@ from torch.nn.functional import (
 from torch.nn.utils import spectral_norm as sn
 
 from config import (
+    ATTN_HEADS,
     CHAR_EMBED_SIZE,
     CRITIC_CHANNELS,
     DROPOUT_EMOJI,
@@ -22,7 +23,7 @@ from config import (
     TEXT_ENCODER_CHANNELS,
     Z_WEIGHT,
 )
-from data import COLOR_DIM, EMOJIS, STYLES, VOCAB_SIZE
+from data import COLOR_DIM, EMOJIS, PAD_IDX, STYLES, VOCAB_SIZE
 
 
 class TextEncoder(nn.Module):
@@ -31,34 +32,32 @@ class TextEncoder(nn.Module):
 
         self.char_embed = nn.Embedding(VOCAB_SIZE, CHAR_EMBED_SIZE)
 
-        def conv_norm(*, k: int, i: int, o: int) -> nn.Sequential:
-            return nn.Sequential(
-                nn.Conv1d(i, o, kernel_size=k, bias=False),
-                nn.BatchNorm1d(o)
-            )
-
         def conv_norm_relu(*, k: int, i: int, o: int) -> nn.Sequential:
             return nn.Sequential(
-                conv_norm(k=k, i=i, o=o),
+                nn.Conv1d(i, o, kernel_size=k, padding=k // 2, bias=False),
+                nn.BatchNorm1d(o),
                 nn.LeakyReLU(negative_slope=RELU_SLOPE))
 
-        def pool_conv_norm_relu(*, k: int, i: int, o: int) -> nn.Sequential:
-            return nn.Sequential(
-                nn.MaxPool1d(kernel_size=2, stride=2),
-                conv_norm_relu(k=k, i=i, o=o))
-
         cs = TEXT_ENCODER_CHANNELS
-        io = zip(cs[:-1], cs[1:], strict=True)
+        io = zip([CHAR_EMBED_SIZE, *cs[:-1]], cs, strict=True)
 
         self.encoder = nn.Sequential(
-            conv_norm_relu(k=ENCODER_KERNEL, i=CHAR_EMBED_SIZE, o=cs[0]),
-            *[
-                pool_conv_norm_relu(k=ENCODER_KERNEL, i=i, o=o)
-                for i, o in io])
+            *[conv_norm_relu(k=ENCODER_KERNEL, i=i, o=o) for i, o in io])
+
+        self.attn = nn.MultiheadAttention(
+            TEXT_EMBED_SIZE,
+            ATTN_HEADS,
+            batch_first=True)
+
+        self.norm = nn.LayerNorm(TEXT_EMBED_SIZE)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        out = self.char_embed(x).transpose(1, 2)
-        out = self.encoder(out)
+        mask = x == PAD_IDX
+        out = self.encoder(self.char_embed(x).transpose(1, 2))
+        h = out.transpose(1, 2)
+        a, _ = self.attn(h, h, h, key_padding_mask=mask, need_weights=False)
+        h = self.norm(h + a)
+        out = h.transpose(1, 2).masked_fill(mask[:, None, :], float("-inf"))
         return torch.max(out, dim=-1).values
 
 
