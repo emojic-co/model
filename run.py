@@ -66,7 +66,7 @@ def predict(
                 emb = enc(text_tensor)
 
                 styles = top_labels(style(emb), STYLES, min_k=1, max_k=3)
-                emojis = top_labels(emoji(emb), EMOJIS, min_k=0, max_k=6)
+                emojis = top_labels(emoji(emb), EMOJIS, min_k=1, max_k=1)
 
                 colors = gen(emb).squeeze(0)
                 hexes = rgb_to_hex(colors)

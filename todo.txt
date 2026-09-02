@@ -214,5 +214,8 @@ TODO:
                         - The merged record contains the union of all emojis and styles from all the records that were merged into it.
                         - After the merge there is exactly one record with the normalized text.
 
+        Discussion:
+            - Can we use negative sampling for both style and emoji loss?
+
 DONE:
 
