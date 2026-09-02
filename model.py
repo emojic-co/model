@@ -148,6 +148,8 @@ class ColorDsc(nn.Module):
         )
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
-        x = torch.cat(
-            [colors.unsqueeze(-1), cond.unsqueeze(-1)], dim=1)
+        x = torch.cat([
+            normalize(colors).unsqueeze(-1),
+            normalize(cond).unsqueeze(-1)], dim=1)
+
         return self.net(x)
