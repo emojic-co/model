@@ -66,11 +66,13 @@ class LitTask(pl.LightningModule):
 
         style_logits = self.style(enc)
         loss_style = binary_cross_entropy_with_logits(
-            style_logits, style, pos_weight=self.style_pos_weight)
+            style_logits, style,
+            pos_weight=self.style_pos_weight)  # type: ignore
 
         emoji_logits = self.emoji(enc)
         loss_emoji = binary_cross_entropy_with_logits(
-            emoji_logits, emoji, pos_weight=self.emoji_pos_weight)
+            emoji_logits, emoji,
+            pos_weight=self.emoji_pos_weight)  # type: ignore
 
         emoji_ap = self.emoji_ap_train if split == "train" else self.emoji_ap_val
         style_ap = self.style_ap_train if split == "train" else self.style_ap_val
@@ -213,7 +215,7 @@ if __name__ == "__main__":
         ],
     )
 
-    task = LitTask(pos_weight(ds.emoji), pos_weight(ds.style))
+    task = LitTask(pos_weight(ds.emoji), pos_weight(ds.style))  # type: ignore
     task_trainer.fit(task, dl, val_dl)
 
     if task_ckpt.best_model_path:
