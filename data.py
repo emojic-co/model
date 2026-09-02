@@ -101,7 +101,7 @@ def read(path):
                 emojis = [e for e in emojis.split() if e in emoji2idx]
                 styles = [s for s in styles if s in style2idx]
 
-                if not emojis or not styles:
+                if not styles:
                     continue
 
                 yield record(text, emojis, styles, [*bg, fg])

@@ -3,13 +3,13 @@ import PQueue from "p-queue"
 import { z } from "zod"
 
 import { splitEmojis } from "./emoji.ts"
-import { STYLES, STYLE_LINES, STYLE_SET } from "./styles.ts"
+import { STYLE_LINES, STYLE_SET, STYLES } from "./styles.ts"
 
 export const MODEL = "openai/gpt-5.6-luna"
 
-export const ANNOTATE_BATCH_SIZE = 10
-export const ANNOTATE_CONCURRENCY = 25
-export const ANNOTATE_ATTEMPTS = 3
+export const ANNOTATE_BATCH_SIZE = Number(process.env.ANNOTATE_BATCH_SIZE) || 10
+export const ANNOTATE_CONCURRENCY = Number(process.env.ANNOTATE_CONCURRENCY) || 25
+export const ANNOTATE_ATTEMPTS = Number(process.env.ANNOTATE_ATTEMPTS) || 1
 
 export const MIN_CONTRAST = 3
 export const MAX_EMOJIS = 6
@@ -54,6 +54,32 @@ export function formatUsage(u: Usage): string {
   )
 }
 
+export type DropReason = "noStyle" | "noPalette"
+export type Drops = Record<DropReason | "batch" | "missingId", number>
+
+export const lastDrops: Drops = {
+  batch: 0,
+  missingId: 0,
+  noStyle: 0,
+  noPalette: 0,
+}
+
+function resetDrops(d: Drops): void {
+  d.batch = 0
+  d.missingId = 0
+  d.noStyle = 0
+  d.noPalette = 0
+}
+
+export function formatDrops(d: Drops): string {
+  const total = d.batch + d.missingId + d.noStyle + d.noPalette
+  return (
+    `drops: ${total} `
+    + `(batch ${d.batch} · missingId ${d.missingId} · `
+    + `noStyle ${d.noStyle} · noPalette ${d.noPalette})`
+  )
+}
+
 const Annotation = z.object({
   id: z.number(),
   emojis: z.string(),
@@ -65,14 +91,14 @@ const Annotation = z.object({
 const STYLE_BLOCK = STYLES.map((s) => `   ${s} - ${STYLE_LINES[s]}`).join("\n")
 
 const EMOJI_RULES = [
-  "1. emojis - a single space-separated string of the emojis STRONGLY and",
-  "   directly associated with the message:",
-  "   - the concrete things, places, activities, animals, food, or objects it",
-  "     names;",
-  "   - its mood, but ONLY when the mood is strong - many messages need none.",
-  `   Give 1 to ${MAX_EMOJIS} emojis, most associated first. No weak, decorative,`,
-  "   or safe-default picks. Prefer a specific emoji over a generic one. Do not",
-  "   lean on smiley faces.",
+  `1. emojis - a single space-separated string of 0 to ${MAX_EMOJIS} emojis,`,
+  "   most associated first. Include:",
+  "   - the concrete things, places, activities, animals, food, or objects the",
+  "     message names or is plainly about;",
+  "   - a mood emoji ONLY when the mood is strong - skip it otherwise.",
+  "   Prefer a specific emoji over a generic one, no decorative picks, do not",
+  "   lean on smiley faces. Return an empty string when no emoji is even loosely",
+  "   relevant - do not force a pick.",
 ]
 
 const STYLE_RULES = [
@@ -102,10 +128,11 @@ function instructions(colors: boolean): string {
     "Do not add, drop, reorder, or merge items.",
     colors
       ? 'Format: {"annotations": [{"id": 0, "emojis": "\u{1F68C} \u{1F624}",'
-        + ' "styles": ["Irritated"], "bg": ["#c9d8e5", "#9fb4c8"],'
-        + ' "fg": "#172b3a"}]}'
+      + ' "styles": ["Irritated"], "bg": ["#c9d8e5", "#9fb4c8"],'
+      + ' "fg": "#172b3a"}]}'
       : 'Format: {"annotations": [{"id": 0, "emojis": "\u{1F68C} \u{1F624}",'
-        + ' "styles": ["Irritated"]}]}',
+      + ' "styles": ["Irritated"]}, {"id": 1, "emojis": "",'
+      + ' "styles": ["Deadpan"]}]}',
   ]
   return parts.join("\n")
 }
@@ -162,17 +189,20 @@ function cleanPalette(
   return { bg: [bg0, bg1], fg: fgHex }
 }
 
-function cleanLabel(a: z.infer<typeof Annotation>, colors: boolean): Label | null {
+function cleanLabel(
+  a: z.infer<typeof Annotation>,
+  colors: boolean,
+): Label | DropReason {
   const emojis = splitEmojis(a.emojis).slice(0, MAX_EMOJIS)
   const styles = [
     ...new Set(a.styles.map(cleanStyle).filter((s) => STYLE_SET.has(s))),
   ].slice(0, MAX_STYLES)
-  if (!emojis.length || !styles.length) return null
+  if (!styles.length) return "noStyle"
 
   if (!colors) return { emojis, styles }
 
   const palette = cleanPalette(a.bg, a.fg)
-  if (!palette) return null
+  if (!palette) return "noPalette"
   return { emojis, styles, ...palette }
 }
 
@@ -180,9 +210,12 @@ async function annotateBatch(
   batch: { id: number; text: string }[],
   colors: boolean,
   usage: Usage,
+  drops: Drops,
 ): Promise<Map<number, Label>> {
   const ids = new Set(batch.map((b) => b.id))
   const byId = new Map<number, Label>()
+  const reason = new Map<number, DropReason>()
+  let threw = false
 
   for (
     let attempt = 0;
@@ -203,12 +236,24 @@ async function annotateBatch(
         ].join("\n"),
       })
       addUsage(usage, res.usage)
+      threw = false
       for (const a of res.output.annotations) {
         if (!ids.has(a.id) || byId.has(a.id)) continue
         const label = cleanLabel(a, colors)
-        if (label) byId.set(a.id, label)
+        if (typeof label === "string") {
+          reason.set(a.id, label)
+          if (process.env.ANNOTATE_DEBUG)
+            console.warn(
+              `\n  #${a.id} ${label}: emojis=${JSON.stringify(a.emojis)}`
+              + ` styles=${JSON.stringify(a.styles)}`,
+            )
+        } else {
+          byId.set(a.id, label)
+          reason.delete(a.id)
+        }
       }
     } catch (err) {
+      threw = true
       if (attempt === ANNOTATE_ATTEMPTS - 1) {
         console.warn(`\n  annotate batch of ${batch.length} failed: ${err}`)
       }
@@ -216,7 +261,12 @@ async function annotateBatch(
   }
 
   for (const b of batch) {
-    if (!byId.has(b.id)) console.warn(`\n  dropped id ${b.id}: no annotation`)
+    if (byId.has(b.id)) continue
+    const r = reason.get(b.id)
+    if (r) drops[r]++
+    else if (threw) drops.batch++
+    else drops.missingId++
+    console.warn(`\n  dropped id ${b.id}: ${r ?? (threw ? "batch" : "missingId")}`)
   }
   return byId
 }
@@ -234,18 +284,19 @@ export async function annotate(
   lastUsage.input = 0
   lastUsage.output = 0
   lastUsage.total = 0
+  resetDrops(lastDrops)
 
   queue.addAll(
     chunk(items, ANNOTATE_BATCH_SIZE).map((batch) => async () => {
-      for (const [id, label] of await annotateBatch(batch, colors, lastUsage)) {
-        result.set(id, label)
-      }
+      const got = await annotateBatch(batch, colors, lastUsage, lastDrops)
+      for (const [id, label] of got) result.set(id, label)
       opts.onBatchDone?.()
     }),
   )
   await queue.onIdle()
 
   console.log(`\n${formatUsage(lastUsage)}`)
+  console.log(formatDrops(lastDrops))
   return result
 }
 

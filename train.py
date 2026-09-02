@@ -76,23 +76,30 @@ class LitTask(pl.LightningModule):
 
         emoji_ap = self.emoji_ap_train if split == "train" else self.emoji_ap_val
         style_ap = self.style_ap_train if split == "train" else self.style_ap_val
-        emoji_ap.update(emoji_logits, emoji.int())
         style_ap.update(style_logits, style.int())
 
-        top10 = emoji_logits.topk(10, dim=-1).indices
-        hit10 = emoji.gather(1, top10).amax(dim=-1).mean()
+        has_e = emoji.sum(dim=-1) > 0
+        n_e = int(has_e.sum())
+        if n_e:
+            e_logits = emoji_logits[has_e]
+            e_target = emoji[has_e]
+            emoji_ap.update(e_logits, e_target.int())
+            top10 = e_logits.topk(10, dim=-1).indices
+            hit10 = e_target.gather(1, top10).amax(dim=-1).mean()
+        else:
+            hit10 = torch.zeros((), device=emoji.device)
 
-        for name, val in (
-            (f"loss/s/{split}", loss_style),
-            (f"loss/e/{split}", loss_emoji),
-            (f"hit10/e/{split}", hit10),
-            (f"mAP/e/{split}", emoji_ap),
-            (f"mAP/s/{split}", style_ap),
+        for name, val, bs in (
+            (f"loss/s/{split}", loss_style, text.size(0)),
+            (f"loss/e/{split}", loss_emoji, text.size(0)),
+            (f"hit10/e/{split}", hit10, max(n_e, 1)),
+            (f"mAP/e/{split}", emoji_ap, max(n_e, 1)),
+            (f"mAP/s/{split}", style_ap, text.size(0)),
         ):
             self.log(
                 name, val,
                 on_step=False, on_epoch=True, prog_bar=True,
-                batch_size=text.size(0))
+                batch_size=bs)
 
         return loss_style + loss_emoji
 

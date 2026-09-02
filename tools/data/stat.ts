@@ -137,6 +137,11 @@ function section(path: string, rows: Row[]): string[] {
   )
   out.push("Emojis per row:", "")
   out.push(...countHistogram(rows.map((r) => emojiList(r).length)), "")
+  const noEmoji = rows.filter((r) => emojiList(r).length === 0).length
+  out.push(
+    `**No emoji: ${((100 * noEmoji) / rows.length).toFixed(1)}% of rows**`,
+    "",
+  )
   out.push(
     `**Face emojis: ${((100 * faceMentions) / (allMentions.length || 1)).toFixed(1)}% of mentions · ${((100 * rowsWithFace) / rows.length).toFixed(1)}% of rows**`,
     "",

@@ -8,8 +8,6 @@
     "re-annotate": "bun run tools/data/re-annotate.ts",
     "merge": "bun run tools/data/merge.ts",
     "split-eval": "bun run tools/data/split-eval.ts",
-    "upsample-emojis": "bun run tools/data/upsample-emojis.ts",
-    "upsample-feelings": "bun run tools/data/upsample-feelings.ts",
     "labels": "bun run tools/data/labels.ts",
     "stat": "bun run tools/data/stat.ts",
     "fails": "bun run tools/analysis/fails.ts",

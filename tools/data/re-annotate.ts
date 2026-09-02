@@ -2,7 +2,7 @@ import { existsSync } from "node:fs"
 
 import cliProgress from "cli-progress"
 
-import { annotate, annotateBatchCount } from "./annotate.ts"
+import { annotate, annotateBatchCount, lastUsage } from "./annotate.ts"
 import { appendJsonl, readJsonl, writeFileAtomic } from "./io.ts"
 
 const DATA = "./data.jsonl"
@@ -15,6 +15,12 @@ function argInt(flag: string): number | undefined {
   if (i < 0 || i + 1 >= process.argv.length) return undefined
   const n = Number(process.argv[i + 1])
   return Number.isFinite(n) ? n : undefined
+}
+
+function fmtTokens(n: number): string {
+  if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`
+  if (n >= 1e3) return `${(n / 1e3).toFixed(1)}k`
+  return String(n)
 }
 
 function seededSampleIdx(n: number, k: number, seed: number): number[] {
@@ -64,14 +70,22 @@ if (import.meta.main) {
   const bar = new cliProgress.SingleBar(
     {
       format:
-        "annotating |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
+        "annotating |{bar}| {percentage}% | {value}/{total} batches"
+        + " | tok in/out {tokIn}/{tokOut} | ETA: {eta}s",
     },
     cliProgress.Presets.shades_classic,
   )
-  bar.start(annotateBatchCount(picked.length), 0)
+  bar.start(annotateBatchCount(picked.length), 0, { tokIn: "0", tokOut: "0" })
   const labels = await annotate(
     picked.map((i) => pool[i].text),
-    { colors: false, onBatchDone: () => bar.increment() },
+    {
+      colors: false,
+      onBatchDone: () =>
+        bar.increment(1, {
+          tokIn: fmtTokens(lastUsage.input),
+          tokOut: fmtTokens(lastUsage.output),
+        }),
+    },
   )
   bar.stop()
 

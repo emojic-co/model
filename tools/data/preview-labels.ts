@@ -1,23 +1,67 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
-import { FEELINGS, resolveFeeling } from "../../web/src/feelings.js"
-import { esc, page, stamp, styleToCss } from "./preview-card.ts"
+import { esc, page, stamp } from "./preview-card.ts"
+import { STYLE_LINES, STYLE_SET } from "./styles.ts"
 
 const LABELS = "labels.json"
 const OUT_DIR = "report/preview-labels"
+const STYLE_COLS = 7
+const STYLE_ROWS = 3
+const EMOJI_COLS = 20
+const EMOJI_ROWS = 16
 
-const CLUSTER_ACCENT: Record<string, string> = {
-  anger: "#e5484d",
-  joy: "#f5a623",
-  play: "#d6409f",
-  calm: "#30a46c",
-  sad: "#5b6b8c",
-  anxiety: "#8e4ec6",
-  tender: "#e93d82",
-  drive: "#0091ff",
-  reflective: "#7a7a85",
+const SANS = "system-ui, sans-serif"
+const SERIF = "Georgia, serif"
+const HAND = '"Segoe Script", cursive'
+
+const STYLE_FACE: Record<string, { font: string; css: string }> = {
+  Joyful: { font: `"Fredoka", ${SANS}`, css: "font-weight: 600" },
+  Excited: { font: `"Chewy", ${SANS}`, css: "text-transform: uppercase; letter-spacing: 0.05em" },
+  Hopeful: { font: `"Poppins", ${SANS}`, css: "font-weight: 500" },
+  Serene: { font: `"Quicksand", ${SANS}`, css: "font-weight: 500; letter-spacing: 0.04em" },
+  Tender: { font: `"Caveat", ${HAND}`, css: "font-weight: 700" },
+  Playful: { font: `"Bungee", ${SANS}`, css: "" },
+  Whimsical: { font: `"Griffy", ${HAND}`, css: "font-style: italic; letter-spacing: 0.02em" },
+  Awed: { font: `"Luckiest Guy", ${SANS}`, css: "letter-spacing: 0.03em" },
+  Earnest: { font: `"Lora", ${SERIF}`, css: "" },
+  Determined: { font: `"Barlow Condensed", ${SANS}`, css: "text-transform: uppercase; font-weight: 700" },
+  Proud: { font: `"Rubik", ${SANS}`, css: "text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600" },
+  Wistful: { font: `"EB Garamond", ${SERIF}`, css: "font-style: italic; letter-spacing: 0.05em" },
+  Melancholy: { font: `"Playfair Display", ${SERIF}`, css: "font-style: italic; font-weight: 600" },
+  Anxious: { font: `"Shantell Sans", ${SANS}`, css: "font-weight: 500" },
+  Tense: { font: `"Oswald", ${SANS}`, css: "text-transform: uppercase; font-weight: 500; letter-spacing: -0.01em" },
+  Furious: { font: `"Anton", ${SANS}`, css: "text-transform: uppercase; letter-spacing: 0.06em" },
+  Irritated: { font: `"Archivo Black", ${SANS}`, css: "text-transform: uppercase" },
+  Disgusted: { font: `"Gochi Hand", ${HAND}`, css: "font-style: italic" },
+  Startled: { font: `"Gaegu", ${HAND}`, css: "letter-spacing: 0.03em" },
+  Sarcastic: { font: `"Bitter", ${SERIF}`, css: "font-style: italic" },
+  Deadpan: { font: `"Inter", ${SANS}`, css: "" },
 }
 
-type Labels = { feelings: string[]; emojis: string[] }
+const STYLE_ACCENT: Record<string, string> = {
+  Joyful: "#f5a623",
+  Excited: "#f5a623",
+  Hopeful: "#f5a623",
+  Proud: "#f5a623",
+  Serene: "#30a46c",
+  Tender: "#30a46c",
+  Playful: "#d6409f",
+  Whimsical: "#d6409f",
+  Awed: "#d6409f",
+  Earnest: "#0091ff",
+  Determined: "#0091ff",
+  Wistful: "#5b6b8c",
+  Melancholy: "#5b6b8c",
+  Anxious: "#8e4ec6",
+  Tense: "#8e4ec6",
+  Startled: "#8e4ec6",
+  Furious: "#e5484d",
+  Irritated: "#e5484d",
+  Disgusted: "#e5484d",
+  Sarcastic: "#7a7a85",
+  Deadpan: "#7a7a85",
+}
+
+type Labels = { styles: string[]; emojis: string[] }
 
 const EXTRA_CSS = `
 * { box-sizing: border-box; }
@@ -40,8 +84,17 @@ body {
 .pl-grid {
   display: grid;
   gap: 0.35rem;
-  flex: 1 1 0;
   min-height: 0;
+}
+#pl-styles {
+  flex: 0 0 32vh;
+  grid-template-columns: repeat(${STYLE_COLS}, 1fr);
+  grid-template-rows: repeat(${STYLE_ROWS}, 1fr);
+}
+#pl-emojis {
+  flex: 1 1 0;
+  grid-template-columns: repeat(${EMOJI_COLS}, 1fr);
+  grid-template-rows: repeat(${EMOJI_ROWS}, 1fr);
 }
 .pl-f {
   position: relative;
@@ -50,8 +103,8 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.12em;
-  padding: 0.25rem 0.5rem;
+  gap: 0.1em;
+  padding: 0.25rem 0.6rem;
   background: #fff;
   border-left: 4px solid var(--accent, #a1a1aa);
   border-radius: 6px;
@@ -64,15 +117,16 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: min(34cqh, 11cqw);
+  font-size: min(34cqh, 13cqw);
 }
 .pl-f-foot {
   max-width: 100%;
+  text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: #71717a;
-  font-size: max(9px, min(15cqh, 6cqw));
+  font-size: max(9px, min(15cqh, 4.6cqw));
 }
 .pl-f-miss { color: #e5484d; }
 .pl-e {
@@ -85,34 +139,29 @@ body {
 }
 .pl-e-glyph {
   line-height: 1;
-  font-size: 56cqmin;
+  font-size: 60cqmin;
   font-family: "Noto Color Emoji", system-ui, sans-serif;
 }
 .pl-e-idx {
   position: absolute;
-  top: 2px;
-  left: 4px;
+  top: 1px;
+  left: 3px;
   color: #a1a1aa;
   font-family: system-ui, sans-serif;
-  font-size: max(8px, 13cqmin);
+  font-size: max(7px, 15cqmin);
 }
 `
 
-function fontName(font: string): string {
-  const m = font.match(/"([^"]+)"/)
-  return m ? m[1] : font.split(",")[0].trim()
-}
-
-function feelingCell(name: string): string {
-  const r = resolveFeeling(name)
-  const accent = CLUSTER_ACCENT[r.cluster] ?? "#a1a1aa"
-  const nameStyle = styleToCss({ fontFamily: r.font, ...r.style })
-  const missing = !(name in FEELINGS)
-  const foot = `${esc(fontName(r.font))} · ${esc(r.cluster)}${missing ? " · missing" : ""}`
+function styleCell(name: string): string {
+  const accent = STYLE_ACCENT[name] ?? "#a1a1aa"
+  const known = STYLE_SET.has(name)
+  const line = known ? STYLE_LINES[name] : "not in styles.ts"
+  const face = STYLE_FACE[name] ?? { font: `"Inter", ${SANS}`, css: "" }
+  const nameCss = `font-family: ${face.font}${face.css ? `; ${face.css}` : ""}`
   return (
     `<div class="pl-f" style="--accent: ${accent}">` +
-    `<span class="pl-f-name" style="${esc(nameStyle)}">${esc(name)}</span>` +
-    `<span class="pl-f-foot${missing ? " pl-f-miss" : ""}">${foot}</span>` +
+    `<span class="pl-f-name" style="${esc(nameCss)}">${esc(name)}</span>` +
+    `<span class="pl-f-foot${known ? "" : " pl-f-miss"}">${esc(line)}</span>` +
     `</div>`
   )
 }
@@ -126,52 +175,15 @@ function emojiCell(emoji: string, i: number): string {
   )
 }
 
-function layoutScript(nf: number, ne: number): string {
-  return `
-(function () {
-  var NF = ${nf}, NE = ${ne}, TF = 2.8, TE = 1.0
-  var fg = document.getElementById('pl-feelings')
-  var eg = document.getElementById('pl-emojis')
-  function layout() {
-    var rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
-    var pad = 0.6 * rem, gap = 0.6 * rem
-    var innerW = document.documentElement.clientWidth - 2 * pad
-    var innerH = document.documentElement.clientHeight - 2 * pad - gap
-    var best = null
-    for (var cf = 2; cf <= Math.min(6, NF); cf++) {
-      var rf = Math.ceil(NF / cf)
-      var idF = rf * (innerW / cf) / TF
-      for (var ce = 6; ce <= Math.min(32, NE); ce++) {
-        var re = Math.ceil(NE / ce)
-        var idE = re * (innerW / ce) / TE
-        var err = Math.abs(idF + idE - innerH)
-        if (!best || err < best.err) best = { cf: cf, rf: rf, ce: ce, re: re, idF: idF, idE: idE, err: err }
-      }
-    }
-    fg.style.gridTemplateColumns = 'repeat(' + best.cf + ', 1fr)'
-    fg.style.gridTemplateRows = 'repeat(' + best.rf + ', 1fr)'
-    fg.style.flexGrow = String(best.idF)
-    eg.style.gridTemplateColumns = 'repeat(' + best.ce + ', 1fr)'
-    eg.style.gridTemplateRows = 'repeat(' + best.re + ', 1fr)'
-    eg.style.flexGrow = String(best.idE)
-  }
-  layout()
-  addEventListener('resize', layout)
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout)
-})()
-`
-}
-
 if (import.meta.main) {
   const labels = JSON.parse(await readFile(LABELS, "utf8")) as Labels
-  const feelings = labels.feelings.map(feelingCell).join("\n")
+  const styles = labels.styles.map(styleCell).join("\n")
   const emojis = labels.emojis.map(emojiCell).join("\n")
   const body =
-    `<div id="pl-feelings" class="pl-grid">\n${feelings}\n</div>\n` +
-    `<div id="pl-emojis" class="pl-grid">\n${emojis}\n</div>\n` +
-    `<script>${layoutScript(labels.feelings.length, labels.emojis.length)}</script>`
+    `<div id="pl-styles" class="pl-grid">\n${styles}\n</div>\n` +
+    `<div id="pl-emojis" class="pl-grid">\n${emojis}\n</div>`
   const html = await page({
-    title: `labels — ${labels.feelings.length} feelings · ${labels.emojis.length} emojis`,
+    title: `labels — ${labels.styles.length} styles · ${labels.emojis.length} emojis`,
     extraCss: EXTRA_CSS,
     body,
   })
