@@ -10,6 +10,7 @@
     "split-eval": "bun run tools/data/split-eval.ts",
     "labels": "bun run tools/data/labels.ts",
     "stat": "bun run tools/data/stat.ts",
+    "upsample-emojis": "bun run tools/data/upsample-emojis.ts",
     "fails": "bun run tools/analysis/fails.ts",
     "preview": "bun run tools/data/preview.ts",
     "preview-pred": "bun run tools/data/preview-pred.ts",

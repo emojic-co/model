@@ -14,7 +14,7 @@ MAX_TEXT_LEN = 42
 # ENCODER
 CHAR_EMBED_SIZE = 16
 ENCODER_CHANNELS = [96, 128]
-ENCODER_KERNEL = 3
+ENCODER_KERNEL = 4
 
 enc_str = ' '.join([str(p) for p in (
     CHAR_EMBED_SIZE,
