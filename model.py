@@ -8,7 +8,6 @@ from torch.nn.functional import (
 from torch.nn.utils import spectral_norm as sn
 
 from config import (
-    ATTN_HEADS,
     CHAR_EMBED_SIZE,
     CRITIC_CHANNELS,
     DROPOUT_EMOJI,
@@ -44,20 +43,21 @@ class TextEncoder(nn.Module):
         self.encoder = nn.Sequential(
             *[conv_norm_relu(k=ENCODER_KERNEL, i=i, o=o) for i, o in io])
 
-        self.attn = nn.MultiheadAttention(
-            TEXT_EMBED_SIZE,
-            ATTN_HEADS,
-            batch_first=True)
+        # self.attn = nn.MultiheadAttention(
+        #     TEXT_EMBED_SIZE,
+        #     ATTN_HEADS,
+        #     batch_first=True)
 
-        self.norm = nn.LayerNorm(TEXT_EMBED_SIZE)
+        # self.norm = nn.LayerNorm(TEXT_EMBED_SIZE)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         mask = x == PAD_IDX
         out = self.encoder(self.char_embed(x).transpose(1, 2))
-        h = out.transpose(1, 2)
-        a, _ = self.attn(h, h, h, key_padding_mask=mask, need_weights=False)
-        h = self.norm(h + a)
-        out = h.transpose(1, 2).masked_fill(mask[:, None, :], float("-inf"))
+        # h = out.transpose(1, 2)
+        # a, _ = self.attn(h, h, h, key_padding_mask=mask, need_weights=False)
+        # h = self.norm(h + a)
+        # out = h.transpose(1, 2)
+        out = out.masked_fill(mask[:, None, :], float("-inf"))
         return torch.max(out, dim=-1).values
 
 
