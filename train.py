@@ -28,6 +28,7 @@ from config import (
 )
 from data import eval_data_loader, train_data_loader, train_ds
 from model import ColorDsc, ColorGen, EmojiHead, StyleHead, TextEncoder
+from test_emoji import test_emoji
 
 POS_WEIGHT_CLAMP = 10.0
 
@@ -266,3 +267,5 @@ if __name__ == "__main__":
         torch.save(mod.state_dict(), f"{name}.pt")
 
     subprocess.run([sys.executable, "export_onnx.py"], check=True)
+
+    test_emoji()

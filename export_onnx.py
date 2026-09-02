@@ -58,7 +58,7 @@ class ExportWrapper(nn.Module):
         emb = self.enc(x)
         style_logits = self.style(emb)
         emoji_logits = self.emoji(emb)
-        seed = (1 - Z_WEIGHT) * emb + Z_WEIGHT * self.z
+        seed = (1 - Z_WEIGHT) * normalize(emb) + Z_WEIGHT * self.z
         color = torch.tanh(self.gen.net(seed)) * 127.5 + 127.5
         return style_logits, emoji_logits, color
 

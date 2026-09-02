@@ -218,5 +218,14 @@ TODO:
             I only care about AP@10 for emojis and AP@5 for styles (normalized to min(emoji/style count, 10)).
             Explain to me in simple words what exactly you plan to do before implementing.
 
+        Emoji Test:
+            - generate a list of 100 words and their corresponding emojis (from the labels.json) into words.json
+            - create a test script test_emoji.py that loads the model and runs it on words.json and generates a report of the results.
+            - generate a report report/test-emoji/<timestamp>.md with the results.
+            - this is a pure python script, no skills etc...
+            - export the test function and run it after each training (just call it from the train.py script)
+            - also possible to run it `uv run test_emoji.py`
+
+
 DONE:
 
