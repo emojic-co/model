@@ -1,4 +1,5 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
+import { TOP_EMOJIS } from "./config.ts"
 import { esc, page, stamp } from "./preview-card.ts"
 import { STYLE_LINES, STYLE_SET } from "./styles.ts"
 
@@ -6,8 +7,8 @@ const LABELS = "labels.json"
 const OUT_DIR = "report/preview-labels"
 const STYLE_COLS = 7
 const STYLE_ROWS = 3
-const EMOJI_COLS = 20
-const EMOJI_ROWS = 16
+const EMOJI_COLS = 32
+const EMOJI_ROWS = Math.ceil(TOP_EMOJIS / EMOJI_COLS)
 
 const SANS = "system-ui, sans-serif"
 const SERIF = "Georgia, serif"
