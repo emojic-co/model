@@ -13,7 +13,7 @@ from config import (
     DROPOUT_EMOJI,
     DROPOUT_STYLE,
     EMOJI_EMBED_SIZE,
-    EMOJI_HEAD_HIDDEN_LAYERS,
+    EMOJI_HIDDEN_LAYERS,
     ENCODER_KERNEL,
     GEN_CHANNELS,
     RELU_SLOPE,
@@ -90,7 +90,7 @@ class EmojiHead(nn.Module):
                     nn.LeakyReLU(negative_slope=RELU_SLOPE),
                     nn.Linear(EMOJI_EMBED_SIZE, EMOJI_EMBED_SIZE, bias=False))
 
-                for _ in range(EMOJI_HEAD_HIDDEN_LAYERS)])
+                for _ in range(EMOJI_HIDDEN_LAYERS)])
 
         self.embed = nn.Embedding(len(EMOJIS), EMOJI_EMBED_SIZE)
         self.bias = nn.Parameter(torch.zeros(len(EMOJIS)))
