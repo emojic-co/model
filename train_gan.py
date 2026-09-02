@@ -2,8 +2,8 @@ import lightning as pl
 import torch
 from lightning.pytorch.loggers import TensorBoardLogger
 
-from config import CONFIG_NAME, GAN_EPOCHS, SEED
-from data import train_data_loader
+from config import CONFIG_NAME, GAN_BATCH_SIZE, GAN_EPOCHS, SEED
+from data import train_data_loader, train_ds
 from model import TextEncoder
 from train import LitColorGAN
 
@@ -29,8 +29,9 @@ if __name__ == "__main__":
         enable_checkpointing=False,
     )
 
-    gan = LitColorGAN(enc)
-    gan_trainer.fit(gan, train_data_loader())
+    gan = LitColorGAN(enc)  # type: ignore
+    gan_trainer.fit(
+        gan, train_data_loader(data_set=train_ds(), batch_size=GAN_BATCH_SIZE))
 
     for name, mod in (
         ("gen", gan.gen),
