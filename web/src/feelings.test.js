@@ -12,16 +12,16 @@ import {
 
 const readJson = (rel) =>
   JSON.parse(readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8'))
-const meta = readJson('../public/meta.json')
+const styleLabels = readJson('../../labels.json').styles
 const css = readFileSync(fileURLToPath(new URL('./styles.css', import.meta.url)), 'utf8')
 
 describe('feelings coverage', () => {
-  it('every model feeling has a FEELINGS entry', () => {
-    for (const f of meta.feelings) expect(FEELINGS[f], f).toBeTruthy()
+  it('every style label has a FEELINGS entry', () => {
+    for (const f of styleLabels) expect(FEELINGS[f], f).toBeTruthy()
   })
 
-  it('FEELINGS keys are exactly the model feelings', () => {
-    expect([...Object.keys(FEELINGS)].sort()).toEqual([...meta.feelings].sort())
+  it('FEELINGS keys are the style labels plus Neutral', () => {
+    expect([...Object.keys(FEELINGS)].sort()).toEqual([...styleLabels, 'Neutral'].sort())
   })
 
   it('every FEELINGS entry points at a real cluster', () => {
@@ -31,7 +31,7 @@ describe('feelings coverage', () => {
   })
 
   it('every resolved motif name is known', () => {
-    for (const f of meta.feelings) {
+    for (const f of [...styleLabels, 'Neutral']) {
       const r = resolveFeeling(f)
       expect(ENTRANCE_MOTIFS, `${f} entrance`).toContain(r.entrance)
       expect(EMOJI_MOTIFS, `${f} emoji`).toContain(r.emoji)
@@ -39,7 +39,7 @@ describe('feelings coverage', () => {
   })
 
   it('resolveFeeling returns css var strings', () => {
-    const r = resolveFeeling('Happy')
+    const r = resolveFeeling('Joyful')
     expect(r.vars['--entrance-dur']).toMatch(/^\d+ms$/)
     expect(r.vars['--emoji-dur']).toMatch(/^\d+ms$/)
     expect(r.vars['--drift-sec']).toMatch(/^\d+s$/)
@@ -50,14 +50,15 @@ describe('feelings coverage', () => {
   })
 
   it('every feeling resolves to a non-empty font stack', () => {
-    for (const f of meta.feelings) {
+    for (const f of [...styleLabels, 'Neutral']) {
       expect(resolveFeeling(f).font, f).toMatch(/^".+", .+/)
     }
   })
 
   it('each feeling gets its own font family', () => {
-    const families = meta.feelings.map((f) => resolveFeeling(f).font.match(/^"([^"]+)"/)[1])
-    expect(new Set(families).size).toBe(meta.feelings.length)
+    const labels = [...styleLabels, 'Neutral']
+    const families = labels.map((f) => resolveFeeling(f).font.match(/^"([^"]+)"/)[1])
+    expect(new Set(families).size).toBe(labels.length)
   })
 })
 

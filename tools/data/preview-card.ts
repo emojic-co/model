@@ -72,6 +72,10 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitAll)
 window.addEventListener('resize', fitAll)
 `
 
+export function firstEmoji(field: string): string {
+  return field.trim().split(/\s+/)[0] ?? ""
+}
+
 export function stamp(): string {
   const d = new Date()
   const p = (n: number) => String(n).padStart(2, "0")

@@ -12,6 +12,7 @@
     "stat": "bun run tools/data/stat.ts",
     "fails": "bun run tools/analysis/fails.ts",
     "preview": "bun run tools/data/preview.ts",
+    "preview-pred": "bun run tools/data/preview-pred.ts",
     "preview-model": "bun run tools/data/preview-model.ts",
     "preview-labels": "bun run tools/data/preview-labels.ts",
     "serve": "live-server docs --port=8000",

@@ -60,7 +60,7 @@ class TextEncoder(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         out = self.char_embed(x).transpose(1, 2)
         out = self.encoder(out)
-        return normalize(torch.max(out, dim=-1).values, dim=-1)
+        return torch.max(out, dim=-1).values
 
 
 class StyleHead(nn.Module):
@@ -115,7 +115,7 @@ class ColorGen(nn.Module):
         cond: torch.Tensor,
     ) -> torch.Tensor:
         z = normalize(torch.randn_like(cond), dim=-1)
-        seed = (1 - Z_WEIGHT) * cond + Z_WEIGHT * z
+        seed = (1 - Z_WEIGHT) * normalize(cond) + Z_WEIGHT * z
         colors = self.net(seed)
         colors = tanh(colors) * 127.5
 

@@ -1,8 +1,10 @@
 import { mkdir, writeFile } from "node:fs/promises"
 import { readJsonl } from "./io.ts"
-import { cardHtml, page, stamp } from "./preview-card.ts"
+import { cardHtml, firstEmoji, page, stamp } from "./preview-card.ts"
 
-const SRC = process.argv[2] ?? "pred.jsonl"
+const args = process.argv.slice(2)
+const ALL = args.includes("--all")
+const SRC = args.find((a) => !a.startsWith("--")) ?? "pred.jsonl"
 const OUT_DIR = "report/preview"
 const COLS = 5
 
@@ -26,23 +28,34 @@ body { place-items: start center; padding: 2em 1em; }
   max-width: 1400px;
 }
 .preview-grid .card { max-width: none; }
+.preview-grid[data-all] .card-emoji {
+  font-size: 16cqw;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0 0.06em;
+  max-width: 100%;
+  transform: none;
+}
 `
 
 if (import.meta.main) {
   const rows = await readJsonl<Row>(SRC)
   const cards = rows
-    .map((r) =>
-      cardHtml({
+    .map((r) => {
+      const emojis = r.emojis ?? r.emoji ?? ""
+      return cardHtml({
         text: r.text,
-        emoji: r.emojis ?? r.emoji ?? "",
+        emoji: ALL ? emojis : firstEmoji(emojis),
         feeling: r.styles?.[0] ?? r.feeling ?? "Neutral",
         colors: { bg1: r.bg[0], bg2: r.bg[1], text_color: r.fg },
-      }),
-    )
+      })
+    })
     .join("\n")
-  const body = `<div class="preview-grid">\n${cards}\n</div>`
+  const body = `<div class="preview-grid"${ALL ? " data-all" : ""}>\n${cards}\n</div>`
   const html = await page({
-    title: `preview — ${SRC} — ${rows.length} cards`,
+    title: `preview — ${SRC} — ${rows.length} cards${ALL ? " — all emojis" : ""}`,
     extraCss: EXTRA_CSS,
     body,
   })
