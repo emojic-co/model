@@ -33,11 +33,8 @@ class TextEncoder(nn.Module):
 
         def conv_norm_relu(*, k: int, i: int, o: int) -> nn.Sequential:
             return nn.Sequential(
-                sn(nn.Conv1d(i, o,
-                             kernel_size=k,
-                             padding=k // 2,
-                             #  bias=False
-                             )),
+                sn(nn.Conv1d(i, o, kernel_size=k, padding=k // 2, bias=False)),
+                nn.BatchNorm1d(o),
                 nn.LeakyReLU(negative_slope=RELU_SLOPE))
 
         cs = ENCODER_CHANNELS
