@@ -157,5 +157,9 @@ TODO:
             Update the upsampling feelings script to include topics that will steer the generated text towards certain classes of emojis.
             The goal is to avoid too many emoji faces and to add miss-covered classes like objects, animals, plants, etc...
             When annotating using topics add a {topic} field to the data (it is fine that existing records do not have this field.)
+
+        Fail Analysis:
+            Create a tool tools/analysis/fails.ts that run the trained model on the eval.jsonl set and generate a report of the fails.
+            List all the failed records ordered by the model error.
 DONE:
 
