@@ -45,6 +45,10 @@ GAN_EPOCHS = 40
 VAL_CHECK_INTERVAL = 100
 EARLY_STOP_PATIENCE = 20
 
+# METRICS
+EMOJI_AP_K = 10
+STYLE_AP_K = 5
+
 # TENSORBOARD RUN NAME
 model_str = ' '.join([
     str(p) for p in

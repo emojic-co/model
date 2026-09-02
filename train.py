@@ -4,12 +4,11 @@ from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import optim
 from torch.nn.functional import binary_cross_entropy_with_logits
-from torchmetrics.classification import MultilabelAveragePrecision
 
 from config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE,
-    EMOJIS,
+    EMOJI_AP_K,
     FOCAL_ALPHA,
     FOCAL_GAMMA,
     GAN_EPOCHS,
@@ -17,6 +16,7 @@ from config import (
     GRAD_CLIP,
     LR,
     SEED,
+    STYLE_AP_K,
     STYLES,
     TASK_EPOCHS,
     VAL_CHECK_INTERVAL,
@@ -51,6 +51,16 @@ def focal_loss(
     return loss.sum() / target.sum().clamp(min=1.0)
 
 
+def ap_at_k(logits: torch.Tensor, target: torch.Tensor, k: int) -> torch.Tensor:
+    k = min(k, logits.size(-1))
+    topk = logits.topk(k, dim=-1).indices
+    rel = target.gather(1, topk)
+    ranks = torch.arange(1, k + 1, device=logits.device)
+    prec = rel.cumsum(dim=-1) / ranks
+    denom = target.sum(dim=-1).clamp(max=k).clamp(min=1.0)
+    return (prec * rel).sum(dim=-1) / denom
+
+
 class LitTask(pl.LightningModule):
     def __init__(self, style_pos_weight=None):
         super().__init__()
@@ -62,15 +72,6 @@ class LitTask(pl.LightningModule):
         self.register_buffer(
             "style_pos_weight",
             torch.ones(len(STYLES)) if style_pos_weight is None else style_pos_weight)
-
-        self.emoji_ap_train = MultilabelAveragePrecision(
-            num_labels=len(EMOJIS), average="macro")
-        self.emoji_ap_val = MultilabelAveragePrecision(
-            num_labels=len(EMOJIS), average="macro")
-        self.style_ap_train = MultilabelAveragePrecision(
-            num_labels=len(STYLES), average="macro")
-        self.style_ap_val = MultilabelAveragePrecision(
-            num_labels=len(STYLES), average="macro")
 
     def _step(self, batch, split):
         text, emoji, style, _ = batch
@@ -85,27 +86,20 @@ class LitTask(pl.LightningModule):
         emoji_logits = self.emoji(enc)
         loss_emoji = focal_loss(emoji_logits, emoji, FOCAL_ALPHA, FOCAL_GAMMA)
 
-        emoji_ap = self.emoji_ap_train if split == "train" else self.emoji_ap_val
-        style_ap = self.style_ap_train if split == "train" else self.style_ap_val
-        style_ap.update(style_logits, style.int())
+        style_ap = ap_at_k(style_logits, style, STYLE_AP_K).mean()
 
         has_e = emoji.sum(dim=-1) > 0
         n_e = int(has_e.sum())
         if n_e:
-            e_logits = emoji_logits[has_e]
-            e_target = emoji[has_e]
-            emoji_ap.update(e_logits, e_target.int())
-            top10 = e_logits.topk(10, dim=-1).indices
-            hit10 = e_target.gather(1, top10).amax(dim=-1).mean()
+            emoji_ap = ap_at_k(emoji_logits[has_e], emoji[has_e], EMOJI_AP_K).mean()
         else:
-            hit10 = torch.zeros((), device=emoji.device)
+            emoji_ap = torch.zeros((), device=emoji.device)
 
         for name, val, bs in (
             (f"loss/s/{split}", loss_style, text.size(0)),
             (f"loss/e/{split}", loss_emoji, text.size(0)),
-            (f"hit10/e/{split}", hit10, max(n_e, 1)),
-            (f"mAP/e/{split}", emoji_ap, max(n_e, 1)),
-            (f"mAP/s/{split}", style_ap, text.size(0)),
+            (f"mAP@{EMOJI_AP_K}/e/{split}", emoji_ap, max(n_e, 1)),
+            (f"mAP@{STYLE_AP_K}/s/{split}", style_ap, text.size(0)),
         ):
             self.log(
                 name, val,
@@ -128,8 +122,8 @@ class LitTask(pl.LightningModule):
 
     def _log_f1(self, split):
         m = self.trainer.callback_metrics
-        a = m.get(f"mAP/e/{split}")
-        b = m.get(f"mAP/s/{split}")
+        a = m.get(f"mAP@{EMOJI_AP_K}/e/{split}")
+        b = m.get(f"mAP@{STYLE_AP_K}/s/{split}")
         if a is not None and b is not None:
             self.log(f"f1/{split}", f1(a, b), prog_bar=True)
 

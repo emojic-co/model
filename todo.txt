@@ -214,8 +214,9 @@ TODO:
                         - The merged record contains the union of all emojis and styles from all the records that were merged into it.
                         - After the merge there is exactly one record with the normalized text.
 
-        Discussion:
-            - Can we use negative sampling for both style and emoji loss?
+        Metrics:
+            I only care about AP@10 for emojis and AP@5 for styles (normalized to min(emoji/style count, 10)).
+            Explain to me in simple words what exactly you plan to do before implementing.
 
 DONE:
 
