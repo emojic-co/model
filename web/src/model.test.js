@@ -4,6 +4,7 @@ import {
   encode,
   argmax,
   softmax,
+  sigmoid,
   decodeColors,
   decodeColorList,
 } from './model'
@@ -86,5 +87,19 @@ describe('argmax / softmax', () => {
     const p = softmax([1, 2, 3])
     expect(p.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 6)
     expect(p[2]).toBeGreaterThan(p[0])
+  })
+})
+
+describe('sigmoid', () => {
+  it('maps each logit independently into (0, 1)', () => {
+    const p = sigmoid([0, 2, -2])
+    expect(p[0]).toBeCloseTo(0.5, 6)
+    expect(p[1]).toBeCloseTo(0.880797, 5)
+    expect(p[2]).toBeCloseTo(0.119203, 5)
+  })
+  it('preserves ranking', () => {
+    expect(sigmoid([-1, 3, 0.5])).toEqual([...sigmoid([-1, 3, 0.5])])
+    const p = sigmoid([-1, 3, 0.5])
+    expect(argmax(p)).toBe(1)
   })
 })

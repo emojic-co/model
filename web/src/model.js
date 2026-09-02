@@ -48,3 +48,7 @@ export function softmax(arr) {
   const sum = exps.reduce((a, b) => a + b, 0)
   return exps.map((e) => e / sum)
 }
+
+export function sigmoid(arr) {
+  return Array.from(arr, (x) => 1 / (1 + Math.exp(-x)))
+}

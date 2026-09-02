@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import * as ort from 'onnxruntime-web/wasm'
-import { encode, decodeColorList } from '../model'
+import { encode, decodeColorList, sigmoid } from '../model'
 
 const BASE = import.meta.env.BASE_URL
 
@@ -45,8 +45,8 @@ export function useOnnx() {
     const tensor = new ort.Tensor('int64', ids, [1, m.max_text_len])
     const out = await sessionRef.current.run({ input: tensor })
     return {
-      feeling: Array.from(out.feeling_logits.data),
-      emoji: Array.from(out.emoji_logits.data),
+      feeling: sigmoid(out.style_logits.data),
+      emoji: sigmoid(out.emoji_logits.data),
       palettes: decodeColorList(out.color.data),
     }
   }, [])

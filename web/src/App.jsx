@@ -70,11 +70,11 @@ export function App() {
 
   const emojiScores = scores && scores.emoji
   const predictedEmoji = scores ? meta.emojis[argmax(scores.emoji)] : null
-  const predictedFeeling = scores ? meta.feelings[argmax(scores.feeling)] : null
+  const predictedFeeling = scores ? meta.styles[argmax(scores.feeling)] : null
   const shownEmoji = override.emoji ?? predictedEmoji
   const shownFeeling = override.feeling ?? predictedFeeling
   const feelingOptions = useMemo(
-    () => topFeelings(scores?.feeling, meta?.feelings ?? [], shownFeeling, feelingCount),
+    () => topFeelings(scores?.feeling, meta?.styles ?? [], shownFeeling, feelingCount),
     [scores, meta, shownFeeling, feelingCount],
   )
   const emojiTop = useMemo(
