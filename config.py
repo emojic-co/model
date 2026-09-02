@@ -14,7 +14,8 @@ MAX_TEXT_LEN = 42
 # ENCODER
 CHAR_EMBED_SIZE = 16
 ENCODER_CHANNELS = [96, 128]
-ENCODER_KERNEL = 5
+ENCODER_KERNEL = 3
+assert ENCODER_KERNEL % 2 == 1, "Encoder kernel size must be odd"
 
 enc_str = ' '.join([str(p) for p in (
     CHAR_EMBED_SIZE,
