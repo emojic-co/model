@@ -7,7 +7,15 @@ const OUT_DIR = "report/preview"
 const COUNT = 300
 const COLS = 5
 
-type Row = { text: string; feeling: string; emoji: string; bg: [string, string]; fg: string }
+type Row = {
+  text: string
+  emojis?: string
+  styles?: string[]
+  emoji?: string
+  feeling?: string
+  bg: [string, string]
+  fg: string
+}
 
 const EXTRA_CSS = `
 body { place-items: start center; padding: 2em 1em; }
@@ -28,8 +36,8 @@ if (import.meta.main) {
     .map((r) =>
       cardHtml({
         text: r.text,
-        emoji: r.emoji,
-        feeling: r.feeling,
+        emoji: r.emojis ?? r.emoji ?? "",
+        feeling: r.styles?.[0] ?? r.feeling ?? "Neutral",
         colors: { bg1: r.bg[0], bg2: r.bg[1], text_color: r.fg },
       }),
     )

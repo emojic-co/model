@@ -183,8 +183,8 @@ class LitColorGAN(pl.LightningModule):
 
         opt_gen.step()
 
-        self.log("loss/tst", loss_tst, prog_bar=True)
-        self.log("loss/gen", loss_gen, prog_bar=True)
+        self.log("loss/gan/tst", loss_tst, prog_bar=True)
+        self.log("loss/gan/gen", loss_gen, prog_bar=True)
 
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=GAN_LR)
