@@ -74,7 +74,7 @@ train_str = ' '.join([str(p) for p in (
     FOCAL_GAMMA)])
 
 EPOCHS_TASK = 200
-EPOCHS_GAN = 50
+EPOCHS_GAN = 60
 VAL_CHECK_INTERVAL = 100
 EARLY_STOP_PATIENCE = 20
 
