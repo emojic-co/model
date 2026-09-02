@@ -109,7 +109,8 @@ class ColorGen(nn.Module):
 
         io = zip(GEN_CHANNELS[:-1], GEN_CHANNELS[1:], strict=True)
         self.net = nn.Sequential(
-            nn.Linear(TEXT_EMBED_SIZE, GEN_CHANNELS[0]),
+            nn.Linear(TEXT_EMBED_SIZE, GEN_CHANNELS[0], bias=False),
+            nn.BatchNorm1d(GEN_CHANNELS[0]),
             nn.LeakyReLU(negative_slope=RELU_SLOPE),
             *[
                 nn.Sequential(
