@@ -224,7 +224,7 @@ if __name__ == "__main__":
             "runs", name=CONFIG_NAME, version="task", default_hp_metric=False),
         deterministic=True,
         max_epochs=TASK_EPOCHS,
-        val_check_interval=min(VAL_CHECK_INTERVAL, len(dl)),
+        val_check_interval=min(VAL_CHECK_INTERVAL, len(task_dl)),
         callbacks=[
             task_ckpt,
             EarlyStopping(
