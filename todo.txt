@@ -226,6 +226,23 @@ TODO:
             - export the test function and run it after each training (just call it from the train.py script)
             - also possible to run it `uv run test_emoji.py`
 
-
 DONE:
+
+        Modal.com:
+            create a script train-modal.py
+            the script is a slim wrapper around train.py
+            it should run the training on multiple cheap GPUs on modal.com
+            It should speedup training by at least 10x (otherwise it is not worth it)
+            It must log realtime tensorboard metrics.
+            It must log realtime training progress to the console.
+            Suggest a simple script to do that or push back and explain why we should not go that route.
+            ---
+            train-modal.py added. Pushed back on multi-GPU / 10x: model is ~110k params,
+            dataset 12MB in RAM, a full run is already ~15-32min on laptop CPU -- the
+            workload is kernel-launch/overhead bound, DDP would likely be slower and would
+            change the effective batch size. Built a single high-CPU (no GPU) Modal worker
+            instead: keeps torch CPU-pinned + `uv sync --frozen` untouched, train.py runs
+            unmodified, live TensorBoard tunnel + streamed console, artifacts pulled back
+            to the repo. Expect ~1.5-2.5x wall-clock, ~$0.15-0.25/run. Run with
+            `uv run modal run train-modal.py`.
 

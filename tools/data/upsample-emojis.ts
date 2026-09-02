@@ -111,7 +111,6 @@ async function genBatch(
 if (import.meta.main) {
   const rareCount = argInt("--rare") ?? RARE_COUNT
   const per = argInt("--per") ?? TEXTS_PER_EMOJI
-  const onlyTarget = process.argv.includes("--only-target")
 
   const vocab = (
     JSON.parse(await readFile(LABELS, "utf8")) as { emojis: string[] }
@@ -185,11 +184,14 @@ if (import.meta.main) {
     const hit = label.emojis.includes(cands[i].target)
     if (hit) hitTarget++
     else missTarget++
-    if (onlyTarget && !hit) continue
+    const emojis = [
+      cands[i].target,
+      ...label.emojis.filter((e) => e !== cands[i].target),
+    ]
     lines.push(
       JSON.stringify({
         text: cands[i].text,
-        emojis: label.emojis.join(" "),
+        emojis: emojis.join(" "),
         styles: label.styles,
         bg: label.bg,
         fg: label.fg,
@@ -205,8 +207,8 @@ if (import.meta.main) {
   console.log(`dropped no label     : ${noLabel}`)
   console.log(`dropped no palette   : ${noPalette}`)
   console.log(
-    `target hit / miss    : ${hitTarget} / ${missTarget}`
-    + (onlyTarget ? " (misses dropped)" : " (misses kept)"),
+    `target hit / miss    : ${hitTarget} / ${missTarget} `
+    + `(target injected either way)`,
   )
   process.exit(0)
 }

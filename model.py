@@ -13,7 +13,6 @@ from config import (
     DROPOUT_EMOJI,
     DROPOUT_STYLE,
     EMOJI_EMBED_SIZE,
-    EMOJI_HIDDEN_LAYERS,
     ENCODER_CHANNELS,
     ENCODER_KERNEL,
     GEN_CHANNELS,
@@ -72,13 +71,7 @@ class EmojiHead(nn.Module):
 
         self.net = nn.Sequential(
             nn.Dropout(p=DROPOUT_EMOJI),
-            nn.Linear(TEXT_EMBED_SIZE, EMOJI_EMBED_SIZE, bias=False),
-            *[
-                nn.Sequential(
-                    nn.LeakyReLU(negative_slope=RELU_SLOPE),
-                    nn.Linear(EMOJI_EMBED_SIZE, EMOJI_EMBED_SIZE, bias=False))
-
-                for _ in range(EMOJI_HIDDEN_LAYERS)])
+            nn.Linear(TEXT_EMBED_SIZE, EMOJI_EMBED_SIZE, bias=False))
 
         self.embed = nn.Embedding(len(EMOJIS), EMOJI_EMBED_SIZE)
         self.bias = nn.Parameter(torch.zeros(len(EMOJIS)))

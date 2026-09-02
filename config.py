@@ -23,12 +23,10 @@ enc_str = ' '.join([str(p) for p in (
     ENCODER_KERNEL)])
 
 # EMOJI
-EMOJI_HIDDEN_LAYERS = 0
 EMOJI_EMBED_SIZE = 48
 DROPOUT_EMOJI = 0.2
 
 emj_str = ' '.join([str(p) for p in (
-    EMOJI_HIDDEN_LAYERS,
     EMOJI_EMBED_SIZE,
     DROPOUT_EMOJI)])
 
