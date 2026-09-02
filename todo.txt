@@ -161,5 +161,9 @@ TODO:
         Fail Analysis:
             Create a tool tools/analysis/fails.ts that run the trained model on the eval.jsonl set and generate a report of the fails.
             List all the failed records ordered by the model error.
+
+        DATA CLEANUP:
+            There are too many garbage records in the data, most of them have some kind of face emoji.
+            We need to analyze the data understand the problem and the cause and come up with a plan to clean it up.
 DONE:
 

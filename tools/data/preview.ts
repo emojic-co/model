@@ -4,7 +4,7 @@ import { cardHtml, page, stamp } from "./preview-card.ts"
 
 const EVAL = "eval.jsonl"
 const OUT_DIR = "report/preview"
-const COUNT = 200
+const COUNT = 300
 const COLS = 5
 
 type Row = { text: string; feeling: string; emoji: string; bg: [string, string]; fg: string }
@@ -43,6 +43,6 @@ if (import.meta.main) {
   await mkdir(OUT_DIR, { recursive: true })
   const dest = `${OUT_DIR}/${stamp()}.html`
   await writeFile(dest, html)
-  console.log(`wrote ${dest}`)
+  console.log(dest)
   process.exit(0)
 }
