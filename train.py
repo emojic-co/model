@@ -1,3 +1,6 @@
+import subprocess
+import sys
+
 import lightning as pl
 import torch
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
@@ -258,3 +261,5 @@ if __name__ == "__main__":
         ("tst", gan.tst),
     ):
         torch.save(mod.state_dict(), f"{name}.pt")
+
+    subprocess.run([sys.executable, "export_onnx.py"], check=True)
