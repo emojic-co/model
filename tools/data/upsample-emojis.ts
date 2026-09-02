@@ -49,6 +49,13 @@ function argInt(flag: string): number | undefined {
   return Number.isFinite(n) ? n : undefined
 }
 
+function argStr(flag: string): string | undefined {
+  const i = process.argv.indexOf(flag)
+  if (i < 0 || i + 1 >= process.argv.length) return undefined
+  const v = process.argv[i + 1].trim()
+  return v || undefined
+}
+
 export function countEmojis(
   rows: { emojis?: string }[],
   vocab: string[],
@@ -109,20 +116,26 @@ async function genBatch(
 }
 
 if (import.meta.main) {
+  const only = argStr("--emoji")
   const rareCount = argInt("--rare") ?? RARE_COUNT
   const per = argInt("--per") ?? TEXTS_PER_EMOJI
 
-  const vocab = (
-    JSON.parse(await readFile(LABELS, "utf8")) as { emojis: string[] }
-  ).emojis
-  const rows = await readJsonl<{ emojis?: string }>(TRAIN)
-  const counts = countEmojis(rows, vocab)
-  const targets = rarest(vocab, counts, rareCount)
-
-  console.log(
-    `${vocab.length} vocab emojis -> targeting ${targets.length} rarest `
-    + `(${counts.get(targets[0])}..${counts.get(targets.at(-1) ?? "")} rows each)`,
-  )
+  let targets: string[]
+  if (only) {
+    targets = [only]
+    console.log(`targeting one emoji -> ${only}`)
+  } else {
+    const vocab = (
+      JSON.parse(await readFile(LABELS, "utf8")) as { emojis: string[] }
+    ).emojis
+    const rows = await readJsonl<{ emojis?: string }>(TRAIN)
+    const counts = countEmojis(rows, vocab)
+    targets = rarest(vocab, counts, rareCount)
+    console.log(
+      `${vocab.length} vocab emojis -> targeting ${targets.length} rarest `
+      + `(${counts.get(targets[0])}..${counts.get(targets.at(-1) ?? "")} rows each)`,
+    )
+  }
 
   const genBar = new cliProgress.SingleBar(
     {
@@ -201,7 +214,7 @@ if (import.meta.main) {
   await appendJsonl(TRAIN, lines)
 
   console.log("\n--- summary ---")
-  console.log(`targets (rarest)     : ${targets.length}`)
+  console.log(`targets              : ${targets.length}`)
   console.log(`generated            : ${cands.length}`)
   console.log(`appended -> train    : ${lines.length}`)
   console.log(`dropped no label     : ${noLabel}`)
