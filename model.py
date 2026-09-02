@@ -113,7 +113,8 @@ class ColorGen(nn.Module):
             nn.LeakyReLU(negative_slope=RELU_SLOPE),
             *[
                 nn.Sequential(
-                    nn.Linear(i, o),
+                    nn.Linear(i, o, bias=False),
+                    nn.BatchNorm1d(o),
                     nn.LeakyReLU(negative_slope=RELU_SLOPE)
                 )
                 for i, o in io
