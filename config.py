@@ -43,7 +43,7 @@ style_str = ' '.join([str(p) for p in (
 
 # GAN
 Z_WEIGHT = 0.2
-GEN_CHANNELS = [64]
+GEN_CHANNELS = [64, 32]
 CRITIC_CHANNELS = [32, 16, 8]
 GAN_LR = 0.01
 
