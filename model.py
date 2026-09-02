@@ -31,29 +31,29 @@ class TextEncoder(nn.Module):
 
         self.char_embed = nn.Embedding(VOCAB_SIZE, CHAR_EMBED_SIZE)
 
-        def conv_sn(*, k: int, i: int, o: int) -> nn.Sequential:
+        def conv_norm(*, k: int, i: int, o: int) -> nn.Sequential:
             return nn.Sequential(
-                sn(nn.Conv1d(i, o, kernel_size=k, bias=False)),
-                # nn.BatchNorm1d(o)
+                nn.Conv1d(i, o, kernel_size=k, bias=False),
+                nn.BatchNorm1d(o)
             )
 
-        def conv_sn_relu(*, k: int, i: int, o: int) -> nn.Sequential:
+        def conv_norm_relu(*, k: int, i: int, o: int) -> nn.Sequential:
             return nn.Sequential(
-                conv_sn(k=k, i=i, o=o),
+                conv_norm(k=k, i=i, o=o),
                 nn.LeakyReLU(negative_slope=RELU_SLOPE))
 
-        def pool_conv_sn_relu(*, k: int, i: int, o: int) -> nn.Sequential:
+        def pool_conv_norm_relu(*, k: int, i: int, o: int) -> nn.Sequential:
             return nn.Sequential(
                 nn.MaxPool1d(kernel_size=2, stride=2),
-                conv_sn_relu(k=k, i=i, o=o))
+                conv_norm_relu(k=k, i=i, o=o))
 
         cs = TEXT_ENCODER_CHANNELS
         io = zip(cs[:-1], cs[1:], strict=True)
 
         self.encoder = nn.Sequential(
-            conv_sn_relu(k=ENCODER_KERNEL, i=CHAR_EMBED_SIZE, o=cs[0]),
+            conv_norm_relu(k=ENCODER_KERNEL, i=CHAR_EMBED_SIZE, o=cs[0]),
             *[
-                pool_conv_sn_relu(k=ENCODER_KERNEL, i=i, o=o)
+                pool_conv_norm_relu(k=ENCODER_KERNEL, i=i, o=o)
                 for i, o in io])
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
