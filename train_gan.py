@@ -2,7 +2,7 @@ import lightning as pl
 import torch
 from lightning.pytorch.loggers import TensorBoardLogger
 
-from config import CONFIG_NAME, GAN_BATCH_SIZE, GAN_EPOCHS, SEED
+from config import CONFIG_NAME, EPOCHS_GAN, GAN_BATCH_SIZE, SEED
 from data import train_data_loader, train_ds
 from model import TextEncoder
 from train import LitColorGAN
@@ -25,7 +25,7 @@ if __name__ == "__main__":
         logger=TensorBoardLogger(
             "runs", name=CONFIG_NAME, version="gan", default_hp_metric=False),
         deterministic=True,
-        max_epochs=GAN_EPOCHS,
+        max_epochs=EPOCHS_GAN,
         enable_checkpointing=False,
     )
 

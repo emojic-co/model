@@ -8,47 +8,74 @@ with open('labels.json', encoding='utf-8') as f:
 STYLES = LABELS["styles"]
 EMOJIS = LABELS["emojis"]
 
+# DATA
 MAX_TEXT_LEN = 42
-TASK_BATCH_SIZE = 256
-GAN_BATCH_SIZE = 512
 
-# MODEL
+# ENCODER
 CHAR_EMBED_SIZE = 16
-TEXT_ENCODER_CHANNELS = [96, 128]
+ENCODER_CHANNELS = [96, 128]
 ENCODER_KERNEL = 3
-ATTN_HEADS = 2
-RELU_SLOPE = 0.1
 
+enc_str = ' '.join([str(p) for p in (
+    CHAR_EMBED_SIZE,
+    ENCODER_CHANNELS,
+    ENCODER_KERNEL)])
+
+# EMOJI
 EMOJI_HIDDEN_LAYERS = 0
 EMOJI_EMBED_SIZE = 48
-STYLE_EMBED_SIZE = 12
-TEXT_EMBED_SIZE = TEXT_ENCODER_CHANNELS[-1]
-
-# DROPOUT
-DROPOUT_STYLE = 0.2
 DROPOUT_EMOJI = 0.2
 
+emj_str = ' '.join([str(p) for p in (
+    EMOJI_HIDDEN_LAYERS,
+    EMOJI_EMBED_SIZE,
+    DROPOUT_EMOJI)])
+
+# STYLE
+STYLE_EMBED_SIZE = 12
+TEXT_EMBED_SIZE = ENCODER_CHANNELS[-1]
+DROPOUT_STYLE = 0.2
+
+style_str = ' '.join([str(p) for p in (
+    STYLE_EMBED_SIZE,
+    TEXT_EMBED_SIZE,
+    DROPOUT_STYLE)])
+
 # GAN
-Z_WEIGHT = 0
+Z_WEIGHT = 0.2
 GEN_CHANNELS = [64]
 CRITIC_CHANNELS = [32, 16, 8]
+GAN_LR = 0.01
+
+gan_str = ' '.join([str(p) for p in (
+    Z_WEIGHT,
+    GEN_CHANNELS,
+    CRITIC_CHANNELS,
+    GAN_LR)])
 
 
 # TRAINING
 SEED = 42
-
+TASK_BATCH_SIZE = 256
+GAN_BATCH_SIZE = 512
+RELU_SLOPE = 0.1
 LR = 0.01
-GAN_LR = 0.01
-
 GRAD_CLIP = 1.0
-
 FOCAL_ALPHA = 0.25
 FOCAL_GAMMA = 2.0
 
+train_str = ' '.join([str(p) for p in (
+    SEED,
+    TASK_BATCH_SIZE,
+    GAN_BATCH_SIZE,
+    RELU_SLOPE,
+    LR,
+    GRAD_CLIP,
+    FOCAL_ALPHA,
+    FOCAL_GAMMA)])
 
-TASK_EPOCHS = 200
-GAN_EPOCHS = 50
-
+EPOCHS_TASK = 200
+EPOCHS_GAN = 50
 VAL_CHECK_INTERVAL = 100
 EARLY_STOP_PATIENCE = 20
 
@@ -57,17 +84,11 @@ EMOJI_AP_K = 10
 STYLE_AP_K = 5
 
 # TENSORBOARD RUN NAME
-model_str = ' '.join([
-    str(p) for p in (
-        CHAR_EMBED_SIZE, TEXT_ENCODER_CHANNELS, ENCODER_KERNEL, ATTN_HEADS,
-        DROPOUT_STYLE)])
-
-train_str = ' '.join([
-    str(p) for p in
-    (LR, GAN_LR, TASK_BATCH_SIZE, GRAD_CLIP, FOCAL_ALPHA, FOCAL_GAMMA)])
-
 CONFIG_NAME = ' | '.join([
     f'TIME: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
-    f'MODEL: {model_str}',
+    f'ENCODER: {enc_str}',
+    f'EMOJI: {emj_str}',
+    f'STYLE: {style_str}',
+    f'GAN: {gan_str}',
     f'TRAIN: {train_str}',
 ])

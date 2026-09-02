@@ -2,7 +2,7 @@ import lightning as pl
 import torch
 from lightning.pytorch.loggers import TensorBoardLogger
 
-from config import CONFIG_NAME, GAN_EPOCHS, GEN_Z_DIM, SEED
+from config import CONFIG_NAME, EPOCHS_GAN, GEN_Z_DIM, SEED
 from data import train_data_loader
 from model import EmojiHead, TextEncoder
 from train import LitColorGAN
@@ -32,7 +32,7 @@ if __name__ == "__main__":
             "runs", name=CONFIG_NAME, version="gan-fixedz", default_hp_metric=False
         ),
         deterministic=True,
-        max_epochs=GAN_EPOCHS,
+        max_epochs=EPOCHS_GAN,
         enable_checkpointing=False,
     )
 

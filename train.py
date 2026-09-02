@@ -12,10 +12,11 @@ from config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE,
     EMOJI_AP_K,
+    EPOCHS_GAN,
+    EPOCHS_TASK,
     FOCAL_ALPHA,
     FOCAL_GAMMA,
     GAN_BATCH_SIZE,
-    GAN_EPOCHS,
     GAN_LR,
     GRAD_CLIP,
     LR,
@@ -23,7 +24,6 @@ from config import (
     STYLE_AP_K,
     STYLES,
     TASK_BATCH_SIZE,
-    TASK_EPOCHS,
     VAL_CHECK_INTERVAL,
 )
 from data import eval_data_loader, train_data_loader, train_ds
@@ -223,7 +223,7 @@ if __name__ == "__main__":
         logger=TensorBoardLogger(
             "runs", name=CONFIG_NAME, version="task", default_hp_metric=False),
         deterministic=True,
-        max_epochs=TASK_EPOCHS,
+        max_epochs=EPOCHS_TASK,
         val_check_interval=min(VAL_CHECK_INTERVAL, len(task_dl)),
         callbacks=[
             task_ckpt,
@@ -251,7 +251,7 @@ if __name__ == "__main__":
         logger=TensorBoardLogger(
             "runs", name=CONFIG_NAME, version="gan", default_hp_metric=False),
         deterministic=True,
-        max_epochs=GAN_EPOCHS,
+        max_epochs=EPOCHS_GAN,
         enable_checkpointing=False,
     )
 

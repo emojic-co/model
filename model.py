@@ -14,12 +14,12 @@ from config import (
     DROPOUT_STYLE,
     EMOJI_EMBED_SIZE,
     EMOJI_HIDDEN_LAYERS,
+    ENCODER_CHANNELS,
     ENCODER_KERNEL,
     GEN_CHANNELS,
     RELU_SLOPE,
     STYLE_EMBED_SIZE,
     TEXT_EMBED_SIZE,
-    TEXT_ENCODER_CHANNELS,
     Z_WEIGHT,
 )
 from data import COLOR_DIM, EMOJIS, PAD_IDX, STYLES, VOCAB_SIZE
@@ -37,7 +37,7 @@ class TextEncoder(nn.Module):
                 # nn.BatchNorm1d(o),
                 nn.LeakyReLU(negative_slope=RELU_SLOPE))
 
-        cs = TEXT_ENCODER_CHANNELS
+        cs = ENCODER_CHANNELS
         io = zip([CHAR_EMBED_SIZE, *cs[:-1]], cs, strict=True)
 
         self.encoder = nn.Sequential(
