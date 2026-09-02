@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from config import BATCH_SIZE, EMOJIS, MAX_TEXT_LEN, STYLES
+from config import EMOJIS, MAX_TEXT_LEN, STYLES
 
 TRAIN_PATH = "train.jsonl"
 EVAL_PATH = "eval.jsonl"
@@ -121,10 +121,17 @@ class EmojiDataset(Dataset):
         return self.text[idx], self.emoji[idx], self.style[idx], self.colors[idx]
 
 
-def train_data_loader():
+def train_ds():
+    return EmojiDataset(list(read(TRAIN_PATH)))
+
+
+def train_data_loader(
+    *, data_set: EmojiDataset,
+        batch_size: int):
+
     return DataLoader(
-        EmojiDataset(list(read(TRAIN_PATH))),
-        batch_size=BATCH_SIZE,
+        data_set,
+        batch_size=batch_size,
         shuffle=True,
         drop_last=True,
         num_workers=0,
@@ -134,7 +141,7 @@ def train_data_loader():
 def eval_data_loader():
     return DataLoader(
         EmojiDataset(list(read(EVAL_PATH))),
-        batch_size=BATCH_SIZE,
+        batch_size=2000,
         shuffle=False,
         drop_last=False,
         num_workers=0,

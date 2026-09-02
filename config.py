@@ -9,7 +9,8 @@ STYLES = LABELS["styles"]
 EMOJIS = LABELS["emojis"]
 
 MAX_TEXT_LEN = 42
-BATCH_SIZE = 256
+TASK_BATCH_SIZE = 256
+GAN_BATCH_SIZE = 512
 
 # MODEL
 CHAR_EMBED_SIZE = 16
@@ -61,7 +62,7 @@ model_str = ' '.join([
 
 train_str = ' '.join([
     str(p) for p in
-    (LR, GAN_LR, BATCH_SIZE, GRAD_CLIP, FOCAL_ALPHA, FOCAL_GAMMA)])
+    (LR, GAN_LR, TASK_BATCH_SIZE, GRAD_CLIP, FOCAL_ALPHA, FOCAL_GAMMA)])
 
 CONFIG_NAME = ' | '.join([
     f'TIME: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',

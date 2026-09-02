@@ -14,6 +14,7 @@ from config import (
     EMOJI_AP_K,
     FOCAL_ALPHA,
     FOCAL_GAMMA,
+    GAN_BATCH_SIZE,
     GAN_EPOCHS,
     GAN_LR,
     GRAD_CLIP,
@@ -21,10 +22,11 @@ from config import (
     SEED,
     STYLE_AP_K,
     STYLES,
+    TASK_BATCH_SIZE,
     TASK_EPOCHS,
     VAL_CHECK_INTERVAL,
 )
-from data import eval_data_loader, train_data_loader
+from data import eval_data_loader, train_data_loader, train_ds
 from model import ColorDsc, ColorGen, EmojiHead, StyleHead, TextEncoder
 
 POS_WEIGHT_CLAMP = 10.0
@@ -205,10 +207,10 @@ if __name__ == "__main__":
     pl.seed_everything(SEED, workers=True)
     torch.backends.cudnn.benchmark = False
 
-    dl = train_data_loader()
+    ds = train_ds()
+    task_dl = train_data_loader(data_set=ds, batch_size=TASK_BATCH_SIZE)
     val_dl = eval_data_loader()
 
-    ds = dl.dataset
     task_ckpt = ModelCheckpoint(
         monitor="f1/val",
         mode="max",
@@ -231,7 +233,7 @@ if __name__ == "__main__":
     )
 
     task = LitTask(style_pos_weight=pos_weight(ds.style))  # type: ignore
-    task_trainer.fit(task, dl, val_dl)
+    task_trainer.fit(task, task_dl, val_dl)
 
     if task_ckpt.best_model_path:
         task = LitTask.load_from_checkpoint(task_ckpt.best_model_path)
@@ -254,7 +256,8 @@ if __name__ == "__main__":
     )
 
     gan = LitColorGAN(task.enc)
-    gan_trainer.fit(gan, dl)
+    gan_dl = train_data_loader(data_set=ds, batch_size=GAN_BATCH_SIZE)
+    gan_trainer.fit(gan, gan_dl)
 
     for name, mod in (
         ("gen", gan.gen),
