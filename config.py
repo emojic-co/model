@@ -37,6 +37,8 @@ LR = 0.01
 GAN_LR = 0.01
 GRAD_CLIP = 1.0
 INFONCE_TEMP = 0.1
+FOCAL_ALPHA = 0.25
+FOCAL_GAMMA = 2.0
 
 TASK_EPOCHS = 100
 GAN_EPOCHS = 40
@@ -50,7 +52,7 @@ model_str = ' '.join([
 
 train_str = ' '.join([
     str(p) for p in
-    (LR, GAN_LR, BATCH_SIZE, GRAD_CLIP, INFONCE_TEMP)])
+    (LR, GAN_LR, BATCH_SIZE, GRAD_CLIP, INFONCE_TEMP, FOCAL_ALPHA, FOCAL_GAMMA)])
 
 CONFIG_NAME = ' | '.join([
     f'TIME: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',

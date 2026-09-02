@@ -10,6 +10,8 @@ from config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE,
     EMOJIS,
+    FOCAL_ALPHA,
+    FOCAL_GAMMA,
     GAN_EPOCHS,
     GAN_LR,
     GRAD_CLIP,
@@ -35,17 +37,28 @@ def pos_weight(multihot: torch.Tensor) -> torch.Tensor:
     return (neg / pos).sqrt().clamp(max=POS_WEIGHT_CLAMP)
 
 
+def focal_loss(
+    logits: torch.Tensor,
+    target: torch.Tensor,
+    alpha: float,
+    gamma: float,
+) -> torch.Tensor:
+    ce = binary_cross_entropy_with_logits(logits, target, reduction="none")
+    p = torch.sigmoid(logits)
+    p_t = p * target + (1 - p) * (1 - target)
+    alpha_t = alpha * target + (1 - alpha) * (1 - target)
+    loss = alpha_t * (1 - p_t) ** gamma * ce
+    return loss.sum() / target.sum().clamp(min=1.0)
+
+
 class LitTask(pl.LightningModule):
-    def __init__(self, emoji_pos_weight=None, style_pos_weight=None):
+    def __init__(self, style_pos_weight=None):
         super().__init__()
 
         self.enc = TextEncoder()
         self.style = StyleHead()
         self.emoji = EmojiHead()
 
-        self.register_buffer(
-            "emoji_pos_weight",
-            torch.ones(len(EMOJIS)) if emoji_pos_weight is None else emoji_pos_weight)
         self.register_buffer(
             "style_pos_weight",
             torch.ones(len(STYLES)) if style_pos_weight is None else style_pos_weight)
@@ -70,9 +83,7 @@ class LitTask(pl.LightningModule):
             pos_weight=self.style_pos_weight)  # type: ignore
 
         emoji_logits = self.emoji(enc)
-        loss_emoji = binary_cross_entropy_with_logits(
-            emoji_logits, emoji,
-            pos_weight=self.emoji_pos_weight)  # type: ignore
+        loss_emoji = focal_loss(emoji_logits, emoji, FOCAL_ALPHA, FOCAL_GAMMA)
 
         emoji_ap = self.emoji_ap_train if split == "train" else self.emoji_ap_val
         style_ap = self.style_ap_train if split == "train" else self.style_ap_val
@@ -222,7 +233,7 @@ if __name__ == "__main__":
         ],
     )
 
-    task = LitTask(pos_weight(ds.emoji), pos_weight(ds.style))  # type: ignore
+    task = LitTask(style_pos_weight=pos_weight(ds.style))  # type: ignore
     task_trainer.fit(task, dl, val_dl)
 
     if task_ckpt.best_model_path:
