@@ -33,8 +33,8 @@ class TextEncoder(nn.Module):
 
         def conv_norm_relu(*, k: int, i: int, o: int) -> nn.Sequential:
             return nn.Sequential(
-                sn(nn.Conv1d(i, o, kernel_size=k, padding=k // 2, bias=False)),
-                nn.BatchNorm1d(o),
+                sn(nn.Conv1d(i, o, kernel_size=k, padding=k // 2, bias=True)),
+                # nn.BatchNorm1d(o),
                 nn.LeakyReLU(negative_slope=RELU_SLOPE))
 
         cs = ENCODER_CHANNELS
@@ -43,20 +43,9 @@ class TextEncoder(nn.Module):
         self.encoder = nn.Sequential(
             *[conv_norm_relu(k=ENCODER_KERNEL, i=i, o=o) for i, o in io])
 
-        # self.attn = nn.MultiheadAttention(
-        #     TEXT_EMBED_SIZE,
-        #     ATTN_HEADS,
-        #     batch_first=True)
-
-        # self.norm = nn.LayerNorm(TEXT_EMBED_SIZE)
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         mask = x == PAD_IDX
         out = self.encoder(self.char_embed(x).transpose(1, 2))
-        # h = out.transpose(1, 2)
-        # a, _ = self.attn(h, h, h, key_padding_mask=mask, need_weights=False)
-        # h = self.norm(h + a)
-        # out = h.transpose(1, 2)
         out = out.masked_fill(mask[:, None, :], float("-inf"))
         return torch.max(out, dim=-1).values
 
@@ -67,8 +56,8 @@ class StyleHead(nn.Module):
 
         self.net = nn.Sequential(
             nn.Dropout(p=DROPOUT_STYLE),
-            nn.Linear(TEXT_EMBED_SIZE, STYLE_EMBED_SIZE, bias=False)
-        )
+            nn.Linear(TEXT_EMBED_SIZE, STYLE_EMBED_SIZE, bias=False))
+
         self.embed = nn.Embedding(len(STYLES), STYLE_EMBED_SIZE)
         self.bias = nn.Parameter(torch.zeros(len(STYLES)))
 
