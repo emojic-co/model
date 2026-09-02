@@ -100,6 +100,9 @@ class EmojiHead(nn.Module):
 
 
 # GAN
+COLOR_SCALE = 127.5
+
+
 class ColorGen(nn.Module):
     def __init__(self):
         super().__init__()
@@ -125,7 +128,7 @@ class ColorGen(nn.Module):
         z = normalize(torch.randn_like(cond), dim=-1)
         seed = (1 - Z_WEIGHT) * normalize(cond) + Z_WEIGHT * z
         colors = self.net(seed)
-        colors = tanh(colors) * 127.5
+        colors = tanh(colors) * COLOR_SCALE
 
         return colors
 
@@ -139,8 +142,8 @@ class ColorDsc(nn.Module):
         self.net = nn.Sequential(
             *[
                 nn.Sequential(
-                    # sn(nn.Conv1d(i, o, kernel_size=1, bias=True)),
-                    nn.Conv1d(i, o, kernel_size=1, bias=True),
+                    sn(nn.Conv1d(i, o, kernel_size=1, bias=True)),
+                    # nn.Conv1d(i, o, kernel_size=1, bias=True),
                     nn.LeakyReLU(negative_slope=RELU_SLOPE)
                 )
                 for i, o in io
@@ -150,7 +153,7 @@ class ColorDsc(nn.Module):
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
         x = torch.cat([
-            normalize(colors).unsqueeze(-1),
+            (colors / COLOR_SCALE).unsqueeze(-1),
             normalize(cond).unsqueeze(-1)], dim=1)
 
         return self.net(x)
