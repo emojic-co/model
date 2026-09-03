@@ -62,8 +62,7 @@ GAN_BATCH_SIZE = 512
 RELU_SLOPE = 0.1
 LR = 0.01
 GRAD_CLIP = 1.0
-FOCAL_ALPHA = 0.25
-FOCAL_GAMMA = 2.0
+INFONCE_TEMP = 1.0
 
 train_str = ' '.join([str(p) for p in (
     SEED,
@@ -72,8 +71,7 @@ train_str = ' '.join([str(p) for p in (
     RELU_SLOPE,
     LR,
     GRAD_CLIP,
-    FOCAL_ALPHA,
-    FOCAL_GAMMA)])
+    INFONCE_TEMP)])
 
 EPOCHS_TASK = 200
 EPOCHS_GAN = 100

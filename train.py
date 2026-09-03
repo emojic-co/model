@@ -22,15 +22,13 @@ from config import (
     ENERGY_Z_SAMPLES,
     EPOCHS_GAN,
     EPOCHS_TASK,
-    FOCAL_ALPHA,
-    FOCAL_GAMMA,
     GAN_BATCH_SIZE,
     GAN_LR,
     GRAD_CLIP,
+    INFONCE_TEMP,
     LR,
     SEED,
     STYLE_AP_K,
-    STYLES,
     TASK_BATCH_SIZE,
     TEXT_EMBED_SIZE,
     VAL_CHECK_INTERVAL,
@@ -49,31 +47,32 @@ from model import (
     rgb_to_oklab,
 )
 
-POS_WEIGHT_CLAMP = 10.0
-
 
 def f1(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     return 2 * a * b / (a + b + 1e-8)
 
 
-def pos_weight(multihot: torch.Tensor) -> torch.Tensor:
-    pos = multihot.sum(dim=0).clamp(min=1.0)
-    neg = multihot.size(0) - pos
-    return (neg / pos).sqrt().clamp(max=POS_WEIGHT_CLAMP)
-
-
-def focal_loss(
+def lse_infonce(
     logits: torch.Tensor,
     target: torch.Tensor,
-    alpha: float,
-    gamma: float,
+    temp: float,
 ) -> torch.Tensor:
-    ce = binary_cross_entropy_with_logits(logits, target, reduction="none")
-    p = torch.sigmoid(logits)
-    p_t = p * target + (1 - p) * (1 - target)
-    alpha_t = alpha * target + (1 - alpha) * (1 - target)
-    loss = alpha_t * (1 - p_t) ** gamma * ce
-    return loss.sum() / target.sum().clamp(min=1.0)
+    z = logits / temp
+    all_lse = torch.logsumexp(z, dim=-1)
+    pos_lse = torch.logsumexp(z.masked_fill(target == 0, float("-inf")), dim=-1)
+    row_loss = all_lse - pos_lse
+    has_pos = target.sum(dim=-1) > 0
+    if not bool(has_pos.any()):
+        return logits.new_zeros(())
+    return row_loss[has_pos].mean()
+
+
+def mrr_at_k(logits: torch.Tensor, target: torch.Tensor, k: int) -> torch.Tensor:
+    k = min(k, logits.size(-1))
+    topk = logits.topk(k, dim=-1).indices
+    rel = target.gather(1, topk)
+    ranks = torch.arange(1, k + 1, device=logits.device)
+    return (rel / ranks).amax(dim=-1)
 
 
 def energy_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
@@ -95,16 +94,12 @@ def ap_at_k(logits: torch.Tensor, target: torch.Tensor, k: int) -> torch.Tensor:
 
 
 class LitTask(pl.LightningModule):
-    def __init__(self, style_pos_weight=None):
+    def __init__(self):
         super().__init__()
 
         self.enc = TextEncoder()
         self.style = StyleHead()
         self.emoji = EmojiHead()
-
-        self.register_buffer(
-            "style_pos_weight",
-            torch.ones(len(STYLES)) if style_pos_weight is None else style_pos_weight)
 
     def _step(self, batch, split):
         text, emoji, style, _ = batch
@@ -112,27 +107,30 @@ class LitTask(pl.LightningModule):
         enc = self.enc(text)
 
         style_logits = self.style(enc)
-        loss_style = binary_cross_entropy_with_logits(
-            style_logits, style,
-            pos_weight=self.style_pos_weight)  # type: ignore
+        loss_style = lse_infonce(style_logits, style, INFONCE_TEMP)
 
         emoji_logits = self.emoji(enc)
-        loss_emoji = focal_loss(emoji_logits, emoji, FOCAL_ALPHA, FOCAL_GAMMA)
+        loss_emoji = lse_infonce(emoji_logits, emoji, INFONCE_TEMP)
 
         style_ap = ap_at_k(style_logits, style, STYLE_AP_K).mean()
+        style_mrr = mrr_at_k(style_logits, style, STYLE_AP_K).mean()
 
         has_e = emoji.sum(dim=-1) > 0
         n_e = int(has_e.sum())
         if n_e:
             emoji_ap = ap_at_k(emoji_logits[has_e], emoji[has_e], EMOJI_AP_K).mean()
+            emoji_mrr = mrr_at_k(emoji_logits[has_e], emoji[has_e], EMOJI_AP_K).mean()
         else:
             emoji_ap = torch.zeros((), device=emoji.device)
+            emoji_mrr = torch.zeros((), device=emoji.device)
 
         for name, val, bs in (
             (f"loss/s/{split}", loss_style, text.size(0)),
             (f"loss/e/{split}", loss_emoji, text.size(0)),
             (f"mAP@{EMOJI_AP_K}/e/{split}", emoji_ap, max(n_e, 1)),
             (f"mAP@{STYLE_AP_K}/s/{split}", style_ap, text.size(0)),
+            (f"MRR@{EMOJI_AP_K}/e/{split}", emoji_mrr, max(n_e, 1)),
+            (f"MRR@{STYLE_AP_K}/s/{split}", style_mrr, text.size(0)),
         ):
             self.log(
                 name, val,
@@ -295,8 +293,10 @@ if __name__ == "__main__":
     task_dl = train_data_loader(data_set=ds, batch_size=TASK_BATCH_SIZE)
     val_dl = eval_data_loader()
 
+    task_monitor = f"MRR@{EMOJI_AP_K}/e/val"
+
     task_ckpt = ModelCheckpoint(
-        monitor="f1/val",
+        monitor=task_monitor,
         mode="max",
         save_top_k=1,
         filename="best-{step}")
@@ -312,13 +312,13 @@ if __name__ == "__main__":
         callbacks=[
             task_ckpt,
             EarlyStopping(
-                monitor="f1/val", mode="max", patience=EARLY_STOP_PATIENCE),
+                monitor=task_monitor, mode="max", patience=EARLY_STOP_PATIENCE),
             TQDMProgressBar(),
             ModelSummary(),
         ],
     )
 
-    task = LitTask(style_pos_weight=pos_weight(ds.style))  # type: ignore
+    task = LitTask()
     task_trainer.fit(task, task_dl, val_dl)
 
     if task_ckpt.best_model_path:
