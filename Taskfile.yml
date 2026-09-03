@@ -25,17 +25,17 @@ tasks:
           [ -f "$root/$f" ] && cp "$root/$f" "$wt/$f" || true
         done
 
-        setsid sh -c "cd '$wt' && exec uv run modal run train-modal.py" >"$log" 2>&1 </dev/null &
+        setsid --fork sh -c "cd '$wt' && exec uv run modal run train-modal.py::main" >"$log" 2>&1 </dev/null
 
         browser=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v xdg-open || true)
         if [ -n "$browser" ]; then
-          setsid sh -c '
+          setsid --fork sh -c '
             for _ in $(seq 1 150); do
               u=$(grep -m1 -oE "TensorBoard: https?://[^ ]+" "$1" | sed "s/^TensorBoard: //")
               [ -n "$u" ] && exec "$2" "$u"
               sleep 2
             done
-          ' _ "$log" "$browser" >/dev/null 2>&1 </dev/null &
+          ' _ "$log" "$browser" >/dev/null 2>&1 </dev/null
         fi
 
         echo "branch   : $tag   (promote with: git branch -m $tag <newname>)"

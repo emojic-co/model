@@ -27,7 +27,7 @@ class TextEncoderBlock(nn.Module):
     def __init__(self, i: int, o: int):
         super().__init__()
         self.net = nn.Sequential(
-            sn(nn.Conv1d(i, o, kernel_size=3, padding=1, bias=True)),
+            sn(nn.Conv1d(i, o, kernel_size=2, padding=0, bias=True)),
             nn.LeakyReLU(negative_slope=RELU_SLOPE))
 
     def forward(
