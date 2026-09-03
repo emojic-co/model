@@ -392,6 +392,7 @@ TODO:
             Please read the following, review the current CLAUDE.md and update it to reflect the current state of the project, the current architecture, the current data and the current training process.
             Make sure to ask me any questions you have about the project before you start editing the CLAUDE.md file.
             If you think there are mistakes in the following make sure to stop and discuss with me before you start editing the CLAUDE.md file.
+            Also, if you think there are missing information in the following make sure to stop and discuss with me before you start editing the CLAUDE.md file.
 
 
             The goal of this project is to develop a deep learning model and a web app that turns a short text into an expressive card with a color palette, emojis and a style.
