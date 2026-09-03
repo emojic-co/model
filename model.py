@@ -187,7 +187,7 @@ class ColorDsc(nn.Module):
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
         c = colors / COLOR_SCALE
-        c = rgb_to_oklab(colors)  # comment out to feed the critic raw sRGB
+        # c = rgb_to_oklab(colors)  # comment out to feed the critic raw sRGB
 
         x = torch.cat([
             c.unsqueeze(-1),

@@ -304,6 +304,14 @@ TODO:
             The .json file will be used to upsample texts for colors that the GAN generator is failing on (future work).
 
             Before you implement make I explained the task clearly, so explain to me in simple words what exactly you plan to do and how you plan to do it.
+
+        COLOR_TEST:
+            Update the color test to be similar to the energy distance we measure during training.
+            Use the energy_keywords.txt file for keywords and measure the energy distance between gen <-> real and real <-> real 
+            Use the train.jsonl file for the texts.
+            The .html report should be the same, the only difference is that we group by keyword instead of color name and we measure the energy distance instead of accuracy.
+
+            Let me know if you push back on this and explain why.
 DONE:
 
         Modal.com:
