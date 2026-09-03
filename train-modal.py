@@ -107,6 +107,7 @@ def train_remote(threads: int = CPU) -> dict[str, bytes]:
         tb.terminate()
     if code != 0:
         raise RuntimeError(f"train.py exited with {code}")
+    subprocess.run([VENV_PY, "test_emoji.py"], cwd=REPO, env=env, check=False)
     return _collect()
 
 
