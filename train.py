@@ -21,6 +21,7 @@ from config import (
     ENERGY_KEYWORD_MAX_TEXTS,
     ENERGY_KEYWORD_MIN_TEXTS,
     ENERGY_KEYWORDS_PATH,
+    ENERGY_WEIGHT,
     ENERGY_Z_SAMPLES,
     EPOCHS_GAN,
     EPOCHS_TASK,
@@ -280,8 +281,13 @@ class LitColorGAN(pl.LightningModule):
         opt_tst.step()
 
         tst_fake = self.tst(cond, fake)
-        loss_gen = binary_cross_entropy_with_logits(
+        loss_gen_adv = binary_cross_entropy_with_logits(
             tst_fake, torch.ones_like(tst_fake))
+
+        fake_e = self.gen(cond.repeat_interleave(ENERGY_Z_SAMPLES, dim=0))
+        loss_gen_energy = energy_distance(rgb_to_oklab(colors), rgb_to_oklab(fake_e))
+
+        loss_gen = loss_gen_adv + ENERGY_WEIGHT * loss_gen_energy
 
         opt_gen.zero_grad()
         self.manual_backward(loss_gen)
@@ -293,6 +299,8 @@ class LitColorGAN(pl.LightningModule):
 
         self.log("loss/gan/tst", loss_tst, prog_bar=True)
         self.log("loss/gan/gen", loss_gen, prog_bar=True)
+        self.log("loss/gan/gen_adv", loss_gen_adv)
+        self.log("loss/gan/energy", loss_gen_energy, prog_bar=True)
 
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=GAN_LR)

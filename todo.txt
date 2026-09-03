@@ -312,6 +312,7 @@ TODO:
             The .html report should be the same, the only difference is that we group by keyword instead of color name and we measure the energy distance instead of accuracy.
 
             Let me know if you push back on this and explain why.
+
 DONE:
 
         Modal.com:
