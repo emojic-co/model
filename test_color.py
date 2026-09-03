@@ -7,37 +7,29 @@ from pathlib import Path
 import torch
 from torch.nn.functional import normalize
 
-from config import SEED, TEXT_EMBED_SIZE
-from data import EVAL_PATH, hex2rgb, read, text_to_tensor
-from model import ColorGen, TextEncoder
+from config import (
+    ENERGY_KEYWORD_MAX_TEXTS,
+    ENERGY_KEYWORD_MIN_TEXTS,
+    ENERGY_KEYWORDS_PATH,
+    ENERGY_Z_SAMPLES,
+    SEED,
+    TEXT_EMBED_SIZE,
+)
+from data import (
+    TRAIN_PATH,
+    hex2rgb,
+    load_energy_keywords,
+    read,
+    text_to_tensor,
+)
+from model import COLOR_SCALE, ColorGen, TextEncoder, rgb_to_oklab
 
 REPORT_DIR = Path("report/test-color")
-MIN_ROWS = 15
-SHOW_EX = 6
-COLOR_SAMPLES = 5
+SHOW_EX = 12
 
-ANCHORS = {
-    "red": "#c0392b",
-    "orange": "#e07a3f",
-    "amber": "#d9a441",
-    "yellow": "#e8d44d",
-    "olive": "#8a8a3f",
-    "green": "#4c9a52",
-    "teal": "#3f9a90",
-    "blue": "#4a6fd1",
-    "navy": "#22304a",
-    "purple": "#7a5aa8",
-    "pink": "#d98cc0",
-    "brown": "#6b4a35",
-    "cream": "#f1e3c3",
-    "black": "#1c1c1c",
-    "white": "#f2f2f2",
-    "gray": "#8a8a8a",
-}
-
-CONST_Z = normalize(
+Z_BANK = normalize(
     torch.randn(
-        COLOR_SAMPLES,
+        ENERGY_Z_SAMPLES,
         TEXT_EMBED_SIZE,
         generator=torch.Generator().manual_seed(SEED),
     ),
@@ -51,111 +43,105 @@ def _load(mod: torch.nn.Module, path: str) -> torch.nn.Module:
     return mod
 
 
-def _srgb_to_linear(c: float) -> float:
-    return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+def energy_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    mode = "donot_use_mm_for_euclid_dist"
+    xy = torch.cdist(x, y, compute_mode=mode).mean()
+    xx = torch.cdist(x, x, compute_mode=mode).mean()
+    yy = torch.cdist(y, y, compute_mode=mode).mean()
+    return (2 * xy - xx - yy).clamp(min=0.0).sqrt()
 
 
-def _oklab(rgb: tuple[float, float, float]) -> tuple[float, float, float]:
-    r, g, b = (_srgb_to_linear(v / 255.0) for v in rgb)
-    lm = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b
-    mm = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b
-    sm = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b
-    l_ = lm ** (1 / 3)
-    m_ = mm ** (1 / 3)
-    s_ = sm ** (1 / 3)
-    return (
-        0.2104542553 * l_ + 0.7936177850 * m_ - 0.0040720468 * s_,
-        1.9779984951 * l_ - 2.4285922050 * m_ + 0.4505937099 * s_,
-        0.0259040371 * l_ + 0.7827717662 * m_ - 0.8086757660 * s_,
-    )
+def _split_energy(pts: torch.Tensor) -> torch.Tensor:
+    m = pts.size(0)
+    half = m // 2
+    perm = torch.randperm(m, generator=torch.Generator().manual_seed(SEED))
+    return energy_distance(pts[perm[:half]], pts[perm[half : 2 * half]])
 
 
-ANCHOR_LAB = {name: _oklab(hex2rgb(hx)) for name, hx in ANCHORS.items()}
-
-
-def _delta_e(a: tuple[float, float, float], b: tuple[float, float, float]) -> float:
-    return sum((x - y) ** 2 for x, y in zip(a, b, strict=True)) ** 0.5
-
-
-def _bucket(rgb: tuple[float, float, float]) -> str:
-    lab = _oklab(rgb)
-    return min(ANCHOR_LAB, key=lambda name: _delta_e(lab, ANCHOR_LAB[name]))
-
-
-def _rgb_to_hex(rgb: tuple[float, float, float]) -> str:
+def _rgb_to_hex(rgb) -> str:
     return "#" + "".join(f"{int(max(0, min(255, round(v)))):02x}" for v in rgb)
 
 
-def _target_bg(colors: list[str]) -> tuple[float, float, float]:
-    a, b = hex2rgb(colors[0]), hex2rgb(colors[1])
-    return tuple((x + y) / 2 for x, y in zip(a, b, strict=True))  # type: ignore
+def _palette_hex(flat) -> list[str]:
+    vals = list(flat)
+    return [_rgb_to_hex(vals[i : i + 3]) for i in range(0, 9, 3)]
 
 
-def _gen_bgs(gen: ColorGen, emb: torch.Tensor) -> list[tuple[float, float, float]]:
-    cond = emb.expand(COLOR_SAMPLES, -1)
-    out = gen(cond, CONST_Z) + 127.5
-    bgs = (out[:, 0:3] + out[:, 3:6]) / 2
-    return [tuple(row.tolist()) for row in bgs]
+def _keyword_groups(train_path: str) -> dict[str, list]:
+    kws = [k.lower() for k in load_energy_keywords(ENERGY_KEYWORDS_PATH)]
+    hits: dict[str, list] = {k: [] for k in kws}
+    for r in read(train_path):
+        for k in kws:
+            if k in r.text:
+                hits[k].append(r)
+
+    g = torch.Generator().manual_seed(SEED)
+    out: dict[str, list] = {}
+    for k in kws:
+        rows = hits[k]
+        if len(rows) < ENERGY_KEYWORD_MIN_TEXTS:
+            print(f"keyword {k!r}: {len(rows)} < {ENERGY_KEYWORD_MIN_TEXTS} matches, skip")
+            continue
+        if len(rows) > ENERGY_KEYWORD_MAX_TEXTS:
+            idx = torch.randperm(len(rows), generator=g)[:ENERGY_KEYWORD_MAX_TEXTS].tolist()
+            rows = [rows[i] for i in idx]
+        out[k] = rows
+    return out
 
 
-def _evaluate(enc_path: str, gen_path: str, records: list) -> list[dict]:
+def _evaluate(enc_path: str, gen_path: str, groups: dict[str, list]) -> list[dict]:
     enc = _load(TextEncoder(), enc_path)
     gen = _load(ColorGen(), gen_path)
 
-    rows = []
+    out = []
     with torch.no_grad():
-        for rec in records:
-            target = _target_bg(rec.colors)
-            tgt_bucket = _bucket(target)
-            emb = enc(text_to_tensor(rec.text).unsqueeze(0))
-            gen_bgs = _gen_bgs(gen, emb)  # type: ignore
-            gen_buckets = [_bucket(c) for c in gen_bgs]
-            deltas = [_delta_e(_oklab(target), _oklab(c)) for c in gen_bgs]
-            rows.append(
+        for kw, recs in groups.items():
+            text_ids = torch.stack([text_to_tensor(r.text) for r in recs])
+            real_rgb = torch.stack(
+                [
+                    torch.tensor(
+                        [c for h in r.colors for c in hex2rgb(h)], dtype=torch.float32
+                    )
+                    - 127.5
+                    for r in recs
+                ]
+            )
+            n = text_ids.size(0)
+            rep = text_ids.repeat_interleave(ENERGY_Z_SAMPLES, dim=0)
+            z = Z_BANK.repeat(n, 1)
+            fake_rgb = gen(enc(rep), z)
+
+            real = rgb_to_oklab(real_rgb)
+            fake = rgb_to_oklab(fake_rgb)
+            gen_ed = energy_distance(real, fake).item()
+            ref_ed = _split_energy(real).item()
+
+            fake_disp = (fake_rgb + COLOR_SCALE).view(n, ENERGY_Z_SAMPLES, 9)
+
+            g = torch.Generator().manual_seed(SEED)
+            ridx = torch.randperm(n, generator=g)[:SHOW_EX].tolist()
+            zidx = torch.randint(ENERGY_Z_SAMPLES, (len(ridx),), generator=g).tolist()
+            ex = [
                 {
-                    "text": rec.text,
-                    "target": target,
-                    "target_hex": _rgb_to_hex(target),
-                    "bucket": tgt_bucket,
-                    "gen_hex": [_rgb_to_hex(c) for c in gen_bgs],
-                    "gen_buckets": gen_buckets,
-                    "hit": tgt_bucket in gen_buckets,
-                    "sample_hits": sum(b == tgt_bucket for b in gen_buckets),
-                    "min_delta_e": min(deltas),
+                    "text": recs[i].text,
+                    "real_hex": list(recs[i].colors),
+                    "gen_hex": _palette_hex(fake_disp[i, s].tolist()),
+                }
+                for i, s in zip(ridx, zidx, strict=True)
+            ]
+
+            out.append(
+                {
+                    "keyword": kw,
+                    "n": n,
+                    "energy_gen": gen_ed,
+                    "energy_ref": ref_ed,
+                    "gap": gen_ed - ref_ed,
+                    "ex": ex,
                 }
             )
-    return rows
-
-
-def _color_stats(rows: list[dict]) -> dict:
-    n = len(rows)
-    return {
-        "n": n,
-        "accuracy": sum(r["hit"] for r in rows) / n,
-        "per_sample_hit": sum(r["sample_hits"] for r in rows) / (n * COLOR_SAMPLES),
-        "mean_delta_e": sum(r["min_delta_e"] for r in rows) / n,
-    }
-
-
-def _collect(rows: list[dict]) -> list[dict]:
-    by_bucket: dict[str, list[dict]] = {}
-    for r in rows:
-        by_bucket.setdefault(r["bucket"], []).append(r)
-    colors = []
-    for name, group in by_bucket.items():
-        if len(group) < MIN_ROWS:
-            continue
-        stats = _color_stats(group)
-        colors.append(
-            {
-                "name": name,
-                "anchor_hex": ANCHORS[name],
-                "rows": group,
-                **stats,
-            }
-        )
-    colors.sort(key=lambda c: c["accuracy"])
-    return colors
+    out.sort(key=lambda c: -c["gap"])
+    return out
 
 
 def _swatch(hx: str, label: str = "") -> str:
@@ -163,99 +149,99 @@ def _swatch(hx: str, label: str = "") -> str:
     return f'<span class="sw" style="background:{hx}"{tip}></span>'
 
 
-def _render_html(colors: list[dict], summary: dict, meta: dict) -> str:
+def _palette(hexes: list[str]) -> str:
+    return "".join(_swatch(h) for h in hexes)
+
+
+def _render_html(groups: list[dict], summary: dict, meta: dict) -> str:
     out = [
         "<!doctype html><meta charset='utf-8'>",
         f"<title>Color test - {meta['stamp']}</title>",
         "<style>",
-        "body{font:14px/1.5 system-ui,sans-serif;margin:2rem;max-width:960px}",
+        "body{font:14px/1.5 system-ui,sans-serif;margin:2rem;max-width:1200px}",
         "table{border-collapse:collapse;margin:1rem 0}",
         "th,td{border:1px solid #ccc;padding:4px 8px;text-align:left}",
         ".sw{display:inline-block;width:22px;height:22px;border:1px solid #0003;",
         "vertical-align:middle;border-radius:3px;margin-right:2px}",
-        ".ex{margin:.3rem 0}",
-        ".miss{color:#b00}",
+        ".cols{display:grid;grid-template-columns:1fr 1fr;gap:0 2rem}",
         "h3{margin:1.4rem 0 .3rem}",
         "</style>",
         f"<h1>Color test &mdash; {meta['stamp']}</h1>",
         f"<p>model: <code>{meta['enc']}</code> + <code>{meta['gen']}</code><br>",
-        f"colors: {summary['n_colors']} &nbsp; texts: {summary['n_texts']} &nbsp; ",
-        f"{COLOR_SAMPLES} fixed noise vectors/text<br>",
-        f"macro accuracy: {summary['accuracy']:.1%} &nbsp; ",
-        f"mean &Delta;E: {summary['mean_delta_e']:.3f}</p>",
-        "<table><tr><th>color</th><th>anchor</th><th>n</th><th>accuracy</th>",
-        "<th>per-sample hit</th><th>mean &Delta;E</th></tr>",
+        f"keywords: {summary['n_keywords']} &nbsp; texts: {summary['n_texts']} &nbsp; ",
+        f"{ENERGY_Z_SAMPLES} fixed noise vectors/text<br>",
+        f"macro energy gen&harr;real: {summary['energy_gen']:.3f} &nbsp; ",
+        f"macro energy real&harr;real: {summary['energy_ref']:.3f} &nbsp; ",
+        f"macro gap: {summary['gap']:+.3f}</p>",
+        "<table><tr><th>keyword</th><th>n</th><th>energy gen&harr;real</th>",
+        "<th>energy real&harr;real</th><th>gap</th></tr>",
     ]
-    for c in colors:
+    for c in groups:
         out.append(
-            f"<tr><td>{_swatch(c['anchor_hex'], c['name'])}{c['name']}</td>"
-            f"<td><code>{c['anchor_hex']}</code></td><td>{c['n']}</td>"
-            f"<td>{c['accuracy']:.1%}</td><td>{c['per_sample_hit']:.1%}</td>"
-            f"<td>{c['mean_delta_e']:.3f}</td></tr>"
+            f"<tr><td>{c['keyword']}</td><td>{c['n']}</td>"
+            f"<td>{c['energy_gen']:.3f}</td><td>{c['energy_ref']:.3f}</td>"
+            f"<td>{c['gap']:+.3f}</td></tr>"
         )
     out.append("</table>")
 
-    for c in colors:
+    out.append("<div class='cols'>")
+    for c in groups:
+        out.append("<div>")
         out.append(
-            f"<h3>{_swatch(c['anchor_hex'])}{c['name']} &mdash; {c['accuracy']:.1%}</h3>"
+            f"<h3>{c['keyword']} &mdash; gen {c['energy_gen']:.3f} / "
+            f"ref {c['energy_ref']:.3f} / gap {c['gap']:+.3f}</h3>"
         )
-        worst = sorted(c["rows"], key=lambda r: (r["hit"], -r["min_delta_e"]))
-        for r in worst[:SHOW_EX]:
-            cls = "" if r["hit"] else " miss"
-            gens = "".join(
-                _swatch(hx, b) for hx, b in zip(r["gen_hex"], r["gen_buckets"], strict=True)
-            )
+        out.append("<table><tr><th>real</th><th>gen</th><th>text</th></tr>")
+        for e in c["ex"]:
             out.append(
-                f"<div class='ex{cls}'>{_swatch(r['target_hex'], r['bucket'])}"
-                f"&nbsp; {gens} &nbsp; "
-                f"{'hit' if r['hit'] else 'miss'} &nbsp; "
-                f"<span>{html.escape(r['text'])}</span></div>"
+                f"<tr><td>{_palette(e['real_hex'])}</td>"
+                f"<td>{_palette(e['gen_hex'])}</td>"
+                f"<td>{html.escape(e['text'])}</td></tr>"
             )
+        out.append("</table>")
+        out.append("</div>")
+    out.append("</div>")
     return "\n".join(out) + "\n"
 
 
 def test_color(
     enc_path: str = "enc.pt",
     gen_path: str = "gen.pt",
-    eval_path: str = EVAL_PATH,
+    train_path: str = TRAIN_PATH,
     write_report: bool = True,
 ) -> dict:
-    records = list(read(eval_path))
-    rows = _evaluate(enc_path, gen_path, records)
-    colors = _collect(rows)
+    groups = _evaluate(enc_path, gen_path, _keyword_groups(train_path))
     stamp = datetime.now().strftime("%m-%d-%H:%M")
 
-    scored = [r for c in colors for r in c["rows"]]
+    n = len(groups)
     summary = {
-        "n_colors": len(colors),
-        "n_texts": len(scored),
-        "accuracy": (sum(c["accuracy"] for c in colors) / len(colors) if colors else 0.0),
-        "mean_delta_e": (
-            sum(c["mean_delta_e"] for c in colors) / len(colors) if colors else 0.0
-        ),
+        "n_keywords": n,
+        "n_texts": sum(c["n"] for c in groups),
+        "energy_gen": (sum(c["energy_gen"] for c in groups) / n if n else 0.0),
+        "energy_ref": (sum(c["energy_ref"] for c in groups) / n if n else 0.0),
+        "gap": (sum(c["gap"] for c in groups) / n if n else 0.0),
     }
     meta = {"stamp": stamp, "enc": enc_path, "gen": gen_path}
 
     if write_report:
         REPORT_DIR.mkdir(parents=True, exist_ok=True)
         html_path = REPORT_DIR / f"{stamp}.html"
-        html_path.write_text(_render_html(colors, summary, meta), encoding="utf-8")
+        html_path.write_text(_render_html(groups, summary, meta), encoding="utf-8")
         json_path = REPORT_DIR / f"{stamp}.json"
         json_path.write_text(
             json.dumps(
                 {
                     **meta,
                     "summary": summary,
-                    "colors": [
+                    "keywords": [
                         {
-                            "name": c["name"],
-                            "anchor_hex": c["anchor_hex"],
+                            "keyword": c["keyword"],
                             "n": c["n"],
-                            "accuracy": c["accuracy"],
-                            "per_sample_hit": c["per_sample_hit"],
-                            "mean_delta_e": c["mean_delta_e"],
+                            "energy_gen": c["energy_gen"],
+                            "energy_ref": c["energy_ref"],
+                            "gap": c["gap"],
                         }
-                        for c in colors
+                        for c in groups
                     ],
                 },
                 ensure_ascii=False,
@@ -266,12 +252,14 @@ def test_color(
         print(f"wrote {html_path}")
         print(f"wrote {json_path}")
 
-    line = "  ".join(f"{c['name']}={c['accuracy']:.0%}" for c in colors)
+    line = "  ".join(f"{c['keyword']}={c['gap']:+.3f}" for c in groups)
     print(
-        f"color test  macro={summary['accuracy']:.0%}  dE={summary['mean_delta_e']:.3f}")
+        f"color test  gen={summary['energy_gen']:.3f}  "
+        f"ref={summary['energy_ref']:.3f}  gap={summary['gap']:+.3f}"
+    )
     print(f"  {line}")
-    return {"summary": summary, "colors": colors}
+    return {"summary": summary, "keywords": groups}
 
 
 if __name__ == "__main__":
-    sys.exit(0 if test_color()["summary"]["n_colors"] else 1)
+    sys.exit(0 if test_color()["summary"]["n_keywords"] else 1)
