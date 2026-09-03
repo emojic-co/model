@@ -45,14 +45,12 @@ Z_WEIGHT = 0.2
 GEN_CHANNELS = [96]
 CRITIC_CHANNELS = [16, 8]
 GAN_LR = 0.01
-ENERGY_WEIGHT = 2.0
 
 gan_str = ' '.join([str(p) for p in (
     Z_WEIGHT,
     GEN_CHANNELS,
     CRITIC_CHANNELS,
-    GAN_LR,
-    ENERGY_WEIGHT)])
+    GAN_LR)])
 
 
 # TRAINING

@@ -1,4 +1,5 @@
 
+import os
 import subprocess
 import sys
 
@@ -18,7 +19,6 @@ from config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE,
     EMOJI_AP_K,
-    ENERGY_WEIGHT,
     ENERGY_Z_SAMPLES,
     EPOCHS_GAN,
     EPOCHS_TASK,
@@ -257,13 +257,8 @@ class LitColorGAN(pl.LightningModule):
         opt_tst.step()
 
         tst_fake = self.tst(cond, fake)
-        loss_gen_adv = binary_cross_entropy_with_logits(
+        loss_gen = binary_cross_entropy_with_logits(
             tst_fake, torch.ones_like(tst_fake))
-
-        fake_e = self.gen(cond.repeat_interleave(ENERGY_Z_SAMPLES, dim=0))
-        loss_gen_energy = energy_distance(rgb_to_oklab(colors), rgb_to_oklab(fake_e))
-
-        loss_gen = loss_gen_adv + ENERGY_WEIGHT * loss_gen_energy
 
         opt_gen.zero_grad()
         self.manual_backward(loss_gen)
@@ -275,8 +270,6 @@ class LitColorGAN(pl.LightningModule):
 
         self.log("loss/gan/tst", loss_tst, prog_bar=True)
         self.log("loss/gan/gen", loss_gen, prog_bar=True)
-        self.log("loss/gan/gen_adv", loss_gen_adv)
-        self.log("loss/gan/energy", loss_gen_energy, prog_bar=True)
 
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=GAN_LR)
@@ -292,6 +285,9 @@ if __name__ == "__main__":
     ds = train_ds()
     task_dl = train_data_loader(data_set=ds, batch_size=TASK_BATCH_SIZE)
     val_dl = eval_data_loader()
+
+    no_progress_bar = os.environ.get("EMOJIC_NO_PROGRESS_BAR") == "1"
+    progress_bar_cbs = [] if no_progress_bar else [TQDMProgressBar()]
 
     task_monitor = f"MRR@{EMOJI_AP_K}/e/val"
 
@@ -309,11 +305,12 @@ if __name__ == "__main__":
         deterministic=True,
         max_epochs=EPOCHS_TASK,
         val_check_interval=min(VAL_CHECK_INTERVAL, len(task_dl)),
+        enable_progress_bar=not no_progress_bar,
         callbacks=[
             task_ckpt,
             EarlyStopping(
                 monitor=task_monitor, mode="max", patience=EARLY_STOP_PATIENCE),
-            TQDMProgressBar(),
+            *progress_bar_cbs,
             ModelSummary(),
         ],
     )
@@ -344,12 +341,13 @@ if __name__ == "__main__":
             "runs", name=CONFIG_NAME, version="gan", default_hp_metric=False),
         deterministic=True,
         max_epochs=EPOCHS_GAN,
+        enable_progress_bar=not no_progress_bar,
         callbacks=[
             gan_ckpt,
             EarlyStopping(
                 monitor="energy/gan/val", mode="min",
                 patience=EARLY_STOP_PATIENCE),
-            TQDMProgressBar(),
+            *progress_bar_cbs,
             ModelSummary(),
         ],
     )
