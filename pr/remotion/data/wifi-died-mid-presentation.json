@@ -1,0 +1,266 @@
+{
+  "text": "wifi died mid presentation",
+  "slug": "wifi-died-mid-presentation",
+  "frames": [
+    {
+      "k": 1,
+      "normLen": 1,
+      "meaningful": false,
+      "emoji": "👀",
+      "feeling": "Deadpan",
+      "bg1": "#f65459",
+      "bg2": "#e44d5f",
+      "text_color": "#81251d"
+    },
+    {
+      "k": 2,
+      "normLen": 2,
+      "meaningful": false,
+      "emoji": "🔗",
+      "feeling": "Deadpan",
+      "bg1": "#f1668e",
+      "bg2": "#eb6c79",
+      "text_color": "#66221d"
+    },
+    {
+      "k": 3,
+      "normLen": 3,
+      "meaningful": true,
+      "emoji": "🏢",
+      "feeling": "Deadpan",
+      "bg1": "#f1adb0",
+      "bg2": "#db9d86",
+      "text_color": "#23121a"
+    },
+    {
+      "k": 4,
+      "normLen": 4,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Deadpan",
+      "bg1": "#ced3c4",
+      "bg2": "#a0bdbb",
+      "text_color": "#0e2824"
+    },
+    {
+      "k": 5,
+      "normLen": 4,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Deadpan",
+      "bg1": "#ced3c4",
+      "bg2": "#a0bdbb",
+      "text_color": "#0e2824"
+    },
+    {
+      "k": 6,
+      "normLen": 6,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Deadpan",
+      "bg1": "#b3d6d6",
+      "bg2": "#76c3d3",
+      "text_color": "#0c2b2d"
+    },
+    {
+      "k": 7,
+      "normLen": 7,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Deadpan",
+      "bg1": "#a9e0cf",
+      "bg2": "#73b9ca",
+      "text_color": "#0b323a"
+    },
+    {
+      "k": 8,
+      "normLen": 8,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Deadpan",
+      "bg1": "#b4dac2",
+      "bg2": "#73bcc4",
+      "text_color": "#0b192a"
+    },
+    {
+      "k": 9,
+      "normLen": 9,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Irritated",
+      "bg1": "#8edee2",
+      "bg2": "#54c8de",
+      "text_color": "#073129"
+    },
+    {
+      "k": 10,
+      "normLen": 9,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Irritated",
+      "bg1": "#8edee2",
+      "bg2": "#54c8de",
+      "text_color": "#073129"
+    },
+    {
+      "k": 11,
+      "normLen": 11,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Irritated",
+      "bg1": "#95e2db",
+      "bg2": "#5acad9",
+      "text_color": "#08372b"
+    },
+    {
+      "k": 12,
+      "normLen": 12,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Irritated",
+      "bg1": "#98d9d5",
+      "bg2": "#56d0d5",
+      "text_color": "#083924"
+    },
+    {
+      "k": 13,
+      "normLen": 13,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Irritated",
+      "bg1": "#76e4ed",
+      "bg2": "#4adae9",
+      "text_color": "#082f2c"
+    },
+    {
+      "k": 14,
+      "normLen": 13,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Irritated",
+      "bg1": "#76e4ed",
+      "bg2": "#4adae9",
+      "text_color": "#082f2c"
+    },
+    {
+      "k": 15,
+      "normLen": 15,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Irritated",
+      "bg1": "#7de6e5",
+      "bg2": "#49d4e7",
+      "text_color": "#0b3036"
+    },
+    {
+      "k": 16,
+      "normLen": 16,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Irritated",
+      "bg1": "#7de8e5",
+      "bg2": "#4adce8",
+      "text_color": "#0a2b38"
+    },
+    {
+      "k": 17,
+      "normLen": 17,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Irritated",
+      "bg1": "#7deced",
+      "bg2": "#41e5ea",
+      "text_color": "#07292c"
+    },
+    {
+      "k": 18,
+      "normLen": 18,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Anxious",
+      "bg1": "#6beff2",
+      "bg2": "#33e6f1",
+      "text_color": "#065936"
+    },
+    {
+      "k": 19,
+      "normLen": 19,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Irritated",
+      "bg1": "#67f3f4",
+      "bg2": "#30edf0",
+      "text_color": "#064431"
+    },
+    {
+      "k": 20,
+      "normLen": 20,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Irritated",
+      "bg1": "#68f4f4",
+      "bg2": "#31edf0",
+      "text_color": "#074034"
+    },
+    {
+      "k": 21,
+      "normLen": 21,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Irritated",
+      "bg1": "#68f2ee",
+      "bg2": "#35e6ed",
+      "text_color": "#0d3c4b"
+    },
+    {
+      "k": 22,
+      "normLen": 22,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Irritated",
+      "bg1": "#7cf4f0",
+      "bg2": "#34eaec",
+      "text_color": "#0c4142"
+    },
+    {
+      "k": 23,
+      "normLen": 23,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Irritated",
+      "bg1": "#8ef0f1",
+      "bg2": "#41e7e6",
+      "text_color": "#143641"
+    },
+    {
+      "k": 24,
+      "normLen": 24,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Irritated",
+      "bg1": "#88f2ef",
+      "bg2": "#40e7e7",
+      "text_color": "#164046"
+    },
+    {
+      "k": 25,
+      "normLen": 25,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Irritated",
+      "bg1": "#82f1f1",
+      "bg2": "#3ee5ea",
+      "text_color": "#15404c"
+    },
+    {
+      "k": 26,
+      "normLen": 26,
+      "meaningful": true,
+      "emoji": "📶",
+      "feeling": "Irritated",
+      "bg1": "#7ff0ee",
+      "bg2": "#3de5e6",
+      "text_color": "#18454e"
+    }
+  ]
+}

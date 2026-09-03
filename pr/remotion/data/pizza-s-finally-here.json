@@ -1,0 +1,206 @@
+{
+  "text": "pizza's finally here",
+  "slug": "pizza-s-finally-here",
+  "frames": [
+    {
+      "k": 1,
+      "normLen": 1,
+      "meaningful": false,
+      "emoji": "👀",
+      "feeling": "Deadpan",
+      "bg1": "#ef5b5a",
+      "bg2": "#d65a6a",
+      "text_color": "#6c1e25"
+    },
+    {
+      "k": 2,
+      "normLen": 2,
+      "meaningful": false,
+      "emoji": "👀",
+      "feeling": "Deadpan",
+      "bg1": "#ef6369",
+      "bg2": "#c57672",
+      "text_color": "#602c30"
+    },
+    {
+      "k": 3,
+      "normLen": 3,
+      "meaningful": true,
+      "emoji": "🖥️",
+      "feeling": "Deadpan",
+      "bg1": "#f2af9f",
+      "bg2": "#bdada9",
+      "text_color": "#513238"
+    },
+    {
+      "k": 4,
+      "normLen": 4,
+      "meaningful": true,
+      "emoji": "🍕",
+      "feeling": "Deadpan",
+      "bg1": "#feb483",
+      "bg2": "#f09d58",
+      "text_color": "#621012"
+    },
+    {
+      "k": 5,
+      "normLen": 5,
+      "meaningful": true,
+      "emoji": "🍕",
+      "feeling": "Deadpan",
+      "bg1": "#fba279",
+      "bg2": "#f1703e",
+      "text_color": "#a82721"
+    },
+    {
+      "k": 6,
+      "normLen": 5,
+      "meaningful": true,
+      "emoji": "🍕",
+      "feeling": "Deadpan",
+      "bg1": "#fba279",
+      "bg2": "#f1703e",
+      "text_color": "#a82721"
+    },
+    {
+      "k": 7,
+      "normLen": 6,
+      "meaningful": true,
+      "emoji": "🍕",
+      "feeling": "Deadpan",
+      "bg1": "#f99d82",
+      "bg2": "#ed715b",
+      "text_color": "#a52b30"
+    },
+    {
+      "k": 8,
+      "normLen": 6,
+      "meaningful": true,
+      "emoji": "🍕",
+      "feeling": "Deadpan",
+      "bg1": "#f99d82",
+      "bg2": "#ed715b",
+      "text_color": "#a52b30"
+    },
+    {
+      "k": 9,
+      "normLen": 8,
+      "meaningful": true,
+      "emoji": "🍕",
+      "feeling": "Deadpan",
+      "bg1": "#f87d55",
+      "bg2": "#ed5f43",
+      "text_color": "#b03633"
+    },
+    {
+      "k": 10,
+      "normLen": 9,
+      "meaningful": true,
+      "emoji": "🍕",
+      "feeling": "Excited",
+      "bg1": "#f18a6a",
+      "bg2": "#e5615a",
+      "text_color": "#9c3939"
+    },
+    {
+      "k": 11,
+      "normLen": 10,
+      "meaningful": true,
+      "emoji": "🍕",
+      "feeling": "Excited",
+      "bg1": "#f77f61",
+      "bg2": "#e76952",
+      "text_color": "#aa402c"
+    },
+    {
+      "k": 12,
+      "normLen": 11,
+      "meaningful": true,
+      "emoji": "🍕",
+      "feeling": "Excited",
+      "bg1": "#fa8d59",
+      "bg2": "#ef6144",
+      "text_color": "#a93528"
+    },
+    {
+      "k": 13,
+      "normLen": 12,
+      "meaningful": true,
+      "emoji": "🍕",
+      "feeling": "Excited",
+      "bg1": "#f88d62",
+      "bg2": "#ea6952",
+      "text_color": "#852720"
+    },
+    {
+      "k": 14,
+      "normLen": 13,
+      "meaningful": true,
+      "emoji": "🍕",
+      "feeling": "Joyful",
+      "bg1": "#eba77b",
+      "bg2": "#e27370",
+      "text_color": "#a44538"
+    },
+    {
+      "k": 15,
+      "normLen": 14,
+      "meaningful": true,
+      "emoji": "🍕",
+      "feeling": "Joyful",
+      "bg1": "#e2a18c",
+      "bg2": "#d07070",
+      "text_color": "#a25747"
+    },
+    {
+      "k": 16,
+      "normLen": 14,
+      "meaningful": true,
+      "emoji": "🍕",
+      "feeling": "Joyful",
+      "bg1": "#e2a18c",
+      "bg2": "#d07070",
+      "text_color": "#a25747"
+    },
+    {
+      "k": 17,
+      "normLen": 16,
+      "meaningful": true,
+      "emoji": "🍕",
+      "feeling": "Joyful",
+      "bg1": "#eda372",
+      "bg2": "#eb6f55",
+      "text_color": "#a83f35"
+    },
+    {
+      "k": 18,
+      "normLen": 17,
+      "meaningful": true,
+      "emoji": "🍕",
+      "feeling": "Joyful",
+      "bg1": "#eb9c6c",
+      "bg2": "#e86f55",
+      "text_color": "#a34437"
+    },
+    {
+      "k": 19,
+      "normLen": 18,
+      "meaningful": true,
+      "emoji": "🍕",
+      "feeling": "Joyful",
+      "bg1": "#eb9774",
+      "bg2": "#ee6953",
+      "text_color": "#ac4732"
+    },
+    {
+      "k": 20,
+      "normLen": 19,
+      "meaningful": true,
+      "emoji": "🍕",
+      "feeling": "Joyful",
+      "bg1": "#ea9f72",
+      "bg2": "#e26c60",
+      "text_color": "#a6483e"
+    }
+  ]
+}

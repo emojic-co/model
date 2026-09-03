@@ -36,9 +36,9 @@ main {
 
 h1 {
   margin: 0;
-  font-size: 0.875em;
+  font-size: 1.375em;
   font-weight: 600;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -85,11 +85,20 @@ h1 .tld {
 }
 
 .head>.masthead {
-  align-self: center;
+  align-self: start;
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 0.875em;
   margin-bottom: 0.25em;
+}
+
+.masthead .slug {
+  font-family: "Caveat", ui-sans-serif, cursive;
+  font-size: 1.5em;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: lowercase;
+  color: var(--muted);
 }
 
 .stage>.card {

@@ -256,6 +256,33 @@ TODO:
         TOOLS:
             Update the loop_emoji.py script:
             If the goal (> 95% acc@5) has been reached then also run the train_gan.py locally otherwise show a detailed message where it is failing.
+
+        PR:
+            Under the pr folder create a remotion subfolder.
+            Create a remotion template that shows an input field and the generated card.
+            It should looks exactly like the web app but without the emoji/color/style bars.
+            The animation shows a typewriter effect of a predefined text and the real time transformation of the card result, i.e. the card is updated in real time as the text is typed.
+            You should also create a file pr/remotion/texts.txt with a predefined list of texts to be used in the remotion template.
+            Choose texts that are interesting, engaging and show the capabilities of the model.
+            Texts should be short and catchy.
+            Use the real model to (pre)-generate the card results.
+            Run the template on 3 examples you choose and generate the videos.
+            Update the pr/pr.md file to note about the remotion subfolder.
+
+        REMOTION:
+            Update the remotion animation:
+            1. Do not update the card as its typed, instead:
+                - Start zoomed in on the input
+                - Zoomed out as the text is typed
+                - The card should show a loading indicator saying "emojifying... to the left of the text animate alternate emojis
+                - After the text is typed and the pan out completed cross fade to the final card result.
+            Comments:
+                Use a nicer, bigger font for the text.
+                Use a bit slower type writer effect.
+                Use nicer background colors (maybe a soft gray brown gradient)
+                Remove all the extra details from the animation such as char count, "too short" warning, model updated, etc... keep only the text, the card result and the "made with love".
+                Use a bit (still vertical) wider aspect ratio to fit exactly the text, the card result and the footer.
+
 DONE:
 
         Modal.com:

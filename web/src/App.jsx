@@ -158,6 +158,7 @@ export function App() {
             <h1>
               emojify<span className="tld">.ing</span>
             </h1>
+            <span className="slug">emojify anything</span>
           </header>
           <input
             className="input"
