@@ -55,12 +55,12 @@ gan_str = ' '.join([str(p) for p in (
 
 # TRAINING
 SEED = 42
-TASK_BATCH_SIZE = 256
+TASK_BATCH_SIZE = 512
 GAN_BATCH_SIZE = 512
 RELU_SLOPE = 0.1
 LR = 0.01
 GRAD_CLIP = 1.0
-INFONCE_TEMP = 1.0
+INFONCE_TEMP = .8
 
 train_str = ' '.join([str(p) for p in (
     SEED,
