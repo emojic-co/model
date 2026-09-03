@@ -38,10 +38,10 @@ export async function writeFileAtomic(
   await rename(tmp, path)
 }
 
-export async function readJsonl<T = unknown>(path: string): Promise<T[]> {
+export function parseJsonlText<T = unknown>(text: string, label = "input"): T[] {
   const out: T[] = []
   let bad = 0
-  for (const line of (await readFile(path, "utf8")).split("\n")) {
+  for (const line of text.split("\n")) {
     if (!line.trim()) continue
     try {
       out.push(JSON.parse(line) as T)
@@ -49,6 +49,10 @@ export async function readJsonl<T = unknown>(path: string): Promise<T[]> {
       bad++
     }
   }
-  if (bad) console.warn(`${path}: skipped ${bad} malformed line(s)`)
+  if (bad) console.warn(`${label}: skipped ${bad} malformed line(s)`)
   return out
+}
+
+export async function readJsonl<T = unknown>(path: string): Promise<T[]> {
+  return parseJsonlText<T>(await readFile(path, "utf8"), path)
 }

@@ -226,6 +226,32 @@ TODO:
             - export the test function and run it after each training (just call it from the train.py script)
             - also possible to run it `uv run test_emoji.py`
 
+        TOOLS: 
+            Create a tool tools/data/preview-lines.ts
+            The tool generate an html page like the tools/data/preview.ts
+            The only difference is the it reads a .jsonl lines from std so I can run:
+            tail -10 train.jsonl | bun run tools/data/preview-lines.ts | xargs google-chrome
+
+            If it is simple make the tools/data/preview.ts a universal tool that does both.
+
+
+        TOOLS:
+            update the tools/data/upsample-emojis.ts so --emoji accepts a list of space separated emojis.
+
+        TOOLS: 
+            1.  Update the test_emoji.py script so it also generates a report in .json format.
+            2.  create a tool tools/data/upsample-emoji-test.ts that reads the .json report and upsample failed tests.
+                The upsampling prompt should be similar to the prompt of the upsample-emoji but it should ask the text generator to generate a text with the keyword and the target emoji.
+                Something like: 'generate .... with the word "bowl" that is associated with the emoji "🥣"...'
+                The tool should generate 10 examples for each failed.
+                Define (for now) failed if target emoji not in the top 5.
+
+        TOOLS: 
+            Create a tool that:
+            1. Train the model on modal
+            2. Run the test_emoji.py script and generate a report in .json format.
+            3. Run the tools/data/upsample-emoji-test.ts tool to upsample
+            Repeat the process until all tests pass (or until we reach a limit of N iterations).
 DONE:
 
         Modal.com:

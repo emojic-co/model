@@ -1,18 +1,17 @@
-import { readFile } from "node:fs/promises"
+import { readFile, readdir } from "node:fs/promises"
 
 import { generateText } from "ai"
 import cliProgress from "cli-progress"
 import PQueue from "p-queue"
 
 import { MODEL, annotate, annotateBatchCount } from "./annotate.ts"
-import { splitEmojis } from "./emoji.ts"
-import { appendJsonl, readJsonl } from "./io.ts"
+import { appendJsonl } from "./io.ts"
 
 const TRAIN = "./train.jsonl"
-const LABELS = "./labels.json"
+const REPORT_DIR = "./report/test-emoji"
 
-const RARE_COUNT = 60
-const TEXTS_PER_EMOJI = 40
+const FAIL_RANK = 5
+const TEXTS_PER_WORD = 10
 const MIN_LEN = 4
 const MAX_LEN = 42
 const GEN_CONCURRENCY = 20
@@ -56,38 +55,42 @@ function argStr(flag: string): string | undefined {
   return v || undefined
 }
 
-export function countEmojis(
-  rows: { emojis?: string }[],
-  vocab: string[],
-): Map<string, number> {
-  const counts = new Map<string, number>(vocab.map((e) => [e, 0]))
-  for (const row of rows) {
-    if (typeof row.emojis !== "string") continue
-    for (const e of new Set(splitEmojis(row.emojis))) {
-      if (counts.has(e)) counts.set(e, (counts.get(e) ?? 0) + 1)
-    }
+type Word = {
+  word: string
+  expected: string[]
+  rank: number | null
+}
+
+type Report = { stamp?: string; words: Word[] }
+
+export function pickFailed(
+  words: Word[],
+  maxRank: number,
+): { word: string; emoji: string }[] {
+  const out: { word: string; emoji: string }[] = []
+  for (const w of words) {
+    const emoji = w.expected?.[0]
+    if (!emoji) continue
+    if (w.rank === null || w.rank > maxRank) out.push({ word: w.word, emoji })
   }
-  return counts
+  return out
 }
 
-export function rarest(
-  vocab: string[],
-  counts: Map<string, number>,
-  n: number,
-): string[] {
-  return vocab
-    .map((k, i) => ({ k, i, c: counts.get(k) ?? 0 }))
-    .sort((a, b) => a.c - b.c || a.i - b.i)
-    .slice(0, n)
-    .map((x) => x.k)
+async function latestReport(): Promise<string> {
+  const files = (await readdir(REPORT_DIR))
+    .filter((f) => f.endsWith(".json"))
+    .sort()
+  if (!files.length) throw new Error(`no *.json report in ${REPORT_DIR}`)
+  return `${REPORT_DIR}/${files.at(-1)}`
 }
 
-function genPrompt(voice: string, emoji: string, per: number): string {
+function genPrompt(voice: string, word: string, emoji: string, per: number): string {
   return [
     `Write ${per} short text messages as if sent by ${voice}, one per line.`,
     `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
-    `Every message must read naturally as one a person would send together with`,
-    `the emoji ${emoji} - its subject, activity, place, or mood fits that emoji.`,
+    `Every message must contain the word "${word}" and read naturally as one a`,
+    `person would send together with the emoji ${emoji} - its subject, activity,`,
+    `place, or mood fits both the word and that emoji.`,
     `Do not put any emoji in the output, and never name or describe the emoji.`,
     `Vary sender, tone, and intent: updates, questions, complaints, plans,`,
     `reactions, reminders, small talk. Sound real and specific.`,
@@ -97,12 +100,13 @@ function genPrompt(voice: string, emoji: string, per: number): string {
 
 async function genBatch(
   voice: string,
+  word: string,
   emoji: string,
   per: number,
 ): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
-    prompt: genPrompt(voice, emoji, per),
+    prompt: genPrompt(voice, word, emoji, per),
   })
   return text
     .split("\n")
@@ -116,35 +120,22 @@ async function genBatch(
 }
 
 if (import.meta.main) {
-  const only = argStr("--emoji")
-  const rareCount = argInt("--rare") ?? RARE_COUNT
-  const per = argInt("--per") ?? TEXTS_PER_EMOJI
+  const reportPath = argStr("--report") ?? (await latestReport())
+  const maxRank = argInt("--rank") ?? FAIL_RANK
+  const per = argInt("--per") ?? TEXTS_PER_WORD
 
-  let targets: string[]
-  if (only) {
-    targets = [...new Set(splitEmojis(only))]
-    if (!targets.length) {
-      console.error(`--emoji had no recognizable emoji: ${JSON.stringify(only)}`)
-      process.exit(1)
-    }
-    console.log(`targeting ${targets.length} emoji -> ${targets.join(" ")}`)
-  } else {
-    const vocab = (
-      JSON.parse(await readFile(LABELS, "utf8")) as { emojis: string[] }
-    ).emojis
-    const rows = await readJsonl<{ emojis?: string }>(TRAIN)
-    const counts = countEmojis(rows, vocab)
-    targets = rarest(vocab, counts, rareCount)
-    console.log(
-      `${vocab.length} vocab emojis -> targeting ${targets.length} rarest `
-      + `(${counts.get(targets[0])}..${counts.get(targets.at(-1) ?? "")} rows each)`,
-    )
-  }
+  const report = JSON.parse(await readFile(reportPath, "utf8")) as Report
+  const targets = pickFailed(report.words, maxRank)
+  console.log(
+    `${reportPath}: ${report.words.length} words -> `
+    + `${targets.length} failed (target not in top ${maxRank})`,
+  )
+  if (!targets.length) process.exit(0)
 
   const genBar = new cliProgress.SingleBar(
     {
       format:
-        "generating |{bar}| {percentage}% | {value}/{total} emojis | ETA: {eta}s",
+        "generating |{bar}| {percentage}% | {value}/{total} words | ETA: {eta}s",
     },
     cliProgress.Presets.shades_classic,
   )
@@ -153,13 +144,13 @@ if (import.meta.main) {
   const cands: { text: string; target: string }[] = []
   const genQ = new PQueue({ concurrency: GEN_CONCURRENCY })
   genQ.addAll(
-    targets.map((emoji) => async () => {
+    targets.map(({ word, emoji }) => async () => {
       try {
-        for (const t of await genBatch(pickVoice(), emoji, per)) {
+        for (const t of await genBatch(pickVoice(), word, emoji, per)) {
           cands.push({ text: t, target: emoji })
         }
       } catch (err) {
-        console.warn(`\n  gen (${emoji}) failed: ${err}`)
+        console.warn(`\n  gen (${word} ${emoji}) failed: ${err}`)
       }
       genBar.increment()
     }),
@@ -218,7 +209,8 @@ if (import.meta.main) {
   await appendJsonl(TRAIN, lines)
 
   console.log("\n--- summary ---")
-  console.log(`targets              : ${targets.length}`)
+  console.log(`report               : ${reportPath}`)
+  console.log(`failed words         : ${targets.length}`)
   console.log(`generated            : ${cands.length}`)
   console.log(`appended -> train    : ${lines.length}`)
   console.log(`dropped no label     : ${noLabel}`)

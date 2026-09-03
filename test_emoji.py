@@ -162,7 +162,23 @@ def test_emoji(
         REPORT_DIR.mkdir(parents=True, exist_ok=True)
         path = REPORT_DIR / f"{stamp}.md"
         path.write_text(_render(results, enc_path, emoji_path, stamp), encoding="utf-8")
+        json_path = REPORT_DIR / f"{stamp}.json"
+        json_path.write_text(
+            json.dumps(
+                {
+                    "stamp": stamp,
+                    "enc": enc_path,
+                    "emoji": emoji_path,
+                    "summary": {"acc": acc, "mrr": mrr, "n": scored_n},
+                    "words": results,
+                },
+                ensure_ascii=False,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
         print(f"wrote {path}")
+        print(f"wrote {json_path}")
 
     summary = "  ".join(f"acc@{k}={acc[k]:.0%}" for k in TOP_K)
     print(f"emoji test  {summary}  mrr={mrr:.3f}  (n={scored_n})")

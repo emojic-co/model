@@ -1,5 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises"
-import { readJsonl } from "./io.ts"
+import { parseJsonlText, readJsonl } from "./io.ts"
 import { cardHtml, firstEmoji, page, stamp } from "./preview-card.ts"
 
 const EVAL = "eval.jsonl"
@@ -41,8 +41,11 @@ body { place-items: start center; padding: 2em 1em; }
 `
 
 if (import.meta.main) {
-  const rows = await readJsonl<Row>(EVAL)
-  const picked = rows.slice(0, COUNT)
+  const fromStdin = !process.stdin.isTTY
+  const rows = fromStdin
+    ? parseJsonlText<Row>(await Bun.stdin.text(), "stdin")
+    : await readJsonl<Row>(EVAL)
+  const picked = fromStdin ? rows : rows.slice(0, COUNT)
   const cards = picked
     .map((r) => {
       const emojis = r.emojis ?? r.emoji ?? ""

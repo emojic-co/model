@@ -12,11 +12,9 @@ from config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE,
     EMOJI_AP_K,
-    EPOCHS_GAN,
     EPOCHS_TASK,
     FOCAL_ALPHA,
     FOCAL_GAMMA,
-    GAN_BATCH_SIZE,
     GAN_LR,
     GRAD_CLIP,
     LR,
@@ -28,7 +26,6 @@ from config import (
 )
 from data import eval_data_loader, train_data_loader, train_ds
 from model import ColorDsc, ColorGen, EmojiHead, StyleHead, TextEncoder
-from test_emoji import test_emoji
 
 POS_WEIGHT_CLAMP = 10.0
 
@@ -246,26 +243,24 @@ if __name__ == "__main__":
     ):
         torch.save(mod.state_dict(), f"{name}.pt")
 
-    gan_trainer = pl.Trainer(
-        devices="auto",
-        accelerator="auto",
-        logger=TensorBoardLogger(
-            "runs", name=CONFIG_NAME, version="gan", default_hp_metric=False),
-        deterministic=True,
-        max_epochs=EPOCHS_GAN,
-        enable_checkpointing=False,
-    )
+    # gan_trainer = pl.Trainer(
+    #     devices="auto",
+    #     accelerator="auto",
+    #     logger=TensorBoardLogger(
+    #         "runs", name=CONFIG_NAME, version="gan", default_hp_metric=False),
+    #     deterministic=True,
+    #     max_epochs=EPOCHS_GAN,
+    #     enable_checkpointing=False,
+    # )
 
-    gan = LitColorGAN(task.enc)
-    gan_dl = train_data_loader(data_set=ds, batch_size=GAN_BATCH_SIZE)
-    gan_trainer.fit(gan, gan_dl)
+    # gan = LitColorGAN(task.enc)
+    # gan_dl = train_data_loader(data_set=ds, batch_size=GAN_BATCH_SIZE)
+    # gan_trainer.fit(gan, gan_dl)
 
-    for name, mod in (
-        ("gen", gan.gen),
-        ("tst", gan.tst),
-    ):
-        torch.save(mod.state_dict(), f"{name}.pt")
+    # for name, mod in (
+    #     ("gen", gan.gen),
+    #     ("tst", gan.tst),
+    # ):
+    #     torch.save(mod.state_dict(), f"{name}.pt")
 
     subprocess.run([sys.executable, "export_onnx.py"], check=True)
-
-    test_emoji()
