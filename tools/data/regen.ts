@@ -92,6 +92,53 @@ export function collapse(rows: unknown[]): Row[] {
   return out
 }
 
+export function downsampleEmojis(
+  records: Row[],
+  leaderboard: string[],
+  ratio: number,
+  seed: number,
+): {
+  kept: Row[]
+  cap: number
+  minFreq: number
+  minEmoji: string
+  dropped: number
+} {
+  const leaderSet = new Set(leaderboard)
+  const rowEmojis = (r: Row) =>
+    [...new Set(splitEmojis(r.emojis))].filter((e) => leaderSet.has(e))
+
+  const full = new Map<string, number>()
+  for (const r of records) {
+    for (const e of rowEmojis(r)) full.set(e, (full.get(e) ?? 0) + 1)
+  }
+
+  let minEmoji = ""
+  let minFreq = Infinity
+  for (const e of leaderboard) {
+    const f = full.get(e) ?? 0
+    if (f < minFreq) {
+      minFreq = f
+      minEmoji = e
+    }
+  }
+  if (!Number.isFinite(minFreq)) minFreq = 0
+  const cap = ratio * minFreq
+  if (cap <= 0) {
+    return { kept: [...records], cap, minFreq, minEmoji, dropped: 0 }
+  }
+
+  const counts = new Map<string, number>()
+  const kept: Row[] = []
+  for (const r of shuffleSeeded(records, seed)) {
+    const es = rowEmojis(r)
+    if (es.some((e) => (counts.get(e) ?? 0) >= cap)) continue
+    for (const e of es) counts.set(e, (counts.get(e) ?? 0) + 1)
+    kept.push(r)
+  }
+  return { kept, cap, minFreq, minEmoji, dropped: records.length - kept.length }
+}
+
 export function shuffleSeeded<T>(rows: T[], seed: number): T[] {
   let s = seed >>> 0
   const rand = () => {
@@ -123,7 +170,7 @@ export function emojiLeaderboard(
 }
 
 import { readJsonl, writeFileAtomic } from "./io.ts"
-import { STYLES, TOP_EMOJIS } from "./config"
+import { EMOJI_BALANCE_RATIO, STYLES, TOP_EMOJIS } from "./config"
 
 const DATA = "./data.jsonl"
 const TRAIN = "./train.jsonl"
@@ -154,7 +201,15 @@ if (import.meta.main) {
   const merged = records.length
   const dupKeys = raw.length - merged
 
-  const shuffled = shuffleSeeded(records, seed)
+  const leaderboard = emojiLeaderboard(records, TOP_EMOJIS)
+  const { kept, cap, minFreq, minEmoji, dropped } = downsampleEmojis(
+    records,
+    leaderboard,
+    EMOJI_BALANCE_RATIO,
+    seed,
+  )
+
+  const shuffled = shuffleSeeded(kept, seed)
   const held = shuffled.slice(0, n)
   const rest = shuffled.slice(n)
 
@@ -163,7 +218,7 @@ if (import.meta.main) {
 
   const labels = {
     styles: [...STYLES],
-    emojis: emojiLeaderboard(records, TOP_EMOJIS),
+    emojis: leaderboard,
   }
   await writeFileAtomic(LABELS, JSON.stringify(labels, null, 2) + "\n")
 
@@ -171,6 +226,11 @@ if (import.meta.main) {
   console.log(`master lines read    : ${raw.length}`)
   console.log(`distinct keys        : ${merged}`)
   console.log(`collapsed away       : ${dupKeys}`)
+  console.log(
+    `emoji cap            : ${cap} (${EMOJI_BALANCE_RATIO}x ${minFreq}, least = ${minEmoji})`,
+  )
+  console.log(`balance-dropped      : ${dropped}`)
+  console.log(`balanced rows        : ${kept.length}`)
   console.log(`-> ${EVAL}      : ${held.length}`)
   console.log(`-> ${TRAIN}     : ${rest.length}`)
   console.log(

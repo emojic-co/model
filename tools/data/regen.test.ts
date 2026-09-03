@@ -2,6 +2,7 @@ import { expect, test } from "bun:test"
 
 import {
   collapse,
+  downsampleEmojis,
   emojiLeaderboard,
   pickPalette,
   shuffleSeeded,
@@ -123,4 +124,64 @@ test("emojiLeaderboard ranks by row frequency, ties keep first-seen order", () =
     { emojis: "🎸" },
   ]
   expect(emojiLeaderboard(recs, 3)).toEqual(["🍕", "🚗", "🎂"])
+})
+
+const R = (emojis: string, text = emojis): { text: string; emojis: string; styles: string[] } => ({
+  text,
+  emojis,
+  styles: [],
+})
+
+test("downsampleEmojis caps a top emoji at ratio x the least frequent leaderboard emoji", () => {
+  const records = [
+    ...Array.from({ length: 20 }, (_, i) => R("🍕", `pizza ${i}`)),
+    ...Array.from({ length: 3 }, (_, i) => R("🚗", `car ${i}`)),
+    R("🎸", "guitar"),
+  ]
+  const { kept, cap, minFreq, minEmoji, dropped } = downsampleEmojis(
+    records,
+    ["🍕", "🚗", "🎸"],
+    5,
+    42,
+  )
+  expect({ cap, minFreq, minEmoji }).toEqual({ cap: 5, minFreq: 1, minEmoji: "🎸" })
+  expect(kept.filter((r) => r.emojis === "🍕")).toHaveLength(5)
+  expect(kept.filter((r) => r.emojis === "🚗")).toHaveLength(3)
+  expect(kept.filter((r) => r.emojis === "🎸")).toHaveLength(1)
+  expect(dropped).toBe(records.length - kept.length)
+  expect(dropped).toBe(15)
+})
+
+test("downsampleEmojis drops the whole multi-label row when one of its emojis is over cap", () => {
+  const records = [
+    ...Array.from({ length: 30 }, (_, i) => R("🍕", `pizza ${i}`)),
+    ...Array.from({ length: 2 }, (_, i) => R(`🍕 🚗`, `combo ${i}`)),
+  ]
+  const { kept, cap } = downsampleEmojis(records, ["🍕", "🚗"], 5, 42)
+  const count = (e: string) =>
+    kept.filter((r) => r.emojis.split(" ").includes(e)).length
+  expect(cap).toBe(10)
+  expect(count("🍕")).toBeLessThanOrEqual(10)
+  expect(count("🚗")).toBeLessThanOrEqual(10)
+  for (const r of kept) {
+    expect(r.emojis.split(" ").filter((e) => e === "🍕" || e === "🚗").length).toBeGreaterThan(0)
+  }
+})
+
+test("downsampleEmojis is deterministic for a fixed seed and leaves the input unmutated", () => {
+  const records = [
+    ...Array.from({ length: 12 }, (_, i) => R("🍕", `pizza ${i}`)),
+    ...Array.from({ length: 2 }, (_, i) => R("🎂", `cake ${i}`)),
+  ]
+  const a = downsampleEmojis(records, ["🍕", "🎂"], 3, 7).kept.map((r) => r.text)
+  const b = downsampleEmojis(records, ["🍕", "🎂"], 3, 7).kept.map((r) => r.text)
+  expect(b).toEqual(a)
+  expect(records).toHaveLength(14)
+})
+
+test("downsampleEmojis is a no-op when a leaderboard emoji never occurs (cap 0)", () => {
+  const records = Array.from({ length: 8 }, (_, i) => R("🍕", `pizza ${i}`))
+  const { kept, cap, dropped } = downsampleEmojis(records, ["🍕", "🌵"], 5, 42)
+  expect({ cap, dropped }).toEqual({ cap: 0, dropped: 0 })
+  expect(kept).toHaveLength(8)
 })

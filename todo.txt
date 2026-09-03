@@ -515,3 +515,8 @@ TODO:
         where <timestamp> is of the form MM-DD-HH:MM.
         the usage of ":" in the name make the file name unclickable in the terminal, thus we need to change the timestamp format to MM-DD-HH-MM.
         update all current reports and update all tools that generate reports to use the new timestamp format.
+
+    regen tool:
+        update the regen tool to generate a balanced (emoji wise test/eval sets):
+        the regen tool should do what it currently does but with one additional step:
+        downsamples top emojis to be no more than 5X the frequency of the least frequent emoji in the set.
