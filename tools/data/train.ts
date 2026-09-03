@@ -5,7 +5,7 @@ import PQueue from "p-queue"
 import { MODEL, annotate, annotateBatchCount } from "./annotate.ts"
 import { appendJsonl } from "./io.ts"
 
-const TRAIN = "./train.jsonl"
+const DATA = "./data.jsonl"
 
 const BATCH_SIZE = 50
 const BATCH_COUNT = 50
@@ -129,11 +129,11 @@ if (import.meta.main) {
       }),
     )
   }
-  await appendJsonl(TRAIN, lines)
+  await appendJsonl(DATA, lines)
 
   console.log("\n--- summary ---")
   console.log(`generated           : ${texts.length}`)
-  console.log(`annotated -> train  : ${lines.length}`)
+  console.log(`annotated -> data   : ${lines.length}`)
   console.log(`dropped (no label)  : ${texts.length - lines.length}`)
   process.exit(0)
 }

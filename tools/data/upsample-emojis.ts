@@ -8,7 +8,7 @@ import { MODEL, annotate, annotateBatchCount } from "./annotate.ts"
 import { splitEmojis } from "./emoji.ts"
 import { appendJsonl, readJsonl } from "./io.ts"
 
-const TRAIN = "./train.jsonl"
+const DATA = "./data.jsonl"
 const LABELS = "./labels.json"
 
 const RARE_COUNT = 60
@@ -132,7 +132,7 @@ if (import.meta.main) {
     const vocab = (
       JSON.parse(await readFile(LABELS, "utf8")) as { emojis: string[] }
     ).emojis
-    const rows = await readJsonl<{ emojis?: string }>(TRAIN)
+    const rows = await readJsonl<{ emojis?: string }>(DATA)
     const counts = countEmojis(rows, vocab)
     targets = rarest(vocab, counts, rareCount)
     console.log(
@@ -215,12 +215,12 @@ if (import.meta.main) {
       }),
     )
   }
-  await appendJsonl(TRAIN, lines)
+  await appendJsonl(DATA, lines)
 
   console.log("\n--- summary ---")
   console.log(`targets              : ${targets.length}`)
   console.log(`generated            : ${cands.length}`)
-  console.log(`appended -> train    : ${lines.length}`)
+  console.log(`appended -> data     : ${lines.length}`)
   console.log(`dropped no label     : ${noLabel}`)
   console.log(`dropped no palette   : ${noPalette}`)
   console.log(

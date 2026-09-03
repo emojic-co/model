@@ -7,7 +7,7 @@ import PQueue from "p-queue"
 import { MODEL, annotate, annotateBatchCount } from "./annotate.ts"
 import { appendJsonl } from "./io.ts"
 
-const TRAIN = "./train.jsonl"
+const DATA = "./data.jsonl"
 const REPORT_DIR = "./report/test-emoji"
 
 const FAIL_RANK = 5
@@ -206,13 +206,13 @@ if (import.meta.main) {
       }),
     )
   }
-  await appendJsonl(TRAIN, lines)
+  await appendJsonl(DATA, lines)
 
   console.log("\n--- summary ---")
   console.log(`report               : ${reportPath}`)
   console.log(`failed words         : ${targets.length}`)
   console.log(`generated            : ${cands.length}`)
-  console.log(`appended -> train    : ${lines.length}`)
+  console.log(`appended -> data     : ${lines.length}`)
   console.log(`dropped no label     : ${noLabel}`)
   console.log(`dropped no palette   : ${noPalette}`)
   console.log(

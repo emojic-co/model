@@ -5,11 +5,6 @@
   "scripts": {
     "train": "bun run tools/data/train.ts",
     "regen": "bun run tools/data/regen.ts",
-    "snapshot": "bun run tools/data/snapshot.ts",
-    "re-annotate": "bun run tools/data/re-annotate.ts",
-    "merge": "bun run tools/data/merge.ts",
-    "split-eval": "bun run tools/data/split-eval.ts",
-    "labels": "bun run tools/data/labels.ts",
     "stat": "bun run tools/data/stat.ts",
     "upsample-emojis": "bun run tools/data/upsample-emojis.ts",
     "upsample-emoji-test": "bun run tools/data/upsample-emoji-test.ts",
