@@ -102,7 +102,7 @@ def export_web(wrapper: nn.Module) -> None:
     )
 
 
-if __name__ == "__main__":
+def export() -> None:
     enc = _load(TextEncoder(), "enc.pt")
     style = _load(StyleHead(), "style.pt")
     emoji = _load(EmojiHead(), "emoji.pt")
@@ -124,3 +124,7 @@ if __name__ == "__main__":
     wrapper = ExportWrapper(enc, style, emoji, gen).eval()
     export_web(wrapper)
     print(f"wrote {WEB_PUBLIC}/model.onnx + meta.json + config.json")
+
+
+if __name__ == "__main__":
+    export()

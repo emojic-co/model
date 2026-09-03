@@ -1,9 +1,11 @@
+
 import lightning as pl
 import torch
 from lightning.pytorch.loggers import TensorBoardLogger
 
 from config import CONFIG_NAME, EPOCHS_GAN, GAN_BATCH_SIZE, SEED
 from data import train_data_loader, train_ds
+from export_onnx import export
 from model import TextEncoder
 from train import LitColorGAN
 
@@ -38,3 +40,5 @@ if __name__ == "__main__":
         ("tst", gan.tst),
     ):
         torch.save(mod.state_dict(), f"{name}.pt")
+
+    export()

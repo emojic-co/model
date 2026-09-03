@@ -182,7 +182,7 @@ def test_emoji(
 
     summary = "  ".join(f"acc@{k}={acc[k]:.0%}" for k in TOP_K)
     print(f"emoji test  {summary}  mrr={mrr:.3f}  (n={scored_n})")
-    return {"acc": acc, "mrr": mrr, "n": scored_n}
+    return {"acc": acc, "mrr": mrr, "n": scored_n, "results": results}
 
 
 if __name__ == "__main__":

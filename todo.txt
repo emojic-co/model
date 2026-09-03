@@ -252,6 +252,10 @@ TODO:
             2. Run the test_emoji.py script and generate a report in .json format.
             3. Run the tools/data/upsample-emoji-test.ts tool to upsample
             Repeat the process until all tests pass (or until we reach a limit of N iterations).
+
+        TOOLS:
+            Update the loop_emoji.py script:
+            If the goal (> 95% acc@5) has been reached then also run the train_gan.py locally otherwise show a detailed message where it is failing.
 DONE:
 
         Modal.com:
