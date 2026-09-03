@@ -155,8 +155,11 @@ class ColorGen(nn.Module):
     def forward(
         self,
         cond: torch.Tensor,
+        z: torch.Tensor | None = None,
     ) -> torch.Tensor:
-        z = normalize(torch.randn_like(cond), dim=-1)
+        if z is None:
+            z = torch.randn_like(cond)
+        z = normalize(z, dim=-1)
         seed = (1 - Z_WEIGHT) * normalize(cond) + Z_WEIGHT * z
         colors = self.net(seed)
         colors = tanh(colors) * COLOR_SCALE

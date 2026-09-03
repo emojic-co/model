@@ -1,0 +1,4 @@
+dark
+bright
+green
+blue

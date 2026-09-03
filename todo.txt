@@ -287,6 +287,12 @@ TODO:
             Auto Eval:
                 Can we come up with a simple way to evaluate the generator quality?
                 If so lets do it and add as a metric and an early stop to the train loop.
+
+        ENERGY DISTANCE:
+            During GAN training measure, log and early stop the model using the (unconditional) energy distance between the generated and real color distributions (in the okLAB color space).
+            In addition, just log the energy distance between the generated and real color distributions for predefined texts based on keywords:
+                - The energy distance is measured between the generated and real color distributions without using the embedded vector.
+                - Keywords are stored in a file energy_keywords.txt, log the energy distance for each keyword.
 DONE:
 
         Modal.com:

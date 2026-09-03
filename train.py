@@ -1,18 +1,27 @@
 
+import subprocess
+import sys
+
 import lightning as pl
 import torch
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import optim
-from torch.nn.functional import binary_cross_entropy_with_logits
+from torch.nn.functional import binary_cross_entropy_with_logits, normalize
 
 from config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE,
     EMOJI_AP_K,
+    ENERGY_KEYWORD_MAX_TEXTS,
+    ENERGY_KEYWORD_MIN_TEXTS,
+    ENERGY_KEYWORDS_PATH,
+    ENERGY_Z_SAMPLES,
+    EPOCHS_GAN,
     EPOCHS_TASK,
     FOCAL_ALPHA,
     FOCAL_GAMMA,
+    GAN_BATCH_SIZE,
     GAN_LR,
     GRAD_CLIP,
     LR,
@@ -20,10 +29,24 @@ from config import (
     STYLE_AP_K,
     STYLES,
     TASK_BATCH_SIZE,
+    TEXT_EMBED_SIZE,
     VAL_CHECK_INTERVAL,
 )
-from data import eval_data_loader, train_data_loader, train_ds
-from model import ColorDsc, ColorGen, EmojiHead, StyleHead, TextEncoder
+from data import (
+    eval_data_loader,
+    keyword_index,
+    load_energy_keywords,
+    train_data_loader,
+    train_ds,
+)
+from model import (
+    ColorDsc,
+    ColorGen,
+    EmojiHead,
+    StyleHead,
+    TextEncoder,
+    rgb_to_oklab,
+)
 
 POS_WEIGHT_CLAMP = 10.0
 
@@ -50,6 +73,14 @@ def focal_loss(
     alpha_t = alpha * target + (1 - alpha) * (1 - target)
     loss = alpha_t * (1 - p_t) ** gamma * ce
     return loss.sum() / target.sum().clamp(min=1.0)
+
+
+def energy_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    mode = "donot_use_mm_for_euclid_dist"
+    xy = torch.cdist(x, y, compute_mode=mode).mean()
+    xx = torch.cdist(x, x, compute_mode=mode).mean()
+    yy = torch.cdist(y, y, compute_mode=mode).mean()
+    return (2 * xy - xx - yy).clamp(min=0.0).sqrt()
 
 
 def ap_at_k(logits: torch.Tensor, target: torch.Tensor, k: int) -> torch.Tensor:
@@ -133,7 +164,7 @@ class LitTask(pl.LightningModule):
 
 
 class LitColorGAN(pl.LightningModule):
-    def __init__(self, enc: TextEncoder):
+    def __init__(self, enc: TextEncoder, kw_index=None):
         super().__init__()
 
         self.enc = enc.requires_grad_(False).eval()
@@ -141,7 +172,19 @@ class LitColorGAN(pl.LightningModule):
         self.gen = ColorGen()
         self.tst = ColorDsc()
 
+        self.kw_index = kw_index or {}
+
+        self.register_buffer(
+            "z_bank",
+            normalize(
+                torch.randn(
+                    ENERGY_Z_SAMPLES, TEXT_EMBED_SIZE,
+                    generator=torch.Generator().manual_seed(SEED)),
+                dim=-1))
+
         self.automatic_optimization = False
+        self._val_text: list[torch.Tensor] = []
+        self._val_real: list[torch.Tensor] = []
 
     def on_train_epoch_start(self):
         self.enc.eval()
@@ -149,6 +192,38 @@ class LitColorGAN(pl.LightningModule):
     def _cond(self, text: torch.Tensor) -> torch.Tensor:
         with torch.no_grad():
             return self.enc(text)
+
+    def on_validation_epoch_start(self):
+        self._val_text.clear()
+        self._val_real.clear()
+
+    def validation_step(self, batch, batch_idx):
+        text, _, _, colors = batch
+        self._val_text.append(text)
+        self._val_real.append(colors)
+
+    def _gen_oklab(self, text: torch.Tensor, k: int) -> torch.Tensor:
+        rep = text.repeat_interleave(k, dim=0)
+        z = self.z_bank.repeat(text.size(0), 1)
+        return rgb_to_oklab(self.gen(self.enc(rep), z))
+
+    def on_validation_epoch_end(self):
+        if not self._val_real:
+            return
+
+        self.gen.eval()
+        with torch.no_grad():
+            text = torch.cat(self._val_text)
+            real = rgb_to_oklab(torch.cat(self._val_real))
+            n = text.size(0)
+            z = self.z_bank[torch.arange(n, device=self.device) % self.z_bank.size(0)]
+            fake = rgb_to_oklab(self.gen(self.enc(text), z))
+            self.log("energy/gan/val", energy_distance(real, fake), prog_bar=True)
+
+            for kw, (kw_text, kw_real) in self.kw_index.items():
+                real_k = rgb_to_oklab(kw_real.to(self.device))
+                fake_k = self._gen_oklab(kw_text.to(self.device), self.z_bank.size(0))
+                self.log(f"energy/kw/{kw}", energy_distance(real_k, fake_k))
 
     def training_step(self, batch, batch_idx):
         text, _, _, colors = batch
@@ -241,24 +316,45 @@ if __name__ == "__main__":
     ):
         torch.save(mod.state_dict(), f"{name}.pt")
 
-    # gan_trainer = pl.Trainer(
-    #     devices="auto",
-    #     accelerator="auto",
-    #     logger=TensorBoardLogger(
-    #         "runs", name=CONFIG_NAME, version="gan", default_hp_metric=False),
-    #     deterministic=True,
-    #     max_epochs=EPOCHS_GAN,
-    #     enable_checkpointing=False,
-    # )
+    kw_index = keyword_index(
+        load_energy_keywords(ENERGY_KEYWORDS_PATH),
+        max_texts=ENERGY_KEYWORD_MAX_TEXTS,
+        min_texts=ENERGY_KEYWORD_MIN_TEXTS,
+        seed=SEED)
 
-    # gan = LitColorGAN(task.enc)
-    # gan_dl = train_data_loader(data_set=ds, batch_size=GAN_BATCH_SIZE)
-    # gan_trainer.fit(gan, gan_dl)
+    gan_ckpt = ModelCheckpoint(
+        monitor="energy/gan/val",
+        mode="min",
+        save_top_k=1,
+        filename="best-gan-{step}")
 
-    # for name, mod in (
-    #     ("gen", gan.gen),
-    #     ("tst", gan.tst),
-    # ):
-    #     torch.save(mod.state_dict(), f"{name}.pt")
+    gan_trainer = pl.Trainer(
+        devices="auto",
+        accelerator="auto",
+        logger=TensorBoardLogger(
+            "runs", name=CONFIG_NAME, version="gan", default_hp_metric=False),
+        deterministic=True,
+        max_epochs=EPOCHS_GAN,
+        callbacks=[
+            gan_ckpt,
+            EarlyStopping(
+                monitor="energy/gan/val", mode="min",
+                patience=EARLY_STOP_PATIENCE),
+        ],
+    )
 
-    # subprocess.run([sys.executable, "export_onnx.py"], check=True)
+    gan = LitColorGAN(task.enc, kw_index)
+    gan_dl = train_data_loader(data_set=ds, batch_size=GAN_BATCH_SIZE)
+    gan_trainer.fit(gan, gan_dl, val_dl)
+
+    if gan_ckpt.best_model_path:
+        gan = LitColorGAN.load_from_checkpoint(
+            gan_ckpt.best_model_path, enc=task.enc, kw_index=kw_index)
+
+    for name, mod in (
+        ("gen", gan.gen),
+        ("tst", gan.tst),
+    ):
+        torch.save(mod.state_dict(), f"{name}.pt")
+
+    subprocess.run([sys.executable, "export_onnx.py"], check=True)
