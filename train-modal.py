@@ -23,6 +23,7 @@ CODE_FILES = [
     "run.py",
     "labels.json",
     "words.json",
+    "data.jsonl",
     "train.jsonl",
     "eval.jsonl",
 ]

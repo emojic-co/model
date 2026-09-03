@@ -47,21 +47,28 @@ Read the train-vs-eval gap: which losses keep falling, which flatten or rise
 `labels.json`, `test_model.py`. The architecture and hyperparameters drift;
 trust the code, not the previous `model.md`.
 
-**Dataset shape** — never read `data.jsonl` whole:
+**Dataset shape** — `data.jsonl` is the raw append-only master; `train.jsonl`
+is the deduped subset `bun run regen` derives and what the model actually
+trains on. Report both. Never read `data.jsonl` whole:
 
 ```bash
-wc -l data.jsonl
+wc -l data.jsonl train.jsonl
 python3 -c "
 import json,collections,statistics
-rows=[json.loads(l) for l in open('data.jsonl')]
-fe=collections.Counter(r['feeling'] for r in rows); em=collections.Counter(r['emoji'] for r in rows)
+rows=[json.loads(l) for l in open('train.jsonl')]
+st=collections.Counter(s for r in rows for s in r['styles'])
+em=collections.Counter(e for r in rows for e in r['emojis'].split())
 mc=em.most_common()
-print('rows', len(rows))
-print('feelings', fe.most_common())
-print('n emoji classes', len(mc), 'median', statistics.median(em.values()), 'max', mc[0], 'min', mc[-1])
+print('train rows', len(rows))
+print('styles', st.most_common())
+print('n emoji classes', len(mc),
+      'median', statistics.median(em.values()) if em else 0,
+      'max', mc[0] if mc else None, 'min', mc[-1] if mc else None)
 print('tail', mc[-12:])
 "
 ```
+
+If `train.jsonl` is missing or stale, run `bun run regen` first.
 
 ## 2. Rewrite model.md
 
