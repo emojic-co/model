@@ -42,8 +42,8 @@ style_str = ' '.join([str(p) for p in (
 
 # GAN
 Z_WEIGHT = 0.2
-GEN_CHANNELS = [96, 64]
-CRITIC_CHANNELS = [32, 16, 8]
+GEN_CHANNELS = [96]
+CRITIC_CHANNELS = [16, 8]
 GAN_LR = 0.01
 
 gan_str = ' '.join([str(p) for p in (
@@ -74,7 +74,7 @@ train_str = ' '.join([str(p) for p in (
     FOCAL_GAMMA)])
 
 EPOCHS_TASK = 200
-EPOCHS_GAN = 60
+EPOCHS_GAN = 100
 VAL_CHECK_INTERVAL = 100
 EARLY_STOP_PATIENCE = 20
 
