@@ -14,27 +14,29 @@ from config import (
     DROPOUT_STYLE,
     EMOJI_EMBED_SIZE,
     ENCODER_CHANNELS,
+    ENCODER_KERNEL_SIZE,
     GEN_CHANNELS,
     RELU_SLOPE,
     STYLE_EMBED_SIZE,
     TEXT_EMBED_SIZE,
     Z_WEIGHT,
 )
-from data import COLOR_DIM, EMOJIS, PAD_IDX, STYLES, VOCAB_SIZE
+from data import COLOR_DIM, EMOJIS, STYLES, VOCAB_SIZE
 
 
 class TextEncoderBlock(nn.Module):
     def __init__(self, i: int, o: int):
         super().__init__()
         self.net = nn.Sequential(
-            sn(nn.Conv1d(i, o, kernel_size=2, padding=0, bias=True)),
+            sn(nn.Conv1d(i, o,
+                         kernel_size=ENCODER_KERNEL_SIZE,
+                         padding=0,
+                         bias=True)),
+
             nn.LeakyReLU(negative_slope=RELU_SLOPE))
 
-    def forward(
-        self, x: torch.Tensor, mask: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor]:
-        x = x.masked_fill(mask[:, None, :], 0.0)
-        return self.net(x), mask
+    def forward(self, x: torch.Tensor):
+        return self.net(x)
 
 
 class TextEncoder(nn.Module):
@@ -46,15 +48,12 @@ class TextEncoder(nn.Module):
         cs = ENCODER_CHANNELS
         io = zip([CHAR_EMBED_SIZE, *cs[:-1]], cs, strict=True)
 
-        self.blocks = nn.ModuleList(
-            [TextEncoderBlock(i=i, o=o) for i, o in io])
+        self.net = nn.Sequential(
+            *[TextEncoderBlock(i=i, o=o) for i, o in io])
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        mask = x == PAD_IDX
         out = self.char_embed(x).transpose(1, 2)
-        for block in self.blocks:
-            out, mask = block(out, mask)
-        out = out.masked_fill(mask[:, None, :], float("-inf"))
+        out = self.net(out)
         return torch.max(out, dim=-1).values
 
 
