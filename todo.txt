@@ -313,23 +313,35 @@ TODO:
 
             Let me know if you push back on this and explain why.
 
-DONE:
-
-        Modal.com:
-            create a script train-modal.py
-            the script is a slim wrapper around train.py
-            it should run the training on multiple cheap GPUs on modal.com
-            It should speedup training by at least 10x (otherwise it is not worth it)
-            It must log realtime tensorboard metrics.
-            It must log realtime training progress to the console.
-            Suggest a simple script to do that or push back and explain why we should not go that route.
-            ---
-            train-modal.py added. Pushed back on multi-GPU / 10x: model is ~110k params,
-            dataset 12MB in RAM, a full run is already ~15-32min on laptop CPU -- the
-            workload is kernel-launch/overhead bound, DDP would likely be slower and would
-            change the effective batch size. Built a single high-CPU (no GPU) Modal worker
-            instead: keeps torch CPU-pinned + `uv sync --frozen` untouched, train.py runs
-            unmodified, live TensorBoard tunnel + streamed console, artifacts pulled back
-            to the repo. Expect ~1.5-2.5x wall-clock, ~$0.15-0.25/run. Run with
-            `uv run modal run train-modal.py`.
-
+        Data:
+            Reorganize the data files:
+                - data.jsonl - this is the master file that contains all the data, append only, never delete.
+                - train.jsonl - a subset of the data.jsonl file, this file can be deleted and re-generated from data.jsonl
+                - eval.jsonl - a subset of the data.jsonl file, this file can be deleted and re-generated from data.jsonl
+                - labels.json - a file that contains the list of emojis and feelings, this file can be deleted and re-generated from data.jsonl
+            You need to check all data tools and skills and update them to use the new data files and structure.
+            
+        Color Based Annotation:
+            Write a tool tools/data/upsample-colors.ts
+            The tool has a list of predefined color names (e.g. red, green, blue, yellow, etc...).
+            The tools add new records to the data.jsonl file with extra field {color: <color name>}.
+            
+            Steps:
+                1. pick a color name from the list
+                2. ask the text generator to generate a text related to the color
+                3. send to the annotator
+                4. append to data.jsonl
+            
+            Notes:
+                - No need to validate the results
+                - save the record with an extra field {color: <color name>} so we can use it later for the color test.
+                - design the prompt so the text is aligned with the existing texts in the data.jsonl, the only different is that it should be related to the color.
+                - the text generator need to be instruct to avoid copy paste the name of the color into the text, instead it should be related to the color in a more subtle way.
+                
+                - e.g. 
+                    - for the color "red" the text can be "I love the smell of roses in the morning" .
+                    - for the color "black" the text can be "It was a dark and stormy night" .
+                
+                - The strategy to pick the color is not yet determined, so for now 2 options:
+                    run just `tools/data/upsample-colors.ts` it will randomly pick a color from the list and generate a text for it.
+                    run `tools/data/upsample-colors.ts --colors <space separated color names>` to generate the specific colors you want.
