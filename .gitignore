@@ -31,6 +31,10 @@ data.jsonl.tmp
 train.jsonl
 eval.jsonl
 labels.json
+# regen writes these via writeFileAtomic (path.tmp then rename); a crash leaves them.
+train.jsonl.tmp
+eval.jsonl.tmp
+labels.json.tmp
 
 *.pt
 # SDD isolated worktrees

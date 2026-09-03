@@ -119,7 +119,7 @@ function argInt(flag: string): number | undefined {
   const i = process.argv.indexOf(flag)
   if (i < 0 || i + 1 >= process.argv.length) return undefined
   const n = Number(process.argv[i + 1])
-  return Number.isFinite(n) ? n : undefined
+  return Number.isInteger(n) ? n : undefined
 }
 
 function toLine(r: Row): string {

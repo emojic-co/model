@@ -18,6 +18,9 @@ and it never writes a root `data.md`. The only file it creates is the report
 **keep-or-drop reasoning only** — you decide whether a stored label is right,
 you never rewrite one.
 
+`data.jsonl` is the only committed data file. If `labels.json` (or `train.jsonl`
+/ `eval.jsonl`) is missing or stale, run `bun run regen` first.
+
 Reference points, all read from source so the report stays honest:
 
 - `data.py:read` accepts a row only with `text` + `emojis` + `styles` + `bg` +

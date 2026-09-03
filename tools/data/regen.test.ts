@@ -39,8 +39,18 @@ test("collapse keeps only styles in the closed set", () => {
 test("collapse emits a record with no bg/fg when no source row had a palette", () => {
   const out = collapse([{ text: "no colors", emojis: "🎈", styles: ["Playful"] }])
   expect(out).toHaveLength(1)
-  expect(out[0].bg).toBeUndefined()
-  expect(out[0].fg).toBeUndefined()
+  expect("bg" in out[0]).toBe(false)
+  expect("fg" in out[0]).toBe(false)
+})
+
+test("collapse keeps the first-seen raw text for a merged key", () => {
+  const out = collapse([
+    { text: "Hello  World", emojis: "😀", styles: [] },
+    { text: "hello world", emojis: "🌍", styles: [] },
+  ])
+  expect(out).toHaveLength(1)
+  expect(out[0].text).toBe("Hello  World")
+  expect(out[0].emojis.split(" ").sort()).toEqual(["😀", "🌍"].sort())
 })
 
 test("pickPalette is deterministic and returns one of the given palettes", () => {
