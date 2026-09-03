@@ -60,8 +60,10 @@ class TextEncoder(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         mask = x == PAD_IDX
         out = self.char_embed(x).transpose(1, 2)
+
         for block in self.blocks:
             out, mask = block(out, mask)
+
         out = out.masked_fill(mask[:, None, :], float("-inf"))
         return torch.max(out, dim=-1).values
 
