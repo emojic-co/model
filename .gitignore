@@ -32,3 +32,5 @@ data.jsonl.tmp
 /.worktrees/
 pred.jsonl
 lightning_logs
+# SDD scratch (ledger, briefs, review packages)
+/.superpowers/
