@@ -4,7 +4,12 @@ import sys
 
 import lightning as pl
 import torch
-from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
+from lightning.pytorch.callbacks import (
+    EarlyStopping,
+    ModelCheckpoint,
+    ModelSummary,
+    TQDMProgressBar,
+)
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import optim
 from torch.nn.functional import binary_cross_entropy_with_logits, normalize
@@ -220,6 +225,13 @@ class LitColorGAN(pl.LightningModule):
             fake = rgb_to_oklab(self.gen(self.enc(text), z))
             self.log("energy/gan/val", energy_distance(real, fake), prog_bar=True)
 
+            half = n // 2
+            perm = torch.randperm(
+                n, generator=torch.Generator().manual_seed(SEED)).to(self.device)
+            self.log(
+                "energy/gan/ref",
+                energy_distance(real[perm[:half]], real[perm[half:2 * half]]))
+
             for kw, (kw_text, kw_real) in self.kw_index.items():
                 real_k = rgb_to_oklab(kw_real.to(self.device))
                 fake_k = self._gen_oklab(kw_text.to(self.device), self.z_bank.size(0))
@@ -300,6 +312,8 @@ if __name__ == "__main__":
             task_ckpt,
             EarlyStopping(
                 monitor="f1/val", mode="max", patience=EARLY_STOP_PATIENCE),
+            TQDMProgressBar(),
+            ModelSummary(),
         ],
     )
 
@@ -340,6 +354,8 @@ if __name__ == "__main__":
             EarlyStopping(
                 monitor="energy/gan/val", mode="min",
                 patience=EARLY_STOP_PATIENCE),
+            TQDMProgressBar(),
+            ModelSummary(),
         ],
     )
 

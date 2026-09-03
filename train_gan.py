@@ -1,7 +1,12 @@
 
 import lightning as pl
 import torch
-from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
+from lightning.pytorch.callbacks import (
+    EarlyStopping,
+    ModelCheckpoint,
+    ModelSummary,
+    TQDMProgressBar,
+)
 from lightning.pytorch.loggers import TensorBoardLogger
 
 from config import (
@@ -61,6 +66,8 @@ if __name__ == "__main__":
             EarlyStopping(
                 monitor="energy/gan/val", mode="min",
                 patience=EARLY_STOP_PATIENCE),
+            TQDMProgressBar(),
+            ModelSummary(),
         ],
     )
 
