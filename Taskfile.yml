@@ -1,0 +1,65 @@
+version: '3'
+
+vars:
+  RUNS:
+    sh: echo "$(dirname "$(git rev-parse --show-toplevel)")/emojic-runs"
+
+tasks:
+  modal-train:
+    desc: "Snapshot HEAD to a named branch+worktree and launch train-modal.py detached: task modal-train -- <name>"
+    silent: true
+    cmds:
+      - |
+        set -e
+        root=$(git rev-parse --show-toplevel)
+        ts=$(date +%y-%m-%d-%H-%M)
+        name=$(printf '%s' "{{.CLI_ARGS}}" | tr ' ' '-' | tr -cd 'a-zA-Z0-9._-')
+        [ -n "$name" ] || name="modal-train"
+        tag="$name-$ts"
+        wt="{{.RUNS}}/$tag"
+        log="{{.RUNS}}/$tag.log"
+        mkdir -p "{{.RUNS}}"
+
+        git -C "$root" worktree add -b "$tag" "$wt" HEAD
+        for f in train.jsonl eval.jsonl labels.json words.json; do
+          [ -f "$root/$f" ] && cp "$root/$f" "$wt/$f" || true
+        done
+
+        setsid sh -c "cd '$wt' && exec uv run modal run train-modal.py" >"$log" 2>&1 </dev/null &
+
+        browser=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v xdg-open || true)
+        if [ -n "$browser" ]; then
+          setsid sh -c '
+            for _ in $(seq 1 150); do
+              u=$(grep -m1 -oE "TensorBoard: https?://[^ ]+" "$1" | sed "s/^TensorBoard: //")
+              [ -n "$u" ] && exec "$2" "$u"
+              sleep 2
+            done
+          ' _ "$log" "$browser" >/dev/null 2>&1 </dev/null &
+        fi
+
+        echo "branch   : $tag   (promote with: git branch -m $tag <newname>)"
+        echo "worktree : $wt"
+        echo "log      : tail -f $log"
+        echo "tb tab   : opens automatically when ready"
+
+  modal-train:list:
+    desc: "Show training worktrees and their branches"
+    silent: true
+    cmds:
+      - git worktree list
+
+  modal-train:drop:
+    desc: "Discard a run: remove its worktree (branch kept): task modal-train:drop -- <tag>"
+    silent: true
+    cmds:
+      - |
+        set -e
+        tag="{{.CLI_ARGS}}"
+        [ -n "$tag" ] || { echo "usage: task modal-train:drop -- <tag>"; exit 1; }
+        root=$(git rev-parse --show-toplevel)
+        git -C "$root" worktree remove --force "{{.RUNS}}/$tag"
+        rm -f "{{.RUNS}}/$tag.log"
+        echo "worktree removed; branch $tag kept."
+        echo "  keep developing : git switch $tag"
+        echo "  bad experiment  : git branch -D $tag"

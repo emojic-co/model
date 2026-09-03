@@ -192,3 +192,8 @@ def main(cpu: int = CPU, memory: int = MEMORY_MIB):
         print(fn.remote(threads=cpu))
     finally:
         _retrieve_and_cleanup()
+
+
+@app.local_entrypoint()
+def fetch():
+    _retrieve_and_cleanup()

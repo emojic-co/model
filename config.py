@@ -57,7 +57,7 @@ GAN_BATCH_SIZE = 512
 RELU_SLOPE = 0.1
 LR = 0.01
 GRAD_CLIP = 1.0
-INFONCE_TEMP = .6
+INFONCE_TEMP = .7
 
 train_str = ' '.join([str(p) for p in (
     SEED,
