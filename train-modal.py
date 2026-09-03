@@ -1,6 +1,8 @@
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import modal
@@ -11,6 +13,9 @@ TIMEOUT_S = 3600
 REPO = "/repo"
 VENV_PY = f"{REPO}/.venv/bin/python"
 TB_PORT = 6006
+
+VOL_NAME = "emojic-artifacts"
+ARTIFACTS = "/artifacts"
 
 DEP_FILES = ["pyproject.toml", "uv.lock", ".python-version", "README.md"]
 CODE_FILES = [
@@ -38,6 +43,7 @@ for name in CODE_FILES:
     image = image.add_local_file(name, f"{REPO}/{name}", copy=True)
 
 app = modal.App("emojic-train", image=image)
+vol = modal.Volume.from_name(VOL_NAME, create_if_missing=True)
 
 
 def _run_env(threads: int) -> dict[str, str]:
@@ -53,62 +59,128 @@ def _run_env(threads: int) -> dict[str, str]:
     }
 
 
-def _collect() -> dict[str, bytes]:
-    out: dict[str, bytes] = {}
-    root = Path(REPO)
+def _stash(dst: str) -> int:
+    root, out = Path(REPO), Path(dst)
+    n = 0
     for pattern in COLLECT_GLOBS:
         for path in root.glob(pattern):
             if path.is_file():
-                out[path.name] = path.read_bytes()
+                shutil.copy2(path, out / path.name)
+                n += 1
     for tree in COLLECT_TREES:
-        for path in (root / tree).rglob("*"):
+        base = root / tree
+        if not base.is_dir():
+            continue
+        for path in base.rglob("*"):
             if path.is_file():
-                out[str(path.relative_to(root))] = path.read_bytes()
-    return out
+                rel = path.relative_to(root)
+                (out / rel).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(path, out / rel)
+                n += 1
+    return n
 
 
-@app.function(cpu=CPU, memory=MEMORY_MIB, timeout=TIMEOUT_S)
-def train_remote(threads: int = CPU) -> dict[str, bytes]:
+@app.function(
+    cpu=CPU, memory=MEMORY_MIB, timeout=TIMEOUT_S, volumes={ARTIFACTS: vol}
+)
+def train_remote(threads: int = CPU) -> dict[str, int]:
     env = _run_env(threads)
-    tb = subprocess.Popen(
-        [
-            VENV_PY,
-            "-m",
-            "tensorboard.main",
-            "--logdir",
-            f"{REPO}/runs",
-            "--host",
-            "0.0.0.0",
-            "--port",
-            str(TB_PORT),
-            "--reload_interval",
-            "5",
-        ],
-        cwd=REPO,
-        env=env,
-    )
+    code = 1
     try:
-        with modal.forward(TB_PORT) as tunnel:
-            print(f"TensorBoard: {tunnel.url}", flush=True)
-            proc = subprocess.Popen(
-                [VENV_PY, "train.py"],
-                cwd=REPO,
-                env=env,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1,
+        tb = subprocess.Popen(
+            [
+                VENV_PY,
+                "-m",
+                "tensorboard.main",
+                "--logdir",
+                f"{REPO}/runs",
+                "--host",
+                "0.0.0.0",
+                "--port",
+                str(TB_PORT),
+                "--reload_interval",
+                "5",
+            ],
+            cwd=REPO,
+            env=env,
+        )
+        try:
+            with modal.forward(TB_PORT) as tunnel:
+                print(f"TensorBoard: {tunnel.url}", flush=True)
+                proc = subprocess.Popen(
+                    [VENV_PY, "train.py"],
+                    cwd=REPO,
+                    env=env,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    bufsize=1,
+                )
+                for line in proc.stdout:
+                    sys.stdout.write(line)
+                    sys.stdout.flush()
+                code = proc.wait()
+        finally:
+            tb.terminate()
+        if code == 0:
+            subprocess.run(
+                [VENV_PY, "test_emoji.py"], cwd=REPO, env=env, check=False
             )
-            for line in proc.stdout:
-                sys.stdout.write(line)
-                sys.stdout.flush()
-            code = proc.wait()
     finally:
-        tb.terminate()
+        n = _stash(ARTIFACTS)
+        vol.commit()
+        print(f"stashed {n} files to volume {VOL_NAME}", flush=True)
     if code != 0:
         raise RuntimeError(f"train.py exited with {code}")
-    subprocess.run([VENV_PY, "test_emoji.py"], cwd=REPO, env=env, check=False)
-    return _collect()
+    return {"files": n}
+
+
+def _modal(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, "-m", "modal", *args], capture_output=True, text=True
+    )
+
+
+def _retrieve_and_cleanup() -> None:
+    staging = Path(tempfile.mkdtemp(prefix="emojic-modal-"))
+    try:
+        got = _modal("volume", "get", "--force", VOL_NAME, "/", str(staging))
+        if got.returncode != 0:
+            print(f"volume get failed, leaving {VOL_NAME} intact:")
+            print(got.stdout, got.stderr)
+            return
+
+        src = staging
+        kids = list(staging.iterdir())
+        if len(kids) == 1 and kids[0].is_dir() and kids[0].name not in {
+            "runs",
+            "report",
+            "web",
+        }:
+            src = kids[0]
+
+        landed: list[str] = []
+        for item in sorted(src.iterdir()):
+            target = Path.cwd() / item.name
+            if item.is_dir():
+                shutil.copytree(item, target, dirs_exist_ok=True)
+            else:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(item, target)
+            landed.append(item.name)
+
+        print(f"retrieved into {Path.cwd()}: {', '.join(landed) or '(nothing)'}")
+        if not landed:
+            return
+
+        rm = _modal("volume", "delete", "-y", VOL_NAME)
+        print(
+            f"deleted volume {VOL_NAME}"
+            if rm.returncode == 0
+            else f"volume cleanup failed:\n{rm.stderr}"
+        )
+    finally:
+        shutil.rmtree(staging, ignore_errors=True)
 
 
 @app.local_entrypoint()
@@ -116,9 +188,7 @@ def main(cpu: int = CPU, memory: int = MEMORY_MIB):
     fn = train_remote
     if cpu != CPU or memory != MEMORY_MIB:
         fn = train_remote.with_options(cpu=cpu, memory=memory)
-    artifacts = fn.remote(threads=cpu)
-    for relpath, blob in sorted(artifacts.items()):
-        dest = Path(relpath)
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_bytes(blob)
-        print(f"wrote {relpath} ({len(blob)} bytes)")
+    try:
+        print(fn.remote(threads=cpu))
+    finally:
+        _retrieve_and_cleanup()

@@ -2,7 +2,6 @@
 import torch
 from torch import nn
 from torch.nn.functional import (
-    max_pool1d,
     normalize,
     tanh,
 )
@@ -30,19 +29,12 @@ class TextEncoderBlock(nn.Module):
         self.net = nn.Sequential(
             sn(nn.Conv1d(i, o, kernel_size=3, padding=1, bias=True)),
             nn.LeakyReLU(negative_slope=RELU_SLOPE))
-        self.pool = nn.MaxPool1d(kernel_size=2, stride=2)
 
     def forward(
         self, x: torch.Tensor, mask: torch.Tensor
     ) -> tuple[torch.Tensor, torch.Tensor]:
         x = x.masked_fill(mask[:, None, :], 0.0)
-        out = self.net(x)
-        out = out.masked_fill(mask[:, None, :], float("-inf"))
-        out = self.pool(out)
-
-        valid = max_pool1d(
-            (~mask).float()[:, None, :], kernel_size=2, stride=2).squeeze(1)
-        return out, valid == 0
+        return self.net(x), mask
 
 
 class TextEncoder(nn.Module):
@@ -60,10 +52,8 @@ class TextEncoder(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         mask = x == PAD_IDX
         out = self.char_embed(x).transpose(1, 2)
-
         for block in self.blocks:
             out, mask = block(out, mask)
-
         out = out.masked_fill(mask[:, None, :], float("-inf"))
         return torch.max(out, dim=-1).values
 

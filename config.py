@@ -13,14 +13,14 @@ MAX_TEXT_LEN = 42
 
 # ENCODER
 CHAR_EMBED_SIZE = 16
-ENCODER_CHANNELS = [90, 110, 130]
+ENCODER_CHANNELS = [32, 64, 92, 128]
 
 enc_str = ' '.join([str(p) for p in (
     CHAR_EMBED_SIZE,
     ENCODER_CHANNELS)])
 
 # EMOJI
-EMOJI_EMBED_SIZE = 48
+EMOJI_EMBED_SIZE = 32
 DROPOUT_EMOJI = 0.2
 
 emj_str = ' '.join([str(p) for p in (
