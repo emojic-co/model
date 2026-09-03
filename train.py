@@ -209,8 +209,15 @@ class LitColorGAN(pl.LightningModule):
 
     def _gen_oklab(self, text: torch.Tensor, k: int) -> torch.Tensor:
         rep = text.repeat_interleave(k, dim=0)
-        z = self.z_bank.repeat(text.size(0), 1)
+        z = self.z_bank.repeat(text.size(0), 1)  # type: ignore
         return rgb_to_oklab(self.gen(self.enc(rep), z))
+
+    def _split_energy(self, pts: torch.Tensor) -> torch.Tensor:
+        m = pts.size(0)
+        half = m // 2
+        perm = torch.randperm(
+            m, generator=torch.Generator().manual_seed(SEED)).to(pts.device)
+        return energy_distance(pts[perm[:half]], pts[perm[half:2 * half]])
 
     def on_validation_epoch_end(self):
         if not self._val_real:
@@ -221,21 +228,29 @@ class LitColorGAN(pl.LightningModule):
             text = torch.cat(self._val_text)
             real = rgb_to_oklab(torch.cat(self._val_real))
             n = text.size(0)
-            z = self.z_bank[torch.arange(n, device=self.device) % self.z_bank.size(0)]
+            z = self.z_bank[  # type: ignore
+                torch.arange(n, device=self.device)
+                % self.z_bank.size(0)]  # type: ignore
+
             fake = rgb_to_oklab(self.gen(self.enc(text), z))
-            self.log("energy/gan/val", energy_distance(real, fake), prog_bar=True)
+            val = energy_distance(real, fake)
+            self.log("energy/gan/val", val, prog_bar=True)
 
-            half = n // 2
-            perm = torch.randperm(
-                n, generator=torch.Generator().manual_seed(SEED)).to(self.device)
-            self.log(
-                "energy/gan/ref",
-                energy_distance(real[perm[:half]], real[perm[half:2 * half]]))
+            gan_scalars = {"val": val, "ref": self._split_energy(real)}
 
+            kw_scalars: dict[str, torch.Tensor] = {}
             for kw, (kw_text, kw_real) in self.kw_index.items():
                 real_k = rgb_to_oklab(kw_real.to(self.device))
-                fake_k = self._gen_oklab(kw_text.to(self.device), self.z_bank.size(0))
-                self.log(f"energy/kw/{kw}", energy_distance(real_k, fake_k))
+                fake_k = self._gen_oklab(
+                    kw_text.to(self.device), self.z_bank.size(0))  # type: ignore
+                kw_scalars[f"{kw}/gen"] = energy_distance(real_k, fake_k)
+                kw_scalars[f"{kw}/ref"] = self._split_energy(real_k)
+
+            if isinstance(self.logger, TensorBoardLogger):
+                w = self.logger.experiment
+                w.add_scalars("energy/gan", gan_scalars, self.global_step)
+                if kw_scalars:
+                    w.add_scalars("energy/kw", kw_scalars, self.global_step)
 
     def training_step(self, batch, batch_idx):
         text, _, _, colors = batch

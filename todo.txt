@@ -293,6 +293,17 @@ TODO:
             In addition, just log the energy distance between the generated and real color distributions for predefined texts based on keywords:
                 - The energy distance is measured between the generated and real color distributions without using the embedded vector.
                 - Keywords are stored in a file energy_keywords.txt, log the energy distance for each keyword.
+
+        COLOR_TEST:
+            In the spirit of our keyword test (test_emoji.py) we want to add a color test to the GAN generator.
+            The test should pick a set of semantically meaningful colors from the eval.jsonl
+            For each color collect all the texts that are associated with it and generate a report of the GAN generator performance on those colors.
+            The report should be generated in both .html and .json format.
+            The html report should list the accuracy of the GAN generator for each color and show a few examples of the generated colors.
+            The json report should contain the accuracy of the GAN generator for each color and the color name.
+            The .json file will be used to upsample texts for colors that the GAN generator is failing on (future work).
+
+            Before you implement make I explained the task clearly, so explain to me in simple words what exactly you plan to do and how you plan to do it.
 DONE:
 
         Modal.com:
