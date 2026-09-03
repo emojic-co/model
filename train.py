@@ -328,6 +328,9 @@ if __name__ == "__main__":
     ):
         torch.save(mod.state_dict(), f"{name}.pt")
 
+    if os.environ.get("EMOJIC_TASK_ONLY") == "1":
+        sys.exit(0)
+
     gan_ckpt = ModelCheckpoint(
         monitor="energy/gan/val",
         mode="min",

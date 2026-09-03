@@ -5,7 +5,7 @@ from pathlib import Path
 
 from test_emoji import _acc, _freq_groups, _length_groups, test_emoji
 
-TRAIN_PATH = Path("train.jsonl")
+DATA_PATH = Path("data.jsonl")
 GOAL_K = 5
 
 
@@ -104,13 +104,14 @@ def main() -> int:
         if i == args.iterations:
             break
 
-        before = _lines(TRAIN_PATH)
+        before = _lines(DATA_PATH)
         _run(["bun", "run", "tools/data/upsample-emoji-test.ts", "--rank", str(args.rank)])
-        added = _lines(TRAIN_PATH) - before
-        print(f"upsample added {added} rows to {TRAIN_PATH}", flush=True)
+        added = _lines(DATA_PATH) - before
+        print(f"upsample added {added} rows to {DATA_PATH}", flush=True)
         if added <= 0:
             print("\nnothing left to upsample, stopping", flush=True)
             break
+        _run(["bun", "run", "tools/data/regen.ts"])
 
     print("\n===== summary =====", flush=True)
     for n, acc5 in enumerate(history, 1):

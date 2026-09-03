@@ -45,6 +45,7 @@ def _run_env(threads: int) -> dict[str, str]:
         **os.environ,
         "PYTHONUNBUFFERED": "1",
         "EMOJIC_NO_PROGRESS_BAR": "1",
+        "EMOJIC_TASK_ONLY": "1",
         "OMP_NUM_THREADS": str(threads),
         "MKL_NUM_THREADS": str(threads),
         "OPENBLAS_NUM_THREADS": str(threads),
