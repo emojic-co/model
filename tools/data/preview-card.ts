@@ -79,7 +79,7 @@ export function firstEmoji(field: string): string {
 export function stamp(): string {
   const d = new Date()
   const p = (n: number) => String(n).padStart(2, "0")
-  return `${p(d.getMonth() + 1)}-${p(d.getDate())}-${p(d.getHours())}:${p(d.getMinutes())}`
+  return `${p(d.getMonth() + 1)}-${p(d.getDate())}-${p(d.getHours())}-${p(d.getMinutes())}`
 }
 
 export function sample<T>(rows: T[], n: number): T[] {

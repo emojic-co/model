@@ -156,7 +156,7 @@ def test_emoji(
     words = json.loads(Path(words_path).read_text(encoding="utf-8"))
     results = _evaluate(enc_path, emoji_path, words, _emoji_counts())
     scored_n, acc, mrr = _acc(results)
-    stamp = datetime.now().strftime("%m-%d-%H:%M")
+    stamp = datetime.now().strftime("%m-%d-%H-%M")
 
     if write_report:
         REPORT_DIR.mkdir(parents=True, exist_ok=True)

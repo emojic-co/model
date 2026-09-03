@@ -12,7 +12,7 @@ the **current** source. Do not train, do not run `main.py`/`train.py`.
 ## 1. Gather evidence
 
 **Latest behavioral report** — pick the newest `report/model/*.md` (names sort
-lexically: `MM-DD-HH:MM.md`) and read it in full:
+lexically: `MM-DD-HH-MM.md`) and read it in full:
 
 ```bash
 ls -1 report/model/*.md | sort | tail -1

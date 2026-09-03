@@ -111,7 +111,7 @@ function stamp(): { header: string; file: string } {
   const p = (n: number) => String(n).padStart(2, "0")
   return {
     header: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`,
-    file: `${p(d.getMonth() + 1)}-${p(d.getDate())}-${p(d.getHours())}:${p(d.getMinutes())}`,
+    file: `${p(d.getMonth() + 1)}-${p(d.getDate())}-${p(d.getHours())}-${p(d.getMinutes())}`,
   }
 }
 

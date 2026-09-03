@@ -509,3 +509,9 @@ TODO:
     Emoji Test:
         Extend the emoji test with another 50 words, test the latest model and generate a report of the results.
         Tell mw what do you think.
+
+    Report names:
+        Currently all report names are of the form report/<report name>/<timestamp>.md
+        where <timestamp> is of the form MM-DD-HH:MM.
+        the usage of ":" in the name make the file name unclickable in the terminal, thus we need to change the timestamp format to MM-DD-HH-MM.
+        update all current reports and update all tools that generate reports to use the new timestamp format.

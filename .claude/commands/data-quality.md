@@ -7,7 +7,7 @@ allowed-tools: [Bash, Read, Write]
 
 Judge the health of `data.jsonl` (the append-only master that `bun run regen`
 derives `train.jsonl` / `eval.jsonl` / `labels.json` from) and write **one**
-report to `report/data-quality/<MM-DD-HH:MM>.md`. Distribution stats come from
+report to `report/data-quality/<MM-DD-HH-MM>.md`. Distribution stats come from
 `tools/data/stat.ts`; this skill adds structural checks and an in-session label
 judgment on top.
 
@@ -40,7 +40,7 @@ Reference points, all read from source so the report stays honest:
 
 ```bash
 mkdir -p report/data-quality
-STAMP=$(date +%m-%d-%H:%M)
+STAMP=$(date +%m-%d-%H-%M)
 bun run tools/data/stat.ts
 STAT=$(ls -t report/data-stat/*.md | head -1)
 echo "distribution report: $STAT"
