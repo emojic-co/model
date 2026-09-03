@@ -1,5 +1,3 @@
-import subprocess
-import sys
 
 import lightning as pl
 import torch
@@ -263,4 +261,4 @@ if __name__ == "__main__":
     # ):
     #     torch.save(mod.state_dict(), f"{name}.pt")
 
-    subprocess.run([sys.executable, "export_onnx.py"], check=True)
+    # subprocess.run([sys.executable, "export_onnx.py"], check=True)
