@@ -5,6 +5,7 @@ import {
   emojiLeaderboard,
   pickPalette,
   shuffleSeeded,
+  toLine,
 } from "./regen.ts"
 
 const P = (a: string, b: string, f: string) => ({ bg: [a, b], fg: f })
@@ -51,6 +52,42 @@ test("collapse keeps the first-seen raw text for a merged key", () => {
   expect(out).toHaveLength(1)
   expect(out[0].text).toBe("Hello  World")
   expect(out[0].emojis.split(" ").sort()).toEqual(["😀", "🌍"].sort())
+})
+
+test("collapse carries non-base fields through as extra, first-seen wins", () => {
+  const out = collapse([
+    { text: "sky at dusk", emojis: "🌇", styles: ["Wistful"], ...P("#111111", "#222222", "#eeeeee"), color: "orange" },
+    { text: "  sky at dusk ", emojis: "", styles: ["Deadpan"], color: "red", note: "second" },
+  ])
+  expect(out).toHaveLength(1)
+  expect(out[0].extra).toEqual({ color: "orange", note: "second" })
+})
+
+test("collapse leaves extra unset when rows carry only base fields", () => {
+  const out = collapse([
+    { text: "plain row", emojis: "", styles: ["Deadpan"], ...P("#111111", "#222222", "#eeeeee") },
+  ])
+  expect("extra" in out[0]).toBe(false)
+})
+
+test("toLine emits extra fields after the base schema fields", () => {
+  const line = toLine({
+    text: "roses at dawn",
+    emojis: "🌹",
+    styles: ["Wistful"],
+    bg: ["#111111", "#222222"],
+    fg: "#eeeeee",
+    extra: { color: "red" },
+  })
+  expect(line).toBe(
+    '{"text":"roses at dawn","emojis":"🌹","styles":["Wistful"],'
+    + '"bg":["#111111","#222222"],"fg":"#eeeeee","color":"red"}',
+  )
+  expect(JSON.parse(toLine({ text: "t", emojis: "", styles: [] }))).toEqual({
+    text: "t",
+    emojis: "",
+    styles: [],
+  })
 })
 
 test("pickPalette is deterministic and returns one of the given palettes", () => {

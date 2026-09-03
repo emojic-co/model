@@ -10,13 +10,17 @@ export type Row = {
   styles: string[]
   bg?: string[]
   fg?: string
+  extra?: Record<string, unknown>
 }
+
+const BASE_FIELDS = new Set(["text", "emojis", "styles", "bg", "fg"])
 
 type Acc = {
   text: string
   emojis: Set<string>
   styles: Set<string>
   palettes: Palette[]
+  extra: Record<string, unknown>
 }
 
 function rowPalette(row: Record<string, unknown>): Palette | undefined {
@@ -45,7 +49,13 @@ export function collapse(rows: unknown[]): Row[] {
     if (!key) continue
     let a = acc.get(key)
     if (!a) {
-      a = { text, emojis: new Set(), styles: new Set(), palettes: [] }
+      a = {
+        text,
+        emojis: new Set(),
+        styles: new Set(),
+        palettes: [],
+        extra: {},
+      }
       acc.set(key, a)
     }
     if (typeof row.emojis === "string") {
@@ -58,6 +68,10 @@ export function collapse(rows: unknown[]): Row[] {
     }
     const p = rowPalette(row)
     if (p) a.palettes.push(p)
+    for (const [k, v] of Object.entries(row)) {
+      if (BASE_FIELDS.has(k) || v === undefined || k in a.extra) continue
+      a.extra[k] = v
+    }
   }
 
   const out: Row[] = []
@@ -72,6 +86,7 @@ export function collapse(rows: unknown[]): Row[] {
       rec.bg = p.bg
       rec.fg = p.fg
     }
+    if (Object.keys(a.extra).length) rec.extra = a.extra
     out.push(rec)
   }
   return out
@@ -122,12 +137,12 @@ function argInt(flag: string): number | undefined {
   return Number.isInteger(n) ? n : undefined
 }
 
-function toLine(r: Row): string {
-  return JSON.stringify(
+export function toLine(r: Row): string {
+  const base =
     r.bg && r.fg
       ? { text: r.text, emojis: r.emojis, styles: r.styles, bg: r.bg, fg: r.fg }
-      : { text: r.text, emojis: r.emojis, styles: r.styles },
-  )
+      : { text: r.text, emojis: r.emojis, styles: r.styles }
+  return JSON.stringify(r.extra ? { ...base, ...r.extra } : base)
 }
 
 if (import.meta.main) {

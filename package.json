@@ -8,6 +8,8 @@
     "stat": "bun run tools/data/stat.ts",
     "upsample-emojis": "bun run tools/data/upsample-emojis.ts",
     "upsample-emoji-test": "bun run tools/data/upsample-emoji-test.ts",
+    "upsample-colors": "bun run tools/data/upsample-colors.ts",
+    "color-analysis": "bun run tools/data/color-analysis.ts",
     "fails": "bun run tools/analysis/fails.ts",
     "preview": "bun run tools/data/preview.ts",
     "preview-pred": "bun run tools/data/preview-pred.ts",

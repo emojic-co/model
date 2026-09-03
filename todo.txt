@@ -338,6 +338,57 @@ TODO:
                     run just `tools/data/upsample-colors.ts` it will randomly pick a color from the list and generate a text for it.
                     run `tools/data/upsample-colors.ts --colors <space separated color names>` to generate the specific colors you want.
 
+        Color Based Annotations Analysis:
+            I want to check if there is a correlation between prompt color and the actual color label.
+            Create a tool tools/data/color-analysis.ts that read all records with the {color} field and score the {bg} colors according to the target color.
+            i.e. if the target color is "red" it scores how much the {bg} color is red, if the target color is "blue" it scores how much the {bg} color is blue, etc...
+            Then generate a report about the correlation (and other metrics if needed) between the prompt color and the actual color label.
+
+            For each record calculate mean/max color_similarity between the target color and the {bg} colors according to:
+                def get_color_similarity(rgb1, rgb2):
+                    # 1. Normalize RGB inputs (0-255) to range [0.0, 1.0]
+                    c1 = np.array([[[x / 255.0 for x in rgb1]]])
+                    c2 = np.array([[[x / 255.0 for x in rgb2]]])
+                    
+                    # 2. Convert to Oklab space
+                    lab1 = rgb2oklab(c1)[0, 0]
+                    lab2 = rgb2oklab(c2)[0, 0]
+                    
+                    # 3. Calculate Euclidean distance (ΔE_OK)
+                    dist = np.linalg.norm(lab1 - lab2)
+                    
+                    # 4. Convert distance to 0 - 100% similarity score
+                    similarity = max(0.0, 100.0 * (1.0 - (dist / 0.5)))
+                    return round(similarity, 2)            
+
+                Report avg similarity for both mean(sim(target, bg[0]), sim(target, bg[1])) and max(sim(target, bg[0]), sim(target, bg[1]))
+                Also, for each color report similarity between target color and a random sample of records (same size as the target color records).
+                i.e. for each color we have both the avg similarity for texts that were generated with that color and the avg similarity for a random sample of texts, so we can compare the two.
+
+
+        Discussion:
+            I want to reframe the emoji/style prediction as a retrieval problem instead of a multi label classification problem.
+            Note that our data does not have a ranked lists of emojis and styles, it only has a binary labels.
+            We only car about recall, specifically recall @ 1 and we do not care about the absolute "probability" we only care about the ordering of the predictions.
+            i.e. positives should be ranked higher than negatives.
+
+            Tell me what do you think, any push backs that you have and how it should be implemented.
+            
+
+        Tools:
+            Update the tools/data/upsample-colors.ts:
+            Add a flag --no-color-text
+            When running with the flag the prompt instruct the generator to generate text that is implicit about the color, i.e. "red" -> "I love the smell of roses in the morning" instead of "I love the color red".
+            When running without the flag, any text is fine, i.e. "red" -> "I love the red dress" is fine.
+
+        Emoji/Style training:
+            Ensure training is done using the Log-Sum-Exp InfoNCE loss.
+            Log both MAP@10 and MRR@10 for emojis and MAP@5 and MRR@5 for styles.
+            Use MRR as the criteria for early stopping and best model selection.
+
+            After you finish run the train on modal and generate the report.
+
+
 DONE:
 
         Data:
