@@ -18,9 +18,6 @@ from config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE,
     EMOJI_AP_K,
-    ENERGY_KEYWORD_MAX_TEXTS,
-    ENERGY_KEYWORD_MIN_TEXTS,
-    ENERGY_KEYWORDS_PATH,
     ENERGY_WEIGHT,
     ENERGY_Z_SAMPLES,
     EPOCHS_GAN,
@@ -40,8 +37,6 @@ from config import (
 )
 from data import (
     eval_data_loader,
-    keyword_index,
-    load_energy_keywords,
     train_data_loader,
     train_ds,
 )
@@ -170,15 +165,13 @@ class LitTask(pl.LightningModule):
 
 
 class LitColorGAN(pl.LightningModule):
-    def __init__(self, enc: TextEncoder, kw_index=None):
+    def __init__(self, enc: TextEncoder):
         super().__init__()
 
         self.enc = enc.requires_grad_(False).eval()
 
         self.gen = ColorGen()
         self.tst = ColorDsc()
-
-        self.kw_index = kw_index or {}
 
         self.register_buffer(
             "z_bank",
@@ -208,11 +201,6 @@ class LitColorGAN(pl.LightningModule):
         self._val_text.append(text)
         self._val_real.append(colors)
 
-    def _gen_oklab(self, text: torch.Tensor, k: int) -> torch.Tensor:
-        rep = text.repeat_interleave(k, dim=0)
-        z = self.z_bank.repeat(text.size(0), 1)  # type: ignore
-        return rgb_to_oklab(self.gen(self.enc(rep), z))
-
     def _split_energy(self, pts: torch.Tensor) -> torch.Tensor:
         m = pts.size(0)
         half = m // 2
@@ -239,19 +227,9 @@ class LitColorGAN(pl.LightningModule):
 
             gan_scalars = {"val": val, "ref": self._split_energy(real)}
 
-            kw_scalars: dict[str, torch.Tensor] = {}
-            for kw, (kw_text, kw_real) in self.kw_index.items():
-                real_k = rgb_to_oklab(kw_real.to(self.device))
-                fake_k = self._gen_oklab(
-                    kw_text.to(self.device), self.z_bank.size(0))  # type: ignore
-                kw_scalars[f"{kw}/gen"] = energy_distance(real_k, fake_k)
-                kw_scalars[f"{kw}/ref"] = self._split_energy(real_k)
-
             if isinstance(self.logger, TensorBoardLogger):
                 w = self.logger.experiment
                 w.add_scalars("energy/gan", gan_scalars, self.global_step)
-                if kw_scalars:
-                    w.add_scalars("energy/kw", kw_scalars, self.global_step)
 
     def training_step(self, batch, batch_idx):
         text, _, _, colors = batch
@@ -353,12 +331,6 @@ if __name__ == "__main__":
     ):
         torch.save(mod.state_dict(), f"{name}.pt")
 
-    kw_index = keyword_index(
-        load_energy_keywords(ENERGY_KEYWORDS_PATH),
-        max_texts=ENERGY_KEYWORD_MAX_TEXTS,
-        min_texts=ENERGY_KEYWORD_MIN_TEXTS,
-        seed=SEED)
-
     gan_ckpt = ModelCheckpoint(
         monitor="energy/gan/val",
         mode="min",
@@ -382,13 +354,13 @@ if __name__ == "__main__":
         ],
     )
 
-    gan = LitColorGAN(task.enc, kw_index)
+    gan = LitColorGAN(task.enc)
     gan_dl = train_data_loader(data_set=ds, batch_size=GAN_BATCH_SIZE)
     gan_trainer.fit(gan, gan_dl, val_dl)
 
     if gan_ckpt.best_model_path:
         gan = LitColorGAN.load_from_checkpoint(
-            gan_ckpt.best_model_path, enc=task.enc, kw_index=kw_index)
+            gan_ckpt.best_model_path, enc=task.enc)
 
     for name, mod in (
         ("gen", gan.gen),
