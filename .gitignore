@@ -27,6 +27,11 @@ data.jsonl.dry
 # gen_data.ts scratch (removed on a successful run; left behind for resume on crash)
 data.jsonl.tmp
 
+# Rebuilt from data.jsonl by `bun run regen`; data.jsonl is the committed master.
+train.jsonl
+eval.jsonl
+labels.json
+
 *.pt
 # SDD isolated worktrees
 /.worktrees/

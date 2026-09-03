@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "train": "bun run tools/data/train.ts",
+    "regen": "bun run tools/data/regen.ts",
     "snapshot": "bun run tools/data/snapshot.ts",
     "re-annotate": "bun run tools/data/re-annotate.ts",
     "merge": "bun run tools/data/merge.ts",

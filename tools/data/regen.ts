@@ -106,3 +106,60 @@ export function emojiLeaderboard(
     .slice(0, n)
     .map(([k]) => k)
 }
+
+import { readJsonl, writeFileAtomic } from "./io.ts"
+import { STYLES, TOP_EMOJIS } from "./config"
+
+const DATA = "./data.jsonl"
+const TRAIN = "./train.jsonl"
+const EVAL = "./eval.jsonl"
+const LABELS = "./labels.json"
+
+function argInt(flag: string): number | undefined {
+  const i = process.argv.indexOf(flag)
+  if (i < 0 || i + 1 >= process.argv.length) return undefined
+  const n = Number(process.argv[i + 1])
+  return Number.isFinite(n) ? n : undefined
+}
+
+function toLine(r: Row): string {
+  return JSON.stringify(
+    r.bg && r.fg
+      ? { text: r.text, emojis: r.emojis, styles: r.styles, bg: r.bg, fg: r.fg }
+      : { text: r.text, emojis: r.emojis, styles: r.styles },
+  )
+}
+
+if (import.meta.main) {
+  const seed = argInt("--seed") ?? 42
+  const n = argInt("--n") ?? 1500
+
+  const raw = await readJsonl<unknown>(DATA)
+  const records = collapse(raw)
+  const merged = records.length
+  const dupKeys = raw.length - merged
+
+  const shuffled = shuffleSeeded(records, seed)
+  const held = shuffled.slice(0, n)
+  const rest = shuffled.slice(n)
+
+  await writeFileAtomic(EVAL, held.map(toLine).join("\n") + "\n")
+  await writeFileAtomic(TRAIN, rest.map(toLine).join("\n") + "\n")
+
+  const labels = {
+    styles: [...STYLES],
+    emojis: emojiLeaderboard(records, TOP_EMOJIS),
+  }
+  await writeFileAtomic(LABELS, JSON.stringify(labels, null, 2) + "\n")
+
+  console.log("\n--- regen ---")
+  console.log(`master lines read    : ${raw.length}`)
+  console.log(`distinct keys        : ${merged}`)
+  console.log(`collapsed away       : ${dupKeys}`)
+  console.log(`-> ${EVAL}      : ${held.length}`)
+  console.log(`-> ${TRAIN}     : ${rest.length}`)
+  console.log(
+    `-> ${LABELS}   : ${labels.styles.length} styles, ${labels.emojis.length} emojis`,
+  )
+  process.exit(0)
+}
