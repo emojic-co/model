@@ -13,14 +13,11 @@ MAX_TEXT_LEN = 42
 
 # ENCODER
 CHAR_EMBED_SIZE = 16
-ENCODER_CHANNELS = [80, 100, 120]
-ENCODER_KERNEL = 3
-assert ENCODER_KERNEL % 2 == 1, "Encoder kernel size must be odd"
+ENCODER_CHANNELS = [90, 110, 130]
 
 enc_str = ' '.join([str(p) for p in (
     CHAR_EMBED_SIZE,
-    ENCODER_CHANNELS,
-    ENCODER_KERNEL)])
+    ENCODER_CHANNELS)])
 
 # EMOJI
 EMOJI_EMBED_SIZE = 48
@@ -60,7 +57,7 @@ GAN_BATCH_SIZE = 512
 RELU_SLOPE = 0.1
 LR = 0.01
 GRAD_CLIP = 1.0
-INFONCE_TEMP = .7
+INFONCE_TEMP = .6
 
 train_str = ' '.join([str(p) for p in (
     SEED,
