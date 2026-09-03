@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.tool_input.file_path // .tool_response.filePath // empty' | { read -r f; case \"$(basename \"$f\")\" in eval.jsonl|train.jsonl) cd \"$CLAUDE_PROJECT_DIR\" && bun run tools/data/stat.ts ;; esac; } 2>/dev/null || true",
+            "command": "jq -r '.tool_input.file_path // .tool_response.filePath // empty' | { read -r f; case \"$(basename \"$f\")\" in data.jsonl) cd \"$CLAUDE_PROJECT_DIR\" && bun run tools/data/stat.ts ;; esac; } 2>/dev/null || true",
             "statusMessage": "Refreshing data stats report"
           }
         ]

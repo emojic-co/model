@@ -5,7 +5,7 @@ import { STYLES, TOP_EMOJIS } from "./config"
 import { coarseEmojiGroup, isFaceEmoji, splitEmojis } from "./emoji.ts"
 import { readJsonl } from "./io.ts"
 
-const FILES = ["./train.jsonl", "./eval.jsonl"]
+const FILES = ["./data.jsonl"]
 const REPORT_DIR = "report/data-stat"
 
 const MIN_LEN = 4
