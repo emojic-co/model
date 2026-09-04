@@ -362,7 +362,7 @@ def test_require_clean_tree_dispatch_skip():
 
     os.environ["EMOJIC_DISPATCH_CHECKED"] = "1"
     try:
-        require_clean_tree()  # must not raise / exit
+        require_clean_tree()
     finally:
         del os.environ["EMOJIC_DISPATCH_CHECKED"]
 
@@ -370,22 +370,27 @@ def test_require_clean_tree_dispatch_skip():
 def test_require_clean_tree_dirty_exits(tmp_path="/tmp/runmeta-gitdirty"):
     import os
     import subprocess
-    import sys
+
+    import runmeta
 
     subprocess.run(["rm", "-rf", tmp_path], check=True)
     subprocess.run(["git", "init", "-q", tmp_path], check=True)
-    (open(f"{tmp_path}/x.txt", "w")).write("hi")
-    code = subprocess.run(
-        [sys.executable, "-c",
-         "import runmeta; runmeta.require_clean_tree()"],
-        cwd=tmp_path,
-        env={**os.environ, "PYTHONPATH": os.getcwd()},
-        capture_output=True,
-        text=True,
-    )
-    assert code.returncode != 0
-    assert "clean git tree" in (code.stdout + code.stderr)
+    open(f"{tmp_path}/x.txt", "w").write("hi")
+    cwd = os.getcwd()
+    try:
+        os.chdir(tmp_path)
+        raised = False
+        try:
+            runmeta.require_clean_tree()
+        except SystemExit as e:
+            raised = True
+            assert "clean git tree" in str(e)
+        assert raised
+    finally:
+        os.chdir(cwd)
 ```
+
+(The subprocess approach fails here: `import runmeta` imports `config`, which reads `labels.json` by relative path — absent in the temp dir. `os.chdir` after the top-level import sidesteps that; `runmeta` is already imported from the repo root.)
 
 - [ ] **Step 2: Run, verify failure**
 
@@ -537,13 +542,11 @@ git commit -m "$(printf 'Add runmeta.write_meta_yml / stamp_lines; add pyyaml de
 
 - [ ] **Step 1: `train.py` — import**
 
-Add `save_pt` to the `runmeta` import. `train.py` currently has no `runmeta` import; add near the `from config import (` block:
+`train.py` currently has no `runmeta` import; add one after the `from config import (...)` block. Import only what this task uses (Task 7 extends this line to add `require_clean_tree`, in the same commit that uses it — keeps every commit F401-clean):
 
 ```python
-from runmeta import require_clean_tree, save_pt
+from runmeta import save_pt
 ```
-
-(`require_clean_tree` is used in Task 7 — import both now.)
 
 - [ ] **Step 2: `train.py` — task-stage save loop**
 
@@ -593,10 +596,10 @@ with:
 
 - [ ] **Step 4: `train_gan.py` — import + save loop**
 
-Add to `train_gan.py` imports:
+Add to `train_gan.py` imports (only `save_pt` — Task 7 adds `require_clean_tree`, Task 8 adds `load_pt`, each in the commit that uses it):
 
 ```python
-from runmeta import require_clean_tree, save_pt
+from runmeta import save_pt
 ```
 
 Replace:
@@ -651,6 +654,12 @@ git commit -m "$(printf 'Save .pt files with embedded runmeta via save_pt\n\nCo-
 
 - [ ] **Step 1: `train.py` gate**
 
+Extend the `runmeta` import line (Task 6 made it `from runmeta import save_pt`):
+
+```python
+from runmeta import require_clean_tree, save_pt
+```
+
 In `train.py`, the `__main__` block starts:
 
 ```python
@@ -670,7 +679,7 @@ if __name__ == "__main__":
 
 - [ ] **Step 2: `train_gan.py` gate**
 
-`train_gan.py`'s `__main__` starts with `pl.seed_everything(SEED, workers=True)`. Insert `require_clean_tree()` immediately before it:
+Extend its `runmeta` import line to `from runmeta import require_clean_tree, save_pt`. `train_gan.py`'s `__main__` starts with `pl.seed_everything(SEED, workers=True)`. Insert `require_clean_tree()` immediately before it:
 
 ```python
 if __name__ == "__main__":
@@ -814,7 +823,7 @@ def load(mod: torch.nn.Module, path: str) -> torch.nn.Module:
     return mod
 ```
 
-Add `load_pt` to the existing `from runmeta import ...` line (Task 6 added `require_clean_tree, save_pt`):
+Add `load_pt` to the existing `from runmeta import ...` line (after Task 7 it reads `require_clean_tree, save_pt`):
 
 ```python
 from runmeta import load_pt, require_clean_tree, save_pt
