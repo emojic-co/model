@@ -636,21 +636,30 @@ def _retrieve_and_cleanup() -> None:
 
 
 def _run_remote(model: Model, cpu: int, memory: int, git_sha: str) -> dict[str, int]:
-    enc_bytes = None
+    enc_bytes = style_bytes = emoji_bytes = None
     if model == Model.gan:
-        enc_path = Path("enc.pt")
-        if not enc_path.exists():
-            raise typer.BadParameter(
-                "enc.pt not found -- run `train task --local` "
-                "(or fetch a Modal task run) first"
-            )
-        enc_bytes = enc_path.read_bytes()
+        for name in ("enc.pt", "style.pt", "emoji.pt"):
+            if not Path(name).exists():
+                raise typer.BadParameter(
+                    f"{name} not found -- run `train task --local` "
+                    "(or fetch a Modal task run) first"
+                )
+        enc_bytes = Path("enc.pt").read_bytes()
+        style_bytes = Path("style.pt").read_bytes()
+        emoji_bytes = Path("emoji.pt").read_bytes()
 
     timeout = TIMEOUT_S_ALL if model == Model.all else TIMEOUT_S
     fn = train_remote
     if cpu != CPU or memory != MEMORY_MIB or timeout != TIMEOUT_S:
         fn = train_remote.with_options(cpu=cpu, memory=memory, timeout=timeout)
-    return fn.remote(model=model.value, threads=cpu, git_sha=git_sha, enc_bytes=enc_bytes)
+    return fn.remote(
+        model=model.value,
+        threads=cpu,
+        git_sha=git_sha,
+        enc_bytes=enc_bytes,
+        style_bytes=style_bytes,
+        emoji_bytes=emoji_bytes,
+    )
 
 
 def _dispatch(

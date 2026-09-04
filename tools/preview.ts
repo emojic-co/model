@@ -1,24 +1,20 @@
 import { mkdir, writeFile } from "node:fs/promises"
 import { cac } from "cac"
-import { parseJsonlText, readJsonl } from "./io.ts"
-import { cardHtml, firstEmoji, page, stamp } from "./preview-card.ts"
+import { parseJsonlText, readJsonl } from "./data/io.ts"
+import { cardHtml, firstEmoji, page, stamp } from "./data/preview-card.ts"
 
-const EVAL = "eval.jsonl"
 const OUT_DIR = "preview"
-const COUNT = 300
 const COLS = 5
 
 const cli = cac("preview")
-cli.usage("[options]")
+cli.usage("[file] [options]")
 cli.option("--all", "render every emoji per card, not just the first")
 cli.help()
 
 type Row = {
   text: string
-  emojis?: string
-  styles?: string[]
-  emoji?: string
-  feeling?: string
+  emojis: string
+  styles: string[]
   bg: [string, string]
   fg: string
 }
@@ -46,29 +42,27 @@ body { place-items: start center; padding: 2em 1em; }
 `
 
 if (import.meta.main) {
-  const { options } = cli.parse(process.argv, { run: false })
-  if (options.help) process.exit(0)
-  const ALL = Boolean(options.all)
+  const parsed = cli.parse(process.argv, { run: false })
+  if (parsed.options.help) process.exit(0)
+  const SRC = parsed.args[0]
+  const ALL = Boolean(parsed.options.all)
 
-  const fromStdin = !process.stdin.isTTY
-  const rows = fromStdin
-    ? parseJsonlText<Row>(await Bun.stdin.text(), "stdin")
-    : await readJsonl<Row>(EVAL)
-  const picked = fromStdin ? rows : rows.slice(0, COUNT)
-  const cards = picked
-    .map((r) => {
-      const emojis = r.emojis ?? r.emoji ?? ""
-      return cardHtml({
+  const rows = SRC
+    ? await readJsonl<Row>(SRC)
+    : parseJsonlText<Row>(await Bun.stdin.text(), "stdin")
+  const cards = rows
+    .map((r) =>
+      cardHtml({
         text: r.text,
-        emoji: ALL ? emojis : firstEmoji(emojis),
-        feeling: r.styles?.[0] ?? r.feeling ?? "Neutral",
+        emoji: ALL ? r.emojis : firstEmoji(r.emojis),
+        feeling: r.styles[0] ?? "Neutral",
         colors: { bg1: r.bg[0], bg2: r.bg[1], text_color: r.fg },
-      })
-    })
+      }),
+    )
     .join("\n")
   const body = `<div class="preview-grid"${ALL ? " data-all" : ""}>\n${cards}\n</div>`
   const html = await page({
-    title: `preview — ${picked.length} cards${ALL ? " — all emojis" : ""}`,
+    title: `preview — ${SRC ?? "stdin"} — ${rows.length} cards${ALL ? " — all emojis" : ""}`,
     extraCss: EXTRA_CSS,
     body,
   })
