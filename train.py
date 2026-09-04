@@ -388,6 +388,7 @@ def main() -> None:
         save_pt(mod.state_dict(), f"{name}.pt", stage="gan")
 
     subprocess.run([sys.executable, "export_onnx.py"], check=True)
+    subprocess.run([sys.executable, "tools/report.py"], check=True)
 
 
 if __name__ == "__main__":

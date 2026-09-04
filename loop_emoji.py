@@ -1,11 +1,11 @@
+import json
 import subprocess
 from pathlib import Path
 
 import typer
 
-from test_emoji import _acc, _freq_groups, _length_groups, test_emoji
-
 DATA_PATH = Path("data.jsonl")
+REPORT_DIR = Path("report")
 GOAL_K = 5
 
 
@@ -27,53 +27,35 @@ def _commit(msg: str) -> None:
         subprocess.run(["git", "commit", "-m", msg], check=True)
 
 
-def _weak_buckets(title: str, groups: list[tuple[str, list[dict]]], target: float) -> None:
-    print(f"\n{title}", flush=True)
-    for label, rows in groups:
-        n, acc, mrr = _acc(rows)
-        flag = "  <-- weak" if acc[GOAL_K] < target else ""
-        print(
-            f"  {label:>12}  n={n:<4} acc@{GOAL_K}={acc[GOAL_K]:.0%}  mrr={mrr:.2f}{flag}",
-            flush=True,
-        )
+def _emoji_report() -> dict:
+    _run(["uv", "run", "python", "tools/report.py", "--only", "emoji"])
+    latest = max(REPORT_DIR.glob("*/report.json"), key=lambda p: p.stat().st_mtime)
+    return json.loads(latest.read_text(encoding="utf-8"))["emoji"]
 
 
-def _failure_detail(results: list[dict], target: float) -> None:
-    n, acc, mrr = _acc(results)
-    missed = [r for r in results if r["rank"] is None or r["rank"] > GOAL_K]
-    missed.sort(key=lambda r: (0 if r["rank"] is None else 1, -(r["rank"] or 0)))
-
+def _failure_detail(kw: dict, target: float) -> None:
     print("\n===== FAILURE DETAIL =====", flush=True)
     print(
-        f"final acc@{GOAL_K}={acc[GOAL_K]:.1%}  target={target:.1%}  "
-        f"short by {target - acc[GOAL_K]:.1%}  "
-        f"({len(missed)}/{n} words with target emoji outside top {GOAL_K})",
+        f"final acc@{GOAL_K}={kw[f'acc@{GOAL_K}']:.1%}  target={target:.1%}  "
+        f"short by {target - kw[f'acc@{GOAL_K}']:.1%}  (n={kw['n']})",
         flush=True,
     )
     print(
-        f"acc@1={acc[1]:.0%}  acc@3={acc[3]:.0%}  acc@5={acc[5]:.0%}  "
-        f"acc@10={acc[10]:.0%}  mrr={mrr:.3f}",
+        f"acc@1={kw['acc@1']:.0%}  acc@3={kw['acc@3']:.0%}  "
+        f"acc@5={kw['acc@5']:.0%}  acc@10={kw['acc@10']:.0%}  MRR={kw['MRR']:.3f}",
         flush=True,
     )
-
-    print("\nmissed words (worst first):", flush=True)
-    head = f"  {'word':<20} {'expected':<12} {'freq':>5} {'rank':>5}  model top 5"
-    print(head, flush=True)
-    print(f"  {'-' * 20} {'-' * 12} {'-' * 5} {'-' * 5}  {'-' * 20}", flush=True)
+    missed = [r for r in kw["words"] if r["rank"] is None or r["rank"] > GOAL_K]
+    print(f"\nmissed keywords ({len(missed)}/{kw['n']}, worst first):", flush=True)
+    print(f"  {'word':<20} {'expected':<12} {'rank':>5}  model top 3", flush=True)
+    print(f"  {'-' * 20} {'-' * 12} {'-' * 5}  {'-' * 20}", flush=True)
     for r in missed:
         rank_s = "none" if r["rank"] is None else str(r["rank"])
         print(
-            f"  {r['word'][:20]:<20} {' '.join(r['expected'])[:12]:<12} "
-            f"{r['freq_sum']:>5} {rank_s:>5}  {' '.join(r['top'])}",
+            f"  {r['keyword'][:20]:<20} {' '.join(r['expected'])[:12]:<12} "
+            f"{rank_s:>5}  {' '.join(r['top3'])}",
             flush=True,
         )
-
-    _weak_buckets("acc@5 by word length (chars):", _length_groups(results), target)
-    _weak_buckets(
-        "acc@5 by expected-emoji freq in train.jsonl (avg):",
-        _freq_groups(results),
-        target,
-    )
 
 
 _app = typer.Typer(
@@ -84,13 +66,13 @@ _app = typer.Typer(
 
 @_app.command()
 def main(
-    iterations: int = typer.Option(5, help="max train -> test -> upsample iterations"),
-    target: float = typer.Option(0.95, help="stop once emoji acc@5 reaches this"),
+    iterations: int = typer.Option(5, help="max train -> report -> upsample iterations"),
+    target: float = typer.Option(0.95, help="stop once keyword acc@5 reaches this"),
     rank: int = typer.Option(5, help="upsample words ranked worse than this"),
     cpu: int | None = typer.Option(None, help="Modal --cpu for the task stage"),
     memory: int | None = typer.Option(None, help="Modal --memory in MiB for the task stage"),
 ) -> None:
-    """Emoji train -> test -> upsample loop (Modal task stage, then test_emoji)."""
+    """Emoji train -> report -> upsample loop (Modal task stage, then tools/report.py)."""
     from runmeta import require_clean_tree
 
     require_clean_tree()
@@ -107,13 +89,10 @@ def main(
         print(f"\n===== iteration {i}/{iterations} =====", flush=True)
         _run(modal_cmd)
 
-        last = test_emoji()
-        acc5 = last["acc"][GOAL_K]
+        last = _emoji_report()["keywords"]
+        acc5 = last[f"acc@{GOAL_K}"]
         history.append(acc5)
-        print(
-            f"iteration {i}: acc@5={acc5:.3f} (target {target:.3f})",
-            flush=True,
-        )
+        print(f"iteration {i}: acc@5={acc5:.3f} (target {target:.3f})", flush=True)
         if acc5 >= target:
             print(f"\ntarget reached at iteration {i}", flush=True)
             break
@@ -145,7 +124,7 @@ def main(
         _commit("loop_emoji: commit reports before color GAN")
         _run(["uv", "run", "python", "train_gan.py"])
     elif last is not None:
-        _failure_detail(last["results"], target)
+        _failure_detail(last, target)
 
     raise typer.Exit(0 if ok else 1)
 

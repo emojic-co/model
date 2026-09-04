@@ -1,4 +1,4 @@
-import { readFile, readdir } from "node:fs/promises"
+import { readFile, readdir, stat } from "node:fs/promises"
 
 import { generateText } from "ai"
 import { cac } from "cac"
@@ -9,7 +9,7 @@ import { MODEL, annotate, annotateBatchCount } from "./annotate.ts"
 import { appendJsonl } from "./io.ts"
 
 const DATA = "./data.jsonl"
-const REPORT_DIR = "./report/test-emoji"
+const REPORT_DIR = "./report"
 
 const FAIL_RANK = 5
 const TEXTS_PER_WORD = 10
@@ -43,12 +43,12 @@ function pickVoice(): string {
 }
 
 type Word = {
-  word: string
+  keyword: string
   expected: string[]
   rank: number | null
 }
 
-type Report = { stamp?: string; words: Word[] }
+type Report = { emoji?: { keywords?: { words?: Word[] } } }
 
 export function pickFailed(
   words: Word[],
@@ -58,17 +58,29 @@ export function pickFailed(
   for (const w of words) {
     const emoji = w.expected?.[0]
     if (!emoji) continue
-    if (w.rank === null || w.rank > maxRank) out.push({ word: w.word, emoji })
+    if (w.rank === null || w.rank > maxRank) out.push({ word: w.keyword, emoji })
   }
   return out
 }
 
 async function latestReport(): Promise<string> {
-  const files = (await readdir(REPORT_DIR))
-    .filter((f) => f.endsWith(".json"))
-    .sort()
-  if (!files.length) throw new Error(`no *.json report in ${REPORT_DIR}`)
-  return `${REPORT_DIR}/${files.at(-1)}`
+  const dirs = (await readdir(REPORT_DIR)).sort()
+  let latest = ""
+  let mtime = 0
+  for (const d of dirs) {
+    const p = `${REPORT_DIR}/${d}/report.json`
+    try {
+      const m = (await stat(p)).mtimeMs
+      if (m >= mtime) {
+        mtime = m
+        latest = p
+      }
+    } catch {
+      // no report.json in this dir
+    }
+  }
+  if (!latest) throw new Error(`no */report.json under ${REPORT_DIR}`)
+  return latest
 }
 
 function genPrompt(voice: string, word: string, emoji: string, per: number): string {
@@ -109,7 +121,7 @@ async function genBatch(
 const cli = cac("upsample-emoji-test")
 cli.usage("[options]")
 cli
-  .option("--report <path>", "test-emoji report.json to read (default: latest)")
+  .option("--report <path>", "report.json to read (default: latest under ./report)")
   .option("--rank <n>", `treat a word as failed if its emoji ranks worse than this (default ${FAIL_RANK})`)
   .option("--per <n>", `texts to generate per failed word (default ${TEXTS_PER_WORD})`)
 cli.help()
@@ -123,9 +135,11 @@ if (import.meta.main) {
   const per = Number(options.per ?? TEXTS_PER_WORD)
 
   const report = JSON.parse(await readFile(reportPath, "utf8")) as Report
-  const targets = pickFailed(report.words, maxRank)
+  const words = report.emoji?.keywords?.words ?? []
+  if (!words.length) throw new Error(`${reportPath}: no emoji.keywords.words`)
+  const targets = pickFailed(words, maxRank)
   console.log(
-    `${reportPath}: ${report.words.length} words -> `
+    `${reportPath}: ${words.length} words -> `
     + `${targets.length} failed (target not in top ${maxRank})`,
   )
   if (!targets.length) process.exit(0)

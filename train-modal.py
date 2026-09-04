@@ -25,12 +25,13 @@ CODE_FILES = [
     "data.py",
     "model.py",
     "train.py",
-    "test_emoji.py",
+    "tools/report.py",
     "export_onnx.py",
     "run.py",
     "runmeta.py",
     "labels.json",
     "words.json",
+    "energy_keywords.txt",
     "data.jsonl",
     "train.jsonl",
     "eval.jsonl",
@@ -126,7 +127,12 @@ def train_remote(threads: int = CPU, git_sha: str = "") -> dict[str, int]:
         finally:
             tb.terminate()
         if code == 0:
-            subprocess.run([VENV_PY, "test_emoji.py"], cwd=REPO, env=env, check=False)
+            subprocess.run(
+                [VENV_PY, "tools/report.py", "--only", "data,emoji,style"],
+                cwd=REPO,
+                env=env,
+                check=False,
+            )
     finally:
         n = _stash(ARTIFACTS)
         vol.commit()

@@ -1,3 +1,6 @@
+import subprocess
+import sys
+
 import lightning as pl
 import torch
 import typer
@@ -88,6 +91,7 @@ def main() -> None:
         save_pt(mod.state_dict(), f"{name}.pt", stage="gan")
 
     export()
+    subprocess.run([sys.executable, "tools/report.py"], check=True)
 
 
 if __name__ == "__main__":
