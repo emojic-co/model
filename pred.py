@@ -85,6 +85,8 @@ def predict(
 
                 f.write(json.dumps(out_record, ensure_ascii=False) + "\n")
 
+    print(f"Wrote {len(records)} predictions to pred.jsonl")
+
 
 _app = typer.Typer(
     add_completion=False,

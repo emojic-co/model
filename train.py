@@ -453,7 +453,7 @@ CODE_FILES = [
     "train.py",
     "tools/report.py",
     "export_onnx.py",
-    "run.py",
+    "pred.py",
     "runmeta.py",
     "labels.json",
     "words.json",

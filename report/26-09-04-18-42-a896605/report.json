@@ -1,0 +1,3376 @@
+{
+  "generated": "2026-09-04T18:42:35",
+  "provenance": {
+    "ts": "26-09-04-18-42",
+    "report_code": "96b5df0",
+    "report_dirty": false,
+    "model_sha": "a896605",
+    "model_train_sha": "276ef9ae55f2",
+    "current_train_sha": "276ef9ae55f2",
+    "models": {
+      "enc.pt": {
+        "sha": "a896605",
+        "dirty": false,
+        "generated": "2026-09-04T16:03:28",
+        "config": [
+          "ENCODER: 16 3 [64, 128, 196]",
+          "EMOJI: 64 0.2",
+          "STYLE: 12 196 0.2",
+          "GAN: 0.2 [96] [16, 8] 0.01",
+          "TRAIN: 42 256 512 0.1 0.01 1.0 0.7"
+        ],
+        "train_sha": "276ef9ae55f2",
+        "stage": "task"
+      },
+      "style.pt": {
+        "sha": "a896605",
+        "dirty": false,
+        "generated": "2026-09-04T16:03:28",
+        "config": [
+          "ENCODER: 16 3 [64, 128, 196]",
+          "EMOJI: 64 0.2",
+          "STYLE: 12 196 0.2",
+          "GAN: 0.2 [96] [16, 8] 0.01",
+          "TRAIN: 42 256 512 0.1 0.01 1.0 0.7"
+        ],
+        "train_sha": "276ef9ae55f2",
+        "stage": "task"
+      },
+      "emoji.pt": {
+        "sha": "a896605",
+        "dirty": false,
+        "generated": "2026-09-04T16:03:28",
+        "config": [
+          "ENCODER: 16 3 [64, 128, 196]",
+          "EMOJI: 64 0.2",
+          "STYLE: 12 196 0.2",
+          "GAN: 0.2 [96] [16, 8] 0.01",
+          "TRAIN: 42 256 512 0.1 0.01 1.0 0.7"
+        ],
+        "train_sha": "276ef9ae55f2",
+        "stage": "task"
+      },
+      "gen.pt": {
+        "sha": "96b5df0",
+        "dirty": false,
+        "generated": "2026-09-04T18:42:32",
+        "config": [
+          "ENCODER: 16 3 [64, 128, 196]",
+          "EMOJI: 64 0.2",
+          "STYLE: 12 196 0.2",
+          "GAN: 0.2 [96] [16, 8] 0.01",
+          "TRAIN: 42 256 512 0.1 0.01 1.0 0.7"
+        ],
+        "train_sha": "276ef9ae55f2",
+        "stage": "gan"
+      },
+      "tst.pt": {
+        "sha": "96b5df0",
+        "dirty": false,
+        "generated": "2026-09-04T18:42:32",
+        "config": [
+          "ENCODER: 16 3 [64, 128, 196]",
+          "EMOJI: 64 0.2",
+          "STYLE: 12 196 0.2",
+          "GAN: 0.2 [96] [16, 8] 0.01",
+          "TRAIN: 42 256 512 0.1 0.01 1.0 0.7"
+        ],
+        "train_sha": "276ef9ae55f2",
+        "stage": "gan"
+      }
+    },
+    "consistent": false,
+    "issues": [
+      "model .pt files saved from different commits: 96b5df0, a896605"
+    ]
+  },
+  "data": {
+    "records": {
+      "data": 118371,
+      "train": 87304,
+      "eval": 1500
+    }
+  },
+  "emoji": {
+    "distinct": {
+      "data": 355,
+      "train": 355,
+      "eval": 339
+    },
+    "top": [
+      [
+        "📊",
+        498
+      ],
+      [
+        "💬",
+        498
+      ],
+      [
+        "✅",
+        497
+      ],
+      [
+        "🔑",
+        497
+      ],
+      [
+        "🌅",
+        497
+      ],
+      [
+        "🍳",
+        496
+      ],
+      [
+        "🌿",
+        496
+      ],
+      [
+        "🚆",
+        496
+      ],
+      [
+        "🚪",
+        495
+      ],
+      [
+        "😴",
+        494
+      ]
+    ],
+    "bottom": [
+      [
+        "🍃",
+        96
+      ],
+      [
+        "🧑‍💼",
+        107
+      ],
+      [
+        "😷",
+        113
+      ],
+      [
+        "🤒",
+        114
+      ],
+      [
+        "🧃",
+        114
+      ],
+      [
+        "🕰️",
+        115
+      ],
+      [
+        "🧷",
+        115
+      ],
+      [
+        "🤞",
+        116
+      ],
+      [
+        "🕕",
+        117
+      ],
+      [
+        "🙂",
+        117
+      ]
+    ],
+    "thin": 0,
+    "eval": {
+      "n": 1265,
+      "acc@1": 0.6695652008056641,
+      "acc@5": 0.8276680111885071,
+      "acc@10": 0.8735178112983704,
+      "MRR@10": 0.7398691773414612
+    },
+    "keywords": {
+      "n": 249,
+      "acc@1": 0.5301204819277109,
+      "acc@3": 0.6265060240963856,
+      "acc@5": 0.6506024096385542,
+      "acc@10": 0.7389558232931727,
+      "MRR": 0.5960813241362168,
+      "worst": 10,
+      "words": [
+        {
+          "keyword": "dog",
+          "expected": [
+            "🐶"
+          ],
+          "rank": 311,
+          "top3": [
+            "😞",
+            "😔",
+            "🕒"
+          ]
+        },
+        {
+          "keyword": "ring",
+          "expected": [
+            "💍"
+          ],
+          "rank": 292,
+          "top3": [
+            "😞",
+            "😣",
+            "👀"
+          ]
+        },
+        {
+          "keyword": "jeans",
+          "expected": [
+            "👖"
+          ],
+          "rank": 287,
+          "top3": [
+            "😞",
+            "😩",
+            "😣"
+          ]
+        },
+        {
+          "keyword": "key",
+          "expected": [
+            "🔑"
+          ],
+          "rank": 284,
+          "top3": [
+            "😔",
+            "🕒",
+            "😞"
+          ]
+        },
+        {
+          "keyword": "ice",
+          "expected": [
+            "🧊"
+          ],
+          "rank": 282,
+          "top3": [
+            "😞",
+            "🕒",
+            "😣"
+          ]
+        },
+        {
+          "keyword": "hug",
+          "expected": [
+            "🤗"
+          ],
+          "rank": 261,
+          "top3": [
+            "😣",
+            "😞",
+            "😔"
+          ]
+        },
+        {
+          "keyword": "map",
+          "expected": [
+            "🗺️"
+          ],
+          "rank": 246,
+          "top3": [
+            "😞",
+            "😣",
+            "🕒"
+          ]
+        },
+        {
+          "keyword": "cart",
+          "expected": [
+            "🛒"
+          ],
+          "rank": 242,
+          "top3": [
+            "🕒",
+            "😞",
+            "😔"
+          ]
+        },
+        {
+          "keyword": "foot",
+          "expected": [
+            "🦶"
+          ],
+          "rank": 223,
+          "top3": [
+            "😞",
+            "😔",
+            "🔄"
+          ]
+        },
+        {
+          "keyword": "leaf",
+          "expected": [
+            "🌿"
+          ],
+          "rank": 222,
+          "top3": [
+            "😔",
+            "🕒",
+            "😞"
+          ]
+        },
+        {
+          "keyword": "pill",
+          "expected": [
+            "💊"
+          ],
+          "rank": 220,
+          "top3": [
+            "😣",
+            "😞",
+            "🕒"
+          ]
+        },
+        {
+          "keyword": "gift",
+          "expected": [
+            "🎁"
+          ],
+          "rank": 213,
+          "top3": [
+            "🕒",
+            "✅",
+            "😩"
+          ]
+        },
+        {
+          "keyword": "cat",
+          "expected": [
+            "🐈"
+          ],
+          "rank": 211,
+          "top3": [
+            "🕒",
+            "🕕",
+            "👀"
+          ]
+        },
+        {
+          "keyword": "ocean",
+          "expected": [
+            "🌊"
+          ],
+          "rank": 210,
+          "top3": [
+            "🕒",
+            "😞",
+            "🕰️"
+          ]
+        },
+        {
+          "keyword": "pen",
+          "expected": [
+            "🖊️"
+          ],
+          "rank": 198,
+          "top3": [
+            "😞",
+            "🕒",
+            "😣"
+          ]
+        },
+        {
+          "keyword": "egg",
+          "expected": [
+            "🥚"
+          ],
+          "rank": 170,
+          "top3": [
+            "😞",
+            "😣",
+            "🕒"
+          ]
+        },
+        {
+          "keyword": "syringe",
+          "expected": [
+            "💉"
+          ],
+          "rank": 163,
+          "top3": [
+            "🕒",
+            "😞",
+            "⚖️"
+          ]
+        },
+        {
+          "keyword": "house",
+          "expected": [
+            "🏠"
+          ],
+          "rank": 161,
+          "top3": [
+            "😠",
+            "😵‍💫",
+            "😣"
+          ]
+        },
+        {
+          "keyword": "document",
+          "expected": [
+            "📄"
+          ],
+          "rank": 137,
+          "top3": [
+            "😔",
+            "😞",
+            "😣"
+          ]
+        },
+        {
+          "keyword": "phone",
+          "expected": [
+            "📱"
+          ],
+          "rank": 135,
+          "top3": [
+            "😞",
+            "😔",
+            "😩"
+          ]
+        },
+        {
+          "keyword": "bed",
+          "expected": [
+            "🛏️"
+          ],
+          "rank": 132,
+          "top3": [
+            "😞",
+            "😣",
+            "👀"
+          ]
+        },
+        {
+          "keyword": "bell",
+          "expected": [
+            "🔔"
+          ],
+          "rank": 128,
+          "top3": [
+            "😞",
+            "😣",
+            "😔"
+          ]
+        },
+        {
+          "keyword": "plant",
+          "expected": [
+            "🪴"
+          ],
+          "rank": 117,
+          "top3": [
+            "😞",
+            "😔",
+            "😌"
+          ]
+        },
+        {
+          "keyword": "bowl",
+          "expected": [
+            "🥣"
+          ],
+          "rank": 113,
+          "top3": [
+            "😣",
+            "😞",
+            "😔"
+          ]
+        },
+        {
+          "keyword": "bird",
+          "expected": [
+            "🐦"
+          ],
+          "rank": 106,
+          "top3": [
+            "🍀",
+            "🚲",
+            "🕰️"
+          ]
+        },
+        {
+          "keyword": "box",
+          "expected": [
+            "📦"
+          ],
+          "rank": 101,
+          "top3": [
+            "🕕",
+            "😞",
+            "😣"
+          ]
+        },
+        {
+          "keyword": "chat",
+          "expected": [
+            "💬"
+          ],
+          "rank": 101,
+          "top3": [
+            "🕒",
+            "👀",
+            "😞"
+          ]
+        },
+        {
+          "keyword": "faucet",
+          "expected": [
+            "🚰"
+          ],
+          "rank": 100,
+          "top3": [
+            "📏",
+            "🏁",
+            "📍"
+          ]
+        },
+        {
+          "keyword": "quiet",
+          "expected": [
+            "🤫"
+          ],
+          "rank": 92,
+          "top3": [
+            "🕒",
+            "😣",
+            "😔"
+          ]
+        },
+        {
+          "keyword": "boots",
+          "expected": [
+            "🥾"
+          ],
+          "rank": 87,
+          "top3": [
+            "💼",
+            "😞",
+            "📍"
+          ]
+        },
+        {
+          "keyword": "leg",
+          "expected": [
+            "🦵"
+          ],
+          "rank": 86,
+          "top3": [
+            "😞",
+            "🕒",
+            "😔"
+          ]
+        },
+        {
+          "keyword": "gym",
+          "expected": [
+            "🏋️"
+          ],
+          "rank": 84,
+          "top3": [
+            "🕒",
+            "😞",
+            "😣"
+          ]
+        },
+        {
+          "keyword": "bag",
+          "expected": [
+            "👜"
+          ],
+          "rank": 83,
+          "top3": [
+            "⚖️",
+            "🧮",
+            "🌮"
+          ]
+        },
+        {
+          "keyword": "card",
+          "expected": [
+            "💳"
+          ],
+          "rank": 79,
+          "top3": [
+            "😣",
+            "🕒",
+            "🤩"
+          ]
+        },
+        {
+          "keyword": "tooth",
+          "expected": [
+            "🦷"
+          ],
+          "rank": 79,
+          "top3": [
+            "😔",
+            "😞",
+            "🕒"
+          ]
+        },
+        {
+          "keyword": "gears",
+          "expected": [
+            "⚙️"
+          ],
+          "rank": 78,
+          "top3": [
+            "😔",
+            "😞",
+            "👀"
+          ]
+        },
+        {
+          "keyword": "notes",
+          "expected": [
+            "📝"
+          ],
+          "rank": 77,
+          "top3": [
+            "✅",
+            "💼",
+            "👀"
+          ]
+        },
+        {
+          "keyword": "cash",
+          "expected": [
+            "💵"
+          ],
+          "rank": 54,
+          "top3": [
+            "👀",
+            "🕒",
+            "😩"
+          ]
+        },
+        {
+          "keyword": "scared",
+          "expected": [
+            "😨"
+          ],
+          "rank": 54,
+          "top3": [
+            "😣",
+            "🤩",
+            "😵‍💫"
+          ]
+        },
+        {
+          "keyword": "car",
+          "expected": [
+            "🚗"
+          ],
+          "rank": 53,
+          "top3": [
+            "👀",
+            "🔄",
+            "📍"
+          ]
+        },
+        {
+          "keyword": "email",
+          "expected": [
+            "📧"
+          ],
+          "rank": 53,
+          "top3": [
+            "🤯",
+            "🤩",
+            "😣"
+          ]
+        },
+        {
+          "keyword": "mask",
+          "expected": [
+            "🎭"
+          ],
+          "rank": 44,
+          "top3": [
+            "🕒",
+            "🕕",
+            "😣"
+          ]
+        },
+        {
+          "keyword": "rage",
+          "expected": [
+            "😡"
+          ],
+          "rank": 38,
+          "top3": [
+            "🕒",
+            "👀",
+            "🎯"
+          ]
+        },
+        {
+          "keyword": "bulb",
+          "expected": [
+            "💡"
+          ],
+          "rank": 38,
+          "top3": [
+            "🐟",
+            "💪",
+            "🌙"
+          ]
+        },
+        {
+          "keyword": "truck",
+          "expected": [
+            "🚚"
+          ],
+          "rank": 37,
+          "top3": [
+            "🚲",
+            "👑",
+            "🕒"
+          ]
+        },
+        {
+          "keyword": "lock",
+          "expected": [
+            "🔒"
+          ],
+          "rank": 36,
+          "top3": [
+            "😣",
+            "🕒",
+            "✅"
+          ]
+        },
+        {
+          "keyword": "trash",
+          "expected": [
+            "🗑️"
+          ],
+          "rank": 34,
+          "top3": [
+            "👀",
+            "😵‍💫",
+            "💥"
+          ]
+        },
+        {
+          "keyword": "wheat",
+          "expected": [
+            "🌾"
+          ],
+          "rank": 32,
+          "top3": [
+            "☀️",
+            "🔁",
+            "🔇"
+          ]
+        },
+        {
+          "keyword": "clap",
+          "expected": [
+            "👏"
+          ],
+          "rank": 29,
+          "top3": [
+            "😣",
+            "😞",
+            "😩"
+          ]
+        },
+        {
+          "keyword": "germ",
+          "expected": [
+            "🦠"
+          ],
+          "rank": 26,
+          "top3": [
+            "📤",
+            "🔍",
+            "😵‍💫"
+          ]
+        },
+        {
+          "keyword": "wind",
+          "expected": [
+            "💨"
+          ],
+          "rank": 24,
+          "top3": [
+            "🕕",
+            "🕰️",
+            "🕒"
+          ]
+        },
+        {
+          "keyword": "folder",
+          "expected": [
+            "📁"
+          ],
+          "rank": 23,
+          "top3": [
+            "💪",
+            "🧤",
+            "🔄"
+          ]
+        },
+        {
+          "keyword": "anchor",
+          "expected": [
+            "⚓"
+          ],
+          "rank": 23,
+          "top3": [
+            "👂",
+            "🤝",
+            "🧮"
+          ]
+        },
+        {
+          "keyword": "desktop",
+          "expected": [
+            "🖥️"
+          ],
+          "rank": 22,
+          "top3": [
+            "⬆️",
+            "🔁",
+            "🏆"
+          ]
+        },
+        {
+          "keyword": "thought",
+          "expected": [
+            "💭"
+          ],
+          "rank": 21,
+          "top3": [
+            "😔",
+            "😣",
+            "😞"
+          ]
+        },
+        {
+          "keyword": "music",
+          "expected": [
+            "🎵"
+          ],
+          "rank": 20,
+          "top3": [
+            "🤒",
+            "🕕",
+            "💬"
+          ]
+        },
+        {
+          "keyword": "book",
+          "expected": [
+            "📖"
+          ],
+          "rank": 19,
+          "top3": [
+            "🕕",
+            "😞",
+            "💪"
+          ]
+        },
+        {
+          "keyword": "bug",
+          "expected": [
+            "🐛"
+          ],
+          "rank": 17,
+          "top3": [
+            "😠",
+            "💪",
+            "😞"
+          ]
+        },
+        {
+          "keyword": "hospital",
+          "expected": [
+            "🏥"
+          ],
+          "rank": 17,
+          "top3": [
+            "🤩",
+            "🧳",
+            "😵‍💫"
+          ]
+        },
+        {
+          "keyword": "yarn",
+          "expected": [
+            "🧶"
+          ],
+          "rank": 16,
+          "top3": [
+            "🔄",
+            "😣",
+            "😞"
+          ]
+        },
+        {
+          "keyword": "nose",
+          "expected": [
+            "👃"
+          ],
+          "rank": 13,
+          "top3": [
+            "👀",
+            "🌳",
+            "🕕"
+          ]
+        },
+        {
+          "keyword": "moon",
+          "expected": [
+            "🌙"
+          ],
+          "rank": 12,
+          "top3": [
+            "😞",
+            "😔",
+            "🕛"
+          ]
+        },
+        {
+          "keyword": "keyboard",
+          "expected": [
+            "⌨️"
+          ],
+          "rank": 11,
+          "top3": [
+            "🪵",
+            "📋",
+            "🏷️"
+          ]
+        },
+        {
+          "keyword": "chair",
+          "expected": [
+            "🪑"
+          ],
+          "rank": 11,
+          "top3": [
+            "💇",
+            "👂",
+            "🏠"
+          ]
+        },
+        {
+          "keyword": "bouquet",
+          "expected": [
+            "💐"
+          ],
+          "rank": 11,
+          "top3": [
+            "🐟",
+            "🌮",
+            "🕕"
+          ]
+        },
+        {
+          "keyword": "rocket",
+          "expected": [
+            "🚀"
+          ],
+          "rank": 10,
+          "top3": [
+            "😠",
+            "😣",
+            "😤"
+          ]
+        },
+        {
+          "keyword": "angry",
+          "expected": [
+            "😠"
+          ],
+          "rank": 10,
+          "top3": [
+            "😞",
+            "😔",
+            "😣"
+          ]
+        },
+        {
+          "keyword": "ear",
+          "expected": [
+            "👂"
+          ],
+          "rank": 10,
+          "top3": [
+            "🕒",
+            "📍",
+            "😣"
+          ]
+        },
+        {
+          "keyword": "toilet",
+          "expected": [
+            "🚽"
+          ],
+          "rank": 10,
+          "top3": [
+            "🚻",
+            "⏱️",
+            "🐛"
+          ]
+        },
+        {
+          "keyword": "mailbox",
+          "expected": [
+            "📬"
+          ],
+          "rank": 10,
+          "top3": [
+            "👣",
+            "🥾",
+            "🌳"
+          ]
+        },
+        {
+          "keyword": "fire",
+          "expected": [
+            "🔥"
+          ],
+          "rank": 9,
+          "top3": [
+            "👀",
+            "⏳",
+            "🕊️"
+          ]
+        },
+        {
+          "keyword": "bread",
+          "expected": [
+            "🍞"
+          ],
+          "rank": 9,
+          "top3": [
+            "🔍",
+            "✅",
+            "👗"
+          ]
+        },
+        {
+          "keyword": "rose",
+          "expected": [
+            "🌹"
+          ],
+          "rank": 8,
+          "top3": [
+            "👀",
+            "🕒",
+            "🚪"
+          ]
+        },
+        {
+          "keyword": "door",
+          "expected": [
+            "🚪"
+          ],
+          "rank": 8,
+          "top3": [
+            "😣",
+            "😔",
+            "⬆️"
+          ]
+        },
+        {
+          "keyword": "wrench",
+          "expected": [
+            "🔧"
+          ],
+          "rank": 8,
+          "top3": [
+            "😠",
+            "😵‍💫",
+            "👑"
+          ]
+        },
+        {
+          "keyword": "spending",
+          "expected": [
+            "💸"
+          ],
+          "rank": 8,
+          "top3": [
+            "😩",
+            "😣",
+            "🎯"
+          ]
+        },
+        {
+          "keyword": "highway",
+          "expected": [
+            "🛣️"
+          ],
+          "rank": 8,
+          "top3": [
+            "⏳",
+            "👻",
+            "🕒"
+          ]
+        },
+        {
+          "keyword": "station",
+          "expected": [
+            "🚉"
+          ],
+          "rank": 8,
+          "top3": [
+            "📵",
+            "🕒",
+            "🚋"
+          ]
+        },
+        {
+          "keyword": "tired",
+          "expected": [
+            "😩"
+          ],
+          "rank": 7,
+          "top3": [
+            "😞",
+            "😣",
+            "😔"
+          ]
+        },
+        {
+          "keyword": "anxious",
+          "expected": [
+            "😰"
+          ],
+          "rank": 7,
+          "top3": [
+            "😟",
+            "😣",
+            "❓"
+          ]
+        },
+        {
+          "keyword": "scarf",
+          "expected": [
+            "🧣"
+          ],
+          "rank": 7,
+          "top3": [
+            "🍦",
+            "🤖",
+            "🎉"
+          ]
+        },
+        {
+          "keyword": "ladder",
+          "expected": [
+            "🪜"
+          ],
+          "rank": 7,
+          "top3": [
+            "🚲",
+            "🐱",
+            "🧤"
+          ]
+        },
+        {
+          "keyword": "construction",
+          "expected": [
+            "🚧"
+          ],
+          "rank": 7,
+          "top3": [
+            "📍",
+            "📋",
+            "📤"
+          ]
+        },
+        {
+          "keyword": "siren",
+          "expected": [
+            "🚨"
+          ],
+          "rank": 7,
+          "top3": [
+            "👀",
+            "📣",
+            "💎"
+          ]
+        },
+        {
+          "keyword": "blossom",
+          "expected": [
+            "🌸"
+          ],
+          "rank": 7,
+          "top3": [
+            "👀",
+            "☁️",
+            "🌲"
+          ]
+        },
+        {
+          "keyword": "fish",
+          "expected": [
+            "🐟"
+          ],
+          "rank": 6,
+          "top3": [
+            "🕕",
+            "🕒",
+            "🕰️"
+          ]
+        },
+        {
+          "keyword": "eye",
+          "expected": [
+            "👀"
+          ],
+          "rank": 6,
+          "top3": [
+            "🕒",
+            "😞",
+            "😣"
+          ]
+        },
+        {
+          "keyword": "clock",
+          "expected": [
+            "⏰"
+          ],
+          "rank": 5,
+          "top3": [
+            "🕒",
+            "🔒",
+            "🕰️"
+          ]
+        },
+        {
+          "keyword": "glasses",
+          "expected": [
+            "👓"
+          ],
+          "rank": 5,
+          "top3": [
+            "🍣",
+            "🗓️",
+            "🕒"
+          ]
+        },
+        {
+          "keyword": "dress",
+          "expected": [
+            "👗"
+          ],
+          "rank": 4,
+          "top3": [
+            "📍",
+            "✅",
+            "🗓️"
+          ]
+        },
+        {
+          "keyword": "crying",
+          "expected": [
+            "😭"
+          ],
+          "rank": 4,
+          "top3": [
+            "😔",
+            "😞",
+            "😩"
+          ]
+        },
+        {
+          "keyword": "excited",
+          "expected": [
+            "🤩"
+          ],
+          "rank": 4,
+          "top3": [
+            "😣",
+            "😔",
+            "😩"
+          ]
+        },
+        {
+          "keyword": "floppy",
+          "expected": [
+            "💾"
+          ],
+          "rank": 4,
+          "top3": [
+            "🚋",
+            "🏆",
+            "⬆️"
+          ]
+        },
+        {
+          "keyword": "water",
+          "expected": [
+            "💧"
+          ],
+          "rank": 3,
+          "top3": [
+            "👋",
+            "🌊",
+            "💧"
+          ]
+        },
+        {
+          "keyword": "cake",
+          "expected": [
+            "🎂"
+          ],
+          "rank": 3,
+          "top3": [
+            "🍰",
+            "🌙",
+            "🎂"
+          ]
+        },
+        {
+          "keyword": "smile",
+          "expected": [
+            "😄"
+          ],
+          "rank": 3,
+          "top3": [
+            "😞",
+            "😔",
+            "😄"
+          ]
+        },
+        {
+          "keyword": "nervous",
+          "expected": [
+            "😬"
+          ],
+          "rank": 3,
+          "top3": [
+            "😟",
+            "😰",
+            "😬"
+          ]
+        },
+        {
+          "keyword": "telephone",
+          "expected": [
+            "📞"
+          ],
+          "rank": 3,
+          "top3": [
+            "📵",
+            "📱",
+            "📞"
+          ]
+        },
+        {
+          "keyword": "city",
+          "expected": [
+            "🏙️"
+          ],
+          "rank": 3,
+          "top3": [
+            "👀",
+            "🌳",
+            "🏙️"
+          ]
+        },
+        {
+          "keyword": "guitar",
+          "expected": [
+            "🎸"
+          ],
+          "rank": 3,
+          "top3": [
+            "🌳",
+            "🕰️",
+            "🎸"
+          ]
+        },
+        {
+          "keyword": "teacher",
+          "expected": [
+            "🧑‍🏫"
+          ],
+          "rank": 3,
+          "top3": [
+            "🚋",
+            "💪",
+            "🧑‍🏫"
+          ]
+        },
+        {
+          "keyword": "books",
+          "expected": [
+            "📚"
+          ],
+          "rank": 2,
+          "top3": [
+            "🌙",
+            "📚",
+            "😞"
+          ]
+        },
+        {
+          "keyword": "soup",
+          "expected": [
+            "🍲"
+          ],
+          "rank": 2,
+          "top3": [
+            "🥣",
+            "🍲",
+            "🍜"
+          ]
+        },
+        {
+          "keyword": "window",
+          "expected": [
+            "🪟"
+          ],
+          "rank": 2,
+          "top3": [
+            "📤",
+            "🪟",
+            "⬆️"
+          ]
+        },
+        {
+          "keyword": "shirt",
+          "expected": [
+            "👕"
+          ],
+          "rank": 2,
+          "top3": [
+            "🚋",
+            "👕",
+            "👔"
+          ]
+        },
+        {
+          "keyword": "happy",
+          "expected": [
+            "😊"
+          ],
+          "rank": 2,
+          "top3": [
+            "😄",
+            "😊",
+            "🏆"
+          ]
+        },
+        {
+          "keyword": "sad",
+          "expected": [
+            "😞"
+          ],
+          "rank": 2,
+          "top3": [
+            "😔",
+            "😞",
+            "😣"
+          ]
+        },
+        {
+          "keyword": "shocked",
+          "expected": [
+            "😲"
+          ],
+          "rank": 2,
+          "top3": [
+            "🚪",
+            "😲",
+            "🕛"
+          ]
+        },
+        {
+          "keyword": "snow",
+          "expected": [
+            "❄️"
+          ],
+          "rank": 2,
+          "top3": [
+            "👀",
+            "❄️",
+            "💼"
+          ]
+        },
+        {
+          "keyword": "juice",
+          "expected": [
+            "🥤"
+          ],
+          "rank": 2,
+          "top3": [
+            "🧃",
+            "🥤",
+            "🍕"
+          ]
+        },
+        {
+          "keyword": "sneeze",
+          "expected": [
+            "🤧"
+          ],
+          "rank": 2,
+          "top3": [
+            "❄️",
+            "🤧",
+            "🧊"
+          ]
+        },
+        {
+          "keyword": "calendar",
+          "expected": [
+            "📅"
+          ],
+          "rank": 2,
+          "top3": [
+            "🗓️",
+            "📅",
+            "👨"
+          ]
+        },
+        {
+          "keyword": "handshake",
+          "expected": [
+            "🤝"
+          ],
+          "rank": 2,
+          "top3": [
+            "🔊",
+            "🤝",
+            "✈️"
+          ]
+        },
+        {
+          "keyword": "embarrassed",
+          "expected": [
+            "😳"
+          ],
+          "rank": 2,
+          "top3": [
+            "😡",
+            "😳",
+            "😟"
+          ]
+        },
+        {
+          "keyword": "brain",
+          "expected": [
+            "🧠"
+          ],
+          "rank": 2,
+          "top3": [
+            "🚆",
+            "🧠",
+            "☔"
+          ]
+        },
+        {
+          "keyword": "camping",
+          "expected": [
+            "🏕️"
+          ],
+          "rank": 2,
+          "top3": [
+            "⛺",
+            "🏕️",
+            "🌧️"
+          ]
+        },
+        {
+          "keyword": "spaghetti",
+          "expected": [
+            "🍝"
+          ],
+          "rank": 2,
+          "top3": [
+            "🚻",
+            "🍝",
+            "🍞"
+          ]
+        },
+        {
+          "keyword": "coffee",
+          "expected": [
+            "☕"
+          ],
+          "rank": 1,
+          "top3": [
+            "☕",
+            "🥤",
+            "🕕"
+          ]
+        },
+        {
+          "keyword": "rain",
+          "expected": [
+            "🌧️"
+          ],
+          "rank": 1,
+          "top3": [
+            "🌧️",
+            "💔",
+            "☔"
+          ]
+        },
+        {
+          "keyword": "sun",
+          "expected": [
+            "☀️"
+          ],
+          "rank": 1,
+          "top3": [
+            "☀️",
+            "😞",
+            "😣"
+          ]
+        },
+        {
+          "keyword": "laptop",
+          "expected": [
+            "💻"
+          ],
+          "rank": 1,
+          "top3": [
+            "💻",
+            "🌙",
+            "👀"
+          ]
+        },
+        {
+          "keyword": "printer",
+          "expected": [
+            "🖨️"
+          ],
+          "rank": 1,
+          "top3": [
+            "🖨️",
+            "📍",
+            "📰"
+          ]
+        },
+        {
+          "keyword": "bus",
+          "expected": [
+            "🚌"
+          ],
+          "rank": 1,
+          "top3": [
+            "🚌",
+            "🐟",
+            "🕕"
+          ]
+        },
+        {
+          "keyword": "train",
+          "expected": [
+            "🚆"
+          ],
+          "rank": 1,
+          "top3": [
+            "🚆",
+            "☔",
+            "🚋"
+          ]
+        },
+        {
+          "keyword": "bike",
+          "expected": [
+            "🚲"
+          ],
+          "rank": 1,
+          "top3": [
+            "🚲",
+            "⏱️",
+            "🕰️"
+          ]
+        },
+        {
+          "keyword": "airplane",
+          "expected": [
+            "✈️"
+          ],
+          "rank": 1,
+          "top3": [
+            "✈️",
+            "👏",
+            "🧳"
+          ]
+        },
+        {
+          "keyword": "tea",
+          "expected": [
+            "🍵"
+          ],
+          "rank": 1,
+          "top3": [
+            "🍵",
+            "🏷️",
+            "🕕"
+          ]
+        },
+        {
+          "keyword": "milk",
+          "expected": [
+            "🥛"
+          ],
+          "rank": 1,
+          "top3": [
+            "🥛",
+            "🧴",
+            "🧽"
+          ]
+        },
+        {
+          "keyword": "pizza",
+          "expected": [
+            "🍕"
+          ],
+          "rank": 1,
+          "top3": [
+            "🍕",
+            "😷",
+            "🌶️"
+          ]
+        },
+        {
+          "keyword": "cookie",
+          "expected": [
+            "🍪"
+          ],
+          "rank": 1,
+          "top3": [
+            "🍪",
+            "🌮",
+            "🍿"
+          ]
+        },
+        {
+          "keyword": "donut",
+          "expected": [
+            "🍩"
+          ],
+          "rank": 1,
+          "top3": [
+            "🍩",
+            "🤖",
+            "🏊"
+          ]
+        },
+        {
+          "keyword": "apple",
+          "expected": [
+            "🍎"
+          ],
+          "rank": 1,
+          "top3": [
+            "🍎",
+            "🧤",
+            "👏"
+          ]
+        },
+        {
+          "keyword": "tomato",
+          "expected": [
+            "🍅"
+          ],
+          "rank": 1,
+          "top3": [
+            "🍅",
+            "📈",
+            "🌤️"
+          ]
+        },
+        {
+          "keyword": "noodles",
+          "expected": [
+            "🍜"
+          ],
+          "rank": 1,
+          "top3": [
+            "🍜",
+            "🥣",
+            "🍎"
+          ]
+        },
+        {
+          "keyword": "fries",
+          "expected": [
+            "🍟"
+          ],
+          "rank": 1,
+          "top3": [
+            "🍟",
+            "✅",
+            "💼"
+          ]
+        },
+        {
+          "keyword": "sandwich",
+          "expected": [
+            "🥪"
+          ],
+          "rank": 1,
+          "top3": [
+            "🥪",
+            "🍽️",
+            "🚀"
+          ]
+        },
+        {
+          "keyword": "candy",
+          "expected": [
+            "🍬"
+          ],
+          "rank": 1,
+          "top3": [
+            "🍬",
+            "🏖️",
+            "🌳"
+          ]
+        },
+        {
+          "keyword": "money",
+          "expected": [
+            "💰"
+          ],
+          "rank": 1,
+          "top3": [
+            "💰",
+            "💵",
+            "💸"
+          ]
+        },
+        {
+          "keyword": "sleep",
+          "expected": [
+            "😴"
+          ],
+          "rank": 1,
+          "top3": [
+            "😴",
+            "😣",
+            "😩"
+          ]
+        },
+        {
+          "keyword": "broom",
+          "expected": [
+            "🧹"
+          ],
+          "rank": 1,
+          "top3": [
+            "🧹",
+            "🚻",
+            "🛋️"
+          ]
+        },
+        {
+          "keyword": "soap",
+          "expected": [
+            "🧼"
+          ],
+          "rank": 1,
+          "top3": [
+            "🧼",
+            "🍼",
+            "🪵"
+          ]
+        },
+        {
+          "keyword": "sponge",
+          "expected": [
+            "🧽"
+          ],
+          "rank": 1,
+          "top3": [
+            "🧽",
+            "🗑️",
+            "🍽️"
+          ]
+        },
+        {
+          "keyword": "laundry",
+          "expected": [
+            "🧺"
+          ],
+          "rank": 1,
+          "top3": [
+            "🧺",
+            "🌬️",
+            "💨"
+          ]
+        },
+        {
+          "keyword": "socks",
+          "expected": [
+            "🧦"
+          ],
+          "rank": 1,
+          "top3": [
+            "🧦",
+            "🏷️",
+            "🍎"
+          ]
+        },
+        {
+          "keyword": "jacket",
+          "expected": [
+            "🧥"
+          ],
+          "rank": 1,
+          "top3": [
+            "🧥",
+            "👀",
+            "🚶"
+          ]
+        },
+        {
+          "keyword": "crown",
+          "expected": [
+            "👑"
+          ],
+          "rank": 1,
+          "top3": [
+            "👑",
+            "🍣",
+            "🌳"
+          ]
+        },
+        {
+          "keyword": "shoes",
+          "expected": [
+            "👟"
+          ],
+          "rank": 1,
+          "top3": [
+            "👟",
+            "👣",
+            "🦶"
+          ]
+        },
+        {
+          "keyword": "heart",
+          "expected": [
+            "❤️"
+          ],
+          "rank": 1,
+          "top3": [
+            "❤️",
+            "🤝",
+            "👂"
+          ]
+        },
+        {
+          "keyword": "heartbreak",
+          "expected": [
+            "💔"
+          ],
+          "rank": 1,
+          "top3": [
+            "💔",
+            "😣",
+            "🕳️"
+          ]
+        },
+        {
+          "keyword": "tears",
+          "expected": [
+            "😢"
+          ],
+          "rank": 1,
+          "top3": [
+            "😢",
+            "😔",
+            "😞"
+          ]
+        },
+        {
+          "keyword": "laughing",
+          "expected": [
+            "😂"
+          ],
+          "rank": 1,
+          "top3": [
+            "😂",
+            "😄",
+            "😔"
+          ]
+        },
+        {
+          "keyword": "pray",
+          "expected": [
+            "🙏"
+          ],
+          "rank": 1,
+          "top3": [
+            "🙏",
+            "🍣",
+            "🍀"
+          ]
+        },
+        {
+          "keyword": "wave",
+          "expected": [
+            "👋"
+          ],
+          "rank": 1,
+          "top3": [
+            "👋",
+            "🍼",
+            "😩"
+          ]
+        },
+        {
+          "keyword": "muscle",
+          "expected": [
+            "💪"
+          ],
+          "rank": 1,
+          "top3": [
+            "💪",
+            "😞",
+            "🏷️"
+          ]
+        },
+        {
+          "keyword": "tree",
+          "expected": [
+            "🌳"
+          ],
+          "rank": 1,
+          "top3": [
+            "🌳",
+            "👀",
+            "🕕"
+          ]
+        },
+        {
+          "keyword": "storm",
+          "expected": [
+            "⛈️"
+          ],
+          "rank": 1,
+          "top3": [
+            "⛈️",
+            "👂",
+            "🌬️"
+          ]
+        },
+        {
+          "keyword": "sparkle",
+          "expected": [
+            "✨"
+          ],
+          "rank": 1,
+          "top3": [
+            "✨",
+            "🎭",
+            "🧭"
+          ]
+        },
+        {
+          "keyword": "headphones",
+          "expected": [
+            "🎧"
+          ],
+          "rank": 1,
+          "top3": [
+            "🎧",
+            "👂",
+            "😂"
+          ]
+        },
+        {
+          "keyword": "microphone",
+          "expected": [
+            "🎤"
+          ],
+          "rank": 1,
+          "top3": [
+            "🎤",
+            "🎙️",
+            "🗣️"
+          ]
+        },
+        {
+          "keyword": "camera",
+          "expected": [
+            "📷"
+          ],
+          "rank": 1,
+          "top3": [
+            "📷",
+            "👋",
+            "📸"
+          ]
+        },
+        {
+          "keyword": "van",
+          "expected": [
+            "🚐"
+          ],
+          "rank": 1,
+          "top3": [
+            "🚐",
+            "📍",
+            "🕰️"
+          ]
+        },
+        {
+          "keyword": "taco",
+          "expected": [
+            "🌮"
+          ],
+          "rank": 1,
+          "top3": [
+            "🌮",
+            "🧳",
+            "🏷️"
+          ]
+        },
+        {
+          "keyword": "bath",
+          "expected": [
+            "🛁"
+          ],
+          "rank": 1,
+          "top3": [
+            "🛁",
+            "🕰️",
+            "👨"
+          ]
+        },
+        {
+          "keyword": "kiss",
+          "expected": [
+            "💋"
+          ],
+          "rank": 1,
+          "top3": [
+            "💋",
+            "🍣",
+            "🍞"
+          ]
+        },
+        {
+          "keyword": "paint",
+          "expected": [
+            "🎨"
+          ],
+          "rank": 1,
+          "top3": [
+            "🎨",
+            "🔗",
+            "👏"
+          ]
+        },
+        {
+          "keyword": "brick",
+          "expected": [
+            "🧱"
+          ],
+          "rank": 1,
+          "top3": [
+            "🧱",
+            "👀",
+            "🧩"
+          ]
+        },
+        {
+          "keyword": "ghost",
+          "expected": [
+            "👻"
+          ],
+          "rank": 1,
+          "top3": [
+            "👻",
+            "👨",
+            "🗓️"
+          ]
+        },
+        {
+          "keyword": "robot",
+          "expected": [
+            "🤖"
+          ],
+          "rank": 1,
+          "top3": [
+            "🤖",
+            "🚶",
+            "🧳"
+          ]
+        },
+        {
+          "keyword": "teddy",
+          "expected": [
+            "🧸"
+          ],
+          "rank": 1,
+          "top3": [
+            "🧸",
+            "🧶",
+            "💇"
+          ]
+        },
+        {
+          "keyword": "gloves",
+          "expected": [
+            "🧤"
+          ],
+          "rank": 1,
+          "top3": [
+            "🧤",
+            "🐈",
+            "👟"
+          ]
+        },
+        {
+          "keyword": "puzzle",
+          "expected": [
+            "🧩"
+          ],
+          "rank": 1,
+          "top3": [
+            "🧩",
+            "🍕",
+            "🔔"
+          ]
+        },
+        {
+          "keyword": "candle",
+          "expected": [
+            "🕯️"
+          ],
+          "rank": 1,
+          "top3": [
+            "🕯️",
+            "✈️",
+            "🗓️"
+          ]
+        },
+        {
+          "keyword": "shower",
+          "expected": [
+            "🚿"
+          ],
+          "rank": 1,
+          "top3": [
+            "🚿",
+            "🌧️",
+            "🌿"
+          ]
+        },
+        {
+          "keyword": "muffin",
+          "expected": [
+            "🧁"
+          ],
+          "rank": 1,
+          "top3": [
+            "🧁",
+            "💼",
+            "🗑️"
+          ]
+        },
+        {
+          "keyword": "ticket",
+          "expected": [
+            "🎟️"
+          ],
+          "rank": 1,
+          "top3": [
+            "🎟️",
+            "👀",
+            "✅"
+          ]
+        },
+        {
+          "keyword": "pancake",
+          "expected": [
+            "🥞"
+          ],
+          "rank": 1,
+          "top3": [
+            "🥞",
+            "💃",
+            "🍰"
+          ]
+        },
+        {
+          "keyword": "popcorn",
+          "expected": [
+            "🍿"
+          ],
+          "rank": 1,
+          "top3": [
+            "🍿",
+            "🍪",
+            "🍱"
+          ]
+        },
+        {
+          "keyword": "worried",
+          "expected": [
+            "😟"
+          ],
+          "rank": 1,
+          "top3": [
+            "😟",
+            "😌",
+            "😬"
+          ]
+        },
+        {
+          "keyword": "relieved",
+          "expected": [
+            "😌"
+          ],
+          "rank": 1,
+          "top3": [
+            "😌",
+            "😔",
+            "😞"
+          ]
+        },
+        {
+          "keyword": "lightning",
+          "expected": [
+            "⚡"
+          ],
+          "rank": 1,
+          "top3": [
+            "⚡",
+            "✈️",
+            "💡"
+          ]
+        },
+        {
+          "keyword": "newspaper",
+          "expected": [
+            "📰"
+          ],
+          "rank": 1,
+          "top3": [
+            "📰",
+            "🍼",
+            "🛏️"
+          ]
+        },
+        {
+          "keyword": "classroom",
+          "expected": [
+            "🏫"
+          ],
+          "rank": 1,
+          "top3": [
+            "🏫",
+            "👀",
+            "🔒"
+          ]
+        },
+        {
+          "keyword": "television",
+          "expected": [
+            "📺"
+          ],
+          "rank": 1,
+          "top3": [
+            "📺",
+            "🕒",
+            "💰"
+          ]
+        },
+        {
+          "keyword": "basketball",
+          "expected": [
+            "🏀"
+          ],
+          "rank": 1,
+          "top3": [
+            "🏀",
+            "🦵",
+            "⚽"
+          ]
+        },
+        {
+          "keyword": "restaurant",
+          "expected": [
+            "🍽️"
+          ],
+          "rank": 1,
+          "top3": [
+            "🍽️",
+            "🥪",
+            "🍱"
+          ]
+        },
+        {
+          "keyword": "graduation",
+          "expected": [
+            "🎓"
+          ],
+          "rank": 1,
+          "top3": [
+            "🎓",
+            "🗓️",
+            "💼"
+          ]
+        },
+        {
+          "keyword": "thermometer",
+          "expected": [
+            "🌡️"
+          ],
+          "rank": 1,
+          "top3": [
+            "🌡️",
+            "🛒",
+            "⚽"
+          ]
+        },
+        {
+          "keyword": "stethoscope",
+          "expected": [
+            "🩺"
+          ],
+          "rank": 1,
+          "top3": [
+            "🩺",
+            "⏳",
+            "📊"
+          ]
+        },
+        {
+          "keyword": "celebration",
+          "expected": [
+            "🎉"
+          ],
+          "rank": 1,
+          "top3": [
+            "🎉",
+            "🏆",
+            "🗓️"
+          ]
+        },
+        {
+          "keyword": "baby",
+          "expected": [
+            "👶"
+          ],
+          "rank": 1,
+          "top3": [
+            "👶",
+            "🍼",
+            "🚶"
+          ]
+        },
+        {
+          "keyword": "trophy",
+          "expected": [
+            "🏆"
+          ],
+          "rank": 1,
+          "top3": [
+            "🏆",
+            "👏",
+            "🎧"
+          ]
+        },
+        {
+          "keyword": "hourglass",
+          "expected": [
+            "⏳"
+          ],
+          "rank": 1,
+          "top3": [
+            "⏳",
+            "👓",
+            "🏃"
+          ]
+        },
+        {
+          "keyword": "runner",
+          "expected": [
+            "🏃"
+          ],
+          "rank": 1,
+          "top3": [
+            "🏃",
+            "🏷️",
+            "👏"
+          ]
+        },
+        {
+          "keyword": "toolbox",
+          "expected": [
+            "🧰"
+          ],
+          "rank": 1,
+          "top3": [
+            "🧰",
+            "🛠️",
+            "🎨"
+          ]
+        },
+        {
+          "keyword": "sunrise",
+          "expected": [
+            "🌅"
+          ],
+          "rank": 1,
+          "top3": [
+            "🌅",
+            "☀️",
+            "⚓"
+          ]
+        },
+        {
+          "keyword": "receipt",
+          "expected": [
+            "🧾"
+          ],
+          "rank": 1,
+          "top3": [
+            "🧾",
+            "💸",
+            "📩"
+          ]
+        },
+        {
+          "keyword": "briefcase",
+          "expected": [
+            "💼"
+          ],
+          "rank": 1,
+          "top3": [
+            "💼",
+            "🧳",
+            "🧾"
+          ]
+        },
+        {
+          "keyword": "office",
+          "expected": [
+            "🏢"
+          ],
+          "rank": 1,
+          "top3": [
+            "🏢",
+            "📵",
+            "🔇"
+          ]
+        },
+        {
+          "keyword": "movie",
+          "expected": [
+            "🎬"
+          ],
+          "rank": 1,
+          "top3": [
+            "🎬",
+            "🎭",
+            "🎤"
+          ]
+        },
+        {
+          "keyword": "plug",
+          "expected": [
+            "🔌"
+          ],
+          "rank": 1,
+          "top3": [
+            "🔌",
+            "🕒",
+            "🧩"
+          ]
+        },
+        {
+          "keyword": "seedling",
+          "expected": [
+            "🌱"
+          ],
+          "rank": 1,
+          "top3": [
+            "🌱",
+            "🪵",
+            "🧶"
+          ]
+        },
+        {
+          "keyword": "warning",
+          "expected": [
+            "⚠️"
+          ],
+          "rank": 1,
+          "top3": [
+            "⚠️",
+            "👀",
+            "📤"
+          ]
+        },
+        {
+          "keyword": "clipboard",
+          "expected": [
+            "📋"
+          ],
+          "rank": 1,
+          "top3": [
+            "📋",
+            "🪵",
+            "👥"
+          ]
+        },
+        {
+          "keyword": "freezing",
+          "expected": [
+            "🥶"
+          ],
+          "rank": 1,
+          "top3": [
+            "🥶",
+            "❄️",
+            "⚖️"
+          ]
+        },
+        {
+          "keyword": "bandage",
+          "expected": [
+            "🩹"
+          ],
+          "rank": 1,
+          "top3": [
+            "🩹",
+            "🤞",
+            "⚖️"
+          ]
+        },
+        {
+          "keyword": "couch",
+          "expected": [
+            "🛋️"
+          ],
+          "rank": 1,
+          "top3": [
+            "🛋️",
+            "🎙️",
+            "🧮"
+          ]
+        },
+        {
+          "keyword": "parking",
+          "expected": [
+            "🅿️"
+          ],
+          "rank": 1,
+          "top3": [
+            "🅿️",
+            "🚗",
+            "🐦"
+          ]
+        },
+        {
+          "keyword": "tent",
+          "expected": [
+            "⛺"
+          ],
+          "rank": 1,
+          "top3": [
+            "⛺",
+            "📤",
+            "☀️"
+          ]
+        },
+        {
+          "keyword": "dancing",
+          "expected": [
+            "💃"
+          ],
+          "rank": 1,
+          "top3": [
+            "💃",
+            "😡",
+            "🏅"
+          ]
+        },
+        {
+          "keyword": "megaphone",
+          "expected": [
+            "📣"
+          ],
+          "rank": 1,
+          "top3": [
+            "📣",
+            "📱",
+            "📵"
+          ]
+        },
+        {
+          "keyword": "beach",
+          "expected": [
+            "🏖️"
+          ],
+          "rank": 1,
+          "top3": [
+            "🏖️",
+            "🧮",
+            "🛋️"
+          ]
+        },
+        {
+          "keyword": "search",
+          "expected": [
+            "🔍"
+          ],
+          "rank": 1,
+          "top3": [
+            "🔍",
+            "🔢",
+            "🏷️"
+          ]
+        },
+        {
+          "keyword": "luggage",
+          "expected": [
+            "🧳"
+          ],
+          "rank": 1,
+          "top3": [
+            "🧳",
+            "🗓️",
+            "🚋"
+          ]
+        },
+        {
+          "keyword": "earth",
+          "expected": [
+            "🌍"
+          ],
+          "rank": 1,
+          "top3": [
+            "🌍",
+            "🚋",
+            "📤"
+          ]
+        },
+        {
+          "keyword": "battery",
+          "expected": [
+            "🔋"
+          ],
+          "rank": 1,
+          "top3": [
+            "🔋",
+            "🎙️",
+            "👀"
+          ]
+        },
+        {
+          "keyword": "signal",
+          "expected": [
+            "📶"
+          ],
+          "rank": 1,
+          "top3": [
+            "📶",
+            "📵",
+            "😞"
+          ]
+        },
+        {
+          "keyword": "compass",
+          "expected": [
+            "🧭"
+          ],
+          "rank": 1,
+          "top3": [
+            "🧭",
+            "🗺️",
+            "🎟️"
+          ]
+        },
+        {
+          "keyword": "shield",
+          "expected": [
+            "🛡️"
+          ],
+          "rank": 1,
+          "top3": [
+            "🛡️",
+            "😡",
+            "🏆"
+          ]
+        },
+        {
+          "keyword": "umbrella",
+          "expected": [
+            "☂️"
+          ],
+          "rank": 1,
+          "top3": [
+            "☂️",
+            "☔",
+            "📵"
+          ]
+        },
+        {
+          "keyword": "diamond",
+          "expected": [
+            "💎"
+          ],
+          "rank": 1,
+          "top3": [
+            "💎",
+            "🌳",
+            "🎭"
+          ]
+        },
+        {
+          "keyword": "radio",
+          "expected": [
+            "📻"
+          ],
+          "rank": 1,
+          "top3": [
+            "📻",
+            "🤖",
+            "👂"
+          ]
+        },
+        {
+          "keyword": "envelope",
+          "expected": [
+            "✉️"
+          ],
+          "rank": 1,
+          "top3": [
+            "✉️",
+            "⬆️",
+            "📧"
+          ]
+        },
+        {
+          "keyword": "ruler",
+          "expected": [
+            "📏"
+          ],
+          "rank": 1,
+          "top3": [
+            "📏",
+            "😠",
+            "🎯"
+          ]
+        },
+        {
+          "keyword": "paperclip",
+          "expected": [
+            "📎"
+          ],
+          "rank": 1,
+          "top3": [
+            "📎",
+            "🤖",
+            "🎥"
+          ]
+        },
+        {
+          "keyword": "scales",
+          "expected": [
+            "⚖️"
+          ],
+          "rank": 1,
+          "top3": [
+            "⚖️",
+            "🏷️",
+            "🗓️"
+          ]
+        },
+        {
+          "keyword": "sushi",
+          "expected": [
+            "🍣"
+          ],
+          "rank": 1,
+          "top3": [
+            "🍣",
+            "👀",
+            "🙏"
+          ]
+        },
+        {
+          "keyword": "croissant",
+          "expected": [
+            "🥐"
+          ],
+          "rank": 1,
+          "top3": [
+            "🥐",
+            "💋",
+            "👑"
+          ]
+        },
+        {
+          "keyword": "chocolate",
+          "expected": [
+            "🍫"
+          ],
+          "rank": 1,
+          "top3": [
+            "🍫",
+            "🧤",
+            "🥣"
+          ]
+        },
+        {
+          "keyword": "icecream",
+          "expected": [
+            "🍦"
+          ],
+          "rank": 1,
+          "top3": [
+            "🍦",
+            "🍬",
+            "🧴"
+          ]
+        },
+        {
+          "keyword": "cloud",
+          "expected": [
+            "☁️"
+          ],
+          "rank": 1,
+          "top3": [
+            "☁️",
+            "😣",
+            "🔊"
+          ]
+        },
+        {
+          "keyword": "backpack",
+          "expected": [
+            "🎒"
+          ],
+          "rank": 1,
+          "top3": [
+            "🎒",
+            "🧳",
+            "🏖️"
+          ]
+        },
+        {
+          "keyword": "medal",
+          "expected": [
+            "🏅"
+          ],
+          "rank": 1,
+          "top3": [
+            "🏅",
+            "🧳",
+            "🌳"
+          ]
+        },
+        {
+          "keyword": "target",
+          "expected": [
+            "🎯"
+          ],
+          "rank": 1,
+          "top3": [
+            "🎯",
+            "💳",
+            "📤"
+          ]
+        },
+        {
+          "keyword": "swords",
+          "expected": [
+            "⚔️"
+          ],
+          "rank": 1,
+          "top3": [
+            "⚔️",
+            "❓",
+            "✅"
+          ]
+        },
+        {
+          "keyword": "abacus",
+          "expected": [
+            "🧮"
+          ],
+          "rank": 1,
+          "top3": [
+            "🧮",
+            "🛋️",
+            "🏅"
+          ]
+        },
+        {
+          "keyword": "necktie",
+          "expected": [
+            "👔"
+          ],
+          "rank": 1,
+          "top3": [
+            "👔",
+            "👕",
+            "🚋"
+          ]
+        },
+        {
+          "keyword": "question",
+          "expected": [
+            "❓"
+          ],
+          "rank": 1,
+          "top3": [
+            "❓",
+            "😩",
+            "🍼"
+          ]
+        },
+        {
+          "keyword": "blood",
+          "expected": [
+            "🩸"
+          ],
+          "rank": 1,
+          "top3": [
+            "🩸",
+            "⬆️",
+            "👶"
+          ]
+        },
+        {
+          "keyword": "soccer",
+          "expected": [
+            "⚽"
+          ],
+          "rank": 1,
+          "top3": [
+            "⚽",
+            "🏟️",
+            "🧤"
+          ]
+        },
+        {
+          "keyword": "swimming",
+          "expected": [
+            "🏊"
+          ],
+          "rank": 1,
+          "top3": [
+            "🏊",
+            "⏳",
+            "📵"
+          ]
+        },
+        {
+          "keyword": "tram",
+          "expected": [
+            "🚋"
+          ],
+          "rank": 1,
+          "top3": [
+            "🚋",
+            "🏋️",
+            "⏰"
+          ]
+        },
+        {
+          "keyword": "grandma",
+          "expected": [
+            "👵"
+          ],
+          "rank": 1,
+          "top3": [
+            "👵",
+            "🎙️",
+            "📞"
+          ]
+        },
+        {
+          "keyword": "grandpa",
+          "expected": [
+            "👴"
+          ],
+          "rank": 1,
+          "top3": [
+            "👴",
+            "🐟",
+            "🧮"
+          ]
+        },
+        {
+          "keyword": "family",
+          "expected": [
+            "👪"
+          ],
+          "rank": 1,
+          "top3": [
+            "👪",
+            "👨‍👩‍👧‍👦",
+            "🤩"
+          ]
+        },
+        {
+          "keyword": "evergreen",
+          "expected": [
+            "🌲"
+          ],
+          "rank": 1,
+          "top3": [
+            "🌲",
+            "🥾",
+            "🗓️"
+          ]
+        },
+        {
+          "keyword": "screaming",
+          "expected": [
+            "😱"
+          ],
+          "rank": 1,
+          "top3": [
+            "😱",
+            "🍦",
+            "🧴"
+          ]
+        },
+        {
+          "keyword": "mindblown",
+          "expected": [
+            "🤯"
+          ],
+          "rank": 1,
+          "top3": [
+            "🤯",
+            "🤖",
+            "🤩"
+          ]
+        },
+        {
+          "keyword": "injured",
+          "expected": [
+            "🤕"
+          ],
+          "rank": 1,
+          "top3": [
+            "🤕",
+            "🧩",
+            "📏"
+          ]
+        },
+        {
+          "keyword": "eyeroll",
+          "expected": [
+            "🙄"
+          ],
+          "rank": 1,
+          "top3": [
+            "🙄",
+            "🥪",
+            "🍞"
+          ]
+        }
+      ]
+    }
+  },
+  "style": {
+    "distribution": [
+      [
+        "Deadpan",
+        21614
+      ],
+      [
+        "Irritated",
+        11907
+      ],
+      [
+        "Earnest",
+        9172
+      ],
+      [
+        "Tender",
+        9148
+      ],
+      [
+        "Playful",
+        8631
+      ],
+      [
+        "Anxious",
+        5786
+      ],
+      [
+        "Joyful",
+        5418
+      ],
+      [
+        "Serene",
+        5252
+      ],
+      [
+        "Tense",
+        5027
+      ],
+      [
+        "Startled",
+        4993
+      ],
+      [
+        "Hopeful",
+        4484
+      ],
+      [
+        "Excited",
+        4198
+      ],
+      [
+        "Sarcastic",
+        3728
+      ],
+      [
+        "Melancholy",
+        3094
+      ],
+      [
+        "Proud",
+        2782
+      ],
+      [
+        "Determined",
+        2541
+      ],
+      [
+        "Wistful",
+        2449
+      ],
+      [
+        "Whimsical",
+        1979
+      ],
+      [
+        "Disgusted",
+        1395
+      ],
+      [
+        "Awed",
+        1188
+      ],
+      [
+        "Furious",
+        880
+      ]
+    ],
+    "eval": {
+      "n": 1500,
+      "acc@1": 0.5933333039283752,
+      "acc@5": 0.9120000004768372,
+      "MRR@5": 0.7174776792526245,
+      "mAP@5": 0.6606981158256531
+    }
+  },
+  "color": {
+    "bg_distribution": [
+      [
+        "yellow",
+        33034
+      ],
+      [
+        "purple",
+        4087
+      ],
+      [
+        "red",
+        2218
+      ],
+      [
+        "green",
+        1535
+      ],
+      [
+        "blue",
+        445
+      ],
+      [
+        "other",
+        45968
+      ]
+    ],
+    "energy": {
+      "gen": 0.15688936412334442,
+      "ref": 0.05989760160446167,
+      "gap": 0.09699176251888275
+    },
+    "cards": [
+      {
+        "name": "red",
+        "anchor": "#c0392b",
+        "hit_rate": 0.0,
+        "baseline": 0.0,
+        "lift": 0.0,
+        "energy_gap": 0.09543261677026749,
+        "verdict": "random"
+      },
+      {
+        "name": "orange",
+        "anchor": "#e07a3f",
+        "hit_rate": 0.0,
+        "baseline": 0.09749999642372131,
+        "lift": -0.09749999642372131,
+        "energy_gap": null,
+        "verdict": "random"
+      },
+      {
+        "name": "yellow",
+        "anchor": "#e8d44d",
+        "hit_rate": 0.0,
+        "baseline": 0.5381249785423279,
+        "lift": -0.5381249785423279,
+        "energy_gap": null,
+        "verdict": "random"
+      },
+      {
+        "name": "green",
+        "anchor": "#4c9a52",
+        "hit_rate": 0.0,
+        "baseline": 0.02250000089406967,
+        "lift": -0.02250000089406967,
+        "energy_gap": 0.24792668223381042,
+        "verdict": "random"
+      },
+      {
+        "name": "blue",
+        "anchor": "#4a6fd1",
+        "hit_rate": 0.0,
+        "baseline": 0.0031250000465661287,
+        "lift": -0.0031250000465661287,
+        "energy_gap": 0.28474780917167664,
+        "verdict": "random"
+      },
+      {
+        "name": "purple",
+        "anchor": "#7a5aa8",
+        "hit_rate": 0.0,
+        "baseline": 0.009999999776482582,
+        "lift": -0.009999999776482582,
+        "energy_gap": null,
+        "verdict": "random"
+      }
+    ]
+  }
+}

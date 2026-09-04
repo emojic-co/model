@@ -177,7 +177,7 @@ function emojiCell(emoji: string, i: number): string {
   )
 }
 
-const cli = cac("preview-labels")
+const cli = cac("show-labels")
 cli.usage("[options]")
 cli.help()
 

@@ -11,7 +11,6 @@ import { appendJsonl, readJsonl } from "./io.ts"
 import { type Report, type Word, latestReport } from "./report.ts"
 
 const DATA = "./data.jsonl"
-const LABELS = "./labels.json"
 
 const MIN_RANK = 200
 const MAX_RANK = 400
@@ -46,15 +45,12 @@ function pickVoice(): string {
   return VOICES[Math.floor(Math.random() * VOICES.length)]
 }
 
-export function countEmojis(
-  rows: { emojis?: string }[],
-  vocab: string[],
-): Map<string, number> {
-  const counts = new Map<string, number>(vocab.map((e) => [e, 0]))
+export function countEmojis(rows: { emojis?: string }[]): Map<string, number> {
+  const counts = new Map<string, number>()
   for (const row of rows) {
     if (typeof row.emojis !== "string") continue
     for (const e of new Set(splitEmojis(row.emojis))) {
-      if (counts.has(e)) counts.set(e, (counts.get(e) ?? 0) + 1)
+      counts.set(e, (counts.get(e) ?? 0) + 1)
     }
   }
   return counts
@@ -75,12 +71,11 @@ export function failingEmojis(words: Word[], maxRank: number): string[] {
 }
 
 export function rankWindow(
-  vocab: string[],
   counts: Map<string, number>,
   minRank: number,
   maxRank: number,
 ): string[] {
-  return vocab
+  return [...counts.keys()]
     .map((k, i) => ({ k, i, c: counts.get(k) ?? 0 }))
     .sort((a, b) => b.c - a.c || a.i - b.i)
     .slice(Math.max(0, minRank - 1), maxRank)
@@ -157,14 +152,11 @@ if (import.meta.main) {
     }
     console.log(`targeting ${targets.length} emoji -> ${targets.join(" ")}`)
   } else {
-    const vocab = (
-      JSON.parse(await readFile(LABELS, "utf8")) as { emojis: string[] }
-    ).emojis
     const rows = await readJsonl<{ emojis?: string }>(DATA)
-    const counts = countEmojis(rows, vocab)
-    targets = rankWindow(vocab, counts, minRank, maxRank)
+    const counts = countEmojis(rows)
+    targets = rankWindow(counts, minRank, maxRank)
     console.log(
-      `${vocab.length} vocab emojis -> targeting ${targets.length} ranked `
+      `${counts.size} distinct emoji in data -> targeting ${targets.length} ranked `
       + `${minRank}-${maxRank} (${counts.get(targets[0])}..`
       + `${counts.get(targets.at(-1) ?? "")} rows each)`,
     )
