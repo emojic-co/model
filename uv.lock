@@ -211,7 +211,7 @@ wheels = [
 [[package]]
 name = "emojic"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "lightning" },
     { name = "numpy" },
