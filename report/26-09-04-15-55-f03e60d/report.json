@@ -1,0 +1,68 @@
+{
+  "generated": "2026-09-04T15:55:45",
+  "provenance": {
+    "ts": "26-09-04-15-55",
+    "report_code": "f03e60d",
+    "report_dirty": true,
+    "model_sha": "f03e60d",
+    "model_train_sha": "a4a6675b3f38",
+    "current_train_sha": "a4a6675b3f38",
+    "models": {
+      "enc.pt": {
+        "sha": "f03e60d",
+        "dirty": false,
+        "generated": "2026-09-04T12:41:10",
+        "config": [
+          "ENCODER: 16 3 [80, 120, 180]",
+          "EMOJI: 42 0.2",
+          "STYLE: 12 180 0.2",
+          "GAN: 0.2 [96] [16, 8] 0.01",
+          "TRAIN: 42 512 512 0.1 0.01 1.0 0.7"
+        ],
+        "train_sha": "a4a6675b3f38",
+        "stage": "task"
+      },
+      "style.pt": {
+        "sha": "f03e60d",
+        "dirty": false,
+        "generated": "2026-09-04T12:41:10",
+        "config": [
+          "ENCODER: 16 3 [80, 120, 180]",
+          "EMOJI: 42 0.2",
+          "STYLE: 12 180 0.2",
+          "GAN: 0.2 [96] [16, 8] 0.01",
+          "TRAIN: 42 512 512 0.1 0.01 1.0 0.7"
+        ],
+        "train_sha": "a4a6675b3f38",
+        "stage": "task"
+      },
+      "emoji.pt": {
+        "sha": "f03e60d",
+        "dirty": false,
+        "generated": "2026-09-04T12:41:10",
+        "config": [
+          "ENCODER: 16 3 [80, 120, 180]",
+          "EMOJI: 42 0.2",
+          "STYLE: 12 180 0.2",
+          "GAN: 0.2 [96] [16, 8] 0.01",
+          "TRAIN: 42 512 512 0.1 0.01 1.0 0.7"
+        ],
+        "train_sha": "a4a6675b3f38",
+        "stage": "task"
+      },
+      "gen.pt": null,
+      "tst.pt": null
+    },
+    "consistent": false,
+    "issues": [
+      "legacy .pt without embedded metadata: gen.pt, tst.pt"
+    ]
+  },
+  "data": {
+    "records": {
+      "data": 103039,
+      "train": 85790,
+      "eval": 1500
+    }
+  }
+}

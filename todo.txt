@@ -632,6 +632,15 @@ TODO:
 
 
 
+
+        Train Tools: 
+            - unified train tools to:
+                - train-task --local
+                - train-gan --local
+                - train-all --local
+
+                Each should run on modal or local that generate the report.
+                
         Organize Project Structure:
             move all (directly) model related files into a model subfolder.
             move all tooling scripts (both .py and .ts) into a tools subfolder.
