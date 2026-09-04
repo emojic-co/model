@@ -1,4 +1,4 @@
-import { readFile, readdir, stat } from "node:fs/promises"
+import { readFile } from "node:fs/promises"
 
 import { generateText } from "ai"
 import { cac } from "cac"
@@ -7,9 +7,9 @@ import PQueue from "p-queue"
 
 import { MODEL, annotate, annotateBatchCount } from "./annotate.ts"
 import { appendJsonl } from "./io.ts"
+import { type Report, type Word, latestReport } from "./report.ts"
 
 const DATA = "./data.jsonl"
-const REPORT_DIR = "./report"
 
 const FAIL_RANK = 5
 const TEXTS_PER_WORD = 10
@@ -42,14 +42,6 @@ function pickVoice(): string {
   return VOICES[Math.floor(Math.random() * VOICES.length)]
 }
 
-type Word = {
-  keyword: string
-  expected: string[]
-  rank: number | null
-}
-
-type Report = { emoji?: { keywords?: { words?: Word[] } } }
-
 export function pickFailed(
   words: Word[],
   maxRank: number,
@@ -61,26 +53,6 @@ export function pickFailed(
     if (w.rank === null || w.rank > maxRank) out.push({ word: w.keyword, emoji })
   }
   return out
-}
-
-async function latestReport(): Promise<string> {
-  const dirs = (await readdir(REPORT_DIR)).sort()
-  let latest = ""
-  let mtime = 0
-  for (const d of dirs) {
-    const p = `${REPORT_DIR}/${d}/report.json`
-    try {
-      const m = (await stat(p)).mtimeMs
-      if (m >= mtime) {
-        mtime = m
-        latest = p
-      }
-    } catch {
-      // no report.json in this dir
-    }
-  }
-  if (!latest) throw new Error(`no */report.json under ${REPORT_DIR}`)
-  return latest
 }
 
 function genPrompt(voice: string, word: string, emoji: string, per: number): string {

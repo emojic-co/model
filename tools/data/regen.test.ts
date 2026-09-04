@@ -2,10 +2,9 @@ import { expect, test } from "bun:test"
 
 import {
   collapse,
-  downsampleEmojis,
-  emojiLeaderboard,
+  emojiVocab,
+  greedyCap,
   pickPalette,
-  shuffleSeeded,
   toLine,
 } from "./regen.ts"
 
@@ -106,82 +105,63 @@ test("pickPalette returns undefined when there are no palettes", () => {
   expect(pickPalette("k", [])).toBeUndefined()
 })
 
-test("shuffleSeeded is a deterministic permutation and does not mutate input", () => {
-  const xs = Array.from({ length: 60 }, (_, i) => i)
-  const a = shuffleSeeded(xs, 42)
-  expect(shuffleSeeded(xs, 42)).toEqual(a)
-  expect([...a].sort((p, q) => p - q)).toEqual(xs)
-  expect(a).not.toEqual(xs)
-  expect(shuffleSeeded(xs, 7)).not.toEqual(a)
-  expect(xs).toEqual(Array.from({ length: 60 }, (_, i) => i))
-})
-
-test("emojiLeaderboard ranks by row frequency, ties keep first-seen order", () => {
-  const recs = [
-    { emojis: "🍕 🍕 🚗" },
-    { emojis: "🍕 🎂" },
-    { emojis: "🚗" },
-    { emojis: "🎸" },
-  ]
-  expect(emojiLeaderboard(recs, 3)).toEqual(["🍕", "🚗", "🎂"])
-})
-
 const R = (emojis: string, text = emojis): { text: string; emojis: string; styles: string[] } => ({
   text,
   emojis,
   styles: [],
 })
 
-test("downsampleEmojis caps a top emoji at ratio x the least frequent leaderboard emoji", () => {
+test("greedyCap keeps rows until an emoji hits max-count, then drops only rows carrying it", () => {
   const records = [
-    ...Array.from({ length: 20 }, (_, i) => R("🍕", `pizza ${i}`)),
+    ...Array.from({ length: 8 }, (_, i) => R("🍕", `pizza ${i}`)),
     ...Array.from({ length: 3 }, (_, i) => R("🚗", `car ${i}`)),
-    R("🎸", "guitar"),
   ]
-  const { kept, cap, minFreq, minEmoji, dropped } = downsampleEmojis(
-    records,
-    ["🍕", "🚗", "🎸"],
-    5,
-    42,
-  )
-  expect({ cap, minFreq, minEmoji }).toEqual({ cap: 5, minFreq: 1, minEmoji: "🎸" })
+  const { kept, counts, dropped } = greedyCap(records, 5)
   expect(kept.filter((r) => r.emojis === "🍕")).toHaveLength(5)
   expect(kept.filter((r) => r.emojis === "🚗")).toHaveLength(3)
-  expect(kept.filter((r) => r.emojis === "🎸")).toHaveLength(1)
-  expect(dropped).toBe(records.length - kept.length)
-  expect(dropped).toBe(15)
+  expect(counts.get("🍕")).toBe(5)
+  expect(counts.get("🚗")).toBe(3)
+  expect(dropped).toBe(3)
 })
 
-test("downsampleEmojis drops the whole multi-label row when one of its emojis is over cap", () => {
+test("greedyCap drops a multi-emoji row once any of its emojis is at max-count, but keeps its other emoji's count from a later solo row", () => {
   const records = [
-    ...Array.from({ length: 30 }, (_, i) => R("🍕", `pizza ${i}`)),
-    ...Array.from({ length: 2 }, (_, i) => R(`🍕 🚗`, `combo ${i}`)),
+    ...Array.from({ length: 5 }, (_, i) => R("🍕", `pizza ${i}`)),
+    R("🍕 🚗", "combo"),
+    R("🚗", "car alone"),
   ]
-  const { kept, cap } = downsampleEmojis(records, ["🍕", "🚗"], 5, 42)
-  const count = (e: string) =>
-    kept.filter((r) => r.emojis.split(" ").includes(e)).length
-  expect(cap).toBe(10)
-  expect(count("🍕")).toBeLessThanOrEqual(10)
-  expect(count("🚗")).toBeLessThanOrEqual(10)
-  for (const r of kept) {
-    expect(r.emojis.split(" ").filter((e) => e === "🍕" || e === "🚗").length).toBeGreaterThan(0)
-  }
+  const { kept, counts } = greedyCap(records, 5)
+  expect(kept.map((r) => r.text)).toEqual([
+    "pizza 0", "pizza 1", "pizza 2", "pizza 3", "pizza 4", "car alone",
+  ])
+  expect(counts.get("🍕")).toBe(5)
+  expect(counts.get("🚗")).toBe(1)
 })
 
-test("downsampleEmojis is deterministic for a fixed seed and leaves the input unmutated", () => {
-  const records = [
-    ...Array.from({ length: 12 }, (_, i) => R("🍕", `pizza ${i}`)),
-    ...Array.from({ length: 2 }, (_, i) => R("🎂", `cake ${i}`)),
-  ]
-  const a = downsampleEmojis(records, ["🍕", "🎂"], 3, 7).kept.map((r) => r.text)
-  const b = downsampleEmojis(records, ["🍕", "🎂"], 3, 7).kept.map((r) => r.text)
-  expect(b).toEqual(a)
-  expect(records).toHaveLength(14)
+test("greedyCap keeps emoji-less rows unconditionally and counts each row's emoji once even if repeated", () => {
+  const records = [R("🍕 🍕", "double pizza"), R("", "no emoji")]
+  const { kept, counts } = greedyCap(records, 1)
+  expect(kept.map((r) => r.text)).toEqual(["double pizza", "no emoji"])
+  expect(counts.get("🍕")).toBe(1)
 })
 
-test("downsampleEmojis is a no-op when a leaderboard emoji never occurs (cap 0)", () => {
-  const records = Array.from({ length: 8 }, (_, i) => R("🍕", `pizza ${i}`))
-  const { kept, cap, dropped } = downsampleEmojis(records, ["🍕", "🌵"], 5, 42)
-  expect({ cap, dropped }).toEqual({ cap: 0, dropped: 0 })
-  expect(kept).toHaveLength(8)
+test("greedyCap does not mutate its input", () => {
+  const records = Array.from({ length: 3 }, (_, i) => R("🍕", `pizza ${i}`))
+  greedyCap(records, 1)
+  expect(records).toHaveLength(3)
+})
+
+test("emojiVocab keeps only emojis at or above min-count, ranked by count descending, ties first-seen", () => {
+  const counts = new Map([
+    ["🍕", 6],
+    ["🚗", 3],
+    ["🎸", 6],
+    ["🎂", 2],
+  ])
+  expect(emojiVocab(counts, 3)).toEqual(["🍕", "🎸", "🚗"])
+})
+
+test("emojiVocab returns an empty vocab when nothing reaches min-count", () => {
+  const counts = new Map([["🍕", 2]])
+  expect(emojiVocab(counts, 3)).toEqual([])
 })

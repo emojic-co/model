@@ -662,11 +662,15 @@ TODO:
                 bun tools/data/upsample-emojis.ts --emojis <emoji1, emoji2, ...>
                 bun tools/data/upsample-emojis.ts --min-rank 200 --max-rank 400
                 bun tools/data/upsample-emojis.ts
+                bun tools/data/upsample-emojis.ts --report
 
             First option just upsample the emojis in the list.
             Second option just read the data.jsonl and upsample all emojis that are ranked between min-rank and max-rank.
             Third option is an alias for the second option with min-rank=200 and max-rank=400.
+            Fourth option reads the latest report .json file and upsample all emojis that are failing the test (i.e. not in the top 5).
+
             All options have optional args [--per 20] which is the number of examples to generate for each emoji.
+
 
 
         Update the tools/report.py:

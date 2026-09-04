@@ -8,12 +8,14 @@ import PQueue from "p-queue"
 import { MODEL, annotate, annotateBatchCount } from "./annotate.ts"
 import { splitEmojis } from "./emoji.ts"
 import { appendJsonl, readJsonl } from "./io.ts"
+import { type Report, type Word, latestReport } from "./report.ts"
 
 const DATA = "./data.jsonl"
 const LABELS = "./labels.json"
 
 const MIN_RANK = 200
 const MAX_RANK = 400
+const FAIL_RANK = 5
 const TEXTS_PER_EMOJI = 40
 const MIN_LEN = 4
 const MAX_LEN = 42
@@ -56,6 +58,20 @@ export function countEmojis(
     }
   }
   return counts
+}
+
+export function failingEmojis(words: Word[], maxRank: number): string[] {
+  const out: string[] = []
+  const seen = new Set<string>()
+  for (const w of words) {
+    const emoji = w.expected?.[0]
+    if (!emoji || seen.has(emoji)) continue
+    if (w.rank === null || w.rank > maxRank) {
+      seen.add(emoji)
+      out.push(emoji)
+    }
+  }
+  return out
 }
 
 export function rankWindow(
@@ -110,6 +126,7 @@ cli
   .option("--emojis <list>", "target exactly these emoji instead of a rank window")
   .option("--min-rank <n>", `lowest (most frequent) rank to target (default ${MIN_RANK})`)
   .option("--max-rank <n>", `highest (least frequent) rank to target (default ${MAX_RANK})`)
+  .option("--report", "target emoji failing the latest report's words.json keyword probe")
   .option("--per <n>", `texts to generate per target emoji (default ${TEXTS_PER_EMOJI})`)
 cli.help()
 
@@ -122,7 +139,17 @@ if (import.meta.main) {
   const per = Number(options.per ?? TEXTS_PER_EMOJI)
 
   let targets: string[]
-  if (only) {
+  if (options.report) {
+    const reportPath = await latestReport()
+    const report = JSON.parse(await readFile(reportPath, "utf8")) as Report
+    const words = report.emoji?.keywords?.words ?? []
+    if (!words.length) throw new Error(`${reportPath}: no emoji.keywords.words`)
+    targets = failingEmojis(words, FAIL_RANK)
+    console.log(
+      `${reportPath}: ${words.length} words -> targeting ${targets.length} `
+      + `failing emoji (target not in top ${FAIL_RANK}) -> ${targets.join(" ")}`,
+    )
+  } else if (only) {
     targets = [...new Set(splitEmojis(only))]
     if (!targets.length) {
       console.error(`--emojis had no recognizable emoji: ${JSON.stringify(only)}`)

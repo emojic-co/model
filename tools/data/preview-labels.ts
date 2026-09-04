@@ -2,7 +2,6 @@ import { mkdir, readFile, writeFile } from "node:fs/promises"
 
 import { cac } from "cac"
 
-import { TOP_EMOJIS } from "./config.ts"
 import { esc, page, stamp } from "./preview-card.ts"
 import { STYLE_LINES, STYLE_SET } from "./styles.ts"
 
@@ -11,7 +10,6 @@ const OUT_DIR = "preview/labels"
 const STYLE_COLS = 7
 const STYLE_ROWS = 3
 const EMOJI_COLS = 32
-const EMOJI_ROWS = Math.ceil(TOP_EMOJIS / EMOJI_COLS)
 
 const SANS = "system-ui, sans-serif"
 const SERIF = "Georgia, serif"
@@ -67,7 +65,7 @@ const STYLE_ACCENT: Record<string, string> = {
 
 type Labels = { styles: string[]; emojis: string[] }
 
-const EXTRA_CSS = `
+const extraCss = (emojiRows: number) => `
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body {
@@ -98,7 +96,7 @@ body {
 #pl-emojis {
   flex: 1 1 0;
   grid-template-columns: repeat(${EMOJI_COLS}, 1fr);
-  grid-template-rows: repeat(${EMOJI_ROWS}, 1fr);
+  grid-template-rows: repeat(${emojiRows}, 1fr);
 }
 .pl-f {
   position: relative;
@@ -190,12 +188,13 @@ if (import.meta.main) {
   const labels = JSON.parse(await readFile(LABELS, "utf8")) as Labels
   const styles = labels.styles.map(styleCell).join("\n")
   const emojis = labels.emojis.map(emojiCell).join("\n")
+  const emojiRows = Math.ceil(labels.emojis.length / EMOJI_COLS)
   const body =
     `<div id="pl-styles" class="pl-grid">\n${styles}\n</div>\n` +
     `<div id="pl-emojis" class="pl-grid">\n${emojis}\n</div>`
   const html = await page({
     title: `labels — ${labels.styles.length} styles · ${labels.emojis.length} emojis`,
-    extraCss: EXTRA_CSS,
+    extraCss: extraCss(emojiRows),
     body,
   })
   await mkdir(OUT_DIR, { recursive: true })

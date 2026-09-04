@@ -94,85 +94,39 @@ export function collapse(rows: unknown[]): Row[] {
   return out
 }
 
-export function downsampleEmojis(
-  records: Row[],
-  leaderboard: string[],
-  ratio: number,
-  seed: number,
-): {
-  kept: Row[]
-  cap: number
-  minFreq: number
-  minEmoji: string
-  dropped: number
-} {
-  const leaderSet = new Set(leaderboard)
-  const rowEmojis = (r: Row) =>
-    [...new Set(splitEmojis(r.emojis))].filter((e) => leaderSet.has(e))
-
-  const full = new Map<string, number>()
-  for (const r of records) {
-    for (const e of rowEmojis(r)) full.set(e, (full.get(e) ?? 0) + 1)
-  }
-
-  let minEmoji = ""
-  let minFreq = Infinity
-  for (const e of leaderboard) {
-    const f = full.get(e) ?? 0
-    if (f < minFreq) {
-      minFreq = f
-      minEmoji = e
-    }
-  }
-  if (!Number.isFinite(minFreq)) minFreq = 0
-  const cap = ratio * minFreq
-  if (cap <= 0) {
-    return { kept: [...records], cap, minFreq, minEmoji, dropped: 0 }
-  }
-
-  const counts = new Map<string, number>()
-  const kept: Row[] = []
-  for (const r of shuffleSeeded(records, seed)) {
-    const es = rowEmojis(r)
-    if (es.some((e) => (counts.get(e) ?? 0) >= cap)) continue
-    for (const e of es) counts.set(e, (counts.get(e) ?? 0) + 1)
-    kept.push(r)
-  }
-  return { kept, cap, minFreq, minEmoji, dropped: records.length - kept.length }
-}
-
-export function shuffleSeeded<T>(rows: T[], seed: number): T[] {
-  let s = seed >>> 0
-  const rand = () => {
-    s = (s * 1664525 + 1013904223) >>> 0
-    return s / 2 ** 32
-  }
+export function shuffle<T>(rows: T[]): T[] {
   const out = [...rows]
   for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1))
+    const j = Math.floor(Math.random() * (i + 1))
     ;[out[i], out[j]] = [out[j], out[i]]
   }
   return out
 }
 
-export function emojiLeaderboard(
-  records: { emojis: string }[],
-  n: number,
-): string[] {
+export function greedyCap(
+  records: Row[],
+  maxCount: number,
+): { kept: Row[]; counts: Map<string, number>; dropped: number } {
   const counts = new Map<string, number>()
-  for (const rec of records) {
-    for (const e of new Set(splitEmojis(rec.emojis))) {
-      counts.set(e, (counts.get(e) ?? 0) + 1)
-    }
+  const kept: Row[] = []
+  for (const r of records) {
+    const es = [...new Set(splitEmojis(r.emojis))]
+    if (es.some((e) => (counts.get(e) ?? 0) >= maxCount)) continue
+    for (const e of es) counts.set(e, (counts.get(e) ?? 0) + 1)
+    kept.push(r)
   }
+  return { kept, counts, dropped: records.length - kept.length }
+}
+
+export function emojiVocab(counts: Map<string, number>, minCount: number): string[] {
   return [...counts.entries()]
+    .filter(([, c]) => c >= minCount)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, n)
-    .map(([k]) => k)
+    .map(([e]) => e)
 }
 
 import { readJsonl, writeFileAtomic } from "./io.ts"
-import { EMOJI_BALANCE_RATIO, STYLES, TOP_EMOJIS } from "./config"
+import { STYLES } from "./config"
 
 const DATA = "./data.jsonl"
 const TRAIN = "./train.jsonl"
@@ -190,14 +144,16 @@ export function toLine(r: Row): string {
 const cli = cac("regen")
 cli.usage("[options]")
 cli
-  .option("--seed <n>", "train/eval split seed (default 42)")
+  .option("--min-count <n>", "min kept-records for an emoji to enter labels.json (default 100)")
+  .option("--max-count <n>", "cap on kept-records per emoji (default 500)")
   .option("--n <n>", "eval.jsonl row count (default 1500)")
 cli.help()
 
 if (import.meta.main) {
   const { options } = cli.parse(process.argv, { run: false })
   if (options.help) process.exit(0)
-  const seed = Number(options.seed ?? 42)
+  const minCount = Number(options.minCount ?? 100)
+  const maxCount = Number(options.maxCount ?? 500)
   const n = Number(options.n ?? 1500)
 
   const raw = await readJsonl<unknown>(DATA)
@@ -205,40 +161,39 @@ if (import.meta.main) {
   const merged = records.length
   const dupKeys = raw.length - merged
 
-  const leaderboard = emojiLeaderboard(records, TOP_EMOJIS)
-  const { kept, cap, minFreq, minEmoji, dropped } = downsampleEmojis(
-    records,
-    leaderboard,
-    EMOJI_BALANCE_RATIO,
-    seed,
-  )
+  const { kept, counts, dropped } = greedyCap(shuffle(records), maxCount)
+  const emojis = emojiVocab(counts, minCount)
+  const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1])
+  const belowMin = ranked.length - emojis.length
 
-  const shuffled = shuffleSeeded(kept, seed)
-  const held = shuffled.slice(0, n)
-  const rest = shuffled.slice(n)
+  const split = shuffle(kept)
+  const held = split.slice(0, n)
+  const rest = split.slice(n)
 
   await writeFileAtomic(EVAL, held.map(toLine).join("\n") + "\n")
   await writeFileAtomic(TRAIN, rest.map(toLine).join("\n") + "\n")
 
   const labels = {
     styles: [...STYLES],
-    emojis: leaderboard,
+    emojis,
   }
   await writeFileAtomic(LABELS, JSON.stringify(labels, null, 2) + "\n")
 
+  const keptRanked = ranked.filter(([, c]) => c >= minCount)
+  const fmt = (es: [string, number][]) => es.map(([e, c]) => `${e} ${c}`).join(", ")
+
   console.log("\n--- regen ---")
-  console.log(`master lines read    : ${raw.length}`)
-  console.log(`distinct keys        : ${merged}`)
-  console.log(`collapsed away       : ${dupKeys}`)
+  console.log(`master lines read     : ${raw.length}`)
+  console.log(`distinct texts        : ${merged} (collapsed away ${dupKeys})`)
+  console.log(`min-count / max-count : ${minCount} / ${maxCount}`)
+  console.log(`greedy kept           : ${kept.length} rows (dropped ${dropped} over max-count)`)
+  console.log(`emoji vocab (>= ${minCount})  : ${emojis.length} (below min-count: ${belowMin})`)
+  console.log(`  most frequent       : ${fmt(keptRanked.slice(0, 5))}`)
+  console.log(`  least frequent kept : ${fmt(keptRanked.slice(-5))}`)
+  console.log(`-> ${EVAL}       : ${held.length}`)
+  console.log(`-> ${TRAIN}      : ${rest.length}`)
   console.log(
-    `emoji cap            : ${cap} (${EMOJI_BALANCE_RATIO}x ${minFreq}, least = ${minEmoji})`,
-  )
-  console.log(`balance-dropped      : ${dropped}`)
-  console.log(`balanced rows        : ${kept.length}`)
-  console.log(`-> ${EVAL}      : ${held.length}`)
-  console.log(`-> ${TRAIN}     : ${rest.length}`)
-  console.log(
-    `-> ${LABELS}   : ${labels.styles.length} styles, ${labels.emojis.length} emojis`,
+    `-> ${LABELS}    : ${labels.styles.length} styles, ${labels.emojis.length} emojis`,
   )
   process.exit(0)
 }
