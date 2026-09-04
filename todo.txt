@@ -520,3 +520,6 @@ TODO:
         update the regen tool to generate a balanced (emoji wise test/eval sets):
         the regen tool should do what it currently does but with one additional step:
         downsamples top emojis to be no more than 5X the frequency of the least frequent emoji in the set.
+
+    Tools:
+        Write a tool print_model_params.py that prints the number of parameters in each model and the total number of parameters in the entire model.
