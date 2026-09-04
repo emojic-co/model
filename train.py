@@ -520,13 +520,22 @@ def _stash(dst: str) -> int:
     include_source=False,
 )
 def train_remote(
-    model: str, threads: int, git_sha: str, enc_bytes: bytes | None = None
+    model: str,
+    threads: int,
+    git_sha: str,
+    enc_bytes: bytes | None = None,
+    style_bytes: bytes | None = None,
+    emoji_bytes: bytes | None = None,
 ) -> dict[str, int]:
     env = _run_env(threads)
     env["EMOJIC_GIT_SHA"] = git_sha
     env["EMOJIC_DISPATCH_CHECKED"] = "1"
     if enc_bytes is not None:
         Path(REPO, "enc.pt").write_bytes(enc_bytes)
+    if style_bytes is not None:
+        Path(REPO, "style.pt").write_bytes(style_bytes)
+    if emoji_bytes is not None:
+        Path(REPO, "emoji.pt").write_bytes(emoji_bytes)
     code = 1
     try:
         tb = subprocess.Popen(
