@@ -1,12 +1,10 @@
 import { existsSync } from "node:fs"
-import { mkdir, writeFile } from "node:fs/promises"
 
 import { STYLES, TOP_EMOJIS } from "./config"
 import { coarseEmojiGroup, isFaceEmoji, splitEmojis } from "./emoji.ts"
 import { readJsonl } from "./io.ts"
 
 const FILES = ["./data.jsonl"]
-const REPORT_DIR = "report/data-stat"
 
 const MIN_LEN = 4
 const MAX_LEN = 48
@@ -163,7 +161,7 @@ function section(path: string, rows: Row[]): string[] {
 }
 
 if (import.meta.main) {
-  const { header, file } = stamp()
+  const { header } = stamp()
   const doc = [`# data stats — ${header}`, ""]
 
   const parsed: { path: string; rows: Row[] | null }[] = []
@@ -194,9 +192,6 @@ if (import.meta.main) {
     doc.push(...section(path, rows))
   }
 
-  await mkdir(REPORT_DIR, { recursive: true })
-  const dest = `${REPORT_DIR}/${file}.md`
-  await writeFile(dest, doc.join("\n"))
-  console.log(dest)
+  console.log(doc.join("\n"))
   process.exit(0)
 }
