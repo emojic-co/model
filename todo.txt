@@ -669,6 +669,13 @@ TODO:
             All options have optional args [--per 20] which is the number of examples to generate for each emoji.
 
 
+        Update the tools/report.py:
+            Data:
+                add full normalized text length distribution, vertical bar charts, order by length desc
+            Emojis:
+                Update the Distinct emojis row:
+                    in labels.json / eval.jsonl / train.jsonl / data.jsonl
+
         Organize Project Structure:
             move all (directly) model related files into a model subfolder.
             move all tooling scripts (both .py and .ts) into a tools subfolder.

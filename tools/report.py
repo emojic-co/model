@@ -1,24 +1,3 @@
-from runmeta import load_pt, run_meta
-from model import ColorGen, EmojiHead, StyleHead, TextEncoder, rgb_to_oklab
-from data import (
-    EVAL_PATH,
-    TRAIN_PATH,
-    colors2tensor,
-    hex2rgb,
-    read,
-    text_to_tensor,
-)
-from config import (
-    EMOJIS,
-    ENERGY_KEYWORD_MAX_TEXTS,
-    ENERGY_Z_SAMPLES,
-    SEED,
-    STYLES,
-    TEXT_EMBED_SIZE,
-)
-from torch.nn.functional import normalize
-import typer
-import torch
 import html
 import json
 import sys
@@ -29,6 +8,31 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+import torch
+import typer
+from torch.nn.functional import normalize
+
+from config import (
+    EMOJIS,
+    ENERGY_KEYWORD_MAX_TEXTS,
+    ENERGY_Z_SAMPLES,
+    SEED,
+    STYLES,
+    TEXT_EMBED_SIZE,
+)
+from data import (
+    EVAL_PATH,
+    TRAIN_PATH,
+    colors2tensor,
+    hex2rgb,
+    read,
+    text_to_tensor,
+)
+from data import (
+    normalize as norm_text,
+)
+from model import ColorGen, EmojiHead, StyleHead, TextEncoder, rgb_to_oklab
+from runmeta import load_pt, run_meta
 
 DATA_PATH = "data.jsonl"
 WORDS_PATH = "words.json"
@@ -87,13 +91,12 @@ def _rows(path: str) -> tuple:
 
 
 def _emoji_lists(rows: tuple) -> list:
+    vocab = set(EMOJIS)
     out = []
     for d in rows:
         e = d.get("emojis", "")
-        if isinstance(e, list):
-            out.append([t for t in e if t])
-        else:
-            out.append([t for t in str(e).split() if t])
+        toks = e if isinstance(e, list) else str(e).split()
+        out.append([t for t in toks if t and t in vocab])
     return out
 
 
@@ -155,7 +158,7 @@ def _split_energy(pts):
     n = pts.size(0)
     half = n // 2
     perm = torch.randperm(n, generator=_seeded())
-    return _energy(pts[perm[:half]], pts[perm[half: 2 * half]])
+    return _energy(pts[perm[:half]], pts[perm[half : 2 * half]])
 
 
 def _bg_mean_lab(rgb9):
@@ -267,8 +270,7 @@ def _section_emoji(enc, head, eval_records):
         for t in set(lst):
             df[t] += 1
     d["top"] = [[e, n] for e, n in df.most_common(10)]
-    d["bottom"] = [[e, n]
-                   for e, n in sorted(df.items(), key=lambda kv: (kv[1], kv[0]))[:10]]
+    d["bottom"] = [[e, n] for e, n in sorted(df.items(), key=lambda kv: (kv[1], kv[0]))[:10]]
     d["thin"] = sum(1 for e in EMOJIS if df.get(e, 0) < 20)
 
     if enc is None or head is None:
@@ -331,8 +333,7 @@ def _color_card(name, hx, enc, gen, eval_records, train_records):
     with torch.no_grad():
         cond = enc(text_to_tensor(norm_text(name)).unsqueeze(0)).repeat(Z, 1)
         bg = _bg_mean_lab(gen(cond, Z_BANK))
-    hit = (torch.linalg.vector_norm(bg - a, dim=-1)
-           < COLOR_DELTA_E).float().mean().item()
+    hit = (torch.linalg.vector_norm(bg - a, dim=-1) < COLOR_DELTA_E).float().mean().item()
 
     base_rows = _subsample(eval_records, BASELINE_TEXTS)
     with torch.no_grad():
@@ -340,8 +341,7 @@ def _color_card(name, hx, enc, gen, eval_records, train_records):
         bbg = _bg_mean_lab(
             gen(bcond.repeat_interleave(Z, 0), Z_BANK.repeat(len(base_rows), 1))
         )
-    base = (torch.linalg.vector_norm(bbg - a, dim=-1)
-            < COLOR_DELTA_E).float().mean().item()
+    base = (torch.linalg.vector_norm(bbg - a, dim=-1) < COLOR_DELTA_E).float().mean().item()
     lift = hit - base
 
     grp = _subsample([r for r in train_records if name in r.text], ENERGY_MAX)
@@ -398,8 +398,7 @@ def _section_color(enc, gen, train_records, eval_records):
     real = rgb_to_oklab(torch.stack([colors2tensor(r.colors) for r in ev]))
     with torch.no_grad():
         cond = enc(torch.stack([text_to_tensor(r.text) for r in ev]))
-        fake = rgb_to_oklab(
-            gen(cond.repeat_interleave(Z, 0), Z_BANK.repeat(len(ev), 1)))
+        fake = rgb_to_oklab(gen(cond.repeat_interleave(Z, 0), Z_BANK.repeat(len(ev), 1)))
     ge = _energy(real, fake).item()
     rf = _split_energy(real).item()
     d["energy"] = {"gen": ge, "ref": rf, "gap": ge - rf}
@@ -439,8 +438,7 @@ def build_report(only: str = "", out: str = "report") -> Path:
     prov["consistent"] = not prov["issues"]
 
     train_records = list(read(TRAIN_PATH)) if want & {"style", "color"} else []
-    eval_records = list(read(EVAL_PATH)) if want & {
-        "emoji", "style", "color"} else []
+    eval_records = list(read(EVAL_PATH)) if want & {"emoji", "style", "color"} else []
 
     report = {
         "generated": datetime.now().isoformat(timespec="seconds"),
@@ -451,8 +449,7 @@ def build_report(only: str = "", out: str = "report") -> Path:
     if "emoji" in want:
         report["emoji"] = _section_emoji(enc, emoji_head, eval_records)
     if "style" in want:
-        report["style"] = _section_style(
-            enc, style_head, train_records, eval_records)
+        report["style"] = _section_style(enc, style_head, train_records, eval_records)
     if "color" in want:
         report["color"] = _section_color(enc, gen, train_records, eval_records)
 
@@ -636,7 +633,11 @@ def _data_html(d) -> str:
 
 
 def _emoji_html(d) -> str:
-    out = ["<h2>Emojis</h2>", "<h3>Distinct emojis</h3>", '<div class="counts">']
+    out = [
+        "<h2>Emojis</h2>",
+        "<h3>Distinct leaderboard emojis</h3>",
+        '<div class="counts">',
+    ]
     for k in ("data", "train", "eval"):
         out.append(
             f'<div class="count"><div class="v">{_fnum(d["distinct"][k])}</div>'
@@ -644,8 +645,7 @@ def _emoji_html(d) -> str:
         )
     out.append("</div>")
 
-    out.append(
-        "<h3>Frequency in train.jsonl — top 10 &amp; bottom 10 (shared scale)</h3>")
+    out.append("<h3>Frequency in train.jsonl — top 10 &amp; bottom 10 (shared scale)</h3>")
     maxv = d["top"][0][1] if d["top"] else 1
     items = list(d["top"]) + [None] + list(d["bottom"])
     out.append(_bars(items, maxv))
@@ -661,10 +661,8 @@ def _emoji_html(d) -> str:
         cards = (
             _mcard("acc@1", f"{e['acc@1']:.2f}", _cls("emoji.acc@1", e["acc@1"]))
             + _mcard("acc@5", f"{e['acc@5']:.2f}", _cls("emoji.acc@5", e["acc@5"]))
-            + _mcard("acc@10", f"{e['acc@10']:.2f}",
-                     _cls("emoji.acc@10", e["acc@10"]))
-            + _mcard("MRR@10", f"{e['MRR@10']:.2f}",
-                     _cls("emoji.MRR@10", e["MRR@10"]))
+            + _mcard("acc@10", f"{e['acc@10']:.2f}", _cls("emoji.acc@10", e["acc@10"]))
+            + _mcard("MRR@10", f"{e['MRR@10']:.2f}", _cls("emoji.MRR@10", e["MRR@10"]))
         )
         out.append(
             f"<h3>Retrieval performance — eval.jsonl ({e['n']} rows)</h3>"
@@ -731,8 +729,7 @@ def _color_html(d) -> str:
         cards = (
             _mcard("gen ↔ real", f"{e['gen']:.3f}", _ecls("gen", e["gen"]))
             + _mcard("real ↔ real (floor)", f"{e['ref']:.3f}", "good")
-            + _mcard("gap", f"{e['gap']:+.3f}",
-                     _ecls("gap", e["gap"]), "0 = perfect")
+            + _mcard("gap", f"{e['gap']:+.3f}", _ecls("gap", e["gap"]), "0 = perfect")
         )
         out.append(
             "<h3>Palette realism — OKLab energy distance</h3>"

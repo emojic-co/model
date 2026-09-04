@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 
-import { countEmojis, rarest } from "./upsample-emojis.ts"
+import { countEmojis, rankWindow } from "./upsample-emojis.ts"
 
 test("countEmojis counts distinct vocab emojis per row, zero-fills the rest", () => {
   const rows = [
@@ -17,14 +17,16 @@ test("countEmojis counts distinct vocab emojis per row, zero-fills the rest", ()
   expect(counts.has("🛰️")).toBe(false)
 })
 
-test("rarest returns the n lowest-count keys, ties broken by vocab order", () => {
-  const vocab = ["a", "b", "c", "d"]
+test("rankWindow returns keys ranked [minRank, maxRank] by count desc, ties broken by vocab order", () => {
+  const vocab = ["a", "b", "c", "d", "e"]
   const counts = new Map([
     ["a", 5],
     ["b", 0],
     ["c", 2],
     ["d", 0],
+    ["e", 10],
   ])
-  expect(rarest(vocab, counts, 2)).toEqual(["b", "d"])
-  expect(rarest(vocab, counts, 3)).toEqual(["b", "d", "c"])
+  expect(rankWindow(vocab, counts, 1, 1)).toEqual(["e"])
+  expect(rankWindow(vocab, counts, 2, 4)).toEqual(["a", "c", "b"])
+  expect(rankWindow(vocab, counts, 4, 5)).toEqual(["b", "d"])
 })

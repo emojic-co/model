@@ -12,7 +12,8 @@ import { appendJsonl, readJsonl } from "./io.ts"
 const DATA = "./data.jsonl"
 const LABELS = "./labels.json"
 
-const RARE_COUNT = 60
+const MIN_RANK = 200
+const MAX_RANK = 400
 const TEXTS_PER_EMOJI = 40
 const MIN_LEN = 4
 const MAX_LEN = 42
@@ -57,15 +58,16 @@ export function countEmojis(
   return counts
 }
 
-export function rarest(
+export function rankWindow(
   vocab: string[],
   counts: Map<string, number>,
-  n: number,
+  minRank: number,
+  maxRank: number,
 ): string[] {
   return vocab
     .map((k, i) => ({ k, i, c: counts.get(k) ?? 0 }))
-    .sort((a, b) => a.c - b.c || a.i - b.i)
-    .slice(0, n)
+    .sort((a, b) => b.c - a.c || a.i - b.i)
+    .slice(Math.max(0, minRank - 1), maxRank)
     .map((x) => x.k)
 }
 
@@ -105,23 +107,25 @@ async function genBatch(
 const cli = cac("upsample-emojis")
 cli.usage("[options]")
 cli
-  .option("--emoji <emoji>", "target these emoji instead of the rarest in labels.json")
-  .option("--rare <n>", `how many of the rarest emoji to target (default ${RARE_COUNT})`)
+  .option("--emojis <list>", "target exactly these emoji instead of a rank window")
+  .option("--min-rank <n>", `lowest (most frequent) rank to target (default ${MIN_RANK})`)
+  .option("--max-rank <n>", `highest (least frequent) rank to target (default ${MAX_RANK})`)
   .option("--per <n>", `texts to generate per target emoji (default ${TEXTS_PER_EMOJI})`)
 cli.help()
 
 if (import.meta.main) {
   const { options } = cli.parse(process.argv, { run: false })
   if (options.help) process.exit(0)
-  const only = options.emoji ? String(options.emoji).trim() || undefined : undefined
-  const rareCount = Number(options.rare ?? RARE_COUNT)
+  const only = options.emojis ? String(options.emojis).trim() || undefined : undefined
+  const minRank = Number(options.minRank ?? MIN_RANK)
+  const maxRank = Number(options.maxRank ?? MAX_RANK)
   const per = Number(options.per ?? TEXTS_PER_EMOJI)
 
   let targets: string[]
   if (only) {
     targets = [...new Set(splitEmojis(only))]
     if (!targets.length) {
-      console.error(`--emoji had no recognizable emoji: ${JSON.stringify(only)}`)
+      console.error(`--emojis had no recognizable emoji: ${JSON.stringify(only)}`)
       process.exit(1)
     }
     console.log(`targeting ${targets.length} emoji -> ${targets.join(" ")}`)
@@ -131,10 +135,11 @@ if (import.meta.main) {
     ).emojis
     const rows = await readJsonl<{ emojis?: string }>(DATA)
     const counts = countEmojis(rows, vocab)
-    targets = rarest(vocab, counts, rareCount)
+    targets = rankWindow(vocab, counts, minRank, maxRank)
     console.log(
-      `${vocab.length} vocab emojis -> targeting ${targets.length} rarest `
-      + `(${counts.get(targets[0])}..${counts.get(targets.at(-1) ?? "")} rows each)`,
+      `${vocab.length} vocab emojis -> targeting ${targets.length} ranked `
+      + `${minRank}-${maxRank} (${counts.get(targets[0])}..`
+      + `${counts.get(targets.at(-1) ?? "")} rows each)`,
     )
   }
 
