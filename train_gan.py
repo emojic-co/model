@@ -22,7 +22,7 @@ from data import (
 )
 from export_onnx import export
 from model import TextEncoder
-from runmeta import save_pt
+from runmeta import require_clean_tree, save_pt
 from train import LitColorGAN
 
 
@@ -32,6 +32,7 @@ def load(mod: torch.nn.Module, path: str) -> torch.nn.Module:
 
 
 if __name__ == "__main__":
+    require_clean_tree()
     pl.seed_everything(SEED, workers=True)
     torch.backends.cudnn.benchmark = False
 

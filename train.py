@@ -45,7 +45,7 @@ from model import (
     TextEncoder,
     rgb_to_oklab,
 )
-from runmeta import save_pt
+from runmeta import require_clean_tree, save_pt
 
 
 def f1(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
@@ -284,6 +284,7 @@ class LitColorGAN(pl.LightningModule):
 
 
 if __name__ == "__main__":
+    require_clean_tree()
     pl.seed_everything(SEED, workers=True)
     torch.backends.cudnn.benchmark = False
 

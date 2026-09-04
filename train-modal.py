@@ -82,11 +82,11 @@ def _stash(dst: str) -> int:
     return n
 
 
-@app.function(
-    cpu=CPU, memory=MEMORY_MIB, timeout=TIMEOUT_S, volumes={ARTIFACTS: vol}
-)
-def train_remote(threads: int = CPU) -> dict[str, int]:
+@app.function(cpu=CPU, memory=MEMORY_MIB, timeout=TIMEOUT_S, volumes={ARTIFACTS: vol})
+def train_remote(threads: int = CPU, git_sha: str = "") -> dict[str, int]:
     env = _run_env(threads)
+    env["EMOJIC_GIT_SHA"] = git_sha
+    env["EMOJIC_DISPATCH_CHECKED"] = "1"
     code = 1
     try:
         tb = subprocess.Popen(
@@ -125,9 +125,7 @@ def train_remote(threads: int = CPU) -> dict[str, int]:
         finally:
             tb.terminate()
         if code == 0:
-            subprocess.run(
-                [VENV_PY, "test_emoji.py"], cwd=REPO, env=env, check=False
-            )
+            subprocess.run([VENV_PY, "test_emoji.py"], cwd=REPO, env=env, check=False)
     finally:
         n = _stash(ARTIFACTS)
         vol.commit()
@@ -154,11 +152,16 @@ def _retrieve_and_cleanup() -> None:
 
         src = staging
         kids = list(staging.iterdir())
-        if len(kids) == 1 and kids[0].is_dir() and kids[0].name not in {
-            "runs",
-            "report",
-            "web",
-        }:
+        if (
+            len(kids) == 1
+            and kids[0].is_dir()
+            and kids[0].name
+            not in {
+                "runs",
+                "report",
+                "web",
+            }
+        ):
             src = kids[0]
 
         landed: list[str] = []
@@ -190,10 +193,16 @@ def main(cpu: int = CPU, memory: int = MEMORY_MIB, fetch_only: bool = False):
     if fetch_only:
         _retrieve_and_cleanup()
         return
+    from runmeta import require_clean_tree
+
+    require_clean_tree()
+    git_sha = subprocess.run(
+        ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True
+    ).stdout.strip()
     fn = train_remote
     if cpu != CPU or memory != MEMORY_MIB:
         fn = train_remote.with_options(cpu=cpu, memory=memory)
     try:
-        print(fn.remote(threads=cpu))
+        print(fn.remote(threads=cpu, git_sha=git_sha))
     finally:
         _retrieve_and_cleanup()
