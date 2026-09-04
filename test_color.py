@@ -211,7 +211,7 @@ def test_color(
     write_report: bool = True,
 ) -> dict:
     groups = _evaluate(enc_path, gen_path, _keyword_groups(train_path))
-    stamp = datetime.now().strftime("%m-%d-%H-%M")
+    stamp = datetime.now().strftime("%y-%m-%d-%H-%M")
 
     n = len(groups)
     summary = {
