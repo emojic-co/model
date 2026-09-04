@@ -28,10 +28,11 @@ class TextEncoderBlock(nn.Module):
     def __init__(self, i: int, o: int):
         super().__init__()
         self.net = nn.Sequential(
-            sn(nn.Conv1d(i, o,
-                         kernel_size=ENCODER_KERNEL_SIZE,
-                         padding=0,
-                         bias=True)),
+            sn(nn.Conv1d(
+                i, o,
+                kernel_size=ENCODER_KERNEL_SIZE,
+                padding=0,
+                bias=True)),
 
             nn.LeakyReLU(negative_slope=RELU_SLOPE))
 
@@ -52,8 +53,10 @@ class TextEncoder(nn.Module):
             *[TextEncoderBlock(i=i, o=o) for i, o in io])
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # TODO: mask padding before conv
         out = self.char_embed(x).transpose(1, 2)
         out = self.net(out)
+        # TODO: mask padding before maxing, assume length shrinks (ENCODER_KERNEL_SIZE - 1) * len(ENCODER_CHANNELS)
         return torch.max(out, dim=-1).values
 
 

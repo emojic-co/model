@@ -539,3 +539,23 @@ TODO:
         1. Will only keep the most relevant reports and remove the rest.
         2. Will link each report to the model and configuration that generated it.
         3. Possibly (need to discuss) stop tracking reports in git and instead generate them on demand from the model and configuration that generated it.
+
+        One thing I changed my mind about is the git tracking:
+            I do want to track any future reports in git but remove all existing reports from the git history.
+            I want each report to be in its own folder with a meta.yml file.
+            The meta.yml file just contains the metadata from the model .pt files and possibly additional metadata about the report itself.
+            The name of the folder should be the timestamp (YY-MM-DD-HH-MM) of the report (unless you have a better idea)
+            Future reports should be in 
+            report
+                - <report type>
+                    - <timestamp>
+                        - meta.yml
+                        - report.md 
+
+
+        Input Padding:
+            Currently text padding is a learned embedding see PAD, PAD_IDX.
+            I want to remove the padding embedding and mask it instead.
+            mask should be done before the conv layers and before the max pooling layer.
+            before the conv layer mask should zero out the embedding of the padding tokens.
+            before the max pooling layer mask should set the padding tokens to -inf so they are not selected by the max pooling layer.
