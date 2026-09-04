@@ -4,6 +4,8 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
+import torch
+
 from config import CONFIG_PARTS
 
 
@@ -42,3 +44,20 @@ def run_meta() -> dict:
         "config": list(CONFIG_PARTS),
         "train_sha": _train_sha(),
     }
+
+
+def save_pt(state_dict: dict, path, **extra) -> None:
+    torch.save({"state_dict": state_dict, "meta": {**run_meta(), **extra}}, path)
+
+
+def load_pt(path, *, map_location: str = "cpu"):
+    blob = torch.load(path, map_location=map_location, weights_only=False)
+    if isinstance(blob, dict) and "state_dict" in blob:
+        return blob["state_dict"], blob.get("meta")
+    return blob, None
+
+
+def model_slug(model_meta: dict | None) -> str:
+    if model_meta and model_meta.get("sha"):
+        return model_meta["sha"]
+    return "nometa"
