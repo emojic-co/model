@@ -43,3 +43,5 @@ pred.jsonl
 lightning_logs
 # SDD scratch (ledger, briefs, review packages)
 /.superpowers/
+# Browser-only preview pages, regenerated on demand.
+preview/

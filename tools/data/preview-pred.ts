@@ -5,7 +5,7 @@ import { cardHtml, firstEmoji, page, stamp } from "./preview-card.ts"
 const args = process.argv.slice(2)
 const ALL = args.includes("--all")
 const SRC = args.find((a) => !a.startsWith("--")) ?? "pred.jsonl"
-const OUT_DIR = "report/preview"
+const OUT_DIR = "preview"
 const COLS = 5
 
 type Row = {

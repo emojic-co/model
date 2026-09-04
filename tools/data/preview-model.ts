@@ -7,7 +7,7 @@ import { cardHtml, esc, page, sample, stamp } from "./preview-card.ts"
 const EVAL = "eval.jsonl"
 const META = "web/public/meta.json"
 const MODEL = "web/public/model.onnx"
-const OUT_DIR = "report/preview-model"
+const OUT_DIR = "preview/model"
 const COUNT = 20
 
 type Row = { text: string; feeling: string; emoji: string; bg: [string, string]; fg: string }

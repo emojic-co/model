@@ -4,7 +4,7 @@ import { esc, page, stamp } from "./preview-card.ts"
 import { STYLE_LINES, STYLE_SET } from "./styles.ts"
 
 const LABELS = "labels.json"
-const OUT_DIR = "report/preview-labels"
+const OUT_DIR = "preview/labels"
 const STYLE_COLS = 7
 const STYLE_ROWS = 3
 const EMOJI_COLS = 32

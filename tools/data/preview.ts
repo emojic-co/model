@@ -3,7 +3,7 @@ import { parseJsonlText, readJsonl } from "./io.ts"
 import { cardHtml, firstEmoji, page, stamp } from "./preview-card.ts"
 
 const EVAL = "eval.jsonl"
-const OUT_DIR = "report/preview"
+const OUT_DIR = "preview"
 const COUNT = 300
 const COLS = 5
 const ALL = process.argv.slice(2).includes("--all")
