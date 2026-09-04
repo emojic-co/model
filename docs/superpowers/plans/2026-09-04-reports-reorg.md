@@ -643,14 +643,16 @@ git commit -m "$(printf 'Save .pt files with embedded runmeta via save_pt\n\nCo-
 ## Task 7: Clean-tree gate at training entrypoints + Modal env passthrough
 
 **Files:**
-- Modify: `train.py:281-282` (start of `__main__`)
+- Modify: `train.py` (start of `__main__`)
 - Modify: `train_gan.py` (start of `__main__`, currently `pl.seed_everything(SEED, workers=True)`)
-- Modify: `train-modal.py` — `main()` (`@app.local_entrypoint`), and `_run_env()`
+- Modify: `train-modal.py` — `main()` (`@app.local_entrypoint`) and `train_remote()` (`@app.function`)
 
 **Interfaces:**
 - Consumes: `runmeta.require_clean_tree` (Task 4).
 - Produces: `train.py` / `train_gan.py` / `modal run train-modal.py` all `sys.exit` on a dirty tree.
-- Produces: the Modal box env carries `EMOJIC_GIT_SHA` (dispatch-side short SHA) and `EMOJIC_DISPATCH_CHECKED=1`.
+- Produces: `train_remote(threads, git_sha)` — new `git_sha` kwarg; the box env dict gets `EMOJIC_GIT_SHA = git_sha` and `EMOJIC_DISPATCH_CHECKED = "1"` before the `train.py` / `test_emoji.py` subprocesses run.
+
+**Ruling (plan defect corrected):** the plan originally assumed `os.environ` set in `main()` propagates to the Modal box via `_run_env()`'s `**os.environ`. It does not — `_run_env` reads the box's environ. Corrected to pass `git_sha` as a `train_remote` function argument and inject it into the `env` dict there. `EMOJIC_GIT_DIRTY` is not passed at all (a dirty dispatch tree fails `require_clean_tree()` before `fn.remote()` is called, so the box never needs it).
 
 - [ ] **Step 1: `train.py` gate**
 
@@ -687,33 +689,74 @@ if __name__ == "__main__":
     pl.seed_everything(SEED, workers=True)
 ```
 
-- [ ] **Step 3: `train-modal.py` — inspect current `_run_env` and `main`**
+- [ ] **Step 3: `train-modal.py` — confirm the current code matches**
 
 ```bash
-sed -n '48,60p;185,215p' train-modal.py
+grep -n "def main(\|def train_remote(\|def _run_env(\|env = _run_env\|fn.remote(\|import subprocess\|if fetch_only" train-modal.py
 ```
-Note the exact signature of `_run_env` and the first lines of `main`.
+Confirm: `train_remote` currently `def train_remote(threads: int = CPU) -> dict[str, int]:` with `env = _run_env(threads)` as its first body line; `main` currently `def main(cpu: int = CPU, memory: int = MEMORY_MIB, fetch_only: bool = False):` with an `if fetch_only:` early-return then `fn.remote(threads=cpu)`; `import subprocess` present at module top. If any differ from Step 4's "current" snippet, adapt the edit to the real text and note it in the report.
 
-- [ ] **Step 4: `train-modal.py` — add the dispatch-side SHA capture + gate**
+- [ ] **Step 4: `train-modal.py` — dispatch-side gate + pass the SHA as a function argument**
 
-At the top of `main()` (the `@app.local_entrypoint()` function), before any `_modal(...)` / `app.run` call, add:
+The current `main()` is:
 
 ```python
-    import subprocess as _sp
+@app.local_entrypoint()
+def main(cpu: int = CPU, memory: int = MEMORY_MIB, fetch_only: bool = False):
+    if fetch_only:
+        _retrieve_and_cleanup()
+        return
+    fn = train_remote
+    if cpu != CPU or memory != MEMORY_MIB:
+        fn = train_remote.with_options(cpu=cpu, memory=memory)
+    try:
+        print(fn.remote(threads=cpu))
+    finally:
+        _retrieve_and_cleanup()
+```
 
+`main()` runs on the dispatch machine (has git); `train_remote` runs on the Modal
+box (no git, and the box's `os.environ` is NOT the dispatch machine's — env does
+not auto-propagate). So the SHA must travel as a **function argument**.
+
+Change `main()` to:
+
+```python
+@app.local_entrypoint()
+def main(cpu: int = CPU, memory: int = MEMORY_MIB, fetch_only: bool = False):
+    if fetch_only:
+        _retrieve_and_cleanup()
+        return
     from runmeta import require_clean_tree
 
     require_clean_tree()
-    _sha = _sp.run(
+    git_sha = subprocess.run(
         ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True
     ).stdout.strip()
-    os.environ["EMOJIC_GIT_SHA"] = _sha
-    os.environ["EMOJIC_DISPATCH_CHECKED"] = "1"
+    fn = train_remote
+    if cpu != CPU or memory != MEMORY_MIB:
+        fn = train_remote.with_options(cpu=cpu, memory=memory)
+    try:
+        print(fn.remote(threads=cpu, git_sha=git_sha))
+    finally:
+        _retrieve_and_cleanup()
 ```
 
-(`import os` already exists in `train-modal.py`. If `runmeta` import at module top is cleaner and does not pull torch too early for the Modal image build, prefer a top-level `from runmeta import require_clean_tree` — but a local import inside `main()` is safe because `main()` only runs on the dispatch machine.)
+Change `train_remote`'s signature and inject the vars into the env dict it
+already builds:
 
-`_run_env()` already does `**os.environ`, so setting the two vars in `main()` before the Modal function is invoked propagates them to the box. Confirm `_run_env` reads `os.environ` at call time (not import time) — it does (it is a function). No change to `_run_env` body needed beyond confirming.
+```python
+def train_remote(threads: int = CPU, git_sha: str = "") -> dict[str, int]:
+    env = _run_env(threads)
+    env["EMOJIC_GIT_SHA"] = git_sha
+    env["EMOJIC_DISPATCH_CHECKED"] = "1"
+    ...
+```
+
+`subprocess` is already imported in `train-modal.py`. `require_clean_tree` is
+imported locally inside `main()` (which only runs on the dispatch machine) to
+avoid importing `runmeta`/`torch` during the Modal app's box-side module load.
+`_run_env()` itself is unchanged.
 
 - [ ] **Step 5: Verify the gate fires**
 
@@ -722,20 +765,23 @@ echo "scratch" > _dirty_probe.txt
 uv run python train.py; echo "exit=$?"
 rm _dirty_probe.txt
 ```
-Expected: prints `training aborted: clean git tree required; uncommitted:` followed by `?? _dirty_probe.txt`, `exit=1`, and Lightning never starts.
+Expected: prints `training aborted: clean git tree required; uncommitted:` followed by `?? _dirty_probe.txt`, `exit=1`, and Lightning never starts. Do the same for `uv run python train_gan.py` (same message, `exit=1`).
 
-- [ ] **Step 6: Verify the dispatch-check skip**
+- [ ] **Step 6: Verify the dispatch-check skip + `train-modal.py` parses**
 
 ```bash
 echo "scratch" > _dirty_probe.txt
 EMOJIC_DISPATCH_CHECKED=1 uv run python -c "from runmeta import require_clean_tree; require_clean_tree(); print('skipped ok')"
 rm _dirty_probe.txt
+uv run python -m py_compile train-modal.py && echo "train-modal.py compiles"
 ```
-Expected: `skipped ok`.
+Expected: `skipped ok` then `train-modal.py compiles`. (Modal itself is not run here.)
 
 - [ ] **Step 7: Lint**
 
 Run: `uv run ruff check train.py train_gan.py train-modal.py && uv run ruff format --check train.py train_gan.py train-modal.py`
+
+`train-modal.py` passes `ruff check` but FAILS `ruff format --check` at baseline (pre-existing). Run `uv run ruff format train-modal.py` to satisfy the gate and note the resulting whole-file reformat separately in the report (as in Task 6). `train.py` / `train_gan.py` are already ruff-formatted after Task 6, so their diffs here are just the gate line + import.
 
 - [ ] **Step 8: Commit**
 
