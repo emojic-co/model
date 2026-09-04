@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 
-import { countEmojis, failingEmojis, rankWindow } from "./upsample-emojis.ts"
+import { countEmojis, failingEmojis, rankWindow } from "./upsample.ts"
 
 test("countEmojis counts distinct vocab emojis per row, zero-fills the rest", () => {
   const rows = [

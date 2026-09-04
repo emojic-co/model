@@ -633,13 +633,16 @@ TODO:
 
 
 
-        Train Tools: 
-            - unified train tools to:
-                - train-task --local
-                - train-gan --local
-                - train-all --local
-
-                Each should run on modal or local that generate the report.
+        train.py: 
+            Unified all training tasks into a single train.py script.
+            train <model> [--local]
+            model is one of {task, gan, all}
+            default is to train on modal (for all models) and --local is to train on local machine (for all models).
+            After you implement remove all other training scripts and tools, only keep train.py.
+            Update CLAUDE.md
+            Use typer and install in the current project so I can run directly 
+            `train task --local` or `train gan` etc...
+            If possible add commandline option autocomplete (should be for free when using typer).
 
         Update The regen script:
             run as bun tools/data/regen.ts --min-count 5 --max-count 50
