@@ -138,21 +138,21 @@ Lightning `.ckpt` files — untouched.
 ```
 report/
   test-emoji/
-    26-09-04-05-48/
+    26-09-04-05-48-a1b2c3d/
       meta.yml
       report.md
       report.json
   test-color/
-    26-09-04-05-48/
+    26-09-04-05-48-a1b2c3d/
       meta.yml
       report.html
       report.json
 ```
 
-- **Folder name** = probe run timestamp, `%y-%m-%d-%H-%M`. A second run in the
-  same minute overwrites the folder (acceptable for these probes). *Optional, ask
-  the user:* append the model short SHA → `26-09-04-05-48-a1b2c3d` for
-  collision-safety and at-a-glance linkage.
+- **Folder name** = `%y-%m-%d-%H-%M-<model_sha>`, e.g. `26-09-04-05-48-a1b2c3d`,
+  where `<model_sha>` is the encoder's embedded `meta["sha"]` (or `nometa` for a
+  legacy `.pt`). Timestamp-first so folders sort chronologically; SHA suffix for
+  collision-safety and at-a-glance linkage to the model.
 - `report.md` / `report.html` — the human report, unchanged in content except the
   header (see F).
 - `report.json` — kept; the full per-word / per-keyword machine data.
@@ -323,11 +323,6 @@ preview/
 - Per-run output directories / run-ID registry / mandatory training worktrees.
 - Fixing `update-model-md`'s stale `report/model/` reference.
 - `model.md` / `data.md` regeneration.
-
-## Open question for the user
-
-- Folder name: `%y-%m-%d-%H-%M` as requested, or `%y-%m-%d-%H-%M-<model_sha>`
-  (collision-safe, links to the model at a glance)?
 
 ## Testing / verification
 
