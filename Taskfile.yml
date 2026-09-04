@@ -6,7 +6,7 @@ vars:
 
 tasks:
   modal-train:
-    desc: "Snapshot HEAD to a named branch+worktree and launch train-modal.py (Modal app detached, survives laptop sleep/disconnect): task modal-train -- <name>"
+    desc: "Snapshot HEAD to a named branch+worktree and launch train.py's task stage on Modal (detached, survives laptop sleep/disconnect): task modal-train -- <name>"
     silent: true
     cmds:
       - |
@@ -25,7 +25,7 @@ tasks:
           [ -f "$root/$f" ] && cp "$root/$f" "$wt/$f" || true
         done
 
-        setsid --fork sh -c "cd '$wt' && exec uv run modal run --detach train-modal.py::main" >"$log" 2>&1 </dev/null
+        setsid --fork sh -c "cd '$wt' && exec uv run modal run --detach train.py::main -- --model task" >"$log" 2>&1 </dev/null
 
         browser=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v xdg-open || true)
         if [ -n "$browser" ]; then
@@ -59,11 +59,11 @@ tasks:
         for wt in "{{.RUNS}}"/*/; do
           [ -d "$wt" ] || continue
           [ -e "${wt}.git" ] || continue
-          [ -f "${wt}train-modal.py" ] || continue
+          [ -f "${wt}train.py" ] || continue
           any=1
           tag=$(basename "$wt")
           echo "==> $tag"
-          ( cd "$wt" && uv run modal run train-modal.py::fetch ) || echo "  fetch failed for $tag (continuing)"
+          ( cd "$wt" && uv run modal run train.py::main -- --model task --fetch-only ) || echo "  fetch failed for $tag (continuing)"
         done
         [ "$any" = 1 ] || echo "no run worktrees under {{.RUNS}}"
 
