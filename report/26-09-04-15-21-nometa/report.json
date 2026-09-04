@@ -1,0 +1,238 @@
+{
+  "generated": "2026-09-04T15:21:47",
+  "provenance": {
+    "ts": "26-09-04-15-21",
+    "report_code": "c35b3b2",
+    "report_dirty": true,
+    "model_sha": "nometa",
+    "model_train_sha": null,
+    "current_train_sha": "a4a6675b3f38",
+    "models": {
+      "enc.pt": null,
+      "style.pt": null,
+      "emoji.pt": null,
+      "gen.pt": null,
+      "tst.pt": null
+    },
+    "consistent": false,
+    "issues": [
+      "legacy .pt without embedded metadata: enc.pt, style.pt, emoji.pt, gen.pt, tst.pt",
+      "enc.pt could not load: Error(s) in loading state_dict for TextEncoder:"
+    ]
+  },
+  "data": {
+    "records": {
+      "data": 103039,
+      "train": 85790,
+      "eval": 1500
+    }
+  },
+  "emoji": {
+    "distinct": {
+      "data": 1193,
+      "train": 1187,
+      "eval": 507
+    },
+    "top": [
+      [
+        "🛏️",
+        683
+      ],
+      [
+        "🔥",
+        683
+      ],
+      [
+        "📅",
+        682
+      ],
+      [
+        "🏠",
+        682
+      ],
+      [
+        "👶",
+        681
+      ],
+      [
+        "😤",
+        681
+      ],
+      [
+        "🌧️",
+        681
+      ],
+      [
+        "😲",
+        681
+      ],
+      [
+        "😴",
+        681
+      ],
+      [
+        "📚",
+        681
+      ]
+    ],
+    "bottom": [
+      [
+        "0️⃣",
+        1
+      ],
+      [
+        "5️⃣",
+        1
+      ],
+      [
+        "↪️",
+        1
+      ],
+      [
+        "⏺️",
+        1
+      ],
+      [
+        "▦",
+        1
+      ],
+      [
+        "◻️",
+        1
+      ],
+      [
+        "◼️",
+        1
+      ],
+      [
+        "⚕️",
+        1
+      ],
+      [
+        "⚛️",
+        1
+      ],
+      [
+        "⚡️",
+        1
+      ]
+    ],
+    "thin": 0
+  },
+  "style": {
+    "distribution": [
+      [
+        "Deadpan",
+        20201
+      ],
+      [
+        "Irritated",
+        11940
+      ],
+      [
+        "Tender",
+        9493
+      ],
+      [
+        "Playful",
+        8623
+      ],
+      [
+        "Earnest",
+        8261
+      ],
+      [
+        "Anxious",
+        5856
+      ],
+      [
+        "Joyful",
+        5371
+      ],
+      [
+        "Startled",
+        5365
+      ],
+      [
+        "Tense",
+        5026
+      ],
+      [
+        "Serene",
+        4864
+      ],
+      [
+        "Excited",
+        4585
+      ],
+      [
+        "Hopeful",
+        4230
+      ],
+      [
+        "Sarcastic",
+        4010
+      ],
+      [
+        "Melancholy",
+        3504
+      ],
+      [
+        "Proud",
+        2907
+      ],
+      [
+        "Wistful",
+        2726
+      ],
+      [
+        "Determined",
+        2345
+      ],
+      [
+        "Whimsical",
+        1968
+      ],
+      [
+        "Disgusted",
+        1633
+      ],
+      [
+        "Awed",
+        1107
+      ],
+      [
+        "Furious",
+        871
+      ]
+    ]
+  },
+  "color": {
+    "bg_distribution": [
+      [
+        "yellow",
+        31609
+      ],
+      [
+        "purple",
+        4512
+      ],
+      [
+        "red",
+        2395
+      ],
+      [
+        "green",
+        1652
+      ],
+      [
+        "blue",
+        500
+      ],
+      [
+        "other",
+        45111
+      ]
+    ]
+  }
+}
