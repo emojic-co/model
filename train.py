@@ -648,12 +648,14 @@ def _dispatch(
     git_sha = subprocess.run(
         ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True
     ).stdout.strip()
+    print(f"Training {model.value} on Modal...", flush=True)
     try:
-        if need_app_ctx:
-            with modal_app.run():
+        with modal.enable_output():
+            if need_app_ctx:
+                with modal_app.run():
+                    print(_run_remote(model, cpu, memory, git_sha))
+            else:
                 print(_run_remote(model, cpu, memory, git_sha))
-        else:
-            print(_run_remote(model, cpu, memory, git_sha))
     finally:
         _retrieve_and_cleanup()
 
