@@ -431,7 +431,7 @@ CPU = 16
 MEMORY_MIB = 16384
 TIMEOUT_S = 3600
 REPO = "/repo"
-VENV_PY = f"{REPO}/.venv/bin/python"
+VENV_PY = sys.executable
 TB_PORT = 6006
 
 WORKTREE_TAG = hashlib.sha1(str(Path.cwd().resolve()).encode()).hexdigest()[:10]
@@ -461,7 +461,9 @@ COLLECT_TREES = ["runs", "web/public", "report"]
 modal_image = modal.Image.debian_slim(python_version="3.13").pip_install("uv")
 for _name in DEP_FILES:
     modal_image = modal_image.add_local_file(_name, f"{REPO}/{_name}", copy=True)
-modal_image = modal_image.run_commands(f"cd {REPO} && uv sync --frozen")
+modal_image = modal_image.run_commands(
+    f"cd {REPO} && UV_PROJECT_ENVIRONMENT=/usr/local uv sync --frozen"
+)
 for _name in CODE_FILES:
     modal_image = modal_image.add_local_file(_name, f"{REPO}/{_name}", copy=True)
 
