@@ -14,7 +14,7 @@ MAX_TEXT_LEN = 42
 # ENCODER
 CHAR_EMBED_SIZE = 16
 ENCODER_KERNEL_SIZE = 3
-ENCODER_CHANNELS = [80, 120, 180]
+ENCODER_CHANNELS = [80, 120]
 
 enc_str = " ".join(
     [str(p) for p in (CHAR_EMBED_SIZE, ENCODER_KERNEL_SIZE, ENCODER_CHANNELS)]
@@ -31,7 +31,8 @@ STYLE_EMBED_SIZE = 12
 TEXT_EMBED_SIZE = ENCODER_CHANNELS[-1]
 DROPOUT_STYLE = 0.2
 
-style_str = " ".join([str(p) for p in (STYLE_EMBED_SIZE, TEXT_EMBED_SIZE, DROPOUT_STYLE)])
+style_str = " ".join([str(p)
+                     for p in (STYLE_EMBED_SIZE, TEXT_EMBED_SIZE, DROPOUT_STYLE)])
 
 # GAN
 Z_WEIGHT = 0.2
@@ -39,7 +40,8 @@ GEN_CHANNELS = [96]
 CRITIC_CHANNELS = [16, 8]
 GAN_LR = 0.01
 
-gan_str = " ".join([str(p) for p in (Z_WEIGHT, GEN_CHANNELS, CRITIC_CHANNELS, GAN_LR)])
+gan_str = " ".join([str(p)
+                   for p in (Z_WEIGHT, GEN_CHANNELS, CRITIC_CHANNELS, GAN_LR)])
 
 
 # TRAINING
