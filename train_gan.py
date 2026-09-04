@@ -1,4 +1,3 @@
-
 import lightning as pl
 import torch
 from lightning.pytorch.callbacks import (
@@ -23,6 +22,7 @@ from data import (
 )
 from export_onnx import export
 from model import TextEncoder
+from runmeta import save_pt
 from train import LitColorGAN
 
 
@@ -38,23 +38,22 @@ if __name__ == "__main__":
     enc = load(TextEncoder(), "enc.pt")
 
     gan_ckpt = ModelCheckpoint(
-        monitor="energy/gan/val",
-        mode="min",
-        save_top_k=1,
-        filename="best-gan-{step}")
+        monitor="energy/gan/val", mode="min", save_top_k=1, filename="best-gan-{step}"
+    )
 
     gan_trainer = pl.Trainer(
         devices="auto",
         accelerator="auto",
         logger=TensorBoardLogger(
-            "runs", name=CONFIG_NAME, version="gan", default_hp_metric=False),
+            "runs", name=CONFIG_NAME, version="gan", default_hp_metric=False
+        ),
         deterministic=True,
         max_epochs=EPOCHS_GAN,
         callbacks=[
             gan_ckpt,
             EarlyStopping(
-                monitor="energy/gan/val", mode="min",
-                patience=EARLY_STOP_PATIENCE),
+                monitor="energy/gan/val", mode="min", patience=EARLY_STOP_PATIENCE
+            ),
             TQDMProgressBar(),
             ModelSummary(),
         ],
@@ -64,16 +63,16 @@ if __name__ == "__main__":
     gan_trainer.fit(
         gan,
         train_data_loader(data_set=train_ds(), batch_size=GAN_BATCH_SIZE),
-        eval_data_loader())
+        eval_data_loader(),
+    )
 
     if gan_ckpt.best_model_path:
-        gan = LitColorGAN.load_from_checkpoint(
-            gan_ckpt.best_model_path, enc=enc)
+        gan = LitColorGAN.load_from_checkpoint(gan_ckpt.best_model_path, enc=enc)
 
     for name, mod in (
         ("gen", gan.gen),
         ("tst", gan.tst),
     ):
-        torch.save(mod.state_dict(), f"{name}.pt")
+        save_pt(mod.state_dict(), f"{name}.pt", stage="gan")
 
     export()

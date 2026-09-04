@@ -1,4 +1,3 @@
-
 import os
 import subprocess
 import sys
@@ -46,6 +45,7 @@ from model import (
     TextEncoder,
     rgb_to_oklab,
 )
+from runmeta import save_pt
 
 
 def f1(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
@@ -132,10 +132,7 @@ class LitTask(pl.LightningModule):
             (f"MRR@{EMOJI_AP_K}/e/{split}", emoji_mrr, max(n_e, 1)),
             (f"MRR@{STYLE_AP_K}/s/{split}", style_mrr, text.size(0)),
         ):
-            self.log(
-                name, val,
-                on_step=False, on_epoch=True, prog_bar=True,
-                batch_size=bs)
+            self.log(name, val, on_step=False, on_epoch=True, prog_bar=True, batch_size=bs)
 
         return loss_style + loss_emoji
 
@@ -175,9 +172,13 @@ class LitColorGAN(pl.LightningModule):
             "z_bank",
             normalize(
                 torch.randn(
-                    ENERGY_Z_SAMPLES, TEXT_EMBED_SIZE,
-                    generator=torch.Generator().manual_seed(SEED)),
-                dim=-1))
+                    ENERGY_Z_SAMPLES,
+                    TEXT_EMBED_SIZE,
+                    generator=torch.Generator().manual_seed(SEED),
+                ),
+                dim=-1,
+            ),
+        )
 
         self.automatic_optimization = False
         self._val_text: list[torch.Tensor] = []
@@ -202,9 +203,10 @@ class LitColorGAN(pl.LightningModule):
     def _split_energy(self, pts: torch.Tensor) -> torch.Tensor:
         m = pts.size(0)
         half = m // 2
-        perm = torch.randperm(
-            m, generator=torch.Generator().manual_seed(SEED)).to(pts.device)
-        return energy_distance(pts[perm[:half]], pts[perm[half:2 * half]])
+        perm = torch.randperm(m, generator=torch.Generator().manual_seed(SEED)).to(
+            pts.device
+        )
+        return energy_distance(pts[perm[:half]], pts[perm[half : 2 * half]])
 
     def on_validation_epoch_end(self):
         if not self._val_real:
@@ -216,8 +218,8 @@ class LitColorGAN(pl.LightningModule):
             real = rgb_to_oklab(torch.cat(self._val_real))
             n = text.size(0)
             z = self.z_bank[  # type: ignore
-                torch.arange(n, device=self.device)
-                % self.z_bank.size(0)]  # type: ignore
+                torch.arange(n, device=self.device) % self.z_bank.size(0)
+            ]  # type: ignore
 
             fake = rgb_to_oklab(self.gen(self.enc(text), z))
             val = energy_distance(real, fake)
@@ -240,11 +242,11 @@ class LitColorGAN(pl.LightningModule):
         tst_real = self.tst(cond, colors)
         tst_fake = self.tst(cond, fake.detach())
 
-        loss_tst_real = binary_cross_entropy_with_logits(
-            tst_real, torch.ones_like(tst_real))
+        loss_tst_real = binary_cross_entropy_with_logits(tst_real, torch.ones_like(tst_real))
 
         loss_tst_fake = binary_cross_entropy_with_logits(
-            tst_fake, torch.zeros_like(tst_fake))
+            tst_fake, torch.zeros_like(tst_fake)
+        )
 
         loss_tst = loss_tst_real + loss_tst_fake
 
@@ -252,19 +254,22 @@ class LitColorGAN(pl.LightningModule):
         self.manual_backward(loss_tst)
         self.clip_gradients(
             opt_tst,  # type: ignore
-            gradient_clip_val=GRAD_CLIP, gradient_clip_algorithm="norm")
+            gradient_clip_val=GRAD_CLIP,
+            gradient_clip_algorithm="norm",
+        )
 
         opt_tst.step()
 
         tst_fake = self.tst(cond, fake)
-        loss_gen = binary_cross_entropy_with_logits(
-            tst_fake, torch.ones_like(tst_fake))
+        loss_gen = binary_cross_entropy_with_logits(tst_fake, torch.ones_like(tst_fake))
 
         opt_gen.zero_grad()
         self.manual_backward(loss_gen)
         self.clip_gradients(
             opt_gen,  # type: ignore
-            gradient_clip_val=GRAD_CLIP, gradient_clip_algorithm="norm")
+            gradient_clip_val=GRAD_CLIP,
+            gradient_clip_algorithm="norm",
+        )
 
         opt_gen.step()
 
@@ -292,24 +297,22 @@ if __name__ == "__main__":
     task_monitor = f"MRR@{EMOJI_AP_K}/e/val"
 
     task_ckpt = ModelCheckpoint(
-        monitor=task_monitor,
-        mode="max",
-        save_top_k=1,
-        filename="best-{step}")
+        monitor=task_monitor, mode="max", save_top_k=1, filename="best-{step}"
+    )
 
     task_trainer = pl.Trainer(
         devices="auto",
         accelerator="auto",
         logger=TensorBoardLogger(
-            "runs", name=CONFIG_NAME, version="task", default_hp_metric=False),
+            "runs", name=CONFIG_NAME, version="task", default_hp_metric=False
+        ),
         deterministic=True,
         max_epochs=EPOCHS_TASK,
         val_check_interval=min(VAL_CHECK_INTERVAL, len(task_dl)),
         enable_progress_bar=not no_progress_bar,
         callbacks=[
             task_ckpt,
-            EarlyStopping(
-                monitor=task_monitor, mode="max", patience=EARLY_STOP_PATIENCE),
+            EarlyStopping(monitor=task_monitor, mode="max", patience=EARLY_STOP_PATIENCE),
             *progress_bar_cbs,
             ModelSummary(),
         ],
@@ -326,30 +329,29 @@ if __name__ == "__main__":
         ("style", task.style),
         ("emoji", task.emoji),
     ):
-        torch.save(mod.state_dict(), f"{name}.pt")
+        save_pt(mod.state_dict(), f"{name}.pt", stage="task")
 
     if os.environ.get("EMOJIC_TASK_ONLY") == "1":
         sys.exit(0)
 
     gan_ckpt = ModelCheckpoint(
-        monitor="energy/gan/val",
-        mode="min",
-        save_top_k=1,
-        filename="best-gan-{step}")
+        monitor="energy/gan/val", mode="min", save_top_k=1, filename="best-gan-{step}"
+    )
 
     gan_trainer = pl.Trainer(
         devices="auto",
         accelerator="auto",
         logger=TensorBoardLogger(
-            "runs", name=CONFIG_NAME, version="gan", default_hp_metric=False),
+            "runs", name=CONFIG_NAME, version="gan", default_hp_metric=False
+        ),
         deterministic=True,
         max_epochs=EPOCHS_GAN,
         enable_progress_bar=not no_progress_bar,
         callbacks=[
             gan_ckpt,
             EarlyStopping(
-                monitor="energy/gan/val", mode="min",
-                patience=EARLY_STOP_PATIENCE),
+                monitor="energy/gan/val", mode="min", patience=EARLY_STOP_PATIENCE
+            ),
             *progress_bar_cbs,
             ModelSummary(),
         ],
@@ -360,13 +362,12 @@ if __name__ == "__main__":
     gan_trainer.fit(gan, gan_dl, val_dl)
 
     if gan_ckpt.best_model_path:
-        gan = LitColorGAN.load_from_checkpoint(
-            gan_ckpt.best_model_path, enc=task.enc)
+        gan = LitColorGAN.load_from_checkpoint(gan_ckpt.best_model_path, enc=task.enc)
 
     for name, mod in (
         ("gen", gan.gen),
         ("tst", gan.tst),
     ):
-        torch.save(mod.state_dict(), f"{name}.pt")
+        save_pt(mod.state_dict(), f"{name}.pt", stage="gan")
 
     subprocess.run([sys.executable, "export_onnx.py"], check=True)
