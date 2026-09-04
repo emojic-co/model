@@ -21,6 +21,12 @@ def _lines(path: Path) -> int:
         return sum(1 for _ in fh)
 
 
+def _commit(msg: str) -> None:
+    subprocess.run(["git", "add", "data.jsonl", "report"], check=True)
+    if subprocess.run(["git", "diff", "--cached", "--quiet"]).returncode != 0:
+        subprocess.run(["git", "commit", "-m", msg], check=True)
+
+
 def _weak_buckets(title: str, groups: list[tuple[str, list[dict]]], target: float) -> None:
     print(f"\n{title}", flush=True)
     for label, rows in groups:
@@ -79,6 +85,10 @@ def main() -> int:
     p.add_argument("--memory", type=int)
     args = p.parse_args()
 
+    from runmeta import require_clean_tree
+
+    require_clean_tree()
+
     modal_cmd = ["uv", "run", "modal", "run", "train-modal.py::main"]
     if args.cpu:
         modal_cmd += ["--cpu", str(args.cpu)]
@@ -112,6 +122,7 @@ def main() -> int:
             print("\nnothing left to upsample, stopping", flush=True)
             break
         _run(["bun", "run", "tools/data/regen.ts"])
+        _commit(f"loop_emoji iter {i}: +{added} rows")
 
     print("\n===== summary =====", flush=True)
     for n, acc5 in enumerate(history, 1):
@@ -125,6 +136,7 @@ def main() -> int:
 
     if ok:
         print("\ngoal reached -- training the color GAN locally", flush=True)
+        _commit("loop_emoji: commit reports before color GAN")
         _run(["uv", "run", "python", "train_gan.py"])
     elif last is not None:
         _failure_detail(last["results"], args.target)

@@ -1,20 +1,20 @@
 ---
-description: Read-only data-quality report for data.jsonl (the append-only master) — refreshes tools/data/stat.ts distributions, runs structural checks (schema, read() survival, raw length, style set, emoji vocab, duplicate/union-merge keys, palette), then judges label + palette quality on a 200-row sample in-session. Writes one report to report/data-quality/, never modifies any data file.
-allowed-tools: [Bash, Read, Write]
+description: Read-only data-quality report for data.jsonl (the append-only master) — refreshes tools/data/stat.ts distributions, runs structural checks (schema, read() survival, raw length, style set, emoji vocab, duplicate/union-merge keys, palette), then judges label + palette quality on a 200-row sample in-session. Never modifies any data file.
+allowed-tools: [Bash, Read]
 ---
 
 # Data quality
 
 Judge the health of `data.jsonl` (the append-only master that `bun run regen`
-derives `train.jsonl` / `eval.jsonl` / `labels.json` from) and write **one**
-report to `report/data-quality/<MM-DD-HH-MM>.md`. Distribution stats come from
-`tools/data/stat.ts`; this skill adds structural checks and an in-session label
-judgment on top.
+derives `train.jsonl` / `eval.jsonl` / `labels.json` from) and **present the
+report in this session** (chat) — it writes no file. Distribution stats come
+from `tools/data/stat.ts`; this skill adds structural checks and an in-session
+label judgment on top.
 
 **This skill is strictly read-only.** It never writes, deletes, reorders, or
 relabels a row in `train.jsonl`, `eval.jsonl`, `data.jsonl`, or `labels.json`,
-and it never writes a root `data.md`. The only file it creates is the report
-(plus one throwaway sample file next to it). Label judgment is
+and it never writes a root `data.md`. It creates no file — the only scratch is
+`/tmp/emojic-dq-sample.jsonl` (git-invisible). Label judgment is
 **keep-or-drop reasoning only** — you decide whether a stored label is right,
 you never rewrite one.
 
@@ -39,17 +39,13 @@ Reference points, all read from source so the report stays honest:
 ## 1. Refresh distributions
 
 ```bash
-mkdir -p report/data-quality
-STAMP=$(date +%m-%d-%H-%M)
-bun run tools/data/stat.ts
-STAT=$(ls -t report/data-stat/*.md | head -1)
-echo "distribution report: $STAT"
+bun run tools/data/stat.ts | tee /tmp/emojic-datastat.txt
 ```
 
-Read `$STAT`. Its `data.jsonl` numbers (row counts, style distribution,
-text-length histogram + out-of-range count, emoji distribution, top-label
-coverage) are lifted into section 1 of the report **by reference** — do not
-recompute them.
+Read `/tmp/emojic-datastat.txt` (the `stat.ts` stdout). Its `data.jsonl`
+numbers (row counts, style distribution, text-length histogram + out-of-range
+count, emoji distribution, top-label coverage) are lifted into section 1 of the
+report **by reference** — do not recompute them.
 
 ## 2. Structural checks
 
@@ -169,18 +165,18 @@ drifted — `grep -n "def normalize\|MAX_TEXT_LEN" data.py config.py` and adjust
 
 ## 3. Draw the judging sample
 
-Never read `data.jsonl` whole. Sample to a file next to the report:
+Never read `data.jsonl` whole. Sample to a git-invisible scratch file:
 
 ```bash
-shuf -n 200 data.jsonl > "report/data-quality/$STAMP.sample.jsonl"
-wc -l "report/data-quality/$STAMP.sample.jsonl"
+shuf -n 200 data.jsonl > /tmp/emojic-dq-sample.jsonl
+wc -l /tmp/emojic-dq-sample.jsonl
 ```
 
 (If the file has fewer rows than asked, `shuf` returns all of them — fine.)
 
 ## 4. Judge label + palette quality — in this session
 
-Read the sample file. Work through it in **chunks of ~50**, keeping a
+Read `/tmp/emojic-dq-sample.jsonl`. Work through it in **chunks of ~50**, keeping a
 running tally; do not try to hold a whole sample in mind at once. For
 each row, with `styles` / `emojis` / `bg` / `fg` visible, decide — **judgment
 only, never edit**:
@@ -208,21 +204,21 @@ each individual row is fine.
 
 ## 5. Write the report
 
-Write to `report/data-quality/$STAMP.md` **only**. No root `data.md`, no other
-file. Skeleton:
+Present the report **in this session** (chat) — do not write any file.
+Skeleton for the chat message:
 
 ```markdown
-# Data quality report — <YYYY-MM-DD HH:MM>
+# Data quality report — <YYYY-MM-DD HH:MM> · commit <short sha>
 
 - File: `data.jsonl` <N> rows
-- Distributions: `<path to the report/data-stat/*.md refreshed this run>`
+- Distributions: from `bun run tools/data/stat.ts` stdout (this run)
 - Trainable after `data.py:read`: <a> (<N-a> lost)
 - Structural: <single worst finding in one line>
 - Label quality — sample <n>: styles <ok>/<weak>/<wrong> · emoji rows <ok>/<has-weak>/<has-wrong> · palette <ok>/<weak>/<wrong>
 - Biggest problem: <one sentence>
 
 ## 1. Distributions
-<key numbers pulled from the stat.ts report, with its path; no recomputation>
+<key numbers pulled from the stat.ts stdout; no recomputation>
 
 ## 2. Structural checks
 ### Schema & `read()` survival
@@ -288,13 +284,13 @@ annotator prompt (`tools/data/annotate.ts`), `labels.json` / `tools/data/styles.
 
 Every number must trace to the section 1 stat report, the section 2 script
 output, or your section 3/4 tally — no invented figures. It is Markdown, so
-there is nothing to lint. Confirm the report file exists and that
-`data.jsonl` and `labels.json` are byte-identical to before this run
-(`git status --short` shows only new files under `report/`; `train.jsonl` /
-`eval.jsonl` are gitignored).
+there is nothing to lint. Confirm `data.jsonl` and `labels.json` are
+byte-identical to before this run (`train.jsonl` / `eval.jsonl` are
+gitignored).
 
 ## 6. Report back
 
 In 2–3 sentences: the master row count and how many survive `data.py:read`, the
 headline style / emoji / palette quality rates for the sample, the single
-biggest data-quality problem, and the path to the written report.
+biggest data-quality problem, and note the report was presented in-session
+(no file written).
