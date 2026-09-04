@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 
 # DATA
-with open('labels.json', encoding='utf-8') as f:
+with open("labels.json", encoding="utf-8") as f:
     LABELS = json.load(f)
 
 STYLES = LABELS["styles"]
@@ -16,28 +16,22 @@ CHAR_EMBED_SIZE = 16
 ENCODER_KERNEL_SIZE = 3
 ENCODER_CHANNELS = [80, 120, 180]
 
-enc_str = ' '.join([str(p) for p in (
-    CHAR_EMBED_SIZE,
-    ENCODER_KERNEL_SIZE,
-    ENCODER_CHANNELS)])
+enc_str = " ".join(
+    [str(p) for p in (CHAR_EMBED_SIZE, ENCODER_KERNEL_SIZE, ENCODER_CHANNELS)]
+)
 
 # EMOJI
 EMOJI_EMBED_SIZE = 42
 DROPOUT_EMOJI = 0.2
 
-emj_str = ' '.join([str(p) for p in (
-    EMOJI_EMBED_SIZE,
-    DROPOUT_EMOJI)])
+emj_str = " ".join([str(p) for p in (EMOJI_EMBED_SIZE, DROPOUT_EMOJI)])
 
 # STYLE
 STYLE_EMBED_SIZE = 12
 TEXT_EMBED_SIZE = ENCODER_CHANNELS[-1]
 DROPOUT_STYLE = 0.2
 
-style_str = ' '.join([str(p) for p in (
-    STYLE_EMBED_SIZE,
-    TEXT_EMBED_SIZE,
-    DROPOUT_STYLE)])
+style_str = " ".join([str(p) for p in (STYLE_EMBED_SIZE, TEXT_EMBED_SIZE, DROPOUT_STYLE)])
 
 # GAN
 Z_WEIGHT = 0.2
@@ -45,11 +39,7 @@ GEN_CHANNELS = [96]
 CRITIC_CHANNELS = [16, 8]
 GAN_LR = 0.01
 
-gan_str = ' '.join([str(p) for p in (
-    Z_WEIGHT,
-    GEN_CHANNELS,
-    CRITIC_CHANNELS,
-    GAN_LR)])
+gan_str = " ".join([str(p) for p in (Z_WEIGHT, GEN_CHANNELS, CRITIC_CHANNELS, GAN_LR)])
 
 
 # TRAINING
@@ -59,16 +49,22 @@ GAN_BATCH_SIZE = 512
 RELU_SLOPE = 0.1
 LR = 0.01
 GRAD_CLIP = 1.0
-INFONCE_TEMP = .7
+INFONCE_TEMP = 0.7
 
-train_str = ' '.join([str(p) for p in (
-    SEED,
-    TASK_BATCH_SIZE,
-    GAN_BATCH_SIZE,
-    RELU_SLOPE,
-    LR,
-    GRAD_CLIP,
-    INFONCE_TEMP)])
+train_str = " ".join(
+    [
+        str(p)
+        for p in (
+            SEED,
+            TASK_BATCH_SIZE,
+            GAN_BATCH_SIZE,
+            RELU_SLOPE,
+            LR,
+            GRAD_CLIP,
+            INFONCE_TEMP,
+        )
+    ]
+)
 
 EPOCHS_TASK = 200
 EPOCHS_GAN = 100
@@ -86,11 +82,16 @@ ENERGY_KEYWORD_MIN_TEXTS = 32
 ENERGY_KEYWORDS_PATH = "energy_keywords.txt"
 
 # TENSORBOARD RUN NAME
-CONFIG_NAME = ' | '.join([
-    f'TIME: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
-    f'ENCODER: {enc_str}',
-    f'EMOJI: {emj_str}',
-    f'STYLE: {style_str}',
-    f'GAN: {gan_str}',
-    f'TRAIN: {train_str}',
-])
+CONFIG_PARTS = [
+    f"ENCODER: {enc_str}",
+    f"EMOJI: {emj_str}",
+    f"STYLE: {style_str}",
+    f"GAN: {gan_str}",
+    f"TRAIN: {train_str}",
+]
+CONFIG_NAME = " | ".join(
+    [
+        f"TIME: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        *CONFIG_PARTS,
+    ]
+)
