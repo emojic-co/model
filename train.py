@@ -473,6 +473,7 @@ modal_image = modal_image.run_commands(
 )
 for _name in CODE_FILES:
     modal_image = modal_image.add_local_file(_name, f"{REPO}/{_name}", copy=True)
+modal_image = modal_image.workdir(REPO)
 
 modal_app = modal.App(f"emojic-train-{WORKTREE_TAG}", image=modal_image)
 vol = modal.Volume.from_name(VOL_NAME, create_if_missing=True)
@@ -511,7 +512,13 @@ def _stash(dst: str) -> int:
     return n
 
 
-@modal_app.function(cpu=CPU, memory=MEMORY_MIB, timeout=TIMEOUT_S, volumes={ARTIFACTS: vol})
+@modal_app.function(
+    cpu=CPU,
+    memory=MEMORY_MIB,
+    timeout=TIMEOUT_S,
+    volumes={ARTIFACTS: vol},
+    include_source=False,
+)
 def train_remote(
     model: str, threads: int, git_sha: str, enc_bytes: bytes | None = None
 ) -> dict[str, int]:
