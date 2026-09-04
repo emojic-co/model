@@ -94,6 +94,35 @@ def test_require_clean_tree_dirty_exits(tmp_path="/tmp/runmeta-gitdirty"):
         os.chdir(cwd)
 
 
+def test_write_meta_yml(tmp_dir="/tmp/runmeta-yml"):
+    import os
+
+    import yaml
+
+    from runmeta import write_meta_yml
+
+    os.makedirs(tmp_dir, exist_ok=True)
+    doc = {"report_type": "test-emoji", "models": {"enc.pt": {"sha": "abc"}}}
+    write_meta_yml(tmp_dir, doc)
+    back = yaml.safe_load(open(f"{tmp_dir}/meta.yml"))
+    assert back["report_type"] == "test-emoji"
+    assert back["models"]["enc.pt"]["sha"] == "abc"
+
+
+def test_stamp_lines():
+    from runmeta import stamp_lines
+
+    probe = {"sha": "cafe", "dirty": True, "generated": "2026-09-04T05:48:00"}
+    with_meta = stamp_lines(
+        {"sha": "beef", "generated": "2026-09-04T05:12:00"}, "enc.pt", probe
+    )
+    assert "trained beef" in with_meta[0]
+    assert "see meta.yml" in with_meta[0]
+    assert "code cafe dirty" in with_meta[1]
+    legacy = stamp_lines(None, "enc.pt", probe)
+    assert "no embedded metadata" in legacy[0]
+
+
 if __name__ == "__main__":
     test_run_meta_shape()
     test_run_meta_sha_env_override()
@@ -102,4 +131,6 @@ if __name__ == "__main__":
     test_model_slug()
     test_require_clean_tree_dispatch_skip()
     test_require_clean_tree_dirty_exits()
+    test_write_meta_yml()
+    test_stamp_lines()
     print("ok")
