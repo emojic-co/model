@@ -101646,3 +101646,322 @@
 {"text":"I'll tackle the revisions after a shower","emojis":"💦 📝 🚿","styles":["Determined","Deadpan"],"bg":["#d5e7ed","#a9c8d2"],"fg":"#18313b"}
 {"text":"Cold water and a clean inbox","emojis":"💦 💧 📥","styles":["Serene","Deadpan"],"bg":["#d8f0ed","#a8d6d2"],"fg":"#173b3b"}
 {"text":"Are you free for a poolside sync?","emojis":"💦 🏊 💬","styles":["Serene","Earnest"],"bg":["#8fd3dc","#55aebc"],"fg":"#10333a"}
+{"text":"The bell just rang again","emojis":"🔔","styles":["Irritated"],"bg":["#dce6ef","#b8cbdc"],"fg":"#172b3a"}
+{"text":"Can you hear the bell?","emojis":"🔔","styles":["Earnest"],"bg":["#e4edf2","#c5d8e3"],"fg":"#18303d"}
+{"text":"I muted the doorbell","emojis":"🔔 🚪","styles":["Serene"],"bg":["#d9e7e4","#b6d0cb"],"fg":"#173634"}
+{"text":"Meet me by the bell tower","emojis":"🔔 🏰","styles":["Hopeful"],"bg":["#dfe8f5","#bdcce5"],"fg":"#1a2942"}
+{"text":"Set a bell reminder for noon","emojis":"🔔 ⏰","styles":["Deadpan"],"bg":["#e8e1d2","#d3c3a7"],"fg":"#302719"}
+{"text":"The bell woke me up","emojis":"🔔","styles":["Startled","Irritated"],"bg":["#e9d6d0","#d4b1aa"],"fg":"#3b1f20"}
+{"text":"Lunch break bell saved me","emojis":"🔔 🍽️","styles":["Joyful"],"bg":["#f0e0b7","#dfc680"],"fg":"#3c2b10"}
+{"text":"I forgot my bike bell","emojis":"🔔 🚲","styles":["Earnest"],"bg":["#dce5e8","#b9cbd0"],"fg":"#1b3036"}
+{"text":"That bell is way too loud","emojis":"🔔","styles":["Irritated"],"bg":["#ead8d0","#d4b4aa"],"fg":"#3a2020"}
+{"text":"Text me when the bell rings","emojis":"🔔 📱","styles":["Earnest"],"bg":["#dce8ed","#b9d0d9"],"fg":"#172f38"}
+{"text":"The box arrived at reception","emojis":"📦 🏢","styles":["Deadpan"],"bg":["#d9e3ea","#b8cbd8"],"fg":"#1b2d38"}
+{"text":"Can you move this box upstairs?","emojis":"📦 ⬆️","styles":["Earnest"],"bg":["#dce8f2","#b9cfe2"],"fg":"#172b3a"}
+{"text":"I left the box by your desk","emojis":"📦 🖥️","styles":["Deadpan"],"bg":["#e2e0d8","#c8c6bc"],"fg":"#29291f"}
+{"text":"This box is for the finance team","emojis":"📦 💰","styles":["Deadpan"],"bg":["#e4e0c4","#c9c58f"],"fg":"#2e301b"}
+{"text":"The box came damaged again","emojis":"📦 ⚠️","styles":["Irritated"],"bg":["#ead1c8","#d5a69a"],"fg":"#421f1a"}
+{"text":"I'll send the box this afternoon","emojis":"📦 🕒","styles":["Deadpan"],"bg":["#d8e5dc","#b6cfbd"],"fg":"#1c3023"}
+{"text":"Did the box reach you safely?","emojis":"📦 🛡️","styles":["Earnest"],"bg":["#d7e3ed","#b6cddd"],"fg":"#182b3b"}
+{"text":"Please label the outgoing box","emojis":"📦 🏷️","styles":["Earnest"],"bg":["#e1d9ed","#c7b9db"],"fg":"#2c2040"}
+{"text":"Coffee break after this box run","emojis":"📦 ☕","styles":["Playful"],"bg":["#ead8c5","#d5b493"],"fg":"#382418"}
+{"text":"That box is much heavier than it looks","emojis":"📦 💪","styles":["Deadpan"],"bg":["#dedede","#bdbdbd"],"fg":"#252525"}
+{"text":"The server outage has me in a rage","emojis":"😡 🖥️","styles":["Furious"],"bg":["#6b1f2a","#9b3a3f"],"fg":"#ffffff"}
+{"text":"Are you still raging at that bug?","emojis":"😡 🐛","styles":["Furious","Irritated"],"bg":["#5b2730","#91414a"],"fg":"#ffffff"}
+{"text":"Client rage is flooding the support chat","emojis":"😡 💬","styles":["Furious"],"bg":["#70202b","#a43b43"],"fg":"#ffffff"}
+{"text":"I’ll fix this before the rage spreads","emojis":"😡 🔧","styles":["Determined","Tense"],"bg":["#3e4057","#6b536d"],"fg":"#ffffff"}
+{"text":"That parking ticket sparked some rage","emojis":"😡 🎫 🚗","styles":["Furious"],"bg":["#71352a","#a45a3d"],"fg":"#ffffff"}
+{"text":"Team, please log your rage in the report","emojis":"😡 📝","styles":["Earnest","Irritated"],"bg":["#4a3b43","#77606a"],"fg":"#ffffff"}
+{"text":"Lunch break before I rage at Excel","emojis":"😡 🍱 📊","styles":["Irritated","Tense"],"bg":["#75502e","#a8753c"],"fg":"#ffffff"}
+{"text":"The queue is pure rage today","emojis":"😡 ⏳","styles":["Furious","Irritated"],"bg":["#641f32","#963d50"],"fg":"#ffffff"}
+{"text":"Want to grab coffee and vent the rage?","emojis":"😡 ☕","styles":["Tender","Earnest"],"bg":["#59402f","#866048"],"fg":"#ffffff"}
+{"text":"I’m raging over the broken deploy","emojis":"😡 💻","styles":["Furious","Irritated"],"bg":["#501f2b","#853846"],"fg":"#ffffff"}
+{"text":"I found the broom in the garage","emojis":"🧹","styles":["Deadpan"],"bg":["#d8c7ad","#b9a083"],"fg":"#2b2118"}
+{"text":"Can you bring the broom upstairs?","emojis":"🧹","styles":["Deadpan"],"bg":["#c8d8df","#a8bdc6"],"fg":"#172a31"}
+{"text":"The broom snapped again lol","emojis":"🧹 💥","styles":["Irritated","Playful"],"bg":["#e3c2b4","#c99c8e"],"fg":"#351c18"}
+{"text":"Sweeping my room with this broom","emojis":"🧹","styles":["Deadpan"],"bg":["#d7d1bf","#b9b39f"],"fg":"#29271f"}
+{"text":"Who left the broom outside?","emojis":"🧹","styles":["Irritated"],"bg":["#c8d1c2","#a9b7a3"],"fg":"#1e2b20"}
+{"text":"I’ll grab a broom after school","emojis":"🧹 🎒","styles":["Deadpan"],"bg":["#c6d6e7","#a8bdd4"],"fg":"#17283b"}
+{"text":"This broom is weirdly satisfying","emojis":"🧹","styles":["Joyful","Playful"],"bg":["#e3d3a8","#c9b77f"],"fg":"#302815"}
+{"text":"Remind me to return your broom","emojis":"🧹","styles":["Earnest"],"bg":["#c9d8d2","#a8beb5"],"fg":"#1b2b27"}
+{"text":"Mom says the broom goes in the closet","emojis":"🧹","styles":["Deadpan"],"bg":["#d8c7b8","#bda997"],"fg":"#2b211b"}
+{"text":"The broom is blocking the hallway","emojis":"🧹 🚧","styles":["Irritated"],"bg":["#e0c3a2","#c99f73"],"fg":"#302116"}
+{"text":"Left the key at reception","emojis":"🔑 🛎️","styles":["Deadpan"],"bg":["#dbe7ef","#b8ccda"],"fg":"#182b3a"}
+{"text":"Can you bring the spare key?","emojis":"🔑","styles":["Earnest"],"bg":["#e7eef5","#c6d8e8"],"fg":"#172b3a"}
+{"text":"HR finally sent the key code","emojis":"🔑 📩","styles":["Deadpan"],"bg":["#e4eee7","#bfd8c5"],"fg":"#193326"}
+{"text":"Who has the meeting room key?","emojis":"🔑","styles":["Deadpan"],"bg":["#e8e4ef","#cfc7df"],"fg":"#292238"}
+{"text":"Please label the storage key","emojis":"🔑 🏷️","styles":["Earnest"],"bg":["#f1eadb","#dfd0b2"],"fg":"#302716"}
+{"text":"The key is stuck again","emojis":"🔑","styles":["Irritated"],"bg":["#ead4d2","#d8aeaa"],"fg":"#3b1d1d"}
+{"text":"I'll drop off the key at noon","emojis":"🔑 🕛","styles":["Deadpan"],"bg":["#e7edf2","#c6d5e1"],"fg":"#172936"}
+{"text":"Found the key under the printer","emojis":"🔑 🖨️","styles":["Deadpan"],"bg":["#e5eee9","#bfd8cb"],"fg":"#193329"}
+{"text":"Do we need the key for Friday?","emojis":"🔑 📅","styles":["Deadpan"],"bg":["#e9e5f0","#cec5dd"],"fg":"#292238"}
+{"text":"Coffee first, then the key hunt","emojis":"🔑 ☕","styles":["Playful"],"bg":["#f1e1c8","#dfc095"],"fg":"#352313"}
+{"text":"Your dress arrived, sweetheart","emojis":"👗","styles":["Tender"],"bg":["#f3d6df","#e8bdcc"],"fg":"#3a1f2a"}
+{"text":"Which dress should I wear?","emojis":"👗","styles":["Deadpan"],"bg":["#e3dced","#cbbddd"],"fg":"#292238"}
+{"text":"I hemmed the blue dress","emojis":"👗 🧵","styles":["Deadpan"],"bg":["#d6e7f3","#b8d3e7"],"fg":"#172b3a"}
+{"text":"That dress is lovely on you","emojis":"👗","styles":["Tender"],"bg":["#f7ddd2","#efc5bc"],"fg":"#3b211c"}
+{"text":"Please hang your dress up","emojis":"👗","styles":["Deadpan"],"bg":["#eee7d8","#ded1ba"],"fg":"#2d281f"}
+{"text":"Tea first, then dress shopping","emojis":"👗 🫖 🛍️","styles":["Playful","Joyful"],"bg":["#eee6cf","#d8d6b8"],"fg":"#26301f"}
+{"text":"Your dress needs ironing","emojis":"👗","styles":["Deadpan"],"bg":["#e4e4e1","#c9cbca"],"fg":"#25282a"}
+{"text":"I found a dress at the market","emojis":"👗 🛍️","styles":["Hopeful"],"bg":["#f0dfc8","#dfc29f"],"fg":"#382718"}
+{"text":"Such a pretty dress, dear","emojis":"👗","styles":["Tender"],"bg":["#f5dce5","#e9c2d1"],"fg":"#3c1e2b"}
+{"text":"Grandma loves your new dress","emojis":"👗 👵","styles":["Tender","Earnest"],"bg":["#e8ddef","#d2c0df"],"fg":"#2b2038"}
+{"text":"Pill taken, back to the van","emojis":"💊 🚐","styles":["Deadpan"],"bg":["#d8e4ec","#a9c0d0"],"fg":"#172b3a"}
+{"text":"Need a pill before the ladder","emojis":"💊 🪜","styles":["Tense"],"bg":["#e1d5c8","#c4a98e"],"fg":"#2b211b"}
+{"text":"The pill helped my sore shoulder","emojis":"💊 💪","styles":["Serene","Hopeful"],"bg":["#d7e7df","#afd0c0"],"fg":"#17352b"}
+{"text":"Keep the pill in your tool bag","emojis":"💊 🧰","styles":["Deadpan"],"bg":["#cbd2d6","#aab5bb"],"fg":"#1d292e"}
+{"text":"Break time—got a spare pill?","emojis":"💊","styles":["Deadpan"],"bg":["#e5dccb","#cdbb9d"],"fg":"#302719"}
+{"text":"I’ll take the pill after this job","emojis":"💊","styles":["Determined"],"bg":["#d8dce4","#b6c0d0"],"fg":"#202938"}
+{"text":"That pill knocked me out early","emojis":"💊 😴","styles":["Startled"],"bg":["#b9c2d8","#8996b5"],"fg":"#172039"}
+{"text":"Pill reminder before the site visit","emojis":"💊 🏗️","styles":["Deadpan"],"bg":["#d9e1e5","#afc1c9"],"fg":"#18272d"}
+{"text":"Can you grab my blue pill?","emojis":"💊 🔵","styles":["Deadpan"],"bg":["#c8d9ec","#9ebce0"],"fg":"#142944"}
+{"text":"No pill, no chance with this headache","emojis":"💊 🤕","styles":["Anxious","Tense"],"bg":["#e2c8c3","#c7958d"],"fg":"#351b1a"}
+{"text":"Found a red leaf on my walk","emojis":"🌿 🍁 🚶","styles":["Serene"],"bg":["#f1c27d","#d9825b"],"fg":"#3b2418"}
+{"text":"Need leaf bags, dear?","emojis":"🌿 🍂","styles":["Tender","Earnest"],"bg":["#d8c79a","#b8a875"],"fg":"#302718"}
+{"text":"The porch is covered in leaf litter","emojis":"🌿 🏠 🍂","styles":["Deadpan"],"bg":["#c9b79f","#a58f78"],"fg":"#2c241e"}
+{"text":"My leaf blower finally quit","emojis":"🌿 🍂 💨","styles":["Irritated"],"bg":["#b8c6cc","#8fa5ae"],"fg":"#17262d"}
+{"text":"Meet me by the big leaf maple","emojis":"🌿 🍁 🌳","styles":["Earnest"],"bg":["#a8c09a","#78966f"],"fg":"#17291c"}
+{"text":"Saving this leaf for my scrapbook","emojis":"🌿 🍁 📔","styles":["Tender","Wistful"],"bg":["#e3c18d","#c99662"],"fg":"#382415"}
+{"text":"Such a lovely leaf-fall morning","emojis":"🌿 🍂 🌅","styles":["Joyful","Serene"],"bg":["#f2c86b","#e5a05b"],"fg":"#3d2715"}
+{"text":"Please rake the leaf path tomorrow","emojis":"🌿 🍂 🧹","styles":["Earnest"],"bg":["#b9c69a","#91a878"],"fg":"#1f2b1b"}
+{"text":"That leaf stuck to my window again","emojis":"🌿 🍂 🪟","styles":["Irritated"],"bg":["#bcc8cd","#9caeb7"],"fg":"#1c2930"}
+{"text":"Enjoying tea beside a leaf pile","emojis":"🌿 🍵 🍂","styles":["Serene"],"bg":["#c9c99d","#aaa879"],"fg":"#26301e"}
+{"text":"At the gym after school","emojis":"🏋️ 🏫","styles":["Deadpan"],"bg":["#d8e8f2","#abc9dc"],"fg":"#183247"}
+{"text":"gym at 6?","emojis":"🏋️","styles":["Deadpan"],"bg":["#e2e8ed","#c5d1da"],"fg":"#1c2b35"}
+{"text":"My gym bag is soaked","emojis":"🏋️ 🎒 💧","styles":["Irritated"],"bg":["#b9d9e8","#86b5cc"],"fg":"#102b38"}
+{"text":"Skipping gym today tbh","emojis":"🏋️","styles":["Deadpan"],"bg":["#d9e2dc","#bccbc1"],"fg":"#26382e"}
+{"text":"Meet me at the gym","emojis":"🏋️","styles":["Earnest"],"bg":["#d7e6f0","#abc8da"],"fg":"#173044"}
+{"text":"gym was brutal today","emojis":"🏋️ 🔥","styles":["Determined"],"bg":["#f0b28d","#d98269"],"fg":"#351711"}
+{"text":"Did you hit the gym?","emojis":"🏋️","styles":["Deadpan"],"bg":["#dce7ee","#b8cbd8"],"fg":"#1b303e"}
+{"text":"Reminder: gym tomorrow","emojis":"🏋️ 📅","styles":["Deadpan"],"bg":["#dfe7ed","#c2d1dc"],"fg":"#1c2d39"}
+{"text":"Our gym got new weights","emojis":"🏋️","styles":["Excited"],"bg":["#c8dce8","#91b9ce"],"fg":"#132d3d"}
+{"text":"I need a gym buddy","emojis":"🏋️ 🤝","styles":["Earnest","Hopeful"],"bg":["#d5e7d2","#afd0b1"],"fg":"#1e3824"}
+{"text":"rocket launch is live","emojis":"🚀","styles":["Excited"],"bg":["#71351f","#b85a2e"],"fg":"#fff3d6"}
+{"text":"Need feedback on rocket mockup","emojis":"🚀 📝","styles":["Earnest"],"bg":["#d9e6ef","#b8cddd"],"fg":"#172b3a"}
+{"text":"The rocket render is lagging","emojis":"🚀 💻","styles":["Irritated"],"bg":["#d8d0cc","#b9aaa5"],"fg":"#2b2020"}
+{"text":"Sending the rocket files now","emojis":"🚀 📁","styles":["Deadpan"],"bg":["#dce8e4","#b8d0c9"],"fg":"#18332f"}
+{"text":"Can we move rocket review to 3?","emojis":"🚀","styles":["Deadpan"],"bg":["#e3e0d4","#c7c3b5"],"fg":"#29291f"}
+{"text":"rocket's ready for client review","emojis":"🚀","styles":["Proud"],"bg":["#dce8f4","#b9cde3"],"fg":"#17283b"}
+{"text":"My rocket budget is tight","emojis":"🚀 💸","styles":["Anxious"],"bg":["#e5caca","#c99e9e"],"fg":"#351b1b"}
+{"text":"rocket assets are in Drive","emojis":"🚀 📁 ☁️","styles":["Deadpan"],"bg":["#d9e4f0","#b8c9df"],"fg":"#17283d"}
+{"text":"Love how the rocket turned out","emojis":"🚀","styles":["Joyful","Proud"],"bg":["#f2d78c","#e8b65f"],"fg":"#3b250d"}
+{"text":"Reminder: rocket call at 2 PM","emojis":"🚀 📞","styles":["Deadpan"],"bg":["#d8dce7","#b9c1d2"],"fg":"#202738"}
+{"text":"Grab ice on your way home?","emojis":"🧊","styles":["Deadpan"],"bg":["#dcebf2","#b9d4e0"],"fg":"#18313d"}
+{"text":"I put ice in the cooler.","emojis":"🧊","styles":["Deadpan"],"bg":["#d8eaf2","#b5d1df"],"fg":"#172f3b"}
+{"text":"Can you refill the ice tray?","emojis":"🧊","styles":["Deadpan"],"bg":["#e1f0f5","#c1dce5"],"fg":"#18343f"}
+{"text":"Movie night needs more ice.","emojis":"🧊 🎬","styles":["Deadpan"],"bg":["#d4e3ed","#afc5d5"],"fg":"#172b3a"}
+{"text":"Sorry, I forgot the ice again.","emojis":"🧊","styles":["Earnest"],"bg":["#d9e8ef","#b8cfd9"],"fg":"#27343b"}
+{"text":"The lake ice looks thin today.","emojis":"🧊 🌊","styles":["Anxious","Tense"],"bg":["#c9e1eb","#8fb8c9"],"fg":"#102b39"}
+{"text":"Want ice cream after dinner?","emojis":"🧊 🍦","styles":["Hopeful"],"bg":["#f0e5d2","#d8c7ad"],"fg":"#3a2d20"}
+{"text":"Your ice pack is in the freezer.","emojis":"🧊","styles":["Deadpan"],"bg":["#d6e8f1","#adc8d8"],"fg":"#172d3a"}
+{"text":"Please text me when you get ice.","emojis":"🧊 📱","styles":["Deadpan"],"bg":["#dceaf0","#bad3df"],"fg":"#19313d"}
+{"text":"This ice-cold drink is perfect.","emojis":"🧊 🥤","styles":["Joyful"],"bg":["#d5edf0","#a9d5d9"],"fg":"#16343a"}
+{"text":"On nights again, pray I stay awake","emojis":"🙏 🌙 😴","styles":["Anxious","Tense"],"bg":["#243447","#3b5368"],"fg":"#f4ead5"}
+{"text":"Can you pray my shift ends on time?","emojis":"🙏 🕒","styles":["Anxious","Earnest"],"bg":["#d8d1c2","#b8b9b0"],"fg":"#202a30"}
+{"text":"Pray the forklift starts this time","emojis":"🙏 🔧","styles":["Anxious","Earnest"],"bg":["#c5d2d8","#9eb4bf"],"fg":"#172b34"}
+{"text":"Heading into overtime, pray for me","emojis":"🙏 ⏰","styles":["Tense","Anxious"],"bg":["#5b536d","#756b82"],"fg":"#fff1d6"}
+{"text":"Pray the coffee holds me till dawn","emojis":"🙏 ☕ 🌅","styles":["Determined","Anxious"],"bg":["#6b4938","#9a7051"],"fg":"#fff3d6"}
+{"text":"Break room's packed; pray I find a seat","emojis":"🙏 🪑","styles":["Anxious","Irritated"],"bg":["#b9c7cf","#93aab7"],"fg":"#1d2a32"}
+{"text":"Pray for a quiet handoff tonight","emojis":"🙏 🌙 🤫","styles":["Hopeful","Earnest"],"bg":["#354b5d","#587083"],"fg":"#f1ead9"}
+{"text":"Day shift left chaos again, pray","emojis":"🙏 🌀 😤","styles":["Irritated","Tense"],"bg":["#7c6860","#a28773"],"fg":"#241d1a"}
+{"text":"Clocking out now, pray for safe roads","emojis":"🙏 🚗 🌙","styles":["Anxious","Earnest"],"bg":["#273e54","#45657a"],"fg":"#f3ecd8"}
+{"text":"Pray I don't get called back tomorrow","emojis":"🙏 📞","styles":["Anxious","Hopeful"],"bg":["#d1c6b8","#b2aea6"],"fg":"#20262b"}
+{"text":"Can I borrow your blue pen?","emojis":"🖊️","styles":["Deadpan"],"bg":["#dbeaf5","#b8d2e6"],"fg":"#183247"}
+{"text":"Found your pen by the mailbox.","emojis":"🖊️ 📫","styles":["Deadpan"],"bg":["#e4efd9","#c7dfb3"],"fg":"#24351f"}
+{"text":"Please leave the pen at my door.","emojis":"🖊️ 🚪","styles":["Deadpan"],"bg":["#f1e2d2","#dfc3a8"],"fg":"#422c1d"}
+{"text":"Is the pen ready for the sign-up?","emojis":"🖊️","styles":["Deadpan"],"bg":["#e6e1f2","#cfc7e5"],"fg":"#29233d"}
+{"text":"Your pen leaked on the shared table.","emojis":"🖊️ 💧","styles":["Irritated"],"bg":["#e8d2d0","#d8b4b2"],"fg":"#401f21"}
+{"text":"I'll bring a spare pen tonight.","emojis":"🖊️ 🌙","styles":["Earnest"],"bg":["#d9e3f0","#b9cbe1"],"fg":"#1d2d42"}
+{"text":"Could you sign this with a pen?","emojis":"🖊️ ✍️","styles":["Earnest"],"bg":["#eee5d1","#dfc99f"],"fg":"#3b2d17"}
+{"text":"Reminder: bring a pen to the meeting.","emojis":"🖊️","styles":["Deadpan"],"bg":["#dce6e8","#bfd1d5"],"fg":"#1c3035"}
+{"text":"Which pen did you use for the labels?","emojis":"🖊️ 🏷️","styles":["Deadpan"],"bg":["#f0dfc8","#dfc09a"],"fg":"#402b18"}
+{"text":"Moon is up; baby's still awake","emojis":"🌙 👶","styles":["Deadpan"],"bg":["#18243d","#334b70"],"fg":"#fff3d6"}
+{"text":"Moonlight and a 3 a.m. feeding","emojis":"🌙 🍼","styles":["Tender","Earnest"],"bg":["#202b49","#465b82"],"fg":"#fff1cf"}
+{"text":"Is the moon out by your window?","emojis":"🌙 🪟","styles":["Deadpan"],"bg":["#263653","#5a7190"],"fg":"#fff7df"}
+{"text":"Baby finally slept under the moon","emojis":"🌙 👶 😴","styles":["Serene","Tender"],"bg":["#1d3152","#55759a"],"fg":"#fff4d2"}
+{"text":"Moon's out, and so is the stroller","emojis":"🌙 🛒","styles":["Playful"],"bg":["#293958","#617596"],"fg":"#fff4d6"}
+{"text":"Another moonlit diaper change","emojis":"🌙 🧷","styles":["Irritated","Deadpan"],"bg":["#202b42","#485c7b"],"fg":"#fff0d0"}
+{"text":"Can you bring moon-themed pajamas?","emojis":"🌙 🧸","styles":["Tender","Earnest"],"bg":["#303a61","#6b7098"],"fg":"#fff2d1"}
+{"text":"Watching the moon during tummy time","emojis":"🌙 👶","styles":["Serene"],"bg":["#1b3454","#527798"],"fg":"#fff5d9"}
+{"text":"Moon is bright; nap is impossible","emojis":"🌙 😴","styles":["Irritated"],"bg":["#26314d","#586b8a"],"fg":"#fff1d0"}
+{"text":"Meet us beneath the moon after six","emojis":"🌙","styles":["Hopeful","Serene"],"bg":["#1b2947","#4c6890"],"fg":"#fff4d2"}
+{"text":"your jeans are by my front door","emojis":"👖 🚪","styles":["Deadpan"],"bg":["#d8e4ed","#b7cad9"],"fg":"#172b3a"}
+{"text":"did you see my jeans on the line?","emojis":"👖 🧺","styles":["Deadpan"],"bg":["#dce8e4","#bdd4cb"],"fg":"#17332d"}
+{"text":"jeans day at the block party?","emojis":"👖 🎉","styles":["Playful","Joyful"],"bg":["#f2d8c8","#e9c0ad"],"fg":"#402016"}
+{"text":"sorry, I splashed mud on your jeans","emojis":"👖","styles":["Earnest"],"bg":["#ddd7cc","#c5bcae"],"fg":"#2e2923"}
+{"text":"can I borrow your spare jeans?","emojis":"👖","styles":["Earnest"],"bg":["#d7e2ed","#b9cddd"],"fg":"#172b3a"}
+{"text":"these jeans survived the garden","emojis":"👖 🌱","styles":["Playful","Proud"],"bg":["#d8e7c8","#b8d29d"],"fg":"#20351d"}
+{"text":"jeans weather finally arrived","emojis":"👖 ☀️","styles":["Hopeful","Joyful"],"bg":["#f4e4b8","#ebce8b"],"fg":"#3b2b0e"}
+{"text":"I found your jeans at the laundromat","emojis":"👖 🧺","styles":["Deadpan"],"bg":["#d5e0e7","#b5c8d3"],"fg":"#182b36"}
+{"text":"please wear jeans for the hike","emojis":"👖 🥾","styles":["Earnest"],"bg":["#d4e1d5","#b6cbb9"],"fg":"#1e3023"}
+{"text":"those jeans look great, neighbor","emojis":"👖","styles":["Tender","Joyful"],"bg":["#ead8e3","#d5bdcf"],"fg":"#382136"}
+{"text":"Can you check the faucet?","emojis":"🚰","styles":["Deadpan"],"bg":["#dcebf2","#b8d4e2"],"fg":"#17324d"}
+{"text":"The faucet is dripping again","emojis":"🚰 💧","styles":["Irritated"],"bg":["#c9dce8","#a8c5d5"],"fg":"#182f43"}
+{"text":"I fixed the kitchen faucet","emojis":"🚰 🔧","styles":["Proud"],"bg":["#d8e8e5","#b6d1cb"],"fg":"#183a38"}
+{"text":"The faucet at work is broken","emojis":"🚰 ⚠️","styles":["Irritated"],"bg":["#d9d8d2","#bdbdb5"],"fg":"#302f2b"}
+{"text":"Don't forget the faucet repair","emojis":"🚰 🔧","styles":["Earnest"],"bg":["#dce7ec","#b9cdd7"],"fg":"#1b3444"}
+{"text":"Why is the faucet so loud?","emojis":"🚰 🔊","styles":["Irritated"],"bg":["#d8d5e3","#bcb8d0"],"fg":"#29243e"}
+{"text":"Grabbing a new faucet today","emojis":"🚰 🛒","styles":["Excited"],"bg":["#d8eadf","#b6d7c2"],"fg":"#173b2b"}
+{"text":"That faucet water is freezing","emojis":"🚰 🥶","styles":["Startled"],"bg":["#d7ecf5","#aed4e7"],"fg":"#16364a"}
+{"text":"Your faucet trick worked!","emojis":"🚰 🎉","styles":["Joyful","Proud"],"bg":["#e8efd1","#c9dfb0"],"fg":"#29401f"}
+{"text":"Want to clean the faucet later?","emojis":"🚰 🧽","styles":["Deadpan"],"bg":["#dce9e7","#b9d3d0"],"fg":"#193836"}
+{"text":"Can we chat after lecture?","emojis":"💬 🎓","styles":["Earnest"],"bg":["#d9e8f2","#b8d0e2"],"fg":"#17324d"}
+{"text":"That group chat is chaos","emojis":"💬 🌀","styles":["Irritated"],"bg":["#f0d5c2","#ddb39a"],"fg":"#48251c"}
+{"text":"Need a study chat tonight","emojis":"💬 📚 🌙","styles":["Determined"],"bg":["#c7d5e8","#9fb4d0"],"fg":"#17263d"}
+{"text":"Sorry, missed your chat","emojis":"💬","styles":["Earnest"],"bg":["#e3dfe0","#c9c5c8"],"fg":"#39343a"}
+{"text":"Chat me when you're free","emojis":"💬","styles":["Earnest"],"bg":["#d8e7e2","#b6d2ca"],"fg":"#183a35"}
+{"text":"Library chat at 6?","emojis":"💬 📚 🕕","styles":["Deadpan"],"bg":["#d8e0e8","#b8c8d8"],"fg":"#1d2c3a"}
+{"text":"Why is the class chat muted?","emojis":"💬 🔇","styles":["Irritated"],"bg":["#e8d1c8","#d4b0a4"],"fg":"#44231e"}
+{"text":"Great chat, bad coffee","emojis":"💬 ☕","styles":["Sarcastic"],"bg":["#e5d2b8","#cfb28d"],"fg":"#3b281b"}
+{"text":"Quick chat before the quiz?","emojis":"💬 📝","styles":["Tense"],"bg":["#e5d8c2","#d2bea0"],"fg":"#3b2b1b"}
+{"text":"Adding you to the dorm chat","emojis":"💬 🛏️","styles":["Deadpan"],"bg":["#d6e2e8","#b7cbd5"],"fg":"#1b303b"}
+{"text":"Keep an ear out for the courier","emojis":"👂 📦","styles":["Earnest"],"bg":["#dbe8f0","#b8cedd"],"fg":"#183247"}
+{"text":"My ear is still ringing from QA","emojis":"👂 🔔","styles":["Irritated"],"bg":["#d8d3e8","#b8afd0"],"fg":"#29243d"}
+{"text":"Can you spare an ear for this?","emojis":"👂","styles":["Earnest"],"bg":["#e7ded5","#d4c3b5"],"fg":"#382a21"}
+{"text":"One ear on Slack, one on the demo","emojis":"👂 💬","styles":["Deadpan"],"bg":["#d8e3e2","#b7cecd"],"fg":"#1c3435"}
+{"text":"I need an ear on this client call","emojis":"👂 📞","styles":["Earnest"],"bg":["#dce6ef","#bfd0df"],"fg":"#1b3042"}
+{"text":"That bug went straight for my ear","emojis":"👂 🐛","styles":["Irritated"],"bg":["#d9dfc8","#bcc79e"],"fg":"#27301b"}
+{"text":"Earliest meeting? My ear says no","emojis":"👂 📅","styles":["Playful","Sarcastic"],"bg":["#e2e2e2","#c8c8c8"],"fg":"#252525"}
+{"text":"Please keep this between ear and ear","emojis":"👂 🤫","styles":["Playful"],"bg":["#e6d9df","#d0b9c4"],"fg":"#38232e"}
+{"text":"I heard it through the grapevine","emojis":"👂 🗣️ 🍇","styles":["Deadpan"],"bg":["#e2d8ce","#cdb9a5"],"fg":"#34271e"}
+{"text":"Your update caught my ear today","emojis":"👂 📰","styles":["Earnest"],"bg":["#dce8d7","#bed3b7"],"fg":"#203524"}
+{"text":"Are you still dancing in the kitchen?","emojis":"💃 🍳","styles":["Playful"],"bg":["#f3d6b3","#e9b98f"],"fg":"#3b2416"}
+{"text":"Mom caught me dancing again","emojis":"💃 👩","styles":["Playful"],"bg":["#e8c7d8","#d39bb8"],"fg":"#351d2a"}
+{"text":"Dancing starts at eight, don't be late","emojis":"💃 ⏰","styles":["Tense"],"bg":["#b9c9e8","#8da7d4"],"fg":"#17233d"}
+{"text":"Why are you dancing at 7 a.m.?","emojis":"💃 ⏰","styles":["Playful"],"bg":["#f2d6a2","#e9b875"],"fg":"#3b2814"}
+{"text":"That dancing video was hilarious","emojis":"💃 😂","styles":["Joyful","Playful"],"bg":["#f5d875","#edb94f"],"fg":"#3b260b"}
+{"text":"Stop dancing and help with dishes","emojis":"💃 🍽️","styles":["Irritated"],"bg":["#c8d1d6","#9daab2"],"fg":"#1d252a"}
+{"text":"I'm dancing through this awful homework","emojis":"💃 📚","styles":["Determined","Irritated"],"bg":["#a9c7c2","#7da9a0"],"fg":"#172d2b"}
+{"text":"Want to go dancing Friday night?","emojis":"💃 🌙","styles":["Excited","Hopeful"],"bg":["#4c5e96","#293965"],"fg":"#f5f1df"}
+{"text":"Dancing in the rain was worth it","emojis":"💃 🌧️","styles":["Joyful"],"bg":["#9fc4d1","#709eaf"],"fg":"#172c36"}
+{"text":"Please remember your dancing shoes","emojis":"💃 👟","styles":["Earnest"],"bg":["#d8c6ae","#bca17e"],"fg":"#302418"}
+{"text":"Practicing guitar before class","emojis":"🎸","styles":["Deadpan"],"bg":["#d7e6f2","#a9c5d8"],"fg":"#17324d"}
+{"text":"Need to tune my guitar tonight","emojis":"🎸","styles":["Earnest"],"bg":["#e1e8ed","#b7c8d3"],"fg":"#1b2d3a"}
+{"text":"Wanna jam guitar after dinner?","emojis":"🎸 🍽️","styles":["Playful","Hopeful"],"bg":["#f3dfc3","#e6b98b"],"fg":"#402615"}
+{"text":"My guitar strings just snapped","emojis":"🎸","styles":["Startled","Irritated"],"bg":["#e8c1bc","#d98f88"],"fg":"#421b1b"}
+{"text":"Guitar club meets at 7","emojis":"🎸 🕖","styles":["Deadpan"],"bg":["#d5d9ed","#aeb7d8"],"fg":"#202647"}
+{"text":"Forgot my guitar pick again","emojis":"🎸 😤","styles":["Irritated"],"bg":["#ead0c4","#dca18e"],"fg":"#431e18"}
+{"text":"That guitar solo was unreal","emojis":"🎸 🤩","styles":["Awed","Excited"],"bg":["#f1d98f","#e8ad58"],"fg":"#382107"}
+{"text":"Can I borrow your guitar?","emojis":"🎸","styles":["Earnest"],"bg":["#d9e5dc","#abc9b2"],"fg":"#193321"}
+{"text":"Taking guitar to the quad","emojis":"🎸","styles":["Deadpan"],"bg":["#cfe0d7","#a6c8b7"],"fg":"#17352a"}
+{"text":"Guitar study break, anyone?","emojis":"🎸 📚","styles":["Playful","Hopeful"],"bg":["#d9d4ee","#b6add8"],"fg":"#282044"}
+{"text":"Baby's asleep; I'm heading to bed","emojis":"🛏️ 👶","styles":["Serene","Tender"],"bg":["#d9e8f2","#b8cedd"],"fg":"#172b3a"}
+{"text":"Did you get the baby back to bed?","emojis":"🛏️ 👶","styles":["Deadpan"],"bg":["#e2e8ee","#c5d1dc"],"fg":"#1d2a35"}
+{"text":"Coffee first, then back to bed","emojis":"🛏️ ☕","styles":["Deadpan"],"bg":["#d9c7b5","#bca28b"],"fg":"#2a1d16"}
+{"text":"She spit up all over our bed","emojis":"🛏️ 👶 🤢","styles":["Disgusted","Irritated"],"bg":["#d8d9c2","#c2c6a2"],"fg":"#283019"}
+{"text":"Can you bring the monitor to bed?","emojis":"🛏️ 👶","styles":["Earnest"],"bg":["#d5e4ef","#b5ccdf"],"fg":"#172b3a"}
+{"text":"Newborn cuddles make bed feel tiny","emojis":"🛏️ 👶 🫂","styles":["Tender","Whimsical"],"bg":["#f0d6d4","#dfb8bd"],"fg":"#3a1f2a"}
+{"text":"Please don't wake him—he's in bed","emojis":"🛏️ 🤫 👶","styles":["Tender","Earnest"],"bg":["#cfdced","#afc1da"],"fg":"#17253a"}
+{"text":"One more feed, then straight to bed","emojis":"🛏️ 👶 🍼","styles":["Deadpan","Determined"],"bg":["#e3d8c2","#cdbb9d"],"fg":"#2e2418"}
+{"text":"The baby took over our bed again","emojis":"🛏️ 👶","styles":["Playful","Irritated"],"bg":["#f0d2ad","#dfb28b"],"fg":"#382316"}
+{"text":"I left the burp cloth by the bed","emojis":"🛏️ 👶","styles":["Deadpan"],"bg":["#d8e2dc","#b9ccc1"],"fg":"#1b2a23"}
+{"text":"The wind woke the baby again","emojis":"💨 🌬️ 👶","styles":["Irritated"],"bg":["#c9d8e5","#aabfd0"],"fg":"#172b3a"}
+{"text":"Is the wind loud by your place?","emojis":"💨 🌬️","styles":["Deadpan"],"bg":["#d4e2eb","#b8cfdd"],"fg":"#1b3443"}
+{"text":"We’re walking before the wind picks up","emojis":"💨 🚶 🌬️","styles":["Determined"],"bg":["#c2dce2","#9fc5cf"],"fg":"#17313b"}
+{"text":"Baby’s hat blew off in the wind","emojis":"💨 👶 🧢 🌬️","styles":["Startled"],"bg":["#d9d6cf","#bfc8d0"],"fg":"#202d35"}
+{"text":"Please latch the window; wind coming in","emojis":"💨 🪟 🌬️","styles":["Tense","Earnest"],"bg":["#c4d5df","#a6bdca"],"fg":"#172c38"}
+{"text":"The wind cooled the nursery nicely","emojis":"💨 🌬️ 🛏️","styles":["Serene"],"bg":["#d5e8e4","#b5d4d0"],"fg":"#183633"}
+{"text":"I packed an extra blanket for the wind","emojis":"💨 🌬️ 🧣","styles":["Tender","Earnest"],"bg":["#d7d8df","#b9c2d2"],"fg":"#202638"}
+{"text":"Hope the wind settles before bedtime","emojis":"💨 🌬️ 🛏️","styles":["Hopeful"],"bg":["#dce5ef","#bfd1e2"],"fg":"#1b2d42"}
+{"text":"Tiny socks keep flying in this wind","emojis":"💨 🧦 🌬️","styles":["Playful","Whimsical"],"bg":["#dce4ef","#c2d1e4"],"fg":"#202c42"}
+{"text":"That wind is ruining nap time","emojis":"💨 🌬️ 😴","styles":["Irritated"],"bg":["#c7d3dc","#a9bbc8"],"fg":"#182b39"}
+{"text":"City traffic is brutal today","emojis":"🏙️ 🚗 🚦","styles":["Irritated","Tense"],"bg":["#c5cbd1","#9da8b3"],"fg":"#17232d"}
+{"text":"Want lunch in the city?","emojis":"🏙️ 🍽️","styles":["Deadpan"],"bg":["#f0d6ad","#d9b987"],"fg":"#332316"}
+{"text":"Made it back to the city","emojis":"🏙️","styles":["Serene"],"bg":["#c8dce6","#9ebdca"],"fg":"#18303c"}
+{"text":"Any city cafés near the office?","emojis":"🏙️ ☕ 🏢","styles":["Deadpan"],"bg":["#d9d4c8","#b9b5ad"],"fg":"#292722"}
+{"text":"The city lights look great tonight","emojis":"🏙️ 🌃 ✨","styles":["Awed","Joyful"],"bg":["#263b67","#4b6694"],"fg":"#fff4c2"}
+{"text":"Reminder: city permit is due Friday","emojis":"🏙️ 📝","styles":["Deadpan","Tense"],"bg":["#d8dce0","#b8c2cb"],"fg":"#1b2730"}
+{"text":"I miss the city noise sometimes","emojis":"🏙️ 🔊","styles":["Wistful"],"bg":["#6e7890","#4f586f"],"fg":"#f4e7d0"}
+{"text":"The city meeting moved to 3 PM","emojis":"🏙️ 🗓️","styles":["Deadpan"],"bg":["#d5dfe4","#b2c5cf"],"fg":"#1d2b33"}
+{"text":"Should we take the city train?","emojis":"🏙️ 🚆","styles":["Deadpan"],"bg":["#c7d9dc","#9ebdc1"],"fg":"#173034"}
+{"text":"Great city view from this desk","emojis":"🏙️ 🪟","styles":["Joyful"],"bg":["#a9d0e2","#78acc5"],"fg":"#102b3a"}
+{"text":"Bringing my mask to rehearsal tonight","emojis":"🎭","styles":["Earnest"],"bg":["#d9d0c4","#b9aa9a"],"fg":"#2b211b"}
+{"text":"Did you pack your mask for the show?","emojis":"🎭","styles":["Deadpan"],"bg":["#c8d8e2","#a9c0cf"],"fg":"#172a35"}
+{"text":"That mask totally stole the scene","emojis":"🎭 ✨","styles":["Playful","Joyful"],"bg":["#e3c4d8","#c99fbe"],"fg":"#32152d"}
+{"text":"Costume check: mask is still missing","emojis":"🎭","styles":["Anxious"],"bg":["#c8c9d8","#a4a6bf"],"fg":"#202238"}
+{"text":"Meet me backstage with the mask","emojis":"🎭","styles":["Deadpan"],"bg":["#d2c5b8","#b8a697"],"fg":"#2a211c"}
+{"text":"Your mask looked great under stage lights","emojis":"🎭 ✨","styles":["Joyful","Earnest"],"bg":["#f0d39b","#dfb66e"],"fg":"#38250e"}
+{"text":"Small mask repair before curtain call","emojis":"🎭 🧵","styles":["Tense","Determined"],"bg":["#c9b8b1","#ad9691"],"fg":"#2b1d1b"}
+{"text":"I left the mask by the prop table","emojis":"🎭","styles":["Deadpan"],"bg":["#cbd7c8","#aabdac"],"fg":"#1d2b1f"}
+{"text":"Which mask fits the villain best?","emojis":"🎭 🦹","styles":["Playful","Whimsical"],"bg":["#b9a9d0","#9c86ba"],"fg":"#21152e"}
+{"text":"Mask on, nerves off—let's do this","emojis":"🎭 💪","styles":["Determined","Excited"],"bg":["#d9a98e","#c98268"],"fg":"#351811"}
+{"text":"Packed my work bag for tomorrow.","emojis":"👜 🎒","styles":["Deadpan"],"bg":["#d7e3ec","#b8cad8"],"fg":"#1b2d3a"}
+{"text":"Can you bring my black bag?","emojis":"👜","styles":["Deadpan"],"bg":["#d9dee3","#b8c0c8"],"fg":"#1c252c"}
+{"text":"Left the bag by the van.","emojis":"👜 🚐","styles":["Deadpan"],"bg":["#d8e2e7","#b6cbd3"],"fg":"#1b3038"}
+{"text":"That bag matches my work boots.","emojis":"👜 🥾","styles":["Deadpan"],"bg":["#d9d1c5","#c3b09c"],"fg":"#30261d"}
+{"text":"Need a new bag for site.","emojis":"👜","styles":["Deadpan"],"bg":["#dbe4dc","#b9cdbd"],"fg":"#203227"}
+{"text":"Rain got my bag again.","emojis":"👜 🌧️","styles":["Irritated"],"bg":["#aebdca","#8fa5b7"],"fg":"#15242f"}
+{"text":"Is my bag in the cab?","emojis":"👜 🚕","styles":["Anxious"],"bg":["#e1ddd0","#c9c0a5"],"fg":"#29271f"}
+{"text":"Grab the bag before we go.","emojis":"👜","styles":["Tense"],"bg":["#e5d3bd","#d2b08e"],"fg":"#352315"}
+{"text":"Found my bag under the bench.","emojis":"👜","styles":["Deadpan"],"bg":["#d8e0d4","#b9c8b2"],"fg":"#202b20"}
+{"text":"Coffee's in the bag, mate.","emojis":"👜 ☕","styles":["Deadpan"],"bg":["#e0d0bc","#c7aa88"],"fg":"#302115"}
+{"text":"Packed my gloves for the roofing job","emojis":"🧤 🏠","styles":["Determined"],"bg":["#d9e5ef","#b7c9d8"],"fg":"#172b3a"}
+{"text":"Are my gloves in the van?","emojis":"🧤 🚐","styles":["Deadpan"],"bg":["#dbe5ee","#b9c8d6"],"fg":"#172b3a"}
+{"text":"These gloves are soaked through","emojis":"🧤 💧","styles":["Irritated"],"bg":["#9fc8d8","#6e9fb3"],"fg":"#102833"}
+{"text":"New gloves, same leaky tap","emojis":"🧤 🚰","styles":["Sarcastic","Irritated"],"bg":["#d8e0e5","#b5c2ca"],"fg":"#202d34"}
+{"text":"I'll grab gloves before the crawlspace","emojis":"🧤 🕳️","styles":["Determined"],"bg":["#cddfd8","#9db7c3"],"fg":"#172b3a"}
+{"text":"Forgot my gloves at the workshop","emojis":"🧤 🛠️","styles":["Anxious"],"bg":["#d9d3c8","#b7aea1"],"fg":"#29251f"}
+{"text":"Can you leave gloves by the boiler?","emojis":"🧤 ♨️","styles":["Deadpan"],"bg":["#f1d8b3","#d7b084"],"fg":"#342114"}
+{"text":"Dry gloves would help today","emojis":"🧤 💧","styles":["Irritated"],"bg":["#dfe7e4","#bbc9c4"],"fg":"#1d2b2a"}
+{"text":"These gloves beat bare hands","emojis":"🧤 ✋","styles":["Deadpan"],"bg":["#dce8d8","#b6cdae"],"fg":"#1e3021"}
+{"text":"Clocking off; gloves are filthy","emojis":"🧤 🛠️","styles":["Deadpan"],"bg":["#c5c6b5","#989d89"],"fg":"#20251b"}
+{"text":"My foot is killing me after lab","emojis":"🦶 😫","styles":["Irritated"],"bg":["#d9c6c3","#b99a98"],"fg":"#321f20"}
+{"text":"Did you pack your foot balm?","emojis":"🦶 🧴","styles":["Deadpan"],"bg":["#d8e4e8","#b4cbd2"],"fg":"#18333a"}
+{"text":"Taking a foot break by the quad","emojis":"🦶 🌳","styles":["Serene"],"bg":["#cfe3d2","#a8c9b0"],"fg":"#183426"}
+{"text":"One more mile and my foot quits","emojis":"🦶 🏃","styles":["Determined","Tense"],"bg":["#e6d3b5","#c8a879"],"fg":"#382817"}
+{"text":"Can you check this splinter in my foot?","emojis":"🦶 🩹","styles":["Anxious"],"bg":["#ead8d4","#cfaaa3"],"fg":"#3a2020"}
+{"text":"Foot race at the gym tonight?","emojis":"🦶 🏃 🏋️","styles":["Excited","Playful"],"bg":["#d8c8ed","#b49bd6"],"fg":"#271b40"}
+{"text":"My foot is soaked, ugh","emojis":"🦶 💧 😩","styles":["Irritated"],"bg":["#c5dce8","#91b9ce"],"fg":"#16303d"}
+{"text":"Reminder: foot clinic at 3","emojis":"🦶 🏥","styles":["Deadpan"],"bg":["#d5e1e7","#afc7d2"],"fg":"#1b3039"}
+{"text":"Whose foot is on my backpack?","emojis":"🦶 🎒","styles":["Playful","Startled"],"bg":["#e2d4bc","#c9b18a"],"fg":"#302414"}
+{"text":"Need new shoes; my foot hurts","emojis":"🦶 👟","styles":["Irritated"],"bg":["#ded0c8","#c0aaa0"],"fg":"#30221d"}
+{"text":"Give Grandma a kiss when you arrive","emojis":"💋 👵","styles":["Tender","Earnest"],"bg":["#f3d2c1","#eab0a0"],"fg":"#3a1f24"}
+{"text":"Grandpa saved you a kiss for Sunday","emojis":"💋 👴 📅","styles":["Tender","Hopeful"],"bg":["#ddd2e8","#c3b0d2"],"fg":"#30243b"}
+{"text":"Did the baby send me a kiss today?","emojis":"💋 👶","styles":["Tender","Earnest"],"bg":["#d9eaf2","#c5dce8"],"fg":"#18313d"}
+{"text":"This old garden misses a kiss hello","emojis":"💋 🌿","styles":["Wistful","Whimsical"],"bg":["#cbd6b7","#aebf97"],"fg":"#263522"}
+{"text":"One kiss, then finish your soup","emojis":"💋 🍲","styles":["Playful"],"bg":["#f1dfb8","#e6c58c"],"fg":"#3d2b16"}
+{"text":"I’ll kiss the cookbook goodbye","emojis":"💋 📖","styles":["Playful","Whimsical"],"bg":["#d8c1a5","#b99a79"],"fg":"#2d2118"}
+{"text":"Wish I could kiss that puppy!","emojis":"💋 🐶","styles":["Tender","Wistful"],"bg":["#d8e6f0","#b9d0e2"],"fg":"#1d2c38"}
+{"text":"Meet me for tea and a kiss","emojis":"💋 🍵","styles":["Tender","Hopeful"],"bg":["#efd6c5","#dfb39f"],"fg":"#3b241f"}
+{"text":"That cold deserves a kiss, dear","emojis":"💋 🥶","styles":["Tender","Earnest"],"bg":["#c8dce8","#a9c7d8"],"fg":"#1b2d38"}
+{"text":"Don’t forget my birthday kiss","emojis":"💋 🎂","styles":["Tender","Hopeful"],"bg":["#f1cfda","#e9b2c4"],"fg":"#3b202b"}
+{"text":"Luggage is packed for tomorrow's meet","emojis":"🧳","styles":["Hopeful"],"bg":["#dce9f2","#b9d0df"],"fg":"#193042"}
+{"text":"Can you grab my luggage after practice?","emojis":"🧳","styles":["Earnest"],"bg":["#e5edf2","#c6d7e1"],"fg":"#1d303a"}
+{"text":"My luggage got soaked on the bus","emojis":"🧳 🚌","styles":["Irritated"],"bg":["#c9d7df","#9fb6c2"],"fg":"#172a33"}
+{"text":"Where should I leave my luggage?","emojis":"🧳","styles":["Deadpan"],"bg":["#e8eceb","#cbd5d3"],"fg":"#263331"}
+{"text":"Team luggage is headed to Austin","emojis":"🧳","styles":["Hopeful"],"bg":["#d9e8ef","#b3cfdf"],"fg":"#183443"}
+{"text":"I forgot my luggage tag again","emojis":"🧳 🏷️","styles":["Irritated"],"bg":["#eadfd4","#d2bba8"],"fg":"#35251d"}
+{"text":"Coach says luggage check at six","emojis":"🧳 ⏰","styles":["Deadpan"],"bg":["#e3e8ed","#c4d0dc"],"fg":"#1e2d3a"}
+{"text":"Dragging luggage through the airport","emojis":"🧳 ✈️","styles":["Irritated"],"bg":["#dce2e8","#b8c6d3"],"fg":"#182934"}
+{"text":"Meet went great; luggage is home","emojis":"🧳 🏠","styles":["Joyful"],"bg":["#f0e4bf","#dec886"],"fg":"#3a2d13"}
+{"text":"Anyone else still waiting on luggage?","emojis":"🧳 ⏳","styles":["Anxious"],"bg":["#e5d9d5","#cbb8b5"],"fg":"#382321"}
+{"text":"My nose is freezing today","emojis":"👃 ❄️","styles":["Deadpan"],"bg":["#dcecf5","#b8d3e3"],"fg":"#173042"}
+{"text":"Did your nose catch that smell?","emojis":"👃","styles":["Deadpan"],"bg":["#e5eee9","#c5d8cc"],"fg":"#1d3028"}
+{"text":"My nose is stuffy again","emojis":"👃 🤧","styles":["Irritated"],"bg":["#d8e5ed","#b6cad8"],"fg":"#172b38"}
+{"text":"Meet by the nose-shaped sign","emojis":"👃 🪧","styles":["Deadpan"],"bg":["#e7dfd3","#cdbda9"],"fg":"#2d241b"}
+{"text":"Your nose knows the best tacos","emojis":"👃 🌮","styles":["Playful"],"bg":["#f3d49b","#e9b96e"],"fg":"#3b2410"}
+{"text":"Please bring tissues; my nose is leaking","emojis":"👃 🧻","styles":["Earnest"],"bg":["#d9e8f0","#b8d1df"],"fg":"#172c39"}
+{"text":"Why is my nose so red?","emojis":"👃 🔴","styles":["Anxious"],"bg":["#f0c5c5","#dfa0a5"],"fg":"#421c22"}
+{"text":"My nose needs some fresh air","emojis":"👃 🍃","styles":["Serene"],"bg":["#d2e8db","#acd0b8"],"fg":"#173326"}
+{"text":"That perfume attacked my nose","emojis":"👃 🌸","styles":["Irritated"],"bg":["#e3cde0","#c7a9c8"],"fg":"#321b36"}
+{"text":"Keep your nose out of my fries","emojis":"👃 🍟","styles":["Irritated","Playful"],"bg":["#f0d18d","#e5b85d"],"fg":"#39240d"}
+{"text":"Found your ring by the sink","emojis":"💍 🚰","styles":["Deadpan"],"bg":["#d8e7ed","#a9c7d2"],"fg":"#17313d"}
+{"text":"Can you check this ring size?","emojis":"💍","styles":["Deadpan"],"bg":["#e6ddd2","#cbb9a5"],"fg":"#33251b"}
+{"text":"That ring's lost a stone, mate","emojis":"💍 💎","styles":["Melancholy","Earnest"],"bg":["#d9c9d2","#b99eae"],"fg":"#352433"}
+{"text":"I'll bring the ring tomorrow","emojis":"💍","styles":["Hopeful"],"bg":["#dce8d5","#b9d0ad"],"fg":"#20351f"}
+{"text":"Nice ring, suits you well","emojis":"💍","styles":["Tender","Earnest"],"bg":["#f0dfc5","#dfbd9b"],"fg":"#392515"}
+{"text":"Mind the ring by the wet paint","emojis":"💍 🎨","styles":["Tense","Earnest"],"bg":["#e6d8c8","#ccb49c"],"fg":"#33251c"}
+{"text":"Found a ring under floorboards","emojis":"💍 🪵","styles":["Deadpan"],"bg":["#d8c7b3","#b99c7d"],"fg":"#302217"}
+{"text":"Your ring's safe in my toolbox","emojis":"💍 🧰","styles":["Serene"],"bg":["#cbd9df","#aabfc9"],"fg":"#172b34"}
+{"text":"Gold ring caught in the drain","emojis":"💍 🚰","styles":["Deadpan"],"bg":["#e0d7c8","#c2b29c"],"fg":"#30271d"}
+{"text":"The ring's safe from the grout","emojis":"💍","styles":["Serene"],"bg":["#d7e1d1","#b5c7ae"],"fg":"#223122"}
+{"text":"Caught a germ at the gym","emojis":"🦠 🏋️","styles":["Deadpan"],"bg":["#dbe8e2","#b8d0c4"],"fg":"#17352b"}
+{"text":"Is this germ slowing me down?","emojis":"🦠 🏋️","styles":["Anxious"],"bg":["#e3e0d2","#c7c3ad"],"fg":"#302d20"}
+{"text":"Coach called a germ timeout","emojis":"🦠 ⏱️ 🏀","styles":["Playful"],"bg":["#d8e4f0","#adc5df"],"fg":"#172d45"}
+{"text":"Germ alert before weights","emojis":"🦠 🚨 🏋️","styles":["Tense"],"bg":["#f0d7c9","#dfb1a0"],"fg":"#4a2118"}
+{"text":"Found a germ on my mouthguard","emojis":"🦠 😬","styles":["Disgusted"],"bg":["#d9e0c1","#b8c698"],"fg":"#26321c"}
+{"text":"Skipping practice; germ got me","emojis":"🦠 🏃","styles":["Melancholy"],"bg":["#cbd5e1","#a9b7ca"],"fg":"#202b3b"}
+{"text":"Can you bring germ wipes?","emojis":"🦠 🧻","styles":["Earnest"],"bg":["#e2eee9","#bcd8d0"],"fg":"#17362f"}
+{"text":"That germ ruined my pregame","emojis":"🦠 🏀","styles":["Irritated","Melancholy"],"bg":["#ead6c8","#d2b09e"],"fg":"#42251b"}
+{"text":"Hope this germ clears by Saturday","emojis":"🦠 📅","styles":["Hopeful"],"bg":["#d8e8dc","#b3d1bb"],"fg":"#193525"}
+{"text":"Did the germ hit our whole team?","emojis":"🦠 🏀 👥","styles":["Anxious"],"bg":["#d9d9e8","#b8b8d1"],"fg":"#24243d"}
