@@ -53,7 +53,7 @@ def save_pt(state_dict: dict, path, **extra) -> None:
 
 
 def load_pt(path, *, map_location: str = "cpu"):
-    blob = torch.load(path, map_location=map_location, weights_only=False)
+    blob = torch.load(path, map_location=map_location, weights_only=True)
     if isinstance(blob, dict) and "state_dict" in blob:
         return blob["state_dict"], blob.get("meta")
     return blob, None

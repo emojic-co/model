@@ -28,6 +28,7 @@ CODE_FILES = [
     "test_emoji.py",
     "export_onnx.py",
     "run.py",
+    "runmeta.py",
     "labels.json",
     "words.json",
     "data.jsonl",

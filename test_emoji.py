@@ -196,6 +196,11 @@ def test_emoji(
         warnings = []
         if enc_meta and emoji_meta and enc_meta.get("sha") != emoji_meta.get("sha"):
             warnings.append(f"{enc_path} and {emoji_path} were saved from different commits")
+        if (enc_meta is None) != (emoji_meta is None):
+            warnings.append(
+                f"{enc_path} and {emoji_path}: one carries embedded "
+                "metadata, the other is legacy"
+            )
         doc = {
             "report_type": "test-emoji",
             "generated": probe_meta["generated"],

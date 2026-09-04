@@ -268,6 +268,11 @@ def test_color(
         warnings = []
         if enc_meta and gen_meta and enc_meta.get("sha") != gen_meta.get("sha"):
             warnings.append(f"{enc_path} and {gen_path} were saved from different commits")
+        if (enc_meta is None) != (gen_meta is None):
+            warnings.append(
+                f"{enc_path} and {gen_path}: one carries embedded "
+                "metadata, the other is legacy"
+            )
         doc = {
             "report_type": "test-color",
             "generated": probe_meta["generated"],
