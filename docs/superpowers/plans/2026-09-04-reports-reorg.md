@@ -956,12 +956,11 @@ Find the single `return <results>` at the end of `_evaluate` and change it to:
 
 - [ ] **Step 3: `_render` — new signature + header**
 
-Replace:
+NOTE: `_render`'s signature was collapsed to one line by a prior `ruff format`.
+The current code is:
 
 ```python
-def _render(
-    results: list[dict], enc_path: str, emoji_path: str, stamp: str
-) -> str:
+def _render(results: list[dict], enc_path: str, emoji_path: str, stamp: str) -> str:
     scored_n, acc, mrr = _acc(results)
     lines = [
         f"# Emoji test - {stamp}",
@@ -975,7 +974,7 @@ def _render(
     ]
 ```
 
-with:
+Replace that with (let `ruff format` re-wrap the signature after):
 
 ```python
 def _render(
