@@ -9,6 +9,7 @@ import torch
 from config import EMOJIS
 from data import TRAIN_PATH, normalize, read, text_to_tensor
 from model import EmojiHead, TextEncoder
+from runmeta import load_pt
 
 WORDS_PATH = Path("words.json")
 REPORT_DIR = Path("report/test-emoji")
@@ -18,7 +19,9 @@ FREQ_BUCKETS = 4
 
 
 def _load(mod: torch.nn.Module, path: str) -> torch.nn.Module:
-    mod.load_state_dict(torch.load(path, map_location="cpu"))
+    sd, meta = load_pt(path)
+    mod.load_state_dict(sd)
+    mod._pt_meta = meta
     mod.eval()
     return mod
 

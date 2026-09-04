@@ -5,6 +5,7 @@ import torch
 from config import SEED
 from data import EMOJIS, EVAL_PATH, STYLES, read, text_to_tensor
 from model import ColorGen, EmojiHead, StyleHead, TextEncoder
+from runmeta import load_pt
 
 
 def sample(n=200):

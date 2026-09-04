@@ -10,6 +10,7 @@ from torch.nn.functional import normalize
 from config import EMOJIS, MAX_TEXT_LEN, SEED, STYLES, TEXT_EMBED_SIZE, Z_WEIGHT
 from data import CHARS, PAD_IDX
 from model import ColorGen, EmojiHead, StyleHead, TextEncoder
+from runmeta import load_pt
 
 WEB_PUBLIC = Path("web/public")
 ONNX_OPSET = 18
@@ -26,7 +27,9 @@ CONST_Z = normalize(
 
 
 def _load(mod: nn.Module, path: str) -> nn.Module:
-    mod.load_state_dict(torch.load(path, map_location="cpu"))
+    sd, meta = load_pt(path)
+    mod.load_state_dict(sd)
+    mod._pt_meta = meta
     mod.eval()
     return mod
 

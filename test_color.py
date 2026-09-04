@@ -23,6 +23,7 @@ from data import (
     text_to_tensor,
 )
 from model import COLOR_SCALE, ColorGen, TextEncoder, rgb_to_oklab
+from runmeta import load_pt
 
 REPORT_DIR = Path("report/test-color")
 SHOW_EX = 12
@@ -38,7 +39,9 @@ Z_BANK = normalize(
 
 
 def _load(mod: torch.nn.Module, path: str) -> torch.nn.Module:
-    mod.load_state_dict(torch.load(path, map_location="cpu"))
+    sd, meta = load_pt(path)
+    mod.load_state_dict(sd)
+    mod._pt_meta = meta
     mod.eval()
     return mod
 
