@@ -68,7 +68,7 @@ tasks:
         [ "$any" = 1 ] || echo "no run worktrees under {{.RUNS}}"
 
   modal-train:reports:
-    desc: "List the reports each run worktree produced, with a test-emoji summary: task modal-train:reports"
+    desc: "List the test-emoji report each run worktree produced, with its summary: task modal-train:reports"
     silent: true
     cmds:
       - |
@@ -77,22 +77,18 @@ tasks:
         for wt in "{{.RUNS}}"/*/; do
           [ -d "$wt" ] || continue
           [ -e "${wt}.git" ] || continue
-          [ -d "${wt}report" ] || continue
+          [ -d "${wt}report/test-emoji" ] || continue
           any=1
           echo "==> $(basename "$wt")"
-          files=$(find "${wt}report" -type f -newer "${wt}.git" | sort)
+          files=$(find "${wt}report/test-emoji" -type f -name '*.md' -newer "${wt}.git" | sort)
           if [ -z "$files" ]; then
-            echo "  (no fresh reports - run 'task modal-train:fetch')"
+            echo "  (no fresh report - run 'task modal-train:fetch')"
             continue
           fi
           printf '%s\n' "$files" | while IFS= read -r f; do
             echo "  ${f#$wt}"
-            case "$f" in
-              */test-emoji/*.md)
-                sed -n 's/^- \(MRR:.*\)/      \1/p' "$f"
-                grep -E '^\| acc@(1|5|10) ' "$f" | awk -F'|' '{k=$2;v=$3;gsub(/ /,"",k);gsub(/ /,"",v);s=s k"="v"  "} END{if(s)print "      "s}'
-                ;;
-            esac
+            sed -n 's/^- \(MRR:.*\)/      \1/p' "$f"
+            grep -E '^\| acc@(1|5|10) ' "$f" | awk -F'|' '{k=$2;v=$3;gsub(/ /,"",k);gsub(/ /,"",v);s=s k"="v"  "} END{if(s)print "      "s}'
           done
         done
         [ "$any" = 1 ] || echo "no run worktrees under {{.RUNS}}"
