@@ -523,3 +523,9 @@ TODO:
 
     Tools:
         Write a tool print_model_params.py that prints the number of parameters in each model and the total number of parameters in the entire model.
+
+
+    Tools help:
+        For python based tools use typer (https://typer.tiangolo.com/) to wrap the tool
+        For typescript use zodcli (https://www.npmjs.com/package/zodcli) to wrap the tool.
+        Make sure all tools supports the -h and --help flags

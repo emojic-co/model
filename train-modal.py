@@ -186,7 +186,10 @@ def _retrieve_and_cleanup() -> None:
 
 
 @app.local_entrypoint()
-def main(cpu: int = CPU, memory: int = MEMORY_MIB):
+def main(cpu: int = CPU, memory: int = MEMORY_MIB, fetch_only: bool = False):
+    if fetch_only:
+        _retrieve_and_cleanup()
+        return
     fn = train_remote
     if cpu != CPU or memory != MEMORY_MIB:
         fn = train_remote.with_options(cpu=cpu, memory=memory)
@@ -194,8 +197,3 @@ def main(cpu: int = CPU, memory: int = MEMORY_MIB):
         print(fn.remote(threads=cpu))
     finally:
         _retrieve_and_cleanup()
-
-
-@app.local_entrypoint()
-def fetch():
-    _retrieve_and_cleanup()
