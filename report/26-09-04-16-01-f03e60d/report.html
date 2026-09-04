@@ -1,0 +1,62 @@
+<!doctype html><meta charset="utf-8"><title>emojic report — 26-09-04-16-01</title><style>
+:root{--ink:#1b1f24;--dim:#656b73;--line:#e2e5e9;--panel:#f5f6f8;--accent:#4b32d6;
+--good-bg:#e6f6ec;--good-bd:#b2dec1;--good-fg:#157a3f;--warn-bg:#fdf2e2;
+--warn-bd:#efd4a2;--warn-fg:#a25c07;--bad-bg:#fbe8e8;--bad-bd:#eeb8b8;--bad-fg:#b12222}
+*{box-sizing:border-box}
+body{font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+color:var(--ink);margin:0;background:#fff}
+.wrap{max-width:920px;margin:0 auto;padding:44px 30px 130px}
+h1{font-size:28px;margin:0 0 4px}
+h2{font-size:24px;margin:64px 0 6px;padding-bottom:8px;border-bottom:2px solid var(--ink)}
+h3{font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--dim);
+margin:34px 0 12px}
+.sub{color:var(--dim);font-size:15px}
+.note{color:var(--dim);font-size:14.5px;margin:8px 0 0}
+code{background:var(--panel);padding:1px 6px;border-radius:4px;font-size:15px}
+.banner{border-radius:10px;padding:13px 17px;margin:20px 0 0;font-size:15.5px;
+background:var(--good-bg);border:1px solid var(--good-bd)}
+.banner.amber{background:var(--warn-bg);border-color:var(--warn-bd)}
+.banner ul{margin:6px 0 0;padding-left:20px}
+.counts{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:18px 0}
+.count{border:1px solid var(--line);border-radius:12px;padding:20px 22px}
+.count .v{font-size:38px;font-weight:650;font-variant-numeric:tabular-nums}
+.count .k{font-size:14px;color:var(--dim);margin-top:3px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin:20px 0}
+.metrics.n3{grid-template-columns:repeat(3,1fr)}
+.metric{border-radius:16px;padding:24px 22px;border:1px solid}
+.metric .v{font-size:50px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.metric .k{font-size:15px;margin-top:10px;font-weight:650}
+.metric .h{font-size:13px;opacity:.8;margin-top:3px}
+.metric.good{background:var(--good-bg);border-color:var(--good-bd);color:var(--good-fg)}
+.metric.warn{background:var(--warn-bg);border-color:var(--warn-bd);color:var(--warn-fg)}
+.metric.bad{background:var(--bad-bg);border-color:var(--bad-bd);color:var(--bad-fg)}
+.chart{display:flex;align-items:flex-end;gap:5px;height:210px;
+border-bottom:2px solid var(--ink);margin:26px 0 0}
+.chart .bar{flex:1;background:var(--accent);border-radius:3px 3px 0 0;
+position:relative;min-height:2px}
+.chart .bar .num{position:absolute;bottom:100%;left:-4px;right:-4px;text-align:center;
+font-size:11px;color:var(--dim);margin-bottom:3px;font-variant-numeric:tabular-nums}
+.chart .bar .lbl{position:absolute;top:100%;left:50%;transform:translateX(-50%);
+margin-top:8px;font-size:15px;white-space:nowrap}
+.chart.rot{margin-bottom:62px}
+.chart.rot .bar .lbl{left:auto;right:50%;transform:rotate(-40deg);
+transform-origin:top right;font-size:12.5px;margin-top:9px}
+.chart .gap{flex:0 0 26px;background:none;min-height:0}
+.chart-cap{font-size:14px;color:var(--dim);margin:10px 0 0}
+.colorgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:20px 0}
+.colorcard{border-radius:16px;padding:22px 20px;min-height:160px;display:flex;
+flex-direction:column;justify-content:space-between}
+.colorcard .name{font-size:22px;font-weight:700;text-transform:capitalize}
+.colorcard .verdict{font-size:16px;font-weight:650;margin-top:5px}
+.colorcard .nums{font-size:13.5px;opacity:.93;margin-top:14px;line-height:1.55}
+.colorcard .badge{display:inline-block;background:rgba(255,255,255,.24);
+border-radius:999px;padding:3px 11px;font-size:13.5px;font-weight:700}
+.colorcard.dark-text{color:#16181d}
+.colorcard.dark-text .badge{background:rgba(0,0,0,.13)}
+.colorcard.light-text{color:#fff}
+table{border-collapse:collapse;width:100%;margin:16px 0;font-size:16px}
+th,td{border-bottom:1px solid var(--line);padding:10px 12px;text-align:left}
+th{font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:.03em}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+</style><div class="wrap"><h1>emojic model report</h1><div class="sub">26-09-04-16-01 · model <code>f03e60d</code> · train.jsonl <code>a4a6675b</code> · report code <code>5c97a64</code></div><div class="banner amber"><strong>Check provenance.</strong><ul><li>legacy .pt without embedded metadata: gen.pt, tst.pt</li><li>gen.pt could not load: Error(s) in loading state_dict for ColorGen:</li></ul></div><h2>Data</h2><div class="counts"><div class="count"><div class="v">103,039</div><div class="k">records · data.jsonl</div></div><div class="count"><div class="v">85,790</div><div class="k">records · train.jsonl</div></div><div class="count"><div class="v">1,500</div><div class="k">records · eval.jsonl</div></div></div><h2>Emojis</h2><h3>Distinct emojis</h3><div class="counts"><div class="count"><div class="v">1,193</div><div class="k">in data.jsonl</div></div><div class="count"><div class="v">1,187</div><div class="k">in train.jsonl</div></div><div class="count"><div class="v">507</div><div class="k">in eval.jsonl</div></div></div><h3>Frequency in train.jsonl — top 10 &amp; bottom 10 (shared scale)</h3><div class="chart"><div class="bar" style="height:100.00%"><span class="num">683</span><span class="lbl">🛏️</span></div><div class="bar" style="height:100.00%"><span class="num">683</span><span class="lbl">🔥</span></div><div class="bar" style="height:99.85%"><span class="num">682</span><span class="lbl">📅</span></div><div class="bar" style="height:99.85%"><span class="num">682</span><span class="lbl">🏠</span></div><div class="bar" style="height:99.71%"><span class="num">681</span><span class="lbl">👶</span></div><div class="bar" style="height:99.71%"><span class="num">681</span><span class="lbl">😤</span></div><div class="bar" style="height:99.71%"><span class="num">681</span><span class="lbl">🌧️</span></div><div class="bar" style="height:99.71%"><span class="num">681</span><span class="lbl">😲</span></div><div class="bar" style="height:99.71%"><span class="num">681</span><span class="lbl">😴</span></div><div class="bar" style="height:99.71%"><span class="num">681</span><span class="lbl">📚</span></div><div class="gap"></div><div class="bar" style="height:0.15%"><span class="num">1</span><span class="lbl">0️⃣</span></div><div class="bar" style="height:0.15%"><span class="num">1</span><span class="lbl">5️⃣</span></div><div class="bar" style="height:0.15%"><span class="num">1</span><span class="lbl">↪️</span></div><div class="bar" style="height:0.15%"><span class="num">1</span><span class="lbl">⏺️</span></div><div class="bar" style="height:0.15%"><span class="num">1</span><span class="lbl">▦</span></div><div class="bar" style="height:0.15%"><span class="num">1</span><span class="lbl">◻️</span></div><div class="bar" style="height:0.15%"><span class="num">1</span><span class="lbl">◼️</span></div><div class="bar" style="height:0.15%"><span class="num">1</span><span class="lbl">⚕️</span></div><div class="bar" style="height:0.15%"><span class="num">1</span><span class="lbl">⚛️</span></div><div class="bar" style="height:0.15%"><span class="num">1</span><span class="lbl">⚡️</span></div></div><p class="chart-cap">Bottom-10 counts are 1–1 rows each — slivers at this scale. 0 / 352 leaderboard emojis have &lt;20 rows.</p><h3>Retrieval performance — eval.jsonl (1233 rows)</h3><div class="metrics"><div class="metric good"><div class="v">0.65</div><div class="k">acc@1</div></div><div class="metric good"><div class="v">0.82</div><div class="k">acc@5</div></div><div class="metric good"><div class="v">0.85</div><div class="k">acc@10</div></div><div class="metric good"><div class="v">0.72</div><div class="k">MRR@10</div></div></div><h3>Keyword probe — words.json (249 words)</h3><p class="note">acc@1 0.50 · acc@5 0.66 · acc@10 0.70 · MRR 0.57</p><h3>Worst 10 keywords</h3><table><tr><th>Keyword</th><th>Expected</th><th class="n">Rank</th><th>Top 3 predicted</th></tr><tr><td>socks</td><td>🧦</td><td class="n">352</td><td>✅ 🕒 😞</td></tr><tr><td>cat</td><td>🐈</td><td class="n">339</td><td>🎯 🤩 🔄</td></tr><tr><td>rose</td><td>🌹</td><td class="n">334</td><td>⏳ 👀 😔</td></tr><tr><td>kiss</td><td>💋</td><td class="n">328</td><td>😔 😞 💔</td></tr><tr><td>pill</td><td>💊</td><td class="n">327</td><td>🎯 🤩 👏</td></tr><tr><td>camera</td><td>📷</td><td class="n">306</td><td>🤩 📍 😔</td></tr><tr><td>hug</td><td>🤗</td><td class="n">299</td><td>🧭 😄 😣</td></tr><tr><td>dog</td><td>🐶</td><td class="n">293</td><td>🧭 🎯 ⬆️</td></tr><tr><td>foot</td><td>🦶</td><td class="n">290</td><td>👏 👑 ⬆️</td></tr><tr><td>ice</td><td>🧊</td><td class="n">284</td><td>🎯 🤩 🧭</td></tr></table><h2>Styles</h2><h3>Distribution in train.jsonl — all labels</h3><div class="chart rot"><div class="bar" style="height:100.00%"><span class="lbl">Deadpan</span></div><div class="bar" style="height:59.11%"><span class="lbl">Irritated</span></div><div class="bar" style="height:46.99%"><span class="lbl">Tender</span></div><div class="bar" style="height:42.69%"><span class="lbl">Playful</span></div><div class="bar" style="height:40.89%"><span class="lbl">Earnest</span></div><div class="bar" style="height:28.99%"><span class="lbl">Anxious</span></div><div class="bar" style="height:26.59%"><span class="lbl">Joyful</span></div><div class="bar" style="height:26.56%"><span class="lbl">Startled</span></div><div class="bar" style="height:24.88%"><span class="lbl">Tense</span></div><div class="bar" style="height:24.08%"><span class="lbl">Serene</span></div><div class="bar" style="height:22.70%"><span class="lbl">Excited</span></div><div class="bar" style="height:20.94%"><span class="lbl">Hopeful</span></div><div class="bar" style="height:19.85%"><span class="lbl">Sarcastic</span></div><div class="bar" style="height:17.35%"><span class="lbl">Melancholy</span></div><div class="bar" style="height:14.39%"><span class="lbl">Proud</span></div><div class="bar" style="height:13.49%"><span class="lbl">Wistful</span></div><div class="bar" style="height:11.61%"><span class="lbl">Determined</span></div><div class="bar" style="height:9.74%"><span class="lbl">Whimsical</span></div><div class="bar" style="height:8.08%"><span class="lbl">Disgusted</span></div><div class="bar" style="height:5.48%"><span class="lbl">Awed</span></div><div class="bar" style="height:4.31%"><span class="lbl">Furious</span></div></div><p class="chart-cap">Most / least common = 23×.</p><h3>Retrieval performance — eval.jsonl (1500 rows)</h3><div class="metrics"><div class="metric good"><div class="v">0.61</div><div class="k">acc@1</div></div><div class="metric good"><div class="v">0.90</div><div class="k">acc@5</div></div><div class="metric good"><div class="v">0.73</div><div class="k">MRR@5</div></div><div class="metric good"><div class="v">0.67</div><div class="k">mAP@5</div></div></div><h2>Colors</h2><h3>Background colour distribution in train.jsonl</h3><p class="note">Each record's two <code>bg</code> stops averaged in OKLab, assigned to the nearest anchor within ΔE &lt; 0.15, else <em>other</em>. Sorted by count; <em>other</em> last.</p><div class="chart"><div class="bar" style="height:70.07%;background:#e8d44d"><span class="num">31,609</span><span class="lbl">yellow</span></div><div class="bar" style="height:10.00%;background:#7a5aa8"><span class="num">4,512</span><span class="lbl">purple</span></div><div class="bar" style="height:5.31%;background:#c0392b"><span class="num">2,395</span><span class="lbl">red</span></div><div class="bar" style="height:3.66%;background:#4c9a52"><span class="num">1,652</span><span class="lbl">green</span></div><div class="bar" style="height:1.11%;background:#4a6fd1"><span class="num">500</span><span class="lbl">blue</span></div><div class="bar" style="height:100.00%;background:#9aa0a8"><span class="num">45,111</span><span class="lbl">other</span></div></div></div>
