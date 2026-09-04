@@ -430,6 +430,7 @@ def _run_local(model: Model) -> None:
 CPU = 16
 MEMORY_MIB = 16384
 TIMEOUT_S = 3600
+TIMEOUT_S_ALL = 90 * 60
 REPO = "/repo"
 VENV_PY = sys.executable
 TB_PORT = 6006
@@ -623,9 +624,10 @@ def _run_remote(model: Model, cpu: int, memory: int, git_sha: str) -> dict[str, 
             )
         enc_bytes = enc_path.read_bytes()
 
+    timeout = TIMEOUT_S_ALL if model == Model.all else TIMEOUT_S
     fn = train_remote
-    if cpu != CPU or memory != MEMORY_MIB:
-        fn = train_remote.with_options(cpu=cpu, memory=memory)
+    if cpu != CPU or memory != MEMORY_MIB or timeout != TIMEOUT_S:
+        fn = train_remote.with_options(cpu=cpu, memory=memory, timeout=timeout)
     return fn.remote(model=model.value, threads=cpu, git_sha=git_sha, enc_bytes=enc_bytes)
 
 
