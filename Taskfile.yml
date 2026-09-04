@@ -6,7 +6,7 @@ vars:
 
 tasks:
   modal-train:
-    desc: "Snapshot HEAD to a named branch+worktree and launch train-modal.py detached: task modal-train -- <name>"
+    desc: "Snapshot HEAD to a named branch+worktree and launch train-modal.py (Modal app detached, survives laptop sleep/disconnect): task modal-train -- <name>"
     silent: true
     cmds:
       - |
@@ -25,7 +25,7 @@ tasks:
           [ -f "$root/$f" ] && cp "$root/$f" "$wt/$f" || true
         done
 
-        setsid --fork sh -c "cd '$wt' && exec uv run modal run train-modal.py::main" >"$log" 2>&1 </dev/null
+        setsid --fork sh -c "cd '$wt' && exec uv run modal run --detach train-modal.py::main" >"$log" 2>&1 </dev/null
 
         browser=$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v xdg-open || true)
         if [ -n "$browser" ]; then
@@ -48,6 +48,24 @@ tasks:
     silent: true
     cmds:
       - git worktree list
+
+  modal-train:fetch:
+    desc: "Pull artifacts from Modal into every run worktree and delete each run's volume (run after reconnecting): task modal-train:fetch"
+    silent: true
+    cmds:
+      - |
+        set -e
+        any=0
+        for wt in "{{.RUNS}}"/*/; do
+          [ -d "$wt" ] || continue
+          [ -e "${wt}.git" ] || continue
+          [ -f "${wt}train-modal.py" ] || continue
+          any=1
+          tag=$(basename "$wt")
+          echo "==> $tag"
+          ( cd "$wt" && uv run modal run train-modal.py::fetch ) || echo "  fetch failed for $tag (continuing)"
+        done
+        [ "$any" = 1 ] || echo "no run worktrees under {{.RUNS}}"
 
   modal-train:drop:
     desc: "Discard a run: remove its worktree (branch kept): task modal-train:drop -- <tag>"
