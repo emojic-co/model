@@ -6,6 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 import torch
+import yaml
 
 from config import CONFIG_PARTS
 
@@ -72,3 +73,21 @@ def require_clean_tree() -> None:
         sys.exit("training requires a clean git checkout (git unavailable)")
     if porcelain:
         sys.exit("training aborted: clean git tree required; uncommitted:\n" + porcelain)
+
+
+def write_meta_yml(out_dir, doc: dict) -> None:
+    Path(out_dir, "meta.yml").write_text(
+        yaml.safe_dump(doc, sort_keys=False, allow_unicode=True), encoding="utf-8"
+    )
+
+
+def stamp_lines(model_meta: dict | None, model_name: str, probe_meta: dict) -> list[str]:
+    probe = probe_meta["sha"] + (" dirty" if probe_meta["dirty"] else "")
+    run_line = f"probe run: {probe_meta['generated']} (code {probe})"
+    if not model_meta:
+        return [f"model: `{model_name}` — no embedded metadata (legacy .pt)", run_line]
+    head = (
+        f"model: `{model_name}` — trained {model_meta['sha']} @ "
+        f"{model_meta['generated']}  ·  see meta.yml"
+    )
+    return [head, run_line]
