@@ -96,6 +96,7 @@ def export_web(wrapper: nn.Module) -> None:
         "emojis": EMOJIS,
         "styles": STYLES,
         "exported_at": datetime.now(UTC).isoformat(timespec="minutes"),
+        "model_meta": getattr(wrapper.enc, "_pt_meta", None),
     }
     (WEB_PUBLIC / "meta.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
