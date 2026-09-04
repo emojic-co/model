@@ -47,5 +47,8 @@ line-length = 93
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["typer.Argument"]
+
 [tool.ruff.lint.per-file-ignores]
 "tools/report.py" = ["E402"]
