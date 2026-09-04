@@ -79,7 +79,7 @@ def main() -> int:
     p.add_argument("--memory", type=int)
     args = p.parse_args()
 
-    modal_cmd = ["uv", "run", "modal", "run", "train-modal.py"]
+    modal_cmd = ["uv", "run", "modal", "run", "train-modal.py::main"]
     if args.cpu:
         modal_cmd += ["--cpu", str(args.cpu)]
     if args.memory:
