@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises"
+import { readFile } from "node:fs/promises"
 import * as ort from "onnxruntime-web"
 import { argmax, encode, softmax } from "../../web/src/model.js"
 import { readJsonl } from "../data/io.ts"
@@ -6,7 +6,6 @@ import { readJsonl } from "../data/io.ts"
 const EVAL = "eval.jsonl"
 const META = "web/public/meta.json"
 const MODEL = "web/public/model.onnx"
-const OUT_DIR = "report/fails"
 
 type Row = { text: string; feeling: string; emoji: string }
 
@@ -79,7 +78,7 @@ if (import.meta.main) {
 
   fails.sort((a, b) => b.error - a.error)
 
-  const { header, file } = stamp()
+  const { header } = stamp()
   const doc = [
     `# feeling fails — ${header}`,
     "",
@@ -99,9 +98,6 @@ if (import.meta.main) {
   })
   doc.push("")
 
-  await mkdir(OUT_DIR, { recursive: true })
-  const dest = `${OUT_DIR}/${file}.md`
-  await writeFile(dest, doc.join("\n"))
-  console.log(dest)
+  console.log(doc.join("\n"))
   process.exit(0)
 }

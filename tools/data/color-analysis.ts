@@ -1,10 +1,7 @@
-import { mkdir, writeFile } from "node:fs/promises"
-
 import { readJsonl } from "./io.ts"
 import { shuffleSeeded } from "./regen.ts"
 
 const DATA = "./data.jsonl"
-const REPORT_DIR = "report/color-analysis"
 
 const SIM_SPAN = 0.5
 const DEFAULT_SAMPLE = 5000
@@ -186,7 +183,7 @@ if (import.meta.main) {
   const known = new Set(ANCHOR_SETS.flatMap((s) => Object.keys(s.anchors)))
   const unknownColors = [...byColor.keys()].filter((c) => !known.has(c))
 
-  const { header, file: fileStamp } = stamp()
+  const { header } = stamp()
   const doc: string[] = [
     `# color analysis — ${header}`,
     "",
@@ -299,9 +296,6 @@ if (import.meta.main) {
     doc.push(`### ${name} — generated mean-sim distribution`, "", ...hist(allGen), "")
   }
 
-  await mkdir(REPORT_DIR, { recursive: true })
-  const dest = `${REPORT_DIR}/${fileStamp}.md`
-  await writeFile(dest, doc.join("\n") + "\n")
-  console.log(dest)
+  console.log(doc.join("\n") + "\n")
   process.exit(0)
 }
