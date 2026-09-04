@@ -683,6 +683,19 @@ TODO:
                 Update the Distinct emojis row:
                     in labels.json / eval.jsonl / train.jsonl / data.jsonl
 
+        Unified the preview tools into a single tools/preview.ts
+            We can run it like this:
+                bun tools/preview.ts
+                bun tools/preview.ts <records.jsonl>
+
+            First option reads from std and generate the preview card html.
+            Second option reads the records from the file and generate the preview card html.
+            records have the same schema like in data.jsonl and the preview .html file is the same as the current preview html file.
+
+            After you done remove other tools and update the CLAUDE.md to reflect the changes.
+
+
+
         Organize Project Structure:
             move all (directly) model related files into a model subfolder.
             move all tooling scripts (both .py and .ts) into a tools subfolder.
