@@ -29,10 +29,17 @@ Three problems with `report/` today:
   `.pt` file plus report-level metadata (type, probe commit, generated-at, a
   compact metric summary).
 - **`.pt` files embed a `meta` dict.** Each is saved as
-  `{"state_dict": ..., "meta": {...}}` (training commit SHA + dirty flag,
-  timestamp, `CONFIG_PARTS`, stage, `train.jsonl` hash). `save_pt` / `load_pt`
-  helpers live in a new `runmeta.py`; `load_pt` degrades to `(state_dict, None)`
-  for legacy bare `.pt` files.
+  `{"state_dict": ..., "meta": {...}}` (training commit SHA, timestamp,
+  `CONFIG_PARTS`, stage, `train.jsonl` hash). `save_pt` / `load_pt` helpers live
+  in a new `runmeta.py`; `load_pt` degrades to `(state_dict, None)` for legacy
+  bare `.pt` files.
+- **Training hard-blocks on a dirty tree.** `train.py`, `train_gan.py`, and
+  `train-modal.py`'s local entrypoint call `runmeta.require_clean_tree()` and
+  `sys.exit` if `git status --porcelain` is non-empty or git is unavailable.
+  **No override flag.** This makes every `.pt`'s embedded `sha` an exact,
+  reproducible pointer (its `dirty` is therefore always `false`) and removes any
+  need to capture an uncommitted diff. Probes are *not* gated — `meta.yml`'s
+  `probe_dirty` can still be `true`.
 - **Preview tools** write to a gitignored top-level `preview/` folder. `stat.ts` /
   `color-analysis.ts` / `fails.ts` print to stdout. `data-quality` reports
   in-session (chat) only — no file.
@@ -80,7 +87,25 @@ load_pt(path, *, map_location="cpu") -> (state_dict, meta | None)
 
 write_meta_yml(dir, report_meta, models) -> None
     # dir/meta.yml  <-  yaml.safe_dump(..., sort_keys=False)
+
+require_clean_tree() -> None
+    # no-op if os.environ.get("EMOJIC_DISPATCH_CHECKED") == "1"
+    #   (train-modal.py already enforced this on the dispatch machine;
+    #    the Modal box has no .git)
+    # else run `git status --porcelain`:
+    #   empty            -> return
+    #   non-empty        -> sys.exit(<message + the porcelain listing>)
+    #   git unavailable  -> sys.exit("training requires a clean git checkout")
 ```
+
+`require_clean_tree()` is a **hard gate with no override** — a dirty tree or a
+missing git checkout means training does not start. It is called only from the
+three training entrypoints (see D2), never from `run_meta()` or the probes:
+running a probe against an existing `.pt` with a dirty tree stays allowed.
+"Dirty" = `git status --porcelain` non-empty, which already excludes gitignored
+artifacts (`*.pt`, `train.jsonl`, `runs/`, `preview/`, …) but **does** count
+uncommitted report folders and any untracked non-ignored source — commit those
+before training.
 
 `weights_only=False` is explicit (the blob holds a plain-dict `meta`); these files
 are already `torch.load`ed today at the same trust level.
@@ -112,11 +137,26 @@ is evaluated at save time (after the best-checkpoint reload in `train.py` — th
 code state is unchanged across the fit, so the SHA is right).
 
 **Modal SHA passthrough.** `train-modal.py`'s `_run_env()` (or `main()`) captures
-the *local* dispatch-machine git state — `git rev-parse --short HEAD` and whether
-`git status --porcelain` is non-empty — and adds `EMOJIC_GIT_SHA` /
-`EMOJIC_GIT_DIRTY` to the env dict handed to every subprocess on the box. Without
-this the Modal image has no `.git` and `run_meta()` records `sha="unknown"` for
-every Modal-trained `.pt`. `run_meta()` reads these vars first (see A).
+the *local* dispatch-machine git state — `git rev-parse --short HEAD` — and adds
+`EMOJIC_GIT_SHA` plus `EMOJIC_DISPATCH_CHECKED=1` to the env dict handed to every
+subprocess on the box. Without `EMOJIC_GIT_SHA` the Modal image has no `.git` and
+`run_meta()` records `sha="unknown"` for every Modal-trained `.pt`; `run_meta()`
+reads it first (see A). `EMOJIC_DISPATCH_CHECKED` tells `require_clean_tree()` on
+the box to trust the dispatch-side check (see D2). `EMOJIC_GIT_DIRTY` is never
+set — a dirty dispatch tree fails D2 before anything is sent to Modal.
+
+### D2. Clean-tree gate — call sites
+
+`require_clean_tree()` (see A) runs at the very top of each training entrypoint,
+before `pl.seed_everything` / any data load:
+
+| entrypoint | where |
+| --- | --- |
+| `train.py` | start of `__main__` |
+| `train_gan.py` | start of `__main__` |
+| `train-modal.py` | start of `main()` (the `@app.local_entrypoint`, runs on the dispatch machine — has git; blocks before any Modal call) |
+
+Not added to `test_emoji.py` / `test_color.py` / `run.py` / `export_onnx.py`.
 
 ### D. Load sites — `load_pt` instead of `torch.load` + `load_state_dict`
 
@@ -309,21 +349,32 @@ preview/
 
 - `CLAUDE.md`: lines 11, 13, 14, 25, 26, 33, 41, 54 — drop `report/data-stat`,
   `report/data-quality`, `report/color-analysis`, `report/preview*`; note the
-  PostToolUse hook is gone; document the new `report/<type>/<timestamp>/`
+  PostToolUse hook is gone; document the new `report/<type>/<timestamp>-<sha>/`
   layout with `meta.yml` + `report.md`, the `.pt` `{"state_dict","meta"}` format
-  and `runmeta.save_pt` / `load_pt`, and that preview tools now write to
-  gitignored `preview/`.
-- `train-modal.py`: `report/test-emoji/<ts>/` is still produced on the Modal box
-  and collected back (now tracked, so it also shows in `git status` there).
-  Update any comment listing old report types. Adds the `EMOJIC_GIT_SHA` /
-  `EMOJIC_GIT_DIRTY` env passthrough from the dispatch machine (see C) so
-  Modal-trained `.pt` files carry a real SHA.
+  and `runmeta.save_pt` / `load_pt`, that **training requires a clean git tree**
+  (`require_clean_tree()`, no override), and that preview tools now write to
+  gitignored `preview/`. Add to "Environment & commands" that `uv run python
+  train.py` / `train_gan.py` / `modal run train-modal.py` abort on uncommitted
+  changes.
+- `train-modal.py`: `report/test-emoji/<ts>-<sha>/` is still produced on the
+  Modal box and collected back (now tracked, so it also shows in `git status`
+  there). Update any comment listing old report types. Adds `EMOJIC_GIT_SHA` +
+  `EMOJIC_DISPATCH_CHECKED=1` env passthrough (see C) and the
+  `require_clean_tree()` call in `main()` before dispatch.
 - `Taskfile.yml`: `modal-train:reports` — `find "${wt}report/test-emoji" -name
   '*.md'` now matches `.../<ts>/report.md` (recursive find, still fine); the
   printed relative path gains the `<ts>/` segment; `-newer "${wt}.git"` mtime
   check still works. Optionally switch it to read `meta.yml` `summary`. Minimal
   change: none strictly required — verify the `sed`/`grep` metric extraction
   still hits `report.md`'s `- MRR:` / `| acc@` lines.
+- `loop_emoji.py`: **the clean-tree gate breaks the loop as written.** Each
+  iteration runs `bun run upsample-emoji-test` (appends to the committed
+  `data.jsonl`) then `bun run regen`, leaving the tree dirty before the next
+  `train-modal.py` — which now aborts. Fix: after the upsample+regen step (and
+  after `train_gan.py` on success), `loop_emoji.py` must
+  `git add data.jsonl report/ && git commit -m "loop_emoji iter N: +<rows> rows"`
+  so the next training call sees a clean tree. Each loop iteration becomes one
+  commit — also what makes its per-iteration reports traceable.
 - `.claude/commands/update-model-md.md`: already references a non-existent
   `report/model/*.md`. **Out of scope** — flag, don't fix here.
 
@@ -344,6 +395,11 @@ preview/
 - `load_pt` round-trip: `save_pt({'w': torch.zeros(1)}, '/tmp/x.pt', stage='task')`
   → `load_pt` returns `(sd, meta)` with `stage="task"`; `torch.save(bare)` →
   `load_pt` returns `(bare, None)`.
+- Clean-tree gate: with a dirty tree (e.g. `touch scratch.py`),
+  `uv run python train.py` exits non-zero before Lightning starts, message lists
+  the dirty path; `git stash` / commit, and it proceeds. `EMOJIC_DISPATCH_CHECKED=1
+  uv run python train.py` skips the check (Modal-box path). Probes
+  (`test_emoji.py`) still run with a dirty tree.
 - With local `.pt` files: `uv run python test_emoji.py` — creates
   `report/test-emoji/<ts>/{meta.yml,report.md,report.json}`; `meta.yml` parses
   (`yaml.safe_load`) and has `models.enc.pt` + `models.emoji.pt` + `summary`;
