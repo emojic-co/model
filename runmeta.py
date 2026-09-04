@@ -1,6 +1,7 @@
 import hashlib
 import os
 import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -61,3 +62,13 @@ def model_slug(model_meta: dict | None) -> str:
     if model_meta and model_meta.get("sha"):
         return model_meta["sha"]
     return "nometa"
+
+
+def require_clean_tree() -> None:
+    if os.environ.get("EMOJIC_DISPATCH_CHECKED") == "1":
+        return
+    porcelain = _git("status", "--porcelain")
+    if porcelain is None:
+        sys.exit("training requires a clean git checkout (git unavailable)")
+    if porcelain:
+        sys.exit("training aborted: clean git tree required; uncommitted:\n" + porcelain)

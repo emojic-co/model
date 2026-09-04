@@ -59,10 +59,47 @@ def test_model_slug():
     assert model_slug({"sha": ""}) == "nometa"
 
 
+def test_require_clean_tree_dispatch_skip():
+    import os
+
+    from runmeta import require_clean_tree
+
+    os.environ["EMOJIC_DISPATCH_CHECKED"] = "1"
+    try:
+        require_clean_tree()
+    finally:
+        del os.environ["EMOJIC_DISPATCH_CHECKED"]
+
+
+def test_require_clean_tree_dirty_exits(tmp_path="/tmp/runmeta-gitdirty"):
+    import os
+    import subprocess
+
+    import runmeta
+
+    subprocess.run(["rm", "-rf", tmp_path], check=True)
+    subprocess.run(["git", "init", "-q", tmp_path], check=True)
+    open(f"{tmp_path}/x.txt", "w").write("hi")
+    cwd = os.getcwd()
+    try:
+        os.chdir(tmp_path)
+        raised = False
+        try:
+            runmeta.require_clean_tree()
+        except SystemExit as e:
+            raised = True
+            assert "clean git tree" in str(e)
+        assert raised
+    finally:
+        os.chdir(cwd)
+
+
 if __name__ == "__main__":
     test_run_meta_shape()
     test_run_meta_sha_env_override()
     test_save_load_round_trip()
     test_load_pt_legacy_bare()
     test_model_slug()
+    test_require_clean_tree_dispatch_skip()
+    test_require_clean_tree_dirty_exits()
     print("ok")
