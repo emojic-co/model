@@ -1,3 +1,4 @@
+import hashlib
 import os
 import shutil
 import subprocess
@@ -14,7 +15,8 @@ REPO = "/repo"
 VENV_PY = f"{REPO}/.venv/bin/python"
 TB_PORT = 6006
 
-VOL_NAME = "emojic-artifacts"
+WORKTREE_TAG = hashlib.sha1(str(Path.cwd().resolve()).encode()).hexdigest()[:10]
+VOL_NAME = f"emojic-artifacts-{WORKTREE_TAG}"
 ARTIFACTS = "/artifacts"
 
 DEP_FILES = ["pyproject.toml", "uv.lock", ".python-version", "README.md"]
@@ -42,7 +44,7 @@ image = image.run_commands(f"cd {REPO} && uv sync --frozen")
 for name in CODE_FILES:
     image = image.add_local_file(name, f"{REPO}/{name}", copy=True)
 
-app = modal.App("emojic-train", image=image)
+app = modal.App(f"emojic-train-{WORKTREE_TAG}", image=image)
 vol = modal.Volume.from_name(VOL_NAME, create_if_missing=True)
 
 
