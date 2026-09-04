@@ -14,7 +14,7 @@ MAX_TEXT_LEN = 42
 # ENCODER
 CHAR_EMBED_SIZE = 16
 ENCODER_KERNEL_SIZE = 2
-ENCODER_CHANNELS = [32, 64, 128, 256]
+ENCODER_CHANNELS = [40, 80, 120, 160]
 
 enc_str = ' '.join([str(p) for p in (
     CHAR_EMBED_SIZE,
@@ -23,7 +23,7 @@ enc_str = ' '.join([str(p) for p in (
 
 # EMOJI
 EMOJI_EMBED_SIZE = 40
-DROPOUT_EMOJI = 0.2
+DROPOUT_EMOJI = 0.25
 
 emj_str = ' '.join([str(p) for p in (
     EMOJI_EMBED_SIZE,
