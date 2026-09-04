@@ -527,5 +527,15 @@ TODO:
 
     Tools help:
         For python based tools use typer (https://typer.tiangolo.com/) to wrap the tool
-        For typescript use zodcli (https://www.npmjs.com/package/zodcli) to wrap the tool.
+        For typescript use cac or commander to wrap the tool.
         Make sure all tools supports the -h and --help flags
+
+
+    Reports:
+        Currently there are too many reports and report types.
+        In addition it is almost impossible to link between a report to the model and configuration that generated it.
+        A third problem is that reports are git tracked and are cloned to every git worktree
+        Suggest a plan that:
+        1. Will only keep the most relevant reports and remove the rest.
+        2. Will link each report to the model and configuration that generated it.
+        3. Possibly (need to discuss) stop tracking reports in git and instead generate them on demand from the model and configuration that generated it.
