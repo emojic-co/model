@@ -640,7 +640,24 @@ TODO:
                 - train-all --local
 
                 Each should run on modal or local that generate the report.
-                
+
+        Update The regen script:
+            run as bun tools/data/regen.ts --min-count 5 --max-count 50
+            regen read data.jsonl and shuffle (in mem)
+            then greedily add rows and keep track of the frequency of each emoji.
+            when emoji reach max-count drops every record with that emoji.
+            when done it exports to labels.json just the emojis that appear in at least min-count records.
+            then random split to train.jsonl and eval.jsonl and export to those files.
+            
+            note that the number of emojis in the labels.json is dynamic.
+            note when training the model we only consider emojis in the labels.json file.
+            note set defaults 
+                --min-count 100
+                --max-count 500
+
+            when regen.ts is done print a clear summary to the terminal.
+
+
         Organize Project Structure:
             move all (directly) model related files into a model subfolder.
             move all tooling scripts (both .py and .ts) into a tools subfolder.
