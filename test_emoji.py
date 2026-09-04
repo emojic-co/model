@@ -9,7 +9,7 @@ import torch
 from config import EMOJIS
 from data import TRAIN_PATH, normalize, read, text_to_tensor
 from model import EmojiHead, TextEncoder
-from runmeta import load_pt
+from runmeta import load_pt, model_slug, run_meta, stamp_lines, write_meta_yml
 
 WORDS_PATH = Path("words.json")
 REPORT_DIR = Path("report/test-emoji")
@@ -36,7 +36,7 @@ def _emoji_counts() -> Counter:
 
 def _evaluate(
     enc_path: str, emoji_path: str, words: list[dict], counts: Counter
-) -> list[dict]:
+) -> tuple[list[dict], dict]:
     enc = _load(TextEncoder(), enc_path)
     head = _load(EmojiHead(), emoji_path)
     vocab = {e: i for i, e in enumerate(EMOJIS)}
@@ -61,7 +61,7 @@ def _evaluate(
                     "top": [EMOJIS[i] for i in order[:SHOW_TOP]],
                 }
             )
-    return out
+    return out, {enc_path: enc._pt_meta, emoji_path: head._pt_meta}
 
 
 def _acc(rows: list[dict]) -> tuple[int, dict, float]:
@@ -110,12 +110,20 @@ def _group_table(header: str, groups: list[tuple[str, list[dict]]]) -> list[str]
     return lines
 
 
-def _render(results: list[dict], enc_path: str, emoji_path: str, stamp: str) -> str:
+def _render(
+    results: list[dict],
+    enc_path: str,
+    emoji_path: str,
+    stamp: str,
+    model_meta: dict | None,
+    probe_meta: dict,
+) -> str:
     scored_n, acc, mrr = _acc(results)
-    lines = [
-        f"# Emoji test - {stamp}",
-        "",
-        f"- model: `{enc_path}` + `{emoji_path}`",
+    lines = [f"# Emoji test - {stamp}", ""]
+    lines += [f"- {ln}" for ln in stamp_lines(model_meta, enc_path, probe_meta)]
+    if model_meta is None:
+        lines.append(f"  - config: {' | '.join(probe_meta['config'])}")
+    lines += [
         f"- words: {len(results)} ({scored_n} scored)",
         f"- MRR: {mrr:.3f}",
         "",
@@ -155,16 +163,22 @@ def test_emoji(
     write_report: bool = True,
 ) -> dict:
     words = json.loads(Path(words_path).read_text(encoding="utf-8"))
-    results = _evaluate(enc_path, emoji_path, words, _emoji_counts())
+    results, metas = _evaluate(enc_path, emoji_path, words, _emoji_counts())
     scored_n, acc, mrr = _acc(results)
+    probe_meta = run_meta()
     stamp = datetime.now().strftime("%y-%m-%d-%H-%M")
+    enc_meta = metas.get(enc_path)
+    emoji_meta = metas.get(emoji_path)
 
     if write_report:
-        REPORT_DIR.mkdir(parents=True, exist_ok=True)
-        path = REPORT_DIR / f"{stamp}.md"
-        path.write_text(_render(results, enc_path, emoji_path, stamp), encoding="utf-8")
-        json_path = REPORT_DIR / f"{stamp}.json"
-        json_path.write_text(
+        out_dir = REPORT_DIR / f"{stamp}-{model_slug(enc_meta)}"
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        (out_dir / "report.md").write_text(
+            _render(results, enc_path, emoji_path, stamp, enc_meta, probe_meta),
+            encoding="utf-8",
+        )
+        (out_dir / "report.json").write_text(
             json.dumps(
                 {
                     "stamp": stamp,
@@ -178,8 +192,26 @@ def test_emoji(
             ),
             encoding="utf-8",
         )
-        print(f"wrote {path}")
-        print(f"wrote {json_path}")
+
+        warnings = []
+        if enc_meta and emoji_meta and enc_meta.get("sha") != emoji_meta.get("sha"):
+            warnings.append(f"{enc_path} and {emoji_path} were saved from different commits")
+        doc = {
+            "report_type": "test-emoji",
+            "generated": probe_meta["generated"],
+            "probe_commit": probe_meta["sha"],
+            "probe_dirty": probe_meta["dirty"],
+        }
+        if warnings:
+            doc["warnings"] = warnings
+        doc["models"] = {enc_path: enc_meta, emoji_path: emoji_meta}
+        doc["summary"] = {
+            **{f"acc@{k}": acc[k] for k in TOP_K},
+            "mrr": mrr,
+            "n": scored_n,
+        }
+        write_meta_yml(out_dir, doc)
+        print(f"wrote {out_dir}/")
 
     summary = "  ".join(f"acc@{k}={acc[k]:.0%}" for k in TOP_K)
     print(f"emoji test  {summary}  mrr={mrr:.3f}  (n={scored_n})")
