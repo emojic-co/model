@@ -110,9 +110,7 @@ def _group_table(header: str, groups: list[tuple[str, list[dict]]]) -> list[str]
     return lines
 
 
-def _render(
-    results: list[dict], enc_path: str, emoji_path: str, stamp: str
-) -> str:
+def _render(results: list[dict], enc_path: str, emoji_path: str, stamp: str) -> str:
     scored_n, acc, mrr = _acc(results)
     lines = [
         f"# Emoji test - {stamp}",

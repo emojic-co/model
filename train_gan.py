@@ -22,12 +22,14 @@ from data import (
 )
 from export_onnx import export
 from model import TextEncoder
-from runmeta import require_clean_tree, save_pt
+from runmeta import load_pt, require_clean_tree, save_pt
 from train import LitColorGAN
 
 
 def load(mod: torch.nn.Module, path: str) -> torch.nn.Module:
-    mod.load_state_dict(torch.load(path, map_location="cpu"))
+    sd, meta = load_pt(path)
+    mod.load_state_dict(sd)
+    mod._pt_meta = meta
     return mod
 
 

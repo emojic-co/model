@@ -25,7 +25,9 @@ def rgb_to_hex(rgb: torch.Tensor) -> list[str]:
 
 
 def _load(mod: torch.nn.Module, path: str) -> torch.nn.Module:
-    mod.load_state_dict(torch.load(path, map_location="cpu"))
+    sd, meta = load_pt(path)
+    mod.load_state_dict(sd)
+    mod._pt_meta = meta
     mod.eval()
     return mod
 
