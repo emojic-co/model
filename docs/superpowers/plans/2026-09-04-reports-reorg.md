@@ -15,7 +15,7 @@
 - **No comments or docstrings** in Python source. Keep `# type: ignore` / `# noqa` / shebangs only.
 - **Package management is `uv` only.** Never `pip install`. Add deps with `uv add`.
 - **`torch` is pinned to the PyTorch CPU wheel index** (`[tool.uv.sources]` in `pyproject.toml`) — do not disturb that config when running `uv add`.
-- **Lint/format gate before every commit:** `uv run ruff check .` and `uv run ruff format --check .` must pass.
+- **Lint/format gate before every commit:** `uv run ruff check <files you touched>` and `uv run ruff format --check <files you touched>` must pass. The repo baseline does NOT pass `ruff format --check .` repo-wide, so scope the gate to the files your task changed. If a file you touch is not already ruff-formatted, run `uv run ruff format <that file>` — the resulting whole-file reformat hunk is expected; note it in your report as "pre-existing reformat" separate from your task change. Never hand-format.
 - **No Python test suite exists.** Follow the repo pattern: script-style checks (`test_emoji.py`, `test_color.py` are plain scripts with `sys.exit`). Unit checks for `runmeta.py` go in a plain-assert script `test_runmeta.py` run with `uv run python test_runmeta.py`, not pytest.
 - **`train.jsonl` / `eval.jsonl` / `labels.json` are gitignored** and rebuilt from `data.jsonl` by `bun run regen`. Run `bun run regen` before anything that imports `config` on a fresh checkout.
 - **The model stack stays at repo root:** `config.py`, `data.py`, `model.py`, `train.py`, `train_gan.py`, `train-modal.py`, `run.py`, `export_onnx.py`, `test_emoji.py`, `test_color.py`, `loop_emoji.py`. `runmeta.py` joins them.
