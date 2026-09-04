@@ -23,7 +23,7 @@ from data import (
     text_to_tensor,
 )
 from model import COLOR_SCALE, ColorGen, TextEncoder, rgb_to_oklab
-from runmeta import load_pt
+from runmeta import load_pt, model_slug, run_meta, stamp_lines, write_meta_yml
 
 REPORT_DIR = Path("report/test-color")
 SHOW_EX = 12
@@ -92,7 +92,9 @@ def _keyword_groups(train_path: str) -> dict[str, list]:
     return out
 
 
-def _evaluate(enc_path: str, gen_path: str, groups: dict[str, list]) -> list[dict]:
+def _evaluate(
+    enc_path: str, gen_path: str, groups: dict[str, list]
+) -> tuple[list[dict], dict]:
     enc = _load(TextEncoder(), enc_path)
     gen = _load(ColorGen(), gen_path)
 
@@ -144,7 +146,7 @@ def _evaluate(enc_path: str, gen_path: str, groups: dict[str, list]) -> list[dic
                 }
             )
     out.sort(key=lambda c: -c["gap"])
-    return out
+    return out, {enc_path: enc._pt_meta, gen_path: gen._pt_meta}
 
 
 def _swatch(hx: str, label: str = "") -> str:
@@ -170,7 +172,7 @@ def _render_html(groups: list[dict], summary: dict, meta: dict) -> str:
         "h3{margin:1.4rem 0 .3rem}",
         "</style>",
         f"<h1>Color test &mdash; {meta['stamp']}</h1>",
-        f"<p>model: <code>{meta['enc']}</code> + <code>{meta['gen']}</code><br>",
+        "<p>" + "<br>".join(html.escape(ln) for ln in meta["stamp_lines"]) + "<br>",
         f"keywords: {summary['n_keywords']} &nbsp; texts: {summary['n_texts']} &nbsp; ",
         f"{ENERGY_Z_SAMPLES} fixed noise vectors/text<br>",
         f"macro energy gen&harr;real: {summary['energy_gen']:.3f} &nbsp; ",
@@ -213,8 +215,11 @@ def test_color(
     train_path: str = TRAIN_PATH,
     write_report: bool = True,
 ) -> dict:
-    groups = _evaluate(enc_path, gen_path, _keyword_groups(train_path))
+    groups, metas = _evaluate(enc_path, gen_path, _keyword_groups(train_path))
+    probe_meta = run_meta()
     stamp = datetime.now().strftime("%y-%m-%d-%H-%M")
+    enc_meta = metas.get(enc_path)
+    gen_meta = metas.get(gen_path)
 
     n = len(groups)
     summary = {
@@ -224,17 +229,25 @@ def test_color(
         "energy_ref": (sum(c["energy_ref"] for c in groups) / n if n else 0.0),
         "gap": (sum(c["gap"] for c in groups) / n if n else 0.0),
     }
-    meta = {"stamp": stamp, "enc": enc_path, "gen": gen_path}
+    meta = {
+        "stamp": stamp,
+        "enc": enc_path,
+        "gen": gen_path,
+        "stamp_lines": stamp_lines(enc_meta, enc_path, probe_meta),
+    }
 
     if write_report:
-        REPORT_DIR.mkdir(parents=True, exist_ok=True)
-        html_path = REPORT_DIR / f"{stamp}.html"
-        html_path.write_text(_render_html(groups, summary, meta), encoding="utf-8")
-        json_path = REPORT_DIR / f"{stamp}.json"
-        json_path.write_text(
+        out_dir = REPORT_DIR / f"{stamp}-{model_slug(enc_meta)}"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        (out_dir / "report.html").write_text(
+            _render_html(groups, summary, meta), encoding="utf-8"
+        )
+        (out_dir / "report.json").write_text(
             json.dumps(
                 {
-                    **meta,
+                    "stamp": stamp,
+                    "enc": enc_path,
+                    "gen": gen_path,
                     "summary": summary,
                     "keywords": [
                         {
@@ -252,8 +265,21 @@ def test_color(
             ),
             encoding="utf-8",
         )
-        print(f"wrote {html_path}")
-        print(f"wrote {json_path}")
+        warnings = []
+        if enc_meta and gen_meta and enc_meta.get("sha") != gen_meta.get("sha"):
+            warnings.append(f"{enc_path} and {gen_path} were saved from different commits")
+        doc = {
+            "report_type": "test-color",
+            "generated": probe_meta["generated"],
+            "probe_commit": probe_meta["sha"],
+            "probe_dirty": probe_meta["dirty"],
+        }
+        if warnings:
+            doc["warnings"] = warnings
+        doc["models"] = {enc_path: enc_meta, gen_path: gen_meta}
+        doc["summary"] = summary
+        write_meta_yml(out_dir, doc)
+        print(f"wrote {out_dir}/")
 
     line = "  ".join(f"{c['keyword']}={c['gap']:+.3f}" for c in groups)
     print(
