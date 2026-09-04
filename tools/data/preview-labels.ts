@@ -1,4 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
+
+import { cac } from "cac"
+
 import { TOP_EMOJIS } from "./config.ts"
 import { esc, page, stamp } from "./preview-card.ts"
 import { STYLE_LINES, STYLE_SET } from "./styles.ts"
@@ -176,7 +179,14 @@ function emojiCell(emoji: string, i: number): string {
   )
 }
 
+const cli = cac("preview-labels")
+cli.usage("[options]")
+cli.help()
+
 if (import.meta.main) {
+  cli.parse(process.argv, { run: false })
+  if (cli.options.help) process.exit(0)
+
   const labels = JSON.parse(await readFile(LABELS, "utf8")) as Labels
   const styles = labels.styles.map(styleCell).join("\n")
   const emojis = labels.emojis.map(emojiCell).join("\n")

@@ -1,7 +1,7 @@
-import argparse
 import subprocess
-import sys
 from pathlib import Path
+
+import typer
 
 from test_emoji import _acc, _freq_groups, _length_groups, test_emoji
 
@@ -76,46 +76,52 @@ def _failure_detail(results: list[dict], target: float) -> None:
     )
 
 
-def main() -> int:
-    p = argparse.ArgumentParser()
-    p.add_argument("--iterations", type=int, default=5)
-    p.add_argument("--target", type=float, default=0.95)
-    p.add_argument("--rank", type=int, default=5)
-    p.add_argument("--cpu", type=int)
-    p.add_argument("--memory", type=int)
-    args = p.parse_args()
+_app = typer.Typer(
+    add_completion=False,
+    context_settings={"help_option_names": ["-h", "--help"]},
+)
 
+
+@_app.command()
+def main(
+    iterations: int = typer.Option(5, help="max train -> test -> upsample iterations"),
+    target: float = typer.Option(0.95, help="stop once emoji acc@5 reaches this"),
+    rank: int = typer.Option(5, help="upsample words ranked worse than this"),
+    cpu: int | None = typer.Option(None, help="Modal --cpu for the task stage"),
+    memory: int | None = typer.Option(None, help="Modal --memory in MiB for the task stage"),
+) -> None:
+    """Emoji train -> test -> upsample loop (Modal task stage, then test_emoji)."""
     from runmeta import require_clean_tree
 
     require_clean_tree()
 
     modal_cmd = ["uv", "run", "modal", "run", "train-modal.py::main"]
-    if args.cpu:
-        modal_cmd += ["--cpu", str(args.cpu)]
-    if args.memory:
-        modal_cmd += ["--memory", str(args.memory)]
+    if cpu:
+        modal_cmd += ["--cpu", str(cpu)]
+    if memory:
+        modal_cmd += ["--memory", str(memory)]
 
     history: list[float] = []
     last: dict | None = None
-    for i in range(1, args.iterations + 1):
-        print(f"\n===== iteration {i}/{args.iterations} =====", flush=True)
+    for i in range(1, iterations + 1):
+        print(f"\n===== iteration {i}/{iterations} =====", flush=True)
         _run(modal_cmd)
 
         last = test_emoji()
         acc5 = last["acc"][GOAL_K]
         history.append(acc5)
         print(
-            f"iteration {i}: acc@5={acc5:.3f} (target {args.target:.3f})",
+            f"iteration {i}: acc@5={acc5:.3f} (target {target:.3f})",
             flush=True,
         )
-        if acc5 >= args.target:
+        if acc5 >= target:
             print(f"\ntarget reached at iteration {i}", flush=True)
             break
-        if i == args.iterations:
+        if i == iterations:
             break
 
         before = _lines(DATA_PATH)
-        _run(["bun", "run", "tools/data/upsample-emoji-test.ts", "--rank", str(args.rank)])
+        _run(["bun", "run", "tools/data/upsample-emoji-test.ts", "--rank", str(rank)])
         added = _lines(DATA_PATH) - before
         print(f"upsample added {added} rows to {DATA_PATH}", flush=True)
         if added <= 0:
@@ -127,10 +133,10 @@ def main() -> int:
     print("\n===== summary =====", flush=True)
     for n, acc5 in enumerate(history, 1):
         print(f"  iter {n}: acc@5={acc5:.3f}", flush=True)
-    ok = bool(history) and history[-1] >= args.target
+    ok = bool(history) and history[-1] >= target
     final = history[-1] if history else 0.0
     print(
-        f"\n{'PASS' if ok else 'STOP'}: final acc@5={final:.3f} target={args.target:.3f}",
+        f"\n{'PASS' if ok else 'STOP'}: final acc@5={final:.3f} target={target:.3f}",
         flush=True,
     )
 
@@ -139,10 +145,10 @@ def main() -> int:
         _commit("loop_emoji: commit reports before color GAN")
         _run(["uv", "run", "python", "train_gan.py"])
     elif last is not None:
-        _failure_detail(last["results"], args.target)
+        _failure_detail(last["results"], target)
 
-    return 0 if ok else 1
+    raise typer.Exit(0 if ok else 1)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    _app()

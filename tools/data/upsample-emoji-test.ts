@@ -1,6 +1,7 @@
 import { readFile, readdir } from "node:fs/promises"
 
 import { generateText } from "ai"
+import { cac } from "cac"
 import cliProgress from "cli-progress"
 import PQueue from "p-queue"
 
@@ -39,20 +40,6 @@ const VOICES = [
 
 function pickVoice(): string {
   return VOICES[Math.floor(Math.random() * VOICES.length)]
-}
-
-function argInt(flag: string): number | undefined {
-  const i = process.argv.indexOf(flag)
-  if (i < 0 || i + 1 >= process.argv.length) return undefined
-  const n = Number(process.argv[i + 1])
-  return Number.isFinite(n) ? n : undefined
-}
-
-function argStr(flag: string): string | undefined {
-  const i = process.argv.indexOf(flag)
-  if (i < 0 || i + 1 >= process.argv.length) return undefined
-  const v = process.argv[i + 1].trim()
-  return v || undefined
 }
 
 type Word = {
@@ -119,10 +106,21 @@ async function genBatch(
     .filter((l) => l && !l.startsWith("```"))
 }
 
+const cli = cac("upsample-emoji-test")
+cli.usage("[options]")
+cli
+  .option("--report <path>", "test-emoji report.json to read (default: latest)")
+  .option("--rank <n>", `treat a word as failed if its emoji ranks worse than this (default ${FAIL_RANK})`)
+  .option("--per <n>", `texts to generate per failed word (default ${TEXTS_PER_WORD})`)
+cli.help()
+
 if (import.meta.main) {
-  const reportPath = argStr("--report") ?? (await latestReport())
-  const maxRank = argInt("--rank") ?? FAIL_RANK
-  const per = argInt("--per") ?? TEXTS_PER_WORD
+  const { options } = cli.parse(process.argv, { run: false })
+  if (options.help) process.exit(0)
+  const reportPath =
+    (options.report ? String(options.report).trim() : "") || (await latestReport())
+  const maxRank = Number(options.rank ?? FAIL_RANK)
+  const per = Number(options.per ?? TEXTS_PER_WORD)
 
   const report = JSON.parse(await readFile(reportPath, "utf8")) as Report
   const targets = pickFailed(report.words, maxRank)

@@ -1,6 +1,13 @@
 import { writeFile } from "node:fs/promises"
 
+import { cac } from "cac"
 import data from "emojibase-data/en/data.json" with { type: "json" }
+
+const cli = cac("gen-emoji-groups")
+cli.usage("[options]")
+cli.help()
+cli.parse(process.argv, { run: false })
+if (cli.options.help) process.exit(0)
 
 const GROUP_NAMES = [
   "Smileys & Emotion",

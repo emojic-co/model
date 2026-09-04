@@ -1,3 +1,4 @@
+import typer
 from torch import nn
 
 from model import ColorDsc, ColorGen, EmojiHead, StyleHead, TextEncoder
@@ -34,5 +35,17 @@ def main() -> None:
     print(f"{'TOTAL':<24} {total:>10,}")
 
 
-if __name__ == "__main__":
+_app = typer.Typer(
+    add_completion=False,
+    context_settings={"help_option_names": ["-h", "--help"]},
+)
+
+
+@_app.command()
+def cli() -> None:
+    """Print per-module parameter counts for each model class."""
     main()
+
+
+if __name__ == "__main__":
+    _app()

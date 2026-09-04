@@ -101965,3 +101965,1075 @@
 {"text":"That germ ruined my pregame","emojis":"🦠 🏀","styles":["Irritated","Melancholy"],"bg":["#ead6c8","#d2b09e"],"fg":"#42251b"}
 {"text":"Hope this germ clears by Saturday","emojis":"🦠 📅","styles":["Hopeful"],"bg":["#d8e8dc","#b3d1bb"],"fg":"#193525"}
 {"text":"Did the germ hit our whole team?","emojis":"🦠 🏀 👥","styles":["Anxious"],"bg":["#d9d9e8","#b8b8d1"],"fg":"#24243d"}
+{"text":"Good morning, dear. Daffodils opened.","emojis":"🌼","styles":["Tender","Serene"],"bg":["#f4e7a1","#c8d88a"],"fg":"#24351f","color":"yellow"}
+{"text":"I baked a lemon cake for you.","emojis":"🍋 🍰","styles":["Tender","Earnest"],"bg":["#fff0a8","#e8c86a"],"fg":"#3b2918","color":"yellow"}
+{"text":"Did you see the canary outside?","emojis":"🐤","styles":["Deadpan"],"bg":["#c9e6ee","#9fc9d6"],"fg":"#18313a","color":"yellow"}
+{"text":"The porch is full of sunlight.","emojis":"☀️","styles":["Serene"],"bg":["#ffe7a3","#f6c978"],"fg":"#3b2b16","color":"yellow"}
+{"text":"Please bring home some bananas.","emojis":"🍌","styles":["Deadpan"],"bg":["#f5e6a0","#dccb72"],"fg":"#332b16","color":"yellow"}
+{"text":"My old raincoat finally fits again.","emojis":"🧥 🌧️","styles":["Serene","Hopeful"],"bg":["#b9cbd2","#8faab5"],"fg":"#1b2d35","color":"yellow"}
+{"text":"The corn at the market looks fresh.","emojis":"🌽","styles":["Deadpan"],"bg":["#dfe58c","#a8c36d"],"fg":"#25351b","color":"yellow"}
+{"text":"I found honey at the farm stand.","emojis":"🍯 🌾","styles":["Serene"],"bg":["#f1d58b","#d6aa5f"],"fg":"#382511","color":"yellow"}
+{"text":"A taxi splashed me downtown today.","emojis":"🚕 💦","styles":["Irritated"],"bg":["#b9c9d2","#8fa6b4"],"fg":"#18252d","color":"yellow"}
+{"text":"The marigolds need watering, dear.","emojis":"🌼 💧","styles":["Tender","Earnest"],"bg":["#f3c477","#b4c779"],"fg":"#26351c","color":"yellow"}
+{"text":"Sunrise woke me before the kettle.","emojis":"🌅 🫖","styles":["Serene"],"bg":["#f6d39a","#dcae78"],"fg":"#3b261b","color":"yellow"}
+{"text":"Are you free for tea and toast?","emojis":"🍵 🍞","styles":["Earnest","Tender"],"bg":["#f4dfb5","#d2a56d"],"fg":"#3a2618","color":"yellow"}
+{"text":"My butter dish slipped again.","emojis":"🧈","styles":["Irritated","Deadpan"],"bg":["#efe0a8","#c7b06d"],"fg":"#302817","color":"yellow"}
+{"text":"The daffodil bulbs are peeking up.","emojis":"🌱 🌼","styles":["Hopeful","Whimsical"],"bg":["#d9edc2","#9fcf9a"],"fg":"#17351f","color":"yellow"}
+{"text":"I miss our walks past the bakery.","emojis":"🚶 🥐","styles":["Wistful","Tender"],"bg":["#d8b8a9","#b58e88"],"fg":"#38252a","color":"yellow"}
+{"text":"That little chick followed me home.","emojis":"🐥 🏠","styles":["Playful","Tender"],"bg":["#cce8f2","#f4d27c"],"fg":"#24323a","color":"yellow"}
+{"text":"Pack a lantern for the cabin.","emojis":"🏮 🛖","styles":["Deadpan"],"bg":["#718397","#46586b"],"fg":"#fff4d2","color":"yellow"}
+{"text":"The afternoon feels cheerful here.","emojis":"☀️","styles":["Joyful"],"bg":["#f9df86","#f3b96d"],"fg":"#4a2c16","color":"yellow"}
+{"text":"I saved you a slice of custard pie.","emojis":"🥧","styles":["Tender"],"bg":["#f6ddb0","#eabf82"],"fg":"#4a2c1b","color":"yellow"}
+{"text":"Morning light hit the studio desk","emojis":"🌤️ 🖥️","styles":["Serene"],"bg":["#dcecf5","#b8d3e6"],"fg":"#203447","color":"orange"}
+{"text":"Sending the revised deck by noon","emojis":"📊","styles":["Determined","Earnest"],"bg":["#d5e3f0","#abc5dc"],"fg":"#172b3a","color":"orange"}
+{"text":"Can we move the call to three?","emojis":"📞","styles":["Deadpan"],"bg":["#dce6ef","#b9ccdc"],"fg":"#1d2d3a","color":"orange"}
+{"text":"The pumpkin soup saved my lunch","emojis":"🎃 🍲","styles":["Joyful"],"bg":["#f4d7a1","#eab477"],"fg":"#3b2114","color":"orange"}
+{"text":"Traffic cones block the client entrance","emojis":"🚧 🚪","styles":["Irritated","Tense"],"bg":["#e8c3a5","#d99a7c"],"fg":"#3a1c18","color":"orange"}
+{"text":"I found a fox near the trail","emojis":"🦊 🥾","styles":["Whimsical"],"bg":["#d8e5d1","#aac5a0"],"fg":"#1d3322","color":"orange"}
+{"text":"Autumn leaves covered my bike","emojis":"🍂 🚲","styles":["Wistful"],"bg":["#e6c49e","#c99b72"],"fg":"#352116","color":"orange"}
+{"text":"The marigolds survived the heat","emojis":"🌼 ☀️","styles":["Hopeful","Proud"],"bg":["#f2df9b","#e6c66f"],"fg":"#382b10","color":"orange"}
+{"text":"Sunset made the deadline feel kinder","emojis":"🌅 ⏰","styles":["Wistful","Serene"],"bg":["#d7b5b0","#a88ba5"],"fg":"#241b30","color":"orange"}
+{"text":"Please send the missing product photos","emojis":"📸","styles":["Earnest","Deadpan"],"bg":["#d8e2eb","#b6cad9"],"fg":"#192a37","color":"orange"}
+{"text":"My lamp is warming the whole room","emojis":"💡","styles":["Serene"],"bg":["#f1d9a6","#e8b976"],"fg":"#392511","color":"orange"}
+{"text":"I’ll invoice after final approval","emojis":"🧾","styles":["Deadpan"],"bg":["#d9e3ec","#b8c9d8"],"fg":"#172b3a","color":"orange"}
+{"text":"The kiln is glowing at the workshop","emojis":"🔥 🏺","styles":["Awed"],"bg":["#f0c58a","#c9794b"],"fg":"#321b18","color":"orange"}
+{"text":"That spiced cake was excellent","emojis":"🍰","styles":["Joyful"],"bg":["#f3d6a4","#e9b978"],"fg":"#402414","color":"orange"}
+{"text":"The tiger print looks too loud","emojis":"🐅","styles":["Irritated"],"bg":["#e6a34f","#c87532"],"fg":"#24150e","color":"orange"}
+{"text":"Rain is tapping on the skylight","emojis":"🌧️ 🪟","styles":["Serene","Whimsical"],"bg":["#b9cbd5","#8fa9b7"],"fg":"#172b3a","color":"orange"}
+{"text":"I’m stuck behind a harvest parade","emojis":"🚜 🎉","styles":["Irritated"],"bg":["#d4b77c","#b99559"],"fg":"#2b2115","color":"orange"}
+{"text":"The bakery sent a citrus tart","emojis":"🥧 🍊","styles":["Joyful"],"bg":["#f4c77e","#eaa45d"],"fg":"#3a2117","color":"orange"}
+{"text":"Could you review the homepage tonight?","emojis":"💻","styles":["Earnest","Tense"],"bg":["#c8d8e8","#9eb8d0"],"fg":"#17283a","color":"orange"}
+{"text":"Grabbing a cuppa, then the site","emojis":"☕ 💻","styles":["Deadpan"],"bg":["#d6c2a8","#b99d7d"],"fg":"#2b2118","color":"green"}
+{"text":"Rain's slowed the roof job again","emojis":"🌧️ 🏠","styles":["Irritated"],"bg":["#b9c8d2","#8fa5b5"],"fg":"#172630","color":"green"}
+{"text":"Can you shift those fern pots?","emojis":"🌿 🪴","styles":["Deadpan"],"bg":["#c9d8c0","#a9c09f"],"fg":"#203326","color":"green"}
+{"text":"Pipe run's clear by the hedge","emojis":"🔧 🌿","styles":["Deadpan"],"bg":["#c5d2c4","#a5b9a4"],"fg":"#1d2c25","color":"green"}
+{"text":"Found moss behind the old shed","emojis":"🌿 🏚️","styles":["Whimsical"],"bg":["#b7c7a8","#94aa87"],"fg":"#1d2a20","color":"green"}
+{"text":"Frog's claimed the drain cover","emojis":"🐸 🕳️","styles":["Playful","Whimsical"],"bg":["#b8c9a0","#91aa79"],"fg":"#1b2b1d","color":"green"}
+{"text":"Need more turf for the front","emojis":"🌱 🏡","styles":["Deadpan"],"bg":["#c8d6b7","#a8bf94"],"fg":"#20301f","color":"green"}
+{"text":"That ivy's into the gutter","emojis":"🌿 🏠","styles":["Irritated"],"bg":["#b8c8b2","#99b095"],"fg":"#1b2b22","color":"green"}
+{"text":"Compost delivery's here","emojis":"🚚 🌱","styles":["Deadpan"],"bg":["#c9d2b9","#aebd9b"],"fg":"#263022","color":"green"}
+{"text":"Sun through leaves looks spot-on","emojis":"☀️ 🍃","styles":["Awed","Serene"],"bg":["#dce5ae","#b8cf91"],"fg":"#26351f","color":"green"}
+{"text":"Will mulch round the new tree","emojis":"🌳 🌱","styles":["Deadpan"],"bg":["#cbbda1","#b29b78"],"fg":"#2b241b","color":"green"}
+{"text":"Snails beat us to the lettuce","emojis":"🐌 🥬","styles":["Playful","Whimsical"],"bg":["#d8e8b8","#a9c97f"],"fg":"#25351c","color":"green"}
+{"text":"Fence line meets the paddock","emojis":"🚧 🌾","styles":["Deadpan"],"bg":["#d9d0b8","#b8aa89"],"fg":"#2c2a20","color":"green"}
+{"text":"Bring boots; the lawn's soaked","emojis":"🥾 🌧️","styles":["Deadpan"],"bg":["#c8dfd7","#9ec7bb"],"fg":"#17332f","color":"green"}
+{"text":"Client wants a living roof","emojis":"🏠 🌿","styles":["Earnest","Hopeful"],"bg":["#d7e8c5","#afd09d"],"fg":"#20351f","color":"green"}
+{"text":"Badger's dug under the gate","emojis":"🦡 🕳️","styles":["Irritated","Playful"],"bg":["#d8c5aa","#b99e7b"],"fg":"#2d241c","color":"green"}
+{"text":"Tea break by the allotments?","emojis":"☕ 🌱","styles":["Serene"],"bg":["#ead9b5","#cfb98a"],"fg":"#3c2d1e","color":"green"}
+{"text":"Sprinkler's fixed, no leaks","emojis":"💧 🔧","styles":["Serene","Earnest"],"bg":["#c8e2ee","#9fc7d6"],"fg":"#16313c","color":"green"}
+{"text":"Those broad beans need tying","emojis":"🫘 🌱","styles":["Deadpan"],"bg":["#d5e7b8","#b4cf83"],"fg":"#263516","color":"green"}
+{"text":"Clouds cleared over the cricket pitch","emojis":"☁️ 🏏","styles":["Hopeful","Serene"],"bg":["#d2e8f2","#a8d0e6"],"fg":"#183044","color":"green"}
+{"text":"The lemon draft is ready.","emojis":"🍋 📝","styles":["Deadpan"],"bg":["#f4e2a7","#e7c86d"],"fg":"#3b2c0d","color":"yellow"}
+{"text":"Can you review the sunflower logo?","emojis":"🌻","styles":["Earnest"],"bg":["#f4d35e","#d8c45b"],"fg":"#26320f","color":"yellow"}
+{"text":"I’m chasing a canary-sized bug.","emojis":"🐛 🐤","styles":["Playful","Determined"],"bg":["#d8e58a","#b9cf78"],"fg":"#1d321b","color":"yellow"}
+{"text":"Lunch break: banana bread.","emojis":"🍌 🍞","styles":["Deadpan"],"bg":["#f2d59a","#dfb878"],"fg":"#3b2415","color":"yellow"}
+{"text":"The noon sun is wrecking my screen.","emojis":"☀️ 🖥️","styles":["Irritated"],"bg":["#f3d56b","#b9c9dc"],"fg":"#182633","color":"yellow"}
+{"text":"I’ll send the cornfield mockup tonight.","emojis":"🌽","styles":["Deadpan"],"bg":["#d4c56c","#a8b66a"],"fg":"#253219","color":"yellow"}
+{"text":"A bee interrupted my call.","emojis":"🐝 📞","styles":["Irritated"],"bg":["#e4c85b","#b8c36b"],"fg":"#252b16","color":"yellow"}
+{"text":"The daffodils beat my deadline.","emojis":"🌼 ⏰","styles":["Playful","Whimsical"],"bg":["#f1d56a","#c8c978"],"fg":"#293313","color":"yellow"}
+{"text":"Please check the honeyed headline.","emojis":"🍯 📰","styles":["Earnest"],"bg":["#e4bd65","#d6b17a"],"fg":"#352313","color":"yellow"}
+{"text":"The taxi outside is honking again.","emojis":"🚕 📣","styles":["Irritated"],"bg":["#d7c47a","#abb2a5"],"fg":"#202a2e","color":"yellow"}
+{"text":"The butter-soft launch went live.","emojis":"🧈 🚀","styles":["Joyful","Proud"],"bg":["#f4df9b","#d9b85f"],"fg":"#34230e","color":"yellow"}
+{"text":"Can we meet by the wheat mural?","emojis":"🌾 🖼️","styles":["Deadpan"],"bg":["#d8c58d","#b8a66f"],"fg":"#332a18","color":"yellow"}
+{"text":"My client loved the lemon icon.","emojis":"🍋","styles":["Joyful"],"bg":["#f5e89a","#d8c84b"],"fg":"#172b24","color":"yellow"}
+{"text":"A bee-themed invoice? Tempting.","emojis":"🐝 🧾","styles":["Playful","Whimsical"],"bg":["#f0c84b","#d99b32"],"fg":"#321c08","color":"yellow"}
+{"text":"I’m saving this for a sunny day.","emojis":"☀️","styles":["Hopeful"],"bg":["#a9d7ed","#6faed0"],"fg":"#123047","color":"yellow"}
+{"text":"The lantern keeps flickering here.","emojis":"🏮","styles":["Tense"],"bg":["#76543b","#4d5960"],"fg":"#fff0b8","color":"yellow"}
+{"text":"Banana pancakes, then revisions.","emojis":"🍌 🥞","styles":["Deadpan"],"bg":["#e4b96e","#d9c15c"],"fg":"#35230f","color":"yellow"}
+{"text":"That sunflower feedback helped.","emojis":"🌻","styles":["Earnest","Hopeful"],"bg":["#e2bd4e","#c4a54f"],"fg":"#20351f","color":"yellow"}
+{"text":"Traffic cones are on site.","emojis":"🚧","styles":["Deadpan"],"bg":["#aeb8bd","#82939d"],"fg":"#182832","color":"orange"}
+{"text":"Found a pumpkin by the gate.","emojis":"🎃","styles":["Deadpan"],"bg":["#f2c27b","#d98a4e"],"fg":"#3b2415","color":"orange"}
+{"text":"Sunset slowed the roof job.","emojis":"🌇 🏠","styles":["Deadpan"],"bg":["#f2a36f","#c96b5c"],"fg":"#291f2a","color":"orange"}
+{"text":"Bring the carrot cake, mate.","emojis":"🥕 🍰","styles":["Deadpan"],"bg":["#f3c67a","#e7a15b"],"fg":"#3a2418","color":"orange"}
+{"text":"A fox crossed by the van.","emojis":"🦊 🚐","styles":["Deadpan"],"bg":["#d98b55","#b9674b"],"fg":"#241d25","color":"orange"}
+{"text":"Monarchs near the scaffold.","emojis":"🦋 🏗️","styles":["Deadpan"],"bg":["#8fc5b2","#6fa59d"],"fg":"#162d35","color":"orange"}
+{"text":"Bonfire smoke over the lot.","emojis":"🔥 💨","styles":["Deadpan"],"bg":["#786052","#51464b"],"fg":"#fff1d2","color":"orange"}
+{"text":"Need cones for the driveway.","emojis":"🚧","styles":["Deadpan"],"bg":["#e8c56e","#d5a653"],"fg":"#302719","color":"orange"}
+{"text":"Autumn leaves block the drain.","emojis":"🍂 🚰","styles":["Deadpan"],"bg":["#c98d5a","#a96d4d"],"fg":"#2d211d","color":"orange"}
+{"text":"Marigolds crowd the front step.","emojis":"🌼","styles":["Deadpan"],"bg":["#e8c96f","#d6a958"],"fg":"#332719","color":"orange"}
+{"text":"Warm light hit the brickwork.","emojis":"☀️ 🧱","styles":["Serene"],"bg":["#f2c27b","#c98f61"],"fg":"#33251d","color":"orange"}
+{"text":"Client wants a pumpkin arch.","emojis":"🎃","styles":["Deadpan"],"bg":["#e8b36b","#c9824f"],"fg":"#332015","color":"orange"}
+{"text":"Rain cleared; sunset's out.","emojis":"🌅 🌧️","styles":["Hopeful","Serene"],"bg":["#f6b46d","#d98271"],"fg":"#3b2630","color":"orange"}
+{"text":"Check the flue after the fire.","emojis":"🔥","styles":["Earnest"],"bg":["#b9c4c7","#89979c"],"fg":"#1d292d","color":"orange"}
+{"text":"Foxes are back behind the shed.","emojis":"🦊","styles":["Whimsical"],"bg":["#d8c3a5","#9e8b75"],"fg":"#2b251f","color":"orange"}
+{"text":"Bring the lantern for loft work.","emojis":"🏮","styles":["Earnest"],"bg":["#b9a37e","#85745e"],"fg":"#211d18","color":"orange"}
+{"text":"Carrot soup at four?","emojis":"🥕 🍲","styles":["Deadpan"],"bg":["#e8c27b","#c99463"],"fg":"#33251a","color":"orange"}
+{"text":"The chimney caught the sunset.","emojis":"🌅 🏠","styles":["Awed"],"bg":["#e89b68","#b96763"],"fg":"#321f2b","color":"orange"}
+{"text":"Morning, the basil survived.","emojis":"🌿","styles":["Hopeful","Tender"],"bg":["#b7c98b","#7fa477"],"fg":"#1e3025","color":"green"}
+{"text":"Can we meet by the courtyard ivy?","emojis":"🌿","styles":["Serene"],"bg":["#b7cdb1","#83a78d"],"fg":"#1d3028","color":"green"}
+{"text":"The salad bar has avocados today.","emojis":"🥗 🥑","styles":["Deadpan"],"bg":["#dce8c8","#b8d39a"],"fg":"#20351d","color":"green"}
+{"text":"Please water the fern by noon.","emojis":"💧 🌿","styles":["Deadpan"],"bg":["#c9e2dc","#a8cdbd"],"fg":"#18352d","color":"green"}
+{"text":"Traffic crawled past the park trees.","emojis":"🚗 🌳","styles":["Irritated"],"bg":["#c7d0d2","#aab9b0"],"fg":"#202b31","color":"green"}
+{"text":"I filed the garden leave request.","emojis":"📄 🌿","styles":["Deadpan"],"bg":["#d8dfc5","#b9c79b"],"fg":"#26331e","color":"green"}
+{"text":"That frog chorus is loud today.","emojis":"🐸 🔊","styles":["Irritated"],"bg":["#c9dda8","#a8c47d"],"fg":"#20351c","color":"green"}
+{"text":"Lunch at the cucumber place?","emojis":"🥒 🍽️","styles":["Playful"],"bg":["#d9e7b4","#b8d383"],"fg":"#26351a","color":"green"}
+{"text":"The rooftop herbs need trimming.","emojis":"🌿 ✂️","styles":["Deadpan"],"bg":["#c5ddbd","#9fc39b"],"fg":"#1e3522","color":"green"}
+{"text":"Clouds cleared over the golf course.","emojis":"🌤️ ⛳","styles":["Serene"],"bg":["#c7e2ed","#a8d0df"],"fg":"#193247","color":"green"}
+{"text":"I brought pesto sandwiches.","emojis":"🥪 🌿","styles":["Deadpan"],"bg":["#e2d8b2","#c7c18d"],"fg":"#302817","color":"green"}
+{"text":"The exit sign flickered again.","emojis":"🚪 💡","styles":["Irritated"],"bg":["#d8c3bd","#bda29e"],"fg":"#321d20","color":"green"}
+{"text":"Need a break under the oak tree.","emojis":"🌳","styles":["Serene"],"bg":["#b8c9a8","#8fae8a"],"fg":"#1d3323","color":"green"}
+{"text":"The moss on the steps is slippery.","emojis":"🌿","styles":["Deadpan"],"bg":["#aeb9a0","#899782"],"fg":"#1d2920","color":"green"}
+{"text":"Rain on the leaves is calming.","emojis":"🌧️ 🍃","styles":["Serene"],"bg":["#a8c5c3","#7fa8aa"],"fg":"#19363a","color":"green"}
+{"text":"Who moved the succulent from reception?","emojis":"🪴","styles":["Irritated"],"bg":["#c5d0ad","#a8b98d"],"fg":"#27331d","color":"green"}
+{"text":"The recycling bin is overflowing.","emojis":"♻️ 🗑️","styles":["Irritated"],"bg":["#b6c2b2","#91a79a"],"fg":"#1d2b25","color":"green"}
+{"text":"A parrot landed by loading bay.","emojis":"🦜","styles":["Deadpan"],"bg":["#8fc4bd","#65a9a5"],"fg":"#123331","color":"green"}
+{"text":"Let's walk through the botanical gardens.","emojis":"🚶 🌿","styles":["Hopeful","Serene"],"bg":["#b5d0a1","#8eb684"],"fg":"#20351e","color":"green"}
+{"text":"My tea tastes like lemongrass today.","emojis":"🍵 🌿","styles":["Serene"],"bg":["#d2d6a2","#b6c486"],"fg":"#303719","color":"green"}
+{"text":"Pumpkin pie is cooling by my window.","emojis":"🥧 🎃 🪟","styles":["Tender","Serene"],"bg":["#e1b27c","#d49862"],"fg":"#382315","color":"orange"}
+{"text":"Did your cat chase that fox again?","emojis":"🐈 🦊","styles":["Playful"],"bg":["#e1c29f","#d5a57f"],"fg":"#382519","color":"orange"}
+{"text":"Sunset lit the whole porch tonight.","emojis":"🌅 🏡","styles":["Serene"],"bg":["#e8a06b","#8f6b83"],"fg":"#241d2b","color":"orange"}
+{"text":"Can I borrow two carrots for soup?","emojis":"🥕 🍲","styles":["Earnest"],"bg":["#f0c27b","#d99a58"],"fg":"#352113","color":"orange"}
+{"text":"Marigolds are blooming by the fence.","emojis":"🌼 🌿","styles":["Serene"],"bg":["#d8c76a","#8eaa72"],"fg":"#213522","color":"orange"}
+{"text":"The traffic cone moved into my driveway.","emojis":"🚧 🏠","styles":["Deadpan"],"bg":["#e39a45","#aeb8bd"],"fg":"#202b31","color":"orange"}
+{"text":"Campfire smoke is drifting your way.","emojis":"🔥 💨","styles":["Deadpan"],"bg":["#b87855","#9a9690"],"fg":"#281d1b","color":"orange"}
+{"text":"That monarch butterfly found your basil.","emojis":"🦋 🌿","styles":["Whimsical"],"bg":["#8eb8d0","#91aa72"],"fg":"#172b35","color":"orange"}
+{"text":"Fresh cheddar is on my doorstep for you.","emojis":"🧀 🚪","styles":["Tender","Earnest"],"bg":["#e8c75e","#b4a06a"],"fg":"#302515","color":"orange"}
+{"text":"Are you joining the block barbecue?","emojis":"🍔 🔥","styles":["Deadpan"],"bg":["#d99b62","#b86f4f"],"fg":"#301d1b","color":"orange"}
+{"text":"Maple leaves are clogging the drain.","emojis":"🍁 🚰","styles":["Irritated"],"bg":["#c47a58","#9c9c91"],"fg":"#252423","color":"orange"}
+{"text":"Please bring in the pumpkins before rain.","emojis":"🎃 🌧️","styles":["Tense","Earnest"],"bg":["#d98a4d","#8297aa"],"fg":"#1e2930","color":"orange"}
+{"text":"Your lantern is shining through the hedge.","emojis":"🏮 🌿","styles":["Whimsical"],"bg":["#48624d","#263b32"],"fg":"#fff1b8","color":"orange"}
+{"text":"I saw a fox near the recycling bins.","emojis":"🦊 ♻️","styles":["Deadpan"],"bg":["#9ba79c","#707c73"],"fg":"#18231d","color":"orange"}
+{"text":"The basketball rolled under my car.","emojis":"🏀 🚗","styles":["Deadpan"],"bg":["#d58a45","#9aa7b2"],"fg":"#18222b","color":"orange"}
+{"text":"Carrot muffins are ready if you want one.","emojis":"🧁 🥕","styles":["Tender"],"bg":["#f4d6a0","#e9ad62"],"fg":"#4a2414","color":"orange"}
+{"text":"Warm toast smells amazing over here.","emojis":"🍞 ✨","styles":["Joyful"],"bg":["#f6d58b","#d99a45"],"fg":"#3b2412","color":"orange"}
+{"text":"Did the sunrise wake you too?","emojis":"🌅","styles":["Serene"],"bg":["#f6c984","#e99568"],"fg":"#3b2140","color":"orange"}
+{"text":"The new roadwork signs are everywhere.","emojis":"🚧","styles":["Deadpan"],"bg":["#d9c56a","#9da5a7"],"fg":"#283136","color":"orange"}
+{"text":"Fireflies are out by the back steps.","emojis":"✨","styles":["Whimsical"],"bg":["#304a4d","#1c2f43"],"fg":"#f3e58a","color":"orange"}
+{"text":"The roses opened overnight","emojis":"🌹","styles":["Whimsical"],"bg":["#e3a1a0","#c86e73"],"fg":"#3a1f2a","color":"red"}
+{"text":"Can you grab tomato soup?","emojis":"🍅 🍲","styles":["Deadpan"],"bg":["#d99a82","#bd6b5f"],"fg":"#351b1b","color":"red"}
+{"text":"The stoplight held us forever","emojis":"🚦","styles":["Irritated"],"bg":["#e7c2a0","#c98d78"],"fg":"#35201d","color":"red"}
+{"text":"I saw a fox by the trail","emojis":"🦊 🌲","styles":["Deadpan"],"bg":["#b8c9a7","#78906f"],"fg":"#1d3025","color":"red"}
+{"text":"Poppies are blooming again","emojis":"🌺","styles":["Joyful","Hopeful"],"bg":["#f3b0a8","#d97872"],"fg":"#421f29","color":"red"}
+{"text":"My nose is sunburned","emojis":"☀️","styles":["Deadpan"],"bg":["#f5c3a4","#e8957c"],"fg":"#44231f","color":"red"}
+{"text":"Let's do lobster rolls Friday","emojis":"🦞 🥪","styles":["Excited","Joyful"],"bg":["#b8d8e5","#8db8cb"],"fg":"#173044","color":"red"}
+{"text":"The fireplace is crackling","emojis":"🔥","styles":["Serene"],"bg":["#f3c28f","#d98b55"],"fg":"#3a1f18","color":"red"}
+{"text":"That chili was brutal","emojis":"🌶️","styles":["Irritated"],"bg":["#f2b08a","#d96a4c"],"fg":"#421b20","color":"red"}
+{"text":"A cardinal hit the feeder","emojis":"🐦","styles":["Startled"],"bg":["#c9d9df","#a5b8bf"],"fg":"#1b2d35","color":"red"}
+{"text":"Bring strawberries for brunch","emojis":"🍓 🍳","styles":["Joyful"],"bg":["#f4c3c0","#e8a1a0"],"fg":"#40202a","color":"red"}
+{"text":"The sky looked like wildfire","emojis":"🌅 🔥","styles":["Awed"],"bg":["#efaa69","#9d6a91"],"fg":"#211f38","color":"red"}
+{"text":"I found lipstick on my mug","emojis":"💄 ☕","styles":["Playful"],"bg":["#f3d6df","#d9b5c2"],"fg":"#4a2030","color":"red"}
+{"text":"The fire alarm blinked all night","emojis":"🚨 🌙","styles":["Anxious","Irritated"],"bg":["#26334f","#182238"],"fg":"#f5e9b8","color":"red"}
+{"text":"Sirens woke me at 3 a.m.","emojis":"🚨 🌙","styles":["Startled","Tense"],"bg":["#253b63","#152746"],"fg":"#f3e6c3","color":"red"}
+{"text":"He left a heart on the receipt","emojis":"❤️ 🧾","styles":["Tender"],"bg":["#f1d5d0","#dfb2ae"],"fg":"#541d2a","color":"red"}
+{"text":"The grill is finally hot","emojis":"🔥","styles":["Joyful","Hopeful"],"bg":["#f2c58d","#df9b63"],"fg":"#442516","color":"red"}
+{"text":"Pack gauze for the hike","emojis":"🩹 🥾","styles":["Deadpan"],"bg":["#d8e1d1","#b7c9b5"],"fg":"#20352b","color":"red"}
+{"text":"Autumn leaves cover the steps","emojis":"🍂 🪜","styles":["Wistful"],"bg":["#d9ae78","#bd895e"],"fg":"#30251d","color":"red"}
+{"text":"My cheeks are windburned","emojis":"🥶","styles":["Irritated"],"bg":["#d8b4b0","#b8c8d4"],"fg":"#24303b","color":"red"}
+{"text":"I watered the basil","emojis":"🌿 💧","styles":["Tender"],"bg":["#c9dfb4","#9fc38f"],"fg":"#203622","color":"green"}
+{"text":"Did you feed the turtle?","emojis":"🐢","styles":["Tender"],"bg":["#c8d8c0","#a8c3a0"],"fg":"#233522","color":"green"}
+{"text":"The fern needs a new pot.","emojis":"🪴","styles":["Deadpan"],"bg":["#dcebd2","#b8d3a8"],"fg":"#1d351f","color":"green"}
+{"text":"Meet me by the old oak.","emojis":"🌳","styles":["Deadpan"],"bg":["#d8e4c5","#b8c99b"],"fg":"#26351d","color":"green"}
+{"text":"I found peas in the freezer.","emojis":"🫛 🧊","styles":["Deadpan"],"bg":["#d9eee0","#b9d7d2"],"fg":"#193530","color":"green"}
+{"text":"Rain made the park smell earthy.","emojis":"🌧️ 🌳","styles":["Serene"],"bg":["#cbdce5","#a9c3c9"],"fg":"#1c3038","color":"green"}
+{"text":"Can you grab cucumbers?","emojis":"🥒","styles":["Deadpan"],"bg":["#e3efc9","#c5dca2"],"fg":"#25351b","color":"green"}
+{"text":"The ivy swallowed the fence.","emojis":"🌿","styles":["Whimsical"],"bg":["#d5e4c5","#aeca9c"],"fg":"#1f351f","color":"green"}
+{"text":"Frogs are loud tonight.","emojis":"🐸 🌙","styles":["Irritated"],"bg":["#b8d1b0","#8fac91"],"fg":"#18291d","color":"green"}
+{"text":"I’m taking the trail through pines.","emojis":"🥾 🌲","styles":["Serene"],"bg":["#d7e2c7","#b5c8a5"],"fg":"#223322","color":"green"}
+{"text":"Your avocado is finally ripe.","emojis":"🥑","styles":["Hopeful"],"bg":["#e1edc4","#c4d99d"],"fg":"#25341d","color":"green"}
+{"text":"The garden hose is leaking again.","emojis":"💧 🌿","styles":["Irritated"],"bg":["#c9dfdf","#a7c8c3"],"fg":"#183331","color":"green"}
+{"text":"Want to picnic near the pond?","emojis":"🧺 🌿","styles":["Hopeful"],"bg":["#b7d7c0","#8fc0b0"],"fg":"#173b3a","color":"green"}
+{"text":"I left your bike by the hedge.","emojis":"🚲 🌿","styles":["Deadpan"],"bg":["#d9e2cf","#b4c99d"],"fg":"#22351f","color":"green"}
+{"text":"That wall is covered in moss.","emojis":"🧱 🌿","styles":["Deadpan"],"bg":["#b8c9a5","#8da67c"],"fg":"#18251a","color":"green"}
+{"text":"The cricket chorus woke me up.","emojis":"🦗 😴","styles":["Irritated"],"bg":["#263b58","#485d78"],"fg":"#f4f1d8","color":"green"}
+{"text":"I packed lettuce for lunch.","emojis":"🥬 🍱","styles":["Deadpan"],"bg":["#d8e6b0","#b4cf83"],"fg":"#243719","color":"green"}
+{"text":"Clouds cleared over the field.","emojis":"🌤️ 🌾","styles":["Serene","Hopeful"],"bg":["#cce6f2","#a8c9d7"],"fg":"#183247","color":"green"}
+{"text":"The parakeet escaped again.","emojis":"🦜","styles":["Anxious"],"bg":["#c4d6e8","#9fb6cf"],"fg":"#18283a","color":"green"}
+{"text":"Don’t forget the plant food.","emojis":"🪴","styles":["Deadpan"],"bg":["#c7ddb8","#9bbb8d"],"fg":"#20351f","color":"green"}
+{"text":"Can you grab lemons for the stand?","emojis":"🍋 🛍️","styles":["Deadpan"],"bg":["#f3e2a1","#e7c86d"],"fg":"#3c3210","color":"yellow"}
+{"text":"Sun's out; patio meeting at noon.","emojis":"☀️ 🪑","styles":["Serene"],"bg":["#f2d49b","#e8b978"],"fg":"#3d2915","color":"yellow"}
+{"text":"The daffodils finally opened.","emojis":"🌼","styles":["Hopeful"],"bg":["#dcecc2","#b8d98b"],"fg":"#243517","color":"yellow"}
+{"text":"Taxi's waiting by the loading dock.","emojis":"🚕","styles":["Deadpan"],"bg":["#d8d6cc","#b8b6ad"],"fg":"#252521","color":"yellow"}
+{"text":"Coffee run: honey in yours?","emojis":"☕ 🍯","styles":["Tender"],"bg":["#e7c7a3","#c99b6d"],"fg":"#332014","color":"yellow"}
+{"text":"That canary has not stopped singing.","emojis":"🐤 🎶","styles":["Joyful"],"bg":["#f7e79a","#e8c95b"],"fg":"#302800","color":"yellow"}
+{"text":"Please move the corn samples inside.","emojis":"🌽","styles":["Earnest"],"bg":["#d8e2b0","#b8cc7b"],"fg":"#263117","color":"yellow"}
+{"text":"Banana bread is in the break room.","emojis":"🍌 🍞","styles":["Deadpan"],"bg":["#eed59a","#d6ae62"],"fg":"#332611","color":"yellow"}
+{"text":"Sunflower seeds arrived early.","emojis":"🌻","styles":["Deadpan"],"bg":["#f0df9e","#d8bd63"],"fg":"#302707","color":"yellow"}
+{"text":"Butter is melting on the catering table.","emojis":"🧈","styles":["Tense"],"bg":["#f3e3a7","#dfc879"],"fg":"#332b0d","color":"yellow"}
+{"text":"Forecast says clear skies all day.","emojis":"☀️","styles":["Serene"],"bg":["#b9dcf2","#8fc2e1"],"fg":"#123047","color":"yellow"}
+{"text":"Someone left a pineapple at reception.","emojis":"🍍","styles":["Whimsical"],"bg":["#f0d59b","#d8b86b"],"fg":"#33250c","color":"yellow"}
+{"text":"These wheat crackers taste great.","emojis":"🌾 🍘","styles":["Joyful"],"bg":["#f3dfae","#d8b879"],"fg":"#3b2814","color":"yellow"}
+{"text":"Can we order custard after lunch?","emojis":"🍮","styles":["Deadpan"],"bg":["#f5e7b2","#dfc879"],"fg":"#3b2a16","color":"yellow"}
+{"text":"That bee keeps circling the window.","emojis":"🐝 🪟","styles":["Tense"],"bg":["#c5d9c1","#9fbfba"],"fg":"#17313a","color":"yellow"}
+{"text":"Daybreak delivery is at seven.","emojis":"🚚 ⏰","styles":["Deadpan"],"bg":["#d5e1eb","#adc2d3"],"fg":"#1d3040","color":"yellow"}
+{"text":"Bring the dandelion sketch to review.","emojis":"🌼 ✏️","styles":["Deadpan"],"bg":["#e5e8b4","#c5d18b"],"fg":"#27351d","color":"yellow"}
+{"text":"Sunlight floods the conference room.","emojis":"☀️","styles":["Serene"],"bg":["#f8e6ae","#e8bd72"],"fg":"#3b2a16","color":"yellow"}
+{"text":"Candlelight made the outage cozy.","emojis":"🕯️","styles":["Serene"],"bg":["#4a3826","#8b6335"],"fg":"#fff4d6","color":"yellow"}
+{"text":"The lemon tart saved this meeting.","emojis":"🍋 🥧","styles":["Joyful"],"bg":["#f6df7c","#e9a94d"],"fg":"#3b2814","color":"yellow"}
+{"text":"Sending the pumpkin draft by noon.","emojis":"🎃 📝","styles":["Deadpan"],"bg":["#e8b16e","#c8783d"],"fg":"#321d16","color":"orange"}
+{"text":"Could we meet by the marigold stall?","emojis":"🌼","styles":["Deadpan"],"bg":["#f2d477","#d9ad4b"],"fg":"#29351d","color":"orange"}
+{"text":"Sunset made the backlog feel lighter.","emojis":"🌇","styles":["Serene","Hopeful"],"bg":["#f3c58b","#d98f78"],"fg":"#342238","color":"orange"}
+{"text":"I found a fox in the header.","emojis":"🦊","styles":["Whimsical"],"bg":["#f0b36c","#c9784f"],"fg":"#271d26","color":"orange"}
+{"text":"Carrot cake first, then invoices.","emojis":"🍰 🥕 🧾","styles":["Deadpan"],"bg":["#f1d29a","#dca66c"],"fg":"#35251c","color":"orange"}
+{"text":"The client wants a tiger on the cover.","emojis":"🐅 📖","styles":["Deadpan"],"bg":["#e9a04f","#c9783f"],"fg":"#2b1b18","color":"orange"}
+{"text":"Rain postponed my walk through autumn leaves.","emojis":"🌧️ 🍂 🚶","styles":["Wistful"],"bg":["#9daab3","#7d807d"],"fg":"#1d2930","color":"orange"}
+{"text":"Do you still need the carrot pattern?","emojis":"🥕","styles":["Deadpan"],"bg":["#b9c878","#8fa95d"],"fg":"#24321e","color":"orange"}
+{"text":"Late sunlight suits this mockup perfectly.","emojis":"🌇","styles":["Serene","Joyful"],"bg":["#f2c46f","#c99a8d"],"fg":"#30213a","color":"orange"}
+{"text":"The traffic cone blocked my delivery.","emojis":"🚧 📦","styles":["Irritated"],"bg":["#e6a34f","#c9794e"],"fg":"#291d22","color":"orange"}
+{"text":"That papaya smoothie fixed my afternoon.","emojis":"🥭 🥤","styles":["Joyful","Serene"],"bg":["#f3b36b","#e78662"],"fg":"#35201d","color":"orange"}
+{"text":"The fox logo feels too playful here.","emojis":"🦊","styles":["Irritated"],"bg":["#f3d2a2","#d99b67"],"fg":"#2a1b16","color":"orange"}
+{"text":"Can we review this by dusk?","emojis":"🌆","styles":["Deadpan"],"bg":["#c5b9d5","#8c88ae"],"fg":"#1e2038","color":"orange"}
+{"text":"My marigolds survived the heatwave.","emojis":"🌼 ☀️","styles":["Hopeful","Proud"],"bg":["#f7d36a","#e9a83e"],"fg":"#3a2410","color":"orange"}
+{"text":"I’m stuck behind a line of road crews.","emojis":"🚧 🚗","styles":["Irritated","Tense"],"bg":["#c8d0d3","#9daab0"],"fg":"#18252b","color":"orange"}
+{"text":"The harvest market is packed today.","emojis":"🌾 🧺","styles":["Joyful"],"bg":["#e6c98b","#c39a5d"],"fg":"#2b2114","color":"orange"}
+{"text":"I’ll send the revised file after lunch.","emojis":"📄","styles":["Deadpan"],"bg":["#d7e3ed","#b4c9d9"],"fg":"#182936","color":"orange"}
+{"text":"Your brief feels like a warm hearth.","emojis":"🔥 🏠","styles":["Tender"],"bg":["#e7b37a","#bd704f"],"fg":"#301c18","color":"orange"}
+{"text":"I’m planning a pumpkin-spice break.","emojis":"🎃 ☕","styles":["Joyful","Playful"],"bg":["#f3c08a","#d9854f"],"fg":"#332018","color":"orange"}
+{"text":"Morning coffee by the basil","emojis":"☕ 🌿","styles":["Serene"],"bg":["#dce5c7","#a9c28e"],"fg":"#20301d","color":"green"}
+{"text":"Can we meet by the cricket pitch?","emojis":"🏏","styles":["Deadpan"],"bg":["#b8d3a0","#7eae76"],"fg":"#142617","color":"green"}
+{"text":"The succulents need watering","emojis":"🌵 💧","styles":["Deadpan"],"bg":["#d8e8c8","#a9c58f"],"fg":"#1d3520","color":"green"}
+{"text":"Lunch: avocado toast again","emojis":"🥑 🍞","styles":["Deadpan"],"bg":["#dce8b8","#b9d28d"],"fg":"#26351d","color":"green"}
+{"text":"I spotted moss by the loading dock","emojis":"🌿 🏭","styles":["Deadpan"],"bg":["#c7d5c2","#9eb5a1"],"fg":"#1e3028","color":"green"}
+{"text":"Pine scent in the hallway today","emojis":"🌲","styles":["Serene"],"bg":["#d8e3d1","#aec5b1"],"fg":"#21352b","color":"green"}
+{"text":"Did you bring cucumber salad?","emojis":"🥒 🥗","styles":["Deadpan"],"bg":["#d9ebc3","#b2d49a"],"fg":"#20331d","color":"green"}
+{"text":"The patio is full of ivy","emojis":"🌿","styles":["Serene"],"bg":["#cfe2c2","#a6c597"],"fg":"#203522","color":"green"}
+{"text":"Rain tapped the fern leaves","emojis":"🌧️ 🌿","styles":["Serene"],"bg":["#c3d6d9","#9ebbc0"],"fg":"#1d3035","color":"green"}
+{"text":"The traffic light held us up","emojis":"🚦","styles":["Irritated"],"bg":["#d9c5b3","#bd9e8c"],"fg":"#34221d","color":"green"}
+{"text":"Let's take the trail after work","emojis":"🥾 🌲","styles":["Hopeful"],"bg":["#d9e2c5","#b5c98f"],"fg":"#26351e","color":"green"}
+{"text":"The frog outside keeps chirping","emojis":"🐸 🎵","styles":["Whimsical"],"bg":["#c8dfb4","#9fc68f"],"fg":"#20351f","color":"green"}
+{"text":"Tea's steeping beside the fern","emojis":"🍵 🌿","styles":["Serene"],"bg":["#d9eadf","#b8d4c2"],"fg":"#18352a","color":"green"}
+{"text":"That lawn looks freshly mowed","emojis":"🌱","styles":["Deadpan"],"bg":["#dcecc8","#b9d89e"],"fg":"#20351d","color":"green"}
+{"text":"Clouds broke over the garden","emojis":"☁️ 🌿","styles":["Hopeful","Serene"],"bg":["#c8dff0","#a9cfad"],"fg":"#193248","color":"green"}
+{"text":"Reminder: water the office plants","emojis":"💧 🌱","styles":["Deadpan"],"bg":["#d7e8d0","#b8d6bb"],"fg":"#1d3825","color":"green"}
+{"text":"The lizard vanished under the hedge","emojis":"🦎 🌿","styles":["Deadpan"],"bg":["#d5e5c4","#b6cf9f"],"fg":"#20351d","color":"green"}
+{"text":"I need a break under the trees","emojis":"🌳","styles":["Serene"],"bg":["#cfe4d1","#a9c6ad"],"fg":"#18352a","color":"green"}
+{"text":"Peas are on sale downstairs","emojis":"🫛 🛍️","styles":["Deadpan"],"bg":["#dcecc9","#b8d39d"],"fg":"#20351d","color":"green"}
+{"text":"The exit sign keeps buzzing","emojis":"🚪","styles":["Irritated","Tense"],"bg":["#d5dee2","#b8c7cd"],"fg":"#1b2d36","color":"green"}
+{"text":"Meet by the sunflower after class","emojis":"🌻","styles":["Deadpan"],"bg":["#f5e7ae","#d8df9c"],"fg":"#3b3517","color":"yellow"}
+{"text":"Canary drills went better today","emojis":"🐤","styles":["Hopeful","Proud"],"bg":["#f5e6a8","#d8d58e"],"fg":"#3b3517","color":"yellow"}
+{"text":"Banana before lifting, right?","emojis":"🍌 🏋️","styles":["Deadpan"],"bg":["#d9e9a8","#b7cf72"],"fg":"#24300f","color":"yellow"}
+{"text":"Sunrise woke me before practice","emojis":"🌅 🏃","styles":["Serene"],"bg":["#f6c27a","#d98b72"],"fg":"#3b1f2b","color":"yellow"}
+{"text":"School bus traffic is awful today","emojis":"🚌 🚗","styles":["Irritated"],"bg":["#b9c8d3","#8fa4b3"],"fg":"#182630","color":"yellow"}
+{"text":"Bee near lane three—watch out","emojis":"🐝 ⚠️","styles":["Tense"],"bg":["#e8d477","#c8b35b"],"fg":"#29230b","color":"yellow"}
+{"text":"Track meet under noon sun","emojis":"🏃 ☀️","styles":["Deadpan"],"bg":["#f3c875","#e6a65f"],"fg":"#3b2414","color":"yellow"}
+{"text":"Daffodils opened by the gym","emojis":"🌼 🏫","styles":["Serene"],"bg":["#d9e99a","#aeca76"],"fg":"#263414","color":"yellow"}
+{"text":"Parking lot glare is brutal","emojis":"🅿️ ☀️","styles":["Irritated"],"bg":["#e6d99a","#c9c19a"],"fg":"#292817","color":"yellow"}
+{"text":"Corn on the cob after practice?","emojis":"🌽 🏃","styles":["Deadpan"],"bg":["#e7d879","#b8c66a"],"fg":"#29300f","color":"yellow"}
+{"text":"Custard after the game?","emojis":"🍮 🏆","styles":["Deadpan"],"bg":["#efd2a3","#d7a873"],"fg":"#382315","color":"yellow"}
+{"text":"Coach moved warmups to sunrise","emojis":"🏃 🌅","styles":["Deadpan"],"bg":["#f0b879","#d88770"],"fg":"#3a2026","color":"yellow"}
+{"text":"Someone left a tennis ball here","emojis":"🎾","styles":["Deadpan"],"bg":["#dce8c8","#b8d09b"],"fg":"#1f2d18","color":"yellow"}
+{"text":"Pollen allergies are back again","emojis":"🤧 🌼","styles":["Irritated"],"bg":["#e7e3b8","#c8c58e"],"fg":"#283018","color":"yellow"}
+{"text":"Grab the lemon water from my bag","emojis":"🍋 💧 👜","styles":["Deadpan"],"bg":["#f4e8a8","#d8d98d"],"fg":"#263018","color":"yellow"}
+{"text":"That chick crossed the track","emojis":"🐥 🏃","styles":["Deadpan"],"bg":["#d8e7c5","#a9c895"],"fg":"#1d301b","color":"yellow"}
+{"text":"Taxi delayed; I may miss warmups","emojis":"🚕 ⏰","styles":["Anxious","Tense"],"bg":["#c8d4e5","#9eafca"],"fg":"#17263c","color":"yellow"}
+{"text":"Bring a raincoat for the forecast","emojis":"🌧️ 🧥","styles":["Deadpan"],"bg":["#b9cddd","#8fa9c0"],"fg":"#182938","color":"yellow"}
+{"text":"Fries after practice, please","emojis":"🍟 🏃","styles":["Earnest"],"bg":["#f0d18c","#d9aa62"],"fg":"#34230e","color":"yellow"}
+{"text":"The porch light kept me up","emojis":"🏠 💡 🌙","styles":["Irritated"],"bg":["#46516e","#2d3652"],"fg":"#f5edc8","color":"yellow"}
+{"text":"Clocking in; coffee tastes burnt.","emojis":"☕ 🕘","styles":["Irritated","Deadpan"],"bg":["#c9b09a","#a88770"],"fg":"#241a15","color":"red"}
+{"text":"Tomato soup at 3 a.m.","emojis":"🍅 🍲 🌙","styles":["Whimsical"],"bg":["#5a4b68","#3e354d"],"fg":"#f6e5c5","color":"red"}
+{"text":"Can someone cover my dawn break?","emojis":"🌅","styles":["Deadpan"],"bg":["#f2c6a0","#d99a82"],"fg":"#3b2020","color":"red"}
+{"text":"Bus stalled by the fire engine.","emojis":"🚌 🚒","styles":["Tense"],"bg":["#c5d2dc","#9eafbd"],"fg":"#182936","color":"red"}
+{"text":"Cherry pie in the break room.","emojis":"🍒 🥧","styles":["Joyful"],"bg":["#f1c0b1","#d99a9d"],"fg":"#3b1d27","color":"red"}
+{"text":"Those roses by the time clock?","emojis":"🌹 ⏰","styles":["Deadpan"],"bg":["#e5c5c8","#caa5b2"],"fg":"#35222d","color":"red"}
+{"text":"Blood pressure's up; taking five.","emojis":"🩺","styles":["Anxious","Tense"],"bg":["#e3aaa5","#c98285"],"fg":"#3a171b","color":"red"}
+{"text":"Please restock the tomato crates.","emojis":"🍅 📦","styles":["Earnest"],"bg":["#e8c5a4","#d3a27e"],"fg":"#352015","color":"red"}
+{"text":"The furnace is glowing again.","emojis":"🔥","styles":["Tense"],"bg":["#efb08a","#d87d62"],"fg":"#3c1b18","color":"red"}
+{"text":"Found a poppy in my locker.","emojis":"🌺","styles":["Whimsical"],"bg":["#d8c4d9","#b7a3c8"],"fg":"#282034","color":"red"}
+{"text":"Traffic's backed up at the stoplight.","emojis":"🚗 🚦","styles":["Tense"],"bg":["#c6d2d5","#9eb6ba"],"fg":"#172a2d","color":"red"}
+{"text":"Night shift needs more hot sauce.","emojis":"🌙 🌶️","styles":["Deadpan"],"bg":["#4f526d","#34384f"],"fg":"#fff0d2","color":"red"}
+{"text":"That brick wall leaks heat.","emojis":"🧱 🔥","styles":["Irritated"],"bg":["#c9825a","#a95f43"],"fg":"#241812","color":"red"}
+{"text":"Fire drill at 02:00, seriously?","emojis":"🔥 🚨","styles":["Irritated","Tense"],"bg":["#3d4f68","#29384f"],"fg":"#ffffff","color":"red"}
+{"text":"Cherry stains on my gloves.","emojis":"🍒 🧤","styles":["Deadpan"],"bg":["#c77b78","#a95b60"],"fg":"#24181c","color":"red"}
+{"text":"Sunset through bay three was wild.","emojis":"🌅","styles":["Awed"],"bg":["#e89a68","#8d668e"],"fg":"#211d36","color":"red"}
+{"text":"The oven's throwing sparks again.","emojis":"🍞 ⚡ 🔥","styles":["Tense","Irritated"],"bg":["#5b514e","#9c542f"],"fg":"#ffffff","color":"red"}
+{"text":"I packed candy apples for everyone.","emojis":"🍎 🍬","styles":["Joyful","Tender"],"bg":["#e99586","#d66a62"],"fg":"#35191b","color":"red"}
+{"text":"Sunrise hit the steel racks.","emojis":"🌅 🏭","styles":["Awed"],"bg":["#d9a862","#8799a4"],"fg":"#182630","color":"red"}
+{"text":"Smelled roses near receiving.","emojis":"🌹","styles":["Serene"],"bg":["#d7a5a1","#a7b58b"],"fg":"#263126","color":"red"}
+{"text":"Pumpkin soup is on the porch.","emojis":"🎃 🍲 🏠","styles":["Serene"],"bg":["#d99a55","#c77b4d"],"fg":"#2c1c16","color":"orange"}
+{"text":"Did your carrots survive the frost?","emojis":"🥕 ❄️","styles":["Anxious"],"bg":["#9bbfd2","#789db8"],"fg":"#172936","color":"orange"}
+{"text":"The sunset hit our windows again.","emojis":"🌇 🪟","styles":["Serene"],"bg":["#f3b27c","#d97961"],"fg":"#281b2b","color":"orange"}
+{"text":"A fox crossed by the mailbox.","emojis":"🦊 📫","styles":["Deadpan"],"bg":["#b8c99a","#829c72"],"fg":"#1d2b24","color":"orange"}
+{"text":"That traffic cone blocks my drive.","emojis":"🚧 🚗","styles":["Irritated"],"bg":["#d8b57c","#c58b67"],"fg":"#2b211c","color":"orange"}
+{"text":"Campfire smoke is drifting over.","emojis":"🔥","styles":["Serene"],"bg":["#b9a18d","#8d7774"],"fg":"#211c24","color":"orange"}
+{"text":"I left mandarins by your door.","emojis":"🍊 🚪","styles":["Tender"],"bg":["#f0c58b","#d99b70"],"fg":"#322018","color":"orange"}
+{"text":"The marigolds need water tonight.","emojis":"🌼 💧","styles":["Deadpan"],"bg":["#c7d39a","#9db879"],"fg":"#25301d","color":"orange"}
+{"text":"Autumn leaves cover the steps.","emojis":"🍂","styles":["Deadpan"],"bg":["#c99b73","#a87562"],"fg":"#2c2020","color":"orange"}
+{"text":"Want to share some pumpkin bread?","emojis":"🎃 🍞","styles":["Tender","Earnest"],"bg":["#e2ae72","#c9855f"],"fg":"#302019","color":"orange"}
+{"text":"That bonfire lit up the yard.","emojis":"🔥","styles":["Joyful"],"bg":["#d98258","#b9574d"],"fg":"#291b20","color":"orange"}
+{"text":"The tabby is asleep on my mat.","emojis":"🐈 💤","styles":["Serene","Tender"],"bg":["#b8b0aa","#8f999b"],"fg":"#20252a","color":"orange"}
+{"text":"Your porch light feels cozy tonight.","emojis":"🏠 💡","styles":["Serene","Tender"],"bg":["#f3d7ad","#d9b27f"],"fg":"#3b2418","color":"orange"}
+{"text":"I raked leaves by the curb.","emojis":"🍂","styles":["Deadpan"],"bg":["#d8c7a4","#b69a72"],"fg":"#302316","color":"orange"}
+{"text":"There’s a jack-o’-lantern by the gate.","emojis":"🎃","styles":["Deadpan"],"bg":["#f5c078","#e39a4b"],"fg":"#3d2112","color":"orange"}
+{"text":"The harvest moon is huge tonight.","emojis":"🌕","styles":["Awed"],"bg":["#283b70","#536fa5"],"fg":"#fff4d6","color":"orange"}
+{"text":"My kettle smells like spiced cider.","emojis":"🫖 🍎","styles":["Serene"],"bg":["#f2c58d","#d99a5c"],"fg":"#422817","color":"orange"}
+{"text":"A monarch landed on the basil.","emojis":"🦋 🌿","styles":["Whimsical"],"bg":["#d5e5b3","#9fc17c"],"fg":"#1c331f","color":"orange"}
+{"text":"Sunrise woke the whole block.","emojis":"🌅","styles":["Awed"],"bg":["#f8c98b","#eaa66f"],"fg":"#4a2c24","color":"orange"}
+{"text":"The grill is ready after six.","emojis":"🔥","styles":["Deadpan"],"bg":["#d8d4ce","#a7a7a5"],"fg":"#222222","color":"orange"}
+{"text":"Lemon water is ready for room three.","emojis":"🍋 🥤","styles":["Deadpan"],"bg":["#eaf1c2","#c5ddbd"],"fg":"#20342b","color":"yellow"}
+{"text":"Could you bring bananas upstairs?","emojis":"🍌","styles":["Deadpan"],"bg":["#f4dc72","#e8c24f"],"fg":"#35260c","color":"yellow"}
+{"text":"The sunflowers perked up overnight.","emojis":"🌻","styles":["Joyful"],"bg":["#f6d77a","#b8c96b"],"fg":"#26351f","color":"yellow"}
+{"text":"Honey is beside your tea tray.","emojis":"🍯 🍵","styles":["Deadpan"],"bg":["#f3d7a2","#d7b878"],"fg":"#3a2415","color":"yellow"}
+{"text":"The canary is singing in rehab.","emojis":"🐤 🎶 🏥","styles":["Hopeful"],"bg":["#dcecae","#a8c9c5"],"fg":"#1f3540","color":"yellow"}
+{"text":"Corn chowder arrives at noon.","emojis":"🍲 🌽","styles":["Deadpan"],"bg":["#f2c58d","#d99a62"],"fg":"#3b2418","color":"yellow"}
+{"text":"Sunlight reached the east windows.","emojis":"☀️ 🪟","styles":["Serene"],"bg":["#f8df91","#b8d2c5"],"fg":"#24332d","color":"yellow"}
+{"text":"The school bus blocked our ambulance.","emojis":"🚌 🚑","styles":["Tense","Irritated"],"bg":["#c9d8e5","#9fb4c8"],"fg":"#172b3a","color":"yellow"}
+{"text":"Butter packets are in the fridge.","emojis":"🧈","styles":["Deadpan"],"bg":["#f1d7a5","#c8d7df"],"fg":"#29333a","color":"yellow"}
+{"text":"She smiled at the daffodils.","emojis":"🌼","styles":["Tender"],"bg":["#f3db76","#b9cf7a"],"fg":"#2b351f","color":"yellow"}
+{"text":"That taxi finally found the clinic.","emojis":"🚕 🏥","styles":["Serene"],"bg":["#c9dce5","#9bbac7"],"fg":"#1b2e3b","color":"yellow"}
+{"text":"Warm lamplight fills the hall.","emojis":"💡","styles":["Serene"],"bg":["#e7c58f","#b58c68"],"fg":"#302116","color":"yellow"}
+{"text":"Banana pudding came for room four.","emojis":"🍌 🍮","styles":["Deadpan"],"bg":["#f6df9b","#e8c978"],"fg":"#3a2a12","color":"yellow"}
+{"text":"Please save me a lemon slice.","emojis":"🍋","styles":["Earnest"],"bg":["#f8edaa","#e9d879"],"fg":"#3b3510","color":"yellow"}
+{"text":"The chick on the card made me laugh.","emojis":"🐥 🃏 😂","styles":["Joyful","Playful"],"bg":["#f7d98a","#efbd70"],"fg":"#40250e","color":"yellow"}
+{"text":"Our honey delivery is late again.","emojis":"🍯 🚚","styles":["Irritated"],"bg":["#e8c47b","#d8a85f"],"fg":"#35220d","color":"yellow"}
+{"text":"Bees hum near the courtyard gate.","emojis":"🐝","styles":["Serene"],"bg":["#e8d889","#d8c36b"],"fg":"#332b0d","color":"yellow"}
+{"text":"A wheat field lies past the ward.","emojis":"🌾","styles":["Serene"],"bg":["#d9c982","#c8b568"],"fg":"#302b16","color":"yellow"}
+{"text":"Your curtains catch the morning sun.","emojis":"🪟 ☀️","styles":["Serene"],"bg":["#f5d99a","#e8bf78"],"fg":"#3b2b17","color":"yellow"}
+{"text":"The butter dish cracked again.","emojis":"🧈","styles":["Irritated"],"bg":["#d9d0a4","#c5bb8d"],"fg":"#292818","color":"yellow"}
+{"text":"Traffic’s crawling by the harbor.","emojis":"🚗 ⚓","styles":["Tense","Irritated"],"bg":["#9fb8c2","#7e9eaa"],"fg":"#172b34","color":"blue"}
+{"text":"Did you pack the beach towel?","emojis":"🏖️ 🧺","styles":["Deadpan"],"bg":["#a9d8e5","#80bfd1"],"fg":"#17303a","color":"blue"}
+{"text":"Rain all afternoon, apparently.","emojis":"🌧️","styles":["Irritated","Deadpan"],"bg":["#b8c8d6","#8fa7b9"],"fg":"#172936","color":"blue"}
+{"text":"Meet me by the outdoor pool?","emojis":"🏊","styles":["Deadpan"],"bg":["#9ed9dc","#69b8c0"],"fg":"#12343a","color":"blue"}
+{"text":"Coffee, then a walk by the lake?","emojis":"☕ 🚶 🌊","styles":["Serene"],"bg":["#c8d9d1","#9fbbb5"],"fg":"#203735","color":"blue"}
+{"text":"That jay keeps raiding the feeder.","emojis":"🐦","styles":["Playful","Irritated"],"bg":["#c6d5df","#9bb2c2"],"fg":"#1d2e39","color":"blue"}
+{"text":"Cloud cover saved my commute.","emojis":"☁️","styles":["Serene"],"bg":["#c2d1d7","#9fb7c0"],"fg":"#1e3037","color":"blue"}
+{"text":"I left the cooler in your car.","emojis":"🧊 🚗","styles":["Deadpan"],"bg":["#c5d8e4","#9db9cc"],"fg":"#1a2d3b","color":"blue"}
+{"text":"Missed the ferry by two minutes.","emojis":"⛴️","styles":["Irritated","Melancholy"],"bg":["#b8c9d4","#8fa9b8"],"fg":"#182b36","color":"blue"}
+{"text":"These hydrangeas need more water.","emojis":"🌸 💧","styles":["Deadpan"],"bg":["#d6c9d2","#b5a7bc"],"fg":"#302635","color":"blue"}
+{"text":"Can we sit under the umbrella?","emojis":"☂️","styles":["Serene"],"bg":["#b9cfe0","#91b1c9"],"fg":"#1c2f3d","color":"blue"}
+{"text":"Storm warning just popped up.","emojis":"⛈️ ⚠️","styles":["Anxious","Tense"],"bg":["#596b83","#3d4d68"],"fg":"#f3f5f7","color":"blue"}
+{"text":"The aquarium is packed today.","emojis":"🐠","styles":["Irritated"],"bg":["#8fc7d8","#5da6bd"],"fg":"#102c3a","color":"blue"}
+{"text":"Your denim jacket is here.","emojis":"🧥","styles":["Deadpan"],"bg":["#b7c9d8","#7896b0"],"fg":"#172433","color":"blue"}
+{"text":"Wake me if the tide turns.","emojis":"🌊","styles":["Deadpan"],"bg":["#9ed5df","#62aebd"],"fg":"#12313a","color":"blue"}
+{"text":"Found sea glass on the shore.","emojis":"🪨 🌊","styles":["Serene"],"bg":["#b9d8d2","#87b9b4"],"fg":"#163b3a","color":"blue"}
+{"text":"Bring sunscreen, not excuses.","emojis":"🧴","styles":["Determined"],"bg":["#f2d487","#e6b957"],"fg":"#3b2a0a","color":"blue"}
+{"text":"The porch is perfect after rain.","emojis":"🌧️ 🏡","styles":["Serene"],"bg":["#c4d0d1","#9eb4b7"],"fg":"#213337","color":"blue"}
+{"text":"Are we watching the meteor shower?","emojis":"🌠","styles":["Awed","Hopeful"],"bg":["#263b68","#4b6390"],"fg":"#fff1a8","color":"blue"}
+{"text":"Morning—matcha run at ten?","emojis":"🍵 🏃","styles":["Deadpan"],"bg":["#c4d5a7","#98b87b"],"fg":"#20341e","color":"green"}
+{"text":"Can you water the office fern?","emojis":"🪴 💧","styles":["Deadpan"],"bg":["#bfd5bd","#8eb58e"],"fg":"#17331d","color":"green"}
+{"text":"I left avocado toast in the kitchen.","emojis":"🥑 🍞","styles":["Deadpan"],"bg":["#d9c7a2","#b9c89a"],"fg":"#26351f","color":"green"}
+{"text":"The basil by reception needs trimming.","emojis":"🌿 ✂️","styles":["Deadpan"],"bg":["#c7d9b2","#9fbd91"],"fg":"#20351f","color":"green"}
+{"text":"Meeting moved beside the ivy-covered pond.","emojis":"🌿 🪷","styles":["Deadpan"],"bg":["#b8d3c0","#8eb5a5"],"fg":"#18332d","color":"green"}
+{"text":"Anyone up for lunch at the herb garden?","emojis":"🥗 🌿","styles":["Hopeful"],"bg":["#d4dfad","#a9c58d"],"fg":"#26351d","color":"green"}
+{"text":"Rainy commute, but the park looks lovely.","emojis":"🌧️ 🌳","styles":["Serene"],"bg":["#9fb6c4","#7898a5"],"fg":"#172b32","color":"green"}
+{"text":"The printer's wedged beneath the ivy.","emojis":"🖨️ 🌿","styles":["Deadpan"],"bg":["#c2d1c0","#9db69f"],"fg":"#1e3025","color":"green"}
+{"text":"I booked the cabin near Pine Creek.","emojis":"🛖 🌲 🏞️","styles":["Hopeful"],"bg":["#b8cda8","#8eae91"],"fg":"#1d3024","color":"green"}
+{"text":"Cucumber sandwiches are in the fridge.","emojis":"🥒 🥪","styles":["Deadpan"],"bg":["#d5dfb0","#b6c987"],"fg":"#263519","color":"green"}
+{"text":"That frog outside keeps interrupting calls.","emojis":"🐸 📞","styles":["Irritated"],"bg":["#b5c99b","#8fae7b"],"fg":"#1d301b","color":"green"}
+{"text":"Let's walk through the meadow after lunch.","emojis":"🚶 🌾","styles":["Hopeful"],"bg":["#d8d0a4","#b8bd83"],"fg":"#2d301b","color":"green"}
+{"text":"Sunlight hit the succulents beautifully.","emojis":"☀️ 🌵","styles":["Joyful"],"bg":["#f3d98b","#b8d48f"],"fg":"#20351f","color":"green"}
+{"text":"Could you bring the potted fern upstairs?","emojis":"🪴","styles":["Deadpan"],"bg":["#c9dfc1","#a8c7ae"],"fg":"#1e3527","color":"green"}
+{"text":"A leaf beetle landed on my notebook.","emojis":"🪲 📓","styles":["Deadpan"],"bg":["#c4d8b8","#b6c7d8"],"fg":"#1d2c26","color":"green"}
+{"text":"The rooftop garden survived the storm.","emojis":"🌿 ⛈️","styles":["Hopeful"],"bg":["#829eb1","#8fb58d"],"fg":"#172b32","color":"green"}
+{"text":"Tea break? I brought jasmine and lemongrass.","emojis":"🍵 🌼","styles":["Joyful"],"bg":["#d7dfb0","#b9c88d"],"fg":"#28331f","color":"green"}
+{"text":"The new curtains frame the ivy nicely.","emojis":"🪟 🌿","styles":["Serene"],"bg":["#d5d5c4","#a8c5a3"],"fg":"#253329","color":"green"}
+{"text":"Reminder: bring boots for the garden.","emojis":"👢 🌱","styles":["Deadpan"],"bg":["#b9c79a","#8fa878"],"fg":"#202c20","color":"green"}
+{"text":"I miss that quiet walk by the creek.","emojis":"🚶 🌊","styles":["Wistful","Serene"],"bg":["#9dbbc0","#7d9f94"],"fg":"#1c3033","color":"green"}
+{"text":"Morning meds sit by the roses.","emojis":"💊 🌹","styles":["Deadpan"],"bg":["#e3c0bd","#caa3a5"],"fg":"#38252a","color":"red"}
+{"text":"Did the cherry drink stay down?","emojis":"🍒 🥤","styles":["Anxious"],"bg":["#d19a9f","#b87883"],"fg":"#351d26","color":"red"}
+{"text":"I’m checking your pulse again.","emojis":"🫀","styles":["Earnest"],"bg":["#d9e8ed","#b8d1db"],"fg":"#17323b","color":"red"}
+{"text":"The roses outside are blooming.","emojis":"🌹","styles":["Serene","Hopeful"],"bg":["#f3d9dc","#e7b9c0"],"fg":"#4a2028","color":"red"}
+{"text":"Please stop at the desk first.","emojis":"🛎️","styles":["Deadpan"],"bg":["#e5e0d5","#cec6b7"],"fg":"#292821","color":"red"}
+{"text":"Your fever broke; cool cloths are ready.","emojis":"🌡️ 🧊","styles":["Serene","Tender"],"bg":["#d5edf1","#acd9e1"],"fg":"#17343b","color":"red"}
+{"text":"I’ll bring tomato soup at noon.","emojis":"🍅 🍲","styles":["Tender","Earnest"],"bg":["#f0d5bd","#dfb18d"],"fg":"#42251d","color":"red"}
+{"text":"A cardinal is by the window.","emojis":"🐦 🪟","styles":["Serene"],"bg":["#d9e7ef","#b9d0df"],"fg":"#19303c","color":"red"}
+{"text":"How is that sunburn feeling?","emojis":"☀️","styles":["Earnest","Tender"],"bg":["#f5dfb2","#eac584"],"fg":"#452d12","color":"red"}
+{"text":"The blood pressure cuff is ready.","emojis":"🩺","styles":["Deadpan"],"bg":["#dce8ed","#b9d0da"],"fg":"#1b3038","color":"red"}
+{"text":"The poppy mural brightens the hall.","emojis":"🌺 🎨","styles":["Joyful"],"bg":["#efd4dc","#dcaec0"],"fg":"#45202f","color":"red"}
+{"text":"Your bandage has a small blood stain.","emojis":"🩹 🩸","styles":["Earnest","Tense"],"bg":["#ead6d3","#d6b2af"],"fg":"#401d20","color":"red"}
+{"text":"I saved you strawberry yogurt.","emojis":"🍓 🥣","styles":["Tender"],"bg":["#f6d6d8","#eeb6b0"],"fg":"#4b2028","color":"red"}
+{"text":"The sunset over the ward was lovely.","emojis":"🌅 🏥","styles":["Serene"],"bg":["#f6c07d","#d88972"],"fg":"#3b2330","color":"red"}
+{"text":"Can you rate the pain near that burn?","emojis":"🔥 🩹","styles":["Earnest"],"bg":["#d9e5ed","#b8cbd8"],"fg":"#172533","color":"red"}
+{"text":"I’ll ask pharmacy about cherry syrup.","emojis":"🍒 🥄","styles":["Deadpan"],"bg":["#f3d0d0","#dda0a5"],"fg":"#421b24","color":"red"}
+{"text":"The fire truck just passed by.","emojis":"🚒","styles":["Deadpan"],"bg":["#e7b0a9","#c97873"],"fg":"#351418","color":"red"}
+{"text":"Your poppy pin is on the desk.","emojis":"🌺 📌","styles":["Deadpan"],"bg":["#e8c5b5","#c79a83"],"fg":"#30201c","color":"red"}
+{"text":"Would you like cranberry juice?","emojis":"🧃","styles":["Tender"],"bg":["#ead3d5","#c98f9d"],"fg":"#321d27","color":"red"}
+{"text":"The ember lamp is still glowing.","emojis":"🏮 🔥","styles":["Serene"],"bg":["#e5a15d","#bc6849"],"fg":"#291914","color":"red"}
+{"text":"Tomatoes finally ripened.","emojis":"🍅","styles":["Joyful"],"bg":["#f5c3ae","#df8b73"],"fg":"#3a1b16","color":"red"}
+{"text":"Please check the tomato stakes.","emojis":"🍅 🪴","styles":["Earnest"],"bg":["#d8e3c1","#b5c995"],"fg":"#1f2d1b","color":"red"}
+{"text":"Poppies opened by the gate.","emojis":"🌺 🚪","styles":["Serene"],"bg":["#f3c1c8","#d9aeb7"],"fg":"#3a2028","color":"red"}
+{"text":"The rosebush needs pruning.","emojis":"🌹 ✂️","styles":["Deadpan"],"bg":["#f3c3cb","#dcaeb8"],"fg":"#38212a","color":"red"}
+{"text":"Cherries were cheap downtown.","emojis":"🍒 🏙️","styles":["Deadpan"],"bg":["#f2b0ad","#d98280"],"fg":"#3a171b","color":"red"}
+{"text":"Strawberries need washing.","emojis":"🍓","styles":["Deadpan"],"bg":["#f6c7c3","#e9a9aa"],"fg":"#3b2023","color":"red"}
+{"text":"Cranberry sauce is simmering.","emojis":"🍲","styles":["Deadpan"],"bg":["#d8a0a8","#b97884"],"fg":"#30151b","color":"red"}
+{"text":"I spilled beet soup again.","emojis":"🫜 🍲","styles":["Irritated"],"bg":["#b86b70","#91464f"],"fg":"#fff1d6","color":"red"}
+{"text":"Ketchup stained my shirt.","emojis":"🍅 👕","styles":["Irritated"],"bg":["#ed8c83","#cf5d59"],"fg":"#3a1518","color":"red"}
+{"text":"The old barn needs paint.","emojis":"🏚️ 🎨","styles":["Deadpan"],"bg":["#d7b28a","#bd906d"],"fg":"#342116","color":"red"}
+{"text":"The firehouse bell rang twice.","emojis":"🚒 🔔","styles":["Deadpan"],"bg":["#ef9c83","#d76d5f"],"fg":"#351516","color":"red"}
+{"text":"That stoplight held us forever.","emojis":"🚦","styles":["Irritated"],"bg":["#f3c66f","#d9a34e"],"fg":"#33230c","color":"red"}
+{"text":"A fox crossed the garden path.","emojis":"🦊 🌿","styles":["Whimsical"],"bg":["#d8e8c8","#b8d09f"],"fg":"#1f3320","color":"red"}
+{"text":"A robin landed on my chair.","emojis":"🐦 🪑","styles":["Whimsical"],"bg":["#dcecf2","#b9d7df"],"fg":"#18313b","color":"red"}
+{"text":"That sunset made me linger.","emojis":"🌅","styles":["Awed","Wistful"],"bg":["#f6c27a","#d98768"],"fg":"#3c1e26","color":"red"}
+{"text":"Poker embers still glow.","emojis":"🔥","styles":["Serene"],"bg":["#4a3026","#8a4d2d"],"fg":"#fff1d0","color":"red"}
+{"text":"I need lipstick for the wedding.","emojis":"💄 💍","styles":["Earnest"],"bg":["#f4d7df","#e9b8c6"],"fg":"#4a1f32","color":"red"}
+{"text":"The grill is ready at noon.","emojis":"🔥 🍖","styles":["Deadpan"],"bg":["#f2d0a0","#dca66f"],"fg":"#3b2415","color":"red"}
+{"text":"Will you bring cherry jam?","emojis":"🍒 🫙","styles":["Deadpan"],"bg":["#f3c0ba","#d77d7d"],"fg":"#451b24","color":"red"}
+{"text":"The apple pie is cooling.","emojis":"🍎 🥧","styles":["Deadpan"],"bg":["#f6d89e","#eab86f"],"fg":"#402718","color":"red"}
+{"text":"Pool is freezing before class.","emojis":"🏊 🥶","styles":["Tense"],"bg":["#b8e0ed","#72b8d1"],"fg":"#12313d","color":"blue"}
+{"text":"Can you bring my swim cap?","emojis":"🏊 🧢","styles":["Deadpan"],"bg":["#c4e5ed","#8dc5d6"],"fg":"#16323b","color":"blue"}
+{"text":"Rain canceled our track meet.","emojis":"🌧️ 🏃","styles":["Irritated"],"bg":["#cbd9e3","#a9bdcc"],"fg":"#1c2d3a","color":"blue"}
+{"text":"Meet me beside the lake later.","emojis":"🏞️","styles":["Serene"],"bg":["#b9d9d0","#8eb9b4"],"fg":"#173632","color":"blue"}
+{"text":"My denim jacket is still damp.","emojis":"🧥 💧","styles":["Deadpan"],"bg":["#9eafc2","#748ba5"],"fg":"#172638","color":"blue"}
+{"text":"A jay keeps distracting me at practice.","emojis":"🐦 🏃","styles":["Irritated"],"bg":["#c8d8a8","#9eb87f"],"fg":"#25351d","color":"blue"}
+{"text":"Hydrangeas by the dorm look huge.","emojis":"🌸","styles":["Awed"],"bg":["#e4c9d8","#c9a9c0"],"fg":"#3b2037","color":"blue"}
+{"text":"Want an ocean documentary tonight?","emojis":"🌊 🎬","styles":["Serene"],"bg":["#75b8c0","#4f91a9"],"fg":"#102f3d","color":"blue"}
+{"text":"The storm wrecked our field session.","emojis":"⛈️ 🏃","styles":["Irritated","Melancholy"],"bg":["#7c8797","#5d697b"],"fg":"#ffffff","color":"blue"}
+{"text":"Moonlight made the court look unreal.","emojis":"🌙 🏀","styles":["Awed","Whimsical"],"bg":["#354b78","#25365d"],"fg":"#ffffff","color":"blue"}
+{"text":"I found waves on the walk home.","emojis":"🌊 🚶","styles":["Awed","Whimsical"],"bg":["#8acfc8","#5aaeb0"],"fg":"#123b43","color":"blue"}
+{"text":"Pack towels for the morning regatta.","emojis":"🚣","styles":["Deadpan"],"bg":["#b4d8df","#8ebdca"],"fg":"#16333b","color":"blue"}
+{"text":"The marina is packed after sunset.","emojis":"🛥️ 🌆","styles":["Deadpan"],"bg":["#243746","#4f6570"],"fg":"#f3d9a2","color":"blue"}
+{"text":"The harbor water looks glassy.","emojis":"🌊","styles":["Serene"],"bg":["#b9d9e5","#7faebe"],"fg":"#17313d","color":"blue"}
+{"text":"Clouds swallowed the stadium lights.","emojis":"☁️ 🏟️","styles":["Tense"],"bg":["#344052","#1b2230"],"fg":"#e8edf2","color":"blue"}
+{"text":"Do we lift before the swim meet?","emojis":"🏋️ 🏊","styles":["Earnest"],"bg":["#d2e2e8","#91b4c2"],"fg":"#18313c","color":"blue"}
+{"text":"My hoodie smells like rain again.","emojis":"🧥 🌧️","styles":["Irritated"],"bg":["#aebac2","#71818a"],"fg":"#18252d","color":"blue"}
+{"text":"The pool lights are finally working.","emojis":"🏊 💡","styles":["Serene"],"bg":["#8bc7d2","#438caa"],"fg":"#102d3b","color":"blue"}
+{"text":"I need a quiet walk by the harbor.","emojis":"🚶 🌊","styles":["Serene"],"bg":["#b5d1d5","#719ba3"],"fg":"#17323b","color":"blue"}
+{"text":"Those midnight waves were loud.","emojis":"🌊 🌙","styles":["Tense"],"bg":["#29344c","#161d31"],"fg":"#e4d9b8","color":"blue"}
+{"text":"Meet by the cherry blossoms?","emojis":"🌸","styles":["Hopeful"],"bg":["#f3d9df","#dcaebf"],"fg":"#4a2434","color":"pink"}
+{"text":"I brought strawberry milk.","emojis":"🍓 🥛","styles":["Deadpan"],"bg":["#f0c4c6","#d8919c"],"fg":"#43212b","color":"pink"}
+{"text":"The flamingos escaped again.","emojis":"🦩","styles":["Playful","Irritated"],"bg":["#f7b6c8","#e98fae"],"fg":"#3a1830","color":"pink"}
+{"text":"Can you save me a cupcake?","emojis":"🧁","styles":["Earnest"],"bg":["#ffe8c7","#f5c6b8"],"fg":"#40251f","color":"pink"}
+{"text":"Bubblegum stuck to my notebook.","emojis":"🍬 📓","styles":["Irritated"],"bg":["#e8b8d8","#c59dcc"],"fg":"#2e2038","color":"pink"}
+{"text":"Peonies bloomed by the gym.","emojis":"🌸 🏋️","styles":["Joyful"],"bg":["#f6c6d8","#b8d8b0"],"fg":"#20352b","color":"pink"}
+{"text":"Reminder: bring your ballet shoes.","emojis":"🩰","styles":["Deadpan"],"bg":["#d9d0ee","#b9c9e5"],"fg":"#20243a","color":"pink"}
+{"text":"That piglet video fixed my mood.","emojis":"🐷 📹","styles":["Joyful"],"bg":["#f7c0c5","#f6d889"],"fg":"#40231f","color":"pink"}
+{"text":"Clouds look like cotton candy.","emojis":"☁️ 🍭","styles":["Whimsical"],"bg":["#b9dcf2","#f2b8d1"],"fg":"#24304a","color":"pink"}
+{"text":"I found a rose on your desk.","emojis":"🌹","styles":["Tender"],"bg":["#f4c3c5","#e8d3b5"],"fg":"#3d2027","color":"pink"}
+{"text":"Want to study at the rose garden?","emojis":"📚 🌹","styles":["Hopeful","Serene"],"bg":["#c4d9b5","#eab8c1"],"fg":"#20352b","color":"pink"}
+{"text":"The sunset over campus was dreamy.","emojis":"🌇 🏫","styles":["Whimsical","Serene"],"bg":["#f2b477","#b99acb"],"fg":"#2b2136","color":"pink"}
+{"text":"My candy necklace snapped.","emojis":"🍬 📿","styles":["Deadpan"],"bg":["#f6c1d5","#e89ab9"],"fg":"#4a1830","color":"pink"}
+{"text":"Who took my strawberry yogurt?","emojis":"🍓 🥣","styles":["Irritated"],"bg":["#f7b0b8","#ed8f9b"],"fg":"#421522","color":"pink"}
+{"text":"The fair has a carousel tonight.","emojis":"🎪 🎠","styles":["Excited","Joyful"],"bg":["#ffd79a","#f5b6a8"],"fg":"#43251c","color":"pink"}
+{"text":"I need help with the heart display.","emojis":"❤️","styles":["Earnest"],"bg":["#ef9aa8","#d96578"],"fg":"#3b101b","color":"pink"}
+{"text":"Those flamingo socks are iconic.","emojis":"🦩 🧦","styles":["Playful","Joyful"],"bg":["#f7b2c8","#e889aa"],"fg":"#3e1730","color":"pink"}
+{"text":"Rain on the window feels gentle.","emojis":"🌧️ 🪟","styles":["Serene","Whimsical"],"bg":["#b9d5e3","#94b8ca"],"fg":"#183140","color":"pink"}
+{"text":"I traded my gummies for notes.","emojis":"🍬 📝","styles":["Playful","Deadpan"],"bg":["#d8a7e8","#b982cf"],"fg":"#291536","color":"pink"}
+{"text":"See you near the blossom trees.","emojis":"🌸 🌳","styles":["Hopeful","Serene"],"bg":["#c5e4bd","#f0c2c9"],"fg":"#203b26","color":"pink"}
+{"text":"I grabbed strawberry milk for you.","emojis":"🍓 🥛","styles":["Tender"],"bg":["#f5b4c2","#f7d9c1"],"fg":"#4a2027","color":"pink"}
+{"text":"Are the peonies still open?","emojis":"🌺","styles":["Deadpan"],"bg":["#f5c5d2","#d9a7be"],"fg":"#3b2030","color":"pink"}
+{"text":"The flamingos escaped again.","emojis":"🦩","styles":["Irritated"],"bg":["#f3b7c8","#d99aaa"],"fg":"#3a1f2a","color":"pink"}
+{"text":"Meet me by the rose garden.","emojis":"🌹","styles":["Serene"],"bg":["#f5d9df","#c7dfc1"],"fg":"#243b2a","color":"pink"}
+{"text":"Your bubblegum's in my bag.","emojis":"🍬 👜","styles":["Deadpan"],"bg":["#e9c7df","#c9b4d8"],"fg":"#302039","color":"pink"}
+{"text":"I saw a piglet in rain boots.","emojis":"🐷 🥾","styles":["Whimsical"],"bg":["#b9dff0","#e9d58f"],"fg":"#243342","color":"pink"}
+{"text":"Can you bring cotton candy?","emojis":"🍬","styles":["Deadpan"],"bg":["#f3b6d2","#b8d9ef"],"fg":"#38243b","color":"pink"}
+{"text":"The cherry trees look magical.","emojis":"🌸","styles":["Awed","Whimsical"],"bg":["#f5c1d3","#b9d9b0"],"fg":"#29352c","color":"pink"}
+{"text":"The ballet shop has your slippers.","emojis":"🩰","styles":["Deadpan"],"bg":["#d8c7e8","#e8b8c8"],"fg":"#30233b","color":"pink"}
+{"text":"That sunset over the lake!","emojis":"🌅 🏞️","styles":["Awed","Serene"],"bg":["#f2a56f","#6fa7bd"],"fg":"#172d3b","color":"pink"}
+{"text":"Remember Mom's rose tea tonight.","emojis":"🌹 🍵","styles":["Tender","Earnest"],"bg":["#efd0c8","#d9b8ad"],"fg":"#402625","color":"pink"}
+{"text":"I found your old piggy bank.","emojis":"🐷","styles":["Wistful"],"bg":["#d8b6ad","#b99b91"],"fg":"#302321","color":"pink"}
+{"text":"Want strawberry pancakes?","emojis":"🥞 🍓","styles":["Deadpan"],"bg":["#f6d6c8","#eab3a8"],"fg":"#4a2020","color":"pink"}
+{"text":"The clouds look like cotton candy.","emojis":"☁️ 🍬","styles":["Whimsical"],"bg":["#b9d9f2","#e8b8d8"],"fg":"#292347","color":"pink"}
+{"text":"Peony petals are on your desk.","emojis":"🌸 🪻","styles":["Deadpan"],"bg":["#efd4e5","#dcb8d5"],"fg":"#40223f","color":"pink"}
+{"text":"The garden smells like roses.","emojis":"🌹","styles":["Serene"],"bg":["#e7c4c4","#cfa5aa"],"fg":"#3b2026","color":"pink"}
+{"text":"A flamingo pin fell off your coat.","emojis":"🦩 🧥","styles":["Deadpan"],"bg":["#f4c5c2","#dba5b4"],"fg":"#3a2030","color":"pink"}
+{"text":"Your lipstick is by the sink.","emojis":"💄 🧼","styles":["Deadpan"],"bg":["#e8c7c5","#c5d4d1"],"fg":"#2c292d","color":"pink"}
+{"text":"I bought cupcakes with sprinkles.","emojis":"🧁","styles":["Joyful"],"bg":["#f5c6d8","#f2d69b"],"fg":"#4a2037","color":"pink"}
+{"text":"The fair has a candy stall.","emojis":"🎪 🍬","styles":["Whimsical"],"bg":["#f1b9b5","#e6c58e"],"fg":"#42231e","color":"pink"}
+{"text":"Did you see the flamingo?","emojis":"🦩","styles":["Deadpan"],"bg":["#d9c5e4","#edb5b0"],"fg":"#30223c","color":"pink"}
+{"text":"Bring strawberry milk tomorrow.","emojis":"🥛 🍓","styles":["Deadpan"],"bg":["#f3d5cf","#e9b7b3"],"fg":"#48201f","color":"pink"}
+{"text":"The peonies finally opened.","emojis":"🌸","styles":["Hopeful","Serene"],"bg":["#f3d6df","#d9e8d0"],"fg":"#24352b","color":"pink"}
+{"text":"Cotton candy after class?","emojis":"🍭","styles":["Playful"],"bg":["#f7c6df","#f5d99b"],"fg":"#4a2340","color":"pink"}
+{"text":"My bubblegum lost its flavor.","emojis":"🍬","styles":["Irritated","Deadpan"],"bg":["#d9c3d8","#b9c7d8"],"fg":"#292536","color":"pink"}
+{"text":"Cherry blossoms by the gym.","emojis":"🌸 🏫","styles":["Serene"],"bg":["#f4d9e3","#c8dce9"],"fg":"#263445","color":"pink"}
+{"text":"That piglet video was adorable.","emojis":"🐷","styles":["Tender","Joyful"],"bg":["#f6c4c5","#f2dfb0"],"fg":"#4a2528","color":"pink"}
+{"text":"Meet me near the rose garden.","emojis":"🌹","styles":["Tender","Earnest"],"bg":["#e9c4c8","#c8d8c0"],"fg":"#39252b","color":"pink"}
+{"text":"I bought a grapefruit soda.","emojis":"🍊 🥤","styles":["Deadpan"],"bg":["#f2c58f","#e9d6ae"],"fg":"#3b2920","color":"pink"}
+{"text":"The sunset looked unreal today.","emojis":"🌅","styles":["Awed"],"bg":["#f3b06f","#d9878f"],"fg":"#3a2130","color":"pink"}
+{"text":"Can you save me a ballet seat?","emojis":"🩰 🎟️","styles":["Earnest"],"bg":["#d8c8e8","#b8cce0"],"fg":"#25243a","color":"pink"}
+{"text":"Our pig-shaped eraser vanished.","emojis":"🐷 🧽","styles":["Playful","Whimsical"],"bg":["#e7c4c8","#c8d4df"],"fg":"#2b2934","color":"pink"}
+{"text":"The candy floss machine works!","emojis":"🍭","styles":["Joyful"],"bg":["#f7b6d2","#e98fba"],"fg":"#4a1830","color":"pink"}
+{"text":"I found heart stickers at lunch.","emojis":"❤️","styles":["Deadpan"],"bg":["#f6c6d4","#eaa4ba"],"fg":"#4a1f2d","color":"pink"}
+{"text":"Those flamingo socks are iconic.","emojis":"🦩 🧦","styles":["Playful"],"bg":["#f7b0b8","#e88698"],"fg":"#4b1b2a","color":"pink"}
+{"text":"Want to split a strawberry tart?","emojis":"🍓 🥧","styles":["Earnest"],"bg":["#f4b0a8","#df837f"],"fg":"#4a1e24","color":"pink"}
+{"text":"The rose tea smells amazing.","emojis":"🌹 🍵","styles":["Awed"],"bg":["#e8b1b8","#c98291"],"fg":"#3b1d2a","color":"pink"}
+{"text":"Rainy mornings need soft slippers.","emojis":"🌧️ 🥿","styles":["Serene"],"bg":["#c8d8e5","#aabfd0"],"fg":"#20313d","color":"pink"}
+{"text":"I miss the old bubblegum shop.","emojis":"🏪 🍬","styles":["Wistful"],"bg":["#c8b5c4","#a797ad"],"fg":"#292331","color":"pink"}
+{"text":"The cherry smoothie was perfect.","emojis":"🍒 🥤","styles":["Joyful"],"bg":["#e99b9c","#cf6f78"],"fg":"#481d25","color":"pink"}
+{"text":"Morning coffee is ready","emojis":"☕","styles":["Deadpan"],"bg":["#d8b99b","#c49b78"],"fg":"#352116","color":"brown"}
+{"text":"Can you grab the cocoa?","emojis":"🍫","styles":["Deadpan"],"bg":["#6f4b3a","#9a7058"],"fg":"#fff5e6","color":"brown"}
+{"text":"The trail is muddy today","emojis":"🥾","styles":["Deadpan"],"bg":["#b8a58c","#8f9b72"],"fg":"#1d2922","color":"brown"}
+{"text":"I found the leather folder","emojis":"📁","styles":["Deadpan"],"bg":["#b8875d","#9a6a45"],"fg":"#21160f","color":"brown"}
+{"text":"Meet by the oak at noon","emojis":"🌳 🕛","styles":["Deadpan"],"bg":["#b5c99a","#8eae76"],"fg":"#1d2b1a","color":"brown"}
+{"text":"The puppy rolled in dirt again","emojis":"🐶","styles":["Playful"],"bg":["#b9a083","#8f765b"],"fg":"#201912","color":"brown"}
+{"text":"Rain tapped the cabin roof","emojis":"🌧️ 🏠","styles":["Serene"],"bg":["#b8ccd4","#829eaa"],"fg":"#17252b","color":"brown"}
+{"text":"I packed cinnamon rolls","emojis":"🥐","styles":["Deadpan"],"bg":["#f3d6a3","#d99a5d"],"fg":"#3a2414","color":"brown"}
+{"text":"Those roasted beans smell great","emojis":"☕","styles":["Joyful"],"bg":["#c6a27c","#9a6b45"],"fg":"#24170f","color":"brown"}
+{"text":"The horse escaped its paddock","emojis":"🐎","styles":["Tense"],"bg":["#d6c68a","#a4ad68"],"fg":"#202514","color":"brown"}
+{"text":"Can we stain the oak shelf?","emojis":"🪵","styles":["Deadpan"],"bg":["#d2ae7a","#b98752"],"fg":"#2a1b0f","color":"brown"}
+{"text":"My boots need a wash","emojis":"🥾 🧼","styles":["Deadpan"],"bg":["#c3d0d1","#9baeb0"],"fg":"#172326","color":"brown"}
+{"text":"The attic smells like cedar","emojis":"🏠 🌲","styles":["Deadpan"],"bg":["#d8c2a5","#b8956b"],"fg":"#2b2118","color":"brown"}
+{"text":"Our clay batch cracked","emojis":"🏺 💥","styles":["Irritated"],"bg":["#d7a27d","#b86f4c"],"fg":"#281812","color":"brown"}
+{"text":"A fox crossed the road","emojis":"🦊 🛣️","styles":["Deadpan"],"bg":["#b9cbe0","#7e9ab5"],"fg":"#172333","color":"brown"}
+{"text":"Could you send the soil report?","emojis":"🌱 📄","styles":["Deadpan"],"bg":["#d7d0b0","#aeb995"],"fg":"#24301f","color":"brown"}
+{"text":"The campfire finally caught","emojis":"🔥","styles":["Hopeful"],"bg":["#f5c27a","#df7a3e"],"fg":"#38180c","color":"brown"}
+{"text":"I miss that walnut table","emojis":"🪑 🌰","styles":["Wistful"],"bg":["#d4b38a","#ae845a"],"fg":"#251a13","color":"brown"}
+{"text":"The acorns are everywhere","emojis":"🌰","styles":["Deadpan"],"bg":["#d9c7a0","#b89d68"],"fg":"#2b2115","color":"brown"}
+{"text":"Tonight, let's try the stew","emojis":"🍲","styles":["Joyful"],"bg":["#e4b07a","#c98252"],"fg":"#30190f","color":"brown"}
+{"text":"Practice starts beside the ocean","emojis":"🌊 🏃","styles":["Hopeful"],"bg":["#b9d9df","#78b7c3"],"fg":"#12313a","color":"blue"}
+{"text":"The pool is freezing this morning","emojis":"🏊 🥶","styles":["Irritated"],"bg":["#dcebf2","#a9cddc"],"fg":"#18303b","color":"blue"}
+{"text":"Can you bring my denim jacket?","emojis":"🧥","styles":["Deadpan"],"bg":["#9bb7cc","#718fa8"],"fg":"#102333","color":"blue"}
+{"text":"Rain canceled our evening scrimmage","emojis":"🌧️ 🏟️","styles":["Melancholy"],"bg":["#b0bdc8","#8798a8"],"fg":"#1d2b35","color":"blue"}
+{"text":"Meet me beneath the storm clouds","emojis":"⛈️","styles":["Tense"],"bg":["#64758d","#3f5068"],"fg":"#f4f1df","color":"blue"}
+{"text":"The lake looked endless after drills","emojis":"🌊","styles":["Serene","Awed"],"bg":["#a9d3e0","#70aabd"],"fg":"#12313d","color":"blue"}
+{"text":"I need a towel; the pool deck's soaked","emojis":"🏊 💧","styles":["Deadpan"],"bg":["#a8d9dc","#75b9c1"],"fg":"#123238","color":"blue"}
+{"text":"Our pool lanes gleam before drills","emojis":"🏊","styles":["Serene","Hopeful"],"bg":["#b5e7e1","#7cc9cb"],"fg":"#12383d","color":"blue"}
+{"text":"Waves kept me awake last night","emojis":"🌊 😴","styles":["Irritated"],"bg":["#536c85","#293f59"],"fg":"#f2eee3","color":"blue"}
+{"text":"Hydrangeas line the hotel walkway","emojis":"🌸 🏨","styles":["Serene"],"bg":["#e3d5dc","#c3b6cb"],"fg":"#30263a","color":"blue"}
+{"text":"The forecast says storms at six","emojis":"⛈️ 🕕","styles":["Tense","Anxious"],"bg":["#8695aa","#65758d"],"fg":"#172435","color":"blue"}
+{"text":"I found seashells on the team walk","emojis":"🐚","styles":["Whimsical","Serene"],"bg":["#c9dcd8","#9ec5c2"],"fg":"#18383a","color":"blue"}
+{"text":"The aquarium tunnel was unreal","emojis":"🐠","styles":["Awed"],"bg":["#b9e5f2","#78bfd4"],"fg":"#123447","color":"blue"}
+{"text":"Send the swim meet address again","emojis":"🏊 📍","styles":["Deadpan"],"bg":["#c5e5f0","#8fc4d7"],"fg":"#173544","color":"blue"}
+{"text":"The moonlit court feels unreal","emojis":"🌙","styles":["Awed","Whimsical"],"bg":["#303c70","#202b55"],"fg":"#f5e9b8","color":"blue"}
+{"text":"I left my goggles by the bench","emojis":"🥽 🪑","styles":["Deadpan"],"bg":["#d7e6eb","#a9c2cc"],"fg":"#20343d","color":"blue"}
+{"text":"Cold drizzle ruined my warmup","emojis":"🌧️","styles":["Irritated"],"bg":["#aebdca","#8496a6"],"fg":"#17252f","color":"blue"}
+{"text":"I saw robin eggs by the shed","emojis":"🐦 🥚","styles":["Deadpan"],"bg":["#c9dce5","#a9c0c5"],"fg":"#263b3a","color":"blue"}
+{"text":"Let's jog beside the harbor","emojis":"🏃 🌊","styles":["Hopeful"],"bg":["#8fd0c7","#55aaa8"],"fg":"#123b42","color":"blue"}
+{"text":"Peacock feathers were near the track","emojis":"🦚 🪶","styles":["Whimsical"],"bg":["#278b89","#17636f"],"fg":"#f3e8a2","color":"blue"}
+{"text":"Boiler's firing nicely now.","emojis":"🔥","styles":["Serene"],"bg":["#d4a36e","#a96f48"],"fg":"#2a1b18","color":"red"}
+{"text":"Can you stack six bricks here?","emojis":"🧱","styles":["Deadpan"],"bg":["#d99a7d","#bb6d58"],"fg":"#301d1a","color":"red"}
+{"text":"The kiln's hot enough to pour.","emojis":"🔥","styles":["Deadpan"],"bg":["#d98a3a","#b85c2b"],"fg":"#24140d","color":"red"}
+{"text":"Tomato soup's on at noon.","emojis":"🍅 🍲","styles":["Deadpan"],"bg":["#f4b36d","#d86a45"],"fg":"#32170f","color":"red"}
+{"text":"Mind the fox near the shed.","emojis":"🦊","styles":["Tense"],"bg":["#b8c99b","#7e9b72"],"fg":"#1b2b1b","color":"red"}
+{"text":"Spark from the grinder—stand back.","emojis":"⚡ 🛠️","styles":["Tense"],"bg":["#6d6258","#403b38"],"fg":"#fff0c2","color":"red"}
+{"text":"Cherry pie's cooling in the cab.","emojis":"🍒 🥧","styles":["Deadpan"],"bg":["#f3b38f","#d98572"],"fg":"#32150f","color":"red"}
+{"text":"Bring a lantern for the boiler room.","emojis":"🏮","styles":["Deadpan"],"bg":["#334b67","#1e3048"],"fg":"#fff1b8","color":"red"}
+{"text":"Brick dust got everywhere.","emojis":"🧱","styles":["Irritated"],"bg":["#d0b2a3","#ad887b"],"fg":"#2c1b18","color":"red"}
+{"text":"A poppy's growing by the fence.","emojis":"🌺","styles":["Serene"],"bg":["#d9d8a5","#a7bd86"],"fg":"#24311c","color":"red"}
+{"text":"Your radiator's piping hot.","emojis":"🔥","styles":["Tense"],"bg":["#e5a08c","#c96b57"],"fg":"#32130f","color":"red"}
+{"text":"The weld's glowing; give it a minute.","emojis":"🔥","styles":["Tense"],"bg":["#d98b45","#b85f32"],"fg":"#24150d","color":"red"}
+{"text":"Can we shift the cherry picker?","emojis":"🏗️","styles":["Deadpan"],"bg":["#b8c9d6","#8fa9bb"],"fg":"#172733","color":"red"}
+{"text":"There's an ember in the stove.","emojis":"🔥","styles":["Deadpan"],"bg":["#c98b55","#a9673d"],"fg":"#24150d","color":"red"}
+{"text":"The flare lit up the yard.","emojis":"🔥","styles":["Awed"],"bg":["#e49a4a","#c66b35"],"fg":"#29160b","color":"red"}
+{"text":"That steak's still on the grill.","emojis":"🥩 🔥","styles":["Deadpan"],"bg":["#d58a62","#b96448"],"fg":"#2b1713","color":"red"}
+{"text":"Smoke alarm's chirping again.","emojis":"🚨","styles":["Irritated","Tense"],"bg":["#b8b9b2","#969995"],"fg":"#211f1d","color":"red"}
+{"text":"Could you clear the forge entrance?","emojis":"🔥","styles":["Deadpan"],"bg":["#a99b91","#81746d"],"fg":"#1d1815","color":"red"}
+{"text":"Bonfire weather after this shift.","emojis":"🔥","styles":["Hopeful","Serene"],"bg":["#d59a62","#b8784d"],"fg":"#24160f","color":"red"}
+{"text":"Morning, coffee's on the dash","emojis":"☕ 🚗","styles":["Serene"],"bg":["#c7b39d","#a98e78"],"fg":"#241b16","color":"brown"}
+{"text":"The oak trim is ready to fit","emojis":"🌳","styles":["Deadpan"],"bg":["#b79a6b","#96774f"],"fg":"#201b14","color":"brown"}
+{"text":"Mud's slowing the van today","emojis":"🚐 🟫","styles":["Irritated"],"bg":["#b8a08a","#9d856f"],"fg":"#241b16","color":"brown"}
+{"text":"Can you check the soil drain?","emojis":"🟫 🚰","styles":["Deadpan"],"bg":["#c7b49b","#ad967c"],"fg":"#282018","color":"brown"}
+{"text":"Need extra cedar boards","emojis":"🪵","styles":["Deadpan"],"bg":["#d2b08b","#bd956d"],"fg":"#2b1d14","color":"brown"}
+{"text":"That fox crossed the worksite","emojis":"🦊 🏗️","styles":["Whimsical"],"bg":["#d8b07d","#c38f5e"],"fg":"#27180f","color":"brown"}
+{"text":"Clay's still soft near the footing","emojis":"🟫 🧱","styles":["Deadpan"],"bg":["#c6a58d","#b28b74"],"fg":"#291c17","color":"brown"}
+{"text":"The old leather seat split","emojis":"💺","styles":["Deadpan"],"bg":["#9f7455","#80563f"],"fg":"#fff3e6","color":"brown"}
+{"text":"Rain's tapping the scaffold","emojis":"🌧️ 🏗️","styles":["Deadpan"],"bg":["#b8c9d3","#9eafb9"],"fg":"#172932","color":"brown"}
+{"text":"I'll stain the stairs after lunch","emojis":"🪵 🖌️","styles":["Deadpan"],"bg":["#d2b48c","#bd986c"],"fg":"#2a1c12","color":"brown"}
+{"text":"The brick delivery arrived","emojis":"🧱 🚚","styles":["Deadpan"],"bg":["#c99b82","#b77b68"],"fg":"#281914","color":"brown"}
+{"text":"Coffee break by the tool chest","emojis":"☕ 🧰","styles":["Serene"],"bg":["#c9b39a","#b49b80"],"fg":"#292017","color":"brown"}
+{"text":"The horse trailer blocks access","emojis":"🐎 🚧","styles":["Irritated"],"bg":["#b8c7d1","#8fa8b8"],"fg":"#17252d","color":"brown"}
+{"text":"Please tarp the timber tonight","emojis":"🪵 🌙","styles":["Earnest"],"bg":["#6f8190","#455b6b"],"fg":"#fff4dc","color":"brown"}
+{"text":"Cocoa in the flask, thankfully","emojis":"☕","styles":["Serene"],"bg":["#d6a66a","#b97845"],"fg":"#2b1b12","color":"brown"}
+{"text":"The shed smells of fresh sawdust","emojis":"🛖 🪵","styles":["Deadpan"],"bg":["#d8c1a1","#b8946d"],"fg":"#2d241b","color":"brown"}
+{"text":"Late light hits the roof tiles","emojis":"🏠 🌇","styles":["Serene","Whimsical"],"bg":["#f0c98a","#d99b62"],"fg":"#352617","color":"brown"}
+{"text":"The garden path needs more mulch","emojis":"🌿","styles":["Deadpan"],"bg":["#b7c99d","#8da978"],"fg":"#1f321d","color":"brown"}
+{"text":"I've got grit in my boots","emojis":"🥾 🪨","styles":["Irritated"],"bg":["#9b8b76","#756755"],"fg":"#fff9e8","color":"brown"}
+{"text":"The chimney brick needs sealing","emojis":"🧱 🏠","styles":["Deadpan"],"bg":["#b58e79","#926958"],"fg":"#241916","color":"brown"}
+{"text":"The sea air woke me early","emojis":"🌊 🌬️","styles":["Serene"],"bg":["#87b7c4","#568da3"],"fg":"#102932","color":"blue"}
+{"text":"Is the harbor fog lifting?","emojis":"🌫️ ⚓","styles":["Hopeful"],"bg":["#91a7b5","#718b9c"],"fg":"#15242c","color":"blue"}
+{"text":"The ink cartridge ran dry","emojis":"🖨️","styles":["Deadpan"],"bg":["#d9dde2","#b8c2cc"],"fg":"#17212b","color":"blue"}
+{"text":"Berry muffins by the kettle","emojis":"🫐 🧁 🫖","styles":["Serene"],"bg":["#f3d6c4","#d9b4c5"],"fg":"#3a202c","color":"blue"}
+{"text":"Rain tapped all night here","emojis":"🌧️","styles":["Serene"],"bg":["#b8c9d6","#91a9bb"],"fg":"#1c2d3a","color":"blue"}
+{"text":"Meet me beside the aquarium","emojis":"🐠","styles":["Earnest"],"bg":["#b8e1df","#82c2c8"],"fg":"#12333a","color":"blue"}
+{"text":"Can we shift lunch to the pool?","emojis":"🍽️ 🏊","styles":["Deadpan"],"bg":["#c8e1d2","#9bc3b5"],"fg":"#17332d","color":"blue"}
+{"text":"Peacock feathers look unreal","emojis":"🦚","styles":["Awed"],"bg":["#75b8b0","#477da5"],"fg":"#102839","color":"blue"}
+{"text":"The lake path is open again","emojis":"🏞️","styles":["Hopeful","Serene"],"bg":["#b8d7d0","#92b9a0"],"fg":"#17332e","color":"blue"}
+{"text":"Earth photos from orbit stunned me","emojis":"🌍 🛰️","styles":["Awed"],"bg":["#293f72","#182950"],"fg":"#f1e7bd","color":"blue"}
+{"text":"Moonlight hit my notebook","emojis":"🌙 📓","styles":["Whimsical","Serene"],"bg":["#39466f","#273352"],"fg":"#f3e7c5","color":"blue"}
+{"text":"Feeling low after that call","emojis":"📞 😔","styles":["Melancholy"],"bg":["#aeb2c4","#858aa5"],"fg":"#20243a","color":"blue"}
+{"text":"Clouds swallowed the hills","emojis":"☁️ ⛰️","styles":["Awed","Whimsical"],"bg":["#b8c5d1","#8293a5"],"fg":"#17232f","color":"blue"}
+{"text":"Whale exhibit at ten?","emojis":"🐋 🕙","styles":["Deadpan"],"bg":["#9ed4e5","#4d9bb5"],"fg":"#102c3a","color":"blue"}
+{"text":"Your denim jacket is here","emojis":"🧥","styles":["Deadpan"],"bg":["#9aabc0","#64758d"],"fg":"#182331","color":"blue"}
+{"text":"The hydrangeas need watering","emojis":"🌸 💧","styles":["Earnest"],"bg":["#c8e0d0","#8fbea1"],"fg":"#193329","color":"blue"}
+{"text":"Forget-me-nots are blooming","emojis":"🌼","styles":["Hopeful"],"bg":["#b8d9c0","#78b38d"],"fg":"#173525","color":"blue"}
+{"text":"Please pack an umbrella","emojis":"☔","styles":["Earnest"],"bg":["#b7c9d8","#829caf"],"fg":"#172735","color":"blue"}
+{"text":"The screen has a watery glow","emojis":"🖥️ 💧","styles":["Serene","Whimsical"],"bg":["#a8d6df","#6faebd"],"fg":"#14303a","color":"blue"}
+{"text":"Roses are blocking the side gate","emojis":"🌹 🚪","styles":["Irritated"],"bg":["#d3a0a5","#b8757e"],"fg":"#351c25","color":"pink"}
+{"text":"The flamingo sign needs two bolts","emojis":"🦩 🔩","styles":["Deadpan"],"bg":["#f0b5ad","#d88983"],"fg":"#3a2020","color":"pink"}
+{"text":"Cherry blossom in the gutter again","emojis":"🌸","styles":["Wistful"],"bg":["#d9c9d8","#b9a9c2"],"fg":"#302638","color":"pink"}
+{"text":"Can you shift the peony pots?","emojis":"🌸 🪴","styles":["Deadpan"],"bg":["#d5e4d0","#b4cbaa"],"fg":"#203020","color":"pink"}
+{"text":"Bubblegum jammed the site keypad","emojis":"🍬","styles":["Irritated"],"bg":["#e8b9c5","#d28fa5"],"fg":"#3a1824","color":"pink"}
+{"text":"Strawberry shake on my break","emojis":"🍓 🥤","styles":["Joyful"],"bg":["#f6c0b2","#efa38f"],"fg":"#431d1a","color":"pink"}
+{"text":"Cotton candy awning is finally up","emojis":"🍭","styles":["Hopeful"],"bg":["#f3c9df","#e7aeca"],"fg":"#401d38","color":"pink"}
+{"text":"The rose trellis needs another brace","emojis":"🌹 🌿","styles":["Deadpan"],"bg":["#d8c4c0","#bca7a4"],"fg":"#30201f","color":"pink"}
+{"text":"Flamingo tiles arrive on Thursday","emojis":"🦩 🧱","styles":["Deadpan"],"bg":["#f1c4b0","#dfa495"],"fg":"#40211c","color":"pink"}
+{"text":"Peony petals in the van again","emojis":"🌸 🚐","styles":["Irritated"],"bg":["#d8c4dc","#b79fc0"],"fg":"#2d2034","color":"pink"}
+{"text":"That piglet chewed through the hose","emojis":"🐖","styles":["Irritated"],"bg":["#dcb7ad","#c9968b"],"fg":"#351b1a","color":"pink"}
+{"text":"Grapefruit soda by the toolbox","emojis":"🍊 🥤 🧰","styles":["Deadpan"],"bg":["#e7c58e","#d3aa6d"],"fg":"#302313","color":"pink"}
+{"text":"Sunrise has dried the render nicely","emojis":"🌅","styles":["Serene"],"bg":["#f6d9a8","#d8b47d"],"fg":"#3a2a1b","color":"pink"}
+{"text":"Cloudburst means roses wait till Monday","emojis":"🌧️ 🌹","styles":["Wistful"],"bg":["#b8d5e8","#8eb8d4"],"fg":"#24313b","color":"pink"}
+{"text":"Cherry blossom dust covers the deck","emojis":"🌸","styles":["Deadpan"],"bg":["#f3d8df","#e7bcc8"],"fg":"#402733","color":"pink"}
+{"text":"The flamingo mural needs sealing","emojis":"🦩 🎨","styles":["Deadpan"],"bg":["#f3c2b8","#e5a39c"],"fg":"#3d2525","color":"pink"}
+{"text":"Watermelon seeds in the cement tray","emojis":"🍉","styles":["Deadpan"],"bg":["#d9e8c5","#b8d5a0"],"fg":"#263522","color":"pink"}
+{"text":"Meet me beside the rose beds","emojis":"🌹","styles":["Earnest"],"bg":["#f2ccd3","#e8aebc"],"fg":"#45242d","color":"pink"}
+{"text":"Bubblegum wrappers in the skip","emojis":"🍬 🗑️","styles":["Irritated"],"bg":["#cfd2ca","#aeb5aa"],"fg":"#252b27","color":"pink"}
+{"text":"Peonies survived the scaffold move","emojis":"🌸 🏗️","styles":["Hopeful"],"bg":["#d9d2e8","#b8c8ae"],"fg":"#292b35","color":"pink"}
+{"text":"Did you pack the espresso?","emojis":"☕","styles":["Anxious"],"bg":["#ead7bd","#c8a47d"],"fg":"#332217","color":"black"}
+{"text":"The crow stole your toast.","emojis":"🐦‍⬛ 🍞","styles":["Playful"],"bg":["#c8d5df","#a5b8c7"],"fg":"#1d2933","color":"black"}
+{"text":"Rain is hammering the roof.","emojis":"🌧️ 🏠","styles":["Tense"],"bg":["#536b7a","#344b5d"],"fg":"#f4f7f8","color":"black"}
+{"text":"Meet me by the old theater.","emojis":"🎭","styles":["Deadpan"],"bg":["#75515b","#5b3b47"],"fg":"#fff4ed","color":"black"}
+{"text":"Your ink spilled on my notes.","emojis":"🖋️ 📓","styles":["Irritated"],"bg":["#6f86a3","#526a88"],"fg":"#fffaf0","color":"black"}
+{"text":"Can you feed the cat tonight?","emojis":"🐈","styles":["Earnest","Tender"],"bg":["#d8c79b","#b8c98f"],"fg":"#27351f","color":"black"}
+{"text":"Your tuxedo's at my place.","emojis":"🤵","styles":["Deadpan"],"bg":["#45484d","#292c31"],"fg":"#ffffff","color":"black"}
+{"text":"Want licorice from the shop?","emojis":"🍬 🏪","styles":["Playful"],"bg":["#604556","#473545"],"fg":"#fff1d6","color":"black"}
+{"text":"That raven is back on the fence.","emojis":"🐦‍⬛","styles":["Whimsical"],"bg":["#4e6870","#344b52"],"fg":"#f2ead7","color":"black"}
+{"text":"Please check the chimney soot.","emojis":"🏠","styles":["Earnest"],"bg":["#82766b","#675b52"],"fg":"#fff8e8","color":"black"}
+{"text":"I burned the toast, sorry.","emojis":"🍞","styles":["Earnest"],"bg":["#c49a6c","#a9784e"],"fg":"#241a13","color":"black"}
+{"text":"The eclipse starts soon.","emojis":"🌑","styles":["Excited"],"bg":["#243447","#3d5870"],"fg":"#f4f1df","color":"black"}
+{"text":"Bring coffee, I'm fading.","emojis":"☕","styles":["Earnest"],"bg":["#8b684d","#b18a68"],"fg":"#211914","color":"black"}
+{"text":"Are you at the train station?","emojis":"🚉","styles":["Deadpan"],"bg":["#6f8798","#9eb0bb"],"fg":"#172733","color":"black"}
+{"text":"I left truffle pasta for you.","emojis":"🍝","styles":["Tender"],"bg":["#9b6249","#c58b65"],"fg":"#271a16","color":"black"}
+{"text":"This thunder is ridiculous.","emojis":"⛈️","styles":["Irritated"],"bg":["#48515d","#68737d"],"fg":"#f5eee0","color":"black"}
+{"text":"Your boots are by the door.","emojis":"👢 🚪","styles":["Deadpan"],"bg":["#a99787","#c7b9aa"],"fg":"#29231f","color":"black"}
+{"text":"The dawn over HQ looked soft","emojis":"🌅","styles":["Serene","Whimsical"],"bg":["#c28c78","#e1b894"],"fg":"#34251f","color":"pink"}
+{"text":"Strawberry milk is in the fridge","emojis":"🍓 🥛","styles":["Deadpan"],"bg":["#d88b91","#efb5a5"],"fg":"#3a2026","color":"pink"}
+{"text":"Peonies are blooming by reception","emojis":"🌸","styles":["Serene"],"bg":["#9dbb9a","#c2d5b2"],"fg":"#26382a","color":"pink"}
+{"text":"Who brought the flamingo mug?","emojis":"🦩 ☕","styles":["Playful"],"bg":["#f3c4d4","#e7a8c0"],"fg":"#321b2a","color":"pink"}
+{"text":"Cotton-candy clouds over the commute","emojis":"🍭 ☁️","styles":["Whimsical","Serene"],"bg":["#d8d5f2","#bfc9e8"],"fg":"#202542","color":"pink"}
+{"text":"The piglet video made my morning","emojis":"🐷","styles":["Joyful","Tender"],"bg":["#f6c4b5","#eca9a5"],"fg":"#3a2024","color":"pink"}
+{"text":"Cherry blossoms crowd the east gate","emojis":"🌸","styles":["Serene"],"bg":["#f6d8df","#e9c3d0"],"fg":"#332333","color":"pink"}
+{"text":"Can someone save me a guava pastry?","emojis":"🥐","styles":["Earnest"],"bg":["#f3c6a6","#e8b88f"],"fg":"#3b2418","color":"pink"}
+{"text":"Sunset lit every office window","emojis":"🌇","styles":["Awed","Serene"],"bg":["#f3b06f","#d98578"],"fg":"#2b2030","color":"pink"}
+{"text":"The break room needs strawberry tea","emojis":"🍓 🍵","styles":["Deadpan"],"bg":["#e9b1ae","#d98e91"],"fg":"#321c25","color":"pink"}
+{"text":"I found bubblegum under my desk","emojis":"🍬","styles":["Deadpan"],"bg":["#e5b4c9","#cf9bb8"],"fg":"#2d2030","color":"pink"}
+{"text":"The flamingo print suits the lobby","emojis":"🦩 🖼️","styles":["Proud"],"bg":["#f2c3d0","#e8abbf"],"fg":"#33202d","color":"pink"}
+{"text":"Please water the peony by noon","emojis":"🌸 💧","styles":["Earnest"],"bg":["#c9dfc1","#a9c99f"],"fg":"#1d3020","color":"pink"}
+{"text":"Watermelon for Friday's picnic?","emojis":"🍉 🧺","styles":["Deadpan"],"bg":["#e2efb5","#efb49d"],"fg":"#26351f","color":"pink"}
+{"text":"Dawn light made the reports glow","emojis":"🌅 📄","styles":["Awed","Whimsical"],"bg":["#f5cf91","#d98b78"],"fg":"#38252d","color":"pink"}
+{"text":"Someone left strawberry gum upstairs","emojis":"🍓 🍬","styles":["Deadpan"],"bg":["#f6c8cc","#e89eaa"],"fg":"#3b2028","color":"pink"}
+{"text":"Replace the flamingo calendar?","emojis":"🦩 🗓️","styles":["Deadpan"],"bg":["#f3c1bd","#e49b9d"],"fg":"#3a252d","color":"pink"}
+{"text":"Piglet noises from the break room","emojis":"🐷","styles":["Playful","Whimsical"],"bg":["#f4c5b7","#e9a89e"],"fg":"#3a2526","color":"pink"}
+{"text":"That grapefruit tea is excellent","emojis":"🍊 🍵","styles":["Deadpan"],"bg":["#f3d59b","#d9aa72"],"fg":"#382817","color":"pink"}
+{"text":"Coffee's ready—don't hog it.","emojis":"☕","styles":["Irritated"],"bg":["#c9a17d","#9a6d53"],"fg":"#211712","color":"brown"}
+{"text":"Did you feed the houseplant?","emojis":"🪴","styles":["Deadpan"],"bg":["#cfe2b2","#9fbe91"],"fg":"#1f3322","color":"brown"}
+{"text":"The dog found another acorn.","emojis":"🐕 🌰","styles":["Deadpan"],"bg":["#d9c29e","#b79570"],"fg":"#2b2118","color":"brown"}
+{"text":"Rain turned the yard to mud.","emojis":"🌧️","styles":["Deadpan"],"bg":["#b9c9d2","#8e9eaa"],"fg":"#1d2930","color":"brown"}
+{"text":"Meet me by the old oak.","emojis":"🌳","styles":["Deadpan"],"bg":["#c9d5b9","#9caf88"],"fg":"#20301d","color":"brown"}
+{"text":"I saved you some chocolate cake.","emojis":"🍫 🍰","styles":["Tender"],"bg":["#d8b08c","#b9825e"],"fg":"#321d16","color":"brown"}
+{"text":"Your boots are by the door.","emojis":"🥾 🚪","styles":["Deadpan"],"bg":["#c8b59d","#aa927b"],"fg":"#2d251f","color":"brown"}
+{"text":"The porch smells like cedar.","emojis":"🏠 🌲","styles":["Serene"],"bg":["#c7d2c0","#9daf9f"],"fg":"#243329","color":"brown"}
+{"text":"Want cinnamon toast tonight?","emojis":"🍞","styles":["Tender","Hopeful"],"bg":["#e3c994","#c9a96d"],"fg":"#392713","color":"brown"}
+{"text":"I miss our cabin weekends.","emojis":"🛖","styles":["Wistful"],"bg":["#aab8b0","#7e928d"],"fg":"#1d2929","color":"brown"}
+{"text":"A fox crossed the driveway.","emojis":"🦊","styles":["Startled"],"bg":["#d5b28b","#b98561"],"fg":"#302017","color":"brown"}
+{"text":"The grocery sack split again.","emojis":"🛍️","styles":["Irritated"],"bg":["#c8c3b2","#a9a38f"],"fg":"#2b2a22","color":"brown"}
+{"text":"The stew needs another hour.","emojis":"🍲","styles":["Deadpan"],"bg":["#d4ad78","#b98252"],"fg":"#332116","color":"brown"}
+{"text":"The fireplace smells of woodsmoke.","emojis":"🔥 🪵","styles":["Serene"],"bg":["#c99b73","#a96f54"],"fg":"#301d19","color":"brown"}
+{"text":"The attic is full of dust.","emojis":"🏠 🌫️","styles":["Deadpan"],"bg":["#b8b0a4","#8f887e"],"fg":"#26231f","color":"brown"}
+{"text":"Bring a jar for the acorns.","emojis":"🫙 🌰","styles":["Deadpan"],"bg":["#d6c29a","#b49a69"],"fg":"#302619","color":"brown"}
+{"text":"Pinecones everywhere again.","emojis":"🌲","styles":["Irritated"],"bg":["#9aa58a","#66745e"],"fg":"#182218","color":"brown"}
+{"text":"That thunder woke me up.","emojis":"⚡ 😴","styles":["Startled"],"bg":["#59657f","#343c59"],"fg":"#f5f0d8","color":"brown"}
+{"text":"Want tea after dinner?","emojis":"🍵 🍽️","styles":["Tender"],"bg":["#d8c6a5","#b7a17f"],"fg":"#30251c","color":"brown"}
+{"text":"Grape soda is in the fridge.","emojis":"🍇 🥤","styles":["Deadpan"],"bg":["#9a6d9c","#c48d78"],"fg":"#281b2d","color":"purple"}
+{"text":"Can we order eggplant curry?","emojis":"🍆 🍛","styles":["Deadpan"],"bg":["#a986ad","#d19a63"],"fg":"#2d202e","color":"purple"}
+{"text":"The wisteria finally bloomed.","emojis":"🌸","styles":["Joyful"],"bg":["#cbb0c4","#e0c6a1"],"fg":"#34212b","color":"purple"}
+{"text":"Concord grapes are on sale.","emojis":"🍇","styles":["Deadpan"],"bg":["#8e789f","#b9a3b6"],"fg":"#281e31","color":"purple"}
+{"text":"That bruise needs checking.","emojis":"🩹","styles":["Earnest","Anxious"],"bg":["#e7c4c7","#c89aa2"],"fg":"#32191d","color":"purple"}
+{"text":"Twilight starts after six.","emojis":"🌆","styles":["Deadpan"],"bg":["#c6b6d9","#8e80af"],"fg":"#241b35","color":"purple"}
+{"text":"Storm clouds over the west lot.","emojis":"🌩️ ☁️","styles":["Tense"],"bg":["#7b8796","#465563"],"fg":"#f4f7fb","color":"purple"}
+{"text":"The jacaranda is shedding petals.","emojis":"🌸","styles":["Serene"],"bg":["#d8c7df","#b7c9ad"],"fg":"#263024","color":"purple"}
+{"text":"Berry tart in the break room.","emojis":"🫐 🥧","styles":["Deadpan"],"bg":["#f3c1c7","#d98b9a"],"fg":"#3b1720","color":"purple"}
+{"text":"I found an amethyst geode.","emojis":"💎","styles":["Awed"],"bg":["#d9c7eb","#a889c4"],"fg":"#21152d","color":"purple"}
+{"text":"The velvet drapes look great.","emojis":"🎭","styles":["Joyful"],"bg":["#8f3b4d","#5d2637"],"fg":"#fff4ed","color":"purple"}
+{"text":"Can you save me some mulberries?","emojis":"🫐","styles":["Earnest"],"bg":["#d8c5e5","#b39ac9"],"fg":"#251832","color":"purple"}
+{"text":"That nebula photo is stunning.","emojis":"🌌 📷","styles":["Awed"],"bg":["#30245e","#111c45"],"fg":"#f5efff","color":"purple"}
+{"text":"The vineyard tour is booked.","emojis":"🍇","styles":["Excited","Hopeful"],"bg":["#cfe0b2","#9fbd7d"],"fg":"#213018","color":"purple"}
+{"text":"Grape jelly for tomorrow's toast?","emojis":"🍇 🍞","styles":["Deadpan"],"bg":["#e2c7d9","#c7b2cb"],"fg":"#2b2030","color":"purple"}
+{"text":"Wisteria by the back gate?","emojis":"🪻 🚪","styles":["Whimsical"],"bg":["#d8cbea","#b9c8b0"],"fg":"#243126","color":"purple"}
+{"text":"My sleeve has a berry stain.","emojis":"👕 🫐","styles":["Deadpan"],"bg":["#c8d5e2","#b9a9bd"],"fg":"#202b38","color":"purple"}
+{"text":"The eggplant dip disappeared fast.","emojis":"🍆 🥣","styles":["Deadpan"],"bg":["#d1bdd8","#b6c79f"],"fg":"#292332","color":"purple"}
+{"text":"Meet me near the jacaranda?","emojis":"🌳","styles":["Serene"],"bg":["#c6d8c2","#a9c5b5"],"fg":"#20352c","color":"purple"}
+{"text":"Grape soda exploded again.","emojis":"🍇 🥤 💥","styles":["Irritated"],"bg":["#d5b4d0","#c894b0"],"fg":"#321e32","color":"purple"}
+{"text":"The harbor fog is thick today.","emojis":"⚓ 🌫️","styles":["Serene"],"bg":["#b8c9d3","#9eafb9"],"fg":"#1d2b33","color":"blue"}
+{"text":"Can we meet by the fountain?","emojis":"⛲","styles":["Deadpan"],"bg":["#bcd5df","#9fc0cf"],"fg":"#1e3039","color":"blue"}
+{"text":"I sent the sea-glass mockup.","emojis":"🌊 🟢","styles":["Deadpan"],"bg":["#b8d5d0","#9fc1b9"],"fg":"#19332f","color":"blue"}
+{"text":"Rain is tapping on my window.","emojis":"🌧️ 🪟","styles":["Serene"],"bg":["#bdcbd5","#aab9c5"],"fg":"#202d37","color":"blue"}
+{"text":"The pool heater is fixed now.","emojis":"🏊","styles":["Serene"],"bg":["#b8dce5","#87b9ca"],"fg":"#17313b","color":"blue"}
+{"text":"I baked bilberry tarts for us.","emojis":"🫐 🥧","styles":["Joyful","Tender"],"bg":["#d7a8c5","#c98d9f"],"fg":"#321b2b","color":"blue"}
+{"text":"The hydrangeas finally opened.","emojis":"🌺","styles":["Joyful","Hopeful"],"bg":["#c8e0d2","#a8cdbd"],"fg":"#18382b","color":"blue"}
+{"text":"I found your denim jacket.","emojis":"🧥","styles":["Deadpan"],"bg":["#9bb4ca","#7896b1"],"fg":"#172a3a","color":"blue"}
+{"text":"The storm over the bay is moving.","emojis":"🌩️ 🌊","styles":["Tense"],"bg":["#71869b","#506b82"],"fg":"#101d29","color":"blue"}
+{"text":"The whale report needs edits.","emojis":"🐋 📝","styles":["Deadpan"],"bg":["#8eb9c7","#6197ad"],"fg":"#102b3a","color":"blue"}
+{"text":"Meet me under the aquarium.","emojis":"🐠","styles":["Earnest"],"bg":["#7fd5d0","#4db4b5"],"fg":"#102d35","color":"blue"}
+{"text":"I miss that lakeside lunch.","emojis":"🏞️ 🍽️","styles":["Wistful"],"bg":["#b4c6b1","#8fa99b"],"fg":"#20332d","color":"blue"}
+{"text":"The kingfisher just flew past.","emojis":"🐦","styles":["Deadpan"],"bg":["#a5c8d0","#76a9b6"],"fg":"#162d36","color":"blue"}
+{"text":"Please check the tide chart.","emojis":"🌊","styles":["Deadpan"],"bg":["#8eb8cf","#6399b6"],"fg":"#102b3a","color":"blue"}
+{"text":"Our glacier slide is ready.","emojis":"🧊 🛝","styles":["Excited"],"bg":["#d9f1f5","#a9d6e2"],"fg":"#12343b","color":"blue"}
+{"text":"I found a robin's egg.","emojis":"🐦 🥚","styles":["Whimsical"],"bg":["#d8f0f2","#a9d8df"],"fg":"#18363d","color":"blue"}
+{"text":"I booked the ferry for noon.","emojis":"⛴️ 🕛","styles":["Deadpan"],"bg":["#c6e2ed","#8fbaca"],"fg":"#17323d","color":"blue"}
+{"text":"That deep-water logo feels crisp.","emojis":"🌊","styles":["Serene","Deadpan"],"bg":["#426b82","#294c63"],"fg":"#f1f7f8","color":"blue"}
+{"text":"The sprinkler soaked my notes.","emojis":"💦 📝","styles":["Irritated"],"bg":["#b9dceb","#82b8d0"],"fg":"#17313c","color":"blue"}
+{"text":"Moonlight makes the pier glow.","emojis":"🌙 🌉","styles":["Serene","Whimsical"],"bg":["#273c68","#17294f"],"fg":"#f5edc8","color":"blue"}
+{"text":"Grape soda from the corner shop","emojis":"🍇 🥤","styles":["Deadpan"],"bg":["#d9c3e1","#b99ac8"],"fg":"#30203b","color":"purple"}
+{"text":"Want eggplant parm tonight?","emojis":"🍆 🍝","styles":["Deadpan"],"bg":["#d8c4e1","#b398c5"],"fg":"#30203b","color":"purple"}
+{"text":"Ube cake fixed my whole mood","emojis":"🍰","styles":["Joyful"],"bg":["#d8b9e8","#b58bd0"],"fg":"#301d40","color":"purple"}
+{"text":"Concord grapes are finally here","emojis":"🍇","styles":["Hopeful","Joyful"],"bg":["#d8c1e2","#b592c8"],"fg":"#30213b","color":"purple"}
+{"text":"Beet juice leaked in my tote","emojis":"🧃 👜","styles":["Irritated"],"bg":["#d9a0a6","#b85c68"],"fg":"#24151a","color":"purple"}
+{"text":"Butterfly pea tea at four?","emojis":"🦋 🍵","styles":["Deadpan"],"bg":["#d8e8f0","#b8c7df"],"fg":"#182331","color":"purple"}
+{"text":"I found taro buns downtown","emojis":"🍠 🥯 🏙️","styles":["Deadpan"],"bg":["#e7cdbb","#caa4b8"],"fg":"#291d2b","color":"purple"}
+{"text":"Acai bowls before class?","emojis":"🥣 🫐","styles":["Deadpan"],"bg":["#d9c8e8","#b69aca"],"fg":"#241a2f","color":"purple"}
+{"text":"The eggplant at the market is huge","emojis":"🍆 🛒","styles":["Awed"],"bg":["#cdb7c9","#a99a8d"],"fg":"#211a24","color":"purple"}
+{"text":"Did you save me a slice of ube?","emojis":"🍠 🍰","styles":["Tender","Earnest"],"bg":["#d8bfe2","#b58acb"],"fg":"#24132e","color":"purple"}
+{"text":"My beet hummus escaped again","emojis":"🧆 🫜","styles":["Playful","Irritated"],"bg":["#d9b4a4","#bf8178"],"fg":"#291716","color":"purple"}
+{"text":"Let's split a grape popsicle","emojis":"🍇 🍧","styles":["Joyful","Playful"],"bg":["#d7c2ed","#ad85d2"],"fg":"#241536","color":"purple"}
+{"text":"Twilight looks wild from here","emojis":"🌆","styles":["Awed","Whimsical"],"bg":["#4b527d","#252b52"],"fg":"#f5e7b8","color":"purple"}
+{"text":"Moonlit haze on the river","emojis":"🌙 🌫️ 🌊","styles":["Serene","Whimsical"],"bg":["#657d9e","#3f5878"],"fg":"#f3f0d8","color":"purple"}
+{"text":"Velvet curtains at the theater","emojis":"🎭","styles":["Deadpan"],"bg":["#824653","#542d3c"],"fg":"#f8e7d2","color":"purple"}
+{"text":"A thistle got stuck in my sock","emojis":"🌿 🧦","styles":["Irritated"],"bg":["#9a9b72","#6f704c"],"fg":"#251f20","color":"purple"}
+{"text":"The bishop's robe looks dramatic","emojis":"⛪ 🧥","styles":["Awed","Earnest"],"bg":["#756b8f","#4e476d"],"fg":"#f4e8d0","color":"purple"}
+{"text":"Coffee's ready if you're awake","emojis":"☕","styles":["Tender","Serene"],"bg":["#c9a77d","#a87e58"],"fg":"#2d211b","color":"brown"}
+{"text":"The leather seats need conditioning","emojis":"🪑","styles":["Deadpan"],"bg":["#96715b","#6f4e40"],"fg":"#fff0d8","color":"brown"}
+{"text":"Meet me by the old oak tree","emojis":"🌳","styles":["Deadpan"],"bg":["#b8ad86","#8f815f"],"fg":"#20251d","color":"brown"}
+{"text":"I spilled espresso on my notes","emojis":"☕ 📝","styles":["Irritated"],"bg":["#c9a27e","#a87855"],"fg":"#241812","color":"brown"}
+{"text":"The garden soil is finally workable","emojis":"🌱 🪴","styles":["Hopeful"],"bg":["#aebd86","#879b68"],"fg":"#1d2b1d","color":"brown"}
+{"text":"The bear tracks crossed our path","emojis":"🐻 🐾","styles":["Tense"],"bg":["#a99a83","#817461"],"fg":"#211c18","color":"brown"}
+{"text":"Rain turned the trail into sludge","emojis":"🌧️ 🥾","styles":["Irritated"],"bg":["#9aa9b5","#77838d"],"fg":"#18232b","color":"brown"}
+{"text":"I want a walnut loaf tonight","emojis":"🍞 🌰","styles":["Deadpan"],"bg":["#d1ad78","#b98c59"],"fg":"#2a1d12","color":"brown"}
+{"text":"The horses are loose again","emojis":"🐎","styles":["Tense","Irritated"],"bg":["#b79a7e","#94745e"],"fg":"#241a15","color":"brown"}
+{"text":"This stew needs another hour","emojis":"🍲","styles":["Deadpan"],"bg":["#c79d69","#b47e52"],"fg":"#281a12","color":"brown"}
+{"text":"Found my boots by the woodstove","emojis":"🥾 🔥","styles":["Serene"],"bg":["#b99b79","#92735b"],"fg":"#211914","color":"brown"}
+{"text":"The river smells like wet earth","emojis":"🌊 🪨","styles":["Deadpan"],"bg":["#78939a","#8f795d"],"fg":"#17252a","color":"brown"}
+{"text":"Let's watch the leaves drift down","emojis":"🍂","styles":["Serene","Whimsical"],"bg":["#d9c6a5","#b89a72"],"fg":"#30261d","color":"brown"}
+{"text":"My suitcase still smells like cedar","emojis":"🧳 🌲","styles":["Deadpan"],"bg":["#d7c3a5","#b69a78"],"fg":"#2d241b","color":"brown"}
+{"text":"The porch looks great in lamplight","emojis":"🏡 🏮","styles":["Serene"],"bg":["#d8b078","#a8754d"],"fg":"#302016","color":"brown"}
+{"text":"Who ate the last chocolate bar?","emojis":"🍫","styles":["Playful"],"bg":["#d5b59d","#b98268"],"fg":"#342019","color":"brown"}
+{"text":"I'm bringing mushroom soup Sunday","emojis":"🍄 🍲","styles":["Earnest"],"bg":["#d5c2a5","#b49d7d"],"fg":"#29251c","color":"brown"}
+{"text":"Please remind me about the compost","emojis":"♻️ 🌱","styles":["Earnest"],"bg":["#c5d2b1","#9eaf8a"],"fg":"#1d2b20","color":"brown"}
+{"text":"Grabbed an ube latte before class","emojis":"🍠 ☕","styles":["Deadpan"],"bg":["#c8a9c9","#a77fae"],"fg":"#241b2a","color":"purple"}
+{"text":"Are grapes on the dining hall menu?","emojis":"🍇","styles":["Deadpan"],"bg":["#c4b2d1","#9f8ab5"],"fg":"#241b2d","color":"purple"}
+{"text":"Eggplant parm again? Seriously?","emojis":"🍆 🧀","styles":["Irritated"],"bg":["#b8a0c2","#967b9f"],"fg":"#211827","color":"purple"}
+{"text":"Let's meet by the fountain at dusk","emojis":"⛲ 🌆","styles":["Serene"],"bg":["#9aaec4","#687e9d"],"fg":"#172536","color":"purple"}
+{"text":"Wisteria is blooming by the library","emojis":"🌸 📚","styles":["Serene"],"bg":["#d9c8e8","#b8c9b0"],"fg":"#263238","color":"purple"}
+{"text":"Reminder: grapes for the study group","emojis":"🍇 📚","styles":["Deadpan"],"bg":["#d8c4d8","#b7c8d8"],"fg":"#202b35","color":"purple"}
+{"text":"Moonlight through my dorm window","emojis":"🌙 🪟","styles":["Serene","Whimsical"],"bg":["#27365f","#59658f"],"fg":"#f4efff","color":"purple"}
+{"text":"Storm clouds over the quad again","emojis":"⛈️ 🏫","styles":["Irritated","Tense"],"bg":["#687786","#465767"],"fg":"#f4f1e8","color":"purple"}
+{"text":"Is the iris garden open today?","emojis":"🌷 🌿","styles":["Hopeful","Earnest"],"bg":["#cdb9d8","#a8c7a4"],"fg":"#263238","color":"purple"}
+{"text":"Ube cookies sold out already","emojis":"🍪","styles":["Irritated"],"bg":["#75517f","#5a4669"],"fg":"#fff4e6","color":"purple"}
+{"text":"Can we study after sunset?","emojis":"📚 🌙","styles":["Earnest"],"bg":["#7d7898","#454b70"],"fg":"#fff8e8","color":"purple"}
+{"text":"That grape soda ruined my notes","emojis":"🥤 📝","styles":["Irritated"],"bg":["#9b7aa3","#81828e"],"fg":"#202331","color":"purple"}
+{"text":"Night-blooming flowers by science","emojis":"🌙 🌸 🧪","styles":["Whimsical","Serene"],"bg":["#30385f","#665a86"],"fg":"#fff4e8","color":"purple"}
+{"text":"Found boysenberry jam at breakfast","emojis":"🫐 🍞","styles":["Joyful"],"bg":["#b77a91","#d09a72"],"fg":"#321f2b","color":"purple"}
+{"text":"Did the fountain lights come on?","emojis":"⛲ 💡","styles":["Deadpan"],"bg":["#243b55","#3a506b"],"fg":"#f5f1e8","color":"purple"}
+{"text":"My eggplant sandwich leaked everywhere","emojis":"🍆 🥪 💦","styles":["Irritated"],"bg":["#5a354f","#8b6251"],"fg":"#fff4df","color":"purple"}
+{"text":"Bringing grape popsicles tonight","emojis":"🍇 🍧","styles":["Joyful","Hopeful"],"bg":["#6b4c8a","#9b78b5"],"fg":"#fff8e7","color":"purple"}
+{"text":"Wisteria at the bus stop is wild","emojis":"🌸 🚌","styles":["Whimsical","Awed"],"bg":["#b69acb","#78946f"],"fg":"#1d2930","color":"purple"}
+{"text":"Clouds rolled in during my lab","emojis":"☁️ 🧪","styles":["Deadpan"],"bg":["#8799aa","#b0bcc5"],"fg":"#182631","color":"purple"}
+{"text":"Ube mochi run after lecture?","emojis":"🍠 🍡 📚","styles":["Playful","Hopeful"],"bg":["#74508f","#a878a8"],"fg":"#fff7e8","color":"purple"}
+{"text":"The coal stove is humming again.","emojis":"🪨 🔥","styles":["Serene"],"bg":["#353535","#6b4b39"],"fg":"#fff0d2","color":"black"}
+{"text":"Ravens gathered by the shed.","emojis":"🐦‍⬛ 🛖","styles":["Deadpan"],"bg":["#30383b","#526052"],"fg":"#f1ead8","color":"black"}
+{"text":"I spilled coffee on my crossword.","emojis":"☕ 🧩","styles":["Irritated"],"bg":["#76513d","#a87955"],"fg":"#fff4df","color":"black"}
+{"text":"The eclipse starts after lunch.","emojis":"🌑","styles":["Deadpan"],"bg":["#263b63","#536f9a"],"fg":"#f5e8b8","color":"black"}
+{"text":"My umbrella lost another rib.","emojis":"☂️","styles":["Irritated"],"bg":["#7f98ad","#b4c3cf"],"fg":"#172b3a","color":"black"}
+{"text":"I found soot in the chimney.","emojis":"🏠","styles":["Deadpan"],"bg":["#4a403e","#796b62"],"fg":"#f4eadb","color":"black"}
+{"text":"The crow stole my shiny button.","emojis":"🐦‍⬛ 🔘","styles":["Playful","Whimsical"],"bg":["#355568","#6b8290"],"fg":"#fff1b8","color":"black"}
+{"text":"Meet me by the old train tunnel.","emojis":"🚂","styles":["Deadpan"],"bg":["#1d2d45","#405a74"],"fg":"#f2e9d8","color":"black"}
+{"text":"The porch light finally gave up.","emojis":"💡","styles":["Irritated"],"bg":["#253246","#5b5360"],"fg":"#ffd27a","color":"black"}
+{"text":"A bowl of olives for supper.","emojis":"🫒","styles":["Deadpan"],"bg":["#6d7650","#a7a77c"],"fg":"#241f16","color":"black"}
+{"text":"My garden soil needs turning.","emojis":"🌱","styles":["Deadpan"],"bg":["#5a482d","#887044"],"fg":"#f2e6c5","color":"black"}
+{"text":"The storm knocked out the streetlamps.","emojis":"⛈️ 💡","styles":["Tense"],"bg":["#1e2b45","#465267"],"fg":"#f2f0dc","color":"black"}
+{"text":"I miss those vinyl records.","emojis":"💿","styles":["Wistful"],"bg":["#c8bfd0","#a99caf"],"fg":"#241d2b","color":"black"}
+{"text":"The cat hides under the sofa.","emojis":"🐈 🛋️","styles":["Deadpan"],"bg":["#d9d4cc","#b9b2aa"],"fg":"#292725","color":"black"}
+{"text":"Please remind me about the chimney sweep.","emojis":"🧹","styles":["Earnest"],"bg":["#c7c9c5","#a9aca8"],"fg":"#202522","color":"black"}
+{"text":"Newspaper ink stained my thumb.","emojis":"📰 👍","styles":["Deadpan"],"bg":["#d9d6ca","#bcb9ae"],"fg":"#252622","color":"black"}
+{"text":"The piano suits this rainy morning.","emojis":"🎹 🌧️","styles":["Serene"],"bg":["#aebdca","#879cac"],"fg":"#172532","color":"black"}
+{"text":"I bought licorice at the market.","emojis":"🍬 🛍️","styles":["Deadpan"],"bg":["#d6b8a8","#bd9688"],"fg":"#30201d","color":"black"}
+{"text":"Bring boots; the drizzle won’t quit.","emojis":"👢 🌧️","styles":["Irritated","Tense"],"bg":["#aebdca","#879cac"],"fg":"#172532","color":"gray"}
+{"text":"Meet me under the station awning.","emojis":"🚉","styles":["Deadpan"],"bg":["#aab4c0","#8995a3"],"fg":"#17212d","color":"gray"}
+{"text":"The fog ate half the neighborhood.","emojis":"🌫️ 🏘️","styles":["Whimsical"],"bg":["#c4c9ca","#a5adaf"],"fg":"#202729","color":"gray"}
+{"text":"I found a tiny concrete café.","emojis":"☕","styles":["Whimsical"],"bg":["#c9c1b5","#aaa093"],"fg":"#28221c","color":"gray"}
+{"text":"Rain on the window is soothing.","emojis":"🌧️ 🪟","styles":["Serene"],"bg":["#c3d2dc","#9eb5c4"],"fg":"#172b38","color":"gray"}
+{"text":"Pigeons are judging us again.","emojis":"🐦","styles":["Playful","Sarcastic"],"bg":["#c6c5ce","#a7a8b5"],"fg":"#282934","color":"gray"}
+{"text":"Want mushroom soup tonight?","emojis":"🍄 🍲","styles":["Deadpan"],"bg":["#e1c9a8","#c5a77f"],"fg":"#332417","color":"gray"}
+{"text":"The overcast ruined my laundry.","emojis":"☁️ 🧺","styles":["Irritated"],"bg":["#b8c3cb","#98a8b3"],"fg":"#1d2b34","color":"gray"}
+{"text":"Streetlights glow through mist.","emojis":"💡 🌫️","styles":["Whimsical","Serene"],"bg":["#9caebc","#718797"],"fg":"#172630","color":"gray"}
+{"text":"I miss the old stone courtyard.","emojis":"🏛️ 🪨","styles":["Wistful"],"bg":["#b4afa5","#928d85"],"fg":"#292721","color":"gray"}
+{"text":"That cloud bank looks enormous.","emojis":"☁️","styles":["Awed"],"bg":["#b8cbd8","#91abbc"],"fg":"#172b38","color":"gray"}
+{"text":"The kettle and a rainy playlist?","emojis":"🫖 🌧️ 🎵","styles":["Serene"],"bg":["#aebfca","#8ca5b3"],"fg":"#192b35","color":"gray"}
+{"text":"A heron stood by the canal.","emojis":"🐦 🌊","styles":["Serene"],"bg":["#abc1b9","#829f98"],"fg":"#172d2a","color":"gray"}
+{"text":"Fog delay: I’ll be ten late.","emojis":"🌫️ ⏰","styles":["Tense","Anxious"],"bg":["#b5c1c8","#94a5af"],"fg":"#1b2a32","color":"gray"}
+{"text":"The sidewalk is slick again.","emojis":"🌧️","styles":["Irritated"],"bg":["#b8c9d2","#8fa8b5"],"fg":"#17252d","color":"gray"}
+{"text":"Let’s watch that elephant film.","emojis":"🐘 🎬","styles":["Deadpan"],"bg":["#d8c7aa","#b59d7e"],"fg":"#241b15","color":"gray"}
+{"text":"My mood needs a quiet drizzle.","emojis":"🌧️","styles":["Serene","Whimsical"],"bg":["#b8cad1","#91aeb8"],"fg":"#1c2b33","color":"gray"}
+{"text":"Meet me near the train tracks.","emojis":"🚆","styles":["Deadpan"],"bg":["#b7c2cc","#8f9eab"],"fg":"#18232c","color":"gray"}
+{"text":"This mushroom stew saved me.","emojis":"🍄 🍲","styles":["Earnest"],"bg":["#c78f63","#9d6746"],"fg":"#261711","color":"gray"}
+{"text":"Clocked in; espresso is ready.","emojis":"☕","styles":["Deadpan"],"bg":["#c69a72","#a8754f"],"fg":"#21150f","color":"black"}
+{"text":"Raven on the loading dock again.","emojis":"🐦‍⬛","styles":["Irritated"],"bg":["#68747b","#414b51"],"fg":"#f2f4f2","color":"black"}
+{"text":"The coal chute jammed at 2:10.","emojis":"⚙️","styles":["Tense"],"bg":["#777775","#4e504f"],"fg":"#f4f1e8","color":"black"}
+{"text":"Ink leaked through my timesheet.","emojis":"🖋️ 📄","styles":["Irritated"],"bg":["#a5b8c9","#758ea6"],"fg":"#15202a","color":"black"}
+{"text":"Can you cover my break at midnight?","emojis":"🕛","styles":["Earnest"],"bg":["#243447","#3b5368"],"fg":"#f4f7f8","color":"black"}
+{"text":"Tires hiss on wet asphalt.","emojis":"🛞 🌧️","styles":["Deadpan"],"bg":["#4f5963","#75818b"],"fg":"#ffffff","color":"black"}
+{"text":"The raven beat me to the gate.","emojis":"🐦‍⬛ 🚪","styles":["Whimsical"],"bg":["#34304a","#5a586f"],"fg":"#f8f4e8","color":"black"}
+{"text":"No moon over the yard tonight.","emojis":"🌙","styles":["Wistful"],"bg":["#101b35","#2c3952"],"fg":"#f2f4f7","color":"black"}
+{"text":"I found tar on my gloves.","emojis":"🧤","styles":["Deadpan"],"bg":["#493a34","#6b5648"],"fg":"#fff4df","color":"black"}
+{"text":"The crow keeps pecking at lunch.","emojis":"🐦‍⬛ 🍽️","styles":["Playful"],"bg":["#8a6748","#b18a5f"],"fg":"#20170f","color":"black"}
+{"text":"Basalt dust is in bay three.","emojis":"🪨","styles":["Deadpan"],"bg":["#555a5d","#74797b"],"fg":"#ffffff","color":"black"}
+{"text":"The coffee machine needs descaling.","emojis":"☕ 🔧","styles":["Deadpan"],"bg":["#6b594d","#917b68"],"fg":"#fff8ed","color":"black"}
+{"text":"That old vinyl still skips.","emojis":"💿 🎶","styles":["Wistful"],"bg":["#3d4654","#687383"],"fg":"#f5f1e8","color":"black"}
+{"text":"Storm clouds rolled over dispatch.","emojis":"⛈️ ☁️","styles":["Tense"],"bg":["#35485c","#627385"],"fg":"#ffffff","color":"black"}
+{"text":"Burnt toast by line four again.","emojis":"🍞 🔥 🚇","styles":["Irritated","Deadpan"],"bg":["#d8b08c","#a87552"],"fg":"#241812","color":"black"}
+{"text":"The tunnel lights quit again.","emojis":"🚇 💡","styles":["Irritated","Tense"],"bg":["#596575","#303944"],"fg":"#f4f1df","color":"black"}
+{"text":"My licorice is melting in the cab.","emojis":"🍬 🚕","styles":["Deadpan"],"bg":["#d99b8f","#b96d68"],"fg":"#28191d","color":"black"}
+{"text":"Someone left a raven feather here.","emojis":"🐦‍⬛ 🪶","styles":["Whimsical"],"bg":["#c9c2d8","#918aa8"],"fg":"#211d2d","color":"black"}
+{"text":"Oil slick near the south entrance.","emojis":"🛢️ 🚪","styles":["Tense","Irritated"],"bg":["#b8a56b","#84743f"],"fg":"#1d2118","color":"black"}
+{"text":"The graveyard shift starts at ten.","emojis":"⚰️ 🌙","styles":["Deadpan"],"bg":["#5e607d","#37394f"],"fg":"#f5ead1","color":"black"}
+{"text":"Snow's blocking the bike racks","emojis":"❄️ 🚲","styles":["Irritated","Tense"],"bg":["#d4e5ef","#a9c8dc"],"fg":"#172b38","color":"white"}
+{"text":"Can you bring the chalk?","emojis":"🖍️","styles":["Earnest"],"bg":["#e2d5b8","#c5ae87"],"fg":"#282116","color":"white"}
+{"text":"Milk spilled in my backpack again","emojis":"🥛 🎒","styles":["Irritated","Deadpan"],"bg":["#d8c9b5","#b49b7e"],"fg":"#241c18","color":"white"}
+{"text":"Meet by the jasmine garden?","emojis":"🌸 🌿","styles":["Serene","Hopeful"],"bg":["#d8e4c4","#aecb9d"],"fg":"#1d3020","color":"white"}
+{"text":"The lab coat got coffee on it","emojis":"🥼 ☕","styles":["Irritated"],"bg":["#f3eee6","#d8c4aa"],"fg":"#2b2520","color":"white"}
+{"text":"Clouds are swallowing the gym roof","emojis":"☁️ 🏟️","styles":["Awed","Whimsical"],"bg":["#cbd5df","#9eafc1"],"fg":"#172635","color":"white"}
+{"text":"Powdered donuts after practice?","emojis":"🍩 🏃","styles":["Deadpan"],"bg":["#f7e5d2","#ecc2b5"],"fg":"#39251d","color":"white"}
+{"text":"Moonlight hits the tennis court","emojis":"🌙 🎾","styles":["Serene"],"bg":["#253b68","#536d9c"],"fg":"#f4f0d8","color":"white"}
+{"text":"Do we still have pearls for art?","emojis":"🦪 🎨","styles":["Deadpan"],"bg":["#eee8e0","#d8cfe2"],"fg":"#292432","color":"white"}
+{"text":"Please save me a meringue","emojis":"🍰","styles":["Tender","Earnest"],"bg":["#fff0dc","#f2c8c8"],"fg":"#432624","color":"white"}
+{"text":"Fog delayed my bus again","emojis":"🌫️ 🚌","styles":["Irritated","Tense"],"bg":["#c4ced2","#8ea3ad"],"fg":"#17262d","color":"white"}
+{"text":"Your paper cranes look magical","emojis":"🕊️ ✨","styles":["Whimsical","Tender"],"bg":["#e4ddf2","#bfd3e5"],"fg":"#282441","color":"white"}
+{"text":"Grab tissues for the flu kit","emojis":"🤧 🧻","styles":["Earnest","Deadpan"],"bg":["#dcebe5","#b9d5d1"],"fg":"#1d3435","color":"white"}
+{"text":"Rice cakes at lunch?","emojis":"🍘","styles":["Deadpan"],"bg":["#eee5cf","#d8d8b6"],"fg":"#293021","color":"white"}
+{"text":"Fresh linen smells so good","emojis":"🧺","styles":["Joyful"],"bg":["#f4eee3","#ded6c7"],"fg":"#302b25","color":"white"}
+{"text":"I found a feather by the steps","emojis":"🪶","styles":["Whimsical"],"bg":["#e8dfd2","#cfc1ae"],"fg":"#30281f","color":"white"}
+{"text":"Want to study near the fountain?","emojis":"📚 ⛲","styles":["Earnest"],"bg":["#dce9e5","#b8d0c9"],"fg":"#17332f","color":"white"}
+{"text":"Frost on every window today","emojis":"❄️ 🪟","styles":["Serene"],"bg":["#e8f2f5","#c7dce5"],"fg":"#18313b","color":"white"}
+{"text":"Send the worksheet, please","emojis":"📄","styles":["Deadpan"],"bg":["#e7e9eb","#cbd0d5"],"fg":"#20262b","color":"white"}
+{"text":"Seagulls stole my fries","emojis":"🐦 🍟","styles":["Irritated","Playful"],"bg":["#ead9c4","#d3b28f"],"fg":"#382719","color":"white"}
+{"text":"Fog delayed warmups again","emojis":"🌫️ 🏃","styles":["Irritated"],"bg":["#d7dce0","#b8c1c7"],"fg":"#202b31","color":"gray"}
+{"text":"The track is slick from drizzle","emojis":"🏃 🌧️","styles":["Tense"],"bg":["#d6e1e6","#b2c5cc"],"fg":"#172a32","color":"gray"}
+{"text":"Need tape for my ankle","emojis":"🩹","styles":["Deadpan"],"bg":["#eaded8","#d6c0b8"],"fg":"#38231d","color":"gray"}
+{"text":"Meet at the concrete stairs","emojis":"🪜","styles":["Deadpan"],"bg":["#d9d7d2","#bcbab5"],"fg":"#292a28","color":"gray"}
+{"text":"Pigeons stole my snack","emojis":"🐦 🍿 😤","styles":["Irritated","Playful"],"bg":["#c7ccd1","#9fa8b2"],"fg":"#20262d","color":"gray"}
+{"text":"The gym lights feel sleepy","emojis":"🏋️ 💡 😴","styles":["Whimsical","Serene"],"bg":["#c9c9dc","#aeb8d0"],"fg":"#24283b","color":"gray"}
+{"text":"Coach moved lifts to six","emojis":"🏋️ ⏰","styles":["Deadpan"],"bg":["#b8c9d6","#8faabd"],"fg":"#182936","color":"gray"}
+{"text":"I left mud by the locker","emojis":"🥾 🚪","styles":["Deadpan"],"bg":["#c9b49b","#a99076"],"fg":"#292018","color":"gray"}
+{"text":"Rain tapped through film study","emojis":"🌧️ 🎬","styles":["Whimsical","Serene"],"bg":["#b8cbd5","#91aabb"],"fg":"#1d303b","color":"gray"}
+{"text":"Anyone seen my water bottle","emojis":"🧴 💧","styles":["Deadpan"],"bg":["#b7d9df","#8ebfc9"],"fg":"#173039","color":"gray"}
+{"text":"The bleachers are soaked","emojis":"🏟️ 🌧️","styles":["Deadpan"],"bg":["#b0c4cf","#8da8b6"],"fg":"#1c2d36","color":"gray"}
+{"text":"I want oatmeal after drills","emojis":"🥣 🏋️","styles":["Deadpan"],"bg":["#d8c7a8","#c0aa87"],"fg":"#302517","color":"gray"}
+{"text":"Our bus crawled past traffic","emojis":"🚌 🚗","styles":["Irritated"],"bg":["#d2b7a4","#bd9389"],"fg":"#351f24","color":"gray"}
+{"text":"The parking garage echoes","emojis":"🅿️ 🔊","styles":["Whimsical"],"bg":["#bfc4cc","#969da8"],"fg":"#202631","color":"gray"}
+{"text":"That elephant mural is huge","emojis":"🐘 🎨","styles":["Awed"],"bg":["#f2c46d","#d98d8d"],"fg":"#2b1d2a","color":"gray"}
+{"text":"Dolphins cut through cold water","emojis":"🐬 🌊","styles":["Deadpan"],"bg":["#b8dce8","#5a9bb4"],"fg":"#102b38","color":"gray"}
+{"text":"My hoodie smells like wet pavement","emojis":"👕 🌧️","styles":["Deadpan"],"bg":["#b7c5ca","#87979d"],"fg":"#1e2a2f","color":"gray"}
+{"text":"Can you bring my knee brace","emojis":"🦵","styles":["Earnest"],"bg":["#d9e1e6","#aebfcb"],"fg":"#1d2b35","color":"gray"}
+{"text":"We need quiet before finals","emojis":"🤫 📚","styles":["Tense","Anxious"],"bg":["#334b68","#18283f"],"fg":"#f4f7fa","color":"gray"}
+{"text":"Meet by the old coal chute","emojis":"🪨","styles":["Deadpan"],"bg":["#b69a72","#80664d"],"fg":"#251d18","color":"black"}
+{"text":"Coffee run after lab?","emojis":"☕ 🧪","styles":["Deadpan"],"bg":["#d9b27a","#b97d56"],"fg":"#2d1d14","color":"black"}
+{"text":"A storm’s rolling in again","emojis":"⛈️","styles":["Tense"],"bg":["#71849a","#3e536b"],"fg":"#f4f7fa","color":"black"}
+{"text":"Spilled ink on my notes","emojis":"🖋️ 📓","styles":["Irritated"],"bg":["#c4ccd4","#8f9aa6"],"fg":"#17212b","color":"black"}
+{"text":"Study session in the basement?","emojis":"📚","styles":["Deadpan"],"bg":["#5f6470","#3d414b"],"fg":"#f2eee6","color":"black"}
+{"text":"A bat flew past the gym","emojis":"🦇 🏋️","styles":["Startled"],"bg":["#68758a","#454f63"],"fg":"#ffffff","color":"black"}
+{"text":"Licorice after class?","emojis":"🍬","styles":["Playful"],"bg":["#d8b2c3","#b97f99"],"fg":"#301d29","color":"black"}
+{"text":"No stars over campus tonight","emojis":"🌌 🏫","styles":["Wistful","Melancholy"],"bg":["#202d52","#111a35"],"fg":"#edf2ff","color":"black"}
+{"text":"The crow stole my sandwich","emojis":"🐦‍⬛ 🥪","styles":["Irritated","Playful"],"bg":["#7f8790","#59616a"],"fg":"#ffffff","color":"black"}
+{"text":"Meet near the old furnace","emojis":"♨️","styles":["Deadpan"],"bg":["#9a7762","#6e5043"],"fg":"#fff7ed","color":"black"}
+{"text":"Oil leaked in the art room","emojis":"🛢️ 🎨","styles":["Irritated"],"bg":["#a29a73","#77704f"],"fg":"#17180f","color":"black"}
+{"text":"Bring an umbrella today","emojis":"☔","styles":["Earnest"],"bg":["#9db7c9","#6f91a8"],"fg":"#102431","color":"black"}
+{"text":"That thunder was intense","emojis":"⛈️","styles":["Startled","Tense"],"bg":["#626b7e","#3f4658"],"fg":"#ffffff","color":"black"}
+{"text":"Bring a flashlight downstairs","emojis":"🔦","styles":["Deadpan"],"bg":["#263238","#455a64"],"fg":"#fff3e0","color":"black"}
+{"text":"The night bus is late","emojis":"🚌","styles":["Irritated"],"bg":["#b7c9d6","#8099aa"],"fg":"#17252d","color":"black"}
+{"text":"Someone tracked tar inside","emojis":"👣","styles":["Irritated"],"bg":["#6b625d","#423d3a"],"fg":"#fff8ef","color":"black"}
+{"text":"Espresso before the quiz?","emojis":"☕","styles":["Deadpan"],"bg":["#d8b08c","#b98562"],"fg":"#24170f","color":"black"}
+{"text":"Moonless skies look strange","emojis":"🌌","styles":["Whimsical"],"bg":["#1b2548","#33436b"],"fg":"#f2f4ff","color":"black"}
+{"text":"Smoke alarm in chem again","emojis":"🚨 🧪","styles":["Irritated","Tense"],"bg":["#d8b6a9","#b86f60"],"fg":"#2b1614","color":"black"}
+{"text":"Concord grapes fueled warmups","emojis":"🍇 🏃","styles":["Deadpan"],"bg":["#c2a4c9","#8d6b9c"],"fg":"#24172b","color":"purple"}
+{"text":"Can you grab grape soda?","emojis":"🥤 🍇","styles":["Deadpan"],"bg":["#b79bc8","#8b69a8"],"fg":"#20152b","color":"purple"}
+{"text":"Eggplant wraps after lifting","emojis":"🍆 🌯 🏋️","styles":["Deadpan"],"bg":["#b8c8b0","#849b7f"],"fg":"#172218","color":"purple"}
+{"text":"Iris blooms by the track","emojis":"🌷 🏃","styles":["Serene"],"bg":["#c5d8c6","#9db7a4"],"fg":"#183022","color":"purple"}
+{"text":"Thistles line the practice gate","emojis":"🌿 🚪","styles":["Deadpan"],"bg":["#b6c28f","#8d9a68"],"fg":"#26351f","color":"purple"}
+{"text":"Prince is on repeat for drills","emojis":"🎶 🏋️","styles":["Excited"],"bg":["#c4a6d8","#8f72b0"],"fg":"#241b32","color":"purple"}
+{"text":"Storm clouds over practice again","emojis":"⛈️ 🏃","styles":["Irritated","Tense"],"bg":["#8798aa","#5f7187"],"fg":"#182733","color":"purple"}
+{"text":"My bruise hurts after tackles","emojis":"🤕 🏈","styles":["Earnest"],"bg":["#b999b8","#7d638c"],"fg":"#241b2c","color":"purple"}
+{"text":"Twilight laps before dinner","emojis":"🌆 🏃 🍽️","styles":["Serene"],"bg":["#b5abd0","#8997c1"],"fg":"#20283d","color":"purple"}
+{"text":"The gym lights feel regal tonight","emojis":"💡 👑 🏋️","styles":["Whimsical","Awed"],"bg":["#d8c5e2","#b59bc6"],"fg":"#302239","color":"purple"}
+{"text":"Grape gummies saved my commute","emojis":"🍇 🍬 🚌","styles":["Joyful"],"bg":["#d6b7da","#b48bc0"],"fg":"#2c1935","color":"purple"}
+{"text":"Eggplant pizza after the meet?","emojis":"🍆 🍕 🏅","styles":["Hopeful"],"bg":["#e8b58f","#d58f73"],"fg":"#3a2118","color":"purple"}
+{"text":"Petunias by the field are thriving","emojis":"🌺 🌿","styles":["Hopeful","Joyful"],"bg":["#b7d39b","#8fbd84"],"fg":"#1d351f","color":"purple"}
+{"text":"Clouds rolled in before kickoff","emojis":"☁️ ⚽","styles":["Tense","Deadpan"],"bg":["#c2ccd6","#9eafc0"],"fg":"#1c2a38","color":"purple"}
+{"text":"My mood feels strangely royal today","emojis":"👑","styles":["Whimsical"],"bg":["#d8c4e8","#b89bd3"],"fg":"#24142f","color":"purple"}
+{"text":"Thunder rolled through warmups","emojis":"⛈️ 🏃","styles":["Tense"],"bg":["#536a83","#354b63"],"fg":"#ffffff","color":"purple"}
+{"text":"Meet me near the jacaranda","emojis":"🌳","styles":["Deadpan"],"bg":["#d8e2d0","#b9cdb0"],"fg":"#233321","color":"purple"}
+{"text":"Foxgloves lean beside the bleachers","emojis":"🌸 🏟️","styles":["Deadpan"],"bg":["#d9e4ce","#b6c99f"],"fg":"#1e2b1c","color":"purple"}
+{"text":"I packed grape juice for recovery","emojis":"🍇 🧃","styles":["Deadpan"],"bg":["#e4cfea","#c59dcc"],"fg":"#29152f","color":"purple"}
+{"text":"Prince on the bus, rain outside","emojis":"🚌 🌧️","styles":["Wistful"],"bg":["#c7d6e3","#9fb8ca"],"fg":"#172936","color":"purple"}
+{"text":"Snow's piling by the shared mailbox","emojis":"❄️ 📬","styles":["Deadpan"],"bg":["#edf5fa","#cddfeb"],"fg":"#1b2d38","color":"white"}
+{"text":"Did your milk delivery arrive?","emojis":"🥛 🚚","styles":["Deadpan"],"bg":["#f6efd9","#e5d4ad"],"fg":"#2a2418","color":"white"}
+{"text":"Clouds are rolling over the cul-de-sac","emojis":"☁️ 🏘️","styles":["Serene"],"bg":["#dce7ee","#b9ccd9"],"fg":"#1d2b34","color":"white"}
+{"text":"Salt spilled near your front steps","emojis":"🧂","styles":["Deadpan"],"bg":["#e5dfd7","#cfc4b7"],"fg":"#2c2824","color":"white"}
+{"text":"Moonlight is flooding my kitchen","emojis":"🌙","styles":["Serene","Whimsical"],"bg":["#b8c9df","#849ab8"],"fg":"#17263d","color":"white"}
+{"text":"That swan got loose again!","emojis":"🦢","styles":["Startled","Playful"],"bg":["#d9e7ef","#a9c4d3"],"fg":"#19303b","color":"white"}
+{"text":"Can I borrow your sidewalk chalk?","emojis":"🖍️","styles":["Deadpan"],"bg":["#f0d9c7","#d8b49f"],"fg":"#39251d","color":"white"}
+{"text":"Linen sheets are on the clothesline","emojis":"🛏️ 🧺","styles":["Serene","Deadpan"],"bg":["#e7eee9","#c4d5cc"],"fg":"#24352e","color":"white"}
+{"text":"A dove keeps visiting your feeder","emojis":"🕊️","styles":["Tender","Serene"],"bg":["#dce9e3","#b6d0c4"],"fg":"#20382f","color":"white"}
+{"text":"Rice is boiling over—sorry!","emojis":"🍚","styles":["Anxious","Tense"],"bg":["#f2c69e","#df9870"],"fg":"#4a2118","color":"white"}
+{"text":"Frost covered both our cars","emojis":"❄️ 🚗","styles":["Deadpan"],"bg":["#dce8f1","#b4c9da"],"fg":"#1c2c3b","color":"white"}
+{"text":"Your magnolia smells amazing today","emojis":"🌸","styles":["Joyful","Awed"],"bg":["#f2d4d8","#ddb0bd"],"fg":"#472633","color":"white"}
+{"text":"Please grab toothpaste at the store","emojis":"🪥 🛒","styles":["Deadpan"],"bg":["#e3e8e7","#bdccca"],"fg":"#243332","color":"white"}
+{"text":"Found a pearl button by the hedge","emojis":"🫧 🌿","styles":["Whimsical"],"bg":["#e5e1d5","#b9c9b2"],"fg":"#29352a","color":"white"}
+{"text":"Anyone want coconut cake tonight?","emojis":"🥥 🍰","styles":["Deadpan"],"bg":["#f3d6a2","#e8b978"],"fg":"#3b2416","color":"white"}
+{"text":"The ghost lights are back by the shed","emojis":"👻 💡","styles":["Whimsical","Startled"],"bg":["#25334a","#48536a"],"fg":"#f4e8c1","color":"white"}
+{"text":"Could you save that paper for me?","emojis":"📄","styles":["Earnest"],"bg":["#d9e3e8","#b8cbd4"],"fg":"#1c2c35","color":"white"}
+{"text":"Marble dust got all over the walkway","emojis":"🪨","styles":["Deadpan"],"bg":["#d8d2ca","#bdb5ac"],"fg":"#292622","color":"white"}
+{"text":"Vanilla ice cream after dinner?","emojis":"🍦","styles":["Deadpan"],"bg":["#f1e3c5","#d9c29b"],"fg":"#352719","color":"white"}
+{"text":"An egret is standing in the drainage ditch","emojis":"🐦","styles":["Serene"],"bg":["#c9ddd5","#9dbcb6"],"fg":"#193332","color":"white"}
+{"text":"Eggplant parm for dinner tonight","emojis":"🍆 🧀","styles":["Deadpan"],"bg":["#bda6c8","#967ca8"],"fg":"#281b32","color":"purple"}
+{"text":"Can you grab grape soda?","emojis":"🍇 🥤","styles":["Deadpan"],"bg":["#c7b6df","#a48bc7"],"fg":"#241836","color":"purple"}
+{"text":"That orchid finally opened","emojis":"🌸","styles":["Joyful"],"bg":["#f0c4cf","#dda3b5"],"fg":"#421d2b","color":"purple"}
+{"text":"Meet me by the jacaranda trees","emojis":"🌳","styles":["Earnest"],"bg":["#b8d1a7","#8fb680"],"fg":"#1d331d","color":"purple"}
+{"text":"Mulberry stains on my shirt","emojis":"🍇 👕","styles":["Irritated"],"bg":["#b58aa8","#8f668d"],"fg":"#241b2b","color":"purple"}
+{"text":"Twilight traffic was brutal","emojis":"🌆 🚗","styles":["Irritated","Tense"],"bg":["#69778f","#46566f"],"fg":"#ffffff","color":"purple"}
+{"text":"Storm clouds rolled over the hills","emojis":"⛈️ ⛰️","styles":["Tense"],"bg":["#71808b","#4d5d6b"],"fg":"#ffffff","color":"purple"}
+{"text":"An iris bloomed by the mailbox","emojis":"🌸 📫","styles":["Serene"],"bg":["#d8c9e5","#b7c99d"],"fg":"#263329","color":"purple"}
+{"text":"Found a geode at the flea market","emojis":"💎 🛍️","styles":["Awed"],"bg":["#9aafd0","#8877ad"],"fg":"#171b31","color":"purple"}
+{"text":"Your amethyst ring is on my desk","emojis":"💍 💜","styles":["Deadpan"],"bg":["#c1a8d2","#9d7eb8"],"fg":"#241b32","color":"purple"}
+{"text":"Concord grapes are on sale","emojis":"🍇 🏷️","styles":["Deadpan"],"bg":["#765080","#9a7293"],"fg":"#ffffff","color":"purple"}
+{"text":"She wore an orchid corsage","emojis":"🌸 💐","styles":["Serene"],"bg":["#e1b3cb","#c6a5c9"],"fg":"#35203a","color":"purple"}
+{"text":"Cloudy dusk made me nostalgic","emojis":"☁️ 🌆","styles":["Wistful"],"bg":["#7e8ca2","#5b6682"],"fg":"#ffffff","color":"purple"}
+{"text":"That grape popsicle stained everything","emojis":"🍇 🍧","styles":["Irritated"],"bg":["#d8a7dc","#b978b7"],"fg":"#24152b","color":"purple"}
+{"text":"Jacaranda petals on the windshield","emojis":"🌸 🚗","styles":["Serene","Whimsical"],"bg":["#c9d8e8","#a9b8d8"],"fg":"#18243b","color":"purple"}
+{"text":"I need heather for the balcony","emojis":"🌿 🪴","styles":["Earnest"],"bg":["#c8d9c1","#a9c19e"],"fg":"#1d3020","color":"purple"}
+{"text":"Eggplant curry was a win","emojis":"🍆 🍛","styles":["Joyful"],"bg":["#d8b3d8","#b987b8"],"fg":"#26152d","color":"purple"}
+{"text":"Meet at the grape arbor?","emojis":"🍇 🌿","styles":["Playful"],"bg":["#c6d6b0","#a8c18c"],"fg":"#1d2a18","color":"purple"}
+{"text":"Twilight walk after dinner?","emojis":"🌆 🚶 🍽️","styles":["Serene","Hopeful"],"bg":["#c6b1c7","#9f91b6"],"fg":"#21182b","color":"purple"}
+{"text":"The baby slept through the fog.","emojis":"👶 🌫️","styles":["Tender","Serene"],"bg":["#c8d8df","#a7bccb"],"fg":"#182932","color":"gray"}
+{"text":"Can you check the stroller in fog?","emojis":"🌫️ 👶","styles":["Anxious"],"bg":["#b8c4ce","#8f9eac"],"fg":"#17232c","color":"gray"}
+{"text":"That pigeon is back on the sill.","emojis":"🕊️ 🪟","styles":["Irritated"],"bg":["#d1d7d9","#aebbc0"],"fg":"#1b2529","color":"gray"}
+{"text":"I spilled oatmeal on my shirt.","emojis":"🥣 👕","styles":["Irritated"],"bg":["#d9c5a8","#bfa386"],"fg":"#2b2117","color":"gray"}
+{"text":"Rain woke the baby again.","emojis":"🌧️ 👶","styles":["Irritated"],"bg":["#c7d4df","#9fb3c3"],"fg":"#172631","color":"gray"}
+{"text":"Her rattle rolled under concrete stairs.","emojis":"🪇 🪜","styles":["Deadpan"],"bg":["#d2d0ca","#aaa9a4"],"fg":"#252522","color":"gray"}
+{"text":"Clouds are hanging over the park.","emojis":"☁️ 🌳","styles":["Serene"],"bg":["#cbd7df","#b7c5b8"],"fg":"#1c2c32","color":"gray"}
+{"text":"More diapers, please, before dusk.","emojis":"🧷 🌆","styles":["Tense","Earnest"],"bg":["#5c536f","#403d5a"],"fg":"#f4ead0","color":"gray"}
+{"text":"The tin roof is singing again.","emojis":"🏠 🎶","styles":["Whimsical","Serene"],"bg":["#b9c8cf","#96aab4"],"fg":"#1b2a30","color":"gray"}
+{"text":"His toes feel cold as pavement.","emojis":"🦶 🥶","styles":["Deadpan"],"bg":["#bfc7cb","#a5b1b6"],"fg":"#202b30","color":"gray"}
+{"text":"Moonlight keeps finding the crib.","emojis":"🌙 🛏️","styles":["Tender","Whimsical"],"bg":["#263451","#3f4268"],"fg":"#f2e8c7","color":"gray"}
+{"text":"A moth circled the bassinet.","emojis":"🦋 🛏️","styles":["Whimsical"],"bg":["#596070","#474c62"],"fg":"#f4e9cf","color":"gray"}
+{"text":"Let's walk beside the foggy canal.","emojis":"🚶 🌫️","styles":["Serene","Hopeful"],"bg":["#b5c8c8","#8faeae"],"fg":"#1d3438","color":"gray"}
+{"text":"She smiled at the thunder.","emojis":"⚡","styles":["Playful","Awed"],"bg":["#c8d2d2","#aabac4"],"fg":"#172c3b","color":"gray"}
+{"text":"My coffee tastes like wet pavement.","emojis":"☕ 🌧️ 🤢","styles":["Disgusted"],"bg":["#b9b3aa","#8f8b86"],"fg":"#201d1a","color":"gray"}
+{"text":"He's fascinated by the pigeons.","emojis":"🐦","styles":["Awed"],"bg":["#d6dde2","#aab8c2"],"fg":"#1b2833","color":"gray"}
+{"text":"Meet us beneath the concrete viaduct?","emojis":"🌉","styles":["Deadpan"],"bg":["#b8bdc0","#92999d"],"fg":"#20282c","color":"gray"}
+{"text":"Moon on the monitor at midnight.","emojis":"🌙 🖥️","styles":["Serene","Whimsical"],"bg":["#252d50","#151b35"],"fg":"#f2e9c9","color":"gray"}
+{"text":"I need a quiet hour in drizzle.","emojis":"🌧️","styles":["Serene"],"bg":["#b7c7d0","#91a7b4"],"fg":"#1e303b","color":"gray"}
+{"text":"Coffee's ready in the moka pot.","emojis":"☕","styles":["Deadpan"],"bg":["#c7a77f","#a97f5e"],"fg":"#2c1d16","color":"black"}
+{"text":"The crow stole my suet again.","emojis":"🐦 😤","styles":["Irritated","Playful"],"bg":["#62676b","#474b4e"],"fg":"#f1e6c8","color":"black"}
+{"text":"Soot on the kitchen range.","emojis":"🔥","styles":["Deadpan"],"bg":["#77736e","#4c4a48"],"fg":"#f3eee5","color":"black"}
+{"text":"Rain at the cemetery gate.","emojis":"🌧️ 🪦","styles":["Melancholy"],"bg":["#66788b","#435464"],"fg":"#f4f1e8","color":"black"}
+{"text":"Ink leaked through my crossword.","emojis":"🖋️","styles":["Deadpan"],"bg":["#d4d0d8","#aaaab8"],"fg":"#20212b","color":"black"}
+{"text":"Bats above the railway arch.","emojis":"🦇 🚂","styles":["Deadpan"],"bg":["#303b50","#1d2738"],"fg":"#edf0e8","color":"black"}
+{"text":"Shall we meet by the old foundry?","emojis":"🏭","styles":["Earnest"],"bg":["#b7aaa0","#91877f"],"fg":"#252525","color":"black"}
+{"text":"Licorice for bridge club tonight.","emojis":"🍬 🃏","styles":["Deadpan"],"bg":["#4c3038","#30232d"],"fg":"#f4e8d0","color":"black"}
+{"text":"The candle died during supper.","emojis":"🕯️ 🍽️","styles":["Melancholy"],"bg":["#6d5b4c","#433b39"],"fg":"#f5dfb0","color":"black"}
+{"text":"Ravens returned to the mill roof.","emojis":"🐦‍⬛ 🏭","styles":["Whimsical"],"bg":["#4b5360","#303943"],"fg":"#eef0df","color":"black"}
+{"text":"That storm cloud has parked overhead.","emojis":"⛈️","styles":["Tense"],"bg":["#596879","#354656"],"fg":"#f0f2e8","color":"black"}
+{"text":"My tuxedo still fits, somehow.","emojis":"🤵","styles":["Playful"],"bg":["#4b5360","#292f3b"],"fg":"#f5f2e8","color":"black"}
+{"text":"A raven waits beside the porch.","emojis":"🐦‍⬛ 🏠","styles":["Deadpan"],"bg":["#554b49","#393a40"],"fg":"#f2e5c8","color":"black"}
+{"text":"Coal delivery is Thursday.","emojis":"🪨 🚚","styles":["Deadpan"],"bg":["#5a5b5d","#3d4145"],"fg":"#f0eadb","color":"black"}
+{"text":"I miss our smoky jazz cellar.","emojis":"🎷 🌫️","styles":["Wistful"],"bg":["#4a4650","#71616a"],"fg":"#fff3e6","color":"black"}
+{"text":"No stars above the allotment.","emojis":"⭐ 🌱","styles":["Wistful"],"bg":["#263b52","#526b7c"],"fg":"#f5f1df","color":"black"}
+{"text":"Espresso before my physio.","emojis":"☕ 🩺","styles":["Deadpan"],"bg":["#d6b28b","#b98d68"],"fg":"#2b1b14","color":"black"}
+{"text":"A soot mark mars the fireplace.","emojis":"🔥","styles":["Irritated"],"bg":["#c6b7a6","#9d8b7d"],"fg":"#241d19","color":"black"}
+{"text":"Walk past the old crematorium?","emojis":"🚶 ⚱️","styles":["Tense"],"bg":["#403d4c","#655568"],"fg":"#f7eee8","color":"black"}
+{"text":"The widow's weeds need trimming.","emojis":"🌿 ✂️","styles":["Deadpan"],"bg":["#aabf8f","#758d67"],"fg":"#182617","color":"black"}
+{"text":"The milk burp soaked my shirt","emojis":"🥛 👕","styles":["Disgusted","Playful"],"bg":["#d8e8ed","#b7d0d9"],"fg":"#17262d","color":"white"}
+{"text":"Did you see the clouds at dawn?","emojis":"☁️ 🌅","styles":["Awed"],"bg":["#c6d9e8","#eabf9f"],"fg":"#273345","color":"white"}
+{"text":"Moonlight woke her at 3:10","emojis":"🌙 🕒","styles":["Startled","Tense"],"bg":["#28344f","#596b8a"],"fg":"#f7f3dc","color":"white"}
+{"text":"I packed extra muslin cloths","emojis":"🧵","styles":["Deadpan"],"bg":["#e6d9c5","#cdb99f"],"fg":"#29231c","color":"white"}
+{"text":"Frost froze the car seat handle","emojis":"❄️ 🚗","styles":["Deadpan"],"bg":["#dce8f0","#b8cede"],"fg":"#172b3a","color":"white"}
+{"text":"She grinned at the swan mobile","emojis":"🦢","styles":["Joyful","Tender"],"bg":["#f3e4ed","#d9c9e2"],"fg":"#38243f","color":"white"}
+{"text":"Rice cereal is on everything","emojis":"🍚","styles":["Irritated"],"bg":["#eee3c5","#d9c79c"],"fg":"#3b2d1d","color":"white"}
+{"text":"Snow can wait; we need sleep","emojis":"❄️ 😴","styles":["Determined","Tense"],"bg":["#b9d0e2","#8eafc8"],"fg":"#122638","color":"white"}
+{"text":"A dove paused on our windowsill","emojis":"🕊️ 🪟","styles":["Serene"],"bg":["#dbe7ed","#b9ced9"],"fg":"#1d3038","color":"white"}
+{"text":"Egg salad was my whole lunch","emojis":"🥚 🥗","styles":["Deadpan"],"bg":["#efe5b9","#d6cf91"],"fg":"#343019","color":"white"}
+{"text":"Her first tooth is coming in","emojis":"🦷","styles":["Tender","Hopeful"],"bg":["#f2e2d7","#dfc4b8"],"fg":"#3b2422","color":"white"}
+{"text":"Can you bring coconut water?","emojis":"🥥 💧","styles":["Earnest"],"bg":["#c8e5e1","#9fcfc9"],"fg":"#163638","color":"white"}
+{"text":"The magnolia outside is blooming","emojis":"🌸","styles":["Hopeful"],"bg":["#d8e6c5","#c9d9a8"],"fg":"#26351f","color":"white"}
+{"text":"I found a pearl in the laundry","emojis":"🦪 🧺","styles":["Awed"],"bg":["#e4d9d0","#d2c0ba"],"fg":"#35252a","color":"white"}
+{"text":"The nursery lamp feels like moonlight","emojis":"🌙 🛏️","styles":["Serene","Whimsical"],"bg":["#dce8f2","#b8cde0"],"fg":"#1b2d3d","color":"white"}
+{"text":"Please grab yogurt on your way","emojis":"🥣","styles":["Deadpan"],"bg":["#f3ead7","#e5d4b5"],"fg":"#33281c","color":"white"}
+{"text":"Her little socks vanished again","emojis":"🧦","styles":["Irritated"],"bg":["#d9dce8","#b8bfd2"],"fg":"#252936","color":"white"}
+{"text":"We watched gulls from the ward window","emojis":"🐦 🪟","styles":["Serene"],"bg":["#c8dce5","#a9c4d0"],"fg":"#1b3038","color":"white"}
+{"text":"I spilled salt during the night feed","emojis":"🧂 🍼 🌙","styles":["Deadpan"],"bg":["#d6d9e0","#b8bec9"],"fg":"#202832","color":"white"}
+{"text":"The meringue collapsed, just like me","emojis":"🍰","styles":["Melancholy","Sarcastic"],"bg":["#d8d0da","#b8aeba"],"fg":"#302633","color":"white"}
+{"text":"Snow finally cleared the loading bay.","emojis":"❄️ 🚚","styles":["Hopeful","Serene"],"bg":["#d9eaf2","#b8d2df"],"fg":"#1b303b","color":"white"}
+{"text":"Can someone restock printer paper?","emojis":"🖨️ 📄","styles":["Deadpan"],"bg":["#e2e4e7","#c8cdd2"],"fg":"#22282d","color":"white"}
+{"text":"Coffee's ready; milk is in the fridge.","emojis":"☕ 🥛","styles":["Serene","Deadpan"],"bg":["#e4d5c1","#cdb79a"],"fg":"#2d2118","color":"white"}
+{"text":"Moonlight reached the west windows.","emojis":"🌙 🪟","styles":["Serene","Whimsical"],"bg":["#d5e1ed","#b4c7db"],"fg":"#1b2d3d","color":"white"}
+{"text":"The swans are back on the pond.","emojis":"🦢","styles":["Serene"],"bg":["#c8e1e0","#8fb9b5"],"fg":"#173b3b","color":"white"}
+{"text":"Salt spilled by the break room sink.","emojis":"🧂 🚰","styles":["Deadpan"],"bg":["#e5e1d8","#c8c1b5"],"fg":"#292824","color":"white"}
+{"text":"Please bring chalk to the 3 p.m. review.","emojis":"🖍️ 📝","styles":["Deadpan"],"bg":["#d8dff0","#b5c4e2"],"fg":"#202b45","color":"white"}
+{"text":"A dove landed near reception.","emojis":"🕊️","styles":["Serene"],"bg":["#e6eee9","#bfd5ca"],"fg":"#1d3931","color":"white"}
+{"text":"Fog delayed my commute again.","emojis":"🌫️ 🚗","styles":["Irritated","Tense"],"bg":["#c4ccd4","#9daab7"],"fg":"#1e2933","color":"white"}
+{"text":"Fresh jasmine by the window today.","emojis":"🌸 🪟","styles":["Serene"],"bg":["#e5efd9","#c4dcae"],"fg":"#243522","color":"white"}
+{"text":"The porcelain mugs just arrived.","emojis":"☕","styles":["Deadpan"],"bg":["#eee2d2","#d7bea1"],"fg":"#38271d","color":"white"}
+{"text":"Rice bowls are in the kitchen.","emojis":"🍚 🥣","styles":["Deadpan"],"bg":["#e8dfc9","#d2c39f"],"fg":"#332b1c","color":"white"}
+{"text":"Clouds hid the summit again.","emojis":"☁️ 🏔️","styles":["Wistful"],"bg":["#bfcbd8","#98aabd"],"fg":"#1c2938","color":"white"}
+{"text":"Meringues are on the bakery tray.","emojis":"🧁","styles":["Deadpan"],"bg":["#f1ddd2","#dfb8aa"],"fg":"#3b2522","color":"white"}
+{"text":"I found a seashell in the supply box.","emojis":"🐚 📦","styles":["Deadpan"],"bg":["#d9e6e8","#b7cdd1"],"fg":"#19343a","color":"white"}
+{"text":"The linen shipment arrived early.","emojis":"📦 🧺","styles":["Deadpan"],"bg":["#eee8dc","#d8cbb8"],"fg":"#30291f","color":"white"}
+{"text":"Pearls are featured in the display.","emojis":"💎 🖼️","styles":["Deadpan"],"bg":["#e6edf2","#c5d4df"],"fg":"#1d2d38","color":"white"}
+{"text":"The moon is bright over the lot.","emojis":"🌕","styles":["Serene"],"bg":["#334b68","#6f87a3"],"fg":"#fff4cf","color":"white"}
+{"text":"Could we use the salt lamp tonight?","emojis":"🧂 💡","styles":["Deadpan"],"bg":["#e8d9b5","#d2b978"],"fg":"#332817","color":"white"}
+{"text":"The copier needs another ream.","emojis":"🖨️ 📄","styles":["Deadpan"],"bg":["#dfe4e7","#bbc5ca"],"fg":"#1d292e","color":"white"}
+{"text":"Morning fog slowed my commute","emojis":"🌫️ 🚗","styles":["Deadpan"],"bg":["#cbd3d5","#aab7bc"],"fg":"#202c30","color":"gray"}
+{"text":"Room 214 needs fresh linens","emojis":"🛏️ 🧺","styles":["Deadpan"],"bg":["#e7e2d9","#cfc7ba"],"fg":"#302b25","color":"gray"}
+{"text":"Rain taps the medication cart","emojis":"🌧️ 💊 🛒","styles":["Serene"],"bg":["#9eb4c2","#718d9e"],"fg":"#152831","color":"gray"}
+{"text":"Could you bring the steel tray?","emojis":"🍽️","styles":["Deadpan"],"bg":["#d9dde0","#b7c0c5"],"fg":"#20282c","color":"gray"}
+{"text":"Your chest film is ready, doctor","emojis":"🩻","styles":["Deadpan"],"bg":["#d9e4eb","#b7cbd8"],"fg":"#172b3a","color":"gray"}
+{"text":"Clouds are parked over the clinic","emojis":"☁️ 🏥","styles":["Whimsical"],"bg":["#cbd9e5","#aebfce"],"fg":"#1d3040","color":"gray"}
+{"text":"The concrete ramp is slick","emojis":"⚠️","styles":["Deadpan"],"bg":["#d7d9d7","#b8bcb9"],"fg":"#202625","color":"gray"}
+{"text":"Mushroom soup is on tonight","emojis":"🍄 🥣","styles":["Deadpan"],"bg":["#e5d8c8","#cbb49c"],"fg":"#35271d","color":"gray"}
+{"text":"Those elephant socks are back","emojis":"🐘 🧦","styles":["Playful"],"bg":["#d8d2e1","#b9afc9"],"fg":"#292238","color":"gray"}
+{"text":"A pigeon guards the loading dock","emojis":"🐦","styles":["Whimsical"],"bg":["#d9e1d1","#b8c7aa"],"fg":"#253020","color":"gray"}
+{"text":"Fog may delay your ride home","emojis":"🌫️ 🚗","styles":["Tense"],"bg":["#c9d1d7","#aebbc4"],"fg":"#1d2a33","color":"gray"}
+{"text":"Please rest; the storm is close","emojis":"🛌 ⛈️","styles":["Tender","Tense"],"bg":["#aab9cc","#8699b0"],"fg":"#101b29","color":"gray"}
+{"text":"That metal chair squeaks again","emojis":"🪑","styles":["Irritated"],"bg":["#d9d0c7","#bba99b"],"fg":"#30231c","color":"gray"}
+{"text":"The oyster crackers arrived","emojis":"🦪 🍘","styles":["Deadpan"],"bg":["#e2d6c5","#c8b69e"],"fg":"#30261c","color":"gray"}
+{"text":"I’m charting by the window","emojis":"🪟 📝","styles":["Deadpan"],"bg":["#dceaf2","#b8d0df"],"fg":"#173042","color":"gray"}
+{"text":"The parking lot vanished in mist","emojis":"🌫️ 🅿️","styles":["Whimsical"],"bg":["#d6dce1","#b8c2ca"],"fg":"#202a31","color":"gray"}
+{"text":"Have you seen my tin lunchbox?","emojis":"🍱","styles":["Deadpan"],"bg":["#e7d7b8","#d2b98e"],"fg":"#332516","color":"gray"}
+{"text":"A quiet hush fills the hallway","emojis":"🤫","styles":["Serene"],"bg":["#dce7e8","#b9d0d1"],"fg":"#1d3538","color":"gray"}
+{"text":"Night shift starts under low clouds","emojis":"🌙 ☁️","styles":["Deadpan"],"bg":["#77869d","#5d6d85"],"fg":"#f5f1df","color":"gray"}
+{"text":"The boiler pipes knocked all night","emojis":"🔧 🌙","styles":["Irritated"],"bg":["#aeb8c0","#8e9ba5"],"fg":"#202a30","color":"gray"}
+{"text":"Grandpa's coffee is perking.","emojis":"☕","styles":["Tender"],"bg":["#e6c9a5","#d4a875"],"fg":"#3b2518","color":"brown"}
+{"text":"Can you bring the pecan pie?","emojis":"🥧","styles":["Earnest"],"bg":["#eed2a8","#dfb77e"],"fg":"#3b2618","color":"brown"}
+{"text":"Rain turned the lane to clay.","emojis":"🌧️ 🛣️","styles":["Deadpan"],"bg":["#b9cbd0","#9db4b8"],"fg":"#1e3033","color":"brown"}
+{"text":"My oak table needs polishing.","emojis":"🪵 🧽","styles":["Deadpan"],"bg":["#d9c2a3","#c5a47d"],"fg":"#38281b","color":"brown"}
+{"text":"That loaf has a perfect crust.","emojis":"🍞","styles":["Proud"],"bg":["#f3d6a3","#d9a85c"],"fg":"#3b2414","color":"brown"}
+{"text":"I found your leather satchel.","emojis":"👜","styles":["Deadpan"],"bg":["#c9a27e","#9b704e"],"fg":"#24170f","color":"brown"}
+{"text":"Come help me stack firewood.","emojis":"🪵","styles":["Earnest"],"bg":["#d8b07a","#b77b45"],"fg":"#2b1b12","color":"brown"}
+{"text":"A squirrel hid pecans in my pot.","emojis":"🐿️ 🥜 🪴","styles":["Whimsical"],"bg":["#b9d39a","#86ad6d"],"fg":"#1d321b","color":"brown"}
+{"text":"These boots are full of mud.","emojis":"🥾","styles":["Irritated"],"bg":["#b9a18b","#8f725d"],"fg":"#241b17","color":"brown"}
+{"text":"Shall we make fig preserves?","emojis":"🫙","styles":["Hopeful"],"bg":["#e7c68d","#d39d5d"],"fg":"#3a2415","color":"brown"}
+{"text":"A mole made hills by the shed.","emojis":"🐹 ⛰️ 🛖","styles":["Whimsical"],"bg":["#b8c99e","#8fa87b"],"fg":"#1f2c1b","color":"brown"}
+{"text":"The pot roast is nearly ready.","emojis":"🍖 🥘","styles":["Hopeful"],"bg":["#e5b38b","#c97f5d"],"fg":"#3b1d17","color":"brown"}
+{"text":"Look, an acorn on the step.","emojis":"🌰","styles":["Deadpan"],"bg":["#d2b18a","#b98b5d"],"fg":"#2b1c12","color":"brown"}
+{"text":"That beaver felled our willow.","emojis":"🦫 🌳","styles":["Irritated"],"bg":["#8a6a45","#6d7f4b"],"fg":"#1b2418","color":"brown"}
+{"text":"Fog settled over the plowed field.","emojis":"🌫️ 🌾","styles":["Serene"],"bg":["#c3d0d4","#aabcc2"],"fg":"#26363b","color":"brown"}
+{"text":"My pipe needs cleaning today.","emojis":"🧼","styles":["Deadpan"],"bg":["#b8b7b0","#969691"],"fg":"#242522","color":"brown"}
+{"text":"Meet me beside the old barn.","emojis":"🏚️","styles":["Deadpan"],"bg":["#b59a78","#9b815f"],"fg":"#30251c","color":"brown"}
+{"text":"I saved some mushroom stew.","emojis":"🍄 🥣","styles":["Tender"],"bg":["#c79b72","#a97859"],"fg":"#2b211b","color":"brown"}
+{"text":"Your teddy bear needs mending.","emojis":"🧸 🧵","styles":["Tender"],"bg":["#d5ae91","#c08d7c"],"fg":"#33231f","color":"brown"}
+{"text":"Morning fog has swallowed the lane.","emojis":"🌫️ 🛣️","styles":["Tense"],"bg":["#9caeb8","#7f929e"],"fg":"#1d2a32","color":"gray"}
+{"text":"Could you check the wet steps?","emojis":"🪜 💧","styles":["Tense"],"bg":["#a9c3c8","#8faeb5"],"fg":"#1d3035","color":"gray"}
+{"text":"The chimney smoke is drifting over.","emojis":"🏠 💨","styles":["Serene"],"bg":["#b9b4aa","#9e9b95"],"fg":"#292b2b","color":"gray"}
+{"text":"Please bring in my newspaper.","emojis":"📰","styles":["Deadpan"],"bg":["#d2c5a7","#bcae91"],"fg":"#2d2921","color":"gray"}
+{"text":"Pigeons are crowding the roof again.","emojis":"🐦","styles":["Irritated"],"bg":["#c7d1d8","#9eafb9"],"fg":"#17252d","color":"gray"}
+{"text":"A raccoon raided both our bins.","emojis":"🦝 🗑️","styles":["Irritated"],"bg":["#c8b9a8","#a18d7b"],"fg":"#241d18","color":"gray"}
+{"text":"The concrete crew starts at eight.","emojis":"🏗️","styles":["Deadpan"],"bg":["#d2cbc0","#b4aaa0"],"fg":"#292723","color":"gray"}
+{"text":"Street sweeping comes before noon.","emojis":"🧹","styles":["Deadpan"],"bg":["#d4d8d2","#aeb9b0"],"fg":"#1e2923","color":"gray"}
+{"text":"Rain is tapping every tin roof.","emojis":"🌧️ 🏠","styles":["Serene"],"bg":["#aebdca","#8299aa"],"fg":"#172630","color":"gray"}
+{"text":"The oak looks bare in the mist.","emojis":"🌳 🌫️","styles":["Wistful"],"bg":["#b8beb6","#919c94"],"fg":"#202923","color":"gray"}
+{"text":"I'm walking to the corner in drizzle.","emojis":"🚶 🌦️","styles":["Serene"],"bg":["#c5d0d2","#9eafb2"],"fg":"#1c292c","color":"gray"}
+{"text":"I left oyster mushrooms by your door.","emojis":"🍄 🚪","styles":["Tender"],"bg":["#d5c1aa","#b99e84"],"fg":"#2a211b","color":"gray"}
+{"text":"A harbor seal surfaced by the pier.","emojis":"🦭 ⚓","styles":["Awed"],"bg":["#9fc4cd","#6f9eaa"],"fg":"#10272d","color":"gray"}
+{"text":"Our driveway smells like wet pavement.","emojis":"🌧️","styles":["Deadpan"],"bg":["#b9c3c6","#929fa4"],"fg":"#1d282c","color":"gray"}
+{"text":"Clouds are sitting low today.","emojis":"☁️","styles":["Deadpan"],"bg":["#c8d3d9","#aebfc8"],"fg":"#24313a","color":"gray"}
+{"text":"That foghorn woke us at five.","emojis":"🚢 😤","styles":["Irritated"],"bg":["#aebdca","#879aa9"],"fg":"#172832","color":"gray"}
+{"text":"The alley lamp barely cuts the fog.","emojis":"🌫️ 💡","styles":["Wistful"],"bg":["#9ca9ad","#7f8f96"],"fg":"#17252b","color":"gray"}
+{"text":"Want to share a pot of oatmeal?","emojis":"🥣","styles":["Tender"],"bg":["#ead8b8","#d5b98b"],"fg":"#3a2a1c","color":"gray"}
+{"text":"The tin kettle is whistling again.","emojis":"🫖","styles":["Irritated"],"bg":["#c9d2d0","#aabcb9"],"fg":"#1f302f","color":"gray"}
+{"text":"The old fence is slick with rain.","emojis":"🌧️ 🪵","styles":["Deadpan"],"bg":["#b4c1c5","#91a5ab"],"fg":"#1d2d32","color":"gray"}
+{"text":"Snow day—want to sled later?","emojis":"❄️ 🛷","styles":["Joyful","Excited"],"bg":["#c9e5f3","#9fc9e2"],"fg":"#173044","color":"white"}
+{"text":"Mom bought fresh lilies.","emojis":"💐","styles":["Tender"],"bg":["#d9e4cd","#b9d0ae"],"fg":"#263522","color":"white"}
+{"text":"Can you grab marshmallows?","emojis":"🍬","styles":["Deadpan"],"bg":["#ead8bf","#d7b995"],"fg":"#3b281b","color":"white"}
+{"text":"The porcelain mug cracked.","emojis":"☕️","styles":["Deadpan"],"bg":["#d2cbc2","#b5aea6"],"fg":"#2b2926","color":"white"}
+{"text":"Moonlight's flooding my room.","emojis":"🌙","styles":["Whimsical","Serene"],"bg":["#18233f","#3b4d78"],"fg":"#f4e9c8","color":"white"}
+{"text":"I left the salt by your door.","emojis":"🧂 🚪","styles":["Earnest"],"bg":["#eee3c7","#d8c59e"],"fg":"#302619","color":"white"}
+{"text":"Clouds swallowed the hills.","emojis":"☁️ ⛰️","styles":["Whimsical","Serene"],"bg":["#71839a","#53677f"],"fg":"#f5f7fa","color":"white"}
+{"text":"The angora rabbit escaped again.","emojis":"🐇","styles":["Irritated"],"bg":["#d9ead3","#b6d0ae"],"fg":"#203326","color":"white"}
+{"text":"Bring the cotton blankets upstairs.","emojis":"🛏️","styles":["Earnest"],"bg":["#eee5d3","#d6c6ad"],"fg":"#30291f","color":"white"}
+{"text":"I made rice; save me a bowl.","emojis":"🍚 🥣","styles":["Earnest"],"bg":["#f7ecd1","#e7d19e"],"fg":"#332817","color":"white"}
+{"text":"Fog covers the soccer field.","emojis":"🌫️ ⚽","styles":["Serene"],"bg":["#dbe4e8","#b8cbd3"],"fg":"#1d303a","color":"white"}
+{"text":"Please dust the chalkboard.","emojis":"🧽","styles":["Deadpan"],"bg":["#d4d8d2","#aebbb0"],"fg":"#26312c","color":"white"}
+{"text":"Found your pearl earring.","emojis":"🦪","styles":["Earnest"],"bg":["#f1eee8","#d7d2ca"],"fg":"#292622","color":"white"}
+{"text":"Need help with the meringues?","emojis":"🍰","styles":["Earnest"],"bg":["#f4dfd3","#e9c2b5"],"fg":"#38251f","color":"white"}
+{"text":"The coconut cake is ready.","emojis":"🥥 🍰","styles":["Deadpan"],"bg":["#f3dfbd","#e8c48f"],"fg":"#3b2415","color":"white"}
+{"text":"Did the swans reach the pond?","emojis":"🦢 🌿","styles":["Deadpan"],"bg":["#c9e2e5","#9fc5c2"],"fg":"#183237","color":"white"}
+{"text":"Jasmine opened by the window.","emojis":"🌼 🪟","styles":["Serene"],"bg":["#dfe8d0","#b8c99d"],"fg":"#26351f","color":"white"}
+{"text":"Milk's ready in the fridge.","emojis":"🥛 🧊","styles":["Deadpan"],"bg":["#e5edf2","#c2d4df"],"fg":"#1c2d38","color":"white"}
+{"text":"Remember the powdered sugar.","emojis":"🍬","styles":["Deadpan"],"bg":["#f1e4dc","#dfc4b7"],"fg":"#3b2520","color":"white"}
+{"text":"Laundry's done; fold it?","emojis":"🧺 👕","styles":["Deadpan"],"bg":["#d8e3e8","#b5cbd4"],"fg":"#1d2d35","color":"white"}

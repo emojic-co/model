@@ -1,5 +1,7 @@
 import os
 
+import typer
+
 from runmeta import run_meta
 
 
@@ -123,7 +125,15 @@ def test_stamp_lines():
     assert "no embedded metadata" in legacy[0]
 
 
-if __name__ == "__main__":
+_app = typer.Typer(
+    add_completion=False,
+    context_settings={"help_option_names": ["-h", "--help"]},
+)
+
+
+@_app.command()
+def main() -> None:
+    """Run the runmeta.py assertion checks."""
     test_run_meta_shape()
     test_run_meta_sha_env_override()
     test_save_load_round_trip()
@@ -134,3 +144,7 @@ if __name__ == "__main__":
     test_write_meta_yml()
     test_stamp_lines()
     print("ok")
+
+
+if __name__ == "__main__":
+    _app()

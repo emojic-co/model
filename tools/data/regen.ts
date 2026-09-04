@@ -1,3 +1,5 @@
+import { cac } from "cac"
+
 import { splitEmojis } from "./emoji.ts"
 import { normalize } from "./normalize.ts"
 import { stableHash } from "./pool.ts"
@@ -177,13 +179,6 @@ const TRAIN = "./train.jsonl"
 const EVAL = "./eval.jsonl"
 const LABELS = "./labels.json"
 
-function argInt(flag: string): number | undefined {
-  const i = process.argv.indexOf(flag)
-  if (i < 0 || i + 1 >= process.argv.length) return undefined
-  const n = Number(process.argv[i + 1])
-  return Number.isInteger(n) ? n : undefined
-}
-
 export function toLine(r: Row): string {
   const base =
     r.bg && r.fg
@@ -192,9 +187,18 @@ export function toLine(r: Row): string {
   return JSON.stringify(r.extra ? { ...base, ...r.extra } : base)
 }
 
+const cli = cac("regen")
+cli.usage("[options]")
+cli
+  .option("--seed <n>", "train/eval split seed (default 42)")
+  .option("--n <n>", "eval.jsonl row count (default 1500)")
+cli.help()
+
 if (import.meta.main) {
-  const seed = argInt("--seed") ?? 42
-  const n = argInt("--n") ?? 1500
+  const { options } = cli.parse(process.argv, { run: false })
+  if (options.help) process.exit(0)
+  const seed = Number(options.seed ?? 42)
+  const n = Number(options.n ?? 1500)
 
   const raw = await readJsonl<unknown>(DATA)
   const records = collapse(raw)

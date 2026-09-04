@@ -1,4 +1,5 @@
 import { generateText } from "ai"
+import { cac } from "cac"
 import cliProgress from "cli-progress"
 import PQueue from "p-queue"
 
@@ -73,7 +74,14 @@ async function genBatch(topic: string): Promise<string[]> {
     .filter((l) => l && !l.startsWith("```"))
 }
 
+const cli = cac("train")
+cli.usage("[options]")
+cli.help()
+
 if (import.meta.main) {
+  cli.parse(process.argv, { run: false })
+  if (cli.options.help) process.exit(0)
+
   const genBar = new cliProgress.SingleBar(
     {
       format:

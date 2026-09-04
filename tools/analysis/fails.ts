@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises"
+import { cac } from "cac"
 import * as ort from "onnxruntime-web"
 import { argmax, encode, softmax } from "../../web/src/model.js"
 import { readJsonl } from "../data/io.ts"
@@ -35,7 +36,14 @@ function pct(n: number, d: number): string {
   return d ? `${((100 * n) / d).toFixed(1)}%` : "n/a"
 }
 
+const cli = cac("fails")
+cli.usage("[options]")
+cli.help()
+
 if (import.meta.main) {
+  cli.parse(process.argv, { run: false })
+  if (cli.options.help) process.exit(0)
+
   const meta = JSON.parse(await readFile(META, "utf8"))
   ort.env.wasm.numThreads = 1
   const session = await ort.InferenceSession.create(MODEL)

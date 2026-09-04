@@ -1,5 +1,6 @@
 import lightning as pl
 import torch
+import typer
 from lightning.pytorch.callbacks import (
     EarlyStopping,
     ModelCheckpoint,
@@ -33,7 +34,15 @@ def load(mod: torch.nn.Module, path: str) -> torch.nn.Module:
     return mod
 
 
-if __name__ == "__main__":
+_app = typer.Typer(
+    add_completion=False,
+    context_settings={"help_option_names": ["-h", "--help"]},
+)
+
+
+@_app.command()
+def main() -> None:
+    """Retrain only the GAN stage against enc.pt, re-saving gen.pt / tst.pt, then export."""
     require_clean_tree()
     pl.seed_everything(SEED, workers=True)
     torch.backends.cudnn.benchmark = False
@@ -79,3 +88,7 @@ if __name__ == "__main__":
         save_pt(mod.state_dict(), f"{name}.pt", stage="gan")
 
     export()
+
+
+if __name__ == "__main__":
+    _app()

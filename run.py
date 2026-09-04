@@ -1,6 +1,7 @@
 import json
 
 import torch
+import typer
 
 from config import SEED
 from data import EMOJIS, EVAL_PATH, STYLES, read, text_to_tensor
@@ -85,5 +86,17 @@ def predict(
                 f.write(json.dumps(out_record, ensure_ascii=False) + "\n")
 
 
-if __name__ == "__main__":
+_app = typer.Typer(
+    add_completion=False,
+    context_settings={"help_option_names": ["-h", "--help"]},
+)
+
+
+@_app.command()
+def main() -> None:
+    """Run the inference graph over the first 200 eval.jsonl rows, writing pred.jsonl."""
     predict()
+
+
+if __name__ == "__main__":
+    _app()

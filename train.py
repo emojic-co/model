@@ -4,6 +4,7 @@ import sys
 
 import lightning as pl
 import torch
+import typer
 from lightning.pytorch.callbacks import (
     EarlyStopping,
     ModelCheckpoint,
@@ -288,7 +289,15 @@ class LitColorGAN(pl.LightningModule):
         return [opt_gen, opt_tst]
 
 
-if __name__ == "__main__":
+_app = typer.Typer(
+    add_completion=False,
+    context_settings={"help_option_names": ["-h", "--help"]},
+)
+
+
+@_app.command()
+def main() -> None:
+    """Run the task stage, then the GAN stage, then refresh web/public/."""
     require_clean_tree()
     pl.seed_everything(SEED, workers=True)
     torch.backends.cudnn.benchmark = False
@@ -379,3 +388,7 @@ if __name__ == "__main__":
         save_pt(mod.state_dict(), f"{name}.pt", stage="gan")
 
     subprocess.run([sys.executable, "export_onnx.py"], check=True)
+
+
+if __name__ == "__main__":
+    _app()

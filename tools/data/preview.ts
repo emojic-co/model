@@ -1,4 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises"
+import { cac } from "cac"
 import { parseJsonlText, readJsonl } from "./io.ts"
 import { cardHtml, firstEmoji, page, stamp } from "./preview-card.ts"
 
@@ -6,7 +7,11 @@ const EVAL = "eval.jsonl"
 const OUT_DIR = "preview"
 const COUNT = 300
 const COLS = 5
-const ALL = process.argv.slice(2).includes("--all")
+
+const cli = cac("preview")
+cli.usage("[options]")
+cli.option("--all", "render every emoji per card, not just the first")
+cli.help()
 
 type Row = {
   text: string
@@ -41,6 +46,10 @@ body { place-items: start center; padding: 2em 1em; }
 `
 
 if (import.meta.main) {
+  const { options } = cli.parse(process.argv, { run: false })
+  if (options.help) process.exit(0)
+  const ALL = Boolean(options.all)
+
   const fromStdin = !process.stdin.isTTY
   const rows = fromStdin
     ? parseJsonlText<Row>(await Bun.stdin.text(), "stdin")

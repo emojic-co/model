@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises"
 
 import { generateText } from "ai"
+import { cac } from "cac"
 import cliProgress from "cli-progress"
 import PQueue from "p-queue"
 
@@ -40,20 +41,6 @@ const VOICES = [
 
 function pickVoice(): string {
   return VOICES[Math.floor(Math.random() * VOICES.length)]
-}
-
-function argInt(flag: string): number | undefined {
-  const i = process.argv.indexOf(flag)
-  if (i < 0 || i + 1 >= process.argv.length) return undefined
-  const n = Number(process.argv[i + 1])
-  return Number.isFinite(n) ? n : undefined
-}
-
-function argStr(flag: string): string | undefined {
-  const i = process.argv.indexOf(flag)
-  if (i < 0 || i + 1 >= process.argv.length) return undefined
-  const v = process.argv[i + 1].trim()
-  return v || undefined
 }
 
 export function countEmojis(
@@ -115,10 +102,20 @@ async function genBatch(
     .filter((l) => l && !l.startsWith("```"))
 }
 
+const cli = cac("upsample-emojis")
+cli.usage("[options]")
+cli
+  .option("--emoji <emoji>", "target these emoji instead of the rarest in labels.json")
+  .option("--rare <n>", `how many of the rarest emoji to target (default ${RARE_COUNT})`)
+  .option("--per <n>", `texts to generate per target emoji (default ${TEXTS_PER_EMOJI})`)
+cli.help()
+
 if (import.meta.main) {
-  const only = argStr("--emoji")
-  const rareCount = argInt("--rare") ?? RARE_COUNT
-  const per = argInt("--per") ?? TEXTS_PER_EMOJI
+  const { options } = cli.parse(process.argv, { run: false })
+  if (options.help) process.exit(0)
+  const only = options.emoji ? String(options.emoji).trim() || undefined : undefined
+  const rareCount = Number(options.rare ?? RARE_COUNT)
+  const per = Number(options.per ?? TEXTS_PER_EMOJI)
 
   let targets: string[]
   if (only) {

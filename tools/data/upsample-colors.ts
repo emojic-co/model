@@ -1,4 +1,5 @@
 import { generateText } from "ai"
+import { cac } from "cac"
 import cliProgress from "cli-progress"
 import PQueue from "p-queue"
 
@@ -52,18 +53,14 @@ function pickVoice(): string {
   return VOICES[Math.floor(Math.random() * VOICES.length)]
 }
 
-const HELP = `bun run upsample-colors [--colors NAME ...]
-
-Grows color-conditioned rows in ${DATA} for the color test. For each target
-color it generates ${BATCHES_PER_COLOR} x ${BATCH_SIZE} short texts that evoke the
-color only indirectly (never naming it), annotates them, and appends
-{text, emojis, styles, bg, fg, color} rows tagged with the target color. Rows
-that fail annotation or come back with no palette are dropped.
-
-Options:
-  --colors NAME ...  restrict to these color names (default: all ${COLORS.length})
-                     known: ${COLORS.join(" ")}
-  -h, --help         show this help and exit`
+const cli = cac("upsample-colors")
+cli.usage("[--colors NAME ...]")
+cli.option(
+  "--colors <names>",
+  "restrict to these color names, space-separated"
+    + ` (default: all ${COLORS.length}; known: ${COLORS.join(" ")})`,
+)
+cli.help()
 
 export function parseColors(argv: string[], list: string[]): string[] {
   const i = argv.indexOf("--colors")
@@ -121,10 +118,8 @@ async function genBatch(
 }
 
 if (import.meta.main) {
-  if (process.argv.includes("--help") || process.argv.includes("-h")) {
-    console.log(HELP)
-    process.exit(0)
-  }
+  cli.parse(process.argv, { run: false })
+  if (cli.options.help) process.exit(0)
 
   const targets = parseColors(process.argv, COLORS)
   console.log(

@@ -1,3 +1,5 @@
+import { cac } from "cac"
+
 import { readJsonl } from "./io.ts"
 import { shuffleSeeded } from "./regen.ts"
 
@@ -90,19 +92,6 @@ export function meanStd(xs: number[]): { mean: number; std: number } {
   return { mean: m, std: Math.sqrt(v) }
 }
 
-function argInt(flag: string): number | undefined {
-  const i = process.argv.indexOf(flag)
-  if (i < 0 || i + 1 >= process.argv.length) return undefined
-  const n = Number(process.argv[i + 1])
-  return Number.isFinite(n) ? n : undefined
-}
-
-function argStr(flag: string): string | undefined {
-  const i = process.argv.indexOf(flag)
-  if (i < 0 || i + 1 >= process.argv.length) return undefined
-  return process.argv[i + 1].trim() || undefined
-}
-
 function stamp(): { header: string; file: string } {
   const d = new Date()
   const p = (n: number) => String(n).padStart(2, "0")
@@ -151,11 +140,22 @@ function hist(values: number[]): string[] {
   return out
 }
 
+const cli = cac("color-analysis")
+cli.usage("[options]")
+cli
+  .option("--file <path>", `jsonl file to read (default ${DATA})`)
+  .option("--sample <n>", `random baseline sample size (default ${DEFAULT_SAMPLE})`)
+  .option("--seed <n>", `baseline sample seed (default ${DEFAULT_SEED})`)
+  .option("--examples <n>", `swatch examples per color (default ${DEFAULT_EXAMPLES})`)
+cli.help()
+
 if (import.meta.main) {
-  const file = argStr("--file") ?? DATA
-  const sampleSize = argInt("--sample") ?? DEFAULT_SAMPLE
-  const seed = argInt("--seed") ?? DEFAULT_SEED
-  const examples = argInt("--examples") ?? DEFAULT_EXAMPLES
+  const { options } = cli.parse(process.argv, { run: false })
+  if (options.help) process.exit(0)
+  const file = (options.file ? String(options.file).trim() : "") || DATA
+  const sampleSize = Number(options.sample ?? DEFAULT_SAMPLE)
+  const seed = Number(options.seed ?? DEFAULT_SEED)
+  const examples = Number(options.examples ?? DEFAULT_EXAMPLES)
 
   const raw = await readJsonl<Record<string, unknown>>(file)
   const withBg: Sample[] = []

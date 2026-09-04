@@ -1,5 +1,7 @@
 import { existsSync } from "node:fs"
 
+import { cac } from "cac"
+
 import { STYLES, TOP_EMOJIS } from "./config"
 import { coarseEmojiGroup, isFaceEmoji, splitEmojis } from "./emoji.ts"
 import { readJsonl } from "./io.ts"
@@ -160,7 +162,14 @@ function section(path: string, rows: Row[]): string[] {
   return out
 }
 
+const cli = cac("stat")
+cli.usage("[options]")
+cli.help()
+
 if (import.meta.main) {
+  cli.parse(process.argv, { run: false })
+  if (cli.options.help) process.exit(0)
+
   const { header } = stamp()
   const doc = [`# data stats — ${header}`, ""]
 

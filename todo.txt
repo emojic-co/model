@@ -559,3 +559,69 @@ TODO:
             mask should be done before the conv layers and before the max pooling layer.
             before the conv layer mask should zero out the embedding of the padding tokens.
             before the max pooling layer mask should set the padding tokens to -inf so they are not selected by the max pooling layer.
+
+    
+    Reports:
+        Currently we have several types of reports, the goal is to unified them into a single report that covers all the important aspects of the project.
+        The high level report structure:
+
+        Data:
+            - data.jsonl
+            - train.jsonl
+            - eval.jsonl
+            - labels.json
+            - data statistics (number of records, number of emojis, number of styles, etc...)
+            - raise flags for imbalances and other data issues.
+
+        Model:
+            Emojis:
+                - Evaluate the EmojiHead on the eval.jsonl and summarize the results in a report.
+                - Evaluate the EmojiHead on a predefined set of keywords and summarize the results in a report.
+            Styles:
+                - Evaluate the StyleHead on the eval.jsonl and summarize the results in a report.
+
+            Colors:
+                - Calculate the energy distance between GAN and real data.
+                - Calculate baseline energy distance between real data and itself.
+                - Evaluate the GAN on color groups:
+                    -   Scan the data.jsonl for all records with significant colors {bg}
+                        Only search for a small set of predefined colors (e.g. red, green, blue)
+                        Evaluate the model on each color group and:
+                            calculate energy distance
+                            calculate accuracy (this is the number of records where the generated color matches the real color group)
+
+                - Evaluate the GAN on a predefined set of color names (i.e. feed the model with the name of the color and check that the bg colors are aligned with the color name)
+                    -   Scan the data.jsonl for all records with significant colors {bg}
+
+
+        Note:
+            - This is the only type of report that we generate and keep.
+            - Any additional future information that we generate must be added to this report structure.
+            - There should be a single tool tools/report.py that generate the report. Remove any other report tools.
+            - Keep the preview tools they are not reports and the previews are git ignored.
+            - The report need to be generated in .html and .json format.
+            - No more .md reports, only .html and .json
+            - The above is just the high level structure, the details of each section is up to you to decide.
+            - Each report should be linked to a specific commit with a specific model .pt files and configuration.
+            - Make sure the report is in-depth but concise, every section should first present the bottom line in an easy to read (visual if possible) format.
+                Details may follow but only if they are relevant and add value to the report.
+
+        Tasks:
+            1. Decide about the actual structure of the report, its main goal is to be the tool to help me decide about the next steps in the project:
+                - Should I get more data? should I fix the data pipeline? which data to upsample? etc...
+                - Should I increase the model capacity? Should I try different model architecture? etc...
+                - Where are the failures of the model?
+                - Which model components are working well and which are not?
+
+            2. Generate a dummy report with the structure you propose and show it to me before you implement the actual report.
+
+            We iterate on 1. and 2. until we are happy with the report structure and content.
+
+            3. Implement the report generation tool and generate the report after each training session.
+            4. Remove all other report generation tools and scripts, only keep the preview tools.
+            5. Update the CLAUDE.md to reflect the new report structure and content.
+
+            As a side effect of this task we should:
+                - make a table with all the tools that we have 
+                - the table:
+                    | tool name | category | description | cli flags |

@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 import torch
+import typer
 from torch.nn.functional import normalize
 
 from config import (
@@ -295,5 +296,17 @@ def test_color(
     return {"summary": summary, "keywords": groups}
 
 
-if __name__ == "__main__":
+_app = typer.Typer(
+    add_completion=False,
+    context_settings={"help_option_names": ["-h", "--help"]},
+)
+
+
+@_app.command()
+def main() -> None:
+    """Score enc.pt + gen.pt on color-word groups; write report/test-color/<ts>-<sha>/."""
     sys.exit(0 if test_color()["summary"]["n_keywords"] else 1)
+
+
+if __name__ == "__main__":
+    _app()

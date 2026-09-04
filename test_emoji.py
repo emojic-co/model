@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 import torch
+import typer
 
 from config import EMOJIS
 from data import TRAIN_PATH, normalize, read, text_to_tensor
@@ -223,5 +224,17 @@ def test_emoji(
     return {"acc": acc, "mrr": mrr, "n": scored_n, "results": results}
 
 
-if __name__ == "__main__":
+_app = typer.Typer(
+    add_completion=False,
+    context_settings={"help_option_names": ["-h", "--help"]},
+)
+
+
+@_app.command()
+def main() -> None:
+    """Score enc.pt + emoji.pt against words.json; write report/test-emoji/<ts>-<sha>/."""
     sys.exit(0 if test_emoji()["n"] else 1)
+
+
+if __name__ == "__main__":
+    _app()

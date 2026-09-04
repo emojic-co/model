@@ -1,4 +1,5 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
+import { cac } from "cac"
 import * as ort from "onnxruntime-web"
 import { argmax, decodeColorList, encode } from "../../web/src/model.js"
 import { readJsonl } from "./io.ts"
@@ -45,7 +46,14 @@ body { place-items: start center; padding: 2em 1em; }
 .pm-no { color: #c0392b; }
 `
 
+const cli = cac("preview-model")
+cli.usage("[options]")
+cli.help()
+
 if (import.meta.main) {
+  cli.parse(process.argv, { run: false })
+  if (cli.options.help) process.exit(0)
+
   const meta = JSON.parse(await readFile(META, "utf8"))
   ort.env.wasm.numThreads = 1
   const session = await ort.InferenceSession.create(MODEL)

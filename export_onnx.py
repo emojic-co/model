@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import torch
+import typer
 from torch import nn
 from torch.nn.functional import normalize
 
@@ -130,5 +131,17 @@ def export() -> None:
     print(f"wrote {WEB_PUBLIC}/model.onnx + meta.json + config.json")
 
 
-if __name__ == "__main__":
+_app = typer.Typer(
+    add_completion=False,
+    context_settings={"help_option_names": ["-h", "--help"]},
+)
+
+
+@_app.command()
+def main() -> None:
+    """Write web/public/model.onnx + meta.json + config.json from the .pt files."""
     export()
+
+
+if __name__ == "__main__":
+    _app()

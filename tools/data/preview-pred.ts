@@ -1,12 +1,15 @@
 import { mkdir, writeFile } from "node:fs/promises"
+import { cac } from "cac"
 import { readJsonl } from "./io.ts"
 import { cardHtml, firstEmoji, page, stamp } from "./preview-card.ts"
 
-const args = process.argv.slice(2)
-const ALL = args.includes("--all")
-const SRC = args.find((a) => !a.startsWith("--")) ?? "pred.jsonl"
 const OUT_DIR = "preview"
 const COLS = 5
+
+const cli = cac("preview-pred")
+cli.usage("[src] [options]")
+cli.option("--all", "render every emoji per card, not just the first")
+cli.help()
 
 type Row = {
   text: string
@@ -41,6 +44,11 @@ body { place-items: start center; padding: 2em 1em; }
 `
 
 if (import.meta.main) {
+  const parsed = cli.parse(process.argv, { run: false })
+  if (parsed.options.help) process.exit(0)
+  const SRC = parsed.args[0] ?? "pred.jsonl"
+  const ALL = Boolean(parsed.options.all)
+
   const rows = await readJsonl<Row>(SRC)
   const cards = rows
     .map((r) => {
