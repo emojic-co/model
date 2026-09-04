@@ -21,7 +21,7 @@ from config import (
     TEXT_EMBED_SIZE,
     Z_WEIGHT,
 )
-from data import COLOR_DIM, EMOJIS, STYLES, VOCAB_SIZE
+from data import COLOR_DIM, EMOJIS, PAD_IDX, STYLES, VOCAB_SIZE
 
 
 class TextEncoderBlock(nn.Module):
@@ -44,7 +44,8 @@ class TextEncoder(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.char_embed = nn.Embedding(VOCAB_SIZE, CHAR_EMBED_SIZE)
+        self.char_embed = nn.Embedding(
+            VOCAB_SIZE, CHAR_EMBED_SIZE, padding_idx=PAD_IDX)
 
         cs = ENCODER_CHANNELS
         io = zip([CHAR_EMBED_SIZE, *cs[:-1]], cs, strict=True)
@@ -53,10 +54,11 @@ class TextEncoder(nn.Module):
             *[TextEncoderBlock(i=i, o=o) for i, o in io])
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # TODO: mask padding before conv
         out = self.char_embed(x).transpose(1, 2)
         out = self.net(out)
-        # TODO: mask padding before maxing, assume length shrinks (ENCODER_KERNEL_SIZE - 1) * len(ENCODER_CHANNELS)
+        n = (x != PAD_IDX).sum(dim=1, keepdim=True)
+        keep = torch.arange(out.shape[-1], device=x.device) < n
+        out = out.masked_fill(~keep.unsqueeze(1), float("-inf"))
         return torch.max(out, dim=-1).values
 
 
