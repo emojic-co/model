@@ -57,9 +57,11 @@ run_meta() -> {
 }
 ```
 
-- `sha` — `git rev-parse --short HEAD`; `"unknown"` on any failure
-  (covers a git-less Modal image).
-- `dirty` — `git status --porcelain` non-empty.
+- `sha` — `os.environ["EMOJIC_GIT_SHA"]` if set, else `git rev-parse --short
+  HEAD`, else `"unknown"`. The env override is how the git-less Modal image gets
+  a real SHA (see C).
+- `dirty` — `os.environ["EMOJIC_GIT_DIRTY"] == "1"` if that var is set, else
+  `git status --porcelain` non-empty.
 - `generated` — `datetime.now().isoformat(timespec="seconds")`.
 - `config` — `config.CONFIG_PARTS` (see B).
 - `train_sha` — `sha256` of `Path("train.jsonl")` bytes if present, else `None`
@@ -108,6 +110,13 @@ Pure data, no new imports.
 Each loop body: `save_pt(mod.state_dict(), f"{name}.pt", stage=...)`. `run_meta()`
 is evaluated at save time (after the best-checkpoint reload in `train.py` — the
 code state is unchanged across the fit, so the SHA is right).
+
+**Modal SHA passthrough.** `train-modal.py`'s `_run_env()` (or `main()`) captures
+the *local* dispatch-machine git state — `git rev-parse --short HEAD` and whether
+`git status --porcelain` is non-empty — and adds `EMOJIC_GIT_SHA` /
+`EMOJIC_GIT_DIRTY` to the env dict handed to every subprocess on the box. Without
+this the Modal image has no `.git` and `run_meta()` records `sha="unknown"` for
+every Modal-trained `.pt`. `run_meta()` reads these vars first (see A).
 
 ### D. Load sites — `load_pt` instead of `torch.load` + `load_state_dict`
 
@@ -306,8 +315,9 @@ preview/
   gitignored `preview/`.
 - `train-modal.py`: `report/test-emoji/<ts>/` is still produced on the Modal box
   and collected back (now tracked, so it also shows in `git status` there).
-  Update any comment listing old report types. `runmeta.run_meta()` degrades to
-  `sha="unknown"` when the Modal image has no git — already handled.
+  Update any comment listing old report types. Adds the `EMOJIC_GIT_SHA` /
+  `EMOJIC_GIT_DIRTY` env passthrough from the dispatch machine (see C) so
+  Modal-trained `.pt` files carry a real SHA.
 - `Taskfile.yml`: `modal-train:reports` — `find "${wt}report/test-emoji" -name
   '*.md'` now matches `.../<ts>/report.md` (recursive find, still fine); the
   printed relative path gains the `<ts>/` segment; `-newer "${wt}.git"` mtime
