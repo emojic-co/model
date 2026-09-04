@@ -127,7 +127,8 @@ class LitTask(pl.LightningModule):
         n_e = int(has_e.sum())
         if n_e:
             emoji_ap = ap_at_k(emoji_logits[has_e], emoji[has_e], EMOJI_AP_K).mean()
-            emoji_mrr = mrr_at_k(emoji_logits[has_e], emoji[has_e], EMOJI_AP_K).mean()
+            emoji_mrr = mrr_at_k(
+                emoji_logits[has_e], emoji[has_e], EMOJI_AP_K).mean()
         else:
             emoji_ap = torch.zeros((), device=emoji.device)
             emoji_mrr = torch.zeros((), device=emoji.device)
@@ -140,7 +141,8 @@ class LitTask(pl.LightningModule):
             (f"MRR@{EMOJI_AP_K}/e/{split}", emoji_mrr, max(n_e, 1)),
             (f"MRR@{STYLE_AP_K}/s/{split}", style_mrr, text.size(0)),
         ):
-            self.log(name, val, on_step=False, on_epoch=True, prog_bar=True, batch_size=bs)
+            self.log(name, val, on_step=False, on_epoch=True,
+                     prog_bar=True, batch_size=bs)
 
         return loss_style + loss_emoji
 
@@ -214,7 +216,7 @@ class LitColorGAN(pl.LightningModule):
         perm = torch.randperm(m, generator=torch.Generator().manual_seed(SEED)).to(
             pts.device
         )
-        return energy_distance(pts[perm[:half]], pts[perm[half : 2 * half]])
+        return energy_distance(pts[perm[:half]], pts[perm[half: 2 * half]])
 
     def on_validation_epoch_end(self):
         if not self._val_real:
@@ -226,7 +228,8 @@ class LitColorGAN(pl.LightningModule):
             real = rgb_to_oklab(torch.cat(self._val_real))
             n = text.size(0)
             z = self.z_bank[  # type: ignore
-                torch.arange(n, device=self.device) % self.z_bank.size(0)  # type: ignore
+                torch.arange(n, device=self.device) % self.z_bank.size(
+                    0)  # type: ignore
             ]
 
             fake = rgb_to_oklab(self.gen(self.enc(text), z))
@@ -250,7 +253,8 @@ class LitColorGAN(pl.LightningModule):
         tst_real = self.tst(cond, colors)
         tst_fake = self.tst(cond, fake.detach())
 
-        loss_tst_real = binary_cross_entropy_with_logits(tst_real, torch.ones_like(tst_real))
+        loss_tst_real = binary_cross_entropy_with_logits(
+            tst_real, torch.ones_like(tst_real))
 
         loss_tst_fake = binary_cross_entropy_with_logits(
             tst_fake, torch.zeros_like(tst_fake)
@@ -269,7 +273,8 @@ class LitColorGAN(pl.LightningModule):
         opt_tst.step()
 
         tst_fake = self.tst(cond, fake)
-        loss_gen = binary_cross_entropy_with_logits(tst_fake, torch.ones_like(tst_fake))
+        loss_gen = binary_cross_entropy_with_logits(
+            tst_fake, torch.ones_like(tst_fake))
 
         opt_gen.zero_grad()
         self.manual_backward(loss_gen)
@@ -333,7 +338,8 @@ def _train_task(ds) -> LitTask:
         enable_progress_bar=not no_bar,
         callbacks=[
             task_ckpt,
-            EarlyStopping(monitor=task_monitor, mode="max", patience=EARLY_STOP_PATIENCE),
+            EarlyStopping(monitor=task_monitor, mode="max",
+                          patience=EARLY_STOP_PATIENCE),
             *progress_bar_cbs,
             ModelSummary(),
         ],
@@ -429,7 +435,7 @@ def _run_local(model: Model) -> None:
 
 CPU = 16
 MEMORY_MIB = 16384
-TIMEOUT_S = 3600
+TIMEOUT_S = 60 * 60
 TIMEOUT_S_ALL = 90 * 60
 REPO = "/repo"
 VENV_PY = sys.executable
@@ -664,11 +670,13 @@ def cli(
         False, "--local", help="Train on this machine instead of Modal."
     ),
     cpu: int | None = typer.Option(None, help="Modal CPU count (Modal only)."),
-    memory: int | None = typer.Option(None, help="Modal memory in MiB (Modal only)."),
+    memory: int | None = typer.Option(
+        None, help="Modal memory in MiB (Modal only)."),
 ) -> None:
     """Train task/gan/all: on Modal by default, or locally with --local."""
     if local and (cpu is not None or memory is not None):
-        raise typer.BadParameter("--cpu/--memory only apply when dispatching to Modal")
+        raise typer.BadParameter(
+            "--cpu/--memory only apply when dispatching to Modal")
 
     if local:
         _run_local(model)
