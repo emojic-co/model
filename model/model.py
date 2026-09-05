@@ -31,7 +31,7 @@ class TextEncoderBlock(nn.Module):
             sn(nn.Conv1d(
                 i, o,
                 kernel_size=ENCODER_KERNEL_SIZE,
-                padding=0,
+                padding=ENCODER_KERNEL_SIZE // 2,
                 bias=True)),
 
             nn.LeakyReLU(negative_slope=RELU_SLOPE))

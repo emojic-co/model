@@ -760,3 +760,16 @@ TODO:
                 Where 
                 `emoji frequency` is the number of records in data.jsonl that contain the emoji
                 `(emoji,keyword) frequency` is the number of records in data.jsonl that contain both the emoji and the keyword.
+
+
+        Keyword Problem:
+            Currently the model performs fine on the eval.jsonl but fails on the keywords.jsonl.
+            The goal is to keep training the model using the train.jsonl in a way that generalize to the keywords.jsonl.
+            We do not want to change the distribution of the train.jsonl to achieve this.
+
+            How can we adapt the model architecture / train loop / loss function to achieve this goal?
+
+            One immediate idea is to learn padding embedding and remove the mask.
+            Another option is to add padding to the conv filter.
+
+            What do you think? worth trying? any other ideas?
