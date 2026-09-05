@@ -9,7 +9,7 @@ import { DATA_JSONL as DATA } from "../../files.ts"
 import { MODEL, annotate, annotateBatchCount } from "./annotate.ts"
 import { splitEmojis } from "./emoji.ts"
 import { appendJsonl, readJsonl } from "./io.ts"
-import { type Report, type Word, latestReport } from "./report.ts"
+import { type Miss, type Report, latestReport } from "./report.ts"
 
 const MIN_RANK = 200
 const MAX_RANK = 400
@@ -55,13 +55,13 @@ export function countEmojis(rows: { emojis?: string }[]): Map<string, number> {
   return counts
 }
 
-export function failingEmojis(words: Word[], maxRank: number): string[] {
+export function failingEmojis(misses: Miss[], maxRank: number): string[] {
   const out: string[] = []
   const seen = new Set<string>()
-  for (const w of words) {
-    const emoji = w.expected?.[0]
+  for (const m of misses) {
+    const emoji = m.expected?.[0]
     if (!emoji || seen.has(emoji)) continue
-    if (w.rank === null || w.rank > maxRank) {
+    if (m.rank > maxRank) {
       seen.add(emoji)
       out.push(emoji)
     }
@@ -136,12 +136,14 @@ if (import.meta.main) {
   if (options.report) {
     const reportPath = await latestReport()
     const report = JSON.parse(await readFile(reportPath, "utf8")) as Report
-    const words = report.emoji?.keywords?.words ?? []
-    if (!words.length) throw new Error(`${reportPath}: no emoji.keywords.words`)
-    targets = failingEmojis(words, FAIL_RANK)
+    const keywords = report.emoji?.keywords
+    const misses = keywords?.misses ?? []
+    if (!keywords) throw new Error(`${reportPath}: no emoji.keywords`)
+    targets = failingEmojis(misses, FAIL_RANK)
     console.log(
-      `${reportPath}: ${words.length} words -> targeting ${targets.length} `
-      + `failing emoji (target not in top ${FAIL_RANK}) -> ${targets.join(" ")}`,
+      `${reportPath}: ${keywords.n ?? "?"} words probed, ${misses.length} missed `
+      + `-> targeting ${targets.length} failing emoji `
+      + `(target not in top ${FAIL_RANK}) -> ${targets.join(" ")}`,
     )
   } else if (only) {
     targets = [...new Set(splitEmojis(only))]

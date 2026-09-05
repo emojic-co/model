@@ -24,14 +24,14 @@ enc_str = " ".join(
 
 # EMOJI
 EMOJI_EMBED_SIZE = 64
-DROPOUT_EMOJI = 0.3
+DROPOUT_EMOJI = 0.1
 
 emj_str = " ".join([str(p) for p in (EMOJI_EMBED_SIZE, DROPOUT_EMOJI)])
 
 # STYLE
 STYLE_EMBED_SIZE = 12
 TEXT_EMBED_SIZE = ENCODER_CHANNELS[-1]
-DROPOUT_STYLE = 0.2
+DROPOUT_STYLE = 0.1
 
 style_str = " ".join([str(p)
                      for p in (STYLE_EMBED_SIZE, TEXT_EMBED_SIZE, DROPOUT_STYLE)])
