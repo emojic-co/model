@@ -776,3 +776,18 @@ TODO:
 
             Another idea:
             output the concat of global max pooling of each layer, what do you think?
+
+        CLDR:
+            Download the latest CLDR json data from:
+            https://github.com/unicode-org/cldr-json
+
+            Implement a typescript 
+            function cldrEmojis(text:string):string[]
+            that given a text return the list of emojis that are associated with the text according to the CLDR data.
+
+            Temporarily replace the emoji prediction in the web app with the CLDR emojis and let me play with the web app and compare the results.
+
+            Notes:
+                - The typescript function expect English text.
+                - Design the function for fast and efficient retrieval, use BM25/FlexSearch if needed.
+                - Add a switch to the web app to toggle between the model and the CLDR emojis.
