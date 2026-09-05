@@ -686,20 +686,41 @@ TODO:
 
 
         Organize Project Structure:
-            move all (directly) model related files into a model subfolder.
-            move all tooling scripts (both .py and .ts) into a tools subfolder.
-            move all .pt files into a pt subfolder (make sure to generate them directly into the pt subfolder).
-            move all data files into a data subfolder (make sure to generate them directly into the data subfolder).
+            move all model related .py files into a `model` subfolder.
+            move all tooling scripts (both .py and .ts) into a `tools` subfolder.
+            move all .pt files into a `pt` subfolder (make sure to generate them directly into the `pt` subfolder).
+            move all data files into a `data` subfolder (make sure to generate them directly into the `data` subfolder).
+
+            Create a files.py file at the root folder that contains all the (relevant)file paths and names used in the project.
+            Create a files.ts file at the root folder that contains all the (relevant)file paths and names used in the project.
+
+            Make sure all references to the files in the project are updated to use the new paths and names.
 
             Before you implement print the new project structure tree and wait for my approval before.
 
-Done:
-        Update the pred.py tool:
-            run as:
-                pred
-                pred <file>
 
-            First option read from std and output to std.
-            Second option read from <file> and output to std.
 
-            All options have optional arg [-o <output file>] to output to a file instead of std.
+        Keywords Generation Skill:
+            Create a skill that:
+                Reads labels.json and generates a file keywords.json with a list of keywords for each emoji.
+                The skill should:
+                    Iterate over each emoji and generate a list of keywords that are strongly associated with the emoji.
+                    e.g.
+                    {
+                        '🚀': ['rocket'],
+                        '🥣': ['bowl', 'soup'],
+                        '🐕': ['dog'],
+                        '🐶': ['dog']
+                    }
+
+                    After generating keywords for each emoji, transpose the dictionary:
+                    {
+                        'rocket': ['🚀'],
+                        'bowl': ['🥣'],
+                        'soup': ['🥣'],
+                        'dog': ['🐕', '🐶']
+                    }
+
+                    And save the transposed dictionary to keywords.json.
+                    
+
