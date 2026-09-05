@@ -98,7 +98,7 @@ class EmojiHead(nn.Module):
 
 
 # GAN
-COLOR_SCALE = 127.5
+COLOR_SHIFT = 127.5
 
 _LIN_TO_LMS = torch.tensor([
     [0.4122214708, 0.5363325363, 0.0514459929],
@@ -134,7 +134,7 @@ def _linear_to_srgb(c: torch.Tensor) -> torch.Tensor:
 
 def rgb_to_oklab(rgb: torch.Tensor) -> torch.Tensor:
     shape = rgb.shape
-    c = ((rgb + COLOR_SCALE) / 255.0).clamp(0.0, 1.0).reshape(*shape[:-1], -1, 3)
+    c = ((rgb + COLOR_SHIFT) / 255.0).clamp(0.0, 1.0).reshape(*shape[:-1], -1, 3)
     lms = _srgb_to_linear(c) @ _LIN_TO_LMS.to(c).t()
     lms_ = lms.sign() * lms.abs().clamp(min=1e-12) ** (1 / 3)
     return (lms_ @ _LMS_TO_LAB.to(c).t()).reshape(shape)
@@ -145,7 +145,7 @@ def oklab_to_rgb(lab: torch.Tensor) -> torch.Tensor:
     x = lab.reshape(*shape[:-1], -1, 3)
     lms = (x @ _LAB_TO_LMS.to(x).t()) ** 3
     c = _linear_to_srgb(lms @ _LMS_TO_LIN.to(x).t())
-    return (c.clamp(0.0, 1.0) * 255.0 - COLOR_SCALE).reshape(shape)
+    return (c.clamp(0.0, 1.0) * 255.0 - COLOR_SHIFT).reshape(shape)
 
 
 class ColorGen(nn.Module):
@@ -178,7 +178,7 @@ class ColorGen(nn.Module):
         z = normalize(z, dim=-1)
         seed = (1 - Z_WEIGHT) * normalize(cond) + Z_WEIGHT * z
         colors = self.net(seed)
-        colors = tanh(colors) * COLOR_SCALE
+        colors = tanh(colors) * COLOR_SHIFT
 
         return colors
 
@@ -187,26 +187,22 @@ class ColorDsc(nn.Module):
     def __init__(self):
         super().__init__()
 
-        cs = [COLOR_DIM + TEXT_EMBED_SIZE, *CRITIC_CHANNELS]
+        cs = [COLOR_DIM, *CRITIC_CHANNELS]
         io = zip(cs[:-1], cs[1:], strict=True)
         self.net = nn.Sequential(
             *[
                 nn.Sequential(
-                    nn.Conv1d(i, o, kernel_size=1, bias=True),
-                    # sn(nn.Conv1d(i, o, kernel_size=1, bias=True)),
+                    nn.Linear(i, o, bias=True),
+                    # sn(nn.Linear(i, o, bias=True)),
                     nn.LeakyReLU(negative_slope=RELU_SLOPE)
                 )
                 for i, o in io
             ],
-            nn.Conv1d(cs[-1], 1, kernel_size=1, bias=True),
-            # sn(nn.Conv1d(cs[-1], 1, kernel_size=1, bias=True)),
+            nn.Linear(cs[-1], 1, bias=True),
+            # sn(nn.Linear(cs[-1], 1, bias=True)),
         )
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
         c = rgb_to_oklab(colors)
 
-        x = torch.cat([
-            c.unsqueeze(-1),
-            normalize(cond).unsqueeze(-1)], dim=1)
-
-        return self.net(x)
+        return self.net(c)
