@@ -314,7 +314,10 @@ class LitColorGAN(pl.LightningModule):
 
         opt_tst.step()
 
-        tst_fake = self.tst(cond, fake)
+        _, tst_fake = self.tst(
+            torch.cat([cond, cond], dim=0),
+            torch.cat([colors, fake], dim=0),
+        ).chunk(2, dim=0)
         loss_gen = binary_cross_entropy_with_logits(
             tst_fake, torch.ones_like(tst_fake))
 
