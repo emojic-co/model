@@ -27,13 +27,13 @@ from files import (
     ENC_PT,
     ENERGY_KEYWORDS_TXT,
     EVAL_JSONL,
+    KEYWORDS_JSON,
     LABELS_JSON,
     MODEL_DIR,
     PT_DIR,
     STYLE_PT,
     TOOLS_DIR,
     TRAIN_JSONL,
-    WORDS_JSON,
 )
 from model.config import (
     CONFIG_NAME,
@@ -423,22 +423,7 @@ def _train_gan(enc: TextEncoder, ds) -> LitColorGAN:
     return gan
 
 
-def _run_local(model: Model) -> None:
-    require_clean_tree()
-    pl.seed_everything(SEED, workers=True)
-    torch.backends.cudnn.benchmark = False
-
-    if model == Model.gan:
-        ds = train_ds()
-        enc = _load(TextEncoder(), ENC_PT)
-        _train_gan(enc, ds)  # type: ignore
-        export()
-        subprocess.run([sys.executable, "tools/report.py"], check=True)
-        return
-
-    ds = train_ds()
-    task = _train_task(ds)
-
+def _run_report_local(model: Model) -> None:
     if model == Model.task:
         subprocess.run(
             [sys.executable, "tools/report.py", "--only", "data,emoji,style"],
@@ -446,9 +431,37 @@ def _run_local(model: Model) -> None:
         )
         return
 
+    subprocess.run([sys.executable, "tools/report.py"], check=True)
+
+
+def _run_local(model: Model) -> None:
+    require_clean_tree()
+    pl.seed_everything(SEED, workers=True)
+    torch.backends.cudnn.benchmark = False
+
+    skip_report = os.environ.get("EMOJIC_SKIP_REPORT") == "1"
+
+    if model == Model.gan:
+        ds = train_ds()
+        enc = _load(TextEncoder(), ENC_PT)
+        _train_gan(enc, ds)  # type: ignore
+        export()
+        if not skip_report:
+            _run_report_local(model)
+        return
+
+    ds = train_ds()
+    task = _train_task(ds)
+
+    if model == Model.task:
+        if not skip_report:
+            _run_report_local(model)
+        return
+
     _train_gan(task.enc, ds)
     export()
-    subprocess.run([sys.executable, "tools/report.py"], check=True)
+    if not skip_report:
+        _run_report_local(model)
 
 
 CPU = 16
@@ -476,7 +489,7 @@ CODE_FILES = [
     f"{MODEL_DIR}/runmeta.py",
     f"{TOOLS_DIR}/report.py",
     LABELS_JSON,
-    WORDS_JSON,
+    KEYWORDS_JSON,
     ENERGY_KEYWORDS_TXT,
     DATA_JSONL,
     TRAIN_JSONL,
@@ -503,6 +516,7 @@ def _run_env(threads: int) -> dict[str, str]:
         **os.environ,
         "PYTHONUNBUFFERED": "1",
         "EMOJIC_NO_PROGRESS_BAR": "1",
+        "EMOJIC_SKIP_REPORT": "1",
         "OMP_NUM_THREADS": str(threads),
         "MKL_NUM_THREADS": str(threads),
         "OPENBLAS_NUM_THREADS": str(threads),
@@ -604,14 +618,14 @@ def _modal(*args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def _retrieve_and_cleanup() -> None:
+def _retrieve_and_cleanup() -> bool:
     staging = Path(tempfile.mkdtemp(prefix="emojic-modal-"))
     try:
         got = _modal("volume", "get", "--force", VOL_NAME, "/", str(staging))
         if got.returncode != 0:
             print(f"volume get failed, leaving {VOL_NAME} intact:")
             print(got.stdout, got.stderr)
-            return
+            return False
 
         src = staging
         kids = list(staging.iterdir())
@@ -640,7 +654,7 @@ def _retrieve_and_cleanup() -> None:
 
         print(f"retrieved into {Path.cwd()}: {', '.join(landed) or '(nothing)'}")
         if not landed:
-            return
+            return False
 
         rm = _modal("volume", "delete", "-y", VOL_NAME)
         print(
@@ -648,6 +662,7 @@ def _retrieve_and_cleanup() -> None:
             if rm.returncode == 0
             else f"volume cleanup failed:\n{rm.stderr}"
         )
+        return True
     finally:
         shutil.rmtree(staging, ignore_errors=True)
 
@@ -683,7 +698,8 @@ def _dispatch(
     model: Model, cpu: int, memory: int, fetch_only: bool, need_app_ctx: bool
 ) -> None:
     if fetch_only:
-        _retrieve_and_cleanup()
+        if _retrieve_and_cleanup():
+            _run_report_local(model)
         return
 
     require_clean_tree()
@@ -699,7 +715,9 @@ def _dispatch(
             else:
                 print(_run_remote(model, cpu, memory, git_sha))
     finally:
-        _retrieve_and_cleanup()
+        landed = _retrieve_and_cleanup()
+    if landed:
+        _run_report_local(model)
 
 
 _app = typer.Typer(

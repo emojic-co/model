@@ -24,7 +24,7 @@ enc_str = " ".join(
 
 # EMOJI
 EMOJI_EMBED_SIZE = 64
-DROPOUT_EMOJI = 0.2
+DROPOUT_EMOJI = 0.3
 
 emj_str = " ".join([str(p) for p in (EMOJI_EMBED_SIZE, DROPOUT_EMOJI)])
 
