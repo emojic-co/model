@@ -1,5 +1,6 @@
 import html
 import json
+import re
 import sys
 from collections import Counter
 from datetime import datetime
@@ -125,31 +126,56 @@ def _section_labels():
     return {"styles": len(STYLES), "emojis": len(EMOJIS)}
 
 
+@cache
+def _emoji_frequencies():
+    freq = Counter()
+    emoji_rows = {}
+    for d in _rows(DATA_PATH):
+        text = str(d.get("text", "")).lower()
+        for e in set(str(d.get("emojis", "")).split()):
+            freq[e] += 1
+            emoji_rows.setdefault(e, []).append(text)
+    return freq, emoji_rows
+
+
 def _keyword_probe(enc, head):
     words = json.loads(Path(KEYWORDS_PATH).read_text(encoding="utf-8"))
     vocab = {e: i for i, e in enumerate(EMOJIS)}
+    emoji_freq, emoji_rows = _emoji_frequencies()
     rows = []
+    misses = []
     with torch.no_grad():
         for word, exp in words.items():
-            ids = [vocab[e] for e in exp if e in vocab]
+            ids = {e: vocab[e] for e in exp if e in vocab}
             emb = enc(text_to_tensor(norm_text(word)).unsqueeze(0))
             order = head(emb).squeeze(0).argsort(descending=True).tolist()
-            rank = min((order.index(i) + 1 for i in ids), default=None)
+            top5 = [EMOJIS[j] for j in order[:KEYWORD_TOP]]
+            ranks = {e: order.index(i) + 1 for e, i in ids.items()}
             rows.append(
                 {
                     "keyword": word,
                     "expected": exp,
-                    "rank": rank,
-                    "top5": [EMOJIS[j] for j in order[:KEYWORD_TOP]],
+                    "rank": min(ranks.values(), default=None),
+                    "top5": top5,
                 }
             )
+            pattern = re.compile(rf"\b{re.escape(word)}\b", re.IGNORECASE)
+            for e, rank in ranks.items():
+                if rank > KEYWORD_MISS_K:
+                    pair = sum(1 for t in emoji_rows.get(e, ()) if pattern.search(t))
+                    misses.append(
+                        {
+                            "keyword": word,
+                            "target": e,
+                            "rank": rank,
+                            "top5": top5,
+                            "emoji_freq": emoji_freq.get(e, 0),
+                            "pair_freq": pair,
+                        }
+                    )
     scored = [r["rank"] for r in rows if r["rank"] is not None]
     n = len(scored) or 1
-    misses = sorted(
-        (r for r in rows if r["rank"] is not None and r["rank"] > KEYWORD_MISS_K),
-        key=lambda r: r["rank"],
-        reverse=True,
-    )
+    misses.sort(key=lambda r: r["rank"], reverse=True)
     return {
         "n": len(scored),
         "acc_at_k": [sum(r <= k for r in scored) / n for k in EMOJI_KS],
@@ -406,16 +432,20 @@ def _emoji_html(d) -> str:
         )
         rows = "".join(
             f"<tr><td>{_esc(m['keyword'])}</td>"
-            f"<td>{_esc(' '.join(m['expected']))}</td>"
+            f"<td>{_esc(m['target'])}</td>"
+            f"<td>{_esc(' '.join(m['top5']))}</td>"
             f'<td class="n">{m["rank"]}</td>'
-            f"<td>{_esc(' '.join(m['top5']))}</td></tr>"
+            f'<td class="n">{_fnum(m["emoji_freq"])}</td>'
+            f'<td class="n">{_fnum(m["pair_freq"])}</td></tr>'
             for m in kw["misses"]
         )
         out.append(
             f"<h3>Missed keywords — target not in top {KEYWORD_MISS_K} "
-            f"({len(kw['misses'])} of {kw['n']})</h3>"
-            '<table><tr><th>Keyword</th><th>Expected</th><th class="n">Rank</th>'
-            f"<th>Top {KEYWORD_TOP} predicted</th></tr>{rows}</table>"
+            f"({len(kw['misses'])} misses across {kw['n']} words)</h3>"
+            "<table><tr><th>Keyword</th><th>Target emoji</th>"
+            f'<th>Top {KEYWORD_TOP} predicted</th><th class="n">Rank</th>'
+            '<th class="n">Emoji freq</th><th class="n">Pair freq</th></tr>'
+            f"{rows}</table>"
         )
     return "".join(out)
 

@@ -729,7 +729,7 @@ TODO:
 
         Report:
             Update the report tool and structure:
-            
+
             Data:
                 [# records data.jsonl, # records train.jsonl, # records eval.jsonl]
                 A full distribution of text lengths in the data.jsonl, vertical bar chart, ordered by length desc.
@@ -750,3 +750,13 @@ TODO:
 
             Notes:
                 For now, this is the entire report, drop all the other data that was reported before.
+
+
+        Report Keyword analysis:
+            Output a full table of all missed keywords (miss is defined as the target emoji not in the top 5).
+            The table is of the form:
+                | keyword | target emoji | predicted emojis (top 5) | rank of target emoji | emoji frequency in data.jsonl | (emoji,keyword) frequency in data.jsonl|
+
+                Where 
+                `emoji frequency` is the number of records in data.jsonl that contain the emoji
+                `(emoji,keyword) frequency` is the number of records in data.jsonl that contain both the emoji and the keyword.
