@@ -9,7 +9,8 @@ from torch.nn.utils import spectral_norm as sn
 
 from model.config import (
     CHAR_EMBED_SIZE,
-    CRITIC_CHANNELS,
+    CRITIC_COLOR_CHANNELS,
+    CRITIC_TEXT_CHANNELS,
     DROPOUT_EMOJI,
     DROPOUT_STYLE,
     EMOJI_EMBED_SIZE,
@@ -183,33 +184,32 @@ class ColorGen(nn.Module):
         return colors
 
 
+def _critic_branch(in_dim: int, channels: list[int]) -> nn.Sequential:
+    cs = [in_dim, *channels]
+    io = zip(cs[:-1], cs[1:], strict=True)
+    return nn.Sequential(
+        *[
+            nn.Sequential(
+                nn.Linear(i, o, bias=False),
+                nn.BatchNorm1d(o),
+                nn.LeakyReLU(negative_slope=RELU_SLOPE)
+            )
+            for i, o in io
+        ]
+    )
+
+
 class ColorDsc(nn.Module):
     def __init__(self):
         super().__init__()
 
-        # cs = [COLOR_DIM + TEXT_EMBED_SIZE, *CRITIC_CHANNELS]
-        cs = [COLOR_DIM, *CRITIC_CHANNELS]
-        io = zip(cs[:-1], cs[1:], strict=True)
-        self.net = nn.Sequential(
-            *[
-                nn.Sequential(
-                    nn.Linear(i, o, bias=False),
-                    nn.BatchNorm1d(o),
-                    # sn(nn.Linear(i, o, bias=True)),
-                    nn.LeakyReLU(negative_slope=RELU_SLOPE)
-                )
-                for i, o in io
-            ],
-            nn.Linear(cs[-1], 1, bias=True),
-            # sn(nn.Linear(cs[-1], 1, bias=True)),
-        )
+        self.color_net = _critic_branch(COLOR_DIM, CRITIC_COLOR_CHANNELS)
+        self.text_net = _critic_branch(TEXT_EMBED_SIZE, CRITIC_TEXT_CHANNELS)
+        self.out = nn.Linear(
+            CRITIC_COLOR_CHANNELS[-1] + CRITIC_TEXT_CHANNELS[-1], 1, bias=True)
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
-        c = rgb_to_oklab(colors)
+        c = self.color_net(rgb_to_oklab(colors))
+        t = self.text_net(normalize(cond))
 
-        x = torch.cat([
-            c,
-            # normalize(cond)
-        ], dim=-1)
-
-        return self.net(x)
+        return self.out(torch.cat([c, t], dim=-1))
