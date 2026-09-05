@@ -102,10 +102,9 @@ _app = typer.Typer(
 
 @_app.command()
 def main(
-    file: Path | None = typer.Argument(
-        None,
-        help="Read data/data.jsonl-schema rows from this file, one per line "
-        "(defaults to stdin).",
+    file: Path = typer.Argument(
+        ...,
+        help="Read data/data.jsonl-schema rows from this file, one per line.",
     ),
     pt: Path = typer.Option(
         ..., "--pt", help="Folder containing enc.pt/style.pt/emoji.pt/gen.pt."
@@ -114,11 +113,8 @@ def main(
         None, "-o", "--output", help="Write predictions here instead of stdout."
     ),
 ) -> None:
-    """Run the inference graph over the `text` field of jsonl rows from a file or stdin."""
-    if file:
-        lines = file.read_text(encoding="utf-8").splitlines()
-    else:
-        lines = sys.stdin.read().splitlines()
+    """Run the inference graph over the `text` field of jsonl rows from a file."""
+    lines = file.read_text(encoding="utf-8").splitlines()
     records = predict(read_texts(lines), pt)
     out_lines = [json.dumps(rec, ensure_ascii=False) for rec in records]
 
