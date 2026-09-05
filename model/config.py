@@ -17,15 +17,15 @@ MAX_TEXT_LEN = 42
 CHAR_EMBED_SIZE = 16
 ENCODER_KERNEL_SIZE = 3
 assert ENCODER_KERNEL_SIZE % 2 == 1, "encoder kernel size must be odd"
-ENCODER_CHANNELS = [32, 64, 128]
+ENCODER_CHANNELS = [90, 100, 110]
 
 enc_str = " ".join(
     [str(p) for p in (CHAR_EMBED_SIZE, ENCODER_KERNEL_SIZE, ENCODER_CHANNELS)]
 )
 
 # EMOJI
-EMOJI_EMBED_SIZE = 64
-DROPOUT_EMOJI = 0.1
+EMOJI_EMBED_SIZE = 32
+DROPOUT_EMOJI = 0.2
 
 emj_str = " ".join([str(p) for p in (EMOJI_EMBED_SIZE, DROPOUT_EMOJI)])
 

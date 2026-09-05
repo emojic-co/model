@@ -1,0 +1,49 @@
+<!doctype html><meta charset="utf-8"><title>emojic report — 26-09-05-10-20</title><style>
+:root{--ink:#1b1f24;--dim:#656b73;--line:#e2e5e9;--panel:#f5f6f8;--accent:#4b32d6;
+--good-bg:#e6f6ec;--good-bd:#b2dec1;--good-fg:#157a3f;--warn-bg:#fdf2e2;
+--warn-bd:#efd4a2;--warn-fg:#a25c07}
+*{box-sizing:border-box}
+body{font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+color:var(--ink);margin:0;background:#fff}
+.wrap{max-width:920px;margin:0 auto;padding:44px 30px 130px}
+h1{font-size:28px;margin:0 0 4px}
+h2{font-size:24px;margin:64px 0 6px;padding-bottom:8px;border-bottom:2px solid var(--ink)}
+h3{font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--dim);
+margin:34px 0 12px}
+.sub{color:var(--dim);font-size:15px}
+.note{color:var(--dim);font-size:14.5px;margin:8px 0 0}
+code{background:var(--panel);padding:1px 6px;border-radius:4px;font-size:15px}
+.banner{border-radius:10px;padding:13px 17px;margin:20px 0 0;font-size:15.5px;
+background:var(--good-bg);border:1px solid var(--good-bd)}
+.banner.amber{background:var(--warn-bg);border-color:var(--warn-bd)}
+.banner ul{margin:6px 0 0;padding-left:20px}
+.counts{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:18px 0}
+.counts.n2{grid-template-columns:repeat(2,1fr)}
+.count{border:1px solid var(--line);border-radius:12px;padding:20px 22px}
+.count .v{font-size:38px;font-weight:650;font-variant-numeric:tabular-nums}
+.count .k{font-size:14px;color:var(--dim);margin-top:3px}
+.chart{display:flex;align-items:flex-end;gap:5px;height:210px;
+border-bottom:2px solid var(--ink);margin:26px 0 0}
+.chart .bar{flex:1;background:var(--accent);border-radius:3px 3px 0 0;
+position:relative;min-height:2px}
+.chart .bar .num{position:absolute;bottom:100%;left:-4px;right:-4px;text-align:center;
+font-size:11px;color:var(--dim);margin-bottom:3px;font-variant-numeric:tabular-nums}
+.chart .bar .lbl{position:absolute;top:100%;left:50%;transform:translateX(-50%);
+margin-top:8px;font-size:15px;white-space:nowrap}
+.chart.rot{margin-bottom:62px}
+.chart.rot .bar .lbl{left:auto;right:50%;transform:rotate(-40deg);
+transform-origin:top right;font-size:12.5px;margin-top:9px}
+.chart-cap{font-size:14px;color:var(--dim);margin:10px 0 0}
+.linechart{display:block;width:100%;height:auto;margin:20px 0 0}
+.linechart .gline{stroke:var(--line);stroke-width:1}
+.linechart .gtext{font-size:11px;fill:var(--dim)}
+.linechart .lline{fill:none;stroke:var(--accent);stroke-width:2.5}
+.linechart .dot{fill:var(--accent)}
+.linechart .vtext{font-size:11px;fill:var(--dim);font-variant-numeric:tabular-nums}
+.linechart .xtext{font-size:12px;fill:var(--ink)}
+table{border-collapse:collapse;width:100%;margin:16px 0;font-size:16px}
+th,td{border-bottom:1px solid var(--line);padding:10px 12px;text-align:left}
+th{font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:.03em}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+</style><div class="wrap"><h1>emojic model report</h1><div class="sub">26-09-05-10-20 · model <code>fa0cec5</code> · train.jsonl <code>83b31ea6</code> · report code <code>fa0cec5</code></div><div class="banner amber"><strong>Check provenance.</strong><ul><li>pt/enc.pt could not load: Error(s) in loading state_dict for TextEncoder:</li></ul></div><h2>Data</h2><div class="counts"><div class="count"><div class="v">133,911</div><div class="k">records · data.jsonl</div></div><div class="count"><div class="v">93,161</div><div class="k">records · train.jsonl</div></div><div class="count"><div class="v">1,500</div><div class="k">records · eval.jsonl</div></div></div><h3>Text length distribution — data.jsonl (normalized, longest first)</h3><div class="chart rot"><div class="bar" style="height:0.05%"><span class="lbl">46</span></div><div class="bar" style="height:0.05%"><span class="lbl">45</span></div><div class="bar" style="height:0.05%"><span class="lbl">44</span></div><div class="bar" style="height:0.16%"><span class="lbl">43</span></div><div class="bar" style="height:25.70%"><span class="lbl">42</span></div><div class="bar" style="height:31.44%"><span class="lbl">41</span></div><div class="bar" style="height:38.59%"><span class="lbl">40</span></div><div class="bar" style="height:45.39%"><span class="lbl">39</span></div><div class="bar" style="height:52.66%"><span class="lbl">38</span></div><div class="bar" style="height:61.34%"><span class="lbl">37</span></div><div class="bar" style="height:66.56%"><span class="lbl">36</span></div><div class="bar" style="height:75.46%"><span class="lbl">35</span></div><div class="bar" style="height:81.87%"><span class="lbl">34</span></div><div class="bar" style="height:89.44%"><span class="lbl">33</span></div><div class="bar" style="height:93.46%"><span class="lbl">32</span></div><div class="bar" style="height:97.14%"><span class="lbl">31</span></div><div class="bar" style="height:100.00%"><span class="lbl">30</span></div><div class="bar" style="height:98.62%"><span class="lbl">29</span></div><div class="bar" style="height:90.98%"><span class="lbl">28</span></div><div class="bar" style="height:86.00%"><span class="lbl">27</span></div><div class="bar" style="height:73.80%"><span class="lbl">26</span></div><div class="bar" style="height:64.68%"><span class="lbl">25</span></div><div class="bar" style="height:53.50%"><span class="lbl">24</span></div><div class="bar" style="height:42.40%"><span class="lbl">23</span></div><div class="bar" style="height:32.61%"><span class="lbl">22</span></div><div class="bar" style="height:24.79%"><span class="lbl">21</span></div><div class="bar" style="height:17.77%"><span class="lbl">20</span></div><div class="bar" style="height:13.50%"><span class="lbl">19</span></div><div class="bar" style="height:9.26%"><span class="lbl">18</span></div><div class="bar" style="height:6.02%"><span class="lbl">17</span></div><div class="bar" style="height:4.37%"><span class="lbl">16</span></div><div class="bar" style="height:2.54%"><span class="lbl">15</span></div><div class="bar" style="height:1.96%"><span class="lbl">14</span></div><div class="bar" style="height:1.20%"><span class="lbl">13</span></div><div class="bar" style="height:0.80%"><span class="lbl">12</span></div><div class="bar" style="height:0.64%"><span class="lbl">11</span></div><div class="bar" style="height:0.50%"><span class="lbl">10</span></div><div class="bar" style="height:0.21%"><span class="lbl">9</span></div><div class="bar" style="height:0.22%"><span class="lbl">8</span></div><div class="bar" style="height:0.12%"><span class="lbl">7</span></div><div class="bar" style="height:0.06%"><span class="lbl">6</span></div><div class="bar" style="height:0.14%"><span class="lbl">5</span></div><div class="bar" style="height:0.31%"><span class="lbl">4</span></div><div class="bar" style="height:0.10%"><span class="lbl">3</span></div><div class="bar" style="height:0.05%"><span class="lbl">1</span></div></div><h2>Labels</h2><div class="counts n2"><div class="count"><div class="v">21</div><div class="k">styles</div></div><div class="count"><div class="v">357</div><div class="k">emojis</div></div></div><h2>Model — Emojis</h2><p class="note">enc.pt / emoji.pt not available.</p></div>

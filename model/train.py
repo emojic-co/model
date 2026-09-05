@@ -57,6 +57,7 @@ from model.config import (
 )
 from model.data import (
     eval_data_loader,
+    load_emoji_keywords,
     train_data_loader,
     train_ds,
 )
@@ -127,6 +128,10 @@ class LitTask(pl.LightningModule):
         self.style = StyleHead()
         self.emoji = EmojiHead()
 
+        kw_text, kw_target = load_emoji_keywords(KEYWORDS_JSON)
+        self.register_buffer("kw_text", kw_text, persistent=False)
+        self.register_buffer("kw_target", kw_target, persistent=False)
+
     def _step(self, batch, split):
         text, emoji, style, _ = batch
 
@@ -175,6 +180,7 @@ class LitTask(pl.LightningModule):
 
     def on_validation_epoch_end(self):
         self._log_f1("val")
+        self._log_keywords()
 
     def _log_f1(self, split):
         m = self.trainer.callback_metrics
@@ -182,6 +188,24 @@ class LitTask(pl.LightningModule):
         b = m.get(f"mAP@{STYLE_AP_K}/s/{split}")
         if a is not None and b is not None:
             self.log(f"f1/{split}", f1(a, b), prog_bar=True)
+
+    def _log_keywords(self):
+        has = self.kw_target.sum(dim=-1) > 0
+        n = int(has.sum())
+        if not n:
+            return
+
+        with torch.no_grad():
+            logits = self.emoji(self.enc(self.kw_text))
+
+        kw_ap = ap_at_k(logits[has], self.kw_target[has], EMOJI_AP_K).mean()
+        kw_mrr = mrr_at_k(logits[has], self.kw_target[has], EMOJI_AP_K).mean()
+
+        for name, val in (
+            (f"mAP@{EMOJI_AP_K}/e/keywords", kw_ap),
+            (f"MRR@{EMOJI_AP_K}/e/keywords", kw_mrr),
+        ):
+            self.log(name, val, prog_bar=False, batch_size=n)
 
     def configure_optimizers(self):
         return optim.Adam(self.parameters(), lr=LR)

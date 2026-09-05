@@ -116,6 +116,23 @@ def load_energy_keywords(path: str) -> list[str]:
         return []
 
 
+def load_emoji_keywords(path: str) -> tuple[torch.Tensor, torch.Tensor]:
+    try:
+        with open(path, encoding="utf-8") as f:
+            words = json.load(f)
+    except FileNotFoundError:
+        words = {}
+
+    if not words:
+        return (
+            torch.empty(0, MAX_TEXT_LEN, dtype=torch.long),
+            torch.empty(0, len(EMOJIS), dtype=torch.float32))
+
+    text = torch.stack([text_to_tensor(normalize(w)) for w in words])
+    target = torch.stack([emojis_to_tensor(exp) for exp in words.values()])
+    return text, target
+
+
 def keyword_index(
     keywords: list[str],
     *,
