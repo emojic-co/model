@@ -187,7 +187,8 @@ class ColorDsc(nn.Module):
     def __init__(self):
         super().__init__()
 
-        cs = [COLOR_DIM + TEXT_EMBED_SIZE, *CRITIC_CHANNELS]
+        # cs = [COLOR_DIM + TEXT_EMBED_SIZE, *CRITIC_CHANNELS]
+        cs = [COLOR_DIM, *CRITIC_CHANNELS]
         io = zip(cs[:-1], cs[1:], strict=True)
         self.net = nn.Sequential(
             *[
@@ -206,6 +207,9 @@ class ColorDsc(nn.Module):
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
         c = rgb_to_oklab(colors)
 
-        x = torch.cat([c, normalize(cond)], dim=-1)
+        x = torch.cat([
+            c,
+            # normalize(cond)
+        ], dim=-1)
 
         return self.net(x)
