@@ -694,13 +694,12 @@ TODO:
             Before you implement print the new project structure tree and wait for my approval before.
 
 Done:
-    Unified the preview tools into a single tools/preview.ts
-        We can run it like this:
-            bun tools/preview.ts
-            bun tools/preview.ts <records.jsonl>
+        Update the pred.py tool:
+            run as:
+                pred
+                pred <file>
 
-        First option reads from std and generate the preview card html.
-        Second option reads the records from the file and generate the preview card html.
-        records have the same schema like in data.jsonl and the preview .html file is the same as the current preview html file.
+            First option read from std and output to std.
+            Second option read from <file> and output to std.
 
-        After you done remove other tools and update the CLAUDE.md to reflect the changes.
+            All options have optional arg [-o <output file>] to output to a file instead of std.
