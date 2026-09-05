@@ -31,7 +31,7 @@ emj_str = " ".join([str(p) for p in (EMOJI_EMBED_SIZE, DROPOUT_EMOJI)])
 
 # STYLE
 STYLE_EMBED_SIZE = 12
-TEXT_EMBED_SIZE = ENCODER_CHANNELS[-1]
+TEXT_EMBED_SIZE = sum(ENCODER_CHANNELS)
 DROPOUT_STYLE = 0.1
 
 style_str = " ".join([str(p)
