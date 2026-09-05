@@ -700,27 +700,9 @@ TODO:
 
 
 
-        Keywords Generation Skill:
-            Create a skill that:
-                Reads labels.json and generates a file keywords.json with a list of keywords for each emoji.
-                The skill should:
-                    Iterate over each emoji and generate a list of keywords that are strongly associated with the emoji.
-                    e.g.
-                    {
-                        '🚀': ['rocket'],
-                        '🥣': ['bowl', 'soup'],
-                        '🐕': ['dog'],
-                        '🐶': ['dog']
-                    }
 
-                    After generating keywords for each emoji, transpose the dictionary:
-                    {
-                        'rocket': ['🚀'],
-                        'bowl': ['🥣'],
-                        'soup': ['🥣'],
-                        'dog': ['🐕', '🐶']
-                    }
 
-                    And save the transposed dictionary to keywords.json.
-                    
 
+Done:
+    Keywords Generation Skill:
+        Created .claude/skills/generating-emoji-keywords/SKILL.md — reads labels.json, generates keywords per emoji from the invoking model's own knowledge (no external API), transposes to keyword -> [emojis], writes keywords.json (gitignored, derived from labels.json). Ran it once to produce keywords.json for the current labels.json (357 emojis -> 657 keywords).

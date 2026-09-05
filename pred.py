@@ -22,7 +22,7 @@ def rgb_to_hex(rgb: torch.Tensor) -> list[str]:
     return [f"#{f2h(ints[i])}{f2h(ints[i + 1])}{f2h(ints[i + 2])}" for i in range(0, 9, 3)]
 
 
-def _load(mod: torch.nn.Module, path: str) -> torch.nn.Module:
+def _load(mod: torch.nn.Module, path: str | Path) -> torch.nn.Module:
     sd, meta = load_pt(path)
     mod.load_state_dict(sd)
     mod._pt_meta = meta  # type: ignore
@@ -56,17 +56,14 @@ def read_texts(lines: list[str]) -> list[str]:
 
 def predict(
     texts: list[str],
-    enc_path: str = "enc.pt",
-    gen_path: str = "gen.pt",
-    style_path: str = "style.pt",
-    emoji_path: str = "emoji.pt",
+    pt_dir: Path,
 ) -> list[dict]:
     torch.manual_seed(SEED)
 
-    enc = _load(TextEncoder(), enc_path)
-    gen = _load(ColorGen(), gen_path)
-    style = _load(StyleHead(), style_path)
-    emoji = _load(EmojiHead(), emoji_path)
+    enc = _load(TextEncoder(), pt_dir / "enc.pt")
+    gen = _load(ColorGen(), pt_dir / "gen.pt")
+    style = _load(StyleHead(), pt_dir / "style.pt")
+    emoji = _load(EmojiHead(), pt_dir / "emoji.pt")
 
     records = []
     with torch.no_grad():
@@ -103,6 +100,9 @@ def main(
     file: Path | None = typer.Argument(
         None, help="Read texts from this file, one per line (defaults to stdin)."
     ),
+    pt: Path = typer.Option(
+        ..., "--pt", help="Folder containing enc.pt/style.pt/emoji.pt/gen.pt."
+    ),
     output: Path | None = typer.Option(
         None, "-o", "--output", help="Write predictions here instead of stdout."
     ),
@@ -112,7 +112,7 @@ def main(
         lines = file.read_text(encoding="utf-8").splitlines()
     else:
         lines = sys.stdin.read().splitlines()
-    records = predict(read_texts(lines))
+    records = predict(read_texts(lines), pt)
     out_lines = [json.dumps(rec, ensure_ascii=False) for rec in records]
 
     if output:
