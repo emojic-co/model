@@ -6,6 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import torch
 import typer
+from tqdm import tqdm
 
 from model.config import MAX_TEXT_LEN, SEED
 from model.data import EMOJIS, STYLES, normalize, text_to_tensor
@@ -72,7 +73,7 @@ def predict(
 
     records = []
     with torch.no_grad():
-        for text in texts:
+        for text in tqdm(texts, desc="predicting"):
             text_tensor = text_to_tensor(text).unsqueeze(0)
             emb = enc(text_tensor)
 
