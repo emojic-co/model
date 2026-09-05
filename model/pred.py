@@ -50,7 +50,10 @@ def top_labels(
 def read_texts(lines: list[str]) -> list[str]:
     texts = []
     for line in lines:
-        text = normalize(line)[:MAX_TEXT_LEN]
+        line = line.strip()
+        if not line:
+            continue
+        text = normalize(json.loads(line)["text"])[:MAX_TEXT_LEN]
         if text:
             texts.append(text)
     return texts
@@ -100,7 +103,9 @@ _app = typer.Typer(
 @_app.command()
 def main(
     file: Path | None = typer.Argument(
-        None, help="Read texts from this file, one per line (defaults to stdin)."
+        None,
+        help="Read data/data.jsonl-schema rows from this file, one per line "
+        "(defaults to stdin).",
     ),
     pt: Path = typer.Option(
         ..., "--pt", help="Folder containing enc.pt/style.pt/emoji.pt/gen.pt."
@@ -109,7 +114,7 @@ def main(
         None, "-o", "--output", help="Write predictions here instead of stdout."
     ),
 ) -> None:
-    """Run the inference graph over texts (one per line) from a file or stdin."""
+    """Run the inference graph over the `text` field of jsonl rows from a file or stdin."""
     if file:
         lines = file.read_text(encoding="utf-8").splitlines()
     else:
