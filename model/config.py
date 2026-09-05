@@ -40,11 +40,19 @@ style_str = " ".join([str(p)
 # GAN
 Z_WEIGHT = 0.2
 GEN_CHANNELS = [32, 32]
-CRITIC_CHANNELS = [128, 64, 32]
-GAN_LR = 0.01
+CRITIC_COLOR_CHANNELS = [32, 16]
+CRITIC_TEXT_CHANNELS = [32, 16]
+GAN_GEN_LR = 0.01
+GAN_CRITIC_LR = 0.02
 
 gan_str = " ".join([str(p)
-                   for p in (Z_WEIGHT, GEN_CHANNELS, CRITIC_CHANNELS, GAN_LR)])
+                   for p in (
+                       Z_WEIGHT,
+                       GEN_CHANNELS,
+                       CRITIC_COLOR_CHANNELS,
+                       CRITIC_TEXT_CHANNELS,
+                       GAN_GEN_LR,
+                       GAN_CRITIC_LR)])
 
 
 # TRAINING
