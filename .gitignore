@@ -32,8 +32,6 @@ data/train.jsonl
 data/eval.jsonl
 data/labels.json
 
-# Rebuilt from data/labels.json by the generating-emoji-keywords skill.
-data/keywords.json
 # regen writes these via writeFileAtomic (path.tmp then rename); a crash leaves them.
 data/train.jsonl.tmp
 data/eval.jsonl.tmp

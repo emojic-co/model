@@ -225,9 +225,7 @@ def _keyword_probe(enc, head, limit=10):
     vocab = {e: i for i, e in enumerate(EMOJIS)}
     rows = []
     with torch.no_grad():
-        for w in words:
-            word = w["word"]
-            exp = w.get("emojis", [])
+        for word, exp in words.items():
             ids = [vocab[e] for e in exp if e in vocab]
             emb = enc(text_to_tensor(norm_text(word)).unsqueeze(0))
             order = head(emb).squeeze(0).argsort(descending=True).tolist()
