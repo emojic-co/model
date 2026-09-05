@@ -728,7 +728,8 @@ TODO:
 
 
         Report:
-            Update the report structure:
+            Update the report tool and structure:
+            
             Data:
                 [# records data.jsonl, # records train.jsonl, # records eval.jsonl]
                 A full distribution of text lengths in the data.jsonl, vertical bar chart, ordered by length desc.
@@ -745,3 +746,7 @@ TODO:
 
                     A full list of all missed keywords (miss is defined as the target emoji not in the top 5) and the top 5 predicted emojis for each missed keyword.
                     The list is sorted from worse to better worse is defined by the rank of the target emoji in the predicted list.
+
+
+            Notes:
+                For now, this is the entire report, drop all the other data that was reported before.
