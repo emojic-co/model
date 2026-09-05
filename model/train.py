@@ -21,6 +21,8 @@ from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
 from torch.nn.functional import binary_cross_entropy_with_logits, normalize
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from files import (
     DATA_JSONL,
     EMOJI_PT,
@@ -68,8 +70,6 @@ from model.model import (
     rgb_to_oklab,
 )
 from model.runmeta import load_pt, require_clean_tree, save_pt
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 
 def f1(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
