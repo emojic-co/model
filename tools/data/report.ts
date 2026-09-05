@@ -2,13 +2,16 @@ import { readdir, stat } from "node:fs/promises"
 
 import { REPORT_DIR } from "../../files.ts"
 
-export type Word = {
+export type Miss = {
   keyword: string
   expected: string[]
-  rank: number | null
+  rank: number
+  top5: string[]
 }
 
-export type Report = { emoji?: { keywords?: { words?: Word[] } } }
+export type Report = {
+  emoji?: { keywords?: { n?: number; acc_at_k?: number[]; misses?: Miss[] } }
+}
 
 export async function latestReport(dir = REPORT_DIR): Promise<string> {
   const dirs = (await readdir(dir)).sort()
