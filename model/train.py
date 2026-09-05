@@ -278,11 +278,10 @@ class LitColorGAN(pl.LightningModule):
             val = energy_distance(real, fake)
             self.log("energy/gan/val", val, prog_bar=True)
 
-            gan_scalars = {"val": val, "ref": self._split_energy(real)}
-
             if isinstance(self.logger, TensorBoardLogger):
-                w = self.logger.experiment
-                w.add_scalars("energy/gan", gan_scalars, self.global_step)
+                ref = self._split_energy(real)
+                self.logger.experiment.add_scalar(
+                    "energy/gan/ref", ref, self.global_step)
 
     def training_step(self, batch, batch_idx):
         text, _, _, colors = batch
@@ -292,8 +291,9 @@ class LitColorGAN(pl.LightningModule):
 
         fake = self.gen(cond)
 
-        tst_real = self.tst(cond, colors)
-        tst_fake = self.tst(cond, fake.detach())
+        both = torch.cat([colors, fake.detach()], dim=0)
+        tst_real, tst_fake = self.tst(
+            torch.cat([cond, cond], dim=0), both).chunk(2, dim=0)
 
         loss_tst_real = binary_cross_entropy_with_logits(
             tst_real, torch.ones_like(tst_real))

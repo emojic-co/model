@@ -192,7 +192,8 @@ class ColorDsc(nn.Module):
         self.net = nn.Sequential(
             *[
                 nn.Sequential(
-                    nn.Linear(i, o, bias=True),
+                    nn.Linear(i, o, bias=False),
+                    nn.BatchNorm1d(o),
                     # sn(nn.Linear(i, o, bias=True)),
                     nn.LeakyReLU(negative_slope=RELU_SLOPE)
                 )
