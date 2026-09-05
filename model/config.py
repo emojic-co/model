@@ -40,7 +40,7 @@ style_str = " ".join([str(p)
 # GAN
 Z_WEIGHT = 0.2
 GEN_CHANNELS = [32]
-CRITIC_CHANNELS = [256]
+CRITIC_CHANNELS = [128, 64]
 GAN_LR = 0.01
 
 gan_str = " ".join([str(p)
@@ -53,7 +53,8 @@ TASK_BATCH_SIZE = 256
 GAN_BATCH_SIZE = 512
 RELU_SLOPE = 0.1
 LR = 0.01
-GRAD_CLIP = 1.0
+GRAD_CLIP_GEN = 1.0
+GRAD_CLIP_CRITIC = 2.0
 INFONCE_TEMP = 0.7
 
 train_str = " ".join(
@@ -65,7 +66,8 @@ train_str = " ".join(
             GAN_BATCH_SIZE,
             RELU_SLOPE,
             LR,
-            GRAD_CLIP,
+            GRAD_CLIP_GEN,
+            GRAD_CLIP_CRITIC,
             INFONCE_TEMP,
         )
     ]

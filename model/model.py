@@ -206,7 +206,7 @@ class ColorDsc(nn.Module):
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
         c = rgb_to_oklab(colors)
 
-        # x = torch.cat([c, normalize(cond)], dim=-1)
-        x = torch.cat([c, cond], dim=-1)
+        x = torch.cat([c, normalize(cond)], dim=-1)
+        # x = torch.cat([c, cond], dim=-1)
 
         return self.net(x)
