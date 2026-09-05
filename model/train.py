@@ -46,7 +46,8 @@ from model.config import (
     EPOCHS_TASK,
     GAN_BATCH_SIZE,
     GAN_LR,
-    GRAD_CLIP,
+    GRAD_CLIP_CRITIC,
+    GRAD_CLIP_GEN,
     INFONCE_TEMP,
     LR,
     SEED,
@@ -308,7 +309,7 @@ class LitColorGAN(pl.LightningModule):
         self.manual_backward(loss_tst)
         self.clip_gradients(
             opt_tst,  # type: ignore
-            gradient_clip_val=GRAD_CLIP,
+            gradient_clip_val=GRAD_CLIP_CRITIC,
             gradient_clip_algorithm="norm",
         )
 
@@ -325,7 +326,7 @@ class LitColorGAN(pl.LightningModule):
         self.manual_backward(loss_gen)
         self.clip_gradients(
             opt_gen,  # type: ignore
-            gradient_clip_val=GRAD_CLIP,
+            gradient_clip_val=GRAD_CLIP_GEN,
             gradient_clip_algorithm="norm",
         )
 
