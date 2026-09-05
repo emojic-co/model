@@ -59,11 +59,10 @@ export function failingEmojis(misses: Miss[], maxRank: number): string[] {
   const out: string[] = []
   const seen = new Set<string>()
   for (const m of misses) {
-    const emoji = m.expected?.[0]
-    if (!emoji || seen.has(emoji)) continue
+    if (!m.target || seen.has(m.target)) continue
     if (m.rank > maxRank) {
-      seen.add(emoji)
-      out.push(emoji)
+      seen.add(m.target)
+      out.push(m.target)
     }
   }
   return out

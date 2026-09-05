@@ -30,14 +30,12 @@ test("rankWindow returns keys ranked [minRank, maxRank] by count desc, ties brok
   expect(rankWindow(counts, 4, 5)).toEqual(["b", "d"])
 })
 
-test("failingEmojis dedupes the first-expected emoji of words whose rank is null or worse than maxRank", () => {
-  const words = [
-    { keyword: "coffee", expected: ["☕"], rank: 1 },
-    { keyword: "bowl", expected: ["🥣"], rank: 8 },
-    { keyword: "soup", expected: ["🥣", "🍜"], rank: null },
-    { keyword: "moon", expected: ["🌙"], rank: null },
-    { keyword: "sun", expected: ["☀️"], rank: 5 },
-    { keyword: "blank", expected: [], rank: null },
+test("failingEmojis dedupes target emoji worse than maxRank", () => {
+  const misses = [
+    { keyword: "bowl", target: "🥣", rank: 8, top5: [], emoji_freq: 0, pair_freq: 0 },
+    { keyword: "soup", target: "🥣", rank: 12, top5: [], emoji_freq: 0, pair_freq: 0 },
+    { keyword: "moon", target: "🌙", rank: 9, top5: [], emoji_freq: 0, pair_freq: 0 },
+    { keyword: "sun", target: "☀️", rank: 5, top5: [], emoji_freq: 0, pair_freq: 0 },
   ]
-  expect(failingEmojis(words, 5)).toEqual(["🥣", "🌙"])
+  expect(failingEmojis(misses, 5)).toEqual(["🥣", "🌙"])
 })

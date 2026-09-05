@@ -4,9 +4,11 @@ import { REPORT_DIR } from "../../files.ts"
 
 export type Miss = {
   keyword: string
-  expected: string[]
+  target: string
   rank: number
   top5: string[]
+  emoji_freq: number
+  pair_freq: number
 }
 
 export type Report = {
