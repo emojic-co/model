@@ -50,16 +50,19 @@ class TextEncoder(nn.Module):
         cs = ENCODER_CHANNELS
         io = zip([CHAR_EMBED_SIZE, *cs[:-1]], cs, strict=True)
 
-        self.net = nn.Sequential(
-            *[TextEncoderBlock(i=i, o=o) for i, o in io])
+        self.blocks = nn.ModuleList(
+            [TextEncoderBlock(i=i, o=o) for i, o in io])
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         out = self.char_embed(x).transpose(1, 2)
-        out = self.net(out)
         n = (x != PAD_IDX).sum(dim=1, keepdim=True)
-        keep = torch.arange(out.shape[-1], device=x.device) < n
-        out = out.masked_fill(~keep.unsqueeze(1), float("-inf"))
-        return torch.max(out, dim=-1).values
+        pooled = []
+        for block in self.blocks:
+            out = block(out)
+            keep = torch.arange(out.shape[-1], device=x.device) < n
+            masked = out.masked_fill(~keep.unsqueeze(1), float("-inf"))
+            pooled.append(torch.max(masked, dim=-1).values)
+        return torch.cat(pooled, dim=-1)
 
 
 class StyleHead(nn.Module):
