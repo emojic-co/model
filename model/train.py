@@ -424,14 +424,7 @@ def _train_gan(enc: TextEncoder, ds) -> LitColorGAN:
 
 
 def _run_report_local(model: Model) -> None:
-    if model == Model.task:
-        subprocess.run(
-            [sys.executable, "tools/report.py", "--only", "data,emoji,style"],
-            check=True,
-        )
-        return
-
-    subprocess.run([sys.executable, "tools/report.py"], check=True)
+    subprocess.run([sys.executable, "tools/report.py", "--pt", PT_DIR], check=True)
 
 
 def _run_local(model: Model) -> None:
