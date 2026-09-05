@@ -192,12 +192,14 @@ class ColorDsc(nn.Module):
         self.net = nn.Sequential(
             *[
                 nn.Sequential(
-                    sn(nn.Conv1d(i, o, kernel_size=1, bias=True)),
+                    nn.Conv1d(i, o, kernel_size=1, bias=True),
+                    # sn(nn.Conv1d(i, o, kernel_size=1, bias=True)),
                     nn.LeakyReLU(negative_slope=RELU_SLOPE)
                 )
                 for i, o in io
             ],
-            sn(nn.Conv1d(cs[-1], 1, kernel_size=1, bias=True)),
+            nn.Conv1d(cs[-1], 1, kernel_size=1, bias=True),
+            # sn(nn.Conv1d(cs[-1], 1, kernel_size=1, bias=True)),
         )
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
