@@ -5,12 +5,11 @@ import { cac } from "cac"
 import cliProgress from "cli-progress"
 import PQueue from "p-queue"
 
+import { DATA_JSONL as DATA } from "../../files.ts"
 import { MODEL, annotate, annotateBatchCount } from "./annotate.ts"
 import { splitEmojis } from "./emoji.ts"
 import { appendJsonl, readJsonl } from "./io.ts"
 import { type Report, type Word, latestReport } from "./report.ts"
-
-const DATA = "./data.jsonl"
 
 const MIN_RANK = 200
 const MAX_RANK = 400

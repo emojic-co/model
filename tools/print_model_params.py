@@ -1,7 +1,12 @@
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import typer
 from torch import nn
 
-from model import ColorDsc, ColorGen, EmojiHead, StyleHead, TextEncoder
+from model.model import ColorDsc, ColorGen, EmojiHead, StyleHead, TextEncoder
 
 MODELS: list[tuple[str, type[nn.Module]]] = [
     ("TextEncoder", TextEncoder),

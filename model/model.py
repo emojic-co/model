@@ -7,7 +7,7 @@ from torch.nn.functional import (
 )
 from torch.nn.utils import spectral_norm as sn
 
-from config import (
+from model.config import (
     CHAR_EMBED_SIZE,
     CRITIC_CHANNELS,
     DROPOUT_EMOJI,
@@ -21,7 +21,7 @@ from config import (
     TEXT_EMBED_SIZE,
     Z_WEIGHT,
 )
-from data import COLOR_DIM, EMOJIS, PAD_IDX, STYLES, VOCAB_SIZE
+from model.data import COLOR_DIM, EMOJIS, PAD_IDX, STYLES, VOCAB_SIZE
 
 
 class TextEncoderBlock(nn.Module):

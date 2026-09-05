@@ -1,0 +1,22 @@
+MODEL_DIR = "model"
+TOOLS_DIR = "tools"
+DATA_DIR = "data"
+PT_DIR = "pt"
+
+DATA_JSONL = f"{DATA_DIR}/data.jsonl"
+TRAIN_JSONL = f"{DATA_DIR}/train.jsonl"
+EVAL_JSONL = f"{DATA_DIR}/eval.jsonl"
+LABELS_JSON = f"{DATA_DIR}/labels.json"
+WORDS_JSON = f"{DATA_DIR}/words.json"
+ENERGY_KEYWORDS_TXT = f"{DATA_DIR}/energy_keywords.txt"
+PRED_JSONL = f"{DATA_DIR}/pred.jsonl"
+
+ENC_PT = f"{PT_DIR}/enc.pt"
+STYLE_PT = f"{PT_DIR}/style.pt"
+EMOJI_PT = f"{PT_DIR}/emoji.pt"
+GEN_PT = f"{PT_DIR}/gen.pt"
+TST_PT = f"{PT_DIR}/tst.pt"
+
+WEB_PUBLIC_DIR = "web/public"
+REPORT_DIR = "report"
+RUNS_DIR = "runs"

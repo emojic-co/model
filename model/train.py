@@ -21,7 +21,21 @@ from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
 from torch.nn.functional import binary_cross_entropy_with_logits, normalize
 
-from config import (
+from files import (
+    DATA_JSONL,
+    EMOJI_PT,
+    ENC_PT,
+    ENERGY_KEYWORDS_TXT,
+    EVAL_JSONL,
+    LABELS_JSON,
+    MODEL_DIR,
+    PT_DIR,
+    STYLE_PT,
+    TOOLS_DIR,
+    TRAIN_JSONL,
+    WORDS_JSON,
+)
+from model.config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE,
     EMOJI_AP_K,
@@ -39,13 +53,13 @@ from config import (
     TEXT_EMBED_SIZE,
     VAL_CHECK_INTERVAL,
 )
-from data import (
+from model.data import (
     eval_data_loader,
     train_data_loader,
     train_ds,
 )
-from export_onnx import export
-from model import (
+from model.export_onnx import export
+from model.model import (
     ColorDsc,
     ColorGen,
     EmojiHead,
@@ -53,7 +67,9 @@ from model import (
     TextEncoder,
     rgb_to_oklab,
 )
-from runmeta import load_pt, require_clean_tree, save_pt
+from model.runmeta import load_pt, require_clean_tree, save_pt
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 
 def f1(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
@@ -65,13 +81,15 @@ def lse_infonce(
     target: torch.Tensor,
     temp: float,
 ) -> torch.Tensor:
+    has_pos = target.sum(dim=-1) > 0
+    if not bool(has_pos.any()):
+        return logits.new_zeros(())
+
     z = logits / temp
     all_lse = torch.logsumexp(z, dim=-1)
     pos_lse = torch.logsumexp(z.masked_fill(target == 0, float("-inf")), dim=-1)
     row_loss = all_lse - pos_lse
-    has_pos = target.sum(dim=-1) > 0
-    if not bool(has_pos.any()):
-        return logits.new_zeros(())
+
     return row_loss[has_pos].mean()
 
 
@@ -305,7 +323,7 @@ class Model(StrEnum):
 def _load(mod: nn.Module, path: str) -> nn.Module:
     sd, meta = load_pt(path)
     mod.load_state_dict(sd)
-    mod._pt_meta = meta
+    mod._pt_meta = meta  # type: ignore
     return mod
 
 
@@ -356,7 +374,7 @@ def _train_task(ds) -> LitTask:
         ("style", task.style),
         ("emoji", task.emoji),
     ):
-        save_pt(mod.state_dict(), f"{name}.pt", stage="task")
+        save_pt(mod.state_dict(), f"{PT_DIR}/{name}.pt", stage="task")
 
     return task
 
@@ -400,7 +418,7 @@ def _train_gan(enc: TextEncoder, ds) -> LitColorGAN:
         ("gen", gan.gen),
         ("tst", gan.tst),
     ):
-        save_pt(mod.state_dict(), f"{name}.pt", stage="gan")
+        save_pt(mod.state_dict(), f"{PT_DIR}/{name}.pt", stage="gan")
 
     return gan
 
@@ -412,7 +430,7 @@ def _run_local(model: Model) -> None:
 
     if model == Model.gan:
         ds = train_ds()
-        enc = _load(TextEncoder(), "enc.pt")
+        enc = _load(TextEncoder(), ENC_PT)
         _train_gan(enc, ds)  # type: ignore
         export()
         subprocess.run([sys.executable, "tools/report.py"], check=True)
@@ -447,23 +465,24 @@ ARTIFACTS = "/artifacts"
 
 DEP_FILES = ["pyproject.toml", "uv.lock", ".python-version", "README.md"]
 CODE_FILES = [
-    "config.py",
-    "data.py",
-    "model.py",
-    "train.py",
-    "tools/report.py",
-    "export_onnx.py",
-    "pred.py",
-    "runmeta.py",
-    "labels.json",
-    "words.json",
-    "energy_keywords.txt",
-    "data.jsonl",
-    "train.jsonl",
-    "eval.jsonl",
+    "files.py",
+    f"{MODEL_DIR}/__init__.py",
+    f"{MODEL_DIR}/config.py",
+    f"{MODEL_DIR}/data.py",
+    f"{MODEL_DIR}/model.py",
+    f"{MODEL_DIR}/train.py",
+    f"{MODEL_DIR}/export_onnx.py",
+    f"{MODEL_DIR}/pred.py",
+    f"{MODEL_DIR}/runmeta.py",
+    f"{TOOLS_DIR}/report.py",
+    LABELS_JSON,
+    WORDS_JSON,
+    ENERGY_KEYWORDS_TXT,
+    DATA_JSONL,
+    TRAIN_JSONL,
+    EVAL_JSONL,
 ]
-COLLECT_GLOBS = ["*.pt"]
-COLLECT_TREES = ["runs", "web/public", "report"]
+COLLECT_TREES = [PT_DIR, "runs", "web/public", "report"]
 
 modal_image = modal.Image.debian_slim(python_version="3.13").pip_install("uv")
 for _name in DEP_FILES:
@@ -494,11 +513,6 @@ def _run_env(threads: int) -> dict[str, str]:
 def _stash(dst: str) -> int:
     root, out = Path(REPO), Path(dst)
     n = 0
-    for pattern in COLLECT_GLOBS:
-        for path in root.glob(pattern):
-            if path.is_file():
-                shutil.copy2(path, out / path.name)
-                n += 1
     for tree in COLLECT_TREES:
         base = root / tree
         if not base.is_dir():
@@ -530,12 +544,14 @@ def train_remote(
     env = _run_env(threads)
     env["EMOJIC_GIT_SHA"] = git_sha
     env["EMOJIC_DISPATCH_CHECKED"] = "1"
+    if enc_bytes is not None or style_bytes is not None or emoji_bytes is not None:
+        Path(REPO, PT_DIR).mkdir(parents=True, exist_ok=True)
     if enc_bytes is not None:
-        Path(REPO, "enc.pt").write_bytes(enc_bytes)
+        Path(REPO, ENC_PT).write_bytes(enc_bytes)
     if style_bytes is not None:
-        Path(REPO, "style.pt").write_bytes(style_bytes)
+        Path(REPO, STYLE_PT).write_bytes(style_bytes)
     if emoji_bytes is not None:
-        Path(REPO, "emoji.pt").write_bytes(emoji_bytes)
+        Path(REPO, EMOJI_PT).write_bytes(emoji_bytes)
     code = 1
     try:
         tb = subprocess.Popen(
@@ -559,7 +575,7 @@ def train_remote(
             with modal.forward(TB_PORT) as tunnel:
                 print(f"TensorBoard: {tunnel.url}", flush=True)
                 proc = subprocess.Popen(
-                    [VENV_PY, "train.py", model, "--local"],
+                    [VENV_PY, f"{MODEL_DIR}/train.py", model, "--local"],
                     cwd=REPO,
                     env=env,
                     stdout=subprocess.PIPE,
@@ -567,7 +583,7 @@ def train_remote(
                     text=True,
                     bufsize=1,
                 )
-                for line in proc.stdout:
+                for line in proc.stdout:  # type: ignore
                     sys.stdout.write(line)
                     sys.stdout.flush()
                 code = proc.wait()
@@ -604,6 +620,7 @@ def _retrieve_and_cleanup() -> None:
             and kids[0].is_dir()
             and kids[0].name
             not in {
+                PT_DIR,
                 "runs",
                 "report",
                 "web",
@@ -638,15 +655,15 @@ def _retrieve_and_cleanup() -> None:
 def _run_remote(model: Model, cpu: int, memory: int, git_sha: str) -> dict[str, int]:
     enc_bytes = style_bytes = emoji_bytes = None
     if model == Model.gan:
-        for name in ("enc.pt", "style.pt", "emoji.pt"):
+        for name in (ENC_PT, STYLE_PT, EMOJI_PT):
             if not Path(name).exists():
                 raise typer.BadParameter(
                     f"{name} not found -- run `train task --local` "
                     "(or fetch a Modal task run) first"
                 )
-        enc_bytes = Path("enc.pt").read_bytes()
-        style_bytes = Path("style.pt").read_bytes()
-        emoji_bytes = Path("emoji.pt").read_bytes()
+        enc_bytes = Path(ENC_PT).read_bytes()
+        style_bytes = Path(STYLE_PT).read_bytes()
+        emoji_bytes = Path(EMOJI_PT).read_bytes()
 
     timeout = TIMEOUT_S_ALL if model == Model.all else TIMEOUT_S
     fn = train_remote

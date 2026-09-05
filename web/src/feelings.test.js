@@ -12,7 +12,7 @@ import {
 
 const readJson = (rel) =>
   JSON.parse(readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8'))
-const styleLabels = readJson('../../labels.json').styles
+const styleLabels = readJson('../../data/labels.json').styles
 const css = readFileSync(fileURLToPath(new URL('./styles.css', import.meta.url)), 'utf8')
 
 describe('feelings coverage', () => {

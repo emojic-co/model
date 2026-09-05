@@ -1,8 +1,10 @@
 import json
 from datetime import datetime
 
+from files import ENERGY_KEYWORDS_TXT, LABELS_JSON
+
 # DATA
-with open("labels.json", encoding="utf-8") as f:
+with open(LABELS_JSON, encoding="utf-8") as f:
     LABELS = json.load(f)
 
 STYLES = LABELS["styles"]
@@ -81,7 +83,7 @@ STYLE_AP_K = 5
 ENERGY_Z_SAMPLES = 8
 ENERGY_KEYWORD_MAX_TEXTS = 512
 ENERGY_KEYWORD_MIN_TEXTS = 32
-ENERGY_KEYWORDS_PATH = "energy_keywords.txt"
+ENERGY_KEYWORDS_PATH = ENERGY_KEYWORDS_TXT
 
 # TENSORBOARD RUN NAME
 CONFIG_PARTS = [

@@ -5,10 +5,11 @@ from dataclasses import dataclass
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from config import EMOJIS, MAX_TEXT_LEN, STYLES
+from files import EVAL_JSONL, TRAIN_JSONL
+from model.config import EMOJIS, MAX_TEXT_LEN, STYLES
 
-TRAIN_PATH = "train.jsonl"
-EVAL_PATH = "eval.jsonl"
+TRAIN_PATH = TRAIN_JSONL
+EVAL_PATH = EVAL_JSONL
 
 PAD = "·"
 PAD_IDX = 0
