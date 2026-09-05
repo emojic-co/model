@@ -1,0 +1,3490 @@
+{
+  "generated": "2026-09-05T10:36:39",
+  "provenance": {
+    "ts": "26-09-05-10-36",
+    "report_code": "2ae7cbd",
+    "report_dirty": false,
+    "model_sha": "2ae7cbd",
+    "model_train_sha": "83b31ea6b424",
+    "current_train_sha": "83b31ea6b424",
+    "models": {
+      "pt/enc.pt": {
+        "sha": "2ae7cbd",
+        "dirty": false,
+        "generated": "2026-09-05T07:36:29",
+        "config": [
+          "ENCODER: 16 3 [90, 100, 110]",
+          "EMOJI: 32 0.2",
+          "STYLE: 12 300 0.1",
+          "GAN: 0.2 [96] [16, 8] 0.01",
+          "TRAIN: 42 256 512 0.1 0.01 1.0 0.7"
+        ],
+        "train_sha": "83b31ea6b424",
+        "stage": "task"
+      },
+      "pt/emoji.pt": {
+        "sha": "2ae7cbd",
+        "dirty": false,
+        "generated": "2026-09-05T07:36:29",
+        "config": [
+          "ENCODER: 16 3 [90, 100, 110]",
+          "EMOJI: 32 0.2",
+          "STYLE: 12 300 0.1",
+          "GAN: 0.2 [96] [16, 8] 0.01",
+          "TRAIN: 42 256 512 0.1 0.01 1.0 0.7"
+        ],
+        "train_sha": "83b31ea6b424",
+        "stage": "task"
+      }
+    },
+    "consistent": true,
+    "issues": []
+  },
+  "data": {
+    "records": {
+      "data": 133911,
+      "train": 93161,
+      "eval": 1500
+    },
+    "length_distribution": [
+      [
+        46,
+        1
+      ],
+      [
+        45,
+        3
+      ],
+      [
+        44,
+        4
+      ],
+      [
+        43,
+        14
+      ],
+      [
+        42,
+        2315
+      ],
+      [
+        41,
+        2832
+      ],
+      [
+        40,
+        3477
+      ],
+      [
+        39,
+        4089
+      ],
+      [
+        38,
+        4744
+      ],
+      [
+        37,
+        5526
+      ],
+      [
+        36,
+        5996
+      ],
+      [
+        35,
+        6798
+      ],
+      [
+        34,
+        7376
+      ],
+      [
+        33,
+        8058
+      ],
+      [
+        32,
+        8420
+      ],
+      [
+        31,
+        8751
+      ],
+      [
+        30,
+        9009
+      ],
+      [
+        29,
+        8885
+      ],
+      [
+        28,
+        8196
+      ],
+      [
+        27,
+        7748
+      ],
+      [
+        26,
+        6649
+      ],
+      [
+        25,
+        5827
+      ],
+      [
+        24,
+        4820
+      ],
+      [
+        23,
+        3820
+      ],
+      [
+        22,
+        2938
+      ],
+      [
+        21,
+        2233
+      ],
+      [
+        20,
+        1601
+      ],
+      [
+        19,
+        1216
+      ],
+      [
+        18,
+        834
+      ],
+      [
+        17,
+        542
+      ],
+      [
+        16,
+        394
+      ],
+      [
+        15,
+        229
+      ],
+      [
+        14,
+        177
+      ],
+      [
+        13,
+        108
+      ],
+      [
+        12,
+        72
+      ],
+      [
+        11,
+        58
+      ],
+      [
+        10,
+        45
+      ],
+      [
+        9,
+        19
+      ],
+      [
+        8,
+        20
+      ],
+      [
+        7,
+        11
+      ],
+      [
+        6,
+        5
+      ],
+      [
+        5,
+        13
+      ],
+      [
+        4,
+        28
+      ],
+      [
+        3,
+        9
+      ],
+      [
+        1,
+        1
+      ]
+    ]
+  },
+  "labels": {
+    "styles": 21,
+    "emojis": 357
+  },
+  "emoji": {
+    "eval": {
+      "n": 1271,
+      "acc_at_k": [
+        0.5782848000526428,
+        0.6742722392082214,
+        0.7049567103385925,
+        0.7356412410736084,
+        0.753737211227417,
+        0.7631785869598389,
+        0.774193525314331,
+        0.7812746167182922,
+        0.7891424298286438,
+        0.795436680316925
+      ]
+    },
+    "keywords": {
+      "n": 650,
+      "acc_at_k": [
+        0.563076923076923,
+        0.6353846153846154,
+        0.6692307692307692,
+        0.6923076923076923,
+        0.7076923076923077,
+        0.7138461538461538,
+        0.72,
+        0.7307692307692307,
+        0.7384615384615385,
+        0.7415384615384616
+      ],
+      "misses": [
+        {
+          "keyword": "lips",
+          "target": "💋",
+          "rank": 354,
+          "top5": [
+            "🏁",
+            "✅",
+            "✈️",
+            "⏱️",
+            "🏃"
+          ],
+          "emoji_freq": 403,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "glass",
+          "target": "🥛",
+          "rank": 351,
+          "top5": [
+            "👓",
+            "✈️",
+            "🧳",
+            "🤕",
+            "🏁"
+          ],
+          "emoji_freq": 327,
+          "pair_freq": 8
+        },
+        {
+          "keyword": "elderly",
+          "target": "👵",
+          "rank": 337,
+          "top5": [
+            "😔",
+            "👑",
+            "🌾",
+            "💉",
+            "👀"
+          ],
+          "emoji_freq": 340,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "salsa",
+          "target": "💃",
+          "rank": 337,
+          "top5": [
+            "✈️",
+            "⏳",
+            "😔",
+            "😩",
+            "🤩"
+          ],
+          "emoji_freq": 374,
+          "pair_freq": 3
+        },
+        {
+          "keyword": "romance",
+          "target": "🌹",
+          "rank": 334,
+          "top5": [
+            "💼",
+            "😩",
+            "👑",
+            "😔",
+            "😞"
+          ],
+          "emoji_freq": 408,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "nauseated",
+          "target": "🤢",
+          "rank": 326,
+          "top5": [
+            "✈️",
+            "🪑",
+            "🕕",
+            "💺",
+            "👂"
+          ],
+          "emoji_freq": 2050,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "pensive",
+          "target": "😔",
+          "rank": 309,
+          "top5": [
+            "💸",
+            "💰",
+            "💵",
+            "🏷️",
+            "🖊️"
+          ],
+          "emoji_freq": 850,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "leaves",
+          "target": "🍃",
+          "rank": 301,
+          "top5": [
+            "✈️",
+            "🧳",
+            "🕕",
+            "⬆️",
+            "⏱️"
+          ],
+          "emoji_freq": 248,
+          "pair_freq": 16
+        },
+        {
+          "keyword": "microbe",
+          "target": "🦠",
+          "rank": 295,
+          "top5": [
+            "💼",
+            "📶",
+            "🛣️",
+            "🎬",
+            "📺"
+          ],
+          "emoji_freq": 387,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "elderly",
+          "target": "👴",
+          "rank": 290,
+          "top5": [
+            "😔",
+            "👑",
+            "🌾",
+            "💉",
+            "👀"
+          ],
+          "emoji_freq": 317,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "bento",
+          "target": "🍱",
+          "rank": 282,
+          "top5": [
+            "💍",
+            "🔁",
+            "✅",
+            "📦",
+            "✈️"
+          ],
+          "emoji_freq": 381,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "mist",
+          "target": "🌫️",
+          "rank": 282,
+          "top5": [
+            "😔",
+            "⏱️",
+            "⏳",
+            "🔁",
+            "😩"
+          ],
+          "emoji_freq": 172,
+          "pair_freq": 8
+        },
+        {
+          "keyword": "forbidden",
+          "target": "📵",
+          "rank": 281,
+          "top5": [
+            "✅",
+            "💰",
+            "💸",
+            "💵",
+            "🧭"
+          ],
+          "emoji_freq": 253,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "flushed",
+          "target": "😳",
+          "rank": 276,
+          "top5": [
+            "🚽",
+            "🔩",
+            "🧻",
+            "💻",
+            "🧵"
+          ],
+          "emoji_freq": 534,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "blush",
+          "target": "😊",
+          "rank": 274,
+          "top5": [
+            "⏱️",
+            "✅",
+            "😣",
+            "🔗",
+            "🧵"
+          ],
+          "emoji_freq": 344,
+          "pair_freq": 2
+        },
+        {
+          "keyword": "drop",
+          "target": "💧",
+          "rank": 263,
+          "top5": [
+            "🔁",
+            "⏳",
+            "✅",
+            "💾",
+            "🏃"
+          ],
+          "emoji_freq": 1384,
+          "pair_freq": 1
+        },
+        {
+          "keyword": "outbox",
+          "target": "📤",
+          "rank": 256,
+          "top5": [
+            "📦",
+            "🧳",
+            "🔋",
+            "⚡",
+            "🥣"
+          ],
+          "emoji_freq": 290,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "pen",
+          "target": "✍️",
+          "rank": 255,
+          "top5": [
+            "🖊️",
+            "📍",
+            "💰",
+            "👓",
+            "💸"
+          ],
+          "emoji_freq": 341,
+          "pair_freq": 2
+        },
+        {
+          "keyword": "flash",
+          "target": "📸",
+          "rank": 254,
+          "top5": [
+            "💾",
+            "🏁",
+            "💻",
+            "✅",
+            "📄"
+          ],
+          "emoji_freq": 480,
+          "pair_freq": 4
+        },
+        {
+          "keyword": "hi",
+          "target": "👋",
+          "rank": 251,
+          "top5": [
+            "⬆️",
+            "✈️",
+            "🕕",
+            "🛣️",
+            "😄"
+          ],
+          "emoji_freq": 497,
+          "pair_freq": 10
+        },
+        {
+          "keyword": "award",
+          "target": "🏅",
+          "rank": 245,
+          "top5": [
+            "🏥",
+            "😟",
+            "😬",
+            "😰",
+            "📤"
+          ],
+          "emoji_freq": 220,
+          "pair_freq": 5
+        },
+        {
+          "keyword": "rain",
+          "target": "⛈️",
+          "rank": 241,
+          "top5": [
+            "🌧️",
+            "☔",
+            "❄️",
+            "🚶",
+            "🏋️"
+          ],
+          "emoji_freq": 294,
+          "pair_freq": 16
+        },
+        {
+          "keyword": "prohibited",
+          "target": "🚫",
+          "rank": 238,
+          "top5": [
+            "👑",
+            "✅",
+            "🤞",
+            "💉",
+            "🍎"
+          ],
+          "emoji_freq": 327,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "sick",
+          "target": "😷",
+          "rank": 230,
+          "top5": [
+            "🤒",
+            "🤧",
+            "😩",
+            "🌙",
+            "❄️"
+          ],
+          "emoji_freq": 195,
+          "pair_freq": 2
+        },
+        {
+          "keyword": "old man",
+          "target": "👴",
+          "rank": 222,
+          "top5": [
+            "😔",
+            "🕰️",
+            "😞",
+            "💔",
+            "😵‍💫"
+          ],
+          "emoji_freq": 317,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "memo",
+          "target": "📝",
+          "rank": 214,
+          "top5": [
+            "📣",
+            "⬆️",
+            "📍",
+            "🔁",
+            "✈️"
+          ],
+          "emoji_freq": 2441,
+          "pair_freq": 3
+        },
+        {
+          "keyword": "business",
+          "target": "🧑‍💼",
+          "rank": 213,
+          "top5": [
+            "⏱️",
+            "😩",
+            "⏳",
+            "😔",
+            "🕕"
+          ],
+          "emoji_freq": 244,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "fear",
+          "target": "😱",
+          "rank": 206,
+          "top5": [
+            "✈️",
+            "👂",
+            "🛣️",
+            "🧳",
+            "🌊"
+          ],
+          "emoji_freq": 305,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "write",
+          "target": "🖊️",
+          "rank": 204,
+          "top5": [
+            "✍️",
+            "📝",
+            "✅",
+            "❓",
+            "💉"
+          ],
+          "emoji_freq": 419,
+          "pair_freq": 7
+        },
+        {
+          "keyword": "fast",
+          "target": "💨",
+          "rank": 203,
+          "top5": [
+            "✈️",
+            "🧳",
+            "🤩",
+            "✅",
+            "🏃"
+          ],
+          "emoji_freq": 480,
+          "pair_freq": 17
+        },
+        {
+          "keyword": "art",
+          "target": "🖼️",
+          "rank": 191,
+          "top5": [
+            "⬆️",
+            "🏃",
+            "🕕",
+            "🔁",
+            "📍"
+          ],
+          "emoji_freq": 259,
+          "pair_freq": 1
+        },
+        {
+          "keyword": "hole",
+          "target": "🕳️",
+          "rank": 191,
+          "top5": [
+            "✈️",
+            "😳",
+            "😮",
+            "⏳",
+            "🤩"
+          ],
+          "emoji_freq": 233,
+          "pair_freq": 22
+        },
+        {
+          "keyword": "insect",
+          "target": "🐛",
+          "rank": 189,
+          "top5": [
+            "💻",
+            "🩺",
+            "📏",
+            "👃",
+            "💉"
+          ],
+          "emoji_freq": 415,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "cycle",
+          "target": "🔄",
+          "rank": 185,
+          "top5": [
+            "🚲",
+            "🌳",
+            "🍬",
+            "😩",
+            "😄"
+          ],
+          "emoji_freq": 443,
+          "pair_freq": 1
+        },
+        {
+          "keyword": "log",
+          "target": "🪵",
+          "rank": 181,
+          "top5": [
+            "✈️",
+            "🕕",
+            "⏳",
+            "📣",
+            "💻"
+          ],
+          "emoji_freq": 371,
+          "pair_freq": 7
+        },
+        {
+          "keyword": "grimace",
+          "target": "😬",
+          "rank": 177,
+          "top5": [
+            "🎭",
+            "🐟",
+            "🏁",
+            "👕",
+            "🧱"
+          ],
+          "emoji_freq": 405,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "volume",
+          "target": "🔊",
+          "rank": 175,
+          "top5": [
+            "😳",
+            "😮",
+            "⏳",
+            "😲",
+            "👀"
+          ],
+          "emoji_freq": 483,
+          "pair_freq": 11
+        },
+        {
+          "keyword": "dash",
+          "target": "💨",
+          "rank": 174,
+          "top5": [
+            "💻",
+            "🧼",
+            "🧻",
+            "🧴",
+            "🩸"
+          ],
+          "emoji_freq": 480,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "experiment",
+          "target": "🧪",
+          "rank": 172,
+          "top5": [
+            "✅",
+            "💼",
+            "✈️",
+            "⏳",
+            "😮"
+          ],
+          "emoji_freq": 480,
+          "pair_freq": 19
+        },
+        {
+          "keyword": "zzz",
+          "target": "💤",
+          "rank": 168,
+          "top5": [
+            "👂",
+            "😄",
+            "🤩",
+            "🦵",
+            "🌳"
+          ],
+          "emoji_freq": 320,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "electric",
+          "target": "🔌",
+          "rank": 163,
+          "top5": [
+            "💉",
+            "⏳",
+            "😄",
+            "⚡",
+            "🩺"
+          ],
+          "emoji_freq": 630,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "police",
+          "target": "🚨",
+          "rank": 163,
+          "top5": [
+            "😄",
+            "🍕",
+            "🍦",
+            "👀",
+            "✈️"
+          ],
+          "emoji_freq": 586,
+          "pair_freq": 1
+        },
+        {
+          "keyword": "herb",
+          "target": "🌿",
+          "rank": 162,
+          "top5": [
+            "😔",
+            "⏳",
+            "💾",
+            "✅",
+            "✈️"
+          ],
+          "emoji_freq": 1064,
+          "pair_freq": 7
+        },
+        {
+          "keyword": "pot",
+          "target": "🍲",
+          "rank": 161,
+          "top5": [
+            "✈️",
+            "💍",
+            "😌",
+            "⬆️",
+            "😄"
+          ],
+          "emoji_freq": 738,
+          "pair_freq": 7
+        },
+        {
+          "keyword": "fearful",
+          "target": "😨",
+          "rank": 159,
+          "top5": [
+            "👂",
+            "🧣",
+            "😄",
+            "❤️",
+            "🚉"
+          ],
+          "emoji_freq": 279,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "love",
+          "target": "💕",
+          "rank": 159,
+          "top5": [
+            "😄",
+            "💻",
+            "✨",
+            "🔥",
+            "💾"
+          ],
+          "emoji_freq": 269,
+          "pair_freq": 35
+        },
+        {
+          "keyword": "shush",
+          "target": "🤫",
+          "rank": 154,
+          "top5": [
+            "🏁",
+            "👀",
+            "🏃",
+            "😠",
+            "👕"
+          ],
+          "emoji_freq": 574,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "graph",
+          "target": "📊",
+          "rank": 151,
+          "top5": [
+            "🏁",
+            "🎉",
+            "🏃",
+            "📖",
+            "🤝"
+          ],
+          "emoji_freq": 733,
+          "pair_freq": 3
+        },
+        {
+          "keyword": "caution",
+          "target": "⚠️",
+          "rank": 149,
+          "top5": [
+            "✈️",
+            "⏳",
+            "🕕",
+            "⚓",
+            "📍"
+          ],
+          "emoji_freq": 688,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "art",
+          "target": "🎨",
+          "rank": 145,
+          "top5": [
+            "⬆️",
+            "🏃",
+            "🕕",
+            "🔁",
+            "📍"
+          ],
+          "emoji_freq": 617,
+          "pair_freq": 38
+        },
+        {
+          "keyword": "award",
+          "target": "🏆",
+          "rank": 143,
+          "top5": [
+            "🏥",
+            "😟",
+            "😬",
+            "😰",
+            "📤"
+          ],
+          "emoji_freq": 1187,
+          "pair_freq": 19
+        },
+        {
+          "keyword": "crane",
+          "target": "🏗️",
+          "rank": 143,
+          "top5": [
+            "🏃",
+            "😩",
+            "😌",
+            "✈️",
+            "😔"
+          ],
+          "emoji_freq": 325,
+          "pair_freq": 2
+        },
+        {
+          "keyword": "scrub",
+          "target": "🧽",
+          "rank": 141,
+          "top5": [
+            "🔩",
+            "👕",
+            "👀",
+            "😟",
+            "🐾"
+          ],
+          "emoji_freq": 395,
+          "pair_freq": 8
+        },
+        {
+          "keyword": "fight",
+          "target": "⚔️",
+          "rank": 139,
+          "top5": [
+            "🛣️",
+            "🚧",
+            "⚡",
+            "🤝",
+            "✈️"
+          ],
+          "emoji_freq": 350,
+          "pair_freq": 2
+        },
+        {
+          "keyword": "speech bubble",
+          "target": "💬",
+          "rank": 139,
+          "top5": [
+            "🥣",
+            "🍦",
+            "🍲",
+            "💸",
+            "🌶️"
+          ],
+          "emoji_freq": 1077,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "shock",
+          "target": "😱",
+          "rank": 136,
+          "top5": [
+            "😲",
+            "😳",
+            "🏀",
+            "😮",
+            "💰"
+          ],
+          "emoji_freq": 305,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "sobbing",
+          "target": "😭",
+          "rank": 136,
+          "top5": [
+            "💔",
+            "🧱",
+            "😞",
+            "⚠️",
+            "✅"
+          ],
+          "emoji_freq": 395,
+          "pair_freq": 1
+        },
+        {
+          "keyword": "soda",
+          "target": "🥤",
+          "rank": 136,
+          "top5": [
+            "😔",
+            "💾",
+            "✈️",
+            "🤩",
+            "👀"
+          ],
+          "emoji_freq": 475,
+          "pair_freq": 19
+        },
+        {
+          "keyword": "stock",
+          "target": "📈",
+          "rank": 135,
+          "top5": [
+            "🔒",
+            "😩",
+            "😣",
+            "📦",
+            "💼"
+          ],
+          "emoji_freq": 336,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "boom",
+          "target": "💥",
+          "rank": 133,
+          "top5": [
+            "💻",
+            "✈️",
+            "💼",
+            "📚",
+            "👏"
+          ],
+          "emoji_freq": 308,
+          "pair_freq": 2
+        },
+        {
+          "keyword": "idea",
+          "target": "💡",
+          "rank": 131,
+          "top5": [
+            "🤫",
+            "🧭",
+            "🛣️",
+            "👀",
+            "👂"
+          ],
+          "emoji_freq": 993,
+          "pair_freq": 115
+        },
+        {
+          "keyword": "clapperboard",
+          "target": "🎬",
+          "rank": 130,
+          "top5": [
+            "👏",
+            "✅",
+            "📚",
+            "✈️",
+            "🎉"
+          ],
+          "emoji_freq": 584,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "fog",
+          "target": "🌫️",
+          "rank": 130,
+          "top5": [
+            "✈️",
+            "🛣️",
+            "⚡",
+            "💻",
+            "⏳"
+          ],
+          "emoji_freq": 172,
+          "pair_freq": 45
+        },
+        {
+          "keyword": "stew",
+          "target": "🍲",
+          "rank": 130,
+          "top5": [
+            "🔁",
+            "⏱️",
+            "⏳",
+            "🔄",
+            "✅"
+          ],
+          "emoji_freq": 738,
+          "pair_freq": 47
+        },
+        {
+          "keyword": "kid",
+          "target": "🧒",
+          "rank": 129,
+          "top5": [
+            "🤕",
+            "🤩",
+            "🦶",
+            "😔",
+            "💔"
+          ],
+          "emoji_freq": 322,
+          "pair_freq": 7
+        },
+        {
+          "keyword": "sprout",
+          "target": "🌱",
+          "rank": 127,
+          "top5": [
+            "🍩",
+            "👖",
+            "🎟️",
+            "🏀",
+            "👕"
+          ],
+          "emoji_freq": 758,
+          "pair_freq": 5
+        },
+        {
+          "keyword": "cube",
+          "target": "🧊",
+          "rank": 126,
+          "top5": [
+            "✅",
+            "👕",
+            "😄",
+            "🧳",
+            "🧵"
+          ],
+          "emoji_freq": 908,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "note",
+          "target": "🎵",
+          "rank": 123,
+          "top5": [
+            "📝",
+            "💻",
+            "📄",
+            "⏱️",
+            "❓"
+          ],
+          "emoji_freq": 698,
+          "pair_freq": 1
+        },
+        {
+          "keyword": "dental",
+          "target": "🦷",
+          "rank": 122,
+          "top5": [
+            "✈️",
+            "⬆️",
+            "🔁",
+            "📤",
+            "🗓️"
+          ],
+          "emoji_freq": 326,
+          "pair_freq": 3
+        },
+        {
+          "keyword": "magnifying glass",
+          "target": "🔍",
+          "rank": 122,
+          "top5": [
+            "🩺",
+            "🪟",
+            "👓",
+            "💉",
+            "🎨"
+          ],
+          "emoji_freq": 362,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "settings",
+          "target": "⚙️",
+          "rank": 119,
+          "top5": [
+            "💍",
+            "✅",
+            "⏳",
+            "⏱️",
+            "🔁"
+          ],
+          "emoji_freq": 339,
+          "pair_freq": 13
+        },
+        {
+          "keyword": "embrace",
+          "target": "🫂",
+          "rank": 116,
+          "top5": [
+            "🦵",
+            "📷",
+            "🎉",
+            "🦷",
+            "💪"
+          ],
+          "emoji_freq": 525,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "controller",
+          "target": "🎮",
+          "rank": 115,
+          "top5": [
+            "💻",
+            "✅",
+            "💾",
+            "🏃",
+            "⏳"
+          ],
+          "emoji_freq": 284,
+          "pair_freq": 11
+        },
+        {
+          "keyword": "bullseye",
+          "target": "🎯",
+          "rank": 111,
+          "top5": [
+            "👀",
+            "👕",
+            "💉",
+            "👃",
+            "😄"
+          ],
+          "emoji_freq": 266,
+          "pair_freq": 1
+        },
+        {
+          "keyword": "sos",
+          "target": "🆘",
+          "rank": 111,
+          "top5": [
+            "🤧",
+            "💵",
+            "💾",
+            "🤒",
+            "💸"
+          ],
+          "emoji_freq": 282,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "love",
+          "target": "🥰",
+          "rank": 110,
+          "top5": [
+            "😄",
+            "💻",
+            "✨",
+            "🔥",
+            "💾"
+          ],
+          "emoji_freq": 269,
+          "pair_freq": 3
+        },
+        {
+          "keyword": "gear",
+          "target": "⚙️",
+          "rank": 107,
+          "top5": [
+            "✈️",
+            "🧳",
+            "😌",
+            "😄",
+            "👂"
+          ],
+          "emoji_freq": 339,
+          "pair_freq": 1
+        },
+        {
+          "keyword": "identification",
+          "target": "🪪",
+          "rank": 107,
+          "top5": [
+            "📞",
+            "⏳",
+            "🤫",
+            "🔁",
+            "🏥"
+          ],
+          "emoji_freq": 297,
+          "pair_freq": 4
+        },
+        {
+          "keyword": "huff",
+          "target": "😤",
+          "rank": 106,
+          "top5": [
+            "🍵",
+            "😌",
+            "☕",
+            "💥",
+            "🤫"
+          ],
+          "emoji_freq": 1932,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "flying money",
+          "target": "💸",
+          "rank": 105,
+          "top5": [
+            "✈️",
+            "👓",
+            "🧳",
+            "😄",
+            "🏁"
+          ],
+          "emoji_freq": 614,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "sewing",
+          "target": "🧵",
+          "rank": 105,
+          "top5": [
+            "✅",
+            "💻",
+            "💍",
+            "✈️",
+            "🎉"
+          ],
+          "emoji_freq": 191,
+          "pair_freq": 7
+        },
+        {
+          "keyword": "gem",
+          "target": "💎",
+          "rank": 102,
+          "top5": [
+            "🏃",
+            "⬆️",
+            "🏀",
+            "💉",
+            "✅"
+          ],
+          "emoji_freq": 283,
+          "pair_freq": 8
+        },
+        {
+          "keyword": "stopwatch",
+          "target": "⏱️",
+          "rank": 102,
+          "top5": [
+            "📺",
+            "⚠️",
+            "🧱",
+            "🏙️",
+            "🔥"
+          ],
+          "emoji_freq": 474,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "storage",
+          "target": "🗄️",
+          "rank": 102,
+          "top5": [
+            "🛡️",
+            "📖",
+            "📦",
+            "⚔️",
+            "💊"
+          ],
+          "emoji_freq": 315,
+          "pair_freq": 16
+        },
+        {
+          "keyword": "concerned",
+          "target": "😟",
+          "rank": 101,
+          "top5": [
+            "🤞",
+            "💼",
+            "🎤",
+            "💍",
+            "🎶"
+          ],
+          "emoji_freq": 405,
+          "pair_freq": 7
+        },
+        {
+          "keyword": "drop",
+          "target": "🩸",
+          "rank": 100,
+          "top5": [
+            "🔁",
+            "⏳",
+            "✅",
+            "💾",
+            "🏃"
+          ],
+          "emoji_freq": 290,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "money bag",
+          "target": "💰",
+          "rank": 100,
+          "top5": [
+            "👜",
+            "🧳",
+            "🎒",
+            "🛍️",
+            "🍬"
+          ],
+          "emoji_freq": 564,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "old woman",
+          "target": "👵",
+          "rank": 100,
+          "top5": [
+            "🏥",
+            "🫂",
+            "🤝",
+            "❓",
+            "👀"
+          ],
+          "emoji_freq": 340,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "virus",
+          "target": "🦠",
+          "rank": 100,
+          "top5": [
+            "💉",
+            "😰",
+            "🩺",
+            "😌",
+            "😟"
+          ],
+          "emoji_freq": 387,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "annoyed",
+          "target": "🙄",
+          "rank": 98,
+          "top5": [
+            "🔄",
+            "🔁",
+            "😵‍💫",
+            "🕒",
+            "😌"
+          ],
+          "emoji_freq": 347,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "dove",
+          "target": "🕊️",
+          "rank": 98,
+          "top5": [
+            "🔁",
+            "👑",
+            "😩",
+            "🔄",
+            "⏳"
+          ],
+          "emoji_freq": 243,
+          "pair_freq": 6
+        },
+        {
+          "keyword": "star struck",
+          "target": "🤩",
+          "rank": 98,
+          "top5": [
+            "🏃",
+            "🏁",
+            "🚚",
+            "🧱",
+            "🎬"
+          ],
+          "emoji_freq": 413,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "frustrated",
+          "target": "😤",
+          "rank": 93,
+          "top5": [
+            "🍎",
+            "👕",
+            "🏁",
+            "🍟",
+            "🍬"
+          ],
+          "emoji_freq": 1932,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "noodles",
+          "target": "🍝",
+          "rank": 90,
+          "top5": [
+            "🍜",
+            "😴",
+            "🌙",
+            "🏊",
+            "🛌"
+          ],
+          "emoji_freq": 258,
+          "pair_freq": 9
+        },
+        {
+          "keyword": "mittens",
+          "target": "🧤",
+          "rank": 89,
+          "top5": [
+            "🔁",
+            "🐈",
+            "✅",
+            "🧵",
+            "🏁"
+          ],
+          "emoji_freq": 337,
+          "pair_freq": 10
+        },
+        {
+          "keyword": "egg",
+          "target": "🍳",
+          "rank": 85,
+          "top5": [
+            "🥚",
+            "⚡",
+            "🐟",
+            "🏛️",
+            "🦠"
+          ],
+          "emoji_freq": 733,
+          "pair_freq": 14
+        },
+        {
+          "keyword": "government",
+          "target": "🏛️",
+          "rank": 85,
+          "top5": [
+            "💼",
+            "✅",
+            "🤝",
+            "💍",
+            "💪"
+          ],
+          "emoji_freq": 314,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "hello",
+          "target": "👋",
+          "rank": 85,
+          "top5": [
+            "✈️",
+            "⬆️",
+            "⏳",
+            "🤩",
+            "📍"
+          ],
+          "emoji_freq": 497,
+          "pair_freq": 29
+        },
+        {
+          "keyword": "safety pin",
+          "target": "🧷",
+          "rank": 85,
+          "top5": [
+            "🛡️",
+            "📍",
+            "💾",
+            "🌲",
+            "💍"
+          ],
+          "emoji_freq": 249,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "purse",
+          "target": "👜",
+          "rank": 83,
+          "top5": [
+            "✈️",
+            "📦",
+            "💍",
+            "😄",
+            "🤩"
+          ],
+          "emoji_freq": 463,
+          "pair_freq": 21
+        },
+        {
+          "keyword": "unamused",
+          "target": "😒",
+          "rank": 82,
+          "top5": [
+            "😄",
+            "🏛️",
+            "🧮",
+            "💪",
+            "⚡"
+          ],
+          "emoji_freq": 255,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "checkmark",
+          "target": "✅",
+          "rank": 81,
+          "top5": [
+            "📍",
+            "🤝",
+            "🌳",
+            "🏫",
+            "🗓️"
+          ],
+          "emoji_freq": 944,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "zzz",
+          "target": "😴",
+          "rank": 81,
+          "top5": [
+            "👂",
+            "😄",
+            "🤩",
+            "🦵",
+            "🌳"
+          ],
+          "emoji_freq": 1468,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "swirl",
+          "target": "🌀",
+          "rank": 80,
+          "top5": [
+            "🔌",
+            "👖",
+            "⚔️",
+            "🏊",
+            "⚡"
+          ],
+          "emoji_freq": 275,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "open mouth",
+          "target": "😮",
+          "rank": 79,
+          "top5": [
+            "💻",
+            "💸",
+            "🏋️",
+            "💰",
+            "📶"
+          ],
+          "emoji_freq": 420,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "flex",
+          "target": "💪",
+          "rank": 78,
+          "top5": [
+            "✈️",
+            "🕕",
+            "✅",
+            "📍",
+            "💾"
+          ],
+          "emoji_freq": 442,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "garden",
+          "target": "🏡",
+          "rank": 78,
+          "top5": [
+            "🌱",
+            "🌿",
+            "🥣",
+            "🦶",
+            "💍"
+          ],
+          "emoji_freq": 315,
+          "pair_freq": 2
+        },
+        {
+          "keyword": "soup",
+          "target": "🍜",
+          "rank": 78,
+          "top5": [
+            "🍲",
+            "🛋️",
+            "🥣",
+            "🌶️",
+            "☕"
+          ],
+          "emoji_freq": 249,
+          "pair_freq": 5
+        },
+        {
+          "keyword": "exhale",
+          "target": "😮‍💨",
+          "rank": 77,
+          "top5": [
+            "🕕",
+            "💻",
+            "😔",
+            "✈️",
+            "💼"
+          ],
+          "emoji_freq": 282,
+          "pair_freq": 5
+        },
+        {
+          "keyword": "relief",
+          "target": "😮‍💨",
+          "rank": 76,
+          "top5": [
+            "✅",
+            "💻",
+            "🔄",
+            "⏱️",
+            "💍"
+          ],
+          "emoji_freq": 282,
+          "pair_freq": 3
+        },
+        {
+          "keyword": "music",
+          "target": "🎧",
+          "rank": 74,
+          "top5": [
+            "🎵",
+            "🎶",
+            "🤧",
+            "🤒",
+            "🎮"
+          ],
+          "emoji_freq": 253,
+          "pair_freq": 10
+        },
+        {
+          "keyword": "thread",
+          "target": "🧵",
+          "rank": 73,
+          "top5": [
+            "✈️",
+            "😔",
+            "🤩",
+            "🏃",
+            "✅"
+          ],
+          "emoji_freq": 191,
+          "pair_freq": 28
+        },
+        {
+          "keyword": "house",
+          "target": "🏡",
+          "rank": 72,
+          "top5": [
+            "🏠",
+            "🕕",
+            "🏛️",
+            "🌊",
+            "👣"
+          ],
+          "emoji_freq": 315,
+          "pair_freq": 5
+        },
+        {
+          "keyword": "queen",
+          "target": "👑",
+          "rank": 72,
+          "top5": [
+            "❓",
+            "😰",
+            "😟",
+            "🤫",
+            "💻"
+          ],
+          "emoji_freq": 212,
+          "pair_freq": 20
+        },
+        {
+          "keyword": "banned",
+          "target": "🚫",
+          "rank": 68,
+          "top5": [
+            "🔋",
+            "⚽",
+            "📦",
+            "🤞",
+            "🍝"
+          ],
+          "emoji_freq": 327,
+          "pair_freq": 2
+        },
+        {
+          "keyword": "persevering",
+          "target": "😣",
+          "rank": 68,
+          "top5": [
+            "✈️",
+            "💍",
+            "🏁",
+            "😌",
+            "🤝"
+          ],
+          "emoji_freq": 292,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "classical building",
+          "target": "🏛️",
+          "rank": 67,
+          "top5": [
+            "🏫",
+            "🍎",
+            "📚",
+            "💥",
+            "🎨"
+          ],
+          "emoji_freq": 314,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "love",
+          "target": "🫶",
+          "rank": 67,
+          "top5": [
+            "😄",
+            "💻",
+            "✨",
+            "🔥",
+            "💾"
+          ],
+          "emoji_freq": 253,
+          "pair_freq": 1
+        },
+        {
+          "keyword": "annoyed",
+          "target": "😠",
+          "rank": 65,
+          "top5": [
+            "🔄",
+            "🔁",
+            "😵‍💫",
+            "🕒",
+            "😌"
+          ],
+          "emoji_freq": 422,
+          "pair_freq": 1
+        },
+        {
+          "keyword": "lotion",
+          "target": "🧴",
+          "rank": 65,
+          "top5": [
+            "⏳",
+            "💻",
+            "✈️",
+            "📣",
+            "✅"
+          ],
+          "emoji_freq": 340,
+          "pair_freq": 14
+        },
+        {
+          "keyword": "nut",
+          "target": "🔩",
+          "rank": 64,
+          "top5": [
+            "🍩",
+            "⏱️",
+            "⏳",
+            "🏙️",
+            "👕"
+          ],
+          "emoji_freq": 308,
+          "pair_freq": 1
+        },
+        {
+          "keyword": "ruler",
+          "target": "📏",
+          "rank": 62,
+          "top5": [
+            "🏃",
+            "🏁",
+            "😡",
+            "😠",
+            "😩"
+          ],
+          "emoji_freq": 332,
+          "pair_freq": 2
+        },
+        {
+          "keyword": "receive",
+          "target": "📥",
+          "rank": 61,
+          "top5": [
+            "✈️",
+            "📦",
+            "💾",
+            "📍",
+            "📧"
+          ],
+          "emoji_freq": 301,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "scenery",
+          "target": "🏞️",
+          "rank": 60,
+          "top5": [
+            "💻",
+            "🖥️",
+            "💍",
+            "🛣️",
+            "👀"
+          ],
+          "emoji_freq": 298,
+          "pair_freq": 2
+        },
+        {
+          "keyword": "annoyed",
+          "target": "😒",
+          "rank": 57,
+          "top5": [
+            "🔄",
+            "🔁",
+            "😵‍💫",
+            "🕒",
+            "😌"
+          ],
+          "emoji_freq": 255,
+          "pair_freq": 5
+        },
+        {
+          "keyword": "exploding head",
+          "target": "🤯",
+          "rank": 56,
+          "top5": [
+            "⬆️",
+            "🔄",
+            "💻",
+            "🔁",
+            "💾"
+          ],
+          "emoji_freq": 289,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "caterpillar",
+          "target": "🐛",
+          "rank": 55,
+          "top5": [
+            "🔁",
+            "💊",
+            "📞",
+            "⚙️",
+            "⚡"
+          ],
+          "emoji_freq": 415,
+          "pair_freq": 2
+        },
+        {
+          "keyword": "emergency",
+          "target": "🆘",
+          "rank": 53,
+          "top5": [
+            "🚨",
+            "🏃",
+            "🏥",
+            "😰",
+            "💉"
+          ],
+          "emoji_freq": 282,
+          "pair_freq": 5
+        },
+        {
+          "keyword": "navigation",
+          "target": "🧭",
+          "rank": 53,
+          "top5": [
+            "✈️",
+            "🧳",
+            "🌙",
+            "🛡️",
+            "🌊"
+          ],
+          "emoji_freq": 280,
+          "pair_freq": 1
+        },
+        {
+          "keyword": "child",
+          "target": "🧒",
+          "rank": 52,
+          "top5": [
+            "😄",
+            "😔",
+            "🤩",
+            "👑",
+            "👀"
+          ],
+          "emoji_freq": 322,
+          "pair_freq": 16
+        },
+        {
+          "keyword": "deal",
+          "target": "🤝",
+          "rank": 51,
+          "top5": [
+            "✈️",
+            "😔",
+            "🔁",
+            "🤩",
+            "😩"
+          ],
+          "emoji_freq": 762,
+          "pair_freq": 4
+        },
+        {
+          "keyword": "struggle",
+          "target": "😣",
+          "rank": 51,
+          "top5": [
+            "😬",
+            "😠",
+            "👀",
+            "⚖️",
+            "😩"
+          ],
+          "emoji_freq": 292,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "faucet",
+          "target": "🚰",
+          "rank": 48,
+          "top5": [
+            "📦",
+            "🏁",
+            "🍎",
+            "🍝",
+            "🛒"
+          ],
+          "emoji_freq": 473,
+          "pair_freq": 20
+        },
+        {
+          "keyword": "sing",
+          "target": "🎤",
+          "rank": 48,
+          "top5": [
+            "🍽️",
+            "❄️",
+            "🏃",
+            "🌙",
+            "🍣"
+          ],
+          "emoji_freq": 440,
+          "pair_freq": 13
+        },
+        {
+          "keyword": "barrier",
+          "target": "🚧",
+          "rank": 47,
+          "top5": [
+            "🕕",
+            "🛣️",
+            "⬆️",
+            "🧳",
+            "🏃"
+          ],
+          "emoji_freq": 360,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "construction",
+          "target": "🏗️",
+          "rank": 46,
+          "top5": [
+            "🚧",
+            "💼",
+            "✈️",
+            "📶",
+            "🏃"
+          ],
+          "emoji_freq": 325,
+          "pair_freq": 12
+        },
+        {
+          "keyword": "joy",
+          "target": "😂",
+          "rank": 46,
+          "top5": [
+            "😄",
+            "🕕",
+            "✈️",
+            "💼",
+            "⬆️"
+          ],
+          "emoji_freq": 535,
+          "pair_freq": 1
+        },
+        {
+          "keyword": "growth",
+          "target": "📈",
+          "rank": 44,
+          "top5": [
+            "🩹",
+            "🧱",
+            "🏁",
+            "💉",
+            "🌱"
+          ],
+          "emoji_freq": 336,
+          "pair_freq": 4
+        },
+        {
+          "keyword": "meal",
+          "target": "🍽️",
+          "rank": 43,
+          "top5": [
+            "📞",
+            "🔁",
+            "🍣",
+            "🤩",
+            "📍"
+          ],
+          "emoji_freq": 3315,
+          "pair_freq": 46
+        },
+        {
+          "keyword": "man",
+          "target": "👨",
+          "rank": 42,
+          "top5": [
+            "✈️",
+            "✅",
+            "💾",
+            "💍",
+            "⬆️"
+          ],
+          "emoji_freq": 288,
+          "pair_freq": 11
+        },
+        {
+          "keyword": "no",
+          "target": "🚫",
+          "rank": 42,
+          "top5": [
+            "🕕",
+            "✈️",
+            "👀",
+            "💾",
+            "📍"
+          ],
+          "emoji_freq": 327,
+          "pair_freq": 53
+        },
+        {
+          "keyword": "weary",
+          "target": "😩",
+          "rank": 42,
+          "top5": [
+            "⚓",
+            "🛣️",
+            "👂",
+            "🌊",
+            "💍"
+          ],
+          "emoji_freq": 592,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "mechanism",
+          "target": "⚙️",
+          "rank": 39,
+          "top5": [
+            "🤝",
+            "🔄",
+            "😵‍💫",
+            "💬",
+            "😌"
+          ],
+          "emoji_freq": 339,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "travel",
+          "target": "🗺️",
+          "rank": 37,
+          "top5": [
+            "📦",
+            "✈️",
+            "🧳",
+            "🚚",
+            "🌳"
+          ],
+          "emoji_freq": 476,
+          "pair_freq": 6
+        },
+        {
+          "keyword": "checkered flag",
+          "target": "🏁",
+          "rank": 36,
+          "top5": [
+            "🧳",
+            "✈️",
+            "🧮",
+            "⏰",
+            "🏃"
+          ],
+          "emoji_freq": 298,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "clock",
+          "target": "🕛",
+          "rank": 36,
+          "top5": [
+            "🕒",
+            "🕰️",
+            "💼",
+            "🕕",
+            "🚧"
+          ],
+          "emoji_freq": 299,
+          "pair_freq": 3
+        },
+        {
+          "keyword": "collision",
+          "target": "💥",
+          "rank": 36,
+          "top5": [
+            "🤝",
+            "⚡",
+            "😰",
+            "⏳",
+            "📞"
+          ],
+          "emoji_freq": 308,
+          "pair_freq": 1
+        },
+        {
+          "keyword": "justice",
+          "target": "⚖️",
+          "rank": 36,
+          "top5": [
+            "✈️",
+            "👀",
+            "🧳",
+            "🕕",
+            "😄"
+          ],
+          "emoji_freq": 287,
+          "pair_freq": 5
+        },
+        {
+          "keyword": "love",
+          "target": "💖",
+          "rank": 36,
+          "top5": [
+            "😄",
+            "💻",
+            "✨",
+            "🔥",
+            "💾"
+          ],
+          "emoji_freq": 264,
+          "pair_freq": 3
+        },
+        {
+          "keyword": "business",
+          "target": "💼",
+          "rank": 35,
+          "top5": [
+            "⏱️",
+            "😩",
+            "⏳",
+            "😔",
+            "🕕"
+          ],
+          "emoji_freq": 601,
+          "pair_freq": 5
+        },
+        {
+          "keyword": "sweat",
+          "target": "😰",
+          "rank": 35,
+          "top5": [
+            "🍬",
+            "👕",
+            "🧶",
+            "🍦",
+            "🍎"
+          ],
+          "emoji_freq": 1096,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "convenience store",
+          "target": "🏪",
+          "rank": 34,
+          "top5": [
+            "📖",
+            "📍",
+            "🙏",
+            "📚",
+            "🔄"
+          ],
+          "emoji_freq": 322,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "blowing",
+          "target": "🌬️",
+          "rank": 33,
+          "top5": [
+            "🩸",
+            "🌸",
+            "🩺",
+            "🤯",
+            "👑"
+          ],
+          "emoji_freq": 394,
+          "pair_freq": 3
+        },
+        {
+          "keyword": "moon",
+          "target": "🌙",
+          "rank": 33,
+          "top5": [
+            "💻",
+            "🕕",
+            "💾",
+            "📍",
+            "✈️"
+          ],
+          "emoji_freq": 2286,
+          "pair_freq": 186
+        },
+        {
+          "keyword": "thermometer",
+          "target": "🤒",
+          "rank": 33,
+          "top5": [
+            "🌡️",
+            "🥶",
+            "🦠",
+            "❄️",
+            "🍦"
+          ],
+          "emoji_freq": 258,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "broom",
+          "target": "🧹",
+          "rank": 32,
+          "top5": [
+            "🏢",
+            "💻",
+            "👀",
+            "😔",
+            "❓"
+          ],
+          "emoji_freq": 637,
+          "pair_freq": 33
+        },
+        {
+          "keyword": "chart increasing",
+          "target": "📈",
+          "rank": 32,
+          "top5": [
+            "🎤",
+            "🎬",
+            "🎶",
+            "🧪",
+            "🔥"
+          ],
+          "emoji_freq": 336,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "eyeglasses",
+          "target": "👓",
+          "rank": 32,
+          "top5": [
+            "⏳",
+            "👀",
+            "💉",
+            "🙄",
+            "📰"
+          ],
+          "emoji_freq": 255,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "snore",
+          "target": "💤",
+          "rank": 31,
+          "top5": [
+            "❄️",
+            "🤧",
+            "🥶",
+            "🕕",
+            "💦"
+          ],
+          "emoji_freq": 320,
+          "pair_freq": 1
+        },
+        {
+          "keyword": "done",
+          "target": "✅",
+          "rank": 29,
+          "top5": [
+            "🔁",
+            "✈️",
+            "😩",
+            "⏳",
+            "🕕"
+          ],
+          "emoji_freq": 944,
+          "pair_freq": 38
+        },
+        {
+          "keyword": "strong",
+          "target": "💪",
+          "rank": 29,
+          "top5": [
+            "⏳",
+            "🔁",
+            "🛣️",
+            "🔄",
+            "🌙"
+          ],
+          "emoji_freq": 442,
+          "pair_freq": 24
+        },
+        {
+          "keyword": "up arrow",
+          "target": "⬆️",
+          "rank": 28,
+          "top5": [
+            "🧳",
+            "😩",
+            "🏃",
+            "😔",
+            "✈️"
+          ],
+          "emoji_freq": 270,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "cyclone",
+          "target": "🌀",
+          "rank": 26,
+          "top5": [
+            "😄",
+            "😩",
+            "👑",
+            "🤩",
+            "👀"
+          ],
+          "emoji_freq": 275,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "home",
+          "target": "🏡",
+          "rank": 26,
+          "top5": [
+            "🏠",
+            "🏛️",
+            "🔔",
+            "🐶",
+            "♨️"
+          ],
+          "emoji_freq": 315,
+          "pair_freq": 52
+        },
+        {
+          "keyword": "minivan",
+          "target": "🚐",
+          "rank": 26,
+          "top5": [
+            "👪",
+            "🕰️",
+            "💾",
+            "✅",
+            "🍦"
+          ],
+          "emoji_freq": 438,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "cloud",
+          "target": "🌧️",
+          "rank": 25,
+          "top5": [
+            "☁️",
+            "🌤️",
+            "🥶",
+            "☀️",
+            "⛈️"
+          ],
+          "emoji_freq": 1465,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "money",
+          "target": "💸",
+          "rank": 24,
+          "top5": [
+            "💻",
+            "💾",
+            "💍",
+            "👕",
+            "✅"
+          ],
+          "emoji_freq": 614,
+          "pair_freq": 30
+        },
+        {
+          "keyword": "trolley",
+          "target": "🚋",
+          "rank": 24,
+          "top5": [
+            "🏁",
+            "🏃",
+            "👑",
+            "🍣",
+            "🧳"
+          ],
+          "emoji_freq": 305,
+          "pair_freq": 3
+        },
+        {
+          "keyword": "clover",
+          "target": "🍀",
+          "rank": 23,
+          "top5": [
+            "🌾",
+            "☁️",
+            "📣",
+            "🏥",
+            "🌤️"
+          ],
+          "emoji_freq": 294,
+          "pair_freq": 4
+        },
+        {
+          "keyword": "dollar",
+          "target": "💵",
+          "rank": 23,
+          "top5": [
+            "⏳",
+            "✈️",
+            "⏰",
+            "🏃",
+            "🔁"
+          ],
+          "emoji_freq": 356,
+          "pair_freq": 5
+        },
+        {
+          "keyword": "globe",
+          "target": "🌍",
+          "rank": 23,
+          "top5": [
+            "✨",
+            "😄",
+            "💻",
+            "🎯",
+            "🧤"
+          ],
+          "emoji_freq": 334,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "people",
+          "target": "👥",
+          "rank": 23,
+          "top5": [
+            "🔁",
+            "📣",
+            "🤝",
+            "🏃",
+            "📤"
+          ],
+          "emoji_freq": 381,
+          "pair_freq": 15
+        },
+        {
+          "keyword": "wheat",
+          "target": "🌾",
+          "rank": 23,
+          "top5": [
+            "🔥",
+            "🤩",
+            "🥶",
+            "🎟️",
+            "⚡"
+          ],
+          "emoji_freq": 326,
+          "pair_freq": 20
+        },
+        {
+          "keyword": "king",
+          "target": "👑",
+          "rank": 21,
+          "top5": [
+            "😩",
+            "⏳",
+            "👀",
+            "😔",
+            "😰"
+          ],
+          "emoji_freq": 212,
+          "pair_freq": 10
+        },
+        {
+          "keyword": "sparkling heart",
+          "target": "💖",
+          "rank": 21,
+          "top5": [
+            "💔",
+            "📣",
+            "✨",
+            "😔",
+            "🌍"
+          ],
+          "emoji_freq": 264,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "steam",
+          "target": "♨️",
+          "rank": 21,
+          "top5": [
+            "👥",
+            "💼",
+            "📰",
+            "🌅",
+            "🏆"
+          ],
+          "emoji_freq": 285,
+          "pair_freq": 13
+        },
+        {
+          "keyword": "chart",
+          "target": "📊",
+          "rank": 20,
+          "top5": [
+            "🏃",
+            "🎶",
+            "🔄",
+            "🔁",
+            "🎬"
+          ],
+          "emoji_freq": 733,
+          "pair_freq": 38
+        },
+        {
+          "keyword": "time",
+          "target": "🕒",
+          "rank": 20,
+          "top5": [
+            "⏱️",
+            "🕕",
+            "⏳",
+            "✈️",
+            "😩"
+          ],
+          "emoji_freq": 361,
+          "pair_freq": 35
+        },
+        {
+          "keyword": "confetti",
+          "target": "🎉",
+          "rank": 19,
+          "top5": [
+            "🕕",
+            "💼",
+            "🔁",
+            "⏳",
+            "🕒"
+          ],
+          "emoji_freq": 1290,
+          "pair_freq": 4
+        },
+        {
+          "keyword": "magic",
+          "target": "✨",
+          "rank": 19,
+          "top5": [
+            "✈️",
+            "🤩",
+            "📍",
+            "💍",
+            "👀"
+          ],
+          "emoji_freq": 689,
+          "pair_freq": 8
+        },
+        {
+          "keyword": "frying pan",
+          "target": "🍳",
+          "rank": 18,
+          "top5": [
+            "🍟",
+            "🍎",
+            "🌮",
+            "👕",
+            "🏁"
+          ],
+          "emoji_freq": 733,
+          "pair_freq": 1
+        },
+        {
+          "keyword": "two hearts",
+          "target": "💕",
+          "rank": 18,
+          "top5": [
+            "💔",
+            "❤️",
+            "🏁",
+            "📣",
+            "👂"
+          ],
+          "emoji_freq": 269,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "drink",
+          "target": "🧃",
+          "rank": 17,
+          "top5": [
+            "🥤",
+            "🍩",
+            "📍",
+            "👕",
+            "⏱️"
+          ],
+          "emoji_freq": 179,
+          "pair_freq": 1
+        },
+        {
+          "keyword": "flame",
+          "target": "🔥",
+          "rank": 17,
+          "top5": [
+            "✈️",
+            "💻",
+            "🤩",
+            "😩",
+            "⏳"
+          ],
+          "emoji_freq": 1088,
+          "pair_freq": 13
+        },
+        {
+          "keyword": "love",
+          "target": "❤️",
+          "rank": 17,
+          "top5": [
+            "😄",
+            "💻",
+            "✨",
+            "🔥",
+            "💾"
+          ],
+          "emoji_freq": 894,
+          "pair_freq": 82
+        },
+        {
+          "keyword": "telephone",
+          "target": "📞",
+          "rank": 17,
+          "top5": [
+            "📣",
+            "🎉",
+            "👏",
+            "📚",
+            "✈️"
+          ],
+          "emoji_freq": 1628,
+          "pair_freq": 10
+        },
+        {
+          "keyword": "content",
+          "target": "😌",
+          "rank": 16,
+          "top5": [
+            "🤫",
+            "💻",
+            "✅",
+            "😔",
+            "🖥️"
+          ],
+          "emoji_freq": 346,
+          "pair_freq": 4
+        },
+        {
+          "keyword": "confused",
+          "target": "😵‍💫",
+          "rank": 15,
+          "top5": [
+            "💻",
+            "💾",
+            "⚡",
+            "😡",
+            "😰"
+          ],
+          "emoji_freq": 257,
+          "pair_freq": 2
+        },
+        {
+          "keyword": "repeat",
+          "target": "🔄",
+          "rank": 15,
+          "top5": [
+            "🔁",
+            "🔥",
+            "♨️",
+            "🍽️",
+            "🍣"
+          ],
+          "emoji_freq": 443,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "announcement",
+          "target": "📣",
+          "rank": 14,
+          "top5": [
+            "📍",
+            "🕒",
+            "🔄",
+            "🔁",
+            "💻"
+          ],
+          "emoji_freq": 272,
+          "pair_freq": 22
+        },
+        {
+          "keyword": "explosion",
+          "target": "💥",
+          "rank": 14,
+          "top5": [
+            "🔄",
+            "📤",
+            "⬆️",
+            "💾",
+            "✈️"
+          ],
+          "emoji_freq": 308,
+          "pair_freq": 2
+        },
+        {
+          "keyword": "love letter",
+          "target": "💌",
+          "rank": 14,
+          "top5": [
+            "✉️",
+            "🏃",
+            "📣",
+            "💛",
+            "🔔"
+          ],
+          "emoji_freq": 279,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "computer",
+          "target": "🖥️",
+          "rank": 13,
+          "top5": [
+            "💻",
+            "⬆️",
+            "🏃",
+            "✅",
+            "⏱️"
+          ],
+          "emoji_freq": 470,
+          "pair_freq": 3
+        },
+        {
+          "keyword": "ring",
+          "target": "💍",
+          "rank": 13,
+          "top5": [
+            "✈️",
+            "🕕",
+            "⬆️",
+            "🔁",
+            "🏃"
+          ],
+          "emoji_freq": 441,
+          "pair_freq": 217
+        },
+        {
+          "keyword": "medal",
+          "target": "🏅",
+          "rank": 12,
+          "top5": [
+            "💍",
+            "😴",
+            "💾",
+            "💤",
+            "✅"
+          ],
+          "emoji_freq": 220,
+          "pair_freq": 14
+        },
+        {
+          "keyword": "thought bubble",
+          "target": "💭",
+          "rank": 12,
+          "top5": [
+            "🧱",
+            "🏠",
+            "🛠️",
+            "💔",
+            "🍲"
+          ],
+          "emoji_freq": 337,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "money",
+          "target": "💵",
+          "rank": 11,
+          "top5": [
+            "💻",
+            "💾",
+            "💍",
+            "👕",
+            "✅"
+          ],
+          "emoji_freq": 356,
+          "pair_freq": 42
+        },
+        {
+          "keyword": "palette",
+          "target": "🎨",
+          "rank": 11,
+          "top5": [
+            "📦",
+            "✈️",
+            "💊",
+            "🩺",
+            "🧳"
+          ],
+          "emoji_freq": 617,
+          "pair_freq": 10
+        },
+        {
+          "keyword": "reading",
+          "target": "📖",
+          "rank": 11,
+          "top5": [
+            "✈️",
+            "🔁",
+            "😔",
+            "🏃",
+            "😩"
+          ],
+          "emoji_freq": 558,
+          "pair_freq": 78
+        },
+        {
+          "keyword": "recording",
+          "target": "🎙️",
+          "rank": 11,
+          "top5": [
+            "💍",
+            "📍",
+            "📖",
+            "✈️",
+            "🌍"
+          ],
+          "emoji_freq": 240,
+          "pair_freq": 17
+        },
+        {
+          "keyword": "tie",
+          "target": "👔",
+          "rank": 11,
+          "top5": [
+            "🕕",
+            "🚌",
+            "🌳",
+            "⏱️",
+            "😩"
+          ],
+          "emoji_freq": 273,
+          "pair_freq": 19
+        },
+        {
+          "keyword": "date",
+          "target": "📅",
+          "rank": 10,
+          "top5": [
+            "🔁",
+            "✈️",
+            "🗓️",
+            "⚓",
+            "📍"
+          ],
+          "emoji_freq": 1684,
+          "pair_freq": 56
+        },
+        {
+          "keyword": "loop",
+          "target": "🔁",
+          "rank": 10,
+          "top5": [
+            "⬆️",
+            "✈️",
+            "⏳",
+            "😔",
+            "👀"
+          ],
+          "emoji_freq": 276,
+          "pair_freq": 9
+        },
+        {
+          "keyword": "alert",
+          "target": "🚨",
+          "rank": 9,
+          "top5": [
+            "💉",
+            "⏳",
+            "⏰",
+            "🤖",
+            "🏃"
+          ],
+          "emoji_freq": 586,
+          "pair_freq": 18
+        },
+        {
+          "keyword": "graduate",
+          "target": "🎓",
+          "rank": 9,
+          "top5": [
+            "🎭",
+            "✈️",
+            "🛡️",
+            "💍",
+            "🤞"
+          ],
+          "emoji_freq": 322,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "hurt",
+          "target": "🤕",
+          "rank": 9,
+          "top5": [
+            "💔",
+            "😣",
+            "😔",
+            "😢",
+            "😞"
+          ],
+          "emoji_freq": 305,
+          "pair_freq": 4
+        },
+        {
+          "keyword": "plant",
+          "target": "🌿",
+          "rank": 9,
+          "top5": [
+            "🪴",
+            "🌱",
+            "🌸",
+            "🎨",
+            "🍩"
+          ],
+          "emoji_freq": 1064,
+          "pair_freq": 14
+        },
+        {
+          "keyword": "price",
+          "target": "🏷️",
+          "rank": 9,
+          "top5": [
+            "💰",
+            "💸",
+            "🍟",
+            "📦",
+            "💵"
+          ],
+          "emoji_freq": 368,
+          "pair_freq": 7
+        },
+        {
+          "keyword": "science",
+          "target": "🧪",
+          "rank": 9,
+          "top5": [
+            "🎭",
+            "🙏",
+            "😬",
+            "🎬",
+            "🎓"
+          ],
+          "emoji_freq": 480,
+          "pair_freq": 35
+        },
+        {
+          "keyword": "sick",
+          "target": "🤢",
+          "rank": 9,
+          "top5": [
+            "🤒",
+            "🤧",
+            "😩",
+            "🌙",
+            "❄️"
+          ],
+          "emoji_freq": 2050,
+          "pair_freq": 88
+        },
+        {
+          "keyword": "clock",
+          "target": "⏰",
+          "rank": 8,
+          "top5": [
+            "🕒",
+            "🕰️",
+            "💼",
+            "🕕",
+            "🚧"
+          ],
+          "emoji_freq": 2702,
+          "pair_freq": 180
+        },
+        {
+          "keyword": "eye roll",
+          "target": "🙄",
+          "rank": 8,
+          "top5": [
+            "👀",
+            "😩",
+            "❄️",
+            "⏳",
+            "👑"
+          ],
+          "emoji_freq": 347,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "heart hands",
+          "target": "🫶",
+          "rank": 8,
+          "top5": [
+            "❤️",
+            "💔",
+            "💖",
+            "💛",
+            "🤝"
+          ],
+          "emoji_freq": 253,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "party",
+          "target": "🎉",
+          "rank": 8,
+          "top5": [
+            "🧳",
+            "🧩",
+            "🎯",
+            "🏁",
+            "✈️"
+          ],
+          "emoji_freq": 1290,
+          "pair_freq": 138
+        },
+        {
+          "keyword": "shiny",
+          "target": "✨",
+          "rank": 8,
+          "top5": [
+            "🧩",
+            "😄",
+            "🎉",
+            "🏁",
+            "🖼️"
+          ],
+          "emoji_freq": 689,
+          "pair_freq": 11
+        },
+        {
+          "keyword": "sigh",
+          "target": "😮‍💨",
+          "rank": 8,
+          "top5": [
+            "✈️",
+            "😌",
+            "🤝",
+            "😬",
+            "😟"
+          ],
+          "emoji_freq": 282,
+          "pair_freq": 9
+        },
+        {
+          "keyword": "sweat",
+          "target": "💦",
+          "rank": 8,
+          "top5": [
+            "🍬",
+            "👕",
+            "🧶",
+            "🍦",
+            "🍎"
+          ],
+          "emoji_freq": 287,
+          "pair_freq": 4
+        },
+        {
+          "keyword": "tool",
+          "target": "🔧",
+          "rank": 8,
+          "top5": [
+            "🏃",
+            "🕕",
+            "😔",
+            "🛠️",
+            "🦷"
+          ],
+          "emoji_freq": 844,
+          "pair_freq": 4
+        },
+        {
+          "keyword": "disgust",
+          "target": "🤢",
+          "rank": 7,
+          "top5": [
+            "👀",
+            "😟",
+            "😠",
+            "💥",
+            "😡"
+          ],
+          "emoji_freq": 2050,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "hot springs",
+          "target": "♨️",
+          "rank": 7,
+          "top5": [
+            "🏃",
+            "🌸",
+            "🌅",
+            "💉",
+            "🏁"
+          ],
+          "emoji_freq": 285,
+          "pair_freq": 8
+        },
+        {
+          "keyword": "tent",
+          "target": "🏕️",
+          "rank": 7,
+          "top5": [
+            "⛺",
+            "✉️",
+            "💬",
+            "🔁",
+            "📧"
+          ],
+          "emoji_freq": 262,
+          "pair_freq": 11
+        },
+        {
+          "keyword": "train station",
+          "target": "🚉",
+          "rank": 7,
+          "top5": [
+            "🚆",
+            "🏋️",
+            "🏁",
+            "🏃",
+            "🌧️"
+          ],
+          "emoji_freq": 412,
+          "pair_freq": 4
+        },
+        {
+          "keyword": "water",
+          "target": "💦",
+          "rank": 7,
+          "top5": [
+            "🌊",
+            "💧",
+            "🚿",
+            "🚰",
+            "🧱"
+          ],
+          "emoji_freq": 287,
+          "pair_freq": 27
+        },
+        {
+          "keyword": "yellow heart",
+          "target": "💛",
+          "rank": 7,
+          "top5": [
+            "💔",
+            "❤️",
+            "💖",
+            "🌍",
+            "📣"
+          ],
+          "emoji_freq": 277,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "building",
+          "target": "🏗️",
+          "rank": 6,
+          "top5": [
+            "🏢",
+            "🧱",
+            "💻",
+            "✅",
+            "💾"
+          ],
+          "emoji_freq": 325,
+          "pair_freq": 4
+        },
+        {
+          "keyword": "direction",
+          "target": "🧭",
+          "rank": 6,
+          "top5": [
+            "🏃",
+            "⬆️",
+            "🌊",
+            "✈️",
+            "💻"
+          ],
+          "emoji_freq": 280,
+          "pair_freq": 8
+        },
+        {
+          "keyword": "math",
+          "target": "🧮",
+          "rank": 6,
+          "top5": [
+            "🔁",
+            "🎭",
+            "✅",
+            "⏳",
+            "🤩"
+          ],
+          "emoji_freq": 267,
+          "pair_freq": 25
+        },
+        {
+          "keyword": "search",
+          "target": "🔍",
+          "rank": 6,
+          "top5": [
+            "👂",
+            "🌊",
+            "⚓",
+            "✈️",
+            "😢"
+          ],
+          "emoji_freq": 362,
+          "pair_freq": 32
+        },
+        {
+          "keyword": "weightlifting",
+          "target": "🏋️",
+          "rank": 6,
+          "top5": [
+            "⏱️",
+            "⏰",
+            "⏳",
+            "🏃",
+            "🎯"
+          ],
+          "emoji_freq": 714,
+          "pair_freq": 0
+        },
+        {
+          "keyword": "wrench",
+          "target": "🛠️",
+          "rank": 6,
+          "top5": [
+            "🔧",
+            "📶",
+            "✍️",
+            "🔗",
+            "🗓️"
+          ],
+          "emoji_freq": 842,
+          "pair_freq": 1
+        }
+      ]
+    }
+  }
+}
