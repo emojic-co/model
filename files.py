@@ -7,7 +7,7 @@ DATA_JSONL = f"{DATA_DIR}/data.jsonl"
 TRAIN_JSONL = f"{DATA_DIR}/train.jsonl"
 EVAL_JSONL = f"{DATA_DIR}/eval.jsonl"
 LABELS_JSON = f"{DATA_DIR}/labels.json"
-WORDS_JSON = f"{DATA_DIR}/words.json"
+KEYWORDS_JSON = f"{DATA_DIR}/keywords.json"
 ENERGY_KEYWORDS_TXT = f"{DATA_DIR}/energy_keywords.txt"
 PRED_JSONL = f"{DATA_DIR}/pred.jsonl"
 

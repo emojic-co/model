@@ -12,7 +12,7 @@ import torch
 import typer
 from torch.nn.functional import normalize
 
-from files import DATA_JSONL, EMOJI_PT, ENC_PT, GEN_PT, STYLE_PT, TST_PT, WORDS_JSON
+from files import DATA_JSONL, EMOJI_PT, ENC_PT, GEN_PT, KEYWORDS_JSON, STYLE_PT, TST_PT
 from model.config import (
     EMOJIS,
     ENERGY_KEYWORD_MAX_TEXTS,
@@ -36,7 +36,7 @@ from model.model import ColorGen, EmojiHead, StyleHead, TextEncoder, rgb_to_okla
 from model.runmeta import load_pt, run_meta
 
 DATA_PATH = DATA_JSONL
-WORDS_PATH = WORDS_JSON
+KEYWORDS_PATH = KEYWORDS_JSON
 
 Z = ENERGY_Z_SAMPLES
 ENERGY_MAX = ENERGY_KEYWORD_MAX_TEXTS
@@ -221,7 +221,7 @@ def _section_data():
 
 
 def _keyword_probe(enc, head, limit=10):
-    words = json.loads(Path(WORDS_PATH).read_text(encoding="utf-8"))
+    words = json.loads(Path(KEYWORDS_PATH).read_text(encoding="utf-8"))
     vocab = {e: i for i, e in enumerate(EMOJIS)}
     rows = []
     with torch.no_grad():
@@ -676,7 +676,7 @@ def _emoji_html(d) -> str:
             for k in kw["words"][: kw["worst"]]
         )
         out.append(
-            f"<h3>Keyword probe — words.json ({kw['n']} words)</h3>"
+            f"<h3>Keyword probe — keywords.json ({kw['n']} words)</h3>"
             f'<p class="note">acc@1 {kw["acc@1"]:.2f} · acc@5 {kw["acc@5"]:.2f} · '
             f"acc@10 {kw['acc@10']:.2f} · MRR {kw['MRR']:.2f}</p>"
             "<h3>Worst 10 keywords</h3>"

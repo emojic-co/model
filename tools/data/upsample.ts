@@ -120,7 +120,7 @@ cli
   .option("--emojis <list>", "target exactly these emoji instead of a rank window")
   .option("--min-rank <n>", `lowest (most frequent) rank to target (default ${MIN_RANK})`)
   .option("--max-rank <n>", `highest (least frequent) rank to target (default ${MAX_RANK})`)
-  .option("--report", "target emoji failing the latest report's words.json keyword probe")
+  .option("--report", "target emoji failing the latest report's keywords.json keyword probe")
   .option("--per <n>", `texts to generate per target emoji (default ${TEXTS_PER_EMOJI})`)
 cli.help()
 
