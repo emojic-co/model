@@ -1,6 +1,6 @@
 import { readdir, stat } from "node:fs/promises"
 
-const REPORT_DIR = "./report"
+import { REPORT_DIR } from "../../files.ts"
 
 export type Word = {
   keyword: string

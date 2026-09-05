@@ -1,8 +1,12 @@
 import os
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import typer
 
-from runmeta import run_meta
+from model.runmeta import run_meta
 
 
 def test_run_meta_shape():
@@ -32,7 +36,7 @@ def test_run_meta_sha_env_override():
 def test_save_load_round_trip(tmp_path="/tmp/runmeta-rt.pt"):
     import torch
 
-    from runmeta import load_pt, save_pt
+    from model.runmeta import load_pt, save_pt
 
     save_pt({"w": torch.zeros(1)}, tmp_path, stage="task")
     sd, meta = load_pt(tmp_path)
@@ -44,7 +48,7 @@ def test_save_load_round_trip(tmp_path="/tmp/runmeta-rt.pt"):
 def test_load_pt_legacy_bare(tmp_path="/tmp/runmeta-legacy.pt"):
     import torch
 
-    from runmeta import load_pt
+    from model.runmeta import load_pt
 
     torch.save({"w": torch.zeros(1)}, tmp_path)
     sd, meta = load_pt(tmp_path)
@@ -53,7 +57,7 @@ def test_load_pt_legacy_bare(tmp_path="/tmp/runmeta-legacy.pt"):
 
 
 def test_model_slug():
-    from runmeta import model_slug
+    from model.runmeta import model_slug
 
     assert model_slug({"sha": "abc1234"}) == "abc1234"
     assert model_slug(None) == "nometa"
@@ -64,7 +68,7 @@ def test_model_slug():
 def test_require_clean_tree_dispatch_skip():
     import os
 
-    from runmeta import require_clean_tree
+    from model.runmeta import require_clean_tree
 
     os.environ["EMOJIC_DISPATCH_CHECKED"] = "1"
     try:
@@ -77,7 +81,7 @@ def test_require_clean_tree_dirty_exits(tmp_path="/tmp/runmeta-gitdirty"):
     import os
     import subprocess
 
-    import runmeta
+    import model.runmeta as runmeta
 
     subprocess.run(["rm", "-rf", tmp_path], check=True)
     subprocess.run(["git", "init", "-q", tmp_path], check=True)
@@ -101,7 +105,7 @@ def test_write_meta_yml(tmp_dir="/tmp/runmeta-yml"):
 
     import yaml
 
-    from runmeta import write_meta_yml
+    from model.runmeta import write_meta_yml
 
     os.makedirs(tmp_dir, exist_ok=True)
     doc = {"report_type": "test-emoji", "models": {"enc.pt": {"sha": "abc"}}}
@@ -112,7 +116,7 @@ def test_write_meta_yml(tmp_dir="/tmp/runmeta-yml"):
 
 
 def test_stamp_lines():
-    from runmeta import stamp_lines
+    from model.runmeta import stamp_lines
 
     probe = {"sha": "cafe", "dirty": True, "generated": "2026-09-04T05:48:00"}
     with_meta = stamp_lines(

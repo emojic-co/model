@@ -125,13 +125,14 @@ export function emojiVocab(counts: Map<string, number>, minCount: number): strin
     .map(([e]) => e)
 }
 
+import {
+  DATA_JSONL as DATA,
+  EVAL_JSONL as EVAL,
+  LABELS_JSON as LABELS,
+  TRAIN_JSONL as TRAIN,
+} from "../../files.ts"
 import { readJsonl, writeFileAtomic } from "./io.ts"
 import { STYLES } from "./config"
-
-const DATA = "./data.jsonl"
-const TRAIN = "./train.jsonl"
-const EVAL = "./eval.jsonl"
-const LABELS = "./labels.json"
 
 export function toLine(r: Row): string {
   const base =

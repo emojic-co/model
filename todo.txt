@@ -705,4 +705,18 @@ TODO:
 
         Update the upsample tool:
             Add a flag --keywords
-            With this flag
+            With this flag the tool reads the words.json
+            e.g.
+            [
+                {"word": "coffee", "emojis": ["☕"]},
+                {"word": "rain", "emojis": ["🌧️"]},
+            ]
+
+            And generate new records:
+                Step 1:
+                    Ask the text generator to generate a text that contains the word and related to the emoji (target).
+                Step 2:
+                    Annotate the generated text.
+                    The emoji label is the union of the target emoji and the emojis the annotator selected.
+
+            Append the new records to the data.jsonl file as usual.

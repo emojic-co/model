@@ -3,10 +3,9 @@ import { cac } from "cac"
 import cliProgress from "cli-progress"
 import PQueue from "p-queue"
 
+import { DATA_JSONL as DATA } from "../../files.ts"
 import { MODEL, annotate, annotateBatchCount } from "./annotate.ts"
 import { appendJsonl } from "./io.ts"
-
-const DATA = "./data.jsonl"
 
 const BATCH_SIZE = 50
 const BATCH_COUNT = 50

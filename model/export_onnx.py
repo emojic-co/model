@@ -1,19 +1,23 @@
 import json
+import sys
 import warnings
 from datetime import UTC, datetime
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import torch
 import typer
 from torch import nn
 from torch.nn.functional import normalize
 
-from config import EMOJIS, MAX_TEXT_LEN, SEED, STYLES, TEXT_EMBED_SIZE, Z_WEIGHT
-from data import CHARS, PAD_IDX
-from model import ColorGen, EmojiHead, StyleHead, TextEncoder
-from runmeta import load_pt
+from files import EMOJI_PT, ENC_PT, GEN_PT, LABELS_JSON, STYLE_PT, WEB_PUBLIC_DIR
+from model.config import EMOJIS, MAX_TEXT_LEN, SEED, STYLES, TEXT_EMBED_SIZE, Z_WEIGHT
+from model.data import CHARS, PAD_IDX
+from model.model import ColorGen, EmojiHead, StyleHead, TextEncoder
+from model.runmeta import load_pt
 
-WEB_PUBLIC = Path("web/public")
+WEB_PUBLIC = Path(WEB_PUBLIC_DIR)
 ONNX_OPSET = 18
 COLOR_SAMPLES = 5
 
@@ -27,7 +31,7 @@ CONST_Z = normalize(
 )
 
 
-def _load(mod: nn.Module, path: str) -> nn.Module:
+def _load(mod: nn.Module, path: str | Path) -> nn.Module:
     sd, meta = load_pt(path)
     mod.load_state_dict(sd)
     mod._pt_meta = meta
@@ -108,20 +112,20 @@ def export_web(wrapper: nn.Module) -> None:
 
 
 def export() -> None:
-    enc = _load(TextEncoder(), "enc.pt")
-    style = _load(StyleHead(), "style.pt")
-    emoji = _load(EmojiHead(), "emoji.pt")
-    gen = _load(ColorGen(), "gen.pt")
+    enc = _load(TextEncoder(), ENC_PT)
+    style = _load(StyleHead(), STYLE_PT)
+    emoji = _load(EmojiHead(), EMOJI_PT)
+    gen = _load(ColorGen(), GEN_PT)
 
     if style.embed.weight.shape[0] != len(STYLES):
         raise SystemExit(
             f"style.pt has {style.embed.weight.shape[0]} styles, "
-            f"labels.json has {len(STYLES)} -- retrain or restore labels.json"
+            f"{LABELS_JSON} has {len(STYLES)} -- retrain or restore {LABELS_JSON}"
         )
     if emoji.embed.weight.shape[0] != len(EMOJIS):
         raise SystemExit(
             f"emoji.pt has {emoji.embed.weight.shape[0]} emojis, "
-            f"labels.json has {len(EMOJIS)} -- retrain or restore labels.json"
+            f"{LABELS_JSON} has {len(EMOJIS)} -- retrain or restore {LABELS_JSON}"
         )
 
     _strip_spectral_norm(enc)

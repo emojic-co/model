@@ -22,27 +22,27 @@ runs/
 # Node / Bun (gen_data.ts)
 node_modules/
 
-data.jsonl.dry
+data/data.jsonl.dry
 
 # gen_data.ts scratch (removed on a successful run; left behind for resume on crash)
-data.jsonl.tmp
+data/data.jsonl.tmp
 
-# Rebuilt from data.jsonl by `bun run regen`; data.jsonl is the committed master.
-train.jsonl
-eval.jsonl
-labels.json
+# Rebuilt from data/data.jsonl by `bun run regen`; data/data.jsonl is the committed master.
+data/train.jsonl
+data/eval.jsonl
+data/labels.json
 
-# Rebuilt from labels.json by the generating-emoji-keywords skill.
-keywords.json
+# Rebuilt from data/labels.json by the generating-emoji-keywords skill.
+data/keywords.json
 # regen writes these via writeFileAtomic (path.tmp then rename); a crash leaves them.
-train.jsonl.tmp
-eval.jsonl.tmp
-labels.json.tmp
+data/train.jsonl.tmp
+data/eval.jsonl.tmp
+data/labels.json.tmp
 
-*.pt
+pt/*.pt
 # SDD isolated worktrees
 /.worktrees/
-pred.jsonl
+data/pred.jsonl
 lightning_logs
 # SDD scratch (ledger, briefs, review packages)
 /.superpowers/

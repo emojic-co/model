@@ -8,7 +8,8 @@ from pathlib import Path
 import torch
 import yaml
 
-from config import CONFIG_PARTS
+from files import TRAIN_JSONL
+from model.config import CONFIG_PARTS
 
 
 def _git(*args: str) -> str | None:
@@ -21,7 +22,7 @@ def _git(*args: str) -> str | None:
 
 
 def _train_sha() -> str | None:
-    p = Path("train.jsonl")
+    p = Path(TRAIN_JSONL)
     if not p.exists():
         return None
     h = hashlib.sha256()
@@ -49,6 +50,7 @@ def run_meta() -> dict:
 
 
 def save_pt(state_dict: dict, path, **extra) -> None:
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
     torch.save({"state_dict": state_dict, "meta": {**run_meta(), **extra}}, path)
 
 

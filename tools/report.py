@@ -12,7 +12,8 @@ import torch
 import typer
 from torch.nn.functional import normalize
 
-from config import (
+from files import DATA_JSONL, EMOJI_PT, ENC_PT, GEN_PT, STYLE_PT, TST_PT, WORDS_JSON
+from model.config import (
     EMOJIS,
     ENERGY_KEYWORD_MAX_TEXTS,
     ENERGY_Z_SAMPLES,
@@ -20,7 +21,7 @@ from config import (
     STYLES,
     TEXT_EMBED_SIZE,
 )
-from data import (
+from model.data import (
     EVAL_PATH,
     TRAIN_PATH,
     colors2tensor,
@@ -28,14 +29,14 @@ from data import (
     read,
     text_to_tensor,
 )
-from data import (
+from model.data import (
     normalize as norm_text,
 )
-from model import ColorGen, EmojiHead, StyleHead, TextEncoder, rgb_to_oklab
-from runmeta import load_pt, run_meta
+from model.model import ColorGen, EmojiHead, StyleHead, TextEncoder, rgb_to_oklab
+from model.runmeta import load_pt, run_meta
 
-DATA_PATH = "data.jsonl"
-WORDS_PATH = "words.json"
+DATA_PATH = DATA_JSONL
+WORDS_PATH = WORDS_JSON
 
 Z = ENERGY_Z_SAMPLES
 ENERGY_MAX = ENERGY_KEYWORD_MAX_TEXTS
@@ -167,13 +168,13 @@ def _bg_mean_lab(rgb9):
 
 def _provenance():
     rm = run_meta()
-    paths = ["enc.pt", "style.pt", "emoji.pt", "gen.pt", "tst.pt"]
+    paths = [ENC_PT, STYLE_PT, EMOJI_PT, GEN_PT, TST_PT]
     metas = {p: (load_pt(p)[1] if Path(p).exists() else None) for p in paths}
     present = {p: m for p, m in metas.items() if m}
     missing = [p for p in paths if not Path(p).exists()]
     legacy = [p for p in paths if Path(p).exists() and metas[p] is None]
     shas = {m.get("sha") for m in present.values()}
-    enc_meta = metas.get("enc.pt")
+    enc_meta = metas.get(ENC_PT)
     model_sha = enc_meta.get("sha") if enc_meta else "nometa"
     train_now = rm.get("train_sha")
     model_train = enc_meta.get("train_sha") if enc_meta else None
@@ -191,9 +192,9 @@ def _provenance():
             f"model trained on train.jsonl {model_train} but current is {train_now} "
             "- retrain before trusting Emojis / Styles / Colors"
         )
-    for p in ("enc.pt", "style.pt", "emoji.pt", "gen.pt"):
+    for p in (ENC_PT, STYLE_PT, EMOJI_PT, GEN_PT):
         if p in missing:
-            skipped = " - Colors section skipped" if p == "gen.pt" else ""
+            skipped = " - Colors section skipped" if p == GEN_PT else ""
             issues.append(f"{p} missing{skipped}")
 
     return {
@@ -419,22 +420,22 @@ def build_report(only: str = "", out: str = "report") -> Path:
     prov = _provenance()
 
     enc = emoji_head = style_head = gen = None
-    if want & {"emoji", "style", "color"} and Path("enc.pt").exists():
-        enc, err = _load(TextEncoder(), "enc.pt")
+    if want & {"emoji", "style", "color"} and Path(ENC_PT).exists():
+        enc, err = _load(TextEncoder(), ENC_PT)
         if err:
-            prov["issues"].append(f"enc.pt could not load: {err}")
-    if "emoji" in want and enc is not None and Path("emoji.pt").exists():
-        emoji_head, err = _load(EmojiHead(), "emoji.pt")
+            prov["issues"].append(f"{ENC_PT} could not load: {err}")
+    if "emoji" in want and enc is not None and Path(EMOJI_PT).exists():
+        emoji_head, err = _load(EmojiHead(), EMOJI_PT)
         if err:
-            prov["issues"].append(f"emoji.pt could not load: {err}")
-    if "style" in want and enc is not None and Path("style.pt").exists():
-        style_head, err = _load(StyleHead(), "style.pt")
+            prov["issues"].append(f"{EMOJI_PT} could not load: {err}")
+    if "style" in want and enc is not None and Path(STYLE_PT).exists():
+        style_head, err = _load(StyleHead(), STYLE_PT)
         if err:
-            prov["issues"].append(f"style.pt could not load: {err}")
-    if "color" in want and enc is not None and Path("gen.pt").exists():
-        gen, err = _load(ColorGen(), "gen.pt")
+            prov["issues"].append(f"{STYLE_PT} could not load: {err}")
+    if "color" in want and enc is not None and Path(GEN_PT).exists():
+        gen, err = _load(ColorGen(), GEN_PT)
         if err:
-            prov["issues"].append(f"gen.pt could not load: {err}")
+            prov["issues"].append(f"{GEN_PT} could not load: {err}")
     prov["consistent"] = not prov["issues"]
 
     train_records = list(read(TRAIN_PATH)) if want & {"style", "color"} else []

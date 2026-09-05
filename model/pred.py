@@ -2,13 +2,15 @@ import json
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import torch
 import typer
 
-from config import MAX_TEXT_LEN, SEED
-from data import EMOJIS, STYLES, normalize, text_to_tensor
-from model import ColorGen, EmojiHead, StyleHead, TextEncoder
-from runmeta import load_pt
+from model.config import MAX_TEXT_LEN, SEED
+from model.data import EMOJIS, STYLES, normalize, text_to_tensor
+from model.model import ColorGen, EmojiHead, StyleHead, TextEncoder
+from model.runmeta import load_pt
 
 
 def rgb_to_hex(rgb: torch.Tensor) -> list[str]:
