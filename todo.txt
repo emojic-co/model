@@ -773,3 +773,6 @@ TODO:
             Another option is to add padding to the conv filter.
 
             What do you think? worth trying? any other ideas?
+
+            Another idea:
+            output the concat of global max pooling of each layer, what do you think?
