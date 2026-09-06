@@ -25,10 +25,10 @@ if (import.meta.main) {
   let dataOnlyTotal = 0
   const examples: Example[] = []
 
-  lines.forEach((line, i) => {
+  for (const [i, line] of lines.entries()) {
     const row = JSON.parse(line) as Row
     const actual = new Set(row.emojis.trim() ? row.emojis.trim().split(/\s+/) : [])
-    const predicted = new Set(actual.size ? cldrEmojis(row.text, actual.size) : [])
+    const predicted = new Set(actual.size ? await cldrEmojis(row.text, actual.size) : [])
 
     const cldrOnly = [...predicted].filter((e) => !actual.has(e))
     const both = [...predicted].filter((e) => actual.has(e))
@@ -39,7 +39,7 @@ if (import.meta.main) {
     dataOnlyTotal += dataOnly.length
 
     if (sampleIndices.has(i)) examples.push({ text: row.text, cldrOnly, both, dataOnly })
-  })
+  }
 
   console.log(`rows: ${lines.length}`)
   console.log(`cldr / data: ${cldrOnlyTotal}`)

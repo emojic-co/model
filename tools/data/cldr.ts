@@ -52,7 +52,9 @@ const cldrData = await loadCldrEmoji()
 const emojiIndex = new Document<CldrEmoji, true>({
   document: {
     id: "id",
-    index: ["name", "keywords"],
+    index: [
+      // "name", 
+      "keywords"],
   },
   tokenize: "strict",
 })
