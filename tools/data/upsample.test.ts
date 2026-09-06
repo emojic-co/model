@@ -80,12 +80,19 @@ test("singleEmojiTexts ignores rows with missing or non-string fields", () => {
   expect(singleEmojiTexts(rows, 100)).toEqual(["keep me"])
 })
 
-test("failingEmojis dedupes target emoji worse than maxRank", () => {
+test("failingEmojis collects deduped targets from keywords not ranked within maxRank", () => {
   const misses = [
-    { keyword: "bowl", target: "🥣", rank: 8, top5: [], emoji_freq: 0, pair_freq: 0 },
-    { keyword: "soup", target: "🥣", rank: 12, top5: [], emoji_freq: 0, pair_freq: 0 },
-    { keyword: "moon", target: "🌙", rank: 9, top5: [], emoji_freq: 0, pair_freq: 0 },
-    { keyword: "sun", target: "☀️", rank: 5, top5: [], emoji_freq: 0, pair_freq: 0 },
+    { keyword: "bowl", targets: ["🥣"], rank: 8, top5: [], emoji_freq: 0, pair_freq: 0 },
+    {
+      keyword: "soup",
+      targets: ["🥣", "🍜"],
+      rank: 12,
+      top5: [],
+      emoji_freq: 0,
+      pair_freq: 0,
+    },
+    { keyword: "moon", targets: ["🌙"], rank: 9, top5: [], emoji_freq: 0, pair_freq: 0 },
+    { keyword: "sun", targets: ["☀️"], rank: 5, top5: [], emoji_freq: 0, pair_freq: 0 },
   ]
-  expect(failingEmojis(misses, 5)).toEqual(["🥣", "🌙"])
+  expect(failingEmojis(misses, 5)).toEqual(["🥣", "🍜", "🌙"])
 })

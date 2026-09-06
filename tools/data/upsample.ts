@@ -18,8 +18,8 @@ const FAIL_RANK = 5
 const TEXTS_PER_EMOJI = 40
 const NEG_COUNT = 1000
 const SINGLE_EMOJI_COUNT = 5000
-const CLDR_PER = 10
-const CLDR_KEYWORDS = 500
+const CLDR_PER = 50
+const CLDR_KEYWORDS = 100
 const MIN_LEN = 4
 const MAX_LEN = 42
 const GEN_CONCURRENCY = 20
@@ -87,10 +87,11 @@ export function failingEmojis(misses: Miss[], maxRank: number): string[] {
   const out: string[] = []
   const seen = new Set<string>()
   for (const m of misses) {
-    if (!m.target || seen.has(m.target)) continue
-    if (m.rank == null || m.rank > maxRank) {
-      seen.add(m.target)
-      out.push(m.target)
+    if (m.rank != null && m.rank <= maxRank) continue
+    for (const t of m.targets) {
+      if (!t || seen.has(t)) continue
+      seen.add(t)
+      out.push(t)
     }
   }
   return out
@@ -99,17 +100,14 @@ export function failingEmojis(misses: Miss[], maxRank: number): string[] {
 export function missedCldrKeywords(
   misses: Miss[],
 ): { keyword: string; targets: string[] }[] {
-  const map = new Map<string, string[]>()
+  const seen = new Set<string>()
+  const out: { keyword: string; targets: string[] }[] = []
   for (const m of misses) {
-    if (!m.keyword || !m.target) continue
-    const targets = map.get(m.keyword)
-    if (targets) {
-      if (!targets.includes(m.target)) targets.push(m.target)
-    } else {
-      map.set(m.keyword, [m.target])
-    }
+    if (!m.keyword || seen.has(m.keyword)) continue
+    seen.add(m.keyword)
+    out.push({ keyword: m.keyword, targets: m.targets.filter(Boolean) })
   }
-  return [...map].map(([keyword, targets]) => ({ keyword, targets }))
+  return out
 }
 
 export function rankWindow(
@@ -247,7 +245,7 @@ if (import.meta.main) {
   const per = Number(options.per ?? (cldr ? CLDR_PER : TEXTS_PER_EMOJI))
   const count = Number(
     options.count
-      ?? (singleEmoji ? SINGLE_EMOJI_COUNT : cldr ? CLDR_KEYWORDS : NEG_COUNT),
+    ?? (singleEmoji ? SINGLE_EMOJI_COUNT : cldr ? CLDR_KEYWORDS : NEG_COUNT),
   )
 
   if ([negation, singleEmoji, cldr].filter(Boolean).length > 1) {

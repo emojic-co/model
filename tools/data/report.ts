@@ -4,7 +4,7 @@ import { REPORT_DIR } from "../../files.ts"
 
 export type Miss = {
   keyword: string
-  target: string
+  targets: string[]
   rank: number | null
   top5: string[]
   emoji_freq: number

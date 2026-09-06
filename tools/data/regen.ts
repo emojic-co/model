@@ -5,8 +5,8 @@ import { normalize } from "./normalize.ts"
 import { stableHash } from "./pool.ts"
 import { STYLE_SET } from "./styles.ts"
 
-const MAX_COUNT = 1000
-const MIN_COUNT = 500
+const MAX_COUNT = 300
+const MIN_COUNT = 50
 
 export type Palette = { bg: string[]; fg: string }
 export type Row = {
