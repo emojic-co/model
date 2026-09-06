@@ -1,4 +1,0 @@
-Expand the chars to also include digits
-
-CHARS = PAD + "abcdefghijklmnopqrstuvwxyz!?:()@$%&* "
-Make sure it is consistent across the codebase.

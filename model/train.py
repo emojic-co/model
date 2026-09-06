@@ -41,7 +41,6 @@ from files import (
 from model.config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE,
-    EMOJI_AP_K,
     ENERGY_Z_SAMPLES,
     EPOCHS_GAN,
     EPOCHS_TASK,
@@ -53,14 +52,12 @@ from model.config import (
     INFONCE_TEMP,
     LR,
     SEED,
-    STYLE_AP_K,
     TASK_BATCH_SIZE,
     TEXT_EMBED_SIZE,
     VAL_CHECK_INTERVAL,
 )
 from model.data import (
     eval_data_loader,
-    load_emoji_keywords,
     train_data_loader,
     train_ds,
 )
@@ -74,10 +71,6 @@ from model.model import (
     rgb_to_oklab,
 )
 from model.runmeta import load_pt, require_clean_tree, save_pt
-
-
-def f1(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
-    return 2 * a * b / (a + b + 1e-8)
 
 
 def lse_infonce(
@@ -97,11 +90,10 @@ def lse_infonce(
     return row_loss[has_pos].mean()
 
 
-def mrr_at_k(logits: torch.Tensor, target: torch.Tensor, k: int) -> torch.Tensor:
-    k = min(k, logits.size(-1))
-    topk = logits.topk(k, dim=-1).indices
-    rel = target.gather(1, topk)
-    ranks = torch.arange(1, k + 1, device=logits.device)
+def mrr(logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    order = logits.argsort(dim=-1, descending=True)
+    rel = target.gather(1, order)
+    ranks = torch.arange(1, logits.size(-1) + 1, device=logits.device)
     return (rel / ranks).amax(dim=-1)
 
 
@@ -111,16 +103,6 @@ def energy_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     xx = torch.cdist(x, x, compute_mode=mode).mean()
     yy = torch.cdist(y, y, compute_mode=mode).mean()
     return (2 * xy - xx - yy).clamp(min=0.0).sqrt()
-
-
-def ap_at_k(logits: torch.Tensor, target: torch.Tensor, k: int) -> torch.Tensor:
-    k = min(k, logits.size(-1))
-    topk = logits.topk(k, dim=-1).indices
-    rel = target.gather(1, topk)
-    ranks = torch.arange(1, k + 1, device=logits.device)
-    prec = rel.cumsum(dim=-1) / ranks
-    denom = target.sum(dim=-1).clamp(max=k).clamp(min=1.0)
-    return (prec * rel).sum(dim=-1) / denom
 
 
 class LitTask(pl.LightningModule):
@@ -134,10 +116,6 @@ class LitTask(pl.LightningModule):
         self.style = StyleHead()
         self.emoji = EmojiHead()
 
-        kw_text, kw_target = load_emoji_keywords(KEYWORDS_JSON)
-        self.register_buffer("kw_text", kw_text, persistent=False)
-        self.register_buffer("kw_target", kw_target, persistent=False)
-
     def _step(self, batch, split):
         text, emoji, style, _ = batch
 
@@ -149,13 +127,11 @@ class LitTask(pl.LightningModule):
             loss_style = lse_infonce(style_logits, style, INFONCE_TEMP)
             loss = loss + loss_style
 
-            style_ap = ap_at_k(style_logits, style, STYLE_AP_K).mean()
-            style_mrr = mrr_at_k(style_logits, style, STYLE_AP_K).mean()
+            style_mrr = mrr(style_logits, style).mean()
 
             for name, val, bs in (
                 (f"loss/s/{split}", loss_style, text.size(0)),
-                (f"mAP@{STYLE_AP_K}/s/{split}", style_ap, text.size(0)),
-                (f"MRR@{STYLE_AP_K}/s/{split}", style_mrr, text.size(0)),
+                (f"MRR/s/{split}", style_mrr, text.size(0)),
             ):
                 self.log(name, val, on_step=False, on_epoch=True,
                          prog_bar=True, batch_size=bs)
@@ -168,18 +144,13 @@ class LitTask(pl.LightningModule):
             has_e = emoji.sum(dim=-1) > 0
             n_e = int(has_e.sum())
             if n_e:
-                emoji_ap = ap_at_k(
-                    emoji_logits[has_e], emoji[has_e], EMOJI_AP_K).mean()
-                emoji_mrr = mrr_at_k(
-                    emoji_logits[has_e], emoji[has_e], EMOJI_AP_K).mean()
+                emoji_mrr = mrr(emoji_logits[has_e], emoji[has_e]).mean()
             else:
-                emoji_ap = torch.zeros((), device=emoji.device)
                 emoji_mrr = torch.zeros((), device=emoji.device)
 
             for name, val, bs in (
                 (f"loss/e/{split}", loss_emoji, text.size(0)),
-                (f"mAP@{EMOJI_AP_K}/e/{split}", emoji_ap, max(n_e, 1)),
-                (f"MRR@{EMOJI_AP_K}/e/{split}", emoji_mrr, max(n_e, 1)),
+                (f"MRR/e/{split}", emoji_mrr, max(n_e, 1)),
             ):
                 self.log(name, val, on_step=False, on_epoch=True,
                          prog_bar=True, batch_size=bs)
@@ -191,41 +162,6 @@ class LitTask(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         self._step(batch, "val")
-
-    def on_train_epoch_end(self):
-        self._log_f1("train")
-
-    def on_validation_epoch_end(self):
-        self._log_f1("val")
-        self._log_keywords()
-
-    def _log_f1(self, split):
-        m = self.trainer.callback_metrics
-        a = m.get(f"mAP@{EMOJI_AP_K}/e/{split}")
-        b = m.get(f"mAP@{STYLE_AP_K}/s/{split}")
-        if a is not None and b is not None:
-            self.log(f"f1/{split}", f1(a, b), prog_bar=True)
-
-    def _log_keywords(self):
-        if "emoji" not in self.heads:
-            return
-
-        has = self.kw_target.sum(dim=-1) > 0
-        n = int(has.sum())
-        if not n:
-            return
-
-        with torch.no_grad():
-            logits = self.emoji(self.enc(self.kw_text))
-
-        kw_ap = ap_at_k(logits[has], self.kw_target[has], EMOJI_AP_K).mean()
-        kw_mrr = mrr_at_k(logits[has], self.kw_target[has], EMOJI_AP_K).mean()
-
-        for name, val in (
-            (f"mAP@{EMOJI_AP_K}/e/keywords", kw_ap),
-            (f"MRR@{EMOJI_AP_K}/e/keywords", kw_mrr),
-        ):
-            self.log(name, val, prog_bar=False, batch_size=n)
 
     def configure_optimizers(self):
         params = list(self.enc.parameters())
@@ -399,9 +335,9 @@ def _train_task(ds, stage: str, heads: tuple[str, ...]) -> LitTask:
     progress_bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
     if "emoji" in heads:
-        task_monitor = f"MRR@{EMOJI_AP_K}/e/val"
+        task_monitor = "MRR/e/val"
     else:
-        task_monitor = f"MRR@{STYLE_AP_K}/s/val"
+        task_monitor = "MRR/s/val"
 
     task_ckpt = ModelCheckpoint(
         monitor=task_monitor, mode="max", save_top_k=1, filename="best-{step}"
