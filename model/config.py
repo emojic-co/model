@@ -25,7 +25,8 @@ ENCODER_KERNEL_SIZE = 3
 assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
-ENCODER_CHANNELS = [256, 128, 64]
+# ENCODER_CHANNELS = [256, 128, 64]
+ENCODER_CHANNELS = [64, 128, 256]
 ENCODER_DILATION = [1, 2, 4]
 
 assert len(ENCODER_CHANNELS) == len(ENCODER_DILATION), \
