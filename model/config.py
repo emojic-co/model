@@ -47,8 +47,8 @@ DROPOUT_EMOJI = max(0, 1 - 128 / TEXT_EMBED_SIZE)
 emj_str = " ".join([str(p) for p in (EMOJI_EMBED_SIZE, DROPOUT_EMOJI)])
 
 # STYLE
-STYLE_EMBED_SIZE = 12
-DROPOUT_STYLE = 0.1
+STYLE_EMBED_SIZE = 16
+DROPOUT_STYLE = max(0, 1 - 128 / TEXT_EMBED_SIZE)
 
 style_str = " ".join([
     str(p)
