@@ -25,8 +25,8 @@ ENCODER_KERNEL_SIZE = 3
 assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
-ENCODER_CHANNELS = [256]
-ENCODER_DILATION = [1]
+ENCODER_CHANNELS = [100, 120]
+ENCODER_DILATION = [1, 1]
 
 assert len(ENCODER_CHANNELS) == len(ENCODER_DILATION), \
     "encoder channels and dilation must have the same length"
@@ -40,7 +40,7 @@ enc_str = " ".join([
 
 # EMOJI
 EMOJI_EMBED_SIZE = 32
-DROPOUT_EMOJI = 0
+DROPOUT_EMOJI = 1 - 100 / sum(ENCODER_CHANNELS)
 
 emj_str = " ".join([str(p) for p in (EMOJI_EMBED_SIZE, DROPOUT_EMOJI)])
 
