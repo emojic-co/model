@@ -5,6 +5,17 @@ import { resolveFeeling } from '../feelings'
 const S = 512
 const EMOJI_STACK = '"Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif'
 
+const PAD = 0.07 * S
+const GAP = 0.03 * S
+const EMOJI_PX = 0.32 * S
+const EMOJI_DY = 0.065 * S
+const TEXT_BOX_PAD_X = 0.03 * S
+const TEXT_BOX_PAD_Y = 0.05 * S
+const TEXT_LINE_HEIGHT = 1.5
+const TEXT_MIN_PX = Math.round(0.05 * S)
+const TEXT_MAX_PX = Math.round(0.13 * S)
+const MAX_LINES = 10
+
 async function ensureFonts(stack, emoji) {
   if (!document.fonts) return
   const jobs = [document.fonts.load(`400 120px "Noto Color Emoji"`, emoji)]
@@ -43,11 +54,17 @@ async function render({ text, emoji, feeling, colors }) {
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
 
-  ctx.font = `120px ${EMOJI_STACK}`
-  ctx.fillText(emoji, S / 2, S * 0.4)
+  const emojiBoxBottom = PAD + EMOJI_PX
+  const emojiCenterY = PAD + EMOJI_PX / 2 + EMOJI_DY
+  const textBoxTop = emojiBoxBottom + GAP
+  const textBoxBottom = S - PAD
+  const textCenterY = (textBoxTop + textBoxBottom) / 2
+  const maxWidth = S - 2 * PAD - 2 * TEXT_BOX_PAD_X
+  const maxHeight = textBoxBottom - textBoxTop - 2 * TEXT_BOX_PAD_Y
 
-  const lineHeight = 1.33
-  const maxWidth = S - 96
+  ctx.font = `${EMOJI_PX}px ${EMOJI_STACK}`
+  ctx.fillText(emoji, S / 2, emojiCenterY)
+
   const widthAt = (str, px) => {
     ctx.font = `${fitalic}${fw} ${px}px ${stack}`
     return ctx.measureText(str).width
@@ -56,29 +73,23 @@ async function render({ text, emoji, feeling, colors }) {
   const fpx = fitCanvasFont({
     text: headline,
     maxWidth,
-    maxHeight: S * 0.26,
-    min: Math.round((32 * S) / 600),
-    max: Math.round((104 * S) / 600),
-    lineHeight,
+    maxHeight,
+    min: TEXT_MIN_PX,
+    max: TEXT_MAX_PX,
+    lineHeight: TEXT_LINE_HEIGHT,
     widthAt,
   })
 
   ctx.font = `${fitalic}${fw} ${fpx}px ${stack}`
-  const lines = wrapLines((str) => ctx.measureText(str).width, headline, maxWidth, 4)
-  let ty = S * 0.62 - ((lines.length - 1) * fpx * lineHeight) / 2
+  const lines = wrapLines((str) => ctx.measureText(str).width, headline, maxWidth, MAX_LINES)
+  let ty = textCenterY - ((lines.length - 1) * fpx * TEXT_LINE_HEIGHT) / 2
   ctx.globalAlpha = st.opacity ?? 1
   for (const line of lines) {
     ctx.fillText(line, S / 2, ty)
-    ty += fpx * lineHeight
+    ty += fpx * TEXT_LINE_HEIGHT
   }
   ctx.globalAlpha = 1
-
   if ('letterSpacing' in ctx) ctx.letterSpacing = '0px'
-  ctx.font = `600 13px ${stack}`
-  if ('letterSpacing' in ctx) ctx.letterSpacing = '3.5px'
-  ctx.globalAlpha = 0.85
-  ctx.fillText(feeling.toUpperCase(), S / 2, S * 0.84)
-  ctx.globalAlpha = 1
 
   return new Promise((resolve, reject) => {
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('toBlob failed'))), 'image/png')

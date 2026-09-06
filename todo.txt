@@ -1,3 +1,3 @@
-Upsample Keywords:
-    When using the upsample tool to upsample keywords (--report or --cldr) add a flag --max-pair-freq=50
-    The upsample tool only upsample keywords that have pair frequency less than the max-pair-freq value. The default value is 50.
+Web App:
+    When copy the image to the clipboard make sure it is identical to the preview.
+    In particular do not add the style to the image and make sure spacing is the same.
