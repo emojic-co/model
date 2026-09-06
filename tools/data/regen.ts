@@ -98,7 +98,7 @@ export function shuffle<T>(rows: T[]): T[] {
   const out = [...rows]
   for (let i = out.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[out[i], out[j]] = [out[j], out[i]]
+      ;[out[i], out[j]] = [out[j], out[i]]
   }
   return out
 }
@@ -134,8 +134,8 @@ import {
   LABELS_JSON as LABELS,
   TRAIN_JSONL as TRAIN,
 } from "../../files.ts"
-import { readJsonl, writeFileAtomic } from "./io.ts"
 import { STYLES } from "./config"
+import { readJsonl, writeFileAtomic } from "./io.ts"
 
 export function toLine(r: Row): string {
   const base =
@@ -145,11 +145,13 @@ export function toLine(r: Row): string {
   return JSON.stringify(r.extra ? { ...base, ...r.extra } : base)
 }
 
+const MAX_COUNT = 800
+const MIN_COUNT = 200
 const cli = cac("regen")
 cli.usage("[options]")
 cli
-  .option("--min-count <n>", "min kept-records for an emoji to enter labels.json (default 100)")
-  .option("--max-count <n>", "cap on kept-records per emoji (default 500)")
+  .option("--min-count <n>", `min kept-records for an emoji to enter labels.json (default ${MIN_COUNT})`)
+  .option("--max-count <n>", `cap on kept-records per emoji (default ${MAX_COUNT})`)
   .option("--n <n>", "eval.jsonl row count (default 1500)")
   .option("--no-cldr", "ignore data/cldr.jsonl; build from data/data.jsonl only")
 cli.help()
@@ -157,8 +159,8 @@ cli.help()
 if (import.meta.main) {
   const { options } = cli.parse(process.argv, { run: false })
   if (options.help) process.exit(0)
-  const minCount = Number(options.minCount ?? 100)
-  const maxCount = Number(options.maxCount ?? 500)
+  const minCount = Number(options.minCount ?? MIN_COUNT)
+  const maxCount = Number(options.maxCount ?? MAX_COUNT)
   const n = Number(options.n ?? 1500)
 
   const useCldr = options.cldr !== false
