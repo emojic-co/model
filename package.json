@@ -5,6 +5,8 @@
   "scripts": {
     "train": "bun run tools/data/train.ts",
     "regen": "bun run tools/data/regen.ts",
+    "build-cldr": "bun run tools/data/cldr.ts",
+    "cldr-vs-data": "bun run tools/analysis/cldr-vs-data.ts",
     "upsample": "bun run tools/data/upsample.ts",
     "preview": "bun run tools/preview.ts",
     "show-labels": "bun run tools/data/show-labels.ts",
@@ -24,7 +26,10 @@
   "devDependencies": {
     "@types/bun": "^1.4.0",
     "@types/cli-progress": "^3.11.6",
+    "cldr-annotations-derived-full": "48.2.0",
+    "cldr-annotations-full": "48.2.0",
     "emojibase-data": "^17.0.0",
+    "flexsearch": "0.8.212",
     "live-server": "^1.2.2"
   }
 }

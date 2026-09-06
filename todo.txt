@@ -791,3 +791,96 @@ TODO:
                 - The typescript function expect English text.
                 - Design the function for fast and efficient retrieval, use BM25/FlexSearch if needed.
                 - Add a switch to the web app to toggle between the model and the CLDR emojis.
+        
+        CLDR vs data.jsonl:
+            Write a tool tools/data/cldr-vs-data.ts that compare the emojis in the CLDR data with the emojis in the data.jsonl.
+            It should output:
+            - use keyword matching to simulate which emojis each text would have if using CLDR to annotate it.
+            - output a summary of the form:
+                cldr / data | cldr & data | data / cldr
+
+                where cldr / data is the number of emojis that are in the CLDR but not in the data.jsonl
+                where cldr & data is the number of emojis that are in both the CLDR and the data.jsonl
+                where data / cldr is the number of emojis that are in the data.jsonl but not in the CLDR
+
+        CLDR:
+            I probably didn't explain myself clearly.
+            Build a function cldrEmojis tool/data/cldr.ts
+            The function should be roughly like that:
+            ```
+                import { Document } from "flexsearch";
+
+                // 1. Define the CLDR Emoji metadata structure
+                interface CldrEmoji {
+                id: string;        // The actual UTF-8 emoji character
+                name: string;      // CLDR TTS Short Name (e.g., "fire")
+                keywords: string;  // Space-separated CLDR annotations (e.g., "flame hot burn")
+                }
+
+                // 2. Initialize FlexSearch Document Index optimized for prefix search
+                const emojiIndex = new Document<CldrEmoji, true>({
+                document: {
+                    id: "id",
+                    index: ["name", "keywords"], // Index both name and search keywords
+                },
+                tokenize: "forward", // Enables partial typing match (e.g., "spic" -> "spicy")
+                });
+
+                // Sample dataset (In production, populate this with `unicode-emoji-json` or CLDR export)
+                const cldrData: CldrEmoji[] = [
+                { id: "🔥", name: "fire", keywords: "flame hot burn lit spicy" },
+                { id: "🌶️", name: "hot pepper", keywords: "spicy chili vegetable food" },
+                { id: "🌮", name: "taco", keywords: "mexican food spicy tortilla" },
+                { id: "😴", name: "sleeping face", keywords: "sleepy tired zzz night" },
+                ];
+
+                // Populate index
+                cldrData.forEach((emoji) => emojiIndex.add(emoji));
+
+                /**
+                * Given a short text query, finds all relevant emojis based on CLDR metadata.
+                */
+                export function findRelevantEmojis(text: string, limit = 5): string[] {
+                if (!text.trim()) return [];
+
+                // Search across both name and keyword fields
+                const rawResults = emojiIndex.search(text, {
+                    limit,
+                    enrich: false,
+                });
+
+                // FlexSearch returns field-grouped matches; extract unique emoji IDs preserving rank
+                const matchedEmojis = new Set<string>();
+                
+                for (const fieldResult of rawResults) {
+                    for (const emojiId of fieldResult.result) {
+                    matchedEmojis.add(emojiId as string);
+                    }
+                }
+
+                return Array.from(matchedEmojis).slice(0, limit);
+                }
+
+                // --- Usage Examples ---
+                console.log(findRelevantEmojis("spicy")); 
+                // Outputs: [ '🔥', '🌶️', '🌮' ]
+
+                console.log(findRelevantEmojis("tired")); 
+                // Outputs: [ '😴' ]            
+            ```
+
+            The next step is to build a toll tools/analysis/cldr-vs-data.ts that will scan data.jsonl and for each record:
+                - run the cldrEmojis function.
+                - compare the output of the cldrEmojis with the emojis in the record.
+                - aggregate the results and output a summary of the form:
+                    - cldr / data 
+                    - cldr & data 
+                    - data / cldr
+
+                - In addition, pick 10 random texts and output:
+                    - the text
+                    - the emojis in cldr / data for this text
+                    - the emojis in cldr & data for this text
+                    - the emojis in data / cldr for this text
+
+

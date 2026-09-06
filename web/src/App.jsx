@@ -3,6 +3,7 @@ import { useOnnx } from './hooks/useOnnx'
 import { argmax, normalize } from './model'
 import { topFeelings, DEFAULT_COLORS } from './feelings'
 import { cycle } from './nav'
+import { cldrEmojis } from './cldrEmojis'
 import GitHubButton from 'react-github-btn'
 import { Card } from './components/Card'
 import { FeelingBar } from './components/FeelingBar'
@@ -15,6 +16,10 @@ import { useMediaQuery } from './hooks/useMediaQuery'
 
 const MIN_CHARS = 3
 const DEBOUNCE_MS = 250
+
+// TEMP: comparing the trained model's emoji ranking against CLDR keyword
+// search. Flip to false to restore the model's own emoji predictions.
+const USE_CLDR_EMOJIS = true
 
 function formatDate(iso) {
   if (!iso) return '—'
@@ -69,7 +74,15 @@ export function App() {
   }, [text, ready, char2idx, predict])
 
   const emojiScores = scores && scores.emoji
-  const predictedEmoji = scores ? meta.emojis[argmax(scores.emoji)] : null
+  const cldrTop = useMemo(
+    () => (USE_CLDR_EMOJIS && scores ? cldrEmojis(text) : null),
+    [scores, text],
+  )
+  const predictedEmoji = USE_CLDR_EMOJIS
+    ? (cldrTop?.[0] ?? null)
+    : scores
+      ? meta.emojis[argmax(scores.emoji)]
+      : null
   const predictedFeeling = scores ? meta.styles[argmax(scores.feeling)] : null
   const shownEmoji = override.emoji ?? predictedEmoji
   const shownFeeling = override.feeling ?? predictedFeeling
@@ -77,16 +90,19 @@ export function App() {
     () => topFeelings(scores?.feeling, meta?.styles ?? [], shownFeeling, feelingCount),
     [scores, meta, shownFeeling, feelingCount],
   )
-  const emojiTop = useMemo(
-    () =>
-      emojiScores
-        ? emojiScores
-            .map((p, i) => ({ emoji: meta.emojis[i], p }))
-            .sort((a, b) => b.p - a.p)
-            .slice(0, emojiSlots)
-        : null,
-    [emojiScores, meta, emojiSlots],
-  )
+  const emojiTop = useMemo(() => {
+    if (USE_CLDR_EMOJIS) {
+      return cldrTop
+        ? cldrTop.slice(0, emojiSlots).map((emoji, i) => ({ emoji, p: 1 - i / emojiSlots }))
+        : null
+    }
+    return emojiScores
+      ? emojiScores
+          .map((p, i) => ({ emoji: meta.emojis[i], p }))
+          .sort((a, b) => b.p - a.p)
+          .slice(0, emojiSlots)
+      : null
+  }, [cldrTop, emojiScores, meta, emojiSlots])
   const emojiList = useMemo(() => emojiTop?.map((x) => x.emoji) ?? [], [emojiTop])
 
   const palettes = useMemo(() => scores?.palettes ?? [DEFAULT_COLORS], [scores])
