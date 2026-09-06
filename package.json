@@ -30,6 +30,9 @@
     "cldr-annotations-full": "48.2.0",
     "emojibase-data": "^17.0.0",
     "flexsearch": "0.8.212",
-    "live-server": "^1.2.2"
+    "ink": "^7.1.1",
+    "ink-table": "^3.1.0",
+    "live-server": "^1.2.2",
+    "react": "^19.2.8"
   }
 }

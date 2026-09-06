@@ -1,16 +1,13 @@
 Tools:
-    Update the tools/data/upsample.ts to have a flag --single-emoji:
-    With this flag the tool:
-        - read data.jsonl
-        - finds records with a single emoji in the target
-        - only consider records with a unique text (i.e. if the normalized text has multiple records, ignore it)
-        - the tool sends the unique records to annotation tool to get more emojis for them
+    Write a tool tools/data/stat.ts which prints statistics about the data files.
+    Print important statistics that will help me understand the data better.
+    In particular print the distribution of number of unique emojis per normalized text:
+    text | # of records with this text | # of unique emojis for this text | list of unique emojis for this text
+    Print to the terminal but use tables, colors, etc...
+    You can use https://github.com/vadimdemedes/ink or a similar library to make the output more readable.
+    Keep the output concise with only the most important statistics.
+    Add a flag --long to print more statistics.
 
-        Notes:
-            - do not use special prompt to force more emojis, just use the default prompt
-            - final records should also have a meta {"single-emoji": true}
-            - use the --count (default 5000) to limit the number of records sent to annotation tool
-            - also from now on, each record in the data.jsonl should have a meta {"date": YYYY-MM-DD} to indicate when it was added to the dataset.
 
 Model:
     It seems that the TextEncoder + EmojiHead model now perform well on keywords but could perform better on the whole text context.
