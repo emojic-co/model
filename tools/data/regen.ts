@@ -145,7 +145,7 @@ export function toLine(r: Row): string {
   return JSON.stringify(r.extra ? { ...base, ...r.extra } : base)
 }
 
-const MAX_COUNT = 1000
+const MAX_COUNT = 800
 const MIN_COUNT = 200
 const cli = cac("regen")
 cli.usage("[options]")
