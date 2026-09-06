@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -25,8 +26,9 @@ ENCODER_KERNEL_SIZE = 3
 assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
-ENCODER_CHANNELS = [100, 120]
-ENCODER_DILATION = [1, 2]
+ENCODER_CHANNELS = [64, 96, 192]
+ENCODER_DILATION = [1, 2, 4]
+TEXT_EMBED_SIZE = sum(ENCODER_CHANNELS)
 
 assert len(ENCODER_CHANNELS) == len(ENCODER_DILATION), \
     "encoder channels and dilation must have the same length"
@@ -40,13 +42,12 @@ enc_str = " ".join([
 
 # EMOJI
 EMOJI_EMBED_SIZE = 32
-DROPOUT_EMOJI = 1 - 100 / sum(ENCODER_CHANNELS)
+DROPOUT_EMOJI = max(0, 1 - 128 / TEXT_EMBED_SIZE)
 
 emj_str = " ".join([str(p) for p in (EMOJI_EMBED_SIZE, DROPOUT_EMOJI)])
 
 # STYLE
 STYLE_EMBED_SIZE = 12
-TEXT_EMBED_SIZE = sum(ENCODER_CHANNELS)
 DROPOUT_STYLE = 0.1
 
 style_str = " ".join([
@@ -114,6 +115,8 @@ ENERGY_KEYWORD_MIN_TEXTS = 32
 ENERGY_KEYWORDS_PATH = ENERGY_KEYWORDS_TXT
 
 # TENSORBOARD RUN NAME
+RUN_TIME = os.environ.get(
+    "EMOJIC_RUN_TIME") or datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 CONFIG_PARTS = [
     f"ENCODER: {enc_str}",
     f"EMOJI: {emj_str}",
@@ -123,7 +126,7 @@ CONFIG_PARTS = [
 ]
 CONFIG_NAME = " | ".join(
     [
-        f"TIME: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"TIME: {RUN_TIME}",
         *CONFIG_PARTS,
     ]
 )

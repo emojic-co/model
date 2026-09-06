@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
 
@@ -608,12 +609,14 @@ def train_remote(
     model: str,
     threads: int,
     git_sha: str,
+    run_time: str,
     enc_bytes: bytes | None = None,
     style_bytes: bytes | None = None,
     emoji_bytes: bytes | None = None,
 ) -> dict[str, int]:
     env = _run_env(threads)
     env["EMOJIC_GIT_SHA"] = git_sha
+    env["EMOJIC_RUN_TIME"] = run_time
     env["EMOJIC_DISPATCH_CHECKED"] = "1"
     if enc_bytes is not None or style_bytes is not None or emoji_bytes is not None:
         Path(REPO, PT_DIR).mkdir(parents=True, exist_ok=True)
@@ -724,7 +727,9 @@ def _retrieve_and_cleanup() -> bool:
         shutil.rmtree(staging, ignore_errors=True)
 
 
-def _run_remote(model: Model, cpu: int, memory: int, git_sha: str) -> dict[str, int]:
+def _run_remote(
+    model: Model, cpu: int, memory: int, git_sha: str, run_time: str
+) -> dict[str, int]:
     enc_bytes = style_bytes = emoji_bytes = None
     if model == Model.gan:
         for name in (ENC_PT, STYLE_PT, EMOJI_PT):
@@ -745,6 +750,7 @@ def _run_remote(model: Model, cpu: int, memory: int, git_sha: str) -> dict[str, 
         model=model.value,
         threads=cpu,
         git_sha=git_sha,
+        run_time=run_time,
         enc_bytes=enc_bytes,
         style_bytes=style_bytes,
         emoji_bytes=emoji_bytes,
@@ -763,14 +769,15 @@ def _dispatch(
     git_sha = subprocess.run(
         ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True
     ).stdout.strip()
+    run_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"Training {model.value} on Modal...", flush=True)
     try:
         with modal.enable_output():
             if need_app_ctx:
                 with modal_app.run():
-                    print(_run_remote(model, cpu, memory, git_sha))
+                    print(_run_remote(model, cpu, memory, git_sha, run_time))
             else:
-                print(_run_remote(model, cpu, memory, git_sha))
+                print(_run_remote(model, cpu, memory, git_sha, run_time))
     finally:
         landed = _retrieve_and_cleanup()
     if landed:
