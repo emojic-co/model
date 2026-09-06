@@ -26,7 +26,7 @@ assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
 ENCODER_CHANNELS = [100, 120]
-ENCODER_DILATION = [1, 1]
+ENCODER_DILATION = [1, 2]
 
 assert len(ENCODER_CHANNELS) == len(ENCODER_DILATION), \
     "encoder channels and dilation must have the same length"
