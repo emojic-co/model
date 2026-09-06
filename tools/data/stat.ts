@@ -123,13 +123,14 @@ export function computeStats(rawRows: unknown[]): Stats {
   const emojiPerText = [...perCount.entries()]
     .sort((x, y) => x[0] - y[0])
     .map(([count, t]) => {
+      const below = running
       running += t
       return {
         count,
         texts: t,
         pct: pct(t, texts),
-        cumPct: pct(running, texts),
-        tailPct: pct(texts - running, texts),
+        cumPct: pct(below, texts),
+        tailPct: pct(texts - below, texts),
       }
     })
 

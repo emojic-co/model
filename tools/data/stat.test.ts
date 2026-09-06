@@ -31,9 +31,9 @@ test("computeStats buckets texts by unique emoji count with pct and ascending cu
     R("two emojis c", "🌧 ☔"),
   ])
   expect(s.emojiPerText).toEqual([
-    { count: 0, texts: 1, pct: 25, cumPct: 25, tailPct: 75 },
-    { count: 1, texts: 2, pct: 50, cumPct: 75, tailPct: 25 },
-    { count: 2, texts: 1, pct: 25, cumPct: 100, tailPct: 0 },
+    { count: 0, texts: 1, pct: 25, cumPct: 0, tailPct: 100 },
+    { count: 1, texts: 2, pct: 50, cumPct: 25, tailPct: 75 },
+    { count: 2, texts: 1, pct: 25, cumPct: 75, tailPct: 25 },
   ])
 })
 
