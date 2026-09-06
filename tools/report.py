@@ -1,5 +1,6 @@
 import html
 import json
+import random
 import re
 import sys
 from collections import Counter
@@ -13,7 +14,7 @@ import torch
 import typer
 
 from files import DATA_JSONL, KEYWORDS_JSON
-from model.config import EMOJIS, STYLES
+from model.config import EMOJIS, SEED, STYLES
 from model.data import EVAL_PATH, TRAIN_PATH, read, text_to_tensor
 from model.data import normalize as norm_text
 from model.model import EmojiHead, TextEncoder
@@ -205,11 +206,13 @@ def _section_emoji(enc, head, eval_records):
         }
         order = logits.argsort(dim=-1, descending=True)
         rank_of = order.argsort(dim=-1)
-        scored = []
+        missed = []
         for i, r in enumerate(rows):
             first_rank = min(rank_of[i, vocab[e]].item() + 1 for e in r.emojis)
+            if first_rank <= MISSED_TEXT_TOP:
+                continue
             top = [EMOJIS[j] for j in order[i, :MISSED_TEXT_TOP].tolist()]
-            scored.append(
+            missed.append(
                 {
                     "text": r.text,
                     "targets": list(r.emojis),
@@ -217,8 +220,9 @@ def _section_emoji(enc, head, eval_records):
                     "rank": first_rank,
                 }
             )
-        scored.sort(key=lambda x: x["rank"], reverse=True)
-        d["missed_texts"] = scored[:MISSED_TEXT_N]
+        sample = random.Random(SEED).sample(missed, min(MISSED_TEXT_N, len(missed)))
+        sample.sort(key=lambda x: x["rank"], reverse=True)
+        d["missed_texts"] = sample
     d["keywords"] = _keyword_probe(enc, head)
     return d
 
@@ -452,8 +456,8 @@ def _emoji_html(d) -> str:
             for m in mt
         )
         out.append(
-            f"<h3>Missed texts — worst {len(mt)} eval.jsonl rows by rank of first "
-            "relevant emoji</h3>"
+            f"<h3>Missed texts — {len(mt)} random eval.jsonl rows whose first "
+            f"relevant emoji ranks outside the top {MISSED_TEXT_TOP}</h3>"
             "<table><tr><th>Text</th><th>Target emojis</th>"
             f'<th>Top {MISSED_TEXT_TOP} predicted</th><th class="n">Rank</th></tr>'
             f"{rows}</table>"
