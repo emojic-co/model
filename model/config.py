@@ -40,7 +40,7 @@ enc_str = " ".join([
         ENCODER_DILATION)])
 
 # EMOJI
-EMOJI_EMBED_SIZE = 42
+EMOJI_EMBED_SIZE = 64
 DROPOUT_EMOJI = 0.1
 
 emj_str = " ".join([str(p) for p in (EMOJI_EMBED_SIZE, DROPOUT_EMOJI)])
