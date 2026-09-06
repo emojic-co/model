@@ -1,9 +1,7 @@
-train script:
-    currently when I run train task it train the model with both emoji and style heads.
-    I want to be able to train the model with only one head (emoji or style) or both.
-    Update the script to have the following sub commands:
-        train emoji     only train the emoji head
-        train style     only train the style head
-        train task      train the emoji + style heads.
-        train gan       train the gan head on the frozen text encoder.
-        train all       first train the emoji + style heads, then train the gan head on the frozen text encoder
+Report:
+    update the report:
+        Data:
+            Show normalized length distribution for the data/train.jsonl instead of data/data.jsonl
+        Emoji:
+            Run the tools/analysis/cldr-baseline.ts and whenever reporting performance for the model also report the baseline performance.
+            e.g. in the accuracy line chart also add the best baseline accuracy line chart.

@@ -1,7 +1,11 @@
 import { expect, test } from "bun:test"
 
 import {
+  fuzzyMatch,
   hitAtK,
+  makeIdf,
+  overlapRank,
+  queryTokens,
   rankPredictions,
   reciprocalRank,
   rowTargets,
@@ -39,6 +43,37 @@ test("hitAtK is true only when a target appears within the first k predictions",
 test("reciprocalRank returns 1/rank of the first relevant prediction, else 0", () => {
   expect(reciprocalRank(["🦄", "🍕", "🧀"], ["🧀", "🍕"])).toBeCloseTo(1 / 2)
   expect(reciprocalRank(["🦄", "🐉"], ["🍕"])).toBe(0)
+})
+
+test("queryTokens lowercases, drops punctuation, stopwords and 1-char tokens", () => {
+  expect(queryTokens("The clock is TICKING!!")).toEqual(["clock", "ticking"])
+  expect(queryTokens("a b cc")).toEqual(["cc"])
+})
+
+test("fuzzyMatch links prefix-sharing words of length >=4 within 3 chars", () => {
+  expect(fuzzyMatch("ticking", "tick")).toBe(true)
+  expect(fuzzyMatch("run", "running")).toBe(false)
+  expect(fuzzyMatch("racing", "race")).toBe(false)
+  expect(fuzzyMatch("celebration", "celeb")).toBe(false)
+  expect(fuzzyMatch("pizza", "dogs")).toBe(false)
+})
+
+test("makeIdf weights rarer keywords above common ones", () => {
+  const idf = makeIdf([["a", "b"], ["b"], ["b"]])
+  expect(idf("a")).toBeGreaterThan(idf("b"))
+})
+
+test("overlapRank scores exact matches by idf, drops zero-score emoji, ranks descending", () => {
+  const docs = [["pizza", "cheese"], ["clock", "time"], ["dog"]]
+  const glyphs = ["🍕", "🕐", "🐶"]
+  expect(overlapRank(["pizza", "time"], docs, glyphs, () => 1)).toEqual(["🍕", "🕐"])
+  expect(overlapRank(["nope"], docs, glyphs, () => 1)).toEqual([])
+})
+
+test("overlapRank credits fuzzy keyword matches at a discount", () => {
+  const docs = [["clock", "time"], ["dog"]]
+  const glyphs = ["🕐", "🐶"]
+  expect(overlapRank(["timer"], docs, glyphs, () => 1)).toEqual(["🕐"])
 })
 
 test("summarize aggregates acc@k (k=1..10), MRR and prediction coverage over rows", () => {

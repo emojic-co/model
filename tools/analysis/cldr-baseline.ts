@@ -8,6 +8,15 @@ const VARIATION_SELECTORS = /[︎️]/g
 const SEARCH_LIMIT = 50
 const KS = Array.from({ length: 10 }, (_, i) => i + 1)
 const TOKENIZERS = ["strict", "forward"] as const
+const FUZZY_MIN_LEN = 4
+const FUZZY_MAX_LEN_DELTA = 3
+const FUZZY_WEIGHT = 0.6
+
+const STOPWORDS = new Set(
+  ("a an the to of in on at is it its i you we they he she this that for and or but"
+    + " not with my your me am are was were be been being do does did have has had"
+    + " will would can could just so if").split(" "),
+)
 
 export function stripVS(s: string): string {
   return s.replace(VARIATION_SELECTORS, "")
@@ -29,6 +38,52 @@ export function rankPredictions(emojis: string[], vocab: Set<string>): string[] 
     if (vocab.has(e) && !out.includes(e)) out.push(e)
   }
   return out
+}
+
+export function queryTokens(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= 2 && !STOPWORDS.has(w))
+}
+
+export function fuzzyMatch(a: string, b: string): boolean {
+  if (a.length < FUZZY_MIN_LEN || b.length < FUZZY_MIN_LEN) return false
+  if (Math.abs(a.length - b.length) > FUZZY_MAX_LEN_DELTA) return false
+  return a.startsWith(b) || b.startsWith(a)
+}
+
+export function makeIdf(docs: string[][]): (word: string) => number {
+  const df = new Map<string, number>()
+  for (const doc of docs) {
+    for (const w of new Set(doc)) df.set(w, (df.get(w) ?? 0) + 1)
+  }
+  const n = docs.length
+  return (word) => Math.log((n + 1) / ((df.get(word) ?? 0) + 1)) + 1
+}
+
+export function overlapRank(
+  qTokens: string[],
+  docs: string[][],
+  glyphs: string[],
+  idf: (word: string) => number,
+): string[] {
+  const scored: { glyph: string; score: number; i: number }[] = []
+  for (let i = 0; i < docs.length; i++) {
+    const kw = new Set(docs[i])
+    let score = 0
+    for (const w of qTokens) {
+      if (kw.has(w)) {
+        score += idf(w)
+      } else if ([...kw].some((k) => fuzzyMatch(w, k))) {
+        score += idf(w) * FUZZY_WEIGHT
+      }
+    }
+    if (score > 0) scored.push({ glyph: glyphs[i], score, i })
+  }
+  scored.sort((a, b) => b.score - a.score || a.i - b.i)
+  return scored.map((s) => s.glyph)
 }
 
 export function hitAtK(preds: string[], targets: string[], k: number): boolean {
@@ -70,7 +125,7 @@ function buildIndex(docs: string[], tokenize: (typeof TOKENIZERS)[number]): Inde
 }
 
 function pct(x: number): string {
-  return (100 * x).toFixed(1).padStart(5)
+  return (100 * x).toFixed(1).padStart(9)
 }
 
 if (import.meta.main) {
@@ -80,10 +135,13 @@ if (import.meta.main) {
   const annotations = await loadCldrAnnotations()
   const glyphs: string[] = []
   const docs: string[] = []
+  const kwTokens: string[][] = []
   for (const [glyph, keywords] of annotations) {
     glyphs.push(stripVS(glyph))
     docs.push(keywords.join(" "))
+    kwTokens.push(keywords.map((k) => k.toLowerCase()))
   }
+  const idf = makeIdf(kwTokens)
 
   const evalRows = await readJsonl<{ text: string; emojis: string }>(EVAL_JSONL)
   const scored = evalRows
@@ -96,24 +154,38 @@ if (import.meta.main) {
     + `(rows with >=1 vocab emoji), predictions restricted to the ${vocab.size}-emoji vocab\n`,
   )
 
-  const header = ["tokenizer", ...KS.map((k) => `acc@${k}`), "MRR@10", "pred/row", "0-pred"]
-  console.log(header.map((h) => h.padStart(8)).join(" "))
+  const header = ["method", ...KS.map((k) => `acc@${k}`), "MRR@10", "pred/row", "0-pred"]
+  console.log(header.map((h) => h.padStart(9)).join(" "))
 
-  for (const tokenize of TOKENIZERS) {
-    const index = buildIndex(docs, tokenize)
-    const rows: Row[] = scored.map((r) => {
-      const ids = index.search(r.text, { limit: SEARCH_LIMIT, suggest: true }) as number[]
-      return { targets: r.targets, preds: rankPredictions(ids.map((id) => glyphs[id]), vocab) }
-    })
+  const report = (name: string, rows: Row[]) => {
     const s = summarize(rows)
     console.log(
       [
-        tokenize.padStart(8),
+        name.padStart(9),
         ...s.accAtK.map(pct),
         pct(s.mrr),
-        s.meanPreds.toFixed(2).padStart(8),
-        `${s.zeroPredRows}`.padStart(8),
+        s.meanPreds.toFixed(2).padStart(9),
+        `${s.zeroPredRows}`.padStart(9),
       ].join(" "),
     )
   }
+
+  for (const tokenize of TOKENIZERS) {
+    const index = buildIndex(docs, tokenize)
+    report(
+      tokenize,
+      scored.map((r) => {
+        const ids = index.search(r.text, { limit: SEARCH_LIMIT, suggest: true }) as number[]
+        return { targets: r.targets, preds: rankPredictions(ids.map((id) => glyphs[id]), vocab) }
+      }),
+    )
+  }
+
+  report(
+    "overlap",
+    scored.map((r) => ({
+      targets: r.targets,
+      preds: rankPredictions(overlapRank(queryTokens(r.text), kwTokens, glyphs, idf), vocab),
+    })),
+  )
 }
