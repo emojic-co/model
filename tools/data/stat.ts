@@ -1,16 +1,9 @@
 import { existsSync } from "node:fs"
-import { readFile } from "node:fs/promises"
 
 import { cac } from "cac"
 import { Box, render, Text } from "ink"
 import React from "react"
 
-import {
-  DATA_JSONL,
-  EVAL_JSONL,
-  LABELS_JSON,
-  TRAIN_JSONL,
-} from "../../files.ts"
 import { splitEmojis } from "./emoji.ts"
 import { readJsonl } from "./io.ts"
 import { normalize } from "./normalize.ts"
@@ -239,38 +232,16 @@ function pctStr(n: number) {
   return `${n.toFixed(1)}%`
 }
 
-async function countLines(path: string): Promise<number> {
-  if (!existsSync(path)) return -1
-  const text = await readFile(path, "utf8")
-  let n = 0
-  for (const line of text.split("\n")) if (line.trim()) n++
-  return n
-}
-
 function App({
   stats,
-  files,
-  labels,
+  file,
   long,
 }: {
   stats: Stats
-  files: { data: number; train: number; eval: number }
-  labels: { styles: number; emojis: number } | null
+  file: string
   long: boolean
 }) {
   const s = stats
-  const miss = "missing — run bun run regen"
-
-  const fileRows: Cell[][] = [
-    ["data/data.jsonl", files.data, "master"],
-    ["data/train.jsonl", files.train < 0 ? "—" : files.train, files.train < 0 ? miss : ""],
-    ["data/eval.jsonl", files.eval < 0 ? "—" : files.eval, files.eval < 0 ? miss : ""],
-    [
-      "data/labels.json",
-      labels ? `${labels.styles} styles / ${labels.emojis} emojis` : "—",
-      labels ? "" : miss,
-    ],
-  ]
 
   const overviewRows: Cell[][] = [
     ["raw rows", s.rawRows, ""],
@@ -300,8 +271,7 @@ function App({
   const styleRows: Cell[][] = s.styleCounts.map((r) => [r.style, r.texts, pctStr(r.pct)])
 
   const children = [
-    h(Section, { key: "files", title: "Files" }, h(Table, { head: ["file", "rows", ""], rows: fileRows, align: ["l", "r", "l"] })),
-    h(Section, { key: "overview", title: "Corpus (data/data.jsonl, collapsed by normalized text)" }, h(Table, { head: ["metric", "value", ""], rows: overviewRows, align: ["l", "r", "l"] })),
+    h(Section, { key: "overview", title: `Corpus (${file}, collapsed by normalized text)` }, h(Table, { head: ["metric", "value", ""], rows: overviewRows, align: ["l", "r", "l"] })),
     h(Section, { key: "epr", title: "Unique emojis per normalized text" }, h(Table, { head: ["# emojis", "# texts", "%", "cum %"], rows: emojiPerTextRows, align: ["r", "r", "r", "r"] })),
     h(Section, { key: "top", title: long ? "Emoji frequency (all)" : "Top 15 emojis by # texts" }, h(Table, { head: ["emoji", "# texts", "%"], rows: topEmojiRows, align: ["l", "r", "r"] })),
     h(Section, { key: "styles", title: "Styles by # texts" }, h(Table, { head: ["style", "# texts", "%"], rows: styleRows, align: ["l", "r", "r"] })),
@@ -340,38 +310,29 @@ function App({
 
 if (import.meta.main) {
   const cli = cac("stat")
+  cli.usage("<file>  — statistics for one data JSONL file (e.g. data/data.jsonl)")
   cli.option("--long", "print more statistics")
   cli.help()
   const parsed = cli.parse(process.argv, { run: false })
   if (parsed.options.help) process.exit(0)
 
-  if (!existsSync(DATA_JSONL)) {
-    console.error(`${DATA_JSONL} not found`)
+  const file = parsed.args[0] as string | undefined
+  if (!file) {
+    console.error("usage: bun tools/data/stat.ts <file>  (e.g. data/data.jsonl)")
+    process.exit(1)
+  }
+  if (!existsSync(file)) {
+    console.error(`${file} not found`)
     process.exit(1)
   }
 
-  const rows = await readJsonl(DATA_JSONL)
+  const rows = await readJsonl(file)
   const stats = computeStats(rows)
-
-  const [train, evalCount] = await Promise.all([
-    countLines(TRAIN_JSONL),
-    countLines(EVAL_JSONL),
-  ])
-
-  let labels: { styles: number; emojis: number } | null = null
-  if (existsSync(LABELS_JSON)) {
-    const j = JSON.parse(await readFile(LABELS_JSON, "utf8")) as {
-      styles?: unknown[]
-      emojis?: unknown[]
-    }
-    labels = { styles: j.styles?.length ?? 0, emojis: j.emojis?.length ?? 0 }
-  }
 
   const { unmount, waitUntilExit } = render(
     h(App, {
       stats,
-      files: { data: stats.rawRows, train, eval: evalCount },
-      labels,
+      file,
       long: Boolean(parsed.options.long),
     }),
   )

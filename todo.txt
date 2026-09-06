@@ -1,9 +1,4 @@
 
 Tools: 
-    Upsample:
-        Create a set of 10 generic color pallets, whenever the annotator failed to provide a color palette use a random one from the set instead of dropping the record.
-
-Tools:
-    update the tools/data/cldr.ts:
-        add a flag --missing
-        with this flag the script append to data/cldr.json the missing keywords instead.
+    update the tool tools/data/stat.ts to have a mandatory <file> arg (data/data.jsonl, data/train.jsonl, etc...)
+    The tool will only output statistics for the given file, and not for all files in data/
