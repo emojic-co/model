@@ -25,6 +25,8 @@ KEYWORDS_PATH = KEYWORDS_JSON
 EMOJI_KS = list(range(1, 11))
 KEYWORD_MISS_K = 5
 KEYWORD_TOP = 5
+MISSED_TEXT_N = 20
+MISSED_TEXT_TOP = 5
 
 
 def _ts() -> str:
@@ -201,6 +203,22 @@ def _section_emoji(enc, head, eval_records):
             "n": len(rows),
             "acc_at_k": [_acc_at_k(logits, tgt, k).mean().item() for k in EMOJI_KS],
         }
+        order = logits.argsort(dim=-1, descending=True)
+        rank_of = order.argsort(dim=-1)
+        scored = []
+        for i, r in enumerate(rows):
+            first_rank = min(rank_of[i, vocab[e]].item() + 1 for e in r.emojis)
+            top = [EMOJIS[j] for j in order[i, :MISSED_TEXT_TOP].tolist()]
+            scored.append(
+                {
+                    "text": r.text,
+                    "targets": list(r.emojis),
+                    "top5": top,
+                    "rank": first_rank,
+                }
+            )
+        scored.sort(key=lambda x: x["rank"], reverse=True)
+        d["missed_texts"] = scored[:MISSED_TEXT_N]
     d["keywords"] = _keyword_probe(enc, head)
     return d
 
@@ -424,6 +442,22 @@ def _emoji_html(d) -> str:
         e = d["eval"]
         points = list(zip((str(k) for k in EMOJI_KS), e["acc_at_k"], strict=True))
         out.append(f"<h3>Performance on eval.jsonl ({e['n']} rows)</h3>{_linechart(points)}")
+    mt = d.get("missed_texts")
+    if mt:
+        rows = "".join(
+            f"<tr><td>{_esc(m['text'])}</td>"
+            f"<td>{_esc(' '.join(m['targets']))}</td>"
+            f"<td>{_esc(' '.join(m['top5']))}</td>"
+            f'<td class="n">{m["rank"]}</td></tr>'
+            for m in mt
+        )
+        out.append(
+            f"<h3>Missed texts — worst {len(mt)} eval.jsonl rows by rank of first "
+            "relevant emoji</h3>"
+            "<table><tr><th>Text</th><th>Target emojis</th>"
+            f'<th>Top {MISSED_TEXT_TOP} predicted</th><th class="n">Rank</th></tr>'
+            f"{rows}</table>"
+        )
     kw = d.get("keywords")
     if kw:
         points = list(zip((str(k) for k in EMOJI_KS), kw["acc_at_k"], strict=True))

@@ -15,6 +15,7 @@ const MIN_RANK = 200
 const MAX_RANK = 400
 const FAIL_RANK = 5
 const TEXTS_PER_EMOJI = 40
+const NEG_COUNT = 1000
 const MIN_LEN = 4
 const MAX_LEN = 42
 const GEN_CONCURRENCY = 20
@@ -80,6 +81,12 @@ export function rankWindow(
     .map((x) => x.k)
 }
 
+export function batchSizes(total: number, per: number): number[] {
+  const out: number[] = []
+  for (let left = total; left > 0; left -= per) out.push(Math.min(per, left))
+  return out
+}
+
 function genPrompt(voice: string, emoji: string, per: number): string {
   return [
     `Write ${per} short text messages as if sent by ${voice}, one per line.`,
@@ -93,15 +100,22 @@ function genPrompt(voice: string, emoji: string, per: number): string {
   ].join("\n")
 }
 
-async function genBatch(
-  voice: string,
-  emoji: string,
-  per: number,
-): Promise<string[]> {
-  const { text } = await generateText({
-    model: MODEL,
-    prompt: genPrompt(voice, emoji, per),
-  })
+function genNegationPrompt(voice: string, per: number): string {
+  return [
+    `Write ${per} short text messages as if sent by ${voice}, one per line.`,
+    `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
+    `Every message must be built on negation: a negated opinion ("not good",`,
+    `"don't like it"), a refusal ("no thanks", "never again"), a denial, or a`,
+    `correction ("it isn't a dog it's a cat", "that's not what I meant").`,
+    `Use negation words like not, n't, no, never, none, nothing, without.`,
+    `Do not put any emoji in the output.`,
+    `Vary sender, tone, and intent: complaints, corrections, refusals, denials,`,
+    `disappointed reactions, small talk. Sound real and specific.`,
+    `No numbering, no bullets, no quotes, no commentary.`,
+  ].join("\n")
+}
+
+function cleanLines(text: string): string[] {
   return text
     .split("\n")
     .map((l) =>
@@ -113,6 +127,26 @@ async function genBatch(
     .filter((l) => l && !l.startsWith("```"))
 }
 
+async function genBatch(
+  voice: string,
+  emoji: string,
+  per: number,
+): Promise<string[]> {
+  const { text } = await generateText({
+    model: MODEL,
+    prompt: genPrompt(voice, emoji, per),
+  })
+  return cleanLines(text)
+}
+
+async function genNegationBatch(voice: string, per: number): Promise<string[]> {
+  const { text } = await generateText({
+    model: MODEL,
+    prompt: genNegationPrompt(voice, per),
+  })
+  return cleanLines(text)
+}
+
 const cli = cac("upsample")
 cli.usage("[options]")
 cli
@@ -120,7 +154,9 @@ cli
   .option("--min-rank <n>", `lowest (most frequent) rank to target (default ${MIN_RANK})`)
   .option("--max-rank <n>", `highest (least frequent) rank to target (default ${MAX_RANK})`)
   .option("--report", "target emoji failing the latest report's keywords.json keyword probe")
-  .option("--per <n>", `texts to generate per target emoji (default ${TEXTS_PER_EMOJI})`)
+  .option("--per <n>", `texts to generate per target emoji / per batch (default ${TEXTS_PER_EMOJI})`)
+  .option("--negation", "standalone: generate negation-heavy texts (ignores emoji targeting)")
+  .option("--count <n>", `texts to generate with --negation (default ${NEG_COUNT})`)
 cli.help()
 
 if (import.meta.main) {
@@ -130,9 +166,34 @@ if (import.meta.main) {
   const minRank = Number(options.minRank ?? MIN_RANK)
   const maxRank = Number(options.maxRank ?? MAX_RANK)
   const per = Number(options.per ?? TEXTS_PER_EMOJI)
+  const negation = Boolean(options.negation)
+  const count = Number(options.count ?? NEG_COUNT)
+
+  if (negation && (options.report || only || options.minRank != null || options.maxRank != null)) {
+    console.warn("--negation ignores --report / --emojis / --min-rank / --max-rank")
+  }
+  if (!negation && options.count != null) {
+    console.warn("--count only applies with --negation")
+  }
+  if (!(per >= 1)) {
+    console.error(`--per must be >= 1, got ${JSON.stringify(options.per)}`)
+    process.exit(1)
+  }
 
   let targets: string[]
-  if (options.report) {
+  let negBatches: number[] = []
+  if (negation) {
+    if (!(count >= 1)) {
+      console.error(`--count must be >= 1, got ${JSON.stringify(options.count)}`)
+      process.exit(1)
+    }
+    targets = []
+    negBatches = batchSizes(count, per)
+    console.log(
+      `negation mode -> generating ${count} texts in ${negBatches.length} `
+      + `batches of up to ${per}`,
+    )
+  } else if (options.report) {
     const reportPath = await latestReport()
     const report = JSON.parse(await readFile(reportPath, "utf8")) as Report
     const keywords = report.emoji?.keywords
@@ -162,29 +223,46 @@ if (import.meta.main) {
     )
   }
 
+  const genUnit = negation ? "batches" : "emojis"
   const genBar = new cliProgress.SingleBar(
     {
       format:
-        "generating |{bar}| {percentage}% | {value}/{total} emojis | ETA: {eta}s",
+        `generating |{bar}| {percentage}% | {value}/{total} ${genUnit} | ETA: {eta}s`,
     },
     cliProgress.Presets.shades_classic,
   )
-  genBar.start(targets.length, 0)
 
-  const cands: { text: string; target: string }[] = []
+  const cands: { text: string; target?: string }[] = []
   const genQ = new PQueue({ concurrency: GEN_CONCURRENCY })
-  genQ.addAll(
-    targets.map((emoji) => async () => {
-      try {
-        for (const t of await genBatch(pickVoice(), emoji, per)) {
-          cands.push({ text: t, target: emoji })
+  if (negation) {
+    genBar.start(negBatches.length, 0)
+    genQ.addAll(
+      negBatches.map((n) => async () => {
+        try {
+          for (const t of await genNegationBatch(pickVoice(), n)) {
+            cands.push({ text: t })
+          }
+        } catch (err) {
+          console.warn(`\n  gen (negation) failed: ${err}`)
         }
-      } catch (err) {
-        console.warn(`\n  gen (${emoji}) failed: ${err}`)
-      }
-      genBar.increment()
-    }),
-  )
+        genBar.increment()
+      }),
+    )
+  } else {
+    genBar.start(targets.length, 0)
+    genQ.addAll(
+      targets.map((emoji) => async () => {
+        try {
+          for (const t of await genBatch(pickVoice(), emoji, per)) {
+            cands.push({ text: t, target: emoji })
+          }
+        } catch (err) {
+          console.warn(`\n  gen (${emoji}) failed: ${err}`)
+        }
+        genBar.increment()
+      }),
+    )
+  }
   await genQ.onIdle()
   genBar.stop()
 
@@ -219,34 +297,39 @@ if (import.meta.main) {
       noPalette++
       continue
     }
-    const hit = label.emojis.includes(cands[i].target)
-    if (hit) hitTarget++
-    else missTarget++
-    const emojis = [
-      cands[i].target,
-      ...label.emojis.filter((e) => e !== cands[i].target),
-    ]
-    lines.push(
-      JSON.stringify({
-        text: cands[i].text,
-        emojis: emojis.join(" "),
-        styles: label.styles,
-        bg: label.bg,
-        fg: label.fg,
-      }),
-    )
+    const target = cands[i].target
+    let emojis: string
+    if (target) {
+      if (label.emojis.includes(target)) hitTarget++
+      else missTarget++
+      emojis = [target, ...label.emojis.filter((e) => e !== target)].join(" ")
+    } else {
+      emojis = label.emojis.join(" ")
+    }
+    const row: Record<string, unknown> = {
+      text: cands[i].text,
+      emojis,
+      styles: label.styles,
+      bg: label.bg,
+      fg: label.fg,
+    }
+    if (negation) row.neg = "true"
+    lines.push(JSON.stringify(row))
   }
   await appendJsonl(DATA, lines)
 
   console.log("\n--- summary ---")
-  console.log(`targets              : ${targets.length}`)
+  console.log(`mode                 : ${negation ? "negation" : "emoji-target"}`)
+  if (!negation) console.log(`targets              : ${targets.length}`)
   console.log(`generated            : ${cands.length}`)
   console.log(`appended -> data     : ${lines.length}`)
   console.log(`dropped no label     : ${noLabel}`)
   console.log(`dropped no palette   : ${noPalette}`)
-  console.log(
-    `target hit / miss    : ${hitTarget} / ${missTarget} `
-    + `(target injected either way)`,
-  )
+  if (!negation) {
+    console.log(
+      `target hit / miss    : ${hitTarget} / ${missTarget} `
+      + `(target injected either way)`,
+    )
+  }
   process.exit(0)
 }

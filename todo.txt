@@ -1,3 +1,16 @@
+Tools:
+    Update the tools/data/upsample.ts to have a flag --negation:
+    With this flag the tool asks the text generator to generate a text with negation, e.g. "not good", "don't like it", "It isn't a dog it is a cat", etc.
+    Then send the text to the standard annotator.
+
 Model:
     It seems that the TextEncoder + EmojiHead model now perform well on keywords but could perform better on the whole text context.
     I want to increase its receptive field, suggest how.
+
+Done:
+    Report:
+        Update the report tool:
+            Before the "missed keywords" section add a section "missed texts".
+            In this section, list the worst 20 texts from the eval.jsonl
+            worst means the rank of the first relevant emoji is the highest (i.e. the worst).
+            show a table with the text, target emojis, top 5 predicted emojis, and the rank of the first relevant emoji.
