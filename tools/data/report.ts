@@ -5,14 +5,17 @@ import { REPORT_DIR } from "../../files.ts"
 export type Miss = {
   keyword: string
   target: string
-  rank: number
+  rank: number | null
   top5: string[]
   emoji_freq: number
   pair_freq: number
 }
 
+type Probe = { n?: number; total?: number; acc_at_k?: number[]; misses?: Miss[] }
+
 export type Report = {
-  emoji?: { keywords?: { n?: number; acc_at_k?: number[]; misses?: Miss[] } }
+  emoji?: { keywords?: Probe }
+  cldr?: Probe
 }
 
 export async function latestReport(dir = REPORT_DIR): Promise<string> {

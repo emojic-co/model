@@ -13,7 +13,7 @@ EVAL_PATH = EVAL_JSONL
 
 PAD = "·"
 PAD_IDX = 0
-CHARS = PAD + "abcdefghijklmnopqrstuvwxyz!?:()@$%&* "
+CHARS = PAD + "abcdefghijklmnopqrstuvwxyz0123456789!?:()@$%&* "
 VOCAB_SIZE = len(CHARS)
 
 

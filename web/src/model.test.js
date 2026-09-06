@@ -9,7 +9,7 @@ import {
   decodeColorList,
 } from './model'
 
-const CHARS = '·abcdefghijklmnopqrstuvwxyz!?:()@$%&* '
+const CHARS = '·abcdefghijklmnopqrstuvwxyz0123456789!?:()@$%&* '
 const idx = new Map([...CHARS].map((c, i) => [c, i]))
 
 describe('normalize', () => {
@@ -19,8 +19,8 @@ describe('normalize', () => {
   it('collapses 3+ char repeats to 2', () => {
     expect(normalize('soooo good', idx)).toBe('soo good')
   })
-  it('drops chars outside the vocab (incl. digits and accents)', () => {
-    expect(normalize('café #1!', idx)).toBe('caf !')
+  it('drops chars outside the vocab (incl. accents) but keeps digits', () => {
+    expect(normalize('café #1!', idx)).toBe('caf 1!')
   })
   it('trims leading/trailing whitespace', () => {
     expect(normalize('  hi there  ', idx)).toBe('hi there')

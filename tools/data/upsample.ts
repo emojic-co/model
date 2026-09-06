@@ -18,6 +18,8 @@ const FAIL_RANK = 5
 const TEXTS_PER_EMOJI = 40
 const NEG_COUNT = 1000
 const SINGLE_EMOJI_COUNT = 5000
+const CLDR_PER = 10
+const CLDR_KEYWORDS = 500
 const MIN_LEN = 4
 const MAX_LEN = 42
 const GEN_CONCURRENCY = 20
@@ -86,12 +88,28 @@ export function failingEmojis(misses: Miss[], maxRank: number): string[] {
   const seen = new Set<string>()
   for (const m of misses) {
     if (!m.target || seen.has(m.target)) continue
-    if (m.rank > maxRank) {
+    if (m.rank == null || m.rank > maxRank) {
       seen.add(m.target)
       out.push(m.target)
     }
   }
   return out
+}
+
+export function missedCldrKeywords(
+  misses: Miss[],
+): { keyword: string; targets: string[] }[] {
+  const map = new Map<string, string[]>()
+  for (const m of misses) {
+    if (!m.keyword || !m.target) continue
+    const targets = map.get(m.keyword)
+    if (targets) {
+      if (!targets.includes(m.target)) targets.push(m.target)
+    } else {
+      map.set(m.keyword, [m.target])
+    }
+  }
+  return [...map].map(([keyword, targets]) => ({ keyword, targets }))
 }
 
 export function rankWindow(
@@ -118,6 +136,24 @@ function genPrompt(voice: string, emoji: string, per: number): string {
     `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
     `Every message must read naturally as one a person would send together with`,
     `the emoji ${emoji} - its subject, activity, place, or mood fits that emoji.`,
+    `Do not put any emoji in the output, and never name or describe the emoji.`,
+    `Vary sender, tone, and intent: updates, questions, complaints, plans,`,
+    `reactions, reminders, small talk. Sound real and specific.`,
+    `No numbering, no bullets, no quotes, no commentary.`,
+  ].join("\n")
+}
+
+function genCldrPrompt(
+  voice: string,
+  keyword: string,
+  targets: string[],
+  per: number,
+): string {
+  return [
+    `Write ${per} short text messages as if sent by ${voice}, one per line.`,
+    `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
+    `Every message must naturally use or clearly evoke "${keyword}", in a`,
+    `context that fits at least one of these emoji: ${targets.join(" ")}.`,
     `Do not put any emoji in the output, and never name or describe the emoji.`,
     `Vary sender, tone, and intent: updates, questions, complaints, plans,`,
     `reactions, reminders, small talk. Sound real and specific.`,
@@ -172,6 +208,19 @@ async function genNegationBatch(voice: string, per: number): Promise<string[]> {
   return cleanLines(text)
 }
 
+async function genCldrBatch(
+  voice: string,
+  keyword: string,
+  targets: string[],
+  per: number,
+): Promise<string[]> {
+  const { text } = await generateText({
+    model: MODEL,
+    prompt: genCldrPrompt(voice, keyword, targets, per),
+  })
+  return cleanLines(text)
+}
+
 const cli = cac("upsample")
 cli.usage("[options]")
 cli
@@ -179,10 +228,11 @@ cli
   .option("--min-rank <n>", `lowest (most frequent) rank to target (default ${MIN_RANK})`)
   .option("--max-rank <n>", `highest (least frequent) rank to target (default ${MAX_RANK})`)
   .option("--report", "target emoji failing the latest report's keywords.json keyword probe")
-  .option("--per <n>", `texts to generate per target emoji / per batch (default ${TEXTS_PER_EMOJI})`)
+  .option("--cldr", "standalone: generate texts for the latest report's missed CLDR keywords (ignores emoji targeting)")
+  .option("--per <n>", `texts to generate per target emoji / keyword / batch (default ${TEXTS_PER_EMOJI}, ${CLDR_PER} with --cldr)`)
   .option("--negation", "standalone: generate negation-heavy texts (ignores emoji targeting)")
   .option("--single-emoji", "standalone: re-annotate corpus rows that carry at most one emoji (ignores emoji targeting)")
-  .option("--count <n>", `cap on texts for --negation (default ${NEG_COUNT}) / --single-emoji (default ${SINGLE_EMOJI_COUNT})`)
+  .option("--count <n>", `cap on texts for --negation (default ${NEG_COUNT}) / --single-emoji (default ${SINGLE_EMOJI_COUNT}) / missed keywords for --cldr (default ${CLDR_KEYWORDS})`)
 cli.help()
 
 if (import.meta.main) {
@@ -191,27 +241,31 @@ if (import.meta.main) {
   const only = options.emojis ? String(options.emojis).trim() || undefined : undefined
   const minRank = Number(options.minRank ?? MIN_RANK)
   const maxRank = Number(options.maxRank ?? MAX_RANK)
-  const per = Number(options.per ?? TEXTS_PER_EMOJI)
   const negation = Boolean(options.negation)
   const singleEmoji = Boolean(options.singleEmoji)
-  const count = Number(options.count ?? (singleEmoji ? SINGLE_EMOJI_COUNT : NEG_COUNT))
+  const cldr = Boolean(options.cldr)
+  const per = Number(options.per ?? (cldr ? CLDR_PER : TEXTS_PER_EMOJI))
+  const count = Number(
+    options.count
+      ?? (singleEmoji ? SINGLE_EMOJI_COUNT : cldr ? CLDR_KEYWORDS : NEG_COUNT),
+  )
 
-  if (negation && singleEmoji) {
-    console.error("--negation and --single-emoji are mutually exclusive")
+  if ([negation, singleEmoji, cldr].filter(Boolean).length > 1) {
+    console.error("--negation, --single-emoji and --cldr are mutually exclusive")
     process.exit(1)
   }
-  const standalone = negation || singleEmoji
+  const standalone = negation || singleEmoji || cldr
+  const standaloneName = negation ? "negation" : singleEmoji ? "single-emoji" : "cldr"
   if (standalone && (options.report || only || options.minRank != null || options.maxRank != null)) {
     console.warn(
-      `--${negation ? "negation" : "single-emoji"} ignores `
-      + "--report / --emojis / --min-rank / --max-rank",
+      `--${standaloneName} ignores --report / --emojis / --min-rank / --max-rank`,
     )
   }
   if (singleEmoji && options.per != null) {
     console.warn("--single-emoji ignores --per")
   }
   if (!standalone && options.count != null) {
-    console.warn("--count only applies with --negation / --single-emoji")
+    console.warn("--count only applies with --negation / --single-emoji / --cldr")
   }
   if (!(per >= 1)) {
     console.error(`--per must be >= 1, got ${JSON.stringify(options.per)}`)
@@ -221,6 +275,7 @@ if (import.meta.main) {
   let targets: string[]
   let negBatches: number[] = []
   let singleTexts: string[] = []
+  let cldrKws: { keyword: string; targets: string[] }[] = []
   if (singleEmoji) {
     if (!(count >= 1)) {
       console.error(`--count must be >= 1, got ${JSON.stringify(options.count)}`)
@@ -249,6 +304,26 @@ if (import.meta.main) {
       `negation mode -> generating ${count} texts in ${negBatches.length} `
       + `batches of up to ${per}`,
     )
+  } else if (cldr) {
+    if (!(count >= 1)) {
+      console.error(`--count must be >= 1, got ${JSON.stringify(options.count)}`)
+      process.exit(1)
+    }
+    const reportPath = await latestReport()
+    const report = JSON.parse(await readFile(reportPath, "utf8")) as Report
+    const misses = report.cldr?.misses
+    if (!misses) throw new Error(`${reportPath}: no cldr.misses`)
+    cldrKws = missedCldrKeywords(misses).slice(0, count)
+    targets = []
+    console.log(
+      `${reportPath}: ${misses.length} CLDR miss rows -> `
+      + `${cldrKws.length} missed keywords (cap ${count}), `
+      + `${per} texts each`,
+    )
+    if (!cldrKws.length) {
+      console.error("no missed CLDR keywords in the latest report")
+      process.exit(1)
+    }
   } else if (options.report) {
     const reportPath = await latestReport()
     const report = JSON.parse(await readFile(reportPath, "utf8")) as Report
@@ -284,7 +359,7 @@ if (import.meta.main) {
     for (const t of singleTexts) cands.push({ text: t })
     console.log(`${cands.length} corpus rows selected, annotating`)
   } else {
-    const genUnit = negation ? "batches" : "emojis"
+    const genUnit = negation ? "batches" : cldr ? "keywords" : "emojis"
     const genBar = new cliProgress.SingleBar(
       {
         format:
@@ -304,6 +379,20 @@ if (import.meta.main) {
             }
           } catch (err) {
             console.warn(`\n  gen (negation) failed: ${err}`)
+          }
+          genBar.increment()
+        }),
+      )
+    } else if (cldr) {
+      genBar.start(cldrKws.length, 0)
+      genQ.addAll(
+        cldrKws.map(({ keyword, targets }) => async () => {
+          try {
+            for (const t of await genCldrBatch(pickVoice(), keyword, targets, per)) {
+              cands.push({ text: t })
+            }
+          } catch (err) {
+            console.warn(`\n  gen (${keyword}) failed: ${err}`)
           }
           genBar.increment()
         }),
@@ -375,6 +464,7 @@ if (import.meta.main) {
     }
     const meta: Record<string, unknown> = { date: today }
     if (singleEmoji) meta["single-emoji"] = true
+    if (cldr) meta.src = "cldr"
     const row: Record<string, unknown> = {
       text: cands[i].text,
       emojis,
@@ -388,10 +478,17 @@ if (import.meta.main) {
   }
   await appendJsonl(DATA, lines)
 
-  const mode = negation ? "negation" : singleEmoji ? "single-emoji" : "emoji-target"
+  const mode = negation
+    ? "negation"
+    : singleEmoji
+      ? "single-emoji"
+      : cldr
+        ? "cldr"
+        : "emoji-target"
   console.log("\n--- summary ---")
   console.log(`mode                 : ${mode}`)
   if (!standalone) console.log(`targets              : ${targets.length}`)
+  if (cldr) console.log(`keywords             : ${cldrKws.length}`)
   console.log(`${(singleEmoji ? "selected" : "generated").padEnd(21)}: ${cands.length}`)
   console.log(`appended -> data     : ${lines.length}`)
   console.log(`dropped no label     : ${noLabel}`)

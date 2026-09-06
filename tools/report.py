@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import torch
 import typer
 
-from files import CLDR_BASELINE_JSON, DATA_JSONL, KEYWORDS_JSON
+from files import CLDR_BASELINE_JSON, CLDR_JSONL, DATA_JSONL, KEYWORDS_JSON
 from model.config import EMOJIS, SEED, STYLES
 from model.data import EVAL_PATH, TRAIN_PATH, read, text_to_tensor
 from model.data import normalize as norm_text
@@ -141,8 +141,7 @@ def _emoji_frequencies():
     return freq, emoji_rows
 
 
-def _keyword_probe(enc, head):
-    words = json.loads(Path(KEYWORDS_PATH).read_text(encoding="utf-8"))
+def _probe(words, enc, head, all_targets=False):
     vocab = {e: i for i, e in enumerate(EMOJIS)}
     emoji_freq, emoji_rows = _emoji_frequencies()
     rows = []
@@ -154,36 +153,63 @@ def _keyword_probe(enc, head):
             order = head(emb).squeeze(0).argsort(descending=True).tolist()
             top5 = [EMOJIS[j] for j in order[:KEYWORD_TOP]]
             ranks = {e: order.index(i) + 1 for e, i in ids.items()}
+            best = min(ranks.values(), default=None)
             rows.append(
                 {
                     "keyword": word,
                     "expected": exp,
-                    "rank": min(ranks.values(), default=None),
+                    "rank": best,
                     "top5": top5,
                 }
             )
+            if best is not None and best <= KEYWORD_MISS_K:
+                continue
+            if best is None and not all_targets:
+                continue
             pattern = re.compile(rf"\b{re.escape(word)}\b", re.IGNORECASE)
-            for e, rank in ranks.items():
-                if rank > KEYWORD_MISS_K:
-                    pair = sum(1 for t in emoji_rows.get(e, ()) if pattern.search(t))
-                    misses.append(
-                        {
-                            "keyword": word,
-                            "target": e,
-                            "rank": rank,
-                            "top5": top5,
-                            "emoji_freq": emoji_freq.get(e, 0),
-                            "pair_freq": pair,
-                        }
-                    )
+            for e in exp if all_targets else ranks:
+                rank = ranks.get(e)
+                pair = sum(1 for t in emoji_rows.get(e, ()) if pattern.search(t))
+                misses.append(
+                    {
+                        "keyword": word,
+                        "target": e,
+                        "rank": rank,
+                        "top5": top5,
+                        "emoji_freq": emoji_freq.get(e, 0),
+                        "pair_freq": pair,
+                    }
+                )
     scored = [r["rank"] for r in rows if r["rank"] is not None]
     n = len(scored) or 1
-    misses.sort(key=lambda r: r["rank"], reverse=True)
+    misses.sort(
+        key=lambda r: r["rank"] if r["rank"] is not None else float("inf"),
+        reverse=True,
+    )
     return {
         "n": len(scored),
+        "total": len(words),
         "acc_at_k": [sum(r <= k for r in scored) / n for k in EMOJI_KS],
         "misses": misses,
     }
+
+
+def _keyword_probe(enc, head):
+    words = json.loads(Path(KEYWORDS_PATH).read_text(encoding="utf-8"))
+    return _probe(words, enc, head)
+
+
+def _cldr_probe(enc, head):
+    words = {}
+    for d in _rows(str(CLDR_JSONL)):
+        word = str(d.get("text", ""))
+        if not word:
+            continue
+        targets = words.setdefault(word, [])
+        for e in str(d.get("emojis", "")).split():
+            if e not in targets:
+                targets.append(e)
+    return _probe(words, enc, head, all_targets=True)
 
 
 @cache
@@ -247,17 +273,24 @@ def _section_emoji(enc, head, eval_records):
     return d
 
 
+def _section_cldr(enc, head):
+    if enc is None or head is None:
+        return {}
+    return _cldr_probe(enc, head)
+
+
 def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
     want = {s.strip() for s in only.split(",") if s.strip()} or {
         "data",
         "labels",
         "emoji",
+        "cldr",
     }
     enc_pt, emoji_pt = pt / "enc.pt", pt / "emoji.pt"
     prov = _provenance(pt)
 
     enc = emoji_head = None
-    if "emoji" in want and enc_pt.exists():
+    if ("emoji" in want or "cldr" in want) and enc_pt.exists():
         enc, err = _load(TextEncoder(), enc_pt)
         if err:
             prov["issues"].append(f"{enc_pt} could not load: {err}")
@@ -279,6 +312,8 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         report["labels"] = _section_labels()
     if "emoji" in want:
         report["emoji"] = _section_emoji(enc, emoji_head, eval_records)
+    if "cldr" in want:
+        report["cldr"] = _section_cldr(enc, emoji_head)
 
     out_dir = Path(out) / f"{prov['ts']}-{prov['model_sha']}"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -530,14 +565,45 @@ def _emoji_html(d) -> str:
             f'<td class="n">{_fnum(m["pair_freq"])}</td></tr>'
             for m in kw["misses"]
         )
+        missed_words = len({m["keyword"] for m in kw["misses"]})
         out.append(
-            f"<h3>Missed keywords — target not in top {KEYWORD_MISS_K} "
-            f"({len(kw['misses'])} misses across {kw['n']} words)</h3>"
+            f"<h3>Missed keywords — no target in top {KEYWORD_MISS_K} "
+            f"({missed_words} of {kw['n']} words, {len(kw['misses'])} target rows)</h3>"
             "<table><tr><th>Keyword</th><th>Target emoji</th>"
             f'<th>Top {KEYWORD_TOP} predicted</th><th class="n">Rank</th>'
             '<th class="n">Emoji freq</th><th class="n">Pair freq</th></tr>'
             f"{rows}</table>"
         )
+    return "".join(out)
+
+
+def _cldr_html(d) -> str:
+    if not d:
+        return '<h2>CLDR</h2><p class="note">enc.pt / emoji.pt not available.</p>'
+    points = list(zip((str(k) for k in EMOJI_KS), d["acc_at_k"], strict=True))
+    out = [
+        "<h2>CLDR</h2>",
+        f"<h3>Performance on cldr.jsonl ({d['n']} words)</h3>{_linechart(points)}",
+    ]
+    rows = "".join(
+        f"<tr><td>{_esc(m['keyword'])}</td>"
+        f"<td>{_esc(m['target'])}</td>"
+        f"<td>{_esc(' '.join(m['top5']))}</td>"
+        f'<td class="n">{"—" if m["rank"] is None else m["rank"]}</td>'
+        f'<td class="n">{_fnum(m["emoji_freq"])}</td>'
+        f'<td class="n">{_fnum(m["pair_freq"])}</td></tr>'
+        for m in d["misses"]
+    )
+    missed_words = len({m["keyword"] for m in d["misses"]})
+    out.append(
+        f"<h3>All misses — keywords with no target in top {KEYWORD_MISS_K} "
+        f"({missed_words} of {d.get('total', d['n'])} keywords, "
+        f"{d['n']} rankable, {len(d['misses'])} target rows)</h3>"
+        "<table><tr><th>Keyword</th><th>Target emoji</th>"
+        f'<th>Top {KEYWORD_TOP} predicted</th><th class="n">Rank</th>'
+        '<th class="n">Emoji freq</th><th class="n">Pair freq</th></tr>'
+        f"{rows}</table>"
+    )
     return "".join(out)
 
 
@@ -549,6 +615,8 @@ def _render_html(report) -> str:
         body.append(_labels_html(report["labels"]))
     if "emoji" in report:
         body.append(_emoji_html(report["emoji"]))
+    if "cldr" in report:
+        body.append(_cldr_html(report["cldr"]))
     return (
         '<!doctype html><meta charset="utf-8">'
         f"<title>emojic report — {report['provenance']['ts']}</title>"

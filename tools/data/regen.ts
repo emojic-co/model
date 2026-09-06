@@ -5,6 +5,9 @@ import { normalize } from "./normalize.ts"
 import { stableHash } from "./pool.ts"
 import { STYLE_SET } from "./styles.ts"
 
+const MAX_COUNT = 1000
+const MIN_COUNT = 500
+
 export type Palette = { bg: string[]; fg: string }
 export type Row = {
   text: string
@@ -127,7 +130,6 @@ export function emojiVocab(counts: Map<string, number>, minCount: number): strin
 
 import { existsSync } from "node:fs"
 
-import { runBaseline } from "../analysis/cldr-baseline.ts"
 import {
   CLDR_BASELINE_JSON as BASELINE,
   CLDR_JSONL as CLDR,
@@ -136,6 +138,7 @@ import {
   LABELS_JSON as LABELS,
   TRAIN_JSONL as TRAIN,
 } from "../../files.ts"
+import { runBaseline } from "../analysis/cldr-baseline.ts"
 import { STYLES } from "./config"
 import { readJsonl, writeFileAtomic } from "./io.ts"
 
@@ -147,8 +150,6 @@ export function toLine(r: Row): string {
   return JSON.stringify(r.extra ? { ...base, ...r.extra } : base)
 }
 
-const MAX_COUNT = 800
-const MIN_COUNT = 200
 const cli = cac("regen")
 cli.usage("[options]")
 cli
