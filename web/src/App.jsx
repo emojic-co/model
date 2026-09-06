@@ -16,10 +16,15 @@ import { useMediaQuery } from './hooks/useMediaQuery'
 
 const MIN_CHARS = 3
 const DEBOUNCE_MS = 250
+const EMOJI_SOURCE_KEY = 'emojiSource'
 
-// TEMP: comparing the trained model's emoji ranking against CLDR keyword
-// search. Flip to false to restore the model's own emoji predictions.
-const USE_CLDR_EMOJIS = true
+function initialEmojiSource() {
+  try {
+    return localStorage.getItem(EMOJI_SOURCE_KEY) === 'cldr' ? 'cldr' : 'model'
+  } catch {
+    return 'model'
+  }
+}
 
 function formatDate(iso) {
   if (!iso) return '—'
@@ -45,6 +50,8 @@ export function App() {
   const [text, setText] = useState('')
   const [scores, setScores] = useState(null)
   const [override, setOverride] = useState({ emoji: null, feeling: null, color: 0 })
+  const [emojiSource, setEmojiSource] = useState(initialEmojiSource)
+  const useCldrEmojis = emojiSource === 'cldr'
   const [toast, setToast] = useState({ msg: '', n: 0 })
   const showToast = useCallback((msg) => setToast((s) => ({ msg, n: s.n + 1 })), [])
   const seq = useRef(0)
@@ -54,6 +61,12 @@ export function App() {
     () => (meta ? new Map([...meta.chars].map((c, i) => [c, i])) : null),
     [meta],
   )
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(EMOJI_SOURCE_KEY, emojiSource)
+    } catch {}
+  }, [emojiSource])
 
   useEffect(() => {
     if (!ready || !char2idx) return
@@ -75,10 +88,10 @@ export function App() {
 
   const emojiScores = scores && scores.emoji
   const cldrTop = useMemo(
-    () => (USE_CLDR_EMOJIS && scores ? cldrEmojis(text) : null),
-    [scores, text],
+    () => (useCldrEmojis && scores ? cldrEmojis(text) : null),
+    [useCldrEmojis, scores, text],
   )
-  const predictedEmoji = USE_CLDR_EMOJIS
+  const predictedEmoji = useCldrEmojis
     ? (cldrTop?.[0] ?? null)
     : scores
       ? meta.emojis[argmax(scores.emoji)]
@@ -91,7 +104,7 @@ export function App() {
     [scores, meta, shownFeeling, feelingCount],
   )
   const emojiTop = useMemo(() => {
-    if (USE_CLDR_EMOJIS) {
+    if (useCldrEmojis) {
       return cldrTop
         ? cldrTop.slice(0, emojiSlots).map((emoji, i) => ({ emoji, p: 1 - i / emojiSlots }))
         : null
@@ -102,7 +115,7 @@ export function App() {
           .sort((a, b) => b.p - a.p)
           .slice(0, emojiSlots)
       : null
-  }, [cldrTop, emojiScores, meta, emojiSlots])
+  }, [useCldrEmojis, cldrTop, emojiScores, meta, emojiSlots])
   const emojiList = useMemo(() => emojiTop?.map((x) => x.emoji) ?? [], [emojiTop])
 
   const palettes = useMemo(() => scores?.palettes ?? [DEFAULT_COLORS], [scores])
@@ -226,6 +239,22 @@ export function App() {
             ready={!tooShort && !!shownFeeling}
             onPick={(f) => setOverride((o) => ({ ...o, feeling: f }))}
           />
+          <div className="emoji-source" role="group" aria-label="emoji source">
+            {['model', 'cldr'].map((src) => (
+              <button
+                key={src}
+                type="button"
+                className={emojiSource === src ? 'active' : undefined}
+                aria-pressed={emojiSource === src}
+                onClick={() => {
+                  setEmojiSource(src)
+                  setOverride((o) => ({ ...o, emoji: null }))
+                }}
+              >
+                {src === 'model' ? 'model' : 'keywords'}
+              </button>
+            ))}
+          </div>
           <footer className="footer">
             <span>
               model updated <span>{formatDate(meta?.exported_at)}</span>

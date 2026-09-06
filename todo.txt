@@ -1,20 +1,3 @@
-Done:
-
-Report keywords:
-    For both self and CLDR keywords.
-    Each row in the reported table should have:
-        A single keyword
-        ALL the target emojis for this keyword
-        the top 5 predicted emojis for this keyword
-        Rank of the first correct prediction
-        Emoji Freq
-        Pair Freq
-
-    From the CLDR list, exclude keywords that are not alphabetic (e.g. !!, !?, etc...)
-
-    Also check:
-        When constructing the CLDR keyword list I think you didn't split the keywords correctly,
-        For example:
-        David	✡️
-        Should probably be:
-        David Star	✡️
+Upsample Keywords:
+    When using the upsample tool to upsample keywords (--report or --cldr) add a flag --max-pair-freq=50
+    The upsample tool only upsample keywords that have pair frequency less than the max-pair-freq value. The default value is 50.

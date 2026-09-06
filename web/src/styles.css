@@ -62,6 +62,37 @@ h1 .tld {
   line-height: 0;
 }
 
+.emoji-source {
+  display: flex;
+  gap: 0.375em;
+  align-self: center;
+}
+
+.emoji-source button {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 0.2em 0.7em;
+  font-size: 0.7em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.emoji-source button:hover,
+.emoji-source button:focus-visible {
+  color: var(--ink);
+  outline: none;
+}
+
+.emoji-source button.active {
+  color: var(--ink);
+  border-color: var(--ink);
+  font-weight: 700;
+}
+
 .stage {
   display: grid;
   grid-template-columns:

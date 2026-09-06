@@ -49,3 +49,4 @@ lightning_logs
 /.superpowers/
 # Browser-only preview pages, regenerated on demand.
 preview/
+eval/

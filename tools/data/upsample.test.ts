@@ -3,6 +3,7 @@ import { expect, test } from "bun:test"
 import {
   countEmojis,
   failingEmojis,
+  missedCldrKeywords,
   rankWindow,
   singleEmojiTexts,
 } from "./upsample.ts"
@@ -95,4 +96,35 @@ test("failingEmojis collects deduped targets from keywords not ranked within max
     { keyword: "sun", targets: ["☀️"], rank: 5, top5: [], emoji_freq: 0, pair_freq: 0 },
   ]
   expect(failingEmojis(misses, 5)).toEqual(["🥣", "🍜", "🌙"])
+})
+
+test("failingEmojis skips keywords whose pair_freq is at or above maxPairFreq", () => {
+  const misses = [
+    { keyword: "bowl", targets: ["🥣"], rank: 8, top5: [], emoji_freq: 0, pair_freq: 12 },
+    {
+      keyword: "soup",
+      targets: ["🥣", "🍜"],
+      rank: 12,
+      top5: [],
+      emoji_freq: 0,
+      pair_freq: 50,
+    },
+    { keyword: "moon", targets: ["🌙"], rank: 9, top5: [], emoji_freq: 0, pair_freq: 99 },
+  ]
+  expect(failingEmojis(misses, 5, 50)).toEqual(["🥣"])
+})
+
+test("missedCldrKeywords dedupes keywords and honors maxPairFreq", () => {
+  const misses = [
+    { keyword: "rainy", targets: ["🌧️"], rank: null, top5: [], emoji_freq: 0, pair_freq: 3 },
+    { keyword: "rainy", targets: ["🌧️", "☔"], rank: null, top5: [], emoji_freq: 0, pair_freq: 3 },
+    { keyword: "party", targets: ["🎉"], rank: null, top5: [], emoji_freq: 0, pair_freq: 80 },
+  ]
+  expect(missedCldrKeywords(misses)).toEqual([
+    { keyword: "rainy", targets: ["🌧️"] },
+    { keyword: "party", targets: ["🎉"] },
+  ])
+  expect(missedCldrKeywords(misses, 50)).toEqual([
+    { keyword: "rainy", targets: ["🌧️"] },
+  ])
 })

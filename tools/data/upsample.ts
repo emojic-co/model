@@ -20,6 +20,7 @@ const NEG_COUNT = 1000
 const SINGLE_EMOJI_COUNT = 5000
 const CLDR_PER = 50
 const CLDR_KEYWORDS = 100
+const MAX_PAIR_FREQ = 50
 const MIN_LEN = 4
 const MAX_LEN = 42
 const GEN_CONCURRENCY = 20
@@ -83,11 +84,16 @@ export function singleEmojiTexts(
   return out
 }
 
-export function failingEmojis(misses: Miss[], maxRank: number): string[] {
+export function failingEmojis(
+  misses: Miss[],
+  maxRank: number,
+  maxPairFreq = Infinity,
+): string[] {
   const out: string[] = []
   const seen = new Set<string>()
   for (const m of misses) {
     if (m.rank != null && m.rank <= maxRank) continue
+    if (m.pair_freq >= maxPairFreq) continue
     for (const t of m.targets) {
       if (!t || seen.has(t)) continue
       seen.add(t)
@@ -99,11 +105,13 @@ export function failingEmojis(misses: Miss[], maxRank: number): string[] {
 
 export function missedCldrKeywords(
   misses: Miss[],
+  maxPairFreq = Infinity,
 ): { keyword: string; targets: string[] }[] {
   const seen = new Set<string>()
   const out: { keyword: string; targets: string[] }[] = []
   for (const m of misses) {
     if (!m.keyword || seen.has(m.keyword)) continue
+    if (m.pair_freq >= maxPairFreq) continue
     seen.add(m.keyword)
     out.push({ keyword: m.keyword, targets: m.targets.filter(Boolean) })
   }
@@ -227,6 +235,7 @@ cli
   .option("--max-rank <n>", `highest (least frequent) rank to target (default ${MAX_RANK})`)
   .option("--report", "target emoji failing the latest report's keywords.json keyword probe")
   .option("--cldr", "standalone: generate texts for the latest report's missed CLDR keywords (ignores emoji targeting)")
+  .option("--max-pair-freq <n>", `with --report / --cldr, only upsample keywords whose pair freq is below this (default ${MAX_PAIR_FREQ})`)
   .option("--per <n>", `texts to generate per target emoji / keyword / batch (default ${TEXTS_PER_EMOJI}, ${CLDR_PER} with --cldr)`)
   .option("--negation", "standalone: generate negation-heavy texts (ignores emoji targeting)")
   .option("--single-emoji", "standalone: re-annotate corpus rows that carry at most one emoji (ignores emoji targeting)")
@@ -239,6 +248,7 @@ if (import.meta.main) {
   const only = options.emojis ? String(options.emojis).trim() || undefined : undefined
   const minRank = Number(options.minRank ?? MIN_RANK)
   const maxRank = Number(options.maxRank ?? MAX_RANK)
+  const maxPairFreq = Number(options.maxPairFreq ?? MAX_PAIR_FREQ)
   const negation = Boolean(options.negation)
   const singleEmoji = Boolean(options.singleEmoji)
   const cldr = Boolean(options.cldr)
@@ -264,6 +274,15 @@ if (import.meta.main) {
   }
   if (!standalone && options.count != null) {
     console.warn("--count only applies with --negation / --single-emoji / --cldr")
+  }
+  if (options.maxPairFreq != null && !options.report && !cldr) {
+    console.warn("--max-pair-freq only applies with --report / --cldr")
+  }
+  if (!(maxPairFreq >= 0)) {
+    console.error(
+      `--max-pair-freq must be >= 0, got ${JSON.stringify(options.maxPairFreq)}`,
+    )
+    process.exit(1)
   }
   if (!(per >= 1)) {
     console.error(`--per must be >= 1, got ${JSON.stringify(options.per)}`)
@@ -311,11 +330,11 @@ if (import.meta.main) {
     const report = JSON.parse(await readFile(reportPath, "utf8")) as Report
     const misses = report.cldr?.misses
     if (!misses) throw new Error(`${reportPath}: no cldr.misses`)
-    cldrKws = missedCldrKeywords(misses).slice(0, count)
+    cldrKws = missedCldrKeywords(misses, maxPairFreq).slice(0, count)
     targets = []
     console.log(
       `${reportPath}: ${misses.length} CLDR miss rows -> `
-      + `${cldrKws.length} missed keywords (cap ${count}), `
+      + `${cldrKws.length} missed keywords (pair freq < ${maxPairFreq}, cap ${count}), `
       + `${per} texts each`,
     )
     if (!cldrKws.length) {
@@ -328,11 +347,11 @@ if (import.meta.main) {
     const keywords = report.emoji?.keywords
     const misses = keywords?.misses ?? []
     if (!keywords) throw new Error(`${reportPath}: no emoji.keywords`)
-    targets = failingEmojis(misses, FAIL_RANK)
+    targets = failingEmojis(misses, FAIL_RANK, maxPairFreq)
     console.log(
       `${reportPath}: ${keywords.n ?? "?"} words probed, ${misses.length} missed `
       + `-> targeting ${targets.length} failing emoji `
-      + `(target not in top ${FAIL_RANK}) -> ${targets.join(" ")}`,
+      + `(target not in top ${FAIL_RANK}, pair freq < ${maxPairFreq}) -> ${targets.join(" ")}`,
     )
   } else if (only) {
     targets = [...new Set(splitEmojis(only))]
