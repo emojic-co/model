@@ -1,4 +1,9 @@
-Keywords:
-    Currently we have two mechanisms for keywords evaluations:
-    1.  The data/keywords.json file 
-    2. The data/cldr.jsonl file
+train script:
+    currently when I run train task it train the model with both emoji and style heads.
+    I want to be able to train the model with only one head (emoji or style) or both.
+    Update the script to have the following sub commands:
+        train emoji     only train the emoji head
+        train style     only train the style head
+        train task      train the emoji + style heads.
+        train gan       train the gan head on the frozen text encoder.
+        train all       first train the emoji + style heads, then train the gan head on the frozen text encoder

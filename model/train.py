@@ -123,8 +123,11 @@ def ap_at_k(logits: torch.Tensor, target: torch.Tensor, k: int) -> torch.Tensor:
 
 
 class LitTask(pl.LightningModule):
-    def __init__(self):
+    def __init__(self, heads: tuple[str, ...] = ("style", "emoji")):
         super().__init__()
+        self.save_hyperparameters()
+
+        self.heads = heads
 
         self.enc = TextEncoder()
         self.style = StyleHead()
@@ -138,38 +141,49 @@ class LitTask(pl.LightningModule):
         text, emoji, style, _ = batch
 
         enc = self.enc(text)
+        loss = enc.new_zeros(())
 
-        style_logits = self.style(enc)
-        loss_style = lse_infonce(style_logits, style, INFONCE_TEMP)
+        if "style" in self.heads:
+            style_logits = self.style(enc)
+            loss_style = lse_infonce(style_logits, style, INFONCE_TEMP)
+            loss = loss + loss_style
 
-        emoji_logits = self.emoji(enc)
-        loss_emoji = lse_infonce(emoji_logits, emoji, INFONCE_TEMP)
+            style_ap = ap_at_k(style_logits, style, STYLE_AP_K).mean()
+            style_mrr = mrr_at_k(style_logits, style, STYLE_AP_K).mean()
 
-        style_ap = ap_at_k(style_logits, style, STYLE_AP_K).mean()
-        style_mrr = mrr_at_k(style_logits, style, STYLE_AP_K).mean()
+            for name, val, bs in (
+                (f"loss/s/{split}", loss_style, text.size(0)),
+                (f"mAP@{STYLE_AP_K}/s/{split}", style_ap, text.size(0)),
+                (f"MRR@{STYLE_AP_K}/s/{split}", style_mrr, text.size(0)),
+            ):
+                self.log(name, val, on_step=False, on_epoch=True,
+                         prog_bar=True, batch_size=bs)
 
-        has_e = emoji.sum(dim=-1) > 0
-        n_e = int(has_e.sum())
-        if n_e:
-            emoji_ap = ap_at_k(emoji_logits[has_e], emoji[has_e], EMOJI_AP_K).mean()
-            emoji_mrr = mrr_at_k(
-                emoji_logits[has_e], emoji[has_e], EMOJI_AP_K).mean()
-        else:
-            emoji_ap = torch.zeros((), device=emoji.device)
-            emoji_mrr = torch.zeros((), device=emoji.device)
+        if "emoji" in self.heads:
+            emoji_logits = self.emoji(enc)
+            loss_emoji = lse_infonce(emoji_logits, emoji, INFONCE_TEMP)
+            loss = loss + loss_emoji
 
-        for name, val, bs in (
-            (f"loss/s/{split}", loss_style, text.size(0)),
-            (f"loss/e/{split}", loss_emoji, text.size(0)),
-            (f"mAP@{EMOJI_AP_K}/e/{split}", emoji_ap, max(n_e, 1)),
-            (f"mAP@{STYLE_AP_K}/s/{split}", style_ap, text.size(0)),
-            (f"MRR@{EMOJI_AP_K}/e/{split}", emoji_mrr, max(n_e, 1)),
-            (f"MRR@{STYLE_AP_K}/s/{split}", style_mrr, text.size(0)),
-        ):
-            self.log(name, val, on_step=False, on_epoch=True,
-                     prog_bar=True, batch_size=bs)
+            has_e = emoji.sum(dim=-1) > 0
+            n_e = int(has_e.sum())
+            if n_e:
+                emoji_ap = ap_at_k(
+                    emoji_logits[has_e], emoji[has_e], EMOJI_AP_K).mean()
+                emoji_mrr = mrr_at_k(
+                    emoji_logits[has_e], emoji[has_e], EMOJI_AP_K).mean()
+            else:
+                emoji_ap = torch.zeros((), device=emoji.device)
+                emoji_mrr = torch.zeros((), device=emoji.device)
 
-        return loss_style + loss_emoji
+            for name, val, bs in (
+                (f"loss/e/{split}", loss_emoji, text.size(0)),
+                (f"mAP@{EMOJI_AP_K}/e/{split}", emoji_ap, max(n_e, 1)),
+                (f"MRR@{EMOJI_AP_K}/e/{split}", emoji_mrr, max(n_e, 1)),
+            ):
+                self.log(name, val, on_step=False, on_epoch=True,
+                         prog_bar=True, batch_size=bs)
+
+        return loss
 
     def training_step(self, batch, batch_idx):
         return self._step(batch, "train")
@@ -192,6 +206,9 @@ class LitTask(pl.LightningModule):
             self.log(f"f1/{split}", f1(a, b), prog_bar=True)
 
     def _log_keywords(self):
+        if "emoji" not in self.heads:
+            return
+
         has = self.kw_target.sum(dim=-1) > 0
         n = int(has.sum())
         if not n:
@@ -210,7 +227,10 @@ class LitTask(pl.LightningModule):
             self.log(name, val, prog_bar=False, batch_size=n)
 
     def configure_optimizers(self):
-        return optim.Adam(self.parameters(), lr=LR)
+        params = list(self.enc.parameters())
+        for name in self.heads:
+            params += list(getattr(self, name).parameters())
+        return optim.Adam(params, lr=LR)
 
 
 class LitColorGAN(pl.LightningModule):
@@ -344,9 +364,19 @@ class LitColorGAN(pl.LightningModule):
 
 
 class Model(StrEnum):
+    emoji = "emoji"
+    style = "style"
     task = "task"
     gan = "gan"
     all = "all"
+
+
+TASK_HEADS: dict[str, tuple[str, ...]] = {
+    "emoji": ("emoji",),
+    "style": ("style",),
+    "task": ("style", "emoji"),
+    "all": ("style", "emoji"),
+}
 
 
 def _load(mod: nn.Module, path: str) -> nn.Module:
@@ -360,14 +390,17 @@ def _no_progress_bar() -> bool:
     return os.environ.get("EMOJIC_NO_PROGRESS_BAR") == "1"
 
 
-def _train_task(ds) -> LitTask:
+def _train_task(ds, stage: str, heads: tuple[str, ...]) -> LitTask:
     task_dl = train_data_loader(data_set=ds, batch_size=TASK_BATCH_SIZE)
     val_dl = eval_data_loader()
 
     no_bar = _no_progress_bar()
     progress_bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
-    task_monitor = f"MRR@{EMOJI_AP_K}/e/val"
+    if "emoji" in heads:
+        task_monitor = f"MRR@{EMOJI_AP_K}/e/val"
+    else:
+        task_monitor = f"MRR@{STYLE_AP_K}/s/val"
 
     task_ckpt = ModelCheckpoint(
         monitor=task_monitor, mode="max", save_top_k=1, filename="best-{step}"
@@ -377,7 +410,7 @@ def _train_task(ds) -> LitTask:
         devices="auto",
         accelerator="auto",
         logger=TensorBoardLogger(
-            "runs", name=CONFIG_NAME, version="task", default_hp_metric=False
+            "runs", name=CONFIG_NAME, version=stage, default_hp_metric=False
         ),
         deterministic=True,
         max_epochs=EPOCHS_TASK,
@@ -392,18 +425,20 @@ def _train_task(ds) -> LitTask:
         ],
     )
 
-    task = LitTask()
+    task = LitTask(heads=heads)
     task_trainer.fit(task, task_dl, val_dl)
 
     if task_ckpt.best_model_path:
         task = LitTask.load_from_checkpoint(task_ckpt.best_model_path)
 
-    for name, mod in (
-        ("enc", task.enc),
-        ("style", task.style),
-        ("emoji", task.emoji),
-    ):
-        save_pt(mod.state_dict(), f"{PT_DIR}/{name}.pt", stage="task")
+    saved = [("enc", task.enc)]
+    if "style" in heads:
+        saved.append(("style", task.style))
+    if "emoji" in heads:
+        saved.append(("emoji", task.emoji))
+
+    for name, mod in saved:
+        save_pt(mod.state_dict(), f"{PT_DIR}/{name}.pt", stage=stage)
 
     return task
 
@@ -473,9 +508,9 @@ def _run_local(model: Model) -> None:
         return
 
     ds = train_ds()
-    task = _train_task(ds)
+    task = _train_task(ds, model.value, TASK_HEADS[model.value])
 
-    if model == Model.task:
+    if model in (Model.emoji, Model.style, Model.task):
         if not skip_report:
             _run_report_local(model)
         return
@@ -757,7 +792,7 @@ def cli(
     memory: int | None = typer.Option(
         None, help="Modal memory in MiB (Modal only)."),
 ) -> None:
-    """Train task/gan/all: on Modal by default, or locally with --local."""
+    """Train emoji/style/task/gan/all: on Modal by default, or locally with --local."""
     if local and (cpu is not None or memory is not None):
         raise typer.BadParameter(
             "--cpu/--memory only apply when dispatching to Modal")
