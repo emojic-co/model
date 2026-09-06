@@ -1,3 +1,25 @@
-Web App:
-    When copy the image to the clipboard make sure it is identical to the preview.
-    In particular do not add the style to the image and make sure spacing is the same.
+Discussion:
+    I want to check if the colors in the dataset related to the text. 
+    To do that, I want to add another color head that predicts the color of the text.
+    I want to train it using MSE and see if it can learn.
+
+    Does it make sense to you?
+    Which baseline can we compare it to?
+    Note that this is not a GAN replacement.
+    Its main goal is to check the text-color relationship in the dataset, but if such a relationship exists we can add it to the training flow.
+
+
+    If everything make sense please your tasks are:
+    1. Add a minimal color head to the model. 
+    2. Update the train script to have another subcommand `train color`.
+    3. Propose a baseline and build a tool that output the baseline results. This tool should run every time a regen is used.
+
+    Note:
+        Evaluation, training, etc... should be done in the OKLab color space.
+
+    As a side note (but very important from now on):
+        We need to come up with a mechanism to track the .pt files.
+        Right now I copied them to the `best` folder, but this is not a real solution.
+        We should probably avoid checking them into git, but if we can't find a better simpler solution then it might be the only option.
+        Please come up with a solution before we train the color head.
+        Note that if I train the color head it will overwrite the current enc.pt file which is not what I want.
