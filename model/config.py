@@ -3,9 +3,10 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from files import ENERGY_KEYWORDS_TXT, LABELS_JSON
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from files import ENERGY_KEYWORDS_TXT, LABELS_JSON
 
 # DATA
 with open(LABELS_JSON, encoding="utf-8") as f:
@@ -24,8 +25,8 @@ ENCODER_KERNEL_SIZE = 3
 assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
-ENCODER_CHANNELS = [64, 96, 192]
-ENCODER_DILATION = [1, 2, 4]
+ENCODER_CHANNELS = [256]
+ENCODER_DILATION = [1]
 
 assert len(ENCODER_CHANNELS) == len(ENCODER_DILATION), \
     "encoder channels and dilation must have the same length"
@@ -174,7 +175,8 @@ def _stats() -> list[tuple[str, object]]:
         ("style head params", f"{style_head:,}"),
         ("emoji head params", f"{emoji_head:,}"),
         ("PARAM_COUNT (enc + heads)", f"{enc + style_head + emoji_head:,}"),
-        ("TASK_BATCH_SIZE / GAN_BATCH_SIZE", f"{TASK_BATCH_SIZE} / {GAN_BATCH_SIZE}"),
+        ("TASK_BATCH_SIZE / GAN_BATCH_SIZE",
+         f"{TASK_BATCH_SIZE} / {GAN_BATCH_SIZE}"),
         ("EPOCHS_TASK / EPOCHS_GAN", f"{EPOCHS_TASK} / {EPOCHS_GAN}"),
         ("Z_WEIGHT", Z_WEIGHT),
         ("GEN_CHANNELS", GEN_CHANNELS),
