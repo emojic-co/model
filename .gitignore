@@ -31,12 +31,14 @@ data/data.jsonl.tmp
 data/train.jsonl
 data/eval.jsonl
 data/labels.json
+data/cldr-baseline.json
 
 # regen writes these via writeFileAtomic (path.tmp then rename); a crash leaves them.
 data/train.jsonl.tmp
 data/eval.jsonl.tmp
 data/labels.json.tmp
 data/cldr.jsonl.tmp
+data/cldr-baseline.json.tmp
 
 pt/*.pt
 # SDD isolated worktrees

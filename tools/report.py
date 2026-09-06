@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import torch
 import typer
 
-from files import DATA_JSONL, KEYWORDS_JSON
+from files import CLDR_BASELINE_JSON, DATA_JSONL, KEYWORDS_JSON
 from model.config import EMOJIS, SEED, STYLES
 from model.data import EVAL_PATH, TRAIN_PATH, read, text_to_tensor
 from model.data import normalize as norm_text
@@ -109,7 +109,7 @@ def _provenance(pt: Path):
 
 def _length_distribution():
     lens = Counter()
-    for d in _rows(DATA_PATH):
+    for d in _rows(TRAIN_PATH):
         lens[len(norm_text(str(d.get("text", ""))))] += 1
     return sorted(lens.items(), key=lambda kv: kv[0], reverse=True)
 
@@ -186,6 +186,25 @@ def _keyword_probe(enc, head):
     }
 
 
+@cache
+def _cldr_baseline():
+    p = Path(CLDR_BASELINE_JSON)
+    if not p.exists():
+        return None
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+        methods = data["methods"]
+    except (json.JSONDecodeError, KeyError, OSError):
+        return None
+    if not methods:
+        return None
+    name = max(
+        methods,
+        key=lambda m: (methods[m]["acc_at_k"][-1], methods[m]["mrr"]),
+    )
+    return {"name": name, "acc_at_k": methods[name]["acc_at_k"]}
+
+
 def _section_emoji(enc, head, eval_records):
     if enc is None or head is None:
         return {}
@@ -203,6 +222,7 @@ def _section_emoji(enc, head, eval_records):
         d["eval"] = {
             "n": len(rows),
             "acc_at_k": [_acc_at_k(logits, tgt, k).mean().item() for k in EMOJI_KS],
+            "baseline": _cldr_baseline(),
         }
         order = logits.argsort(dim=-1, descending=True)
         rank_of = order.argsort(dim=-1)
@@ -312,6 +332,8 @@ transform-origin:top right;font-size:12.5px;margin-top:9px}
 .linechart .gline{stroke:var(--line);stroke-width:1}
 .linechart .gtext{font-size:11px;fill:var(--dim)}
 .linechart .lline{fill:none;stroke:var(--accent);stroke-width:2.5}
+.linechart .bline{fill:none;stroke:var(--dim);stroke-width:2;stroke-dasharray:5 4}
+.linechart .btext{font-size:11px;fill:var(--dim);font-variant-numeric:tabular-nums}
 .linechart .dot{fill:var(--accent)}
 .linechart .vtext{font-size:11px;fill:var(--dim);font-variant-numeric:tabular-nums}
 .linechart .xtext{font-size:12px;fill:var(--ink)}
@@ -352,7 +374,7 @@ def _bars(items, maxv, rotated=False) -> str:
     return f'<div class="{cls}">{"".join(out)}</div>'
 
 
-def _linechart(points, y_max=1.0) -> str:
+def _linechart(points, y_max=1.0, baseline=None, legend=None) -> str:
     w, h, pad_l, pad_r, pad_t, pad_b = 760, 220, 34, 10, 22, 30
     plot_w, plot_h = w - pad_l - pad_r, h - pad_t - pad_b
     n = len(points)
@@ -380,11 +402,29 @@ def _linechart(points, y_max=1.0) -> str:
         f'text-anchor="middle">{_esc(lbl)}</text>'
         for (lbl, v), (cx, cy) in zip(points, coords, strict=True)
     )
+    base = ""
+    if baseline is not None:
+        bcoords = [(px(i), py(v)) for i, v in enumerate(baseline)]
+        bpoly = " ".join(f"{cx:.1f},{cy:.1f}" for cx, cy in bcoords)
+        bx, by = bcoords[-1]
+        base = (
+            f'<polyline points="{bpoly}" class="bline"/>'
+            f'<text x="{bx:.1f}" y="{by - 7:.1f}" class="btext" '
+            f'text-anchor="end">{baseline[-1]:.2f}</text>'
+        )
+    leg = ""
+    if legend:
+        leg = (
+            f'<line x1="{pad_l}" y1="14" x2="{pad_l + 20}" y2="14" class="lline"/>'
+            f'<text x="{pad_l + 26}" y="18" class="gtext">{_esc(legend[0])}</text>'
+            f'<line x1="{pad_l + 130}" y1="14" x2="{pad_l + 150}" y2="14" class="bline"/>'
+            f'<text x="{pad_l + 156}" y="18" class="gtext">{_esc(legend[1])}</text>'
+        )
     return (
         f'<svg viewBox="0 0 {w} {h}" class="linechart">'
-        f"{grid}"
+        f"{grid}{base}"
         f'<polyline points="{poly}" class="lline"/>'
-        f"{dots}</svg>"
+        f"{dots}{leg}</svg>"
     )
 
 
@@ -423,7 +463,7 @@ def _data_html(d) -> str:
     bars = _bars([[str(length), count] for length, count in dist], maxv, rotated=True)
     return (
         f'<h2>Data</h2><div class="counts">{cells}</div>'
-        "<h3>Text length distribution — data.jsonl (normalized, longest first)</h3>"
+        "<h3>Text length distribution — train.jsonl (normalized, longest first)</h3>"
         f"{bars}"
     )
 
@@ -445,7 +485,20 @@ def _emoji_html(d) -> str:
     if "eval" in d:
         e = d["eval"]
         points = list(zip((str(k) for k in EMOJI_KS), e["acc_at_k"], strict=True))
-        out.append(f"<h3>Performance on eval.jsonl ({e['n']} rows)</h3>{_linechart(points)}")
+        bl = e.get("baseline")
+        chart = _linechart(
+            points,
+            baseline=bl["acc_at_k"] if bl else None,
+            legend=("model", f"CLDR baseline ({bl['name']})") if bl else None,
+        )
+        note = (
+            ""
+            if bl
+            else '<p class="note">CLDR baseline unavailable — run '
+            "<code>bun run regen</code> to write "
+            "<code>data/cldr-baseline.json</code>.</p>"
+        )
+        out.append(f"<h3>Performance on eval.jsonl ({e['n']} rows)</h3>{chart}{note}")
     mt = d.get("missed_texts")
     if mt:
         rows = "".join(

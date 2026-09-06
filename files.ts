@@ -8,6 +8,7 @@ export const CLDR_JSONL = `${DATA_DIR}/cldr.jsonl`
 export const TRAIN_JSONL = `${DATA_DIR}/train.jsonl`
 export const EVAL_JSONL = `${DATA_DIR}/eval.jsonl`
 export const LABELS_JSON = `${DATA_DIR}/labels.json`
+export const CLDR_BASELINE_JSON = `${DATA_DIR}/cldr-baseline.json`
 export const KEYWORDS_JSON = `${DATA_DIR}/keywords.json`
 export const ENERGY_KEYWORDS_TXT = `${DATA_DIR}/energy_keywords.txt`
 export const PRED_JSONL = `${DATA_DIR}/pred.jsonl`

@@ -127,7 +127,9 @@ export function emojiVocab(counts: Map<string, number>, minCount: number): strin
 
 import { existsSync } from "node:fs"
 
+import { runBaseline } from "../analysis/cldr-baseline.ts"
 import {
+  CLDR_BASELINE_JSON as BASELINE,
   CLDR_JSONL as CLDR,
   DATA_JSONL as DATA,
   EVAL_JSONL as EVAL,
@@ -196,6 +198,21 @@ if (import.meta.main) {
   }
   await writeFileAtomic(LABELS, JSON.stringify(labels, null, 2) + "\n")
 
+  let baselineLine = `-> ${BASELINE} : failed (skipped)`
+  try {
+    const baseline = await runBaseline()
+    await writeFileAtomic(BASELINE, JSON.stringify(baseline, null, 2) + "\n")
+    const best = Object.entries(baseline.methods).sort(
+      (a, b) =>
+        b[1].acc_at_k.at(-1)! - a[1].acc_at_k.at(-1)! || b[1].mrr - a[1].mrr,
+    )[0]
+    baselineLine =
+      `-> ${BASELINE} : best "${best[0]}" `
+      + `acc@10 ${(100 * best[1].acc_at_k.at(-1)!).toFixed(1)}`
+  } catch (err) {
+    console.error(`cldr baseline failed: ${(err as Error).message}`)
+  }
+
   const keptRanked = ranked.filter(([, c]) => c >= minCount)
   const fmt = (es: [string, number][]) => es.map(([e, c]) => `${e} ${c}`).join(", ")
 
@@ -215,5 +232,6 @@ if (import.meta.main) {
   console.log(
     `-> ${LABELS}    : ${labels.styles.length} styles, ${labels.emojis.length} emojis`,
   )
+  console.log(baselineLine)
   process.exit(0)
 }

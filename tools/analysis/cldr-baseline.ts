@@ -128,7 +128,7 @@ function pct(x: number): string {
   return (100 * x).toFixed(1).padStart(9)
 }
 
-if (import.meta.main) {
+async function evaluate() {
   const vocab = new Set<string>(
     (JSON.parse(await Bun.file(LABELS_JSON).text()).emojis as string[]).map(stripVS),
   )
@@ -148,44 +148,74 @@ if (import.meta.main) {
     .map((r) => ({ text: r.text, targets: rowTargets(String(r.emojis ?? ""), vocab) }))
     .filter((r) => r.targets.length > 0)
 
-  console.log(
-    `CLDR baseline: ${annotations.size} CLDR emoji indexed, `
-    + `${scored.length}/${evalRows.length} eval rows scored `
-    + `(rows with >=1 vocab emoji), predictions restricted to the ${vocab.size}-emoji vocab\n`,
-  )
-
-  const header = ["method", ...KS.map((k) => `acc@${k}`), "MRR@10", "pred/row", "0-pred"]
-  console.log(header.map((h) => h.padStart(9)).join(" "))
-
-  const report = (name: string, rows: Row[]) => {
-    const s = summarize(rows)
-    console.log(
-      [
-        name.padStart(9),
-        ...s.accAtK.map(pct),
-        pct(s.mrr),
-        s.meanPreds.toFixed(2).padStart(9),
-        `${s.zeroPredRows}`.padStart(9),
-      ].join(" "),
-    )
-  }
-
+  const methods: Record<string, Row[]> = {}
   for (const tokenize of TOKENIZERS) {
     const index = buildIndex(docs, tokenize)
-    report(
-      tokenize,
-      scored.map((r) => {
-        const ids = index.search(r.text, { limit: SEARCH_LIMIT, suggest: true }) as number[]
-        return { targets: r.targets, preds: rankPredictions(ids.map((id) => glyphs[id]), vocab) }
-      }),
-    )
+    methods[tokenize] = scored.map((r) => {
+      const ids = index.search(r.text, { limit: SEARCH_LIMIT, suggest: true }) as number[]
+      return { targets: r.targets, preds: rankPredictions(ids.map((id) => glyphs[id]), vocab) }
+    })
   }
+  methods.overlap = scored.map((r) => ({
+    targets: r.targets,
+    preds: rankPredictions(overlapRank(queryTokens(r.text), kwTokens, glyphs, idf), vocab),
+  }))
 
-  report(
-    "overlap",
-    scored.map((r) => ({
-      targets: r.targets,
-      preds: rankPredictions(overlapRank(queryTokens(r.text), kwTokens, glyphs, idf), vocab),
-    })),
-  )
+  return {
+    cldrEmoji: annotations.size,
+    vocab: vocab.size,
+    scored: scored.length,
+    total: evalRows.length,
+    summaries: Object.fromEntries(
+      Object.entries(methods).map(([name, rows]) => [name, summarize(rows)]),
+    ),
+  }
+}
+
+export async function runBaseline() {
+  const { cldrEmoji, vocab, scored, total, summaries } = await evaluate()
+  return {
+    cldr_emoji: cldrEmoji,
+    vocab,
+    scored,
+    total,
+    methods: Object.fromEntries(
+      Object.entries(summaries).map(([name, s]) => [
+        name,
+        {
+          acc_at_k: s.accAtK,
+          mrr: s.mrr,
+          mean_preds: s.meanPreds,
+          zero_pred_rows: s.zeroPredRows,
+        },
+      ]),
+    ),
+  }
+}
+
+if (import.meta.main) {
+  const asJson = process.argv.includes("--json")
+
+  if (asJson) {
+    console.log(JSON.stringify(await runBaseline(), null, 2))
+  } else {
+    const { cldrEmoji, vocab, scored, total, summaries } = await evaluate()
+    console.log(
+      `CLDR baseline: ${cldrEmoji} CLDR emoji indexed, ${scored}/${total} eval rows scored `
+      + `(rows with >=1 vocab emoji), predictions restricted to the ${vocab}-emoji vocab\n`,
+    )
+    const header = ["method", ...KS.map((k) => `acc@${k}`), "MRR@10", "pred/row", "0-pred"]
+    console.log(header.map((h) => h.padStart(9)).join(" "))
+    for (const [name, s] of Object.entries(summaries)) {
+      console.log(
+        [
+          name.padStart(9),
+          ...s.accAtK.map(pct),
+          pct(s.mrr),
+          s.meanPreds.toFixed(2).padStart(9),
+          `${s.zeroPredRows}`.padStart(9),
+        ].join(" "),
+      )
+    }
+  }
 }
