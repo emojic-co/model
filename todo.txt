@@ -1,7 +1,16 @@
 Tools:
-    Update the tools/data/upsample.ts to have a flag --negation:
-    With this flag the tool asks the text generator to generate a text with negation, e.g. "not good", "don't like it", "It isn't a dog it is a cat", etc.
-    Then send the text to the standard annotator.
+    Update the tools/data/upsample.ts to have a flag --single-emoji:
+    With this flag the tool:
+        - read data.jsonl
+        - finds records with a single emoji in the target
+        - only consider records with a unique text (i.e. if the normalized text has multiple records, ignore it)
+        - the tool sends the unique records to annotation tool to get more emojis for them
+
+        Notes:
+            - do not use special prompt to force more emojis, just use the default prompt
+            - final records should also have a meta {"single-emoji": true}
+            - use the --count (default 5000) to limit the number of records sent to annotation tool
+            - also from now on, each record in the data.jsonl should have a meta {"date": YYYY-MM-DD} to indicate when it was added to the dataset.
 
 Model:
     It seems that the TextEncoder + EmojiHead model now perform well on keywords but could perform better on the whole text context.
@@ -11,6 +20,6 @@ Done:
     Report:
         Update the report tool:
             Before the "missed keywords" section add a section "missed texts".
-            In this section, list the worst 20 texts from the eval.jsonl
+            In this section, list the worst 50 texts from the eval.jsonl
             worst means the rank of the first relevant emoji is the highest (i.e. the worst).
             show a table with the text, target emojis, top 5 predicted emojis, and the rank of the first relevant emoji.

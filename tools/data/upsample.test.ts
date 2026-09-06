@@ -1,6 +1,11 @@
 import { expect, test } from "bun:test"
 
-import { countEmojis, failingEmojis, rankWindow } from "./upsample.ts"
+import {
+  countEmojis,
+  failingEmojis,
+  rankWindow,
+  singleEmojiTexts,
+} from "./upsample.ts"
 
 test("countEmojis counts distinct emojis per row over all of data, not just a vocab", () => {
   const rows = [
@@ -28,6 +33,42 @@ test("rankWindow returns keys ranked [minRank, maxRank] by count desc, ties brok
   expect(rankWindow(counts, 1, 1)).toEqual(["e"])
   expect(rankWindow(counts, 2, 4)).toEqual(["a", "c", "b"])
   expect(rankWindow(counts, 4, 5)).toEqual(["b", "d"])
+})
+
+test("singleEmojiTexts keeps rows with a unique normalized text and exactly one emoji", () => {
+  const rows = [
+    { text: "walking the dog", emojis: "🐕" },
+    { text: "  Walking  the DOG  ", emojis: "🚶" },
+    { text: "made pizza tonight", emojis: "🍕" },
+    { text: "no emoji here", emojis: "" },
+    { text: "two of them", emojis: "🍕 🚗" },
+    { text: "same one twice", emojis: "😀 😀" },
+    { text: "made pizza tonight", emojis: "🔥" },
+  ]
+  expect(singleEmojiTexts(rows, 100)).toEqual(["same one twice"])
+})
+
+test("singleEmojiTexts: collisions drop every colliding row, count caps in file order", () => {
+  const rows = [
+    { text: "alpha", emojis: "🍎" },
+    { text: "beta", emojis: "🍌" },
+    { text: "gamma", emojis: "🍇" },
+    { text: "beta", emojis: "🐝 🐝 🍯" },
+    { text: "delta", emojis: "🥝" },
+  ]
+  expect(singleEmojiTexts(rows, 2)).toEqual(["alpha", "gamma"])
+  expect(singleEmojiTexts(rows, 100)).toEqual(["alpha", "gamma", "delta"])
+})
+
+test("singleEmojiTexts ignores rows with missing or non-string fields", () => {
+  const rows = [
+    { text: "keep me", emojis: "✅" },
+    { emojis: "❌" },
+    { text: "no emojis key" },
+    { text: 5 as unknown as string, emojis: "🔢" },
+    { text: "   ", emojis: "🌫️" },
+  ]
+  expect(singleEmojiTexts(rows, 100)).toEqual(["keep me"])
 })
 
 test("failingEmojis dedupes target emoji worse than maxRank", () => {

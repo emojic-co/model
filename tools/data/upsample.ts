@@ -9,6 +9,7 @@ import { DATA_JSONL as DATA } from "../../files.ts"
 import { MODEL, annotate, annotateBatchCount } from "./annotate.ts"
 import { splitEmojis } from "./emoji.ts"
 import { appendJsonl, readJsonl } from "./io.ts"
+import { normalize } from "./normalize.ts"
 import { type Miss, type Report, latestReport } from "./report.ts"
 
 const MIN_RANK = 200
@@ -16,6 +17,7 @@ const MAX_RANK = 400
 const FAIL_RANK = 5
 const TEXTS_PER_EMOJI = 40
 const NEG_COUNT = 1000
+const SINGLE_EMOJI_COUNT = 5000
 const MIN_LEN = 4
 const MAX_LEN = 42
 const GEN_CONCURRENCY = 20
@@ -54,6 +56,29 @@ export function countEmojis(rows: { emojis?: string }[]): Map<string, number> {
     }
   }
   return counts
+}
+
+export function singleEmojiTexts(
+  rows: { text?: unknown; emojis?: unknown }[],
+  count: number,
+): string[] {
+  const perText = new Map<string, number>()
+  for (const row of rows) {
+    if (typeof row.text !== "string") continue
+    const key = normalize(row.text)
+    if (!key) continue
+    perText.set(key, (perText.get(key) ?? 0) + 1)
+  }
+  const out: string[] = []
+  for (const row of rows) {
+    if (out.length >= count) break
+    if (typeof row.text !== "string" || typeof row.emojis !== "string") continue
+    const key = normalize(row.text)
+    if (!key || perText.get(key) !== 1) continue
+    if (new Set(splitEmojis(row.emojis)).size !== 1) continue
+    out.push(row.text)
+  }
+  return out
 }
 
 export function failingEmojis(misses: Miss[], maxRank: number): string[] {
@@ -156,7 +181,8 @@ cli
   .option("--report", "target emoji failing the latest report's keywords.json keyword probe")
   .option("--per <n>", `texts to generate per target emoji / per batch (default ${TEXTS_PER_EMOJI})`)
   .option("--negation", "standalone: generate negation-heavy texts (ignores emoji targeting)")
-  .option("--count <n>", `texts to generate with --negation (default ${NEG_COUNT})`)
+  .option("--single-emoji", "standalone: re-annotate corpus rows that carry exactly one emoji (ignores emoji targeting)")
+  .option("--count <n>", `cap on texts for --negation (default ${NEG_COUNT}) / --single-emoji (default ${SINGLE_EMOJI_COUNT})`)
 cli.help()
 
 if (import.meta.main) {
@@ -167,13 +193,25 @@ if (import.meta.main) {
   const maxRank = Number(options.maxRank ?? MAX_RANK)
   const per = Number(options.per ?? TEXTS_PER_EMOJI)
   const negation = Boolean(options.negation)
-  const count = Number(options.count ?? NEG_COUNT)
+  const singleEmoji = Boolean(options.singleEmoji)
+  const count = Number(options.count ?? (singleEmoji ? SINGLE_EMOJI_COUNT : NEG_COUNT))
 
-  if (negation && (options.report || only || options.minRank != null || options.maxRank != null)) {
-    console.warn("--negation ignores --report / --emojis / --min-rank / --max-rank")
+  if (negation && singleEmoji) {
+    console.error("--negation and --single-emoji are mutually exclusive")
+    process.exit(1)
   }
-  if (!negation && options.count != null) {
-    console.warn("--count only applies with --negation")
+  const standalone = negation || singleEmoji
+  if (standalone && (options.report || only || options.minRank != null || options.maxRank != null)) {
+    console.warn(
+      `--${negation ? "negation" : "single-emoji"} ignores `
+      + "--report / --emojis / --min-rank / --max-rank",
+    )
+  }
+  if (singleEmoji && options.per != null) {
+    console.warn("--single-emoji ignores --per")
+  }
+  if (!standalone && options.count != null) {
+    console.warn("--count only applies with --negation / --single-emoji")
   }
   if (!(per >= 1)) {
     console.error(`--per must be >= 1, got ${JSON.stringify(options.per)}`)
@@ -182,7 +220,25 @@ if (import.meta.main) {
 
   let targets: string[]
   let negBatches: number[] = []
-  if (negation) {
+  let singleTexts: string[] = []
+  if (singleEmoji) {
+    if (!(count >= 1)) {
+      console.error(`--count must be >= 1, got ${JSON.stringify(options.count)}`)
+      process.exit(1)
+    }
+    const rows = await readJsonl<{ text?: unknown; emojis?: unknown }>(DATA)
+    singleTexts = singleEmojiTexts(rows, count)
+    targets = []
+    console.log(
+      `single-emoji mode -> ${rows.length} master rows -> `
+      + `${singleTexts.length} unique single-emoji rows to re-annotate `
+      + `(cap ${count})`,
+    )
+    if (!singleTexts.length) {
+      console.error("no rows matched --single-emoji")
+      process.exit(1)
+    }
+  } else if (negation) {
     if (!(count >= 1)) {
       console.error(`--count must be >= 1, got ${JSON.stringify(options.count)}`)
       process.exit(1)
@@ -223,50 +279,55 @@ if (import.meta.main) {
     )
   }
 
-  const genUnit = negation ? "batches" : "emojis"
-  const genBar = new cliProgress.SingleBar(
-    {
-      format:
-        `generating |{bar}| {percentage}% | {value}/{total} ${genUnit} | ETA: {eta}s`,
-    },
-    cliProgress.Presets.shades_classic,
-  )
-
   const cands: { text: string; target?: string }[] = []
-  const genQ = new PQueue({ concurrency: GEN_CONCURRENCY })
-  if (negation) {
-    genBar.start(negBatches.length, 0)
-    genQ.addAll(
-      negBatches.map((n) => async () => {
-        try {
-          for (const t of await genNegationBatch(pickVoice(), n)) {
-            cands.push({ text: t })
-          }
-        } catch (err) {
-          console.warn(`\n  gen (negation) failed: ${err}`)
-        }
-        genBar.increment()
-      }),
-    )
+  if (singleEmoji) {
+    for (const t of singleTexts) cands.push({ text: t })
+    console.log(`${cands.length} corpus rows selected, annotating`)
   } else {
-    genBar.start(targets.length, 0)
-    genQ.addAll(
-      targets.map((emoji) => async () => {
-        try {
-          for (const t of await genBatch(pickVoice(), emoji, per)) {
-            cands.push({ text: t, target: emoji })
-          }
-        } catch (err) {
-          console.warn(`\n  gen (${emoji}) failed: ${err}`)
-        }
-        genBar.increment()
-      }),
+    const genUnit = negation ? "batches" : "emojis"
+    const genBar = new cliProgress.SingleBar(
+      {
+        format:
+          `generating |{bar}| {percentage}% | {value}/{total} ${genUnit} | ETA: {eta}s`,
+      },
+      cliProgress.Presets.shades_classic,
     )
-  }
-  await genQ.onIdle()
-  genBar.stop()
 
-  console.log(`\n${cands.length} texts generated, annotating`)
+    const genQ = new PQueue({ concurrency: GEN_CONCURRENCY })
+    if (negation) {
+      genBar.start(negBatches.length, 0)
+      genQ.addAll(
+        negBatches.map((n) => async () => {
+          try {
+            for (const t of await genNegationBatch(pickVoice(), n)) {
+              cands.push({ text: t })
+            }
+          } catch (err) {
+            console.warn(`\n  gen (negation) failed: ${err}`)
+          }
+          genBar.increment()
+        }),
+      )
+    } else {
+      genBar.start(targets.length, 0)
+      genQ.addAll(
+        targets.map((emoji) => async () => {
+          try {
+            for (const t of await genBatch(pickVoice(), emoji, per)) {
+              cands.push({ text: t, target: emoji })
+            }
+          } catch (err) {
+            console.warn(`\n  gen (${emoji}) failed: ${err}`)
+          }
+          genBar.increment()
+        }),
+      )
+    }
+    await genQ.onIdle()
+    genBar.stop()
+
+    console.log(`\n${cands.length} texts generated, annotating`)
+  }
 
   const annBar = new cliProgress.SingleBar(
     {
@@ -282,9 +343,11 @@ if (import.meta.main) {
   )
   annBar.stop()
 
+  const today = new Date().toISOString().slice(0, 10)
   const lines: string[] = []
   let noLabel = 0
   let noPalette = 0
+  let noEmoji = 0
   let hitTarget = 0
   let missTarget = 0
   for (let i = 0; i < cands.length; i++) {
@@ -297,6 +360,10 @@ if (import.meta.main) {
       noPalette++
       continue
     }
+    if (singleEmoji && !label.emojis.length) {
+      noEmoji++
+      continue
+    }
     const target = cands[i].target
     let emojis: string
     if (target) {
@@ -306,6 +373,8 @@ if (import.meta.main) {
     } else {
       emojis = label.emojis.join(" ")
     }
+    const meta: Record<string, unknown> = { date: today }
+    if (singleEmoji) meta["single-emoji"] = true
     const row: Record<string, unknown> = {
       text: cands[i].text,
       emojis,
@@ -314,18 +383,21 @@ if (import.meta.main) {
       fg: label.fg,
     }
     if (negation) row.neg = "true"
+    row.meta = meta
     lines.push(JSON.stringify(row))
   }
   await appendJsonl(DATA, lines)
 
+  const mode = negation ? "negation" : singleEmoji ? "single-emoji" : "emoji-target"
   console.log("\n--- summary ---")
-  console.log(`mode                 : ${negation ? "negation" : "emoji-target"}`)
-  if (!negation) console.log(`targets              : ${targets.length}`)
-  console.log(`generated            : ${cands.length}`)
+  console.log(`mode                 : ${mode}`)
+  if (!standalone) console.log(`targets              : ${targets.length}`)
+  console.log(`${(singleEmoji ? "selected" : "generated").padEnd(21)}: ${cands.length}`)
   console.log(`appended -> data     : ${lines.length}`)
   console.log(`dropped no label     : ${noLabel}`)
   console.log(`dropped no palette   : ${noPalette}`)
-  if (!negation) {
+  if (singleEmoji) console.log(`dropped no emoji     : ${noEmoji}`)
+  if (!standalone) {
     console.log(
       `target hit / miss    : ${hitTarget} / ${missTarget} `
       + `(target injected either way)`,

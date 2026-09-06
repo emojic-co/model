@@ -1,5 +1,9 @@
 import json
+import sys
 from datetime import datetime
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from files import ENERGY_KEYWORDS_TXT, LABELS_JSON
 
@@ -21,13 +25,17 @@ assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
 ENCODER_CHANNELS = [64, 96, 192]
-ENCODER_DILATION = [1, 2, 2]
+ENCODER_DILATION = [1, 2, 4]
 
 assert len(ENCODER_CHANNELS) == len(ENCODER_DILATION), \
     "encoder channels and dilation must have the same length"
 
 enc_str = " ".join([
-    str(p) for p in (CHAR_EMBED_SIZE, ENCODER_KERNEL_SIZE, ENCODER_CHANNELS)])
+    str(p) for p in (
+        CHAR_EMBED_SIZE,
+        ENCODER_KERNEL_SIZE,
+        ENCODER_CHANNELS,
+        ENCODER_DILATION)])
 
 # EMOJI
 EMOJI_EMBED_SIZE = 64
@@ -118,3 +126,75 @@ CONFIG_NAME = " | ".join(
         *CONFIG_PARTS,
     ]
 )
+
+
+def _receptive_field() -> int:
+    return 1 + (ENCODER_KERNEL_SIZE - 1) * sum(ENCODER_DILATION)
+
+
+def _effective_kernels() -> list[int]:
+    return [(ENCODER_KERNEL_SIZE - 1) * d + 1 for d in ENCODER_DILATION]
+
+
+def _encoder_conv_params() -> int:
+    total = 0
+    in_ch = CHAR_EMBED_SIZE
+    for out_ch in ENCODER_CHANNELS:
+        total += in_ch * out_ch * ENCODER_KERNEL_SIZE + out_ch
+        in_ch = out_ch
+    return total
+
+
+def _head_params(embed_size: int, n_labels: int) -> int:
+    return TEXT_EMBED_SIZE * embed_size + n_labels * (embed_size + 1)
+
+
+def _stats() -> list[tuple[str, object]]:
+    rf = _receptive_field()
+    cover = "covers full input" if rf >= MAX_TEXT_LEN else "partial coverage"
+    enc = _encoder_conv_params()
+    emoji_head = _head_params(EMOJI_EMBED_SIZE, len(EMOJIS))
+    style_head = _head_params(STYLE_EMBED_SIZE, len(STYLES))
+    chain = " -> ".join(str(c) for c in (CHAR_EMBED_SIZE, *ENCODER_CHANNELS))
+    return [
+        ("NUM_LAYERS", len(ENCODER_CHANNELS)),
+        ("channel chain", chain),
+        ("ENCODER_KERNEL_SIZE", ENCODER_KERNEL_SIZE),
+        ("ENCODER_DILATION", ENCODER_DILATION),
+        ("effective kernel / layer", _effective_kernels()),
+        ("RECEPTIVE_FIELD", rf),
+        ("RF vs MAX_TEXT_LEN", f"{rf} / {MAX_TEXT_LEN}  ({cover})"),
+        ("TEXT_EMBED_SIZE", TEXT_EMBED_SIZE),
+        ("MAX_TEXT_LEN", MAX_TEXT_LEN),
+        ("# styles", len(STYLES)),
+        ("# emojis", len(EMOJIS)),
+        ("STYLE_EMBED_SIZE", STYLE_EMBED_SIZE),
+        ("EMOJI_EMBED_SIZE", EMOJI_EMBED_SIZE),
+        ("encoder conv params", f"{enc:,}"),
+        ("style head params", f"{style_head:,}"),
+        ("emoji head params", f"{emoji_head:,}"),
+        ("PARAM_COUNT (enc + heads)", f"{enc + style_head + emoji_head:,}"),
+        ("TASK_BATCH_SIZE / GAN_BATCH_SIZE", f"{TASK_BATCH_SIZE} / {GAN_BATCH_SIZE}"),
+        ("EPOCHS_TASK / EPOCHS_GAN", f"{EPOCHS_TASK} / {EPOCHS_GAN}"),
+        ("Z_WEIGHT", Z_WEIGHT),
+        ("GEN_CHANNELS", GEN_CHANNELS),
+        ("CRITIC_COLOR_CHANNELS", CRITIC_COLOR_CHANNELS),
+        ("CRITIC_TEXT_CHANNELS", CRITIC_TEXT_CHANNELS),
+    ]
+
+
+def main() -> None:
+    rows = _stats()
+    width = max(len(name) for name, _ in rows)
+    for name, val in rows:
+        print(f"{name:<{width}} : {val}")
+    print()
+    print(
+        "PARAM_COUNT excludes the char-embedding table (needs |CHARS| from "
+        "model/data.py) and the GAN generator/critic."
+    )
+    print("Run tools/print_model_params.py for exact per-module counts.")
+
+
+if __name__ == "__main__":
+    main()
