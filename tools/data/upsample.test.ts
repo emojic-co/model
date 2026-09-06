@@ -35,7 +35,7 @@ test("rankWindow returns keys ranked [minRank, maxRank] by count desc, ties brok
   expect(rankWindow(counts, 4, 5)).toEqual(["b", "d"])
 })
 
-test("singleEmojiTexts keeps rows with a unique normalized text and exactly one emoji", () => {
+test("singleEmojiTexts keeps rows with a unique normalized text and at most one emoji", () => {
   const rows = [
     { text: "walking the dog", emojis: "🐕" },
     { text: "  Walking  the DOG  ", emojis: "🚶" },
@@ -45,7 +45,16 @@ test("singleEmojiTexts keeps rows with a unique normalized text and exactly one 
     { text: "same one twice", emojis: "😀 😀" },
     { text: "made pizza tonight", emojis: "🔥" },
   ]
-  expect(singleEmojiTexts(rows, 100)).toEqual(["same one twice"])
+  expect(singleEmojiTexts(rows, 100)).toEqual(["no emoji here", "same one twice"])
+})
+
+test("singleEmojiTexts: zero-emoji rows still need a unique normalized text", () => {
+  const rows = [
+    { text: "solo blank", emojis: "" },
+    { text: "dup blank", emojis: "" },
+    { text: "Dup  Blank", emojis: "🍕" },
+  ]
+  expect(singleEmojiTexts(rows, 100)).toEqual(["solo blank"])
 })
 
 test("singleEmojiTexts: collisions drop every colliding row, count caps in file order", () => {

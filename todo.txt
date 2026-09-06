@@ -1,4 +1,4 @@
-
-Tools: 
-    update the tool tools/data/stat.ts to have a mandatory <file> arg (data/data.jsonl, data/train.jsonl, etc...)
-    The tool will only output statistics for the given file, and not for all files in data/
+Keywords:
+    Currently we have two mechanisms for keywords evaluations:
+    1.  The data/keywords.json file 
+    2. The data/cldr.jsonl file

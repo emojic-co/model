@@ -75,7 +75,7 @@ export function singleEmojiTexts(
     if (typeof row.text !== "string" || typeof row.emojis !== "string") continue
     const key = normalize(row.text)
     if (!key || perText.get(key) !== 1) continue
-    if (new Set(splitEmojis(row.emojis)).size !== 1) continue
+    if (new Set(splitEmojis(row.emojis)).size > 1) continue
     out.push(row.text)
   }
   return out
@@ -181,7 +181,7 @@ cli
   .option("--report", "target emoji failing the latest report's keywords.json keyword probe")
   .option("--per <n>", `texts to generate per target emoji / per batch (default ${TEXTS_PER_EMOJI})`)
   .option("--negation", "standalone: generate negation-heavy texts (ignores emoji targeting)")
-  .option("--single-emoji", "standalone: re-annotate corpus rows that carry exactly one emoji (ignores emoji targeting)")
+  .option("--single-emoji", "standalone: re-annotate corpus rows that carry at most one emoji (ignores emoji targeting)")
   .option("--count <n>", `cap on texts for --negation (default ${NEG_COUNT}) / --single-emoji (default ${SINGLE_EMOJI_COUNT})`)
 cli.help()
 
@@ -231,7 +231,7 @@ if (import.meta.main) {
     targets = []
     console.log(
       `single-emoji mode -> ${rows.length} master rows -> `
-      + `${singleTexts.length} unique single-emoji rows to re-annotate `
+      + `${singleTexts.length} unique rows (<=1 emoji) to re-annotate `
       + `(cap ${count})`,
     )
     if (!singleTexts.length) {

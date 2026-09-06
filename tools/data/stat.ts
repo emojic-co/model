@@ -28,7 +28,7 @@ export type Stats = {
   meanStylesPerText: number
   distinctEmojis: number
   distinctStyles: number
-  emojiPerText: { count: number; texts: number; pct: number; cumPct: number }[]
+  emojiPerText: { count: number; texts: number; pct: number; cumPct: number; tailPct: number }[]
   topEmojis: { emoji: string; texts: number; pct: number }[]
   styleCounts: { style: string; texts: number; pct: number }[]
   textLen: { min: number; median: number; p90: number; max: number }
@@ -124,7 +124,13 @@ export function computeStats(rawRows: unknown[]): Stats {
     .sort((x, y) => x[0] - y[0])
     .map(([count, t]) => {
       running += t
-      return { count, texts: t, pct: pct(t, texts), cumPct: pct(running, texts) }
+      return {
+        count,
+        texts: t,
+        pct: pct(t, texts),
+        cumPct: pct(running, texts),
+        tailPct: pct(texts - running, texts),
+      }
     })
 
   const topEmojis = [...emojiTexts.entries()]
@@ -260,24 +266,19 @@ function App({
     r.texts,
     pctStr(r.pct),
     pctStr(r.cumPct),
-  ])
-
-  const topEmojiRows: Cell[][] = (long ? s.topEmojis : s.topEmojis.slice(0, 15)).map((r) => [
-    r.emoji,
-    r.texts,
-    pctStr(r.pct),
+    pctStr(r.tailPct),
   ])
 
   const styleRows: Cell[][] = s.styleCounts.map((r) => [r.style, r.texts, pctStr(r.pct)])
 
   const children = [
     h(Section, { key: "overview", title: `Corpus (${file}, collapsed by normalized text)` }, h(Table, { head: ["metric", "value", ""], rows: overviewRows, align: ["l", "r", "l"] })),
-    h(Section, { key: "epr", title: "Unique emojis per normalized text" }, h(Table, { head: ["# emojis", "# texts", "%", "cum %"], rows: emojiPerTextRows, align: ["r", "r", "r", "r"] })),
-    h(Section, { key: "top", title: long ? "Emoji frequency (all)" : "Top 15 emojis by # texts" }, h(Table, { head: ["emoji", "# texts", "%"], rows: topEmojiRows, align: ["l", "r", "r"] })),
+    h(Section, { key: "epr", title: "Unique emojis per normalized text" }, h(Table, { head: ["# emojis", "# texts", "%", "cum %", "100−cum %"], rows: emojiPerTextRows, align: ["r", "r", "r", "r", "r"] })),
     h(Section, { key: "styles", title: "Styles by # texts" }, h(Table, { head: ["style", "# texts", "%"], rows: styleRows, align: ["l", "r", "r"] })),
   ]
 
   if (long) {
+    const topEmojiRows: Cell[][] = s.topEmojis.map((r) => [r.emoji, r.texts, pctStr(r.pct)])
     const repeatRows: Cell[][] = s.repeatBuckets.map((r) => [r.label, r.texts, pctStr(pct(r.texts, s.texts))])
     const lenRows: Cell[][] = s.lenHistogram.map((r) => [
       r.len,
@@ -298,6 +299,7 @@ function App({
         r.emojis.join(" "),
       ])
     children.push(
+      h(Section, { key: "top", title: "Emoji frequency (all)" }, h(Table, { head: ["emoji", "# texts", "%"], rows: topEmojiRows, align: ["l", "r", "r"] })),
       h(Section, { key: "repeat", title: "Records per normalized text" }, h(Table, { head: ["bucket", "# texts", "%"], rows: repeatRows, align: ["l", "r", "r"] })),
       h(Section, { key: "len", title: "Normalized text length" }, h(Table, { head: ["len", "# texts", ""], rows: lenRows, align: ["r", "r", "l"] })),
       h(Section, { key: "extra", title: "Extra row fields" }, h(Table, { head: ["field", "count", "%"], rows: extraRows, align: ["l", "r", "r"] })),
