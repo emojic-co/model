@@ -125,7 +125,10 @@ export function emojiVocab(counts: Map<string, number>, minCount: number): strin
     .map(([e]) => e)
 }
 
+import { existsSync } from "node:fs"
+
 import {
+  CLDR_JSONL as CLDR,
   DATA_JSONL as DATA,
   EVAL_JSONL as EVAL,
   LABELS_JSON as LABELS,
@@ -148,6 +151,7 @@ cli
   .option("--min-count <n>", "min kept-records for an emoji to enter labels.json (default 100)")
   .option("--max-count <n>", "cap on kept-records per emoji (default 500)")
   .option("--n <n>", "eval.jsonl row count (default 1500)")
+  .option("--no-cldr", "ignore data/cldr.jsonl; build from data/data.jsonl only")
 cli.help()
 
 if (import.meta.main) {
@@ -157,7 +161,17 @@ if (import.meta.main) {
   const maxCount = Number(options.maxCount ?? 500)
   const n = Number(options.n ?? 1500)
 
-  const raw = await readJsonl<unknown>(DATA)
+  const useCldr = options.cldr !== false
+  if (useCldr && !existsSync(CLDR)) {
+    console.error(
+      `${CLDR} is missing; run \`bun run build-cldr\` first or pass --no-cldr`,
+    )
+    process.exit(1)
+  }
+
+  const master = await readJsonl<unknown>(DATA)
+  const cldr = useCldr ? await readJsonl<unknown>(CLDR) : []
+  const raw = [...master, ...cldr]
   const records = collapse(raw)
   const merged = records.length
   const dupKeys = raw.length - merged
@@ -184,7 +198,10 @@ if (import.meta.main) {
   const fmt = (es: [string, number][]) => es.map(([e, c]) => `${e} ${c}`).join(", ")
 
   console.log("\n--- regen ---")
-  console.log(`master lines read     : ${raw.length}`)
+  console.log(`master lines read     : ${master.length}`)
+  console.log(
+    `cldr lines read       : ${useCldr ? cldr.length : "skipped (--no-cldr)"}`,
+  )
   console.log(`distinct texts        : ${merged} (collapsed away ${dupKeys})`)
   console.log(`min-count / max-count : ${minCount} / ${maxCount}`)
   console.log(`greedy kept           : ${kept.length} rows (dropped ${dropped} over max-count)`)

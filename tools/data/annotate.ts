@@ -24,6 +24,7 @@ export type Label = {
 
 export type AnnotateOpts = {
   colors?: boolean
+  fillPalette?: boolean
   onBatchDone?: () => void
 }
 
@@ -78,6 +79,14 @@ export function formatDrops(d: Drops): string {
     + `(batch ${d.batch} · missingId ${d.missingId} · `
     + `noStyle ${d.noStyle} · noPalette ${d.noPalette})`
   )
+}
+
+export type Fills = { palette: number }
+
+export const lastFills: Fills = { palette: 0 }
+
+function resetFills(f: Fills): void {
+  f.palette = 0
 }
 
 const Annotation = z.object({
@@ -169,7 +178,7 @@ function luminance(hex: string): number {
   return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
 }
 
-function contrast(a: string, b: string): number {
+export function contrast(a: string, b: string): number {
   const la = luminance(a)
   const lb = luminance(b)
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05)
@@ -189,9 +198,41 @@ function cleanPalette(
   return { bg: [bg0, bg1], fg: fgHex }
 }
 
+export const FALLBACK_PALETTES: { bg: [string, string]; fg: string }[] = [
+  { bg: ["#eef2f6", "#dbe3ec"], fg: "#26323f" },
+  { bg: ["#faf3e8", "#efe1cc"], fg: "#3b2f21" },
+  { bg: ["#e8f6ef", "#d0eadd"], fg: "#1f3d33" },
+  { bg: ["#f0ecf9", "#ddd3f0"], fg: "#332a45" },
+  { bg: ["#fbecef", "#f3d6de"], fg: "#412530" },
+  { bg: ["#e9f2fb", "#d2e4f5"], fg: "#1e3346" },
+  { bg: ["#2c2620", "#3a322a"], fg: "#f0e6d8" },
+  { bg: ["#16232e", "#1f3340"], fg: "#e2edf4" },
+  { bg: ["#1c2a22", "#26382e"], fg: "#e4efe8" },
+  { bg: ["#232529", "#303338"], fg: "#e8eaed" },
+]
+
+function randomFallbackPalette(): Pick<Label, "bg" | "fg"> {
+  const p =
+    FALLBACK_PALETTES[Math.floor(Math.random() * FALLBACK_PALETTES.length)]
+  return { bg: [p.bg[0], p.bg[1]], fg: p.fg }
+}
+
+export function resolvePalette(
+  bg: unknown,
+  fg: unknown,
+  fill: boolean,
+): { palette: Pick<Label, "bg" | "fg"> | null; filled: boolean } {
+  const palette = cleanPalette(bg, fg)
+  if (palette) return { palette, filled: false }
+  if (!fill) return { palette: null, filled: false }
+  return { palette: randomFallbackPalette(), filled: true }
+}
+
 function cleanLabel(
   a: z.infer<typeof Annotation>,
   colors: boolean,
+  fillPalette: boolean,
+  fills: Fills,
 ): Label | DropReason {
   const emojis = splitEmojis(a.emojis).slice(0, MAX_EMOJIS)
   const styles = [
@@ -201,16 +242,19 @@ function cleanLabel(
 
   if (!colors) return { emojis, styles }
 
-  const palette = cleanPalette(a.bg, a.fg)
+  const { palette, filled } = resolvePalette(a.bg, a.fg, fillPalette)
   if (!palette) return "noPalette"
+  if (filled) fills.palette++
   return { emojis, styles, ...palette }
 }
 
 async function annotateBatch(
   batch: { id: number; text: string }[],
   colors: boolean,
+  fillPalette: boolean,
   usage: Usage,
   drops: Drops,
+  fills: Fills,
 ): Promise<Map<number, Label>> {
   const ids = new Set(batch.map((b) => b.id))
   const byId = new Map<number, Label>()
@@ -239,7 +283,7 @@ async function annotateBatch(
       threw = false
       for (const a of res.output.annotations) {
         if (!ids.has(a.id) || byId.has(a.id)) continue
-        const label = cleanLabel(a, colors)
+        const label = cleanLabel(a, colors, fillPalette, fills)
         if (typeof label === "string") {
           reason.set(a.id, label)
           if (process.env.ANNOTATE_DEBUG)
@@ -276,6 +320,7 @@ export async function annotate(
   opts: AnnotateOpts = {},
 ): Promise<Map<number, Label>> {
   const colors = opts.colors ?? false
+  const fillPalette = opts.fillPalette ?? false
   const items = texts.map((text, id) => ({ id, text }))
   const result = new Map<number, Label>()
   const queue = new PQueue({ concurrency: ANNOTATE_CONCURRENCY })
@@ -285,10 +330,18 @@ export async function annotate(
   lastUsage.output = 0
   lastUsage.total = 0
   resetDrops(lastDrops)
+  resetFills(lastFills)
 
   queue.addAll(
     chunk(items, ANNOTATE_BATCH_SIZE).map((batch) => async () => {
-      const got = await annotateBatch(batch, colors, lastUsage, lastDrops)
+      const got = await annotateBatch(
+        batch,
+        colors,
+        fillPalette,
+        lastUsage,
+        lastDrops,
+        lastFills,
+      )
       for (const [id, label] of got) result.set(id, label)
       opts.onBatchDone?.()
     }),
@@ -297,6 +350,7 @@ export async function annotate(
 
   console.log(`\n${formatUsage(lastUsage)}`)
   console.log(formatDrops(lastDrops))
+  if (fillPalette) console.log(`fills: palette ${lastFills.palette}`)
   return result
 }
 

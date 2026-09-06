@@ -36,6 +36,7 @@ data/labels.json
 data/train.jsonl.tmp
 data/eval.jsonl.tmp
 data/labels.json.tmp
+data/cldr.jsonl.tmp
 
 pt/*.pt
 # SDD isolated worktrees

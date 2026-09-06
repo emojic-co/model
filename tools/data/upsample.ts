@@ -6,7 +6,7 @@ import cliProgress from "cli-progress"
 import PQueue from "p-queue"
 
 import { DATA_JSONL as DATA } from "../../files.ts"
-import { MODEL, annotate, annotateBatchCount } from "./annotate.ts"
+import { MODEL, annotate, annotateBatchCount, lastFills } from "./annotate.ts"
 import { splitEmojis } from "./emoji.ts"
 import { appendJsonl, readJsonl } from "./io.ts"
 import { normalize } from "./normalize.ts"
@@ -339,7 +339,7 @@ if (import.meta.main) {
   annBar.start(annotateBatchCount(cands.length), 0)
   const labels = await annotate(
     cands.map((c) => c.text),
-    { colors: true, onBatchDone: () => annBar.increment() },
+    { colors: true, fillPalette: true, onBatchDone: () => annBar.increment() },
   )
   annBar.stop()
 
@@ -395,6 +395,7 @@ if (import.meta.main) {
   console.log(`${(singleEmoji ? "selected" : "generated").padEnd(21)}: ${cands.length}`)
   console.log(`appended -> data     : ${lines.length}`)
   console.log(`dropped no label     : ${noLabel}`)
+  console.log(`filled palette       : ${lastFills.palette}`)
   console.log(`dropped no palette   : ${noPalette}`)
   if (singleEmoji) console.log(`dropped no emoji     : ${noEmoji}`)
   if (!standalone) {

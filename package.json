@@ -6,7 +6,6 @@
     "train": "bun run tools/data/train.ts",
     "regen": "bun run tools/data/regen.ts",
     "build-cldr": "bun run tools/data/cldr.ts",
-    "cldr-vs-data": "bun run tools/analysis/cldr-vs-data.ts",
     "upsample": "bun run tools/data/upsample.ts",
     "preview": "bun run tools/preview.ts",
     "show-labels": "bun run tools/data/show-labels.ts",
@@ -31,7 +30,6 @@
     "emojibase-data": "^17.0.0",
     "flexsearch": "0.8.212",
     "ink": "^7.1.1",
-    "ink-table": "^3.1.0",
     "live-server": "^1.2.2",
     "react": "^19.2.8"
   }
