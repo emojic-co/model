@@ -16,16 +16,22 @@ MAX_TEXT_LEN = 42
 # ENCODER
 CHAR_EMBED_SIZE = 16
 ENCODER_KERNEL_SIZE = 3
-assert ENCODER_KERNEL_SIZE % 2 == 1, "encoder kernel size must be odd"
-ENCODER_CHANNELS = [96, 112, 128]
 
-enc_str = " ".join(
-    [str(p) for p in (CHAR_EMBED_SIZE, ENCODER_KERNEL_SIZE, ENCODER_CHANNELS)]
-)
+assert ENCODER_KERNEL_SIZE % 2 == 1, \
+    "encoder kernel size must be odd"
+
+ENCODER_CHANNELS = [96, 112, 128]
+ENCODER_DILATION = [1, 2, 4]
+
+assert len(ENCODER_CHANNELS) == len(ENCODER_DILATION), \
+    "encoder channels and dilation must have the same length"
+
+enc_str = " ".join([
+    str(p) for p in (CHAR_EMBED_SIZE, ENCODER_KERNEL_SIZE, ENCODER_CHANNELS)])
 
 # EMOJI
 EMOJI_EMBED_SIZE = 48
-DROPOUT_EMOJI = 0.2
+DROPOUT_EMOJI = 0.1
 
 emj_str = " ".join([str(p) for p in (EMOJI_EMBED_SIZE, DROPOUT_EMOJI)])
 
@@ -34,8 +40,9 @@ STYLE_EMBED_SIZE = 12
 TEXT_EMBED_SIZE = sum(ENCODER_CHANNELS)
 DROPOUT_STYLE = 0.1
 
-style_str = " ".join([str(p)
-                     for p in (STYLE_EMBED_SIZE, TEXT_EMBED_SIZE, DROPOUT_STYLE)])
+style_str = " ".join([
+    str(p)
+    for p in (STYLE_EMBED_SIZE, TEXT_EMBED_SIZE, DROPOUT_STYLE)])
 
 # GAN
 Z_WEIGHT = 0.2
@@ -45,14 +52,15 @@ CRITIC_TEXT_CHANNELS = [8, 4]
 GAN_GEN_LR = 0.01
 GAN_CRITIC_LR = 0.02
 
-gan_str = " ".join([str(p)
-                   for p in (
-                       Z_WEIGHT,
-                       GEN_CHANNELS,
-                       CRITIC_COLOR_CHANNELS,
-                       CRITIC_TEXT_CHANNELS,
-                       GAN_GEN_LR,
-                       GAN_CRITIC_LR)])
+gan_str = " ".join([
+    str(p)
+    for p in (
+        Z_WEIGHT,
+        GEN_CHANNELS,
+        CRITIC_COLOR_CHANNELS,
+        CRITIC_TEXT_CHANNELS,
+        GAN_GEN_LR,
+        GAN_CRITIC_LR)])
 
 
 # TRAINING
