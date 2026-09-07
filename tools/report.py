@@ -11,13 +11,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import torch
 import typer
+from torch.nn.functional import normalize as _l2norm
 
-from files import CLDR_BASELINE_JSON, CLDR_JSONL, DATA_JSONL, KEYWORDS_JSON
+from files import CLDR_BASELINE_JSON, CLDR_JSONL, DATA_JSONL, GOLD_JSONL, KEYWORDS_JSON
 from model.color import COLOR_SHIFT, rgb_to_oklab
-from model.config import EMOJIS, STYLES
+from model.config import EMOJIS, STYLES, Z_WEIGHT
 from model.data import EVAL_PATH, TRAIN_PATH, read, text_to_tensor
 from model.data import normalize as norm_text
-from model.model import EmojiHead, TextEncoder
+from model.export_onnx import CONST_Z
+from model.model import ColorGen, EmojiHead, StyleHead, TextEncoder
 from model.runmeta import load_pt, run_meta
 
 DATA_PATH = DATA_JSONL
@@ -25,6 +27,8 @@ KEYWORDS_PATH = KEYWORDS_JSON
 
 EMOJI_KS = list(range(1, 11))
 CLDR_MIN_KEYWORD_LEN = 3
+CARD_DIST_THRESHOLD = 0.10
+CARD_COLORS = ("red", "green", "blue", "dark", "bright")
 
 
 def _ts() -> str:
@@ -63,8 +67,9 @@ def _acc_at_k(logits, target, k):
 
 def _provenance(pt: Path):
     enc_pt, emoji_pt = str(pt / "enc.pt"), str(pt / "emoji.pt")
+    style_pt, gen_pt = str(pt / "style.pt"), str(pt / "gen.pt")
     rm = run_meta()
-    paths = [enc_pt, emoji_pt]
+    paths = [enc_pt, emoji_pt, style_pt, gen_pt]
     metas = {p: (load_pt(p)[1] if Path(p).exists() else None) for p in paths}
     present = {p: m for p, m in metas.items() if m}
     missing = [p for p in paths if not Path(p).exists()]
@@ -211,28 +216,113 @@ def _section_cldr(enc, head):
     return _cldr_probe(enc, head)
 
 
+def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
+    if None in (enc, style_head, emoji_head, gen) or not gold_rows:
+        return {}
+    rows = list(gold_rows)
+    ids = torch.stack([text_to_tensor(norm_text(r["text"])) for r in rows])
+    evocab = {e: i for i, e in enumerate(EMOJIS)}
+    svocab = {s: i for i, s in enumerate(STYLES)}
+    etgt = torch.zeros(len(rows), len(EMOJIS))
+    stgt = torch.zeros(len(rows), len(STYLES))
+    for i, r in enumerate(rows):
+        for e in str(r["emojis"]).split():
+            if e in evocab:
+                etgt[i, evocab[e]] = 1.0
+        for s in r["styles"]:
+            if s in svocab:
+                stgt[i, svocab[s]] = 1.0
+    with torch.no_grad():
+        emb = enc(ids)
+        elog = emoji_head(emb)
+        slog = style_head(emb)
+        seed = (1 - Z_WEIGHT) * _l2norm(emb)[:, None, :] + Z_WEIGHT * CONST_Z[None, :, :]
+        raw = gen.net(seed.reshape(-1, seed.shape[-1]))
+        palettes = (torch.tanh(raw) * 127.5).reshape(len(rows), CONST_Z.shape[0], 9)
+    emoji_acc = [_acc_at_k(elog, etgt, k).mean().item() for k in EMOJI_KS]
+    style_acc = [_acc_at_k(slog, stgt, k).mean().item() for k in EMOJI_KS]
+    out_rows = []
+    for i, r in enumerate(rows):
+        gold9 = (
+            _hex_to_offsets(r["bg"][0])
+            + _hex_to_offsets(r["bg"][1])
+            + _hex_to_offsets(r["fg"])
+        )
+        df = min(
+            _card_distance(palettes[i, k].tolist(), gold9, r["color"])
+            for k in range(palettes.shape[1])
+        )
+        flat = palettes[i, 0].tolist()
+        out_rows.append(
+            {
+                "color": r["color"],
+                "text": r["text"],
+                "emoji": EMOJIS[int(elog[i].argmax())],
+                "style": STYLES[int(slog[i].argmax())],
+                "bg1": _offsets_to_hex(flat[0:3]),
+                "bg2": _offsets_to_hex(flat[3:6]),
+                "text_color": _offsets_to_hex(flat[6:9]),
+                "dF": df,
+                "hit": df < CARD_DIST_THRESHOLD,
+            }
+        )
+    per_color = {}
+    for c in CARD_COLORS:
+        ds = [x["dF"] for x in out_rows if x["color"] == c]
+        per_color[c] = {
+            "accuracy": sum(d < CARD_DIST_THRESHOLD for d in ds) / (len(ds) or 1),
+            "mean_distance": sum(ds) / (len(ds) or 1),
+        }
+    alld = [x["dF"] for x in out_rows]
+    per_color["all"] = {
+        "accuracy": sum(d < CARD_DIST_THRESHOLD for d in alld) / (len(alld) or 1),
+        "mean_distance": sum(alld) / (len(alld) or 1),
+    }
+    return {
+        "n": len(rows),
+        "threshold": CARD_DIST_THRESHOLD,
+        "emoji_acc_at_k": emoji_acc,
+        "style_acc_at_k": style_acc,
+        "per_color": per_color,
+        "rows": out_rows,
+    }
+
+
 def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
     want = {s.strip() for s in only.split(",") if s.strip()} or {
         "data",
         "labels",
         "emoji",
         "cldr",
+        "cards",
     }
     enc_pt, emoji_pt = pt / "enc.pt", pt / "emoji.pt"
+    style_pt, gen_pt = pt / "style.pt", pt / "gen.pt"
     prov = _provenance(pt)
 
-    enc = emoji_head = None
-    if ("emoji" in want or "cldr" in want) and enc_pt.exists():
+    enc = emoji_head = style_head = gen = None
+    need_enc = bool({"emoji", "cldr", "cards"} & want)
+    if need_enc and enc_pt.exists():
         enc, err = _load(TextEncoder(), enc_pt)
         if err:
             prov["issues"].append(f"{enc_pt} could not load: {err}")
-        if enc is not None and emoji_pt.exists():
-            emoji_head, err = _load(EmojiHead(), emoji_pt)
+    if enc is not None and emoji_pt.exists():
+        emoji_head, err = _load(EmojiHead(), emoji_pt)
+        if err:
+            prov["issues"].append(f"{emoji_pt} could not load: {err}")
+    if "cards" in want and enc is not None:
+        if style_pt.exists():
+            style_head, err = _load(StyleHead(), style_pt)
             if err:
-                prov["issues"].append(f"{emoji_pt} could not load: {err}")
+                prov["issues"].append(f"{style_pt} could not load: {err}")
+        if gen_pt.exists():
+            gen, err = _load(ColorGen(), gen_pt)
+            if err:
+                prov["issues"].append(f"{gen_pt} could not load: {err}")
     prov["consistent"] = not prov["issues"]
 
     eval_records = list(read(EVAL_PATH)) if "emoji" in want else []
+    gold_rows = _rows(str(GOLD_JSONL)) if "cards" in want else ()
 
     report = {
         "generated": datetime.now().isoformat(timespec="seconds"),
@@ -246,6 +336,8 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         report["emoji"] = _section_emoji(enc, emoji_head, eval_records)
     if "cldr" in want:
         report["cldr"] = _section_cldr(enc, emoji_head)
+    if "cards" in want:
+        report["cards"] = _section_cards(enc, style_head, emoji_head, gen, gold_rows)
 
     out_dir = Path(out) / f"{prov['ts']}-{prov['model_sha']}"
     out_dir.mkdir(parents=True, exist_ok=True)
