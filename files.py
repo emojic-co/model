@@ -16,7 +16,7 @@ PRED_JSONL = f"{DATA_DIR}/pred.jsonl"
 
 EXP_DIR = "exp"
 EXP_ENC_PT = f"{EXP_DIR}/enc.pt"
-EXP_GAN_PT = f"{EXP_DIR}/gan.pt"
+EXP_GAN_PT = f"{EXP_DIR}/gen.pt"
 
 ENC_PT = f"{PT_DIR}/enc.pt"
 STYLE_PT = f"{PT_DIR}/style.pt"
