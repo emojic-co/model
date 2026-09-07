@@ -1,12 +1,94 @@
-Color Experiment:
-    update the train script
-    When running `train critic` it will:
-    1. create a fresh encoder
-    2. only load the data from data/colors.jsonl
-    3. generate fake and real <text, colors> pairs from the real data.
-        real are just real, 
-        fake are real text with random colors from the real data.
+Architectural updates:
+    Update the model architecture as follow:
 
-    The goal is to see if the critic is able to distinguish and can learn the relationship between text and colors in isolation from the generator.
+    TextEncoder: text -> text embedding
+        StyleHead: text embedding -> style embedding
+        EmojiHead: text embedding -> emoji embedding
+        
+        ColorCritic:
+            text embedding -> text embedding (in color space)
+            colors -> color embedding (in color space)
+                text embedding @ color embedding -> score
 
-    Do not save any .pt files, just let me run the training and see the tb logs.
+        ColorGenerator:
+            text embedding + noise -> color
+
+
+    Task Framing:
+        both the emoji and style tasks are framed as retrieval tasks.
+        color critic is framed as a contrastive task.
+        color generator is framed as a generative task.
+
+    Loss Functions:
+        emoji and style: LSE (Log-Sum-Exp) InfoNCE
+        colors: Pairwise Contrastive Loss
+        generator: Loss_pos part from the Pairwise Contrastive Loss
+
+    
+    Training:
+        training is done in two stages:
+            1. TextEncoder + StyleEncoder + EmojiEncoder + ColorCritic.
+            2. Frozen TextEncoder + Warmup ColorCritic + ColorGenerator.
+
+
+        At the end of a successful training, models weights are saved to a target folder:
+            TextEncoder: enc.pt
+            EmojiHead: emoji.pt
+            StyleHead: style.pt
+            ColorCritic: critic.pt
+            ColorGenerator: gen.pt
+
+        
+
+        Eval Metrics:
+            For both the emoji and style tasks, we will use Mean Reciprocal Rank (MRR) as the evaluation metric.
+            For the color critic, we will use ROC-AUC metric.
+            For the generator we will use the (in batch) energy distance between the generated colors and the target colors as the evaluation metric.
+        
+
+        During the text encoder training:
+            - best model weights will be selected based on the best emoji MRR score.
+            - negative <text, color> pairs will be sampled from the training set for the contrastive loss.
+
+        During GAN training:
+            - the best generator will be selected based on the energy distance metric, the critic is a throw away model.
+            - negative <text, color> pairs are the ones sampled from the generator.
+
+
+        For debugging purposes, we should able to select which heads to train in the first step.
+        Training can be done locally or on modal.com (default)
+        
+        There is a single command to train the model `train` implemented in `train.py`.
+
+
+        Here is how `train` is used:
+
+        train [--help] [enc|gan] [--local] [--heads emoji,style,critic] [--pt folder] [-o folder]
+
+        If invoked without any arguments, it will train the entire model on modal.com and save the weights to `./pt` folder.
+        
+        `train enc`     will train only the text encoder, if the `--heads` argument is provided, it will train only the specified heads.
+        `train gan`     will train only the GAN (ColorCritic + ColorGenerator) with frozen TextEncoder and a warmup ColorCritic loaded from the `--pt` folder (default is `./pt`).
+        `train`         will first train the text encoder and then train the GAN.
+        `train --help`  will print the help message.
+
+
+        Notes:
+            1. Most of the architectural described above is already implemented, no need to make big changes.
+            2. If local workdir is git dirty, `train` always abort.
+            3. If args combination is invalid or an unrecognized argument is provided, `train` will abort.
+            4. --local is always optional and it will train the model locally, otherwise it will train on modal.com.
+            5. --heads is optional and can be used only with the `enc` subcommand, any heads combination is valid but must specify correct head names, otherwise `train` will abort.
+            6. If a .pt file is missing in the `--pt` folder, `train` will abort.
+            7. --pt is optional, default is `./pt` folder. 
+            8. -o is optional, default is `./pt` folder. When provided, the new .pt files will be saved to the specified folder.
+            9. --local, --pt, -o flags are optional and can be used with any subcommand.
+
+
+        Tasks:
+            1. Review the proposed changes and make sure you understand it.
+            2. Raise any questions and push backs.
+            3. After we agree on the changes, implement them in the codebase.
+            4. Make the `tran.py` script clean, concise and easy to read. Dropped any old code that is not needed anymore.
+            5. Write a detailed help message for the `train` script, including all the subcommands and flags.
+            6. Document the new architecture and training procedure in the CLAUDE.md and in the docs/model.md files.
