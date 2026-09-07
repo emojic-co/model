@@ -215,4 +215,5 @@ class ColorDsc(nn.Module):
         c = self.color_net(rgb_to_oklab(colors))
         t = self.text_net(normalize(cond))
 
-        return self.out(c) + (self.proj(t) * c).sum(dim=-1, keepdim=True)
+        # return self.out(c) + (self.proj(t) * c).sum(dim=-1, keepdim=True)
+        return (self.proj(t) * c).sum(dim=-1, keepdim=True)
