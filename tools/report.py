@@ -27,7 +27,7 @@ KEYWORDS_PATH = KEYWORDS_JSON
 
 EMOJI_KS = list(range(1, 11))
 CLDR_MIN_KEYWORD_LEN = 3
-CARD_DIST_THRESHOLD = 0.10
+CARD_DIST_THRESHOLD = 0.15
 CARD_COLORS = ("red", "green", "blue", "dark", "bright")
 
 
@@ -402,6 +402,15 @@ th,td{border-bottom:1px solid var(--line);padding:10px 12px;text-align:left}
 th{font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:.03em}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 tr:last-child td{border-bottom:none}
+.cards-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:18px 0 0}
+.mini{aspect-ratio:4/3;border-radius:12px;padding:12px 10px;display:flex;
+flex-direction:column;justify-content:center;align-items:center;text-align:center;
+overflow:hidden}
+.mini .em{font-size:24px;line-height:1}
+.mini .tx{font-size:12px;font-weight:600;margin-top:6px;overflow-wrap:anywhere;
+line-height:1.3}
+.mini .st{font-size:9px;letter-spacing:.06em;text-transform:uppercase;margin-top:6px;
+opacity:.75}
 """
 
 
@@ -619,6 +628,53 @@ def _cldr_html(d) -> str:
     )
 
 
+def _cards_html(d) -> str:
+    if not d:
+        return (
+            "<h2>Cards</h2>"
+            '<p class="note">enc.pt / style.pt / emoji.pt / gen.pt not all available.</p>'
+        )
+    out = [
+        "<h2>Cards</h2>",
+        '<p class="note">End-to-end test of the shipped inference graph on '
+        f"data/gold.jsonl ({d['n']} rows).</p>",
+    ]
+    by_color = {}
+    for r in d["rows"]:
+        by_color.setdefault(r["color"], []).append(r)
+    for c in CARD_COLORS:
+        cards = "".join(
+            '<div class="mini" style="background:linear-gradient(135deg,'
+            f'{_esc(r["bg1"])},{_esc(r["bg2"])});color:{_esc(r["text_color"])}">'
+            f'<span class="em">{_esc(r["emoji"])}</span>'
+            f'<span class="tx">{_esc(r["text"])}</span>'
+            f'<span class="st">{_esc(r["style"])}</span></div>'
+            for r in by_color.get(c, [])
+        )
+        out.append(f'<h3>{_esc(c)}</h3><div class="cards-grid">{cards}</div>')
+    ek = list(zip((str(k) for k in EMOJI_KS), d["emoji_acc_at_k"], strict=True))
+    chart = _linechart(
+        ek,
+        series=[("style", d["style_acc_at_k"], "lline2")],
+        legend=("emoji", "style"),
+    )
+    out.append(f"<h3>Emoji &amp; style acc@k — gold set</h3>{chart}")
+    pc = d["per_color"]
+    trows = "".join(
+        f"<tr><td>{_esc(c)}</td>"
+        f'<td class="n">{pc[c]["accuracy"]:.2f}</td>'
+        f'<td class="n">{pc[c]["mean_distance"]:.3f}</td></tr>'
+        for c in (*CARD_COLORS, "all")
+    )
+    out.append(
+        f"<h3>Accuracy (dF &lt; {d['threshold']:.2f}) &amp; mean distance</h3>"
+        '<table><tr><th>Color</th><th class="n">Accuracy</th>'
+        '<th class="n">Mean distance</th></tr>'
+        f"{trows}</table>"
+    )
+    return "".join(out)
+
+
 def _render_html(report) -> str:
     body = [_header_html(report)]
     if "data" in report:
@@ -629,6 +685,8 @@ def _render_html(report) -> str:
         body.append(_emoji_html(report["emoji"]))
     if "cldr" in report:
         body.append(_cldr_html(report["cldr"]))
+    if "cards" in report:
+        body.append(_cards_html(report["cards"]))
     return (
         '<!doctype html><meta charset="utf-8">'
         f"<title>emojic report — {report['provenance']['ts']}</title>"
