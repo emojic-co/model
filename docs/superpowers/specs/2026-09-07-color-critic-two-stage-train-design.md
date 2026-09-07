@@ -151,7 +151,9 @@ Flags:
 - A non-default `--pt` or `-o` with a Modal run aborts (Modal always
   uses `pt/` in-container). `export()` always reads/writes the `pt/`
   constants from `files.py`; a non-default `-o` therefore writes `.pt`
-  there but **skips** the `web/public/` refresh.
+  there but **skips** the `web/public/` refresh — including for
+  `train gan`, whose export step only runs when `-o` is the default
+  `pt/`.
 - Dirty git tree aborts every form (`require_clean_tree`, no override).
 - Invalid flag combinations abort with a Typer error.
 
