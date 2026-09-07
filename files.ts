@@ -13,6 +13,7 @@ export const CLDR_BASELINE_JSON = `${DATA_DIR}/cldr-baseline.json`
 export const KEYWORDS_JSON = `${DATA_DIR}/keywords.json`
 export const ENERGY_KEYWORDS_TXT = `${DATA_DIR}/energy_keywords.txt`
 export const PRED_JSONL = `${DATA_DIR}/pred.jsonl`
+export const GOLD_JSONL = `${DATA_DIR}/gold.jsonl`
 
 export const WEB_PUBLIC_DIR = "web/public"
 export const REPORT_DIR = "report"
