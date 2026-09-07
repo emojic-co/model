@@ -207,11 +207,12 @@ class ColorDsc(nn.Module):
 
         self.color_net = _critic_branch(COLOR_DIM, CRITIC_COLOR_CHANNELS)
         self.text_net = _critic_branch(TEXT_EMBED_SIZE, CRITIC_TEXT_CHANNELS)
-        self.out = nn.Linear(
-            CRITIC_COLOR_CHANNELS[-1] + CRITIC_TEXT_CHANNELS[-1], 1, bias=True)
+        self.proj = nn.Linear(
+            CRITIC_TEXT_CHANNELS[-1], CRITIC_COLOR_CHANNELS[-1], bias=False)
+        self.out = nn.Linear(CRITIC_COLOR_CHANNELS[-1], 1, bias=True)
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
         c = self.color_net(rgb_to_oklab(colors))
         t = self.text_net(normalize(cond))
 
-        return self.out(torch.cat([c, t], dim=-1))
+        return self.out(c) + (self.proj(t) * c).sum(dim=-1, keepdim=True)
