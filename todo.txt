@@ -1,10 +1,13 @@
-Upsample Colors:
-    We start with the following list:
-        red, green, blue, dark, bright
+Color Experiment:
+    1. 
+    Create a tool tools/data/extract-colors.ts
+    when running bun extract-colors data/data.jsonl > data/colors.jsonl
+    The tool extract all records with the color field and write them to data/colors.jsonl
 
-    Steps:
-        1. Ask the text generator to generate text that are related to the colors, text can contain the given color or implicitly related to the color.
-        2. Send the text to the annotator and accept the labels.
-        3. Add {color: <color>} to the records.
-
-    Run with bun upsample --colors --per 1000
+    2. 
+    update the train script
+    When running `train --color-exp` it will:
+    1. create a fresh encoder
+    2. only load the data from data/colors.jsonl
+    3. Train the Encoder + GAN model 
+    4. save the models to `exp/enc.pt` and `exp/gan.pt`

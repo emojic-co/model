@@ -41,6 +41,9 @@ data/cldr.jsonl.tmp
 data/cldr-baseline.json.tmp
 
 pt/*.pt
+# Color-experiment artifacts from `train --color-exp`.
+exp/
+data/colors.jsonl
 # SDD isolated worktrees
 /.worktrees/
 data/pred.jsonl

@@ -4,6 +4,7 @@ DATA_DIR = "data"
 PT_DIR = "pt"
 
 DATA_JSONL = f"{DATA_DIR}/data.jsonl"
+COLORS_JSONL = f"{DATA_DIR}/colors.jsonl"
 TRAIN_JSONL = f"{DATA_DIR}/train.jsonl"
 EVAL_JSONL = f"{DATA_DIR}/eval.jsonl"
 LABELS_JSON = f"{DATA_DIR}/labels.json"
@@ -12,6 +13,10 @@ CLDR_BASELINE_JSON = f"{DATA_DIR}/cldr-baseline.json"
 KEYWORDS_JSON = f"{DATA_DIR}/keywords.json"
 ENERGY_KEYWORDS_TXT = f"{DATA_DIR}/energy_keywords.txt"
 PRED_JSONL = f"{DATA_DIR}/pred.jsonl"
+
+EXP_DIR = "exp"
+EXP_ENC_PT = f"{EXP_DIR}/enc.pt"
+EXP_GAN_PT = f"{EXP_DIR}/gan.pt"
 
 ENC_PT = f"{PT_DIR}/enc.pt"
 STYLE_PT = f"{PT_DIR}/style.pt"

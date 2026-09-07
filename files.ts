@@ -5,6 +5,7 @@ export const PT_DIR = "pt"
 
 export const DATA_JSONL = `${DATA_DIR}/data.jsonl`
 export const CLDR_JSONL = `${DATA_DIR}/cldr.jsonl`
+export const COLORS_JSONL = `${DATA_DIR}/colors.jsonl`
 export const TRAIN_JSONL = `${DATA_DIR}/train.jsonl`
 export const EVAL_JSONL = `${DATA_DIR}/eval.jsonl`
 export const LABELS_JSON = `${DATA_DIR}/labels.json`

@@ -7,6 +7,7 @@
     "regen": "bun run tools/data/regen.ts",
     "build-cldr": "bun run tools/data/cldr.ts",
     "upsample": "bun run tools/data/upsample.ts",
+    "extract-colors": "bun run tools/data/extract-colors.ts",
     "preview": "bun run tools/preview.ts",
     "show-labels": "bun run tools/data/show-labels.ts",
     "serve": "live-server docs --port=8000",
