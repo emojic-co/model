@@ -5,10 +5,9 @@ from torch.nn.functional import (
     normalize,
     tanh,
 )
+from torch.nn.utils import spectral_norm as sn
 
 from model.color import COLOR_SHIFT
-
-# from torch.nn.utils import spectral_norm as sn
 from model.config import (
     CHAR_EMBED_SIZE,
     CRITIC_COLOR_CHANNELS,
@@ -32,12 +31,12 @@ class TextEncoderBlock(nn.Module):
     def __init__(self, i: int, o: int, dilation: int):
         super().__init__()
         self.net = nn.Sequential(
-            nn.Conv1d(
+            sn(nn.Conv1d(
                 i, o,
                 kernel_size=ENCODER_KERNEL_SIZE,
                 padding=dilation * (ENCODER_KERNEL_SIZE // 2),
                 dilation=dilation,
-                bias=True),
+                bias=True)),
 
             nn.LeakyReLU(negative_slope=RELU_SLOPE))
 
