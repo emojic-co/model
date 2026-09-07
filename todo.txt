@@ -1,13 +1,12 @@
 Color Experiment:
-    1. 
-    Create a tool tools/data/extract-colors.ts
-    when running bun extract-colors data/data.jsonl > data/colors.jsonl
-    The tool extract all records with the color field and write them to data/colors.jsonl
-
-    2. 
     update the train script
-    When running `train --color-exp` it will:
+    When running `train critic` it will:
     1. create a fresh encoder
     2. only load the data from data/colors.jsonl
-    3. Train the Encoder + GAN model 
-    4. save the models to `exp/enc.pt` and `exp/gan.pt`
+    3. generate fake and real <text, colors> pairs from the real data.
+        real are just real, 
+        fake are real text with random colors from the real data.
+
+    The goal is to see if the critic is able to distinguish and can learn the relationship between text and colors in isolation from the generator.
+
+    Do not save any .pt files, just let me run the training and see the tb logs.
