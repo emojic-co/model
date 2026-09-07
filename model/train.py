@@ -69,7 +69,7 @@ from model.data import (
 )
 from model.export_onnx import export
 from model.model import (
-    ColorDsc,
+    ColorCritic,
     ColorGen,
     EmojiHead,
     StyleHead,
@@ -183,7 +183,7 @@ class LitColorGAN(pl.LightningModule):
         self.enc = enc.requires_grad_(False).eval()
 
         self.gen = ColorGen()
-        self.tst = ColorDsc()
+        self.tst = ColorCritic()
 
         self.register_buffer(
             "z_bank",
@@ -312,7 +312,7 @@ class LitColorExp(pl.LightningModule):
 
         self.enc = TextEncoder()
         self.gen = ColorGen()
-        self.tst = ColorDsc()
+        self.tst = ColorCritic()
 
         self.automatic_optimization = False
         self._ep_text: list[torch.Tensor] = []
@@ -412,7 +412,7 @@ class LitCriticExp(pl.LightningModule):
         super().__init__()
 
         self.enc = TextEncoder()
-        self.tst = ColorDsc()
+        self.tst = ColorCritic()
 
     def _step(self, batch, split):
         text, _, _, colors = batch

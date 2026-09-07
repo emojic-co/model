@@ -100,22 +100,6 @@ class EmojiHead(nn.Module):
         return q @ self.embed.weight.t() + self.bias
 
 
-class ColorHead(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-        self.net = nn.Sequential(
-            nn.Dropout(p=DROPOUT_EMOJI),
-            nn.Linear(TEXT_EMBED_SIZE, EMOJI_EMBED_SIZE, bias=False))
-
-        self.embed = nn.Embedding(len(EMOJIS), EMOJI_EMBED_SIZE)
-        self.bias = nn.Parameter(torch.zeros(len(EMOJIS)))
-
-    def forward(self, text_embedding: torch.Tensor) -> torch.Tensor:
-        q = self.net(text_embedding)
-        return q @ self.embed.weight.t() + self.bias
-
-
 # GAN
 COLOR_SHIFT = 127.5
 
@@ -217,7 +201,7 @@ def _critic_branch(in_dim: int, channels: list[int]) -> nn.Sequential:
     )
 
 
-class ColorDsc(nn.Module):
+class ColorCritic(nn.Module):
     def __init__(self):
         super().__init__()
 
