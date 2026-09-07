@@ -21,19 +21,15 @@ from lightning.pytorch.callbacks import (
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
 from torch.nn.functional import binary_cross_entropy_with_logits, normalize
-from torch.utils.data import DataLoader, random_split
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from files import (
-    COLORS_JSONL,
     DATA_JSONL,
     EMOJI_PT,
     ENC_PT,
     ENERGY_KEYWORDS_TXT,
     EVAL_JSONL,
-    EXP_ENC_PT,
-    EXP_GAN_PT,
     KEYWORDS_JSON,
     LABELS_JSON,
     MODEL_DIR,
@@ -61,9 +57,7 @@ from model.config import (
     VAL_CHECK_INTERVAL,
 )
 from model.data import (
-    EmojiDataset,
     eval_data_loader,
-    read,
     train_data_loader,
     train_ds,
 )
@@ -306,169 +300,12 @@ class LitColorGAN(pl.LightningModule):
         return [opt_gen, opt_tst]
 
 
-class LitColorExp(pl.LightningModule):
-    def __init__(self):
-        super().__init__()
-
-        self.enc = TextEncoder()
-        self.gen = ColorGen()
-        self.tst = ColorCritic()
-
-        self.automatic_optimization = False
-        self._ep_text: list[torch.Tensor] = []
-        self._ep_real: list[torch.Tensor] = []
-
-    def on_train_epoch_start(self):
-        self._ep_text.clear()
-        self._ep_real.clear()
-
-    def _split_energy(self, pts: torch.Tensor) -> torch.Tensor:
-        m = pts.size(0)
-        half = m // 2
-        perm = torch.randperm(m, generator=torch.Generator().manual_seed(SEED)).to(
-            pts.device
-        )
-        return energy_distance(pts[perm[:half]], pts[perm[half: 2 * half]])
-
-    def on_train_epoch_end(self):
-        if not self._ep_real:
-            return
-
-        was_training = self.gen.training
-        self.gen.eval()
-        with torch.no_grad():
-            text = torch.cat(self._ep_text)
-            real = rgb_to_oklab(torch.cat(self._ep_real))
-            fake = rgb_to_oklab(self.gen(self.enc(text)))
-            self.log("energy/gan/train", energy_distance(real, fake), prog_bar=True)
-
-            if isinstance(self.logger, TensorBoardLogger):
-                self.logger.experiment.add_scalar(
-                    "energy/gan/ref", self._split_energy(real), self.global_step
-                )
-        if was_training:
-            self.gen.train()
-
-    def training_step(self, batch, batch_idx):
-        text, _, _, colors = batch
-        opt_gen, opt_tst = self.optimizers()  # type: ignore
-
-        self._ep_text.append(text)
-        self._ep_real.append(colors)
-
-        cond = self.enc(text)
-        cond_d = cond.detach()
-
-        fake = self.gen(cond)
-
-        both = torch.cat([colors, fake.detach()], dim=0)
-        tst_real, tst_fake = self.tst(
-            torch.cat([cond_d, cond_d], dim=0), both).chunk(2, dim=0)
-
-        loss_tst_real = binary_cross_entropy_with_logits(
-            tst_real, torch.ones_like(tst_real))
-        loss_tst_fake = binary_cross_entropy_with_logits(
-            tst_fake, torch.zeros_like(tst_fake))
-        loss_tst = loss_tst_real + loss_tst_fake
-
-        opt_tst.zero_grad()
-        self.manual_backward(loss_tst)
-        self.clip_gradients(
-            opt_tst,  # type: ignore
-            gradient_clip_val=GRAD_CLIP_CRITIC,
-            gradient_clip_algorithm="norm",
-        )
-        opt_tst.step()
-
-        _, tst_fake = self.tst(
-            torch.cat([cond, cond], dim=0),
-            torch.cat([colors, fake], dim=0),
-        ).chunk(2, dim=0)
-        loss_gen = binary_cross_entropy_with_logits(
-            tst_fake, torch.ones_like(tst_fake))
-
-        opt_gen.zero_grad()
-        self.manual_backward(loss_gen)
-        self.clip_gradients(
-            opt_gen,  # type: ignore
-            gradient_clip_val=GRAD_CLIP_GEN,
-            gradient_clip_algorithm="norm",
-        )
-        opt_gen.step()
-
-        self.log("loss/gan/tst", loss_tst, prog_bar=True)
-        self.log("loss/gan/gen", loss_gen, prog_bar=True)
-
-    def configure_optimizers(self):
-        opt_gen = optim.SGD(
-            list(self.gen.parameters()) + list(self.enc.parameters()), lr=GAN_GEN_LR
-        )
-        opt_tst = optim.SGD(self.tst.parameters(), lr=GAN_CRITIC_LR)
-        return [opt_gen, opt_tst]
-
-
-class LitCriticExp(pl.LightningModule):
-    def __init__(self):
-        super().__init__()
-
-        self.enc = TextEncoder()
-        self.tst = ColorCritic()
-
-    def _step(self, batch, split):
-        text, _, _, colors = batch
-
-        if split == "val":
-            shift = 1
-        else:
-            shift = int(torch.randint(1, text.size(0), (1,)).item())
-        mismatch = colors.roll(shift, dims=0)
-
-        cond = self.enc(text)
-        cond2 = torch.cat([cond, cond], dim=0)
-        pal = torch.cat([colors, mismatch], dim=0)
-        logit_real, logit_fake = self.tst(cond2, pal).chunk(2, dim=0)
-
-        loss_real = binary_cross_entropy_with_logits(
-            logit_real, torch.ones_like(logit_real))
-        loss_fake = binary_cross_entropy_with_logits(
-            logit_fake, torch.zeros_like(logit_fake))
-        loss = loss_real + loss_fake
-
-        acc_real = (logit_real > 0).float().mean()
-        acc_fake = (logit_fake < 0).float().mean()
-        acc = 0.5 * (acc_real + acc_fake)
-
-        bs = text.size(0)
-        for name, val in (
-            (f"loss/critic/{split}", loss),
-            (f"acc/critic/{split}", acc),
-            (f"acc/critic/real/{split}", acc_real),
-            (f"acc/critic/fake/{split}", acc_fake),
-        ):
-            self.log(name, val, on_step=False, on_epoch=True,
-                     prog_bar=True, batch_size=bs)
-
-        return loss
-
-    def training_step(self, batch, batch_idx):
-        return self._step(batch, "train")
-
-    def validation_step(self, batch, batch_idx):
-        self._step(batch, "val")
-
-    def configure_optimizers(self):
-        return optim.Adam(
-            list(self.enc.parameters()) + list(self.tst.parameters()), lr=1e-3)
-
-
 class Model(StrEnum):
     emoji = "emoji"
     style = "style"
     task = "task"
     gan = "gan"
     all = "all"
-    color_exp = "color-exp"
-    critic = "critic"
 
 
 TASK_HEADS: dict[str, tuple[str, ...]] = {
@@ -585,87 +422,6 @@ def _train_gan(enc: TextEncoder, ds) -> LitColorGAN:
         save_pt(mod.state_dict(), f"{PT_DIR}/{name}.pt", stage="gan")
 
     return gan
-
-
-def _run_color_exp() -> None:
-    require_clean_tree()
-    pl.seed_everything(SEED, workers=True)
-    torch.backends.cudnn.benchmark = False
-
-    if not Path(COLORS_JSONL).exists():
-        raise typer.BadParameter(
-            f"{COLORS_JSONL} not found -- run "
-            f"`bun extract-colors {DATA_JSONL} > {COLORS_JSONL}` first"
-        )
-
-    ds = EmojiDataset(list(read(COLORS_JSONL)))
-    dl = train_data_loader(data_set=ds, batch_size=GAN_BATCH_SIZE)
-
-    no_bar = _no_progress_bar()
-    progress_bar_cbs = [] if no_bar else [TQDMProgressBar()]
-
-    trainer = pl.Trainer(
-        devices="auto",
-        accelerator="auto",
-        logger=TensorBoardLogger(
-            "runs", name=CONFIG_NAME, version="color-exp", default_hp_metric=False
-        ),
-        deterministic=True,
-        max_epochs=EPOCHS_GAN,
-        enable_progress_bar=not no_bar,
-        enable_checkpointing=False,
-        callbacks=[*progress_bar_cbs, ModelSummary()],
-    )
-
-    exp = LitColorExp()
-    trainer.fit(exp, dl)
-
-    save_pt(exp.enc.state_dict(), EXP_ENC_PT, stage="color-exp")
-    save_pt(exp.gen.state_dict(), EXP_GAN_PT, stage="color-exp")
-
-
-def _run_critic_exp() -> None:
-    require_clean_tree()
-    pl.seed_everything(SEED, workers=True)
-    torch.backends.cudnn.benchmark = False
-
-    if not Path(COLORS_JSONL).exists():
-        raise typer.BadParameter(
-            f"{COLORS_JSONL} not found -- run "
-            f"`bun extract-colors {DATA_JSONL} > {COLORS_JSONL}` first"
-        )
-
-    ds = EmojiDataset(list(read(COLORS_JSONL)))
-    n_val = max(1, len(ds) // 10)
-    split = random_split(
-        ds, [len(ds) - n_val, n_val],
-        generator=torch.Generator().manual_seed(SEED))
-    train_split, val_split = split
-
-    dl = DataLoader(
-        train_split, batch_size=GAN_BATCH_SIZE, shuffle=True,
-        drop_last=True, num_workers=0)
-    val_dl = DataLoader(
-        val_split, batch_size=2000, shuffle=False,
-        drop_last=False, num_workers=0)
-
-    no_bar = _no_progress_bar()
-    progress_bar_cbs = [] if no_bar else [TQDMProgressBar()]
-
-    trainer = pl.Trainer(
-        devices="auto",
-        accelerator="auto",
-        logger=TensorBoardLogger(
-            "runs", name=CONFIG_NAME, version="critic-exp", default_hp_metric=False
-        ),
-        deterministic=True,
-        max_epochs=EPOCHS_GAN,
-        enable_progress_bar=not no_bar,
-        enable_checkpointing=False,
-        callbacks=[*progress_bar_cbs, ModelSummary()],
-    )
-
-    trainer.fit(LitCriticExp(), dl, val_dl)
 
 
 def _run_report_local(model: Model) -> None:
@@ -940,10 +696,6 @@ def _run_remote(
 def _dispatch(
     model: Model, cpu: int, memory: int, fetch_only: bool, need_app_ctx: bool
 ) -> None:
-    if model in (Model.color_exp, Model.critic):
-        raise typer.BadParameter(
-            f"{model.value} runs locally only -- use `train {model.value}`")
-
     if fetch_only:
         if _retrieve_and_cleanup():
             _run_report_local(model)
@@ -984,15 +736,6 @@ def cli(
         None, help="Modal memory in MiB (Modal only)."),
 ) -> None:
     """Train emoji/style/task/gan/all: on Modal by default, or locally with --local."""
-    if model in (Model.color_exp, Model.critic):
-        if cpu is not None or memory is not None:
-            raise typer.BadParameter(
-                f"--cpu/--memory do not apply to {model.value} (local only)")
-        if model == Model.color_exp:
-            _run_color_exp()
-        else:
-            _run_critic_exp()
-        return
 
     if local and (cpu is not None or memory is not None):
         raise typer.BadParameter(
