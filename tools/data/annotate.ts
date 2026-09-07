@@ -119,10 +119,13 @@ const STYLE_RULES = [
 
 const COLOR_RULES = [
   "3. bg, fg - a 3-color palette that captures the mood and imagery of the",
-  '   message. "bg" is two colors [top, bottom] for a background gradient; they',
-  '   must sit close enough to read as one gradient, not a clash. "fg" is one',
-  '   color for text over that gradient and must stay clearly readable against',
-  "   both bg stops (strong contrast). All three are lowercase #rrggbb hex.",
+  "   message. When the message names or plainly evokes a specific color,",
+  "   let that color lead the gradient; otherwise follow the mood and",
+  '   imagery. "bg" is two colors [top, bottom] for a background gradient;',
+  '   they must sit close enough to read as one gradient, not a clash. "fg"',
+  "   is one color for text over that gradient and must stay clearly",
+  "   readable against both bg stops (strong contrast). All three are",
+  "   lowercase #rrggbb hex.",
 ]
 
 function instructions(colors: boolean): string {

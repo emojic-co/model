@@ -1,12 +1,36 @@
 import { expect, test } from "bun:test"
 
 import {
+  colorBatchPlan,
   countEmojis,
   failingEmojis,
   missedCldrKeywords,
   rankWindow,
   singleEmojiTexts,
 } from "./upsample.ts"
+
+test("colorBatchPlan splits each colour's per-colour total into batches of at most batchSize", () => {
+  const plan = colorBatchPlan(["red", "blue"], 100, 40)
+  expect(plan).toEqual([
+    { color: "red", n: 40 },
+    { color: "red", n: 40 },
+    { color: "red", n: 20 },
+    { color: "blue", n: 40 },
+    { color: "blue", n: 40 },
+    { color: "blue", n: 20 },
+  ])
+})
+
+test("colorBatchPlan emits one batch when per <= batchSize and sums each colour back to per", () => {
+  const plan = colorBatchPlan(["red", "green", "blue"], 30, 50)
+  expect(plan).toEqual([
+    { color: "red", n: 30 },
+    { color: "green", n: 30 },
+    { color: "blue", n: 30 },
+  ])
+  const total = plan.filter((b) => b.color === "red").reduce((s, b) => s + b.n, 0)
+  expect(total).toBe(30)
+})
 
 test("countEmojis counts distinct emojis per row over all of data, not just a vocab", () => {
   const rows = [

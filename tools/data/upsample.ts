@@ -20,10 +20,14 @@ const NEG_COUNT = 1000
 const SINGLE_EMOJI_COUNT = 5000
 const CLDR_PER = 50
 const CLDR_KEYWORDS = 100
+const COLOR_PER = 1000
+const COLOR_BATCH = 50
 const MAX_PAIR_FREQ = 50
 const MIN_LEN = 4
 const MAX_LEN = 42
 const GEN_CONCURRENCY = 20
+
+const COLORS = ["red", "green", "blue", "dark", "bright"]
 
 const VOICES = [
   "a teenager",
@@ -136,6 +140,16 @@ export function batchSizes(total: number, per: number): number[] {
   return out
 }
 
+export function colorBatchPlan(
+  colors: string[],
+  per: number,
+  batchSize: number,
+): { color: string; n: number }[] {
+  return colors.flatMap((color) =>
+    batchSizes(per, batchSize).map((n) => ({ color, n })),
+  )
+}
+
 function genPrompt(voice: string, emoji: string, per: number): string {
   return [
     `Write ${per} short text messages as if sent by ${voice}, one per line.`,
@@ -161,6 +175,20 @@ function genCldrPrompt(
     `Every message must naturally use or clearly evoke "${keyword}", in a`,
     `context that fits at least one of these emoji: ${targets.join(" ")}.`,
     `Do not put any emoji in the output, and never name or describe the emoji.`,
+    `Vary sender, tone, and intent: updates, questions, complaints, plans,`,
+    `reactions, reminders, small talk. Sound real and specific.`,
+    `No numbering, no bullets, no quotes, no commentary.`,
+  ].join("\n")
+}
+
+function genColorPrompt(voice: string, color: string, per: number): string {
+  return [
+    `Write ${per} short text messages as if sent by ${voice}, one per line.`,
+    `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
+    `Every message must relate to the colour "${color}": either it uses the word`,
+    `"${color}", names an object or scene that is characteristically ${color}, or`,
+    `evokes the mood or quality of ${color} without naming it.`,
+    `Do not put any emoji in the output.`,
     `Vary sender, tone, and intent: updates, questions, complaints, plans,`,
     `reactions, reminders, small talk. Sound real and specific.`,
     `No numbering, no bullets, no quotes, no commentary.`,
@@ -214,6 +242,18 @@ async function genNegationBatch(voice: string, per: number): Promise<string[]> {
   return cleanLines(text)
 }
 
+async function genColorBatch(
+  voice: string,
+  color: string,
+  per: number,
+): Promise<string[]> {
+  const { text } = await generateText({
+    model: MODEL,
+    prompt: genColorPrompt(voice, color, per),
+  })
+  return cleanLines(text)
+}
+
 async function genCldrBatch(
   voice: string,
   keyword: string,
@@ -236,9 +276,10 @@ cli
   .option("--report", "target emoji failing the latest report's keywords.json keyword probe")
   .option("--cldr", "standalone: generate texts for the latest report's missed CLDR keywords (ignores emoji targeting)")
   .option("--max-pair-freq <n>", `with --report / --cldr, only upsample keywords whose pair freq is below this (default ${MAX_PAIR_FREQ})`)
-  .option("--per <n>", `texts to generate per target emoji / keyword / batch (default ${TEXTS_PER_EMOJI}, ${CLDR_PER} with --cldr)`)
+  .option("--per <n>", `texts to generate per target emoji / keyword / batch (default ${TEXTS_PER_EMOJI}, ${CLDR_PER} with --cldr, ${COLOR_PER} per colour with --colors)`)
   .option("--negation", "standalone: generate negation-heavy texts (ignores emoji targeting)")
   .option("--single-emoji", "standalone: re-annotate corpus rows that carry at most one emoji (ignores emoji targeting)")
+  .option("--colors", `standalone: generate texts related to each of ${COLORS.join(", ")} (ignores emoji targeting)`)
   .option("--count <n>", `cap on texts for --negation (default ${NEG_COUNT}) / --single-emoji (default ${SINGLE_EMOJI_COUNT}) / missed keywords for --cldr (default ${CLDR_KEYWORDS})`)
 cli.help()
 
@@ -252,18 +293,29 @@ if (import.meta.main) {
   const negation = Boolean(options.negation)
   const singleEmoji = Boolean(options.singleEmoji)
   const cldr = Boolean(options.cldr)
-  const per = Number(options.per ?? (cldr ? CLDR_PER : TEXTS_PER_EMOJI))
+  const colors = Boolean(options.colors)
+  const per = Number(
+    options.per ?? (cldr ? CLDR_PER : colors ? COLOR_PER : TEXTS_PER_EMOJI),
+  )
   const count = Number(
     options.count
     ?? (singleEmoji ? SINGLE_EMOJI_COUNT : cldr ? CLDR_KEYWORDS : NEG_COUNT),
   )
 
-  if ([negation, singleEmoji, cldr].filter(Boolean).length > 1) {
-    console.error("--negation, --single-emoji and --cldr are mutually exclusive")
+  if ([negation, singleEmoji, cldr, colors].filter(Boolean).length > 1) {
+    console.error(
+      "--negation, --single-emoji, --cldr and --colors are mutually exclusive",
+    )
     process.exit(1)
   }
-  const standalone = negation || singleEmoji || cldr
-  const standaloneName = negation ? "negation" : singleEmoji ? "single-emoji" : "cldr"
+  const standalone = negation || singleEmoji || cldr || colors
+  const standaloneName = negation
+    ? "negation"
+    : singleEmoji
+      ? "single-emoji"
+      : cldr
+        ? "cldr"
+        : "colors"
   if (standalone && (options.report || only || options.minRank != null || options.maxRank != null)) {
     console.warn(
       `--${standaloneName} ignores --report / --emojis / --min-rank / --max-rank`,
@@ -272,7 +324,7 @@ if (import.meta.main) {
   if (singleEmoji && options.per != null) {
     console.warn("--single-emoji ignores --per")
   }
-  if (!standalone && options.count != null) {
+  if ((!standalone || colors) && options.count != null) {
     console.warn("--count only applies with --negation / --single-emoji / --cldr")
   }
   if (options.maxPairFreq != null && !options.report && !cldr) {
@@ -293,6 +345,7 @@ if (import.meta.main) {
   let negBatches: number[] = []
   let singleTexts: string[] = []
   let cldrKws: { keyword: string; targets: string[] }[] = []
+  let colorPlan: { color: string; n: number }[] = []
   if (singleEmoji) {
     if (!(count >= 1)) {
       console.error(`--count must be >= 1, got ${JSON.stringify(options.count)}`)
@@ -320,6 +373,13 @@ if (import.meta.main) {
     console.log(
       `negation mode -> generating ${count} texts in ${negBatches.length} `
       + `batches of up to ${per}`,
+    )
+  } else if (colors) {
+    targets = []
+    colorPlan = colorBatchPlan(COLORS, per, COLOR_BATCH)
+    console.log(
+      `colors mode -> ${per} texts per colour for ${COLORS.join(", ")} `
+      + `-> ${COLORS.length * per} texts in ${colorPlan.length} batches of up to ${COLOR_BATCH}`,
     )
   } else if (cldr) {
     if (!(count >= 1)) {
@@ -371,12 +431,18 @@ if (import.meta.main) {
     )
   }
 
-  const cands: { text: string; target?: string }[] = []
+  const cands: { text: string; target?: string; color?: string }[] = []
   if (singleEmoji) {
     for (const t of singleTexts) cands.push({ text: t })
     console.log(`${cands.length} corpus rows selected, annotating`)
   } else {
-    const genUnit = negation ? "batches" : cldr ? "keywords" : "emojis"
+    const genUnit = negation
+      ? "batches"
+      : cldr
+        ? "keywords"
+        : colors
+          ? "batches"
+          : "emojis"
     const genBar = new cliProgress.SingleBar(
       {
         format:
@@ -410,6 +476,20 @@ if (import.meta.main) {
             }
           } catch (err) {
             console.warn(`\n  gen (${keyword}) failed: ${err}`)
+          }
+          genBar.increment()
+        }),
+      )
+    } else if (colors) {
+      genBar.start(colorPlan.length, 0)
+      genQ.addAll(
+        colorPlan.map(({ color, n }) => async () => {
+          try {
+            for (const t of await genColorBatch(pickVoice(), color, n)) {
+              cands.push({ text: t, color })
+            }
+          } catch (err) {
+            console.warn(`\n  gen (${color}) failed: ${err}`)
           }
           genBar.increment()
         }),
@@ -482,6 +562,7 @@ if (import.meta.main) {
     const meta: Record<string, unknown> = { date: today }
     if (singleEmoji) meta["single-emoji"] = true
     if (cldr) meta.src = "cldr"
+    if (colors) meta.src = "colors"
     const row: Record<string, unknown> = {
       text: cands[i].text,
       emojis,
@@ -490,6 +571,7 @@ if (import.meta.main) {
       fg: label.fg,
     }
     if (negation) row.neg = "true"
+    if (colors) row.color = cands[i].color
     row.meta = meta
     lines.push(JSON.stringify(row))
   }
@@ -501,11 +583,24 @@ if (import.meta.main) {
       ? "single-emoji"
       : cldr
         ? "cldr"
-        : "emoji-target"
+        : colors
+          ? "colors"
+          : "emoji-target"
   console.log("\n--- summary ---")
   console.log(`mode                 : ${mode}`)
   if (!standalone) console.log(`targets              : ${targets.length}`)
   if (cldr) console.log(`keywords             : ${cldrKws.length}`)
+  if (colors) {
+    const perColor = new Map<string, number>()
+    for (const l of lines) {
+      const c = (JSON.parse(l) as { color?: string }).color
+      if (c) perColor.set(c, (perColor.get(c) ?? 0) + 1)
+    }
+    console.log(
+      `per colour appended  : `
+      + COLORS.map((c) => `${c} ${perColor.get(c) ?? 0}`).join(", "),
+    )
+  }
   console.log(`${(singleEmoji ? "selected" : "generated").padEnd(21)}: ${cands.length}`)
   console.log(`appended -> data     : ${lines.length}`)
   console.log(`dropped no label     : ${noLabel}`)

@@ -65,7 +65,7 @@ h1 .tld {
 .emoji-source {
   display: flex;
   gap: 0.375em;
-  align-self: center;
+  flex: none;
 }
 
 .emoji-source button {
@@ -115,12 +115,18 @@ h1 .tld {
   gap: 0.5em;
 }
 
-.head>.masthead {
-  align-self: start;
+.head-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1em;
+  margin-bottom: 0.25em;
+}
+
+.head>.head-top>.masthead {
   display: flex;
   align-items: baseline;
   gap: 0.875em;
-  margin-bottom: 0.25em;
 }
 
 .masthead .slug {
@@ -1032,6 +1038,12 @@ h1 .tld {
 
   .stage>.keys {
     display: none;
+  }
+
+  .head-top {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
   }
 
   .stage>.emoji-list {

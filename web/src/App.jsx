@@ -183,12 +183,30 @@ export function App() {
     <main>
       <div className="stage">
         <div className="head">
-          <header className="masthead">
-            <h1>
-              emojify<span className="tld">.ing</span>
-            </h1>
-            <span className="slug">emojify anything</span>
-          </header>
+          <div className="head-top">
+            <header className="masthead">
+              <h1>
+                emojify<span className="tld">.ing</span>
+              </h1>
+              <span className="slug">emojify anything</span>
+            </header>
+            <div className="emoji-source" role="group" aria-label="emoji source">
+              {['model', 'cldr'].map((src) => (
+                <button
+                  key={src}
+                  type="button"
+                  className={emojiSource === src ? 'active' : undefined}
+                  aria-pressed={emojiSource === src}
+                  onClick={() => {
+                    setEmojiSource(src)
+                    setOverride((o) => ({ ...o, emoji: null }))
+                  }}
+                >
+                  {src === 'model' ? 'model' : 'keywords'}
+                </button>
+              ))}
+            </div>
+          </div>
           <input
             className="input"
             type="text"
@@ -239,22 +257,6 @@ export function App() {
             ready={!tooShort && !!shownFeeling}
             onPick={(f) => setOverride((o) => ({ ...o, feeling: f }))}
           />
-          <div className="emoji-source" role="group" aria-label="emoji source">
-            {['model', 'cldr'].map((src) => (
-              <button
-                key={src}
-                type="button"
-                className={emojiSource === src ? 'active' : undefined}
-                aria-pressed={emojiSource === src}
-                onClick={() => {
-                  setEmojiSource(src)
-                  setOverride((o) => ({ ...o, emoji: null }))
-                }}
-              >
-                {src === 'model' ? 'model' : 'keywords'}
-              </button>
-            ))}
-          </div>
           <footer className="footer">
             <span>
               model updated <span>{formatDate(meta?.exported_at)}</span>
