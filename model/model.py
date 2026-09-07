@@ -114,6 +114,7 @@ class ColorGen(nn.Module):
             *[
                 nn.Sequential(
                     nn.Linear(i, o, bias=False),
+                    nn.BatchNorm1d(o),
                     nn.LeakyReLU(negative_slope=RELU_SLOPE)
                 )
                 for i, o in io
@@ -143,6 +144,7 @@ def _critic_branch(in_dim: int, channels: list[int]) -> nn.Sequential:
         *[
             nn.Sequential(
                 sn(nn.Linear(i, o, bias=False)),
+                nn.BatchNorm1d(o),
                 nn.LeakyReLU(negative_slope=RELU_SLOPE)
             )
             for i, o in io
