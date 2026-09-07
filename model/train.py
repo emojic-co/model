@@ -49,6 +49,7 @@ from model.config import (
     GAN_BATCH_SIZE,
     GAN_CRITIC_LR,
     GAN_GEN_LR,
+    GAN_GEN_MARGIN,
     GRAD_CLIP_CRITIC,
     GRAD_CLIP_GEN,
     INFONCE_TEMP,
@@ -343,12 +344,13 @@ class LitColorGAN(pl.LightningModule):
 
         opt_tst.step()
 
-        _, tst_fake = self.tst(
+        gen_real, gen_fake = self.tst(
             torch.cat([cond, cond], dim=0),
             torch.cat([colors, fake], dim=0),
         ).chunk(2, dim=0)
-        loss_gen = binary_cross_entropy_with_logits(
-            tst_fake, torch.ones_like(tst_fake))
+        loss_gen = torch.relu(
+            gen_real.detach() - gen_fake + GAN_GEN_MARGIN
+        ).mean()
 
         opt_gen.zero_grad()
         self.manual_backward(loss_gen)
@@ -540,6 +542,7 @@ DEP_FILES = ["pyproject.toml", "uv.lock", ".python-version", "README.md"]
 CODE_FILES = [
     "files.py",
     f"{MODEL_DIR}/__init__.py",
+    f"{MODEL_DIR}/color.py",
     f"{MODEL_DIR}/config.py",
     f"{MODEL_DIR}/data.py",
     f"{MODEL_DIR}/model.py",

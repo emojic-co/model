@@ -63,6 +63,7 @@ CRITIC_COLOR_CHANNELS = [64]
 CRITIC_TEXT_CHANNELS = [64]
 GAN_GEN_LR = 0.01
 GAN_CRITIC_LR = 0.02
+GAN_GEN_MARGIN = 1.0
 
 gan_str = " ".join([
     str(p)
@@ -72,7 +73,8 @@ gan_str = " ".join([
         CRITIC_COLOR_CHANNELS,
         CRITIC_TEXT_CHANNELS,
         GAN_GEN_LR,
-        GAN_CRITIC_LR)])
+        GAN_CRITIC_LR,
+        GAN_GEN_MARGIN)])
 
 
 # TRAINING
