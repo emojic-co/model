@@ -108,6 +108,20 @@ def roc_auc(pos: torch.Tensor, neg: torch.Tensor) -> torch.Tensor:
     return (wins + 0.5 * ties).mean()
 
 
+AUC_MAX_SAMPLES = 4096
+
+
+def _cap(x: torch.Tensor) -> torch.Tensor:
+    if x.numel() <= AUC_MAX_SAMPLES:
+        return x
+    idx = torch.randperm(x.numel(), device=x.device)[:AUC_MAX_SAMPLES]
+    return x[idx]
+
+
+def buffered_auc(pos: list[torch.Tensor], neg: list[torch.Tensor]) -> torch.Tensor:
+    return roc_auc(_cap(torch.cat(pos)), _cap(torch.cat(neg)))
+
+
 def energy_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     mode = "donot_use_mm_for_euclid_dist"
     xy = torch.cdist(x, y, compute_mode=mode).mean()
@@ -170,6 +184,8 @@ class LitEncoder(pl.LightningModule):
 
         self._val_pos: list[torch.Tensor] = []
         self._val_neg: list[torch.Tensor] = []
+        self._trn_pos: list[torch.Tensor] = []
+        self._trn_neg: list[torch.Tensor] = []
 
     def _log(self, name, val, bs):
         self.log(name, val, on_step=False, on_epoch=True, prog_bar=True, batch_size=bs)
@@ -210,12 +226,14 @@ class LitEncoder(pl.LightningModule):
                 pos, torch.ones_like(pos)
             ) + binary_cross_entropy_with_logits(neg, torch.zeros_like(neg))
             loss = loss + loss_critic
-            acc = 0.5 * ((pos > 0).float().mean() + (neg < 0).float().mean())
             self._log(f"loss/critic/{split}", loss_critic, bs)
-            self._log(f"acc/critic/{split}", acc, bs)
-            if split == "val":
-                self._val_pos.append(pos.detach().flatten())
-                self._val_neg.append(neg.detach().flatten())
+            pos_buf, neg_buf = (
+                (self._val_pos, self._val_neg)
+                if split == "val"
+                else (self._trn_pos, self._trn_neg)
+            )
+            pos_buf.append(pos.detach().flatten())
+            neg_buf.append(neg.detach().flatten())
 
         return loss
 
@@ -225,8 +243,17 @@ class LitEncoder(pl.LightningModule):
 
     def on_validation_epoch_end(self):
         if "critic" in self.heads and self._val_pos:
-            auc = roc_auc(torch.cat(self._val_pos), torch.cat(self._val_neg))
+            auc = buffered_auc(self._val_pos, self._val_neg)
             self.log("auc/critic/val", auc, prog_bar=True)
+
+    def on_train_epoch_start(self):
+        self._trn_pos.clear()
+        self._trn_neg.clear()
+
+    def on_train_epoch_end(self):
+        if "critic" in self.heads and self._trn_pos:
+            auc = buffered_auc(self._trn_pos, self._trn_neg)
+            self.log("auc/critic/train", auc, prog_bar=True)
 
     def training_step(self, batch, batch_idx):
         return self._step(batch, "train")

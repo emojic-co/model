@@ -8,6 +8,9 @@ import { STYLE_SET } from "./styles.ts"
 const MAX_COUNT = 700
 const MIN_COUNT = 50
 
+const MATRIX_MIN = [50, 100, 150, 200]
+const MATRIX_MAX = [600, 800, 1000, 1200, 1400]
+
 export type Palette = { bg: string[]; fg: string }
 export type Row = {
   text: string
@@ -97,10 +100,21 @@ export function collapse(rows: unknown[]): Row[] {
   return out
 }
 
-export function shuffle<T>(rows: T[]): T[] {
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0
+  return () => {
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+export function shuffle<T>(rows: T[], seed = SEED): T[] {
+  const rand = mulberry32(seed)
   const out = [...rows]
   for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
+    const j = Math.floor(rand() * (i + 1))
       ;[out[i], out[j]] = [out[j], out[i]]
   }
   return out
@@ -139,7 +153,7 @@ import {
   TRAIN_JSONL as TRAIN,
 } from "../../files.ts"
 import { runBaseline } from "../analysis/cldr-baseline.ts"
-import { STYLES } from "./config"
+import { SEED, STYLES } from "./config"
 import { readJsonl, writeFileAtomic } from "./io.ts"
 
 export function toLine(r: Row): string {
@@ -150,6 +164,40 @@ export function toLine(r: Row): string {
   return JSON.stringify(r.extra ? { ...base, ...r.extra } : base)
 }
 
+function printMatrix(records: Row[], useCldr: boolean): void {
+  const shuffled = shuffle(records)
+  const caps = MATRIX_MAX.map((max) => {
+    const { kept, counts } = greedyCap(shuffled, max)
+    return { max, samples: kept.length, counts }
+  })
+
+  const cell = (samples: number, vocab: number) => `${samples}/${vocab}`
+  const grid = MATRIX_MIN.map((min) => ({
+    min,
+    cells: caps.map((c) => cell(c.samples, emojiVocab(c.counts, min).length)),
+  }))
+
+  const colW =
+    Math.max(
+      ...MATRIX_MAX.map((m) => String(m).length),
+      ...grid.flatMap((r) => r.cells.map((s) => s.length)),
+    ) + 2
+  const headW =
+    Math.max("min\\max".length, ...MATRIX_MIN.map((m) => String(m).length)) + 2
+
+  console.log(
+    `\nmatrix: kept-rows / emoji-vocab  (cldr: ${useCldr ? "included" : "excluded"}, distinct texts: ${records.length})\n`,
+  )
+  console.log(
+    "min\\max".padStart(headW) + MATRIX_MAX.map((m) => String(m).padStart(colW)).join(""),
+  )
+  for (const row of grid) {
+    console.log(
+      String(row.min).padStart(headW) + row.cells.map((s) => s.padStart(colW)).join(""),
+    )
+  }
+}
+
 const cli = cac("regen")
 cli.usage("[options]")
 cli
@@ -157,6 +205,10 @@ cli
   .option("--max-count <n>", `cap on kept-records per emoji (default ${MAX_COUNT})`)
   .option("--n <n>", "eval.jsonl row count (default 1500)")
   .option("--no-cldr", "ignore data/cldr.jsonl; build from data/data.jsonl only")
+  .option(
+    "--matrix",
+    "dry sweep: print kept-rows / emoji-vocab for a grid of min/max-count, write nothing",
+  )
 cli.help()
 
 if (import.meta.main) {
@@ -181,12 +233,17 @@ if (import.meta.main) {
   const merged = records.length
   const dupKeys = raw.length - merged
 
+  if (options.matrix) {
+    printMatrix(records, useCldr)
+    process.exit(0)
+  }
+
   const { kept, counts, dropped } = greedyCap(shuffle(records), maxCount)
   const emojis = emojiVocab(counts, minCount)
   const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1])
   const belowMin = ranked.length - emojis.length
 
-  const split = shuffle(kept)
+  const split = shuffle(kept, SEED + 1)
   const held = split.slice(0, n)
   const rest = split.slice(n)
 

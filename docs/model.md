@@ -85,7 +85,7 @@ plus one `.pt` per selected head.
 Metrics logged: `MRR/s/val`, `MRR/e/val` (full-vocab mean reciprocal
 rank, emoji measured only over rows carrying ≥1 emoji), `auc/critic/val`
 (hand-rolled Mann-Whitney ROC-AUC over the validation positive/negative
-critic scores), plus the per-head losses and `acc/critic/*`.
+critic scores), plus the per-head losses.
 
 ### Stage 2 — `LitColorGAN`
 

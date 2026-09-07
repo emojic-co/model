@@ -12,6 +12,7 @@ from model.config import (
     CHAR_EMBED_SIZE,
     CRITIC_COLOR_CHANNELS,
     CRITIC_TEXT_CHANNELS,
+    DROPOUT_CRITIC,
     DROPOUT_EMOJI,
     DROPOUT_STYLE,
     EMOJI_EMBED_SIZE,
@@ -141,7 +142,7 @@ def _critic_branch(in_dim: int, channels: list[int]) -> nn.Sequential:
     return nn.Sequential(
         *[
             nn.Sequential(
-                nn.Linear(i, o, bias=False),
+                sn(nn.Linear(i, o, bias=False)),
                 nn.LeakyReLU(negative_slope=RELU_SLOPE)
             )
             for i, o in io
@@ -154,7 +155,9 @@ class ColorCritic(nn.Module):
         super().__init__()
 
         self.color_net = _critic_branch(COLOR_DIM, CRITIC_COLOR_CHANNELS)
-        self.text_net = _critic_branch(TEXT_EMBED_SIZE, CRITIC_TEXT_CHANNELS)
+        self.text_net = nn.Sequential(
+            nn.Dropout(p=DROPOUT_CRITIC),
+            _critic_branch(TEXT_EMBED_SIZE, CRITIC_TEXT_CHANNELS))
         self.proj = nn.Linear(
             CRITIC_TEXT_CHANNELS[-1], CRITIC_COLOR_CHANNELS[-1], bias=False)
         self.out = nn.Linear(CRITIC_COLOR_CHANNELS[-1], 1, bias=True)

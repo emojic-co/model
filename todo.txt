@@ -1,3 +1,13 @@
+regen tool:
+    make a flag for the regen tool:
+    `regen --matrix`
+    For min in (50, 100, ..., 200)
+    For max in (600, 800, 1000, 1200, 1400)
+    It will calculate a matrix of the number of samples and number of emojis that can be generated for each min/max combination.
+    print the matrix to stdout (you can use ink for layout)
+    
+    Note: make the regen tool deterministic, i.e. seed the shuffle operation.
+
 Upsample tool:
     add the option 
     upsample --keywords <kw1,kw2,...>
