@@ -1,6 +1,5 @@
 import html
 import json
-import random
 import re
 import sys
 from collections import Counter
@@ -15,7 +14,7 @@ import typer
 
 from files import CLDR_BASELINE_JSON, CLDR_JSONL, DATA_JSONL, KEYWORDS_JSON
 from model.color import COLOR_SHIFT, rgb_to_oklab
-from model.config import EMOJIS, SEED, STYLES
+from model.config import EMOJIS, STYLES
 from model.data import EVAL_PATH, TRAIN_PATH, read, text_to_tensor
 from model.data import normalize as norm_text
 from model.model import EmojiHead, TextEncoder
@@ -25,11 +24,7 @@ DATA_PATH = DATA_JSONL
 KEYWORDS_PATH = KEYWORDS_JSON
 
 EMOJI_KS = list(range(1, 11))
-KEYWORD_MISS_K = 5
-KEYWORD_TOP = 5
 CLDR_MIN_KEYWORD_LEN = 3
-MISSED_TEXT_N = 50
-MISSED_TEXT_TOP = 5
 
 
 def _ts() -> str:
@@ -131,68 +126,22 @@ def _section_labels():
     return {"styles": len(STYLES), "emojis": len(EMOJIS)}
 
 
-@cache
-def _emoji_row_index():
-    rows_by_emoji = {}
-    texts = []
-    for idx, d in enumerate(_rows(DATA_PATH)):
-        texts.append(str(d.get("text", "")).lower())
-        for e in set(str(d.get("emojis", "")).split()):
-            rows_by_emoji.setdefault(e, set()).add(idx)
-    return rows_by_emoji, tuple(texts)
-
-
-def _probe(words, enc, head, all_targets=False):
+def _probe(words, enc, head):
     vocab = {e: i for i, e in enumerate(EMOJIS)}
-    rows_by_emoji, texts = _emoji_row_index()
-    rows = []
-    misses = []
+    scored = []
     with torch.no_grad():
         for word, exp in words.items():
-            ids = {e: vocab[e] for e in exp if e in vocab}
+            ids = [vocab[e] for e in exp if e in vocab]
+            if not ids:
+                continue
             emb = enc(text_to_tensor(norm_text(word)).unsqueeze(0))
             order = head(emb).squeeze(0).argsort(descending=True).tolist()
-            top5 = [EMOJIS[j] for j in order[:KEYWORD_TOP]]
-            ranks = {e: order.index(i) + 1 for e, i in ids.items()}
-            best = min(ranks.values(), default=None)
-            rows.append(
-                {
-                    "keyword": word,
-                    "expected": exp,
-                    "rank": best,
-                    "top5": top5,
-                }
-            )
-            if best is not None and best <= KEYWORD_MISS_K:
-                continue
-            if best is None and not all_targets:
-                continue
-            pattern = re.compile(rf"\b{re.escape(word)}\b", re.IGNORECASE)
-            row_ids = set()
-            for e in exp:
-                row_ids |= rows_by_emoji.get(e, set())
-            pair = sum(1 for i in row_ids if pattern.search(texts[i]))
-            misses.append(
-                {
-                    "keyword": word,
-                    "targets": list(exp),
-                    "rank": best,
-                    "top5": top5,
-                    "emoji_freq": len(row_ids),
-                    "pair_freq": pair,
-                }
-            )
-    scored = [r["rank"] for r in rows if r["rank"] is not None]
+            scored.append(min(order.index(i) + 1 for i in ids))
     n = len(scored) or 1
-    misses.sort(
-        key=lambda r: r["rank"] if r["rank"] is not None else float("inf"),
-        reverse=True,
-    )
     return {
         "n": len(scored),
         "total": len(words),
         "acc_at_k": [sum(r <= k for r in scored) / n for k in EMOJI_KS],
-        "misses": misses,
     }
 
 
@@ -211,7 +160,7 @@ def _cldr_probe(enc, head):
         for e in str(d.get("emojis", "")).split():
             if e not in targets:
                 targets.append(e)
-    return _probe(words, enc, head, all_targets=True)
+    return _probe(words, enc, head)
 
 
 @cache
@@ -252,25 +201,6 @@ def _section_emoji(enc, head, eval_records):
             "acc_at_k": [_acc_at_k(logits, tgt, k).mean().item() for k in EMOJI_KS],
             "baseline": _cldr_baseline(),
         }
-        order = logits.argsort(dim=-1, descending=True)
-        rank_of = order.argsort(dim=-1)
-        missed = []
-        for i, r in enumerate(rows):
-            first_rank = min(rank_of[i, vocab[e]].item() + 1 for e in r.emojis)
-            if first_rank <= MISSED_TEXT_TOP:
-                continue
-            top = [EMOJIS[j] for j in order[i, :MISSED_TEXT_TOP].tolist()]
-            missed.append(
-                {
-                    "text": r.text,
-                    "targets": list(r.emojis),
-                    "top5": top,
-                    "rank": first_rank,
-                }
-            )
-        sample = random.Random(SEED).sample(missed, min(MISSED_TEXT_N, len(missed)))
-        sample.sort(key=lambda x: x["rank"], reverse=True)
-        d["missed_texts"] = sample
     d["keywords"] = _keyword_probe(enc, head)
     return d
 
@@ -556,44 +486,11 @@ def _emoji_html(d) -> str:
             "<code>data/cldr-baseline.json</code>.</p>"
         )
         out.append(f"<h3>Performance on eval.jsonl ({e['n']} rows)</h3>{chart}{note}")
-    mt = d.get("missed_texts")
-    if mt:
-        rows = "".join(
-            f"<tr><td>{_esc(m['text'])}</td>"
-            f"<td>{_esc(' '.join(m['targets']))}</td>"
-            f"<td>{_esc(' '.join(m['top5']))}</td>"
-            f'<td class="n">{m["rank"]}</td></tr>'
-            for m in mt
-        )
-        out.append(
-            f"<h3>Missed texts — {len(mt)} random eval.jsonl rows whose first "
-            f"relevant emoji ranks outside the top {MISSED_TEXT_TOP}</h3>"
-            "<table><tr><th>Text</th><th>Target emojis</th>"
-            f'<th>Top {MISSED_TEXT_TOP} predicted</th><th class="n">Rank</th></tr>'
-            f"{rows}</table>"
-        )
     kw = d.get("keywords")
     if kw:
         points = list(zip((str(k) for k in EMOJI_KS), kw["acc_at_k"], strict=True))
         out.append(
             f"<h3>Performance on keywords.json ({kw['n']} words)</h3>{_linechart(points)}"
-        )
-        rows = "".join(
-            f"<tr><td>{_esc(m['keyword'])}</td>"
-            f"<td>{_esc(' '.join(m['targets']))}</td>"
-            f"<td>{_esc(' '.join(m['top5']))}</td>"
-            f'<td class="n">{"—" if m["rank"] is None else m["rank"]}</td>'
-            f'<td class="n">{_fnum(m["emoji_freq"])}</td>'
-            f'<td class="n">{_fnum(m["pair_freq"])}</td></tr>'
-            for m in kw["misses"]
-        )
-        out.append(
-            f"<h3>Missed keywords — no target in top {KEYWORD_MISS_K} "
-            f"({len(kw['misses'])} of {kw['n']} words)</h3>"
-            "<table><tr><th>Keyword</th><th>Target emojis</th>"
-            f'<th>Top {KEYWORD_TOP} predicted</th><th class="n">Rank</th>'
-            '<th class="n">Emoji freq</th><th class="n">Pair freq</th></tr>'
-            f"{rows}</table>"
         )
     return "".join(out)
 
@@ -602,29 +499,10 @@ def _cldr_html(d) -> str:
     if not d:
         return '<h2>CLDR</h2><p class="note">enc.pt / emoji.pt not available.</p>'
     points = list(zip((str(k) for k in EMOJI_KS), d["acc_at_k"], strict=True))
-    out = [
-        "<h2>CLDR</h2>",
-        f"<h3>Performance on cldr.jsonl ({d['n']} words)</h3>{_linechart(points)}",
-    ]
-    rows = "".join(
-        f"<tr><td>{_esc(m['keyword'])}</td>"
-        f"<td>{_esc(' '.join(m['targets']))}</td>"
-        f"<td>{_esc(' '.join(m['top5']))}</td>"
-        f'<td class="n">{"—" if m["rank"] is None else m["rank"]}</td>'
-        f'<td class="n">{_fnum(m["emoji_freq"])}</td>'
-        f'<td class="n">{_fnum(m["pair_freq"])}</td></tr>'
-        for m in d["misses"]
+    return (
+        "<h2>CLDR</h2>"
+        f"<h3>Performance on cldr.jsonl ({d['n']} words)</h3>{_linechart(points)}"
     )
-    out.append(
-        f"<h3>All misses — keywords with no target in top {KEYWORD_MISS_K} "
-        f"({len(d['misses'])} of {d.get('total', d['n'])} keywords, "
-        f"{d['n']} rankable)</h3>"
-        "<table><tr><th>Keyword</th><th>Target emojis</th>"
-        f'<th>Top {KEYWORD_TOP} predicted</th><th class="n">Rank</th>'
-        '<th class="n">Emoji freq</th><th class="n">Pair freq</th></tr>'
-        f"{rows}</table>"
-    )
-    return "".join(out)
 
 
 def _render_html(report) -> str:
