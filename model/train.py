@@ -314,10 +314,46 @@ class LitColorExp(pl.LightningModule):
         self.tst = ColorDsc()
 
         self.automatic_optimization = False
+        self._ep_text: list[torch.Tensor] = []
+        self._ep_real: list[torch.Tensor] = []
+
+    def on_train_epoch_start(self):
+        self._ep_text.clear()
+        self._ep_real.clear()
+
+    def _split_energy(self, pts: torch.Tensor) -> torch.Tensor:
+        m = pts.size(0)
+        half = m // 2
+        perm = torch.randperm(m, generator=torch.Generator().manual_seed(SEED)).to(
+            pts.device
+        )
+        return energy_distance(pts[perm[:half]], pts[perm[half: 2 * half]])
+
+    def on_train_epoch_end(self):
+        if not self._ep_real:
+            return
+
+        was_training = self.gen.training
+        self.gen.eval()
+        with torch.no_grad():
+            text = torch.cat(self._ep_text)
+            real = rgb_to_oklab(torch.cat(self._ep_real))
+            fake = rgb_to_oklab(self.gen(self.enc(text)))
+            self.log("energy/gan/train", energy_distance(real, fake), prog_bar=True)
+
+            if isinstance(self.logger, TensorBoardLogger):
+                self.logger.experiment.add_scalar(
+                    "energy/gan/ref", self._split_energy(real), self.global_step
+                )
+        if was_training:
+            self.gen.train()
 
     def training_step(self, batch, batch_idx):
         text, _, _, colors = batch
         opt_gen, opt_tst = self.optimizers()  # type: ignore
+
+        self._ep_text.append(text)
+        self._ep_real.append(colors)
 
         cond = self.enc(text)
         cond_d = cond.detach()
