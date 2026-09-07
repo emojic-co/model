@@ -299,6 +299,7 @@ transform-origin:top right;font-size:12.5px;margin-top:9px}
 .linechart .gline{stroke:var(--line);stroke-width:1}
 .linechart .gtext{font-size:11px;fill:var(--dim)}
 .linechart .lline{fill:none;stroke:var(--accent);stroke-width:2.5}
+.linechart .lline2{fill:none;stroke:#e07b00;stroke-width:2.5}
 .linechart .bline{fill:none;stroke:var(--dim);stroke-width:2;stroke-dasharray:5 4}
 .linechart .btext{font-size:11px;fill:var(--dim);font-variant-numeric:tabular-nums}
 .linechart .dot{fill:var(--accent)}
@@ -361,7 +362,7 @@ def _bars(items, maxv, rotated=False) -> str:
     return f'<div class="{cls}">{"".join(out)}</div>'
 
 
-def _linechart(points, y_max=1.0, baseline=None, legend=None) -> str:
+def _linechart(points, y_max=1.0, baseline=None, legend=None, series=None) -> str:
     w, h, pad_l, pad_r, pad_t, pad_b = 760, 220, 34, 10, 22, 30
     plot_w, plot_h = w - pad_l - pad_r, h - pad_t - pad_b
     n = len(points)
@@ -399,8 +400,29 @@ def _linechart(points, y_max=1.0, baseline=None, legend=None) -> str:
             f'<text x="{bx:.1f}" y="{by - 7:.1f}" class="btext" '
             f'text-anchor="end">{baseline[-1]:.2f}</text>'
         )
+    extra = ""
+    for _name, vals, cls in series or ():
+        scoords = [(px(i), py(v)) for i, v in enumerate(vals)]
+        spoly = " ".join(f"{cx:.1f},{cy:.1f}" for cx, cy in scoords)
+        sdots = "".join(
+            f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="3" class="dot"/>' for cx, cy in scoords
+        )
+        extra += f'<polyline points="{spoly}" class="{cls}"/>{sdots}'
     leg = ""
-    if legend:
+    if legend and series:
+        parts = [
+            f'<line x1="{pad_l}" y1="14" x2="{pad_l + 20}" y2="14" class="lline"/>'
+            f'<text x="{pad_l + 26}" y="18" class="gtext">{_esc(legend[0])}</text>'
+        ]
+        lx = pad_l + 120
+        for (_name, _vals, cls), lbl in zip(series, legend[1:], strict=False):
+            parts.append(
+                f'<line x1="{lx}" y1="14" x2="{lx + 20}" y2="14" class="{cls}"/>'
+                f'<text x="{lx + 26}" y="18" class="gtext">{_esc(lbl)}</text>'
+            )
+            lx += 120
+        leg = "".join(parts)
+    elif legend:
         leg = (
             f'<line x1="{pad_l}" y1="14" x2="{pad_l + 20}" y2="14" class="lline"/>'
             f'<text x="{pad_l + 26}" y="18" class="gtext">{_esc(legend[0])}</text>'
@@ -411,7 +433,7 @@ def _linechart(points, y_max=1.0, baseline=None, legend=None) -> str:
         f'<svg viewBox="0 0 {w} {h}" class="linechart">'
         f"{grid}{base}"
         f'<polyline points="{poly}" class="lline"/>'
-        f"{dots}{leg}</svg>"
+        f"{dots}{extra}{leg}</svg>"
     )
 
 

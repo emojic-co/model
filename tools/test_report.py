@@ -65,6 +65,18 @@ def test_dark_ignores_chroma():
     assert d_dark > 0, d_dark
 
 
+def test_linechart_series():
+    from tools.report import _linechart
+
+    svg = _linechart(
+        [("1", 0.1), ("2", 0.5)],
+        series=[("style", [0.2, 0.6], "lline2")],
+        legend=("emoji", "style"),
+    )
+    assert 'class="lline2"' in svg
+    assert ">emoji<" in svg and ">style<" in svg
+
+
 _app = typer.Typer(
     add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
@@ -76,6 +88,7 @@ def main() -> None:
     test_gold_file_integrity()
     test_card_distance()
     test_dark_ignores_chroma()
+    test_linechart_series()
     print("ok")
 
 
