@@ -158,12 +158,10 @@ class ColorGen(nn.Module):
         io = zip(GEN_CHANNELS[:-1], GEN_CHANNELS[1:], strict=True)
         self.net = nn.Sequential(
             nn.Linear(TEXT_EMBED_SIZE, GEN_CHANNELS[0], bias=False),
-            nn.BatchNorm1d(GEN_CHANNELS[0]),
             nn.LeakyReLU(negative_slope=RELU_SLOPE),
             *[
                 nn.Sequential(
                     nn.Linear(i, o, bias=False),
-                    nn.BatchNorm1d(o),
                     nn.LeakyReLU(negative_slope=RELU_SLOPE)
                 )
                 for i, o in io
@@ -193,7 +191,6 @@ def _critic_branch(in_dim: int, channels: list[int]) -> nn.Sequential:
         *[
             nn.Sequential(
                 nn.Linear(i, o, bias=False),
-                nn.BatchNorm1d(o),
                 nn.LeakyReLU(negative_slope=RELU_SLOPE)
             )
             for i, o in io

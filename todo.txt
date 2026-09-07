@@ -1,3 +1,10 @@
+GAN colors analysis:
+    It seems that the GAN perform well, the critic has high score during the first training phase and the generator generate low energy distribution.
+    Still, when checking manually on the web page, colors are not good. "Dark" "Bright" keywords are completely ignored.
+    Colors look pale and not always match the text.
+    "hot" gets a green background, "black" gets bright background, etc...
+    Suggest how to find the root cause.
+
 Architectural updates:
     Update the model architecture as follow:
 
