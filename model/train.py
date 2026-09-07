@@ -39,6 +39,7 @@ from files import (
     TOOLS_DIR,
     TRAIN_JSONL,
 )
+from model.color import rgb_to_oklab
 from model.config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE,
@@ -69,7 +70,6 @@ from model.model import (
     EmojiHead,
     StyleHead,
     TextEncoder,
-    rgb_to_oklab,
 )
 from model.runmeta import load_pt, require_clean_tree, save_pt
 
