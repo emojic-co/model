@@ -14,6 +14,7 @@ import torch
 import typer
 
 from files import CLDR_BASELINE_JSON, CLDR_JSONL, DATA_JSONL, KEYWORDS_JSON
+from model.color import COLOR_SHIFT, rgb_to_oklab
 from model.config import EMOJIS, SEED, STYLES
 from model.data import EVAL_PATH, TRAIN_PATH, read, text_to_tensor
 from model.data import normalize as norm_text
@@ -387,6 +388,26 @@ def _esc(x) -> str:
 
 def _fnum(n) -> str:
     return f"{n:,}"
+
+
+def _hex_to_offsets(hx: str) -> list[float]:
+    hx = hx.lstrip("#")
+    return [int(hx[i : i + 2], 16) - COLOR_SHIFT for i in (0, 2, 4)]
+
+
+def _offsets_to_hex(vals) -> str:
+    ints = [max(0, min(255, round(v + COLOR_SHIFT))) for v in vals]
+    return "#" + "".join(f"{v:02x}" for v in ints)
+
+
+def _card_distance(pred9, gold9, color: str) -> float:
+    p = rgb_to_oklab(torch.tensor(pred9, dtype=torch.float32)).reshape(3, 3)
+    g = rgb_to_oklab(torch.tensor(gold9, dtype=torch.float32)).reshape(3, 3)
+    if color in ("dark", "bright"):
+        d = (p[:, 0] - g[:, 0]).abs()
+    else:
+        d = (p - g).norm(dim=-1)
+    return d.mean().item()
 
 
 def _bars(items, maxv, rotated=False) -> str:

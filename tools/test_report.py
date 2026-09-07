@@ -40,6 +40,31 @@ def test_gold_file_integrity():
         assert _HEX.match(r["fg"]), r
 
 
+def test_card_distance():
+    from tools.report import _card_distance, _hex_to_offsets
+
+    red = _hex_to_offsets("#ff0000") * 3
+    assert _card_distance(list(red), list(red), "red") < 1e-6
+    assert _card_distance(list(red), list(red), "dark") < 1e-6
+    d = _card_distance(
+        list(_hex_to_offsets("#ff0000") * 3),
+        list(_hex_to_offsets("#00ff00") * 3),
+        "green",
+    )
+    assert d > 0.2, d
+
+
+def test_dark_ignores_chroma():
+    from tools.report import _card_distance, _hex_to_offsets
+
+    a = list(_hex_to_offsets("#000000") * 3)
+    b = list(_hex_to_offsets("#0000ff") * 3)
+    d_blue = _card_distance(a, b, "blue")
+    d_dark = _card_distance(a, b, "dark")
+    assert d_dark < d_blue, (d_dark, d_blue)
+    assert d_dark > 0, d_dark
+
+
 _app = typer.Typer(
     add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
@@ -49,6 +74,8 @@ _app = typer.Typer(
 @_app.command()
 def main() -> None:
     test_gold_file_integrity()
+    test_card_distance()
+    test_dark_ignores_chroma()
     print("ok")
 
 
