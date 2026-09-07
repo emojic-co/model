@@ -133,14 +133,12 @@ import { existsSync } from "node:fs"
 import {
   CLDR_BASELINE_JSON as BASELINE,
   CLDR_JSONL as CLDR,
-  COLOR_BASELINE_JSON as COLOR_BASELINE,
   DATA_JSONL as DATA,
   EVAL_JSONL as EVAL,
   LABELS_JSON as LABELS,
   TRAIN_JSONL as TRAIN,
 } from "../../files.ts"
 import { runBaseline } from "../analysis/cldr-baseline.ts"
-import { runColorBaseline } from "../analysis/color-baseline.ts"
 import { STYLES } from "./config"
 import { readJsonl, writeFileAtomic } from "./io.ts"
 
@@ -216,17 +214,6 @@ if (import.meta.main) {
     console.error(`cldr baseline failed: ${(err as Error).message}`)
   }
 
-  let colorBaselineLine = `-> ${COLOR_BASELINE} : failed (skipped)`
-  try {
-    const cb = await runColorBaseline()
-    await writeFileAtomic(COLOR_BASELINE, JSON.stringify(cb, null, 2) + "\n")
-    colorBaselineLine =
-      `-> ${COLOR_BASELINE} : global dE ${cb.methods.global_mean.dE.toFixed(4)}, `
-      + `style dE ${cb.methods.style_mean.dE.toFixed(4)}`
-  } catch (err) {
-    console.error(`color baseline failed: ${(err as Error).message}`)
-  }
-
   const keptRanked = ranked.filter(([, c]) => c >= minCount)
   const fmt = (es: [string, number][]) => es.map(([e, c]) => `${e} ${c}`).join(", ")
 
@@ -247,6 +234,5 @@ if (import.meta.main) {
     `-> ${LABELS}    : ${labels.styles.length} styles, ${labels.emojis.length} emojis`,
   )
   console.log(baselineLine)
-  console.log(colorBaselineLine)
   process.exit(0)
 }

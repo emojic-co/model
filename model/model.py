@@ -11,7 +11,6 @@ from model.config import (
     CHAR_EMBED_SIZE,
     CRITIC_COLOR_CHANNELS,
     CRITIC_TEXT_CHANNELS,
-    DROPOUT_COLOR,
     DROPOUT_EMOJI,
     DROPOUT_STYLE,
     EMOJI_EMBED_SIZE,
@@ -99,18 +98,6 @@ class EmojiHead(nn.Module):
     def forward(self, text_embedding: torch.Tensor) -> torch.Tensor:
         q = self.net(text_embedding)
         return q @ self.embed.weight.t() + self.bias
-
-
-class ColorHead(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-        self.net = nn.Sequential(
-            nn.Dropout(p=DROPOUT_COLOR),
-            nn.Linear(TEXT_EMBED_SIZE, COLOR_DIM, bias=True))
-
-    def forward(self, text_embedding: torch.Tensor) -> torch.Tensor:
-        return self.net(text_embedding)
 
 
 # GAN

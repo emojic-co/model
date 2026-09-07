@@ -56,12 +56,6 @@ style_str = " ".join([
     str(p)
     for p in (STYLE_EMBED_SIZE, TEXT_EMBED_SIZE, DROPOUT_STYLE)])
 
-# COLOR
-DROPOUT_COLOR = 0.1
-EPOCHS_COLOR = 400
-
-color_str = " ".join([str(p) for p in (DROPOUT_COLOR, EPOCHS_COLOR)])
-
 # GAN
 Z_WEIGHT = 0.2
 GEN_CHANNELS = [32, 32]
@@ -129,7 +123,6 @@ CONFIG_PARTS = [
     f"ENCODER: {enc_str}",
     f"EMOJI: {emj_str}",
     f"STYLE: {style_str}",
-    f"COLOR: {color_str}",
     f"GAN: {gan_str}",
     f"TRAIN: {train_str}",
 ]

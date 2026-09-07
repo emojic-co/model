@@ -1,5 +1,4 @@
 import hashlib
-import json
 import os
 import shutil
 import subprocess
@@ -21,20 +20,13 @@ from lightning.pytorch.callbacks import (
 )
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
-from torch.nn.functional import (
-    binary_cross_entropy_with_logits,
-    mse_loss,
-    normalize,
-)
+from torch.nn.functional import binary_cross_entropy_with_logits, normalize
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from files import (
-    COLOR_BASELINE_JSON,
-    COLOR_PT,
     DATA_JSONL,
     EMOJI_PT,
-    ENC_COLOR_PT,
     ENC_PT,
     ENERGY_KEYWORDS_TXT,
     EVAL_JSONL,
@@ -50,7 +42,6 @@ from model.config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE,
     ENERGY_Z_SAMPLES,
-    EPOCHS_COLOR,
     EPOCHS_GAN,
     EPOCHS_TASK,
     GAN_BATCH_SIZE,
@@ -74,7 +65,6 @@ from model.export_onnx import export
 from model.model import (
     ColorDsc,
     ColorGen,
-    ColorHead,
     EmojiHead,
     StyleHead,
     TextEncoder,
@@ -113,11 +103,6 @@ def energy_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     xx = torch.cdist(x, x, compute_mode=mode).mean()
     yy = torch.cdist(y, y, compute_mode=mode).mean()
     return (2 * xy - xx - yy).clamp(min=0.0).sqrt()
-
-
-def oklab_delta_e(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-    d = (pred - target).reshape(pred.size(0), -1, 3)
-    return d.norm(dim=-1).mean()
 
 
 class LitTask(pl.LightningModule):
@@ -183,43 +168,6 @@ class LitTask(pl.LightningModule):
         for name in self.heads:
             params += list(getattr(self, name).parameters())
         return optim.Adam(params, lr=LR)
-
-
-class LitColor(pl.LightningModule):
-    def __init__(self):
-        super().__init__()
-        self.save_hyperparameters()
-
-        self.enc = TextEncoder()
-        self.color = ColorHead()
-
-    def _step(self, batch, split):
-        text, _, _, colors = batch
-
-        pred = self.color(self.enc(text))
-        target = rgb_to_oklab(colors)
-
-        loss = mse_loss(pred, target)
-        de = oklab_delta_e(pred, target)
-
-        for name, val in (
-            (f"loss/c/{split}", loss),
-            (f"dE/c/{split}", de),
-        ):
-            self.log(name, val, on_step=False, on_epoch=True,
-                     prog_bar=True, batch_size=text.size(0))
-
-        return loss
-
-    def training_step(self, batch, batch_idx):
-        return self._step(batch, "train")
-
-    def validation_step(self, batch, batch_idx):
-        self._step(batch, "val")
-
-    def configure_optimizers(self):
-        return optim.Adam(
-            list(self.enc.parameters()) + list(self.color.parameters()), lr=LR)
 
 
 class LitColorGAN(pl.LightningModule):
@@ -356,7 +304,6 @@ class Model(StrEnum):
     emoji = "emoji"
     style = "style"
     task = "task"
-    color = "color"
     gan = "gan"
     all = "all"
 
@@ -477,71 +424,7 @@ def _train_gan(enc: TextEncoder, ds) -> LitColorGAN:
     return gan
 
 
-def _train_color(ds) -> LitColor:
-    color_dl = train_data_loader(data_set=ds, batch_size=TASK_BATCH_SIZE)
-    val_dl = eval_data_loader()
-
-    no_bar = _no_progress_bar()
-    progress_bar_cbs = [] if no_bar else [TQDMProgressBar()]
-
-    monitor = "dE/c/val"
-    color_ckpt = ModelCheckpoint(
-        monitor=monitor, mode="min", save_top_k=1, filename="best-color-{step}"
-    )
-
-    color_trainer = pl.Trainer(
-        devices="auto",
-        accelerator="auto",
-        logger=TensorBoardLogger(
-            "runs", name=CONFIG_NAME, version="color", default_hp_metric=False
-        ),
-        deterministic=True,
-        max_epochs=EPOCHS_COLOR,
-        val_check_interval=min(VAL_CHECK_INTERVAL, len(color_dl)),
-        enable_progress_bar=not no_bar,
-        callbacks=[
-            color_ckpt,
-            EarlyStopping(monitor=monitor, mode="min",
-                          patience=EARLY_STOP_PATIENCE),
-            *progress_bar_cbs,
-            ModelSummary(),
-        ],
-    )
-
-    color = LitColor()
-    color_trainer.fit(color, color_dl, val_dl)
-
-    if color_ckpt.best_model_path:
-        color = LitColor.load_from_checkpoint(color_ckpt.best_model_path)
-
-    save_pt(color.enc.state_dict(), ENC_COLOR_PT, stage="color")
-    save_pt(color.color.state_dict(), COLOR_PT, stage="color")
-
-    score = color_ckpt.best_model_score
-    _print_color_comparison(
-        float(score) if score is not None else float("nan"))
-
-    return color
-
-
-def _print_color_comparison(head_de: float) -> None:
-    print("\n--- color head vs baselines (OKLab mean dE, lower is better) ---")
-    print(f"  color head   : {head_de:.4f}")
-
-    path = Path(COLOR_BASELINE_JSON)
-    if not path.exists():
-        print(f"  baselines    : missing {COLOR_BASELINE_JSON} (run `bun run regen`)")
-        return
-
-    methods = json.loads(path.read_text())["methods"]
-    print(f"  global mean  : {methods['global_mean']['dE']:.4f}")
-    print(f"  style mean   : {methods['style_mean']['dE']:.4f}")
-
-
 def _run_report_local(model: Model) -> None:
-    if model == Model.color:
-        print(f"color stage: see dE/c/val in TensorBoard and {COLOR_BASELINE_JSON}")
-        return
     subprocess.run([sys.executable, "tools/report.py", "--pt", PT_DIR], check=True)
 
 
@@ -557,13 +440,6 @@ def _run_local(model: Model) -> None:
         enc = _load(TextEncoder(), ENC_PT)
         _train_gan(enc, ds)  # type: ignore
         export()
-        if not skip_report:
-            _run_report_local(model)
-        return
-
-    if model == Model.color:
-        ds = train_ds()
-        _train_color(ds)
         if not skip_report:
             _run_report_local(model)
         return
@@ -859,7 +735,7 @@ def cli(
     memory: int | None = typer.Option(
         None, help="Modal memory in MiB (Modal only)."),
 ) -> None:
-    """Train emoji/style/task/color/gan/all: Modal by default, or locally with --local."""
+    """Train emoji/style/task/gan/all: on Modal by default, or locally with --local."""
     if local and (cpu is not None or memory is not None):
         raise typer.BadParameter(
             "--cpu/--memory only apply when dispatching to Modal")
