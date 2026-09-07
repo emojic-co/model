@@ -1,0 +1,1763 @@
+{
+  "generated": "2026-09-08T02:49:14",
+  "provenance": {
+    "ts": "26-09-08-02-49",
+    "report_code": "eb5cd9d",
+    "report_dirty": true,
+    "model_sha": "01bdadb",
+    "model_train_sha": "97954549555a",
+    "current_train_sha": "97954549555a",
+    "models": {
+      "pt/enc.pt": {
+        "sha": "01bdadb",
+        "dirty": false,
+        "generated": "2026-09-07T21:53:53",
+        "config": [
+          "ENCODER: 24 3 [100, 200, 300] [1, 2, 4]",
+          "EMOJI: 64 0.375",
+          "STYLE: 16 600 0.8333333333333334",
+          "GAN: 0.1 [128, 64, 32] [64] [64] 0.6666666666666667 0.01 0.02 1.0",
+          "TRAIN: 42 256 512 0.1 0.01 1.0 10.0 0.7"
+        ],
+        "train_sha": "97954549555a",
+        "stage": "enc"
+      },
+      "pt/emoji.pt": {
+        "sha": "01bdadb",
+        "dirty": false,
+        "generated": "2026-09-07T21:53:53",
+        "config": [
+          "ENCODER: 24 3 [100, 200, 300] [1, 2, 4]",
+          "EMOJI: 64 0.375",
+          "STYLE: 16 600 0.8333333333333334",
+          "GAN: 0.1 [128, 64, 32] [64] [64] 0.6666666666666667 0.01 0.02 1.0",
+          "TRAIN: 42 256 512 0.1 0.01 1.0 10.0 0.7"
+        ],
+        "train_sha": "97954549555a",
+        "stage": "enc"
+      },
+      "pt/style.pt": {
+        "sha": "01bdadb",
+        "dirty": false,
+        "generated": "2026-09-07T21:53:53",
+        "config": [
+          "ENCODER: 24 3 [100, 200, 300] [1, 2, 4]",
+          "EMOJI: 64 0.375",
+          "STYLE: 16 600 0.8333333333333334",
+          "GAN: 0.1 [128, 64, 32] [64] [64] 0.6666666666666667 0.01 0.02 1.0",
+          "TRAIN: 42 256 512 0.1 0.01 1.0 10.0 0.7"
+        ],
+        "train_sha": "97954549555a",
+        "stage": "enc"
+      },
+      "pt/gen.pt": {
+        "sha": "01bdadb",
+        "dirty": false,
+        "generated": "2026-09-07T22:19:26",
+        "config": [
+          "ENCODER: 24 3 [100, 200, 300] [1, 2, 4]",
+          "EMOJI: 64 0.375",
+          "STYLE: 16 600 0.8333333333333334",
+          "GAN: 0.1 [128, 64, 32] [64] [64] 0.6666666666666667 0.01 0.02 1.0",
+          "TRAIN: 42 256 512 0.1 0.01 1.0 10.0 0.7"
+        ],
+        "train_sha": "97954549555a",
+        "stage": "gan"
+      }
+    },
+    "consistent": true,
+    "issues": []
+  },
+  "data": {
+    "records": {
+      "data": 258713,
+      "train": 153785,
+      "eval": 1500
+    },
+    "length_distribution": [
+      [
+        46,
+        1
+      ],
+      [
+        45,
+        12
+      ],
+      [
+        44,
+        15
+      ],
+      [
+        43,
+        37
+      ],
+      [
+        42,
+        1825
+      ],
+      [
+        41,
+        2263
+      ],
+      [
+        40,
+        2830
+      ],
+      [
+        39,
+        3456
+      ],
+      [
+        38,
+        4147
+      ],
+      [
+        37,
+        5041
+      ],
+      [
+        36,
+        5699
+      ],
+      [
+        35,
+        6890
+      ],
+      [
+        34,
+        7847
+      ],
+      [
+        33,
+        8967
+      ],
+      [
+        32,
+        9949
+      ],
+      [
+        31,
+        10890
+      ],
+      [
+        30,
+        11375
+      ],
+      [
+        29,
+        11243
+      ],
+      [
+        28,
+        10567
+      ],
+      [
+        27,
+        9873
+      ],
+      [
+        26,
+        8492
+      ],
+      [
+        25,
+        7106
+      ],
+      [
+        24,
+        5738
+      ],
+      [
+        23,
+        4533
+      ],
+      [
+        22,
+        3377
+      ],
+      [
+        21,
+        2502
+      ],
+      [
+        20,
+        1788
+      ],
+      [
+        19,
+        1296
+      ],
+      [
+        18,
+        895
+      ],
+      [
+        17,
+        569
+      ],
+      [
+        16,
+        396
+      ],
+      [
+        15,
+        228
+      ],
+      [
+        14,
+        171
+      ],
+      [
+        13,
+        124
+      ],
+      [
+        12,
+        107
+      ],
+      [
+        11,
+        134
+      ],
+      [
+        10,
+        185
+      ],
+      [
+        9,
+        276
+      ],
+      [
+        8,
+        387
+      ],
+      [
+        7,
+        517
+      ],
+      [
+        6,
+        572
+      ],
+      [
+        5,
+        598
+      ],
+      [
+        4,
+        570
+      ],
+      [
+        3,
+        248
+      ],
+      [
+        2,
+        45
+      ],
+      [
+        1,
+        4
+      ]
+    ]
+  },
+  "labels": {
+    "styles": 21,
+    "emojis": 750
+  },
+  "emoji": {
+    "eval": {
+      "n": 1439,
+      "acc_at_k": [
+        0.6309937238693237,
+        0.7136900424957275,
+        0.7512161135673523,
+        0.7734537720680237,
+        0.7901320457458496,
+        0.8033356666564941,
+        0.8151494264602661,
+        0.824183464050293,
+        0.8304377794265747,
+        0.8366921544075012
+      ],
+      "baseline": {
+        "name": "overlap",
+        "acc_at_k": [
+          0.23300970873786409,
+          0.3550624133148405,
+          0.42718446601941745,
+          0.4667128987517337,
+          0.4882108183079057,
+          0.507628294036061,
+          0.5166435506241331,
+          0.5277392510402219,
+          0.5312066574202496,
+          0.5360610263522885
+        ]
+      }
+    },
+    "keywords": {
+      "n": 650,
+      "total": 650,
+      "acc_at_k": [
+        0.5753846153846154,
+        0.6584615384615384,
+        0.696923076923077,
+        0.7076923076923077,
+        0.7184615384615385,
+        0.7307692307692307,
+        0.7369230769230769,
+        0.7446153846153846,
+        0.7538461538461538,
+        0.7584615384615384
+      ]
+    }
+  },
+  "cldr": {
+    "n": 2122,
+    "total": 3463,
+    "acc_at_k": [
+      0.29264844486333647,
+      0.3567389255419416,
+      0.3939679547596607,
+      0.4175306314797361,
+      0.4340245051837889,
+      0.44910461828463716,
+      0.4599434495758718,
+      0.46842601319509897,
+      0.4764373232799246,
+      0.48350612629594725
+    ]
+  },
+  "cards": {
+    "n": 125,
+    "threshold": 0.15,
+    "emoji_acc_at_k": [
+      0.47200000286102295,
+      0.5759999752044678,
+      0.6480000019073486,
+      0.6800000071525574,
+      0.7360000014305115,
+      0.7919999957084656,
+      0.7919999957084656,
+      0.800000011920929,
+      0.800000011920929,
+      0.800000011920929
+    ],
+    "style_acc_at_k": [
+      0.1120000034570694,
+      0.23199999332427979,
+      0.335999995470047,
+      0.42399999499320984,
+      0.47200000286102295,
+      0.5600000023841858,
+      0.6000000238418579,
+      0.6240000128746033,
+      0.6480000019073486,
+      0.656000018119812
+    ],
+    "per_color": {
+      "red": {
+        "accuracy": 0.0,
+        "mean_distance": 0.46373706698417666
+      },
+      "green": {
+        "accuracy": 0.0,
+        "mean_distance": 0.3702437961101532
+      },
+      "blue": {
+        "accuracy": 0.0,
+        "mean_distance": 0.38589298605918887
+      },
+      "dark": {
+        "accuracy": 0.0,
+        "mean_distance": 0.526585785150528
+      },
+      "bright": {
+        "accuracy": 0.44,
+        "mean_distance": 0.15768875002861024
+      },
+      "all": {
+        "accuracy": 0.088,
+        "mean_distance": 0.38082967686653135
+      }
+    },
+    "rows": [
+      {
+        "color": "red",
+        "text": "fresh strawberries in a white bowl",
+        "emoji": "🍓",
+        "style": "Deadpan",
+        "bg1": "#e1d4a7",
+        "bg2": "#afa462",
+        "text_color": "#1f130f",
+        "dF": 0.4365314543247223,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "a red double decker bus downtown",
+        "emoji": "🚌",
+        "style": "Deadpan",
+        "bg1": "#d8d2bf",
+        "bg2": "#adb49d",
+        "text_color": "#251b1d",
+        "dF": 0.4809444844722748,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "her bright crimson lipstick",
+        "emoji": "✨",
+        "style": "Deadpan",
+        "bg1": "#cbc2b0",
+        "bg2": "#8dbb8d",
+        "text_color": "#18303a",
+        "dF": 0.46825623512268066,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "a ripe tomato off the vine",
+        "emoji": "🍅",
+        "style": "Deadpan",
+        "bg1": "#dedbaf",
+        "bg2": "#aab474",
+        "text_color": "#201f10",
+        "dF": 0.44745028018951416,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "a red apple polished on my sleeve",
+        "emoji": "👕",
+        "style": "Deadpan",
+        "bg1": "#d3dcd4",
+        "bg2": "#aec9ca",
+        "text_color": "#32301f",
+        "dF": 0.4837564527988434,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "a single red rose on the table",
+        "emoji": "🎤",
+        "style": "Deadpan",
+        "bg1": "#c9d5de",
+        "bg2": "#a6b7d7",
+        "text_color": "#34252f",
+        "dF": 0.4902550280094147,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "the fire truck screamed past",
+        "emoji": "🚒",
+        "style": "Deadpan",
+        "bg1": "#d1c8a1",
+        "bg2": "#91ba72",
+        "text_color": "#162f28",
+        "dF": 0.46578049659729004,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "bright red watermelon slices",
+        "emoji": "🍉",
+        "style": "Deadpan",
+        "bg1": "#c9cba9",
+        "bg2": "#83de95",
+        "text_color": "#16733f",
+        "dF": 0.3799639642238617,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "a paper cut and a drop of blood",
+        "emoji": "🩸",
+        "style": "Deadpan",
+        "bg1": "#dce1c4",
+        "bg2": "#b1ceaa",
+        "text_color": "#2c3312",
+        "dF": 0.5230163931846619,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "a bowl of deep red cherries",
+        "emoji": "🍒",
+        "style": "Deadpan",
+        "bg1": "#d8ccae",
+        "bg2": "#a5a577",
+        "text_color": "#1d171c",
+        "dF": 0.4836670458316803,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "the red octagon of a stop sign",
+        "emoji": "🛑",
+        "style": "Deadpan",
+        "bg1": "#dce2ca",
+        "bg2": "#b4bea9",
+        "text_color": "#2f250f",
+        "dF": 0.5267128348350525,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "my cheeks flushed bright red",
+        "emoji": "🌿",
+        "style": "Deadpan",
+        "bg1": "#d0d3a3",
+        "bg2": "#89e38b",
+        "text_color": "#17792d",
+        "dF": 0.3943351209163666,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "a red lantern swaying at night",
+        "emoji": "🏮",
+        "style": "Deadpan",
+        "bg1": "#cabfa9",
+        "bg2": "#89b47e",
+        "text_color": "#15303a",
+        "dF": 0.4752701222896576,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "a string of dried red chillies",
+        "emoji": "🧊",
+        "style": "Deadpan",
+        "bg1": "#cfc0af",
+        "bg2": "#9aab86",
+        "text_color": "#1a1e31",
+        "dF": 0.4612361192703247,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "a red velvet cake on the stand",
+        "emoji": "🍰",
+        "style": "Deadpan",
+        "bg1": "#d9dbd0",
+        "bg2": "#b4c2be",
+        "text_color": "#32211a",
+        "dF": 0.5144908428192139,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "a dancer in a scarlet dress",
+        "emoji": "💃",
+        "style": "Deadpan",
+        "bg1": "#c6aeab",
+        "bg2": "#8ab48a",
+        "text_color": "#152855",
+        "dF": 0.452291876077652,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "red brake lights glowing in the rain",
+        "emoji": "🌧️",
+        "style": "Deadpan",
+        "bg1": "#683ebe",
+        "bg2": "#3750a6",
+        "text_color": "#0915f2",
+        "dF": 0.36953315138816833,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "a pot of deep red marinara sauce",
+        "emoji": "🌶️",
+        "style": "Deadpan",
+        "bg1": "#e0c25e",
+        "bg2": "#8db11e",
+        "text_color": "#0c2415",
+        "dF": 0.48733988404273987,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "a valentine card sealed in red",
+        "emoji": "🎤",
+        "style": "Deadpan",
+        "bg1": "#d1e0de",
+        "bg2": "#b0d0db",
+        "text_color": "#3b3822",
+        "dF": 0.48045459389686584,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "the ref pulled out a red card",
+        "emoji": "💳",
+        "style": "Deadpan",
+        "bg1": "#dce7d7",
+        "bg2": "#b9c8c5",
+        "text_color": "#3b290f",
+        "dF": 0.5342060923576355,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "red poppies across the whole field",
+        "emoji": "🍪",
+        "style": "Deadpan",
+        "bg1": "#dfd487",
+        "bg2": "#9cd350",
+        "text_color": "#154114",
+        "dF": 0.4908849000930786,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "a bright red fire extinguisher",
+        "emoji": "🧯",
+        "style": "Deadpan",
+        "bg1": "#d0c087",
+        "bg2": "#80cf58",
+        "text_color": "#104e36",
+        "dF": 0.4622826874256134,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "rubies catching the lamplight",
+        "emoji": "💡",
+        "style": "Deadpan",
+        "bg1": "#c5babe",
+        "bg2": "#90aaa1",
+        "text_color": "#1b2349",
+        "dF": 0.47334954142570496,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "a red bicycle by the garden gate",
+        "emoji": "🌿",
+        "style": "Deadpan",
+        "bg1": "#e0dc88",
+        "bg2": "#99e55b",
+        "text_color": "#166c14",
+        "dF": 0.454116553068161,
+        "hit": false
+      },
+      {
+        "color": "red",
+        "text": "red hot embers glowing in the grill",
+        "emoji": "🔥",
+        "style": "Deadpan",
+        "bg1": "#be9f55",
+        "bg2": "#51d029",
+        "text_color": "#067d6c",
+        "dF": 0.3573005199432373,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "moss on the forest floor",
+        "emoji": "🚪",
+        "style": "Deadpan",
+        "bg1": "#c5c4c3",
+        "bg2": "#8da2a1",
+        "text_color": "#1d223d",
+        "dF": 0.4045020341873169,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "a crisp green apple",
+        "emoji": "🍎",
+        "style": "Deadpan",
+        "bg1": "#dfe2c5",
+        "bg2": "#b4c6a2",
+        "text_color": "#2d270f",
+        "dF": 0.3811119496822357,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "fresh basil from the garden",
+        "emoji": "🌿",
+        "style": "Deadpan",
+        "bg1": "#d9c636",
+        "bg2": "#61eb14",
+        "text_color": "#06b226",
+        "dF": 0.310531884431839,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "the traffic light finally turned green",
+        "emoji": "🚦",
+        "style": "Deadpan",
+        "bg1": "#d3ca65",
+        "bg2": "#74e036",
+        "text_color": "#0b8528",
+        "dF": 0.31390178203582764,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "a four leaf clover for luck",
+        "emoji": "🍀",
+        "style": "Serene",
+        "bg1": "#d4d8a2",
+        "bg2": "#8ee182",
+        "text_color": "#187024",
+        "dF": 0.3679753839969635,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "a big bowl of garden salad",
+        "emoji": "🥣",
+        "style": "Deadpan",
+        "bg1": "#dba434",
+        "bg2": "#6ca90b",
+        "text_color": "#052b26",
+        "dF": 0.3465878963470459,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "pine trees along the ridge",
+        "emoji": "⛰️",
+        "style": "Deadpan",
+        "bg1": "#aeb8de",
+        "bg2": "#87bfe1",
+        "text_color": "#273c7f",
+        "dF": 0.41657623648643494,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "cucumber slices with a little salt",
+        "emoji": "🍕",
+        "style": "Deadpan",
+        "bg1": "#cec4a2",
+        "bg2": "#8dca7e",
+        "text_color": "#164135",
+        "dF": 0.3448951542377472,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "new grass after the rain",
+        "emoji": "🌧️",
+        "style": "Deadpan",
+        "bg1": "#a79bb0",
+        "bg2": "#61968a",
+        "text_color": "#0f308c",
+        "dF": 0.3220255970954895,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "a little green frog on a leaf",
+        "emoji": "🌿",
+        "style": "Deadpan",
+        "bg1": "#e1e59e",
+        "bg2": "#a0e370",
+        "text_color": "#1c670e",
+        "dF": 0.35985979437828064,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "kale piled high at the market",
+        "emoji": "🛒",
+        "style": "Deadpan",
+        "bg1": "#dad5b2",
+        "bg2": "#a9c58e",
+        "text_color": "#202a1a",
+        "dF": 0.4164307117462158,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "ivy climbing the old brick wall",
+        "emoji": "🧱",
+        "style": "Deadpan",
+        "bg1": "#cdc7c4",
+        "bg2": "#a2b9b1",
+        "text_color": "#232434",
+        "dF": 0.4412422180175781,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "a bright green caterpillar on a leaf",
+        "emoji": "🌿",
+        "style": "Deadpan",
+        "bg1": "#d7d9a6",
+        "bg2": "#98e58f",
+        "text_color": "#1b7022",
+        "dF": 0.33053916692733765,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "green peas rolling off the plate",
+        "emoji": "🌿",
+        "style": "Deadpan",
+        "bg1": "#e0e0ba",
+        "bg2": "#b2c68f",
+        "text_color": "#28280f",
+        "dF": 0.40196260809898376,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "the overgrown green lawn out back",
+        "emoji": "🌲",
+        "style": "Deadpan",
+        "bg1": "#dedca0",
+        "bg2": "#a2d874",
+        "text_color": "#1c4914",
+        "dF": 0.38123998045921326,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "a honeydew melon cut open",
+        "emoji": "💵",
+        "style": "Deadpan",
+        "bg1": "#d7d690",
+        "bg2": "#8de56e",
+        "text_color": "#157d21",
+        "dF": 0.3018322288990021,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "a bright green snake in the grass",
+        "emoji": "🌊",
+        "style": "Deadpan",
+        "bg1": "#d8d195",
+        "bg2": "#97d368",
+        "text_color": "#16491f",
+        "dF": 0.39577051997184753,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "potted ferns on the front porch",
+        "emoji": "⚠️",
+        "style": "Deadpan",
+        "bg1": "#cbcabc",
+        "bg2": "#95bb9e",
+        "text_color": "#1d2f33",
+        "dF": 0.4096775949001312,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "the hills turned green in spring",
+        "emoji": "⛰️",
+        "style": "Deadpan",
+        "bg1": "#d1cf8c",
+        "bg2": "#81e066",
+        "text_color": "#117a2c",
+        "dF": 0.3232578933238983,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "a kiwi sliced clean in half",
+        "emoji": "🥝",
+        "style": "Deadpan",
+        "bg1": "#dad19b",
+        "bg2": "#9cca6c",
+        "text_color": "#18361b",
+        "dF": 0.3694060742855072,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "shamrocks lined up for the parade",
+        "emoji": "💼",
+        "style": "Deadpan",
+        "bg1": "#dde1c2",
+        "bg2": "#b2c19e",
+        "text_color": "#2a2710",
+        "dF": 0.4431908428668976,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "a jade green vase on the sill",
+        "emoji": "🌿",
+        "style": "Deadpan",
+        "bg1": "#cfbd69",
+        "bg2": "#71d237",
+        "text_color": "#0a6437",
+        "dF": 0.3532356321811676,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "wheatgrass shots at the juice bar",
+        "emoji": "💧",
+        "style": "Deadpan",
+        "bg1": "#d4ccad",
+        "bg2": "#9eb380",
+        "text_color": "#1b2421",
+        "dF": 0.3797353506088257,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "tall bamboo behind the house",
+        "emoji": "🏠",
+        "style": "Deadpan",
+        "bg1": "#c8c1c3",
+        "bg2": "#98aaaa",
+        "text_color": "#1f203e",
+        "dF": 0.39298292994499207,
+        "hit": false
+      },
+      {
+        "color": "green",
+        "text": "green beans snapped for dinner",
+        "emoji": "🫘",
+        "style": "Deadpan",
+        "bg1": "#ddda8c",
+        "bg2": "#97de5b",
+        "text_color": "#155e16",
+        "dF": 0.34762343764305115,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "waves rolling over the reef",
+        "emoji": "🌊",
+        "style": "Deadpan",
+        "bg1": "#d6dba9",
+        "bg2": "#96d07e",
+        "text_color": "#1a4c19",
+        "dF": 0.4849213659763336,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "a clear blue sky all afternoon",
+        "emoji": "🌤️",
+        "style": "Deadpan",
+        "bg1": "#936395",
+        "bg2": "#439a71",
+        "text_color": "#0839d6",
+        "dF": 0.33883365988731384,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "blue raspberry slush in a cup",
+        "emoji": "🫐",
+        "style": "Deadpan",
+        "bg1": "#d7cfa5",
+        "bg2": "#9fbe77",
+        "text_color": "#1a2c1d",
+        "dF": 0.4858444631099701,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "blueberries by the handful",
+        "emoji": "🫐",
+        "style": "Deadpan",
+        "bg1": "#cac6c9",
+        "bg2": "#9ccac0",
+        "text_color": "#253543",
+        "dF": 0.45816707611083984,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "faded denim jeans on the line",
+        "emoji": "👖",
+        "style": "Deadpan",
+        "bg1": "#898ee5",
+        "bg2": "#66b0ec",
+        "text_color": "#203ad5",
+        "dF": 0.3438739478588104,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "the deep blue end of the pool",
+        "emoji": "🏊",
+        "style": "Deadpan",
+        "bg1": "#8b81de",
+        "bg2": "#647dda",
+        "text_color": "#1a1acf",
+        "dF": 0.3199392259120941,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "a lake so still it mirrors the sky",
+        "emoji": "🌊",
+        "style": "Deadpan",
+        "bg1": "#c0b4a6",
+        "bg2": "#75d491",
+        "text_color": "#135e68",
+        "dF": 0.3870188295841217,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "a bluebird on the fence wire",
+        "emoji": "🐦",
+        "style": "Deadpan",
+        "bg1": "#d1d4d2",
+        "bg2": "#abbfc5",
+        "text_color": "#2e2527",
+        "dF": 0.44351911544799805,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "cold blue rain down the window",
+        "emoji": "🌧️",
+        "style": "Deadpan",
+        "bg1": "#7158d6",
+        "bg2": "#4871d3",
+        "text_color": "#101fed",
+        "dF": 0.29757770895957947,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "my hands went blue from the cold",
+        "emoji": "🥶",
+        "style": "Deadpan",
+        "bg1": "#c8cbd1",
+        "bg2": "#9dbec7",
+        "text_color": "#282d3c",
+        "dF": 0.4493159055709839,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "a small blue fish in the tank",
+        "emoji": "🐠",
+        "style": "Deadpan",
+        "bg1": "#a7a2c5",
+        "bg2": "#68b9bb",
+        "text_color": "#15449c",
+        "dF": 0.34115874767303467,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "the anchor sank into deep blue water",
+        "emoji": "⚓",
+        "style": "Deadpan",
+        "bg1": "#9d9dd8",
+        "bg2": "#6fc0dd",
+        "text_color": "#1c48b6",
+        "dF": 0.4020533561706543,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "blueberry pie cooling on the sill",
+        "emoji": "🫐",
+        "style": "Deadpan",
+        "bg1": "#a796cf",
+        "bg2": "#76b4cd",
+        "text_color": "#1a32ab",
+        "dF": 0.37631431221961975,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "the earth seen from far above",
+        "emoji": "⚖️",
+        "style": "Deadpan",
+        "bg1": "#d1bea6",
+        "bg2": "#949268",
+        "text_color": "#16152a",
+        "dF": 0.4668772220611572,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "a navy blue peacoat buttoned up",
+        "emoji": "🧥",
+        "style": "Deadpan",
+        "bg1": "#cbafaa",
+        "bg2": "#947c6e",
+        "text_color": "#160e39",
+        "dF": 0.47579216957092285,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "the blue hour just after sunset",
+        "emoji": "🌇",
+        "style": "Serene",
+        "bg1": "#3e12be",
+        "bg2": "#1d36b2",
+        "text_color": "#050ffe",
+        "dF": 0.27480968832969666,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "the blue pool water flat at dawn",
+        "emoji": "🏊",
+        "style": "Deadpan",
+        "bg1": "#976eaf",
+        "bg2": "#569095",
+        "text_color": "#0c28cb",
+        "dF": 0.31565457582473755,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "a robin egg blue gift box",
+        "emoji": "🥚",
+        "style": "Deadpan",
+        "bg1": "#dccc95",
+        "bg2": "#a2ba5b",
+        "text_color": "#172319",
+        "dF": 0.44800958037376404,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "sapphire rings in the display case",
+        "emoji": "💍",
+        "style": "Deadpan",
+        "bg1": "#cdc6bc",
+        "bg2": "#9bbca1",
+        "text_color": "#1e2b34",
+        "dF": 0.47637882828712463,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "the river ran high and blue",
+        "emoji": "🌊",
+        "style": "Deadpan",
+        "bg1": "#bdb0a6",
+        "bg2": "#769972",
+        "text_color": "#112653",
+        "dF": 0.40123090147972107,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "a bright blue tang in the reef",
+        "emoji": "🔵",
+        "style": "Deadpan",
+        "bg1": "#c4c9be",
+        "bg2": "#87d8b3",
+        "text_color": "#1c6049",
+        "dF": 0.3768634796142578,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "the deep blue of twilight",
+        "emoji": "✨",
+        "style": "Deadpan",
+        "bg1": "#5b4ae3",
+        "bg2": "#3c63e6",
+        "text_color": "#121df6",
+        "dF": 0.3144635856151581,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "staring at the ocean for hours",
+        "emoji": "🌊",
+        "style": "Deadpan",
+        "bg1": "#a3acd2",
+        "bg2": "#6ad3d6",
+        "text_color": "#1a6da4",
+        "dF": 0.3760197162628174,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "the blue oceans on the classroom globe",
+        "emoji": "🌊",
+        "style": "Deadpan",
+        "bg1": "#8f8cc2",
+        "bg2": "#4fd0c7",
+        "text_color": "#1081d0",
+        "dF": 0.3068494498729706,
+        "hit": false
+      },
+      {
+        "color": "blue",
+        "text": "a blue raincoat hung by the door",
+        "emoji": "🧥",
+        "style": "Deadpan",
+        "bg1": "#9257a4",
+        "bg2": "#4f4a6b",
+        "text_color": "#090dce",
+        "dF": 0.28583773970603943,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "the power went out at midnight",
+        "emoji": "⚡",
+        "style": "Deadpan",
+        "bg1": "#8e88dc",
+        "bg2": "#649add",
+        "text_color": "#1a2bca",
+        "dF": 0.46859773993492126,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "a moonless forest path",
+        "emoji": "🌙",
+        "style": "Deadpan",
+        "bg1": "#c0bfd6",
+        "bg2": "#96aecd",
+        "text_color": "#272155",
+        "dF": 0.5763208866119385,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "black coffee before dawn",
+        "emoji": "☕",
+        "style": "Deadpan",
+        "bg1": "#d1b3a4",
+        "bg2": "#988f6b",
+        "text_color": "#161135",
+        "dF": 0.5645224452018738,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "shadows filled the whole cellar",
+        "emoji": "✨",
+        "style": "Deadpan",
+        "bg1": "#dad061",
+        "bg2": "#7bde2d",
+        "text_color": "#0b791c",
+        "dF": 0.5346996188163757,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "a starless night out at sea",
+        "emoji": "🌊",
+        "style": "Deadpan",
+        "bg1": "#8589e3",
+        "bg2": "#5e99e5",
+        "text_color": "#1c2fd4",
+        "dF": 0.46180498600006104,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "the hallway light burned out",
+        "emoji": "💡",
+        "style": "Deadpan",
+        "bg1": "#bcb0be",
+        "bg2": "#828092",
+        "text_color": "#171554",
+        "dF": 0.5287691354751587,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "a black cat crossed the yard",
+        "emoji": "🐈",
+        "style": "Deadpan",
+        "bg1": "#d5d8ce",
+        "bg2": "#afa6b1",
+        "text_color": "#2c1818",
+        "dF": 0.6161556243896484,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "the city at three in the morning",
+        "emoji": "🏙️",
+        "style": "Deadpan",
+        "bg1": "#c4ccd2",
+        "bg2": "#93c2c7",
+        "text_color": "#253744",
+        "dF": 0.5821558833122253,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "a candle the only light left",
+        "emoji": "🕯️",
+        "style": "Deadpan",
+        "bg1": "#9aa2e0",
+        "bg2": "#6fc0e6",
+        "text_color": "#2148b9",
+        "dF": 0.5073421001434326,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "bats leaving the cave at dusk",
+        "emoji": "🛁",
+        "style": "Deadpan",
+        "bg1": "#c2cdd4",
+        "bg2": "#92c6cd",
+        "text_color": "#263c47",
+        "dF": 0.5855826735496521,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "the screen went completely black",
+        "emoji": "🖥️",
+        "style": "Deadpan",
+        "bg1": "#cec0b8",
+        "bg2": "#9c978d",
+        "text_color": "#1c152e",
+        "dF": 0.5868765115737915,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "a crow on the bare black branch",
+        "emoji": "👥",
+        "style": "Deadpan",
+        "bg1": "#d9d4be",
+        "bg2": "#ada290",
+        "text_color": "#241417",
+        "dF": 0.6155121326446533,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "black water under the old bridge",
+        "emoji": "🌉",
+        "style": "Deadpan",
+        "bg1": "#b3bcd8",
+        "bg2": "#87c2d7",
+        "text_color": "#243f70",
+        "dF": 0.5543442368507385,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "the tunnel swallowed the train",
+        "emoji": "🚆",
+        "style": "Deadpan",
+        "bg1": "#9c8dc2",
+        "bg2": "#5d8fab",
+        "text_color": "#1128b0",
+        "dF": 0.4710640609264374,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "lights off and eyes still open",
+        "emoji": "💡",
+        "style": "Deadpan",
+        "bg1": "#9498db",
+        "bg2": "#65cce4",
+        "text_color": "#1d62c8",
+        "dF": 0.4809633791446686,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "a vampire flick after midnight",
+        "emoji": "🌙",
+        "style": "Deadpan",
+        "bg1": "#9b88d5",
+        "bg2": "#6f89cf",
+        "text_color": "#191bb9",
+        "dF": 0.47021186351776123,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "the woods after sundown",
+        "emoji": "🪵",
+        "style": "Deadpan",
+        "bg1": "#904d81",
+        "bg2": "#3c9257",
+        "text_color": "#0631e2",
+        "dF": 0.37528887391090393,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "an eight ball on the black felt",
+        "emoji": "🧱",
+        "style": "Deadpan",
+        "bg1": "#878ade",
+        "bg2": "#5b99df",
+        "text_color": "#1930d0",
+        "dF": 0.46416783332824707,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "chestnuts roasted almost to black",
+        "emoji": "🍩",
+        "style": "Deadpan",
+        "bg1": "#decd84",
+        "bg2": "#9aba42",
+        "text_color": "#132716",
+        "dF": 0.6043144464492798,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "a heavy slab of dark slate",
+        "emoji": "🧪",
+        "style": "Deadpan",
+        "bg1": "#d7d2c3",
+        "bg2": "#ae8e93",
+        "text_color": "#250f17",
+        "dF": 0.5991883873939514,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "ink spreading across the page",
+        "emoji": "📄",
+        "style": "Deadpan",
+        "bg1": "#dae1d3",
+        "bg2": "#b7c0c0",
+        "text_color": "#352313",
+        "dF": 0.637002170085907,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "midnight and the house is quiet",
+        "emoji": "🌙",
+        "style": "Serene",
+        "bg1": "#554ff1",
+        "bg2": "#4874f7",
+        "text_color": "#1f1df9",
+        "dF": 0.38876649737358093,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "the new moon left the sky empty",
+        "emoji": "🌆",
+        "style": "Deadpan",
+        "bg1": "#8a60a5",
+        "bg2": "#41a08e",
+        "text_color": "#093fe0",
+        "dF": 0.40777587890625,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "a lantern swinging in the black",
+        "emoji": "🏮",
+        "style": "Deadpan",
+        "bg1": "#c0aeba",
+        "bg2": "#85808b",
+        "text_color": "#171252",
+        "dF": 0.5414660573005676,
+        "hit": false
+      },
+      {
+        "color": "dark",
+        "text": "coffee so dark it looks like ink",
+        "emoji": "☕",
+        "style": "Deadpan",
+        "bg1": "#cbaba4",
+        "bg2": "#8c7f64",
+        "text_color": "#130f40",
+        "dF": 0.5417512059211731,
+        "hit": false
+      },
+      {
+        "color": "bright",
+        "text": "sunrise flooding the kitchen",
+        "emoji": "🌅",
+        "style": "Awed",
+        "bg1": "#bc756c",
+        "bg2": "#639536",
+        "text_color": "#081f8e",
+        "dF": 0.20469658076763153,
+        "hit": false
+      },
+      {
+        "color": "bright",
+        "text": "fireworks lighting the sky",
+        "emoji": "🎆",
+        "style": "Deadpan",
+        "bg1": "#aa9ba1",
+        "bg2": "#57cb8b",
+        "text_color": "#0d6c9f",
+        "dF": 0.16291044652462006,
+        "hit": false
+      },
+      {
+        "color": "bright",
+        "text": "noon sun on white sand",
+        "emoji": "☀️",
+        "style": "Deadpan",
+        "bg1": "#d0a350",
+        "bg2": "#6bb41c",
+        "text_color": "#073840",
+        "dF": 0.15837763249874115,
+        "hit": false
+      },
+      {
+        "color": "bright",
+        "text": "a bare bulb blazing overhead",
+        "emoji": "💡",
+        "style": "Deadpan",
+        "bg1": "#cbc6c3",
+        "bg2": "#9ca2a4",
+        "text_color": "#201b32",
+        "dF": 0.13705547153949738,
+        "hit": true
+      },
+      {
+        "color": "bright",
+        "text": "stadium floodlights came on",
+        "emoji": "🏟️",
+        "style": "Deadpan",
+        "bg1": "#8174d6",
+        "bg2": "#5390d4",
+        "text_color": "#132ddd",
+        "dF": 0.2138628512620926,
+        "hit": false
+      },
+      {
+        "color": "bright",
+        "text": "the whole room lit up gold",
+        "emoji": "🚪",
+        "style": "Deadpan",
+        "bg1": "#dbcc5c",
+        "bg2": "#7aca21",
+        "text_color": "#0a5218",
+        "dF": 0.0887855663895607,
+        "hit": true
+      },
+      {
+        "color": "bright",
+        "text": "a rainbow after the storm",
+        "emoji": "🌈",
+        "style": "Deadpan",
+        "bg1": "#8568d7",
+        "bg2": "#5d43c3",
+        "text_color": "#130ad3",
+        "dF": 0.25471624732017517,
+        "hit": false
+      },
+      {
+        "color": "bright",
+        "text": "lemons glowing in the bowl",
+        "emoji": "🥣",
+        "style": "Deadpan",
+        "bg1": "#d0ba70",
+        "bg2": "#76b532",
+        "text_color": "#0b3930",
+        "dF": 0.1064378023147583,
+        "hit": true
+      },
+      {
+        "color": "bright",
+        "text": "the camera flash caught my eyes",
+        "emoji": "📷",
+        "style": "Deadpan",
+        "bg1": "#dedab2",
+        "bg2": "#aebe82",
+        "text_color": "#222411",
+        "dF": 0.12846726179122925,
+        "hit": true
+      },
+      {
+        "color": "bright",
+        "text": "the sun broke through the clouds",
+        "emoji": "☁️",
+        "style": "Serene",
+        "bg1": "#b47679",
+        "bg2": "#5d8e42",
+        "text_color": "#082297",
+        "dF": 0.1969110518693924,
+        "hit": false
+      },
+      {
+        "color": "bright",
+        "text": "sparklers going on the porch",
+        "emoji": "🅿️",
+        "style": "Deadpan",
+        "bg1": "#d9daaf",
+        "bg2": "#a1cc86",
+        "text_color": "#1e3a18",
+        "dF": 0.07839822769165039,
+        "hit": true
+      },
+      {
+        "color": "bright",
+        "text": "high beams on the empty road",
+        "emoji": "🛣️",
+        "style": "Deadpan",
+        "bg1": "#dbcb96",
+        "bg2": "#9d9d4e",
+        "text_color": "#151817",
+        "dF": 0.1934959441423416,
+        "hit": false
+      },
+      {
+        "color": "bright",
+        "text": "a field of daisies at noon",
+        "emoji": "🌾",
+        "style": "Deadpan",
+        "bg1": "#dbe0ad",
+        "bg2": "#a1db89",
+        "text_color": "#1f5315",
+        "dF": 0.053991228342056274,
+        "hit": true
+      },
+      {
+        "color": "bright",
+        "text": "lightning lit the whole street",
+        "emoji": "⚡",
+        "style": "Deadpan",
+        "bg1": "#9a8b96",
+        "bg2": "#43d689",
+        "text_color": "#099bc2",
+        "dF": 0.23231704533100128,
+        "hit": false
+      },
+      {
+        "color": "bright",
+        "text": "midday glare off the water",
+        "emoji": "💧",
+        "style": "Deadpan",
+        "bg1": "#9a9ab1",
+        "bg2": "#4edbb0",
+        "text_color": "#0e9abc",
+        "dF": 0.21089835464954376,
+        "hit": false
+      },
+      {
+        "color": "bright",
+        "text": "the marquee bulbs all flashing",
+        "emoji": "💡",
+        "style": "Deadpan",
+        "bg1": "#d8d9ce",
+        "bg2": "#b39bab",
+        "text_color": "#2e1215",
+        "dF": 0.14591728150844574,
+        "hit": true
+      },
+      {
+        "color": "bright",
+        "text": "high noon sun and no shade",
+        "emoji": "☀️",
+        "style": "Deadpan",
+        "bg1": "#d49a43",
+        "bg2": "#6f9f12",
+        "text_color": "#062438",
+        "dF": 0.18064433336257935,
+        "hit": false
+      },
+      {
+        "color": "bright",
+        "text": "morning light on fresh snow",
+        "emoji": "❄️",
+        "style": "Deadpan",
+        "bg1": "#706ce2",
+        "bg2": "#4ca1e9",
+        "text_color": "#163fed",
+        "dF": 0.22491145133972168,
+        "hit": false
+      },
+      {
+        "color": "bright",
+        "text": "the bonfire roared up bright",
+        "emoji": "🔥",
+        "style": "Deadpan",
+        "bg1": "#e1daa2",
+        "bg2": "#a9c165",
+        "text_color": "#1d270f",
+        "dF": 0.07534611225128174,
+        "hit": true
+      },
+      {
+        "color": "bright",
+        "text": "golden hour over the hills",
+        "emoji": "⛰️",
+        "style": "Deadpan",
+        "bg1": "#92667c",
+        "bg2": "#38bc5d",
+        "text_color": "#066fd8",
+        "dF": 0.24273161590099335,
+        "hit": false
+      },
+      {
+        "color": "bright",
+        "text": "a lighthouse sweeping the bay",
+        "emoji": "🗼",
+        "style": "Deadpan",
+        "bg1": "#7b7fe9",
+        "bg2": "#5d91ee",
+        "text_color": "#2028e1",
+        "dF": 0.19868183135986328,
+        "hit": false
+      },
+      {
+        "color": "bright",
+        "text": "birthday candles all aglow",
+        "emoji": "🎂",
+        "style": "Playful",
+        "bg1": "#d2c4a4",
+        "bg2": "#95cd82",
+        "text_color": "#183833",
+        "dF": 0.08419027924537659,
+        "hit": true
+      },
+      {
+        "color": "bright",
+        "text": "neon signs buzzing downtown",
+        "emoji": "🏙️",
+        "style": "Deadpan",
+        "bg1": "#aba2ab",
+        "bg2": "#5dca97",
+        "text_color": "#0f6a95",
+        "dF": 0.16348616778850555,
+        "hit": false
+      },
+      {
+        "color": "bright",
+        "text": "the screen at full brightness",
+        "emoji": "🖥️",
+        "style": "Deadpan",
+        "bg1": "#c9b790",
+        "bg2": "#7dce6a",
+        "text_color": "#10504a",
+        "dF": 0.11724358052015305,
+        "hit": true
+      },
+      {
+        "color": "bright",
+        "text": "a burst of confetti and light",
+        "emoji": "💡",
+        "style": "Deadpan",
+        "bg1": "#cdcfbb",
+        "bg2": "#93c49e",
+        "text_color": "#1d3c2e",
+        "dF": 0.08774438500404358,
+        "hit": true
+      }
+    ]
+  }
+}
