@@ -25,6 +25,7 @@ from torch.nn.functional import binary_cross_entropy_with_logits, normalize
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from files import (
+    CRITIC_PT,
     DATA_JSONL,
     EMOJI_PT,
     ENC_PT,
@@ -97,6 +98,15 @@ def mrr(logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
     return (rel / ranks).amax(dim=-1)
 
 
+def roc_auc(pos: torch.Tensor, neg: torch.Tensor) -> torch.Tensor:
+    if pos.numel() == 0 or neg.numel() == 0:
+        return pos.new_zeros(())
+    diff = pos[:, None] - neg[None, :]
+    wins = torch.sign(diff).clamp(min=0.0)
+    ties = (diff == 0).to(diff.dtype)
+    return (wins + 0.5 * ties).mean()
+
+
 def energy_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     mode = "donot_use_mm_for_euclid_dist"
     xy = torch.cdist(x, y, compute_mode=mode).mean()
@@ -105,57 +115,117 @@ def energy_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     return (2 * xy - xx - yy).clamp(min=0.0).sqrt()
 
 
-class LitTask(pl.LightningModule):
-    def __init__(self, heads: tuple[str, ...] = ("style", "emoji")):
+ALL_HEADS: tuple[str, ...] = ("style", "emoji", "critic")
+_DEFAULT_PT = Path(PT_DIR)
+
+
+class Stage(StrEnum):
+    enc = "enc"
+    gan = "gan"
+
+
+def _parse_heads(csv: str | None) -> tuple[str, ...]:
+    if csv is None:
+        return ALL_HEADS
+    got = {tok.strip() for tok in csv.split(",") if tok.strip()}
+    bad = got - set(ALL_HEADS)
+    if bad or not got:
+        raise typer.BadParameter(
+            f"--heads: {', '.join(sorted(bad)) or 'empty'} "
+            f"(choose from {', '.join(ALL_HEADS)})"
+        )
+    return tuple(h for h in ALL_HEADS if h in got)
+
+
+def _validate(
+    stage: Stage | None,
+    local: bool,
+    heads: str | None,
+    pt: Path,
+    out: Path,
+) -> tuple[str, ...] | None:
+    if heads is not None and stage != Stage.enc:
+        raise typer.BadParameter("--heads is only valid with the 'enc' stage")
+    if not local and (pt != _DEFAULT_PT or out != _DEFAULT_PT):
+        raise typer.BadParameter(
+            "--pt / -o must be the default (pt/) unless --local is set"
+        )
+    return _parse_heads(heads) if stage == Stage.enc else None
+
+
+class LitEncoder(pl.LightningModule):
+    def __init__(self, heads: tuple[str, ...] = ALL_HEADS):
         super().__init__()
         self.save_hyperparameters()
-
-        self.heads = heads
+        self.heads = tuple(heads)
 
         self.enc = TextEncoder()
-        self.style = StyleHead()
-        self.emoji = EmojiHead()
+        if "style" in self.heads:
+            self.style = StyleHead()
+        if "emoji" in self.heads:
+            self.emoji = EmojiHead()
+        if "critic" in self.heads:
+            self.critic = ColorCritic()
+
+        self._val_pos: list[torch.Tensor] = []
+        self._val_neg: list[torch.Tensor] = []
+
+    def _log(self, name, val, bs):
+        self.log(name, val, on_step=False, on_epoch=True, prog_bar=True, batch_size=bs)
 
     def _step(self, batch, split):
-        text, emoji, style, _ = batch
-
+        text, emoji, style, colors = batch
         enc = self.enc(text)
         loss = enc.new_zeros(())
+        bs = text.size(0)
 
         if "style" in self.heads:
             style_logits = self.style(enc)
             loss_style = lse_infonce(style_logits, style, INFONCE_TEMP)
             loss = loss + loss_style
-
-            style_mrr = mrr(style_logits, style).mean()
-
-            for name, val, bs in (
-                (f"loss/s/{split}", loss_style, text.size(0)),
-                (f"MRR/s/{split}", style_mrr, text.size(0)),
-            ):
-                self.log(name, val, on_step=False, on_epoch=True,
-                         prog_bar=True, batch_size=bs)
+            self._log(f"loss/s/{split}", loss_style, bs)
+            self._log(f"MRR/s/{split}", mrr(style_logits, style).mean(), bs)
 
         if "emoji" in self.heads:
             emoji_logits = self.emoji(enc)
             loss_emoji = lse_infonce(emoji_logits, emoji, INFONCE_TEMP)
             loss = loss + loss_emoji
-
+            self._log(f"loss/e/{split}", loss_emoji, bs)
             has_e = emoji.sum(dim=-1) > 0
             n_e = int(has_e.sum())
-            if n_e:
-                emoji_mrr = mrr(emoji_logits[has_e], emoji[has_e]).mean()
-            else:
-                emoji_mrr = torch.zeros((), device=emoji.device)
+            emoji_mrr = (
+                mrr(emoji_logits[has_e], emoji[has_e]).mean()
+                if n_e
+                else torch.zeros((), device=emoji.device)
+            )
+            self._log(f"MRR/e/{split}", emoji_mrr, max(n_e, 1))
 
-            for name, val, bs in (
-                (f"loss/e/{split}", loss_emoji, text.size(0)),
-                (f"MRR/e/{split}", emoji_mrr, max(n_e, 1)),
-            ):
-                self.log(name, val, on_step=False, on_epoch=True,
-                         prog_bar=True, batch_size=bs)
+        if "critic" in self.heads:
+            shift = 1 if split == "val" else int(torch.randint(1, bs, (1,)).item())
+            neg_colors = colors.roll(shift, dims=0)
+            pos = self.critic(enc, colors)
+            neg = self.critic(enc, neg_colors)
+            loss_critic = binary_cross_entropy_with_logits(
+                pos, torch.ones_like(pos)
+            ) + binary_cross_entropy_with_logits(neg, torch.zeros_like(neg))
+            loss = loss + loss_critic
+            acc = 0.5 * ((pos > 0).float().mean() + (neg < 0).float().mean())
+            self._log(f"loss/critic/{split}", loss_critic, bs)
+            self._log(f"acc/critic/{split}", acc, bs)
+            if split == "val":
+                self._val_pos.append(pos.detach().flatten())
+                self._val_neg.append(neg.detach().flatten())
 
         return loss
+
+    def on_validation_epoch_start(self):
+        self._val_pos.clear()
+        self._val_neg.clear()
+
+    def on_validation_epoch_end(self):
+        if "critic" in self.heads and self._val_pos:
+            auc = roc_auc(torch.cat(self._val_pos), torch.cat(self._val_neg))
+            self.log("auc/critic/val", auc, prog_bar=True)
 
     def training_step(self, batch, batch_idx):
         return self._step(batch, "train")
@@ -165,19 +235,19 @@ class LitTask(pl.LightningModule):
 
     def configure_optimizers(self):
         params = list(self.enc.parameters())
-        for name in self.heads:
-            params += list(getattr(self, name).parameters())
+        for h in self.heads:
+            params += list(getattr(self, h).parameters())
         return optim.Adam(params, lr=LR)
 
 
 class LitColorGAN(pl.LightningModule):
-    def __init__(self, enc: TextEncoder):
+    def __init__(self, enc: TextEncoder, critic: ColorCritic):
         super().__init__()
 
         self.enc = enc.requires_grad_(False).eval()
 
         self.gen = ColorGen()
-        self.tst = ColorCritic()
+        self.tst = critic
 
         self.register_buffer(
             "z_bank",
@@ -300,22 +370,6 @@ class LitColorGAN(pl.LightningModule):
         return [opt_gen, opt_tst]
 
 
-class Model(StrEnum):
-    emoji = "emoji"
-    style = "style"
-    task = "task"
-    gan = "gan"
-    all = "all"
-
-
-TASK_HEADS: dict[str, tuple[str, ...]] = {
-    "emoji": ("emoji",),
-    "style": ("style",),
-    "task": ("style", "emoji"),
-    "all": ("style", "emoji"),
-}
-
-
 def _load(mod: nn.Module, path: str) -> nn.Module:
     sd, meta = load_pt(path)
     mod.load_state_dict(sd)
@@ -327,69 +381,72 @@ def _no_progress_bar() -> bool:
     return os.environ.get("EMOJIC_NO_PROGRESS_BAR") == "1"
 
 
-def _train_task(ds, stage: str, heads: tuple[str, ...]) -> LitTask:
-    task_dl = train_data_loader(data_set=ds, batch_size=TASK_BATCH_SIZE)
+def _require_pt(folder: Path, names: list[str]) -> None:
+    missing = [n for n in names if not (folder / n).exists()]
+    if missing:
+        raise typer.BadParameter(f"{folder}: missing {', '.join(missing)}")
+
+
+def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
+    dl = train_data_loader(data_set=ds, batch_size=TASK_BATCH_SIZE)
     val_dl = eval_data_loader()
 
     no_bar = _no_progress_bar()
-    progress_bar_cbs = [] if no_bar else [TQDMProgressBar()]
+    bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
-    if "emoji" in heads:
-        task_monitor = "MRR/e/val"
-    else:
-        task_monitor = "MRR/s/val"
-
-    task_ckpt = ModelCheckpoint(
-        monitor=task_monitor, mode="max", save_top_k=1, filename="best-{step}"
+    monitor = (
+        "MRR/e/val"
+        if "emoji" in heads
+        else "MRR/s/val"
+        if "style" in heads
+        else "auc/critic/val"
     )
-
-    task_trainer = pl.Trainer(
+    ckpt = ModelCheckpoint(
+        monitor=monitor, mode="max", save_top_k=1, filename="best-{step}"
+    )
+    trainer = pl.Trainer(
         devices="auto",
         accelerator="auto",
         logger=TensorBoardLogger(
-            "runs", name=CONFIG_NAME, version=stage, default_hp_metric=False
+            "runs", name=CONFIG_NAME, version="enc", default_hp_metric=False
         ),
         deterministic=True,
         max_epochs=EPOCHS_TASK,
-        val_check_interval=min(VAL_CHECK_INTERVAL, len(task_dl)),
+        val_check_interval=min(VAL_CHECK_INTERVAL, len(dl)),
         enable_progress_bar=not no_bar,
         callbacks=[
-            task_ckpt,
-            EarlyStopping(monitor=task_monitor, mode="max",
-                          patience=EARLY_STOP_PATIENCE),
-            *progress_bar_cbs,
+            ckpt,
+            EarlyStopping(monitor=monitor, mode="max", patience=EARLY_STOP_PATIENCE),
+            *bar_cbs,
             ModelSummary(),
         ],
     )
 
-    task = LitTask(heads=heads)
-    task_trainer.fit(task, task_dl, val_dl)
+    mod = LitEncoder(heads=heads)
+    trainer.fit(mod, dl, val_dl)
 
-    if task_ckpt.best_model_path:
-        task = LitTask.load_from_checkpoint(task_ckpt.best_model_path)
+    if ckpt.best_model_path:
+        mod = LitEncoder.load_from_checkpoint(ckpt.best_model_path)
 
-    saved = [("enc", task.enc)]
-    if "style" in heads:
-        saved.append(("style", task.style))
-    if "emoji" in heads:
-        saved.append(("emoji", task.emoji))
+    save_pt(mod.enc.state_dict(), str(out_dir / "enc.pt"), stage="enc")
+    for h in ALL_HEADS:
+        if h in heads:
+            save_pt(getattr(mod, h).state_dict(), str(out_dir / f"{h}.pt"), stage="enc")
 
-    for name, mod in saved:
-        save_pt(mod.state_dict(), f"{PT_DIR}/{name}.pt", stage=stage)
-
-    return task
+    return mod
 
 
-def _train_gan(enc: TextEncoder, ds) -> LitColorGAN:
+def _train_gan(
+    enc: TextEncoder, critic: ColorCritic, ds, out_dir: Path
+) -> LitColorGAN:
     val_dl = eval_data_loader()
     no_bar = _no_progress_bar()
-    progress_bar_cbs = [] if no_bar else [TQDMProgressBar()]
+    bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
-    gan_ckpt = ModelCheckpoint(
+    ckpt = ModelCheckpoint(
         monitor="energy/gan/val", mode="min", save_top_k=1, filename="best-gan-{step}"
     )
-
-    gan_trainer = pl.Trainer(
+    trainer = pl.Trainer(
         devices="auto",
         accelerator="auto",
         logger=TensorBoardLogger(
@@ -399,63 +456,72 @@ def _train_gan(enc: TextEncoder, ds) -> LitColorGAN:
         max_epochs=EPOCHS_GAN,
         enable_progress_bar=not no_bar,
         callbacks=[
-            gan_ckpt,
+            ckpt,
             EarlyStopping(
                 monitor="energy/gan/val", mode="min", patience=EARLY_STOP_PATIENCE
             ),
-            *progress_bar_cbs,
+            *bar_cbs,
             ModelSummary(),
         ],
     )
 
-    gan = LitColorGAN(enc)
+    gan = LitColorGAN(enc, critic)
     gan_dl = train_data_loader(data_set=ds, batch_size=GAN_BATCH_SIZE)
-    gan_trainer.fit(gan, gan_dl, val_dl)
+    trainer.fit(gan, gan_dl, val_dl)
 
-    if gan_ckpt.best_model_path:
-        gan = LitColorGAN.load_from_checkpoint(gan_ckpt.best_model_path, enc=enc)
+    if ckpt.best_model_path:
+        gan = LitColorGAN.load_from_checkpoint(
+            ckpt.best_model_path, enc=enc, critic=ColorCritic()
+        )
 
-    for name, mod in (
-        ("gen", gan.gen),
-        ("tst", gan.tst),
-    ):
-        save_pt(mod.state_dict(), f"{PT_DIR}/{name}.pt", stage="gan")
-
+    save_pt(gan.gen.state_dict(), str(out_dir / "gen.pt"), stage="gan")
     return gan
 
 
-def _run_report_local(model: Model) -> None:
-    subprocess.run([sys.executable, "tools/report.py", "--pt", PT_DIR], check=True)
+def _run_report_local(pt_dir: Path) -> None:
+    subprocess.run(
+        [sys.executable, "tools/report.py", "--pt", str(pt_dir)], check=True
+    )
 
 
-def _run_local(model: Model) -> None:
+def _run_local(
+    stage: Stage | None,
+    heads: tuple[str, ...] | None,
+    pt_dir: Path,
+    out_dir: Path,
+) -> None:
     require_clean_tree()
     pl.seed_everything(SEED, workers=True)
     torch.backends.cudnn.benchmark = False
-
     skip_report = os.environ.get("EMOJIC_SKIP_REPORT") == "1"
+    out_dir.mkdir(parents=True, exist_ok=True)
 
-    if model == Model.gan:
-        ds = train_ds()
-        enc = _load(TextEncoder(), ENC_PT)
-        _train_gan(enc, ds)  # type: ignore
-        export()
+    if stage == Stage.gan:
+        _require_pt(pt_dir, ["enc.pt", "critic.pt", "style.pt", "emoji.pt"])
+        enc = _load(TextEncoder(), str(pt_dir / "enc.pt"))
+        critic = _load(ColorCritic(), str(pt_dir / "critic.pt"))
+        _train_gan(enc, critic, train_ds(), out_dir)  # type: ignore
+        if out_dir == _DEFAULT_PT:
+            export()
         if not skip_report:
-            _run_report_local(model)
+            _run_report_local(out_dir)
         return
 
     ds = train_ds()
-    task = _train_task(ds, model.value, TASK_HEADS[model.value])
+    heads = heads or ALL_HEADS
+    mod = _train_encoder(ds, heads, out_dir)
 
-    if model in (Model.emoji, Model.style, Model.task):
+    if stage == Stage.enc:
         if not skip_report:
-            _run_report_local(model)
+            _run_report_local(out_dir)
         return
 
-    _train_gan(task.enc, ds)
-    export()
+    critic = _load(ColorCritic(), str(out_dir / "critic.pt"))
+    _train_gan(mod.enc, critic, ds, out_dir)  # type: ignore
+    if out_dir == _DEFAULT_PT:
+        export()
     if not skip_report:
-        _run_report_local(model)
+        _run_report_local(out_dir)
 
 
 CPU = 16
@@ -542,26 +608,33 @@ def _stash(dst: str) -> int:
     include_source=False,
 )
 def train_remote(
-    model: str,
+    stage: str,
+    heads: str,
     threads: int,
     git_sha: str,
     run_time: str,
     enc_bytes: bytes | None = None,
     style_bytes: bytes | None = None,
     emoji_bytes: bytes | None = None,
+    critic_bytes: bytes | None = None,
 ) -> dict[str, int]:
     env = _run_env(threads)
     env["EMOJIC_GIT_SHA"] = git_sha
     env["EMOJIC_RUN_TIME"] = run_time
     env["EMOJIC_DISPATCH_CHECKED"] = "1"
-    if enc_bytes is not None or style_bytes is not None or emoji_bytes is not None:
+
+    uploads = {
+        ENC_PT: enc_bytes,
+        STYLE_PT: style_bytes,
+        EMOJI_PT: emoji_bytes,
+        CRITIC_PT: critic_bytes,
+    }
+    if any(v is not None for v in uploads.values()):
         Path(REPO, PT_DIR).mkdir(parents=True, exist_ok=True)
-    if enc_bytes is not None:
-        Path(REPO, ENC_PT).write_bytes(enc_bytes)
-    if style_bytes is not None:
-        Path(REPO, STYLE_PT).write_bytes(style_bytes)
-    if emoji_bytes is not None:
-        Path(REPO, EMOJI_PT).write_bytes(emoji_bytes)
+    for rel, data in uploads.items():
+        if data is not None:
+            Path(REPO, rel).write_bytes(data)
+
     code = 1
     try:
         tb = subprocess.Popen(
@@ -584,8 +657,14 @@ def train_remote(
         try:
             with modal.forward(TB_PORT) as tunnel:
                 print(f"TensorBoard: {tunnel.url}", flush=True)
+                cmd = [VENV_PY, f"{MODEL_DIR}/train.py"]
+                if stage:
+                    cmd.append(stage)
+                if stage == "enc" and heads:
+                    cmd += ["--heads", heads]
+                cmd.append("--local")
                 proc = subprocess.Popen(
-                    [VENV_PY, f"{MODEL_DIR}/train.py", model, "--local"],
+                    cmd,
                     cwd=REPO,
                     env=env,
                     stdout=subprocess.PIPE,
@@ -604,7 +683,7 @@ def train_remote(
         vol.commit()
         print(f"stashed {n} files to volume {VOL_NAME}", flush=True)
     if code != 0:
-        raise RuntimeError(f"train.py {model} --local exited with {code}")
+        raise RuntimeError(f"train.py {stage or 'all'} --local exited with {code}")
     return {"files": n}
 
 
@@ -663,61 +742,56 @@ def _retrieve_and_cleanup() -> bool:
         shutil.rmtree(staging, ignore_errors=True)
 
 
-def _run_remote(
-    model: Model, cpu: int, memory: int, git_sha: str, run_time: str
-) -> dict[str, int]:
-    enc_bytes = style_bytes = emoji_bytes = None
-    if model == Model.gan:
-        for name in (ENC_PT, STYLE_PT, EMOJI_PT):
+def _run_remote(stage: str, heads: str, git_sha: str, run_time: str) -> dict[str, int]:
+    pt_bytes: dict[str, bytes | None] = {
+        "enc_bytes": None,
+        "style_bytes": None,
+        "emoji_bytes": None,
+        "critic_bytes": None,
+    }
+    if stage == "gan":
+        for name in (ENC_PT, STYLE_PT, EMOJI_PT, CRITIC_PT):
             if not Path(name).exists():
                 raise typer.BadParameter(
-                    f"{name} not found -- run `train task --local` "
-                    "(or fetch a Modal task run) first"
+                    f"{name} not found -- run `train enc --local` "
+                    "(or fetch a Modal enc run) first"
                 )
-        enc_bytes = Path(ENC_PT).read_bytes()
-        style_bytes = Path(STYLE_PT).read_bytes()
-        emoji_bytes = Path(EMOJI_PT).read_bytes()
+        pt_bytes = {
+            "enc_bytes": Path(ENC_PT).read_bytes(),
+            "style_bytes": Path(STYLE_PT).read_bytes(),
+            "emoji_bytes": Path(EMOJI_PT).read_bytes(),
+            "critic_bytes": Path(CRITIC_PT).read_bytes(),
+        }
 
-    timeout = TIMEOUT_S_ALL if model == Model.all else TIMEOUT_S
+    timeout = TIMEOUT_S_ALL if stage == "" else TIMEOUT_S
     fn = train_remote
-    if cpu != CPU or memory != MEMORY_MIB or timeout != TIMEOUT_S:
-        fn = train_remote.with_options(cpu=cpu, memory=memory, timeout=timeout)
+    if timeout != TIMEOUT_S:
+        fn = train_remote.with_options(timeout=timeout)
     return fn.remote(
-        model=model.value,
-        threads=cpu,
+        stage=stage,
+        heads=heads,
+        threads=CPU,
         git_sha=git_sha,
         run_time=run_time,
-        enc_bytes=enc_bytes,
-        style_bytes=style_bytes,
-        emoji_bytes=emoji_bytes,
+        **pt_bytes,
     )
 
 
-def _dispatch(
-    model: Model, cpu: int, memory: int, fetch_only: bool, need_app_ctx: bool
-) -> None:
-    if fetch_only:
-        if _retrieve_and_cleanup():
-            _run_report_local(model)
-        return
-
+def _dispatch(stage: Stage | None, heads_csv: str) -> None:
     require_clean_tree()
     git_sha = subprocess.run(
         ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True
     ).stdout.strip()
     run_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"Training {model.value} on Modal...", flush=True)
+    stage_str = stage.value if stage else ""
+    print(f"Training {stage_str or 'full pipeline'} on Modal...", flush=True)
     try:
-        with modal.enable_output():
-            if need_app_ctx:
-                with modal_app.run():
-                    print(_run_remote(model, cpu, memory, git_sha, run_time))
-            else:
-                print(_run_remote(model, cpu, memory, git_sha, run_time))
+        with modal.enable_output(), modal_app.run():
+            print(_run_remote(stage_str, heads_csv, git_sha, run_time))
     finally:
         landed = _retrieve_and_cleanup()
     if landed:
-        _run_report_local(model)
+        _run_report_local(_DEFAULT_PT)
 
 
 _app = typer.Typer(
@@ -727,33 +801,54 @@ _app = typer.Typer(
 
 @_app.command()
 def cli(
-    model: Model = typer.Argument(..., help="Which stage(s) to train."),
+    stage: Stage | None = typer.Argument(
+        None,
+        metavar="[enc|gan]",
+        help="enc = stage 1 (encoder + heads). gan = stage 2 (color GAN). "
+        "Omit to run both back to back.",
+    ),
     local: bool = typer.Option(
         False, "--local", help="Train on this machine instead of Modal."
     ),
-    cpu: int | None = typer.Option(None, help="Modal CPU count (Modal only)."),
-    memory: int | None = typer.Option(
-        None, help="Modal memory in MiB (Modal only)."),
+    heads: str | None = typer.Option(
+        None,
+        "--heads",
+        help="Comma list from {style,emoji,critic}; only with 'enc'. "
+        "Default: all three.",
+    ),
+    pt: Path = typer.Option(
+        _DEFAULT_PT, "--pt", help="Folder to read warm-start .pt from (default pt/)."
+    ),
+    out: Path = typer.Option(
+        _DEFAULT_PT,
+        "-o",
+        "--output",
+        help="Folder to write .pt to (default pt/). Non-default skips the web export.",
+    ),
 ) -> None:
-    """Train emoji/style/task/gan/all: on Modal by default, or locally with --local."""
+    """Train the emojic model.
 
-    if local and (cpu is not None or memory is not None):
-        raise typer.BadParameter(
-            "--cpu/--memory only apply when dispatching to Modal")
+    Stages
+      (none)   Stage 1 with all heads, then Stage 2, then ONNX export + report.
+      enc      Stage 1 only: TextEncoder + the --heads subset. Writes
+               enc.pt plus one .pt per head. No export.
+      gan      Stage 2 only: frozen encoder + generator, critic warm-started
+               from <--pt>/critic.pt. Requires enc.pt, critic.pt, style.pt,
+               emoji.pt in --pt. Writes gen.pt, then export + report.
 
+    Location
+      Runs on Modal by default; --local runs here. --pt / -o may differ from
+      pt/ only with --local. A dirty git tree always aborts.
+
+    Heads (stage 1 eval / checkpoint monitor)
+      emoji -> MRR/e/val, style -> MRR/s/val, critic -> auc/critic/val;
+      the first present in that order is the checkpoint + early-stop metric.
+    """
+    resolved = _validate(stage, local, heads, pt, out)
     if local:
-        _run_local(model)
+        _run_local(stage, resolved, pt, out)
     else:
-        _dispatch(
-            model, cpu or CPU, memory or MEMORY_MIB, fetch_only=False, need_app_ctx=True
-        )
-
-
-@modal_app.local_entrypoint()
-def main(
-    model: str, cpu: int = CPU, memory: int = MEMORY_MIB, fetch_only: bool = False
-) -> None:
-    _dispatch(Model(model), cpu, memory, fetch_only, need_app_ctx=False)
+        _dispatch(stage, heads or "")
 
 
 if __name__ == "__main__":
