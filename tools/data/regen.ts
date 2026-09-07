@@ -5,7 +5,7 @@ import { normalize } from "./normalize.ts"
 import { stableHash } from "./pool.ts"
 import { STYLE_SET } from "./styles.ts"
 
-const MAX_COUNT = 700
+const MAX_COUNT = 1400
 const MIN_COUNT = 50
 
 const MATRIX_MIN = [50, 100, 150, 200]

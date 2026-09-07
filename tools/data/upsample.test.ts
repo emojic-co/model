@@ -7,6 +7,7 @@ import {
   missedCldrKeywords,
   parseKeywords,
   rankWindow,
+  rareEmojis,
   singleEmojiTexts,
 } from "./upsample.ts"
 
@@ -69,6 +70,20 @@ test("rankWindow returns keys ranked [minRank, maxRank] by count desc, ties brok
   expect(rankWindow(counts, 1, 1)).toEqual(["e"])
   expect(rankWindow(counts, 2, 4)).toEqual(["a", "c", "b"])
   expect(rankWindow(counts, 4, 5)).toEqual(["b", "d"])
+})
+
+test("rareEmojis returns the rarest first, drops emoji below minFreq, ties by first-seen, capped at maxCount", () => {
+  const counts = new Map([
+    ["a", 5],
+    ["b", 100],
+    ["c", 20],
+    ["d", 20],
+    ["e", 3],
+  ])
+  expect(rareEmojis(counts, 10, 10)).toEqual(["c", "d", "b"])
+  expect(rareEmojis(counts, 10, 2)).toEqual(["c", "d"])
+  expect(rareEmojis(counts, 0, 3)).toEqual(["e", "a", "c"])
+  expect(rareEmojis(counts, 200, 10)).toEqual([])
 })
 
 test("singleEmojiTexts keeps rows with a unique normalized text and at most one emoji", () => {

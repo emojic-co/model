@@ -12,10 +12,12 @@ import { appendJsonl, readJsonl } from "./io.ts"
 import { normalize } from "./normalize.ts"
 import { type Miss, type Report, latestReport } from "./report.ts"
 
-const MIN_RANK = 200
-const MAX_RANK = 400
+const MIN_RANK = 600
+const MAX_RANK = 800
+const RARE_MIN_FREQ = 10
+const RARE_MAX_COUNT = 100
 const FAIL_RANK = 5
-const TEXTS_PER_EMOJI = 40
+const TEXTS_PER_EMOJI = 50
 const NEG_COUNT = 1000
 const SINGLE_EMOJI_COUNT = 5000
 const CLDR_PER = 50
@@ -144,6 +146,19 @@ export function rankWindow(
     .map((k, i) => ({ k, i, c: counts.get(k) ?? 0 }))
     .sort((a, b) => b.c - a.c || a.i - b.i)
     .slice(Math.max(0, minRank - 1), maxRank)
+    .map((x) => x.k)
+}
+
+export function rareEmojis(
+  counts: Map<string, number>,
+  minFreq: number,
+  maxCount: number,
+): string[] {
+  return [...counts.keys()]
+    .map((k, i) => ({ k, i, c: counts.get(k) ?? 0 }))
+    .filter((x) => x.c >= minFreq)
+    .sort((a, b) => a.c - b.c || a.i - b.i)
+    .slice(0, Math.max(0, maxCount))
     .map((x) => x.k)
 }
 
@@ -315,15 +330,20 @@ cli
   .option("--emojis <list>", "target exactly these emoji instead of a rank window")
   .option("--min-rank <n>", `lowest (most frequent) rank to target (default ${MIN_RANK})`)
   .option("--max-rank <n>", `highest (least frequent) rank to target (default ${MAX_RANK})`)
+  .option("--rare", "target the rarest emoji in data.jsonl first, by record count (not standalone)")
+  .option("--min-freq <n>", `with --rare, skip emoji with fewer than this many records (default ${RARE_MIN_FREQ})`)
+  .option("--max-count <n>", `with --rare, how many of the rarest emoji to target - a target count, not a freq cap (default ${RARE_MAX_COUNT})`)
+  .option("--iter <n>", "with --rare, repeat the whole select/generate/annotate/append cycle this many times, recomputing the rarest set each pass (default 1)")
   .option("--report", "target emoji failing the latest report's keywords.json keyword probe")
   .option("--cldr", "standalone: generate texts for the latest report's missed CLDR keywords (ignores emoji targeting)")
   .option("--keywords <list>", "standalone: generate texts using each comma-separated keyword, one keyword at a time (ignores emoji targeting)")
   .option("--max-pair-freq <n>", `with --report / --cldr, only upsample keywords whose pair freq is below this (default ${MAX_PAIR_FREQ})`)
-  .option("--per <n>", `texts to generate per target emoji / keyword / batch (default ${TEXTS_PER_EMOJI}, ${CLDR_PER} with --cldr, ${KEYWORDS_PER} with --keywords, ${COLOR_PER} per colour with --colors)`)
+  .option("--per <n>", `texts to generate per target emoji / keyword / batch (default ${TEXTS_PER_EMOJI}, ${CLDR_PER} with --cldr, ${KEYWORDS_PER} with --keywords, ${COLOR_PER} per colour with --colors, ${TEXTS_PER_EMOJI} with --rare)`)
   .option("--negation", "standalone: generate negation-heavy texts (ignores emoji targeting)")
   .option("--single-emoji", "standalone: re-annotate corpus rows that carry at most one emoji (ignores emoji targeting)")
   .option("--colors", `standalone: generate texts related to each of ${COLORS.join(", ")} (ignores emoji targeting)`)
   .option("--count <n>", `cap on texts for --negation (default ${NEG_COUNT}) / --single-emoji (default ${SINGLE_EMOJI_COUNT}) / missed keywords for --cldr (default ${CLDR_KEYWORDS})`)
+  .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
 cli.help()
 
 if (import.meta.main) {
@@ -337,6 +357,15 @@ if (import.meta.main) {
   const singleEmoji = Boolean(options.singleEmoji)
   const cldr = Boolean(options.cldr)
   const colors = Boolean(options.colors)
+  const rare = Boolean(options.rare)
+  const dry = Boolean(options.dry)
+  const minFreq = Number(options.minFreq ?? RARE_MIN_FREQ)
+  const maxCount = Number(options.maxCount ?? RARE_MAX_COUNT)
+  const iterRaw = Number(options.iter ?? 1)
+  const iters =
+    rare && !dry && Number.isFinite(iterRaw) && iterRaw >= 1
+      ? Math.floor(iterRaw)
+      : 1
   const kw = options.keywords != null
   const kwList = kw ? parseKeywords(String(options.keywords)) : []
   const per = Number(
@@ -361,6 +390,44 @@ if (import.meta.main) {
     process.exit(1)
   }
   const standalone = negation || singleEmoji || cldr || colors || kw
+  if (
+    rare
+    && (standalone
+      || options.report
+      || only
+      || options.minRank != null
+      || options.maxRank != null)
+  ) {
+    console.error(
+      "--rare cannot be combined with a standalone mode / --report / --emojis / --min-rank / --max-rank",
+    )
+    process.exit(1)
+  }
+  if (
+    !rare
+    && (options.minFreq != null
+      || options.maxCount != null
+      || options.iter != null)
+  ) {
+    console.warn("--min-freq / --max-count / --iter only apply with --rare")
+  }
+  if (rare && options.iter != null && !(Number.isFinite(iterRaw) && iterRaw >= 1)) {
+    console.error(`--iter must be a number >= 1, got ${JSON.stringify(options.iter)}`)
+    process.exit(1)
+  }
+  if (rare && !(minFreq >= 0)) {
+    console.error(`--min-freq must be >= 0, got ${JSON.stringify(options.minFreq)}`)
+    process.exit(1)
+  }
+  if (rare && !(maxCount >= 1)) {
+    console.error(`--max-count must be >= 1, got ${JSON.stringify(options.maxCount)}`)
+    process.exit(1)
+  }
+  if (dry && rare && options.iter != null && iterRaw > 1) {
+    console.warn(
+      "--dry reports only the first iteration (later passes depend on appended rows)",
+    )
+  }
   const standaloneName = negation
     ? "negation"
     : singleEmoji
@@ -395,306 +462,358 @@ if (import.meta.main) {
     process.exit(1)
   }
 
-  let targets: string[]
-  let negBatches: number[] = []
-  let singleTexts: string[] = []
-  let cldrKws: { keyword: string; targets: string[] }[] = []
-  let colorPlan: { color: string; n: number }[] = []
-  if (singleEmoji) {
-    if (!(count >= 1)) {
-      console.error(`--count must be >= 1, got ${JSON.stringify(options.count)}`)
-      process.exit(1)
+  for (let iterIdx = 0; iterIdx < iters; iterIdx++) {
+    let targets: string[]
+    let negBatches: number[] = []
+    let singleTexts: string[] = []
+    let cldrKws: { keyword: string; targets: string[] }[] = []
+    let colorPlan: { color: string; n: number }[] = []
+    if (singleEmoji) {
+      if (!(count >= 1)) {
+        console.error(`--count must be >= 1, got ${JSON.stringify(options.count)}`)
+        process.exit(1)
+      }
+      const rows = await readJsonl<{ text?: unknown; emojis?: unknown }>(DATA)
+      singleTexts = singleEmojiTexts(rows, count)
+      targets = []
+      console.log(
+        `single-emoji mode -> ${rows.length} master rows -> `
+        + `${singleTexts.length} unique rows (<=1 emoji) to re-annotate `
+        + `(cap ${count})`,
+      )
+      if (!singleTexts.length) {
+        console.error("no rows matched --single-emoji")
+        process.exit(1)
+      }
+    } else if (negation) {
+      if (!(count >= 1)) {
+        console.error(`--count must be >= 1, got ${JSON.stringify(options.count)}`)
+        process.exit(1)
+      }
+      targets = []
+      negBatches = batchSizes(count, per)
+      console.log(
+        `negation mode -> generating ${count} texts in ${negBatches.length} `
+        + `batches of up to ${per}`,
+      )
+    } else if (colors) {
+      targets = []
+      colorPlan = colorBatchPlan(COLORS, per, COLOR_BATCH)
+      console.log(
+        `colors mode -> ${per} texts per colour for ${COLORS.join(", ")} `
+        + `-> ${COLORS.length * per} texts in ${colorPlan.length} batches of up to ${COLOR_BATCH}`,
+      )
+    } else if (cldr) {
+      if (!(count >= 1)) {
+        console.error(`--count must be >= 1, got ${JSON.stringify(options.count)}`)
+        process.exit(1)
+      }
+      const reportPath = await latestReport()
+      const report = JSON.parse(await readFile(reportPath, "utf8")) as Report
+      const misses = report.cldr?.misses
+      if (!misses) throw new Error(`${reportPath}: no cldr.misses`)
+      cldrKws = missedCldrKeywords(misses, maxPairFreq).slice(0, count)
+      targets = []
+      console.log(
+        `${reportPath}: ${misses.length} CLDR miss rows -> `
+        + `${cldrKws.length} missed keywords (pair freq < ${maxPairFreq}, cap ${count}), `
+        + `${per} texts each`,
+      )
+      if (!cldrKws.length) {
+        console.error("no missed CLDR keywords in the latest report")
+        process.exit(1)
+      }
+    } else if (kw) {
+      targets = []
+      if (!kwList.length) {
+        console.error(`--keywords had no usable keyword: ${JSON.stringify(options.keywords)}`)
+        process.exit(1)
+      }
+      console.log(
+        `keywords mode -> ${per} texts each for ${kwList.length} keywords `
+        + `-> ${kwList.join(", ")}`,
+      )
+    } else if (options.report) {
+      const reportPath = await latestReport()
+      const report = JSON.parse(await readFile(reportPath, "utf8")) as Report
+      const keywords = report.emoji?.keywords
+      const misses = keywords?.misses ?? []
+      if (!keywords) throw new Error(`${reportPath}: no emoji.keywords`)
+      targets = failingEmojis(misses, FAIL_RANK, maxPairFreq)
+      console.log(
+        `${reportPath}: ${keywords.n ?? "?"} words probed, ${misses.length} missed `
+        + `-> targeting ${targets.length} failing emoji `
+        + `(target not in top ${FAIL_RANK}, pair freq < ${maxPairFreq}) -> ${targets.join(" ")}`,
+      )
+    } else if (rare) {
+      const rows = await readJsonl<{ emojis?: string }>(DATA)
+      const counts = countEmojis(rows)
+      const eligible = [...counts.values()].filter((c) => c >= minFreq).length
+      targets = rareEmojis(counts, minFreq, maxCount)
+      if (!targets.length) {
+        console.error(`no emoji in data has >= ${minFreq} records to upsample`)
+        process.exit(1)
+      }
+      console.log(
+        `${counts.size} distinct emoji in data -> ${eligible} with >= ${minFreq} `
+        + `records -> targeting ${targets.length} rarest `
+        + `(${counts.get(targets[0])}..${counts.get(targets.at(-1) ?? "")} rows each)`
+        + (iters > 1 ? ` [iter ${iterIdx + 1}/${iters}]` : ""),
+      )
+    } else if (only) {
+      targets = [...new Set(splitEmojis(only))]
+      if (!targets.length) {
+        console.error(`--emojis had no recognizable emoji: ${JSON.stringify(only)}`)
+        process.exit(1)
+      }
+      console.log(`targeting ${targets.length} emoji -> ${targets.join(" ")}`)
+    } else {
+      const rows = await readJsonl<{ emojis?: string }>(DATA)
+      const counts = countEmojis(rows)
+      targets = rankWindow(counts, minRank, maxRank)
+      console.log(
+        `${counts.size} distinct emoji in data -> targeting ${targets.length} ranked `
+        + `${minRank}-${maxRank} (${counts.get(targets[0])}..`
+        + `${counts.get(targets.at(-1) ?? "")} rows each)`,
+      )
     }
-    const rows = await readJsonl<{ text?: unknown; emojis?: unknown }>(DATA)
-    singleTexts = singleEmojiTexts(rows, count)
-    targets = []
-    console.log(
-      `single-emoji mode -> ${rows.length} master rows -> `
-      + `${singleTexts.length} unique rows (<=1 emoji) to re-annotate `
-      + `(cap ${count})`,
-    )
-    if (!singleTexts.length) {
-      console.error("no rows matched --single-emoji")
-      process.exit(1)
-    }
-  } else if (negation) {
-    if (!(count >= 1)) {
-      console.error(`--count must be >= 1, got ${JSON.stringify(options.count)}`)
-      process.exit(1)
-    }
-    targets = []
-    negBatches = batchSizes(count, per)
-    console.log(
-      `negation mode -> generating ${count} texts in ${negBatches.length} `
-      + `batches of up to ${per}`,
-    )
-  } else if (colors) {
-    targets = []
-    colorPlan = colorBatchPlan(COLORS, per, COLOR_BATCH)
-    console.log(
-      `colors mode -> ${per} texts per colour for ${COLORS.join(", ")} `
-      + `-> ${COLORS.length * per} texts in ${colorPlan.length} batches of up to ${COLOR_BATCH}`,
-    )
-  } else if (cldr) {
-    if (!(count >= 1)) {
-      console.error(`--count must be >= 1, got ${JSON.stringify(options.count)}`)
-      process.exit(1)
-    }
-    const reportPath = await latestReport()
-    const report = JSON.parse(await readFile(reportPath, "utf8")) as Report
-    const misses = report.cldr?.misses
-    if (!misses) throw new Error(`${reportPath}: no cldr.misses`)
-    cldrKws = missedCldrKeywords(misses, maxPairFreq).slice(0, count)
-    targets = []
-    console.log(
-      `${reportPath}: ${misses.length} CLDR miss rows -> `
-      + `${cldrKws.length} missed keywords (pair freq < ${maxPairFreq}, cap ${count}), `
-      + `${per} texts each`,
-    )
-    if (!cldrKws.length) {
-      console.error("no missed CLDR keywords in the latest report")
-      process.exit(1)
-    }
-  } else if (kw) {
-    targets = []
-    if (!kwList.length) {
-      console.error(`--keywords had no usable keyword: ${JSON.stringify(options.keywords)}`)
-      process.exit(1)
-    }
-    console.log(
-      `keywords mode -> ${per} texts each for ${kwList.length} keywords `
-      + `-> ${kwList.join(", ")}`,
-    )
-  } else if (options.report) {
-    const reportPath = await latestReport()
-    const report = JSON.parse(await readFile(reportPath, "utf8")) as Report
-    const keywords = report.emoji?.keywords
-    const misses = keywords?.misses ?? []
-    if (!keywords) throw new Error(`${reportPath}: no emoji.keywords`)
-    targets = failingEmojis(misses, FAIL_RANK, maxPairFreq)
-    console.log(
-      `${reportPath}: ${keywords.n ?? "?"} words probed, ${misses.length} missed `
-      + `-> targeting ${targets.length} failing emoji `
-      + `(target not in top ${FAIL_RANK}, pair freq < ${maxPairFreq}) -> ${targets.join(" ")}`,
-    )
-  } else if (only) {
-    targets = [...new Set(splitEmojis(only))]
-    if (!targets.length) {
-      console.error(`--emojis had no recognizable emoji: ${JSON.stringify(only)}`)
-      process.exit(1)
-    }
-    console.log(`targeting ${targets.length} emoji -> ${targets.join(" ")}`)
-  } else {
-    const rows = await readJsonl<{ emojis?: string }>(DATA)
-    const counts = countEmojis(rows)
-    targets = rankWindow(counts, minRank, maxRank)
-    console.log(
-      `${counts.size} distinct emoji in data -> targeting ${targets.length} ranked `
-      + `${minRank}-${maxRank} (${counts.get(targets[0])}..`
-      + `${counts.get(targets.at(-1) ?? "")} rows each)`,
-    )
-  }
 
-  const cands: { text: string; target?: string; color?: string; keyword?: string }[] = []
-  if (singleEmoji) {
-    for (const t of singleTexts) cands.push({ text: t })
-    console.log(`${cands.length} corpus rows selected, annotating`)
-  } else {
-    const genUnit = negation
-      ? "batches"
-      : cldr || kw
-        ? "keywords"
-        : colors
-          ? "batches"
-          : "emojis"
-    const genBar = new cliProgress.SingleBar(
+    const mode = negation
+      ? "negation"
+      : singleEmoji
+        ? "single-emoji"
+        : cldr
+          ? "cldr"
+          : colors
+            ? "colors"
+            : kw
+              ? "keywords"
+              : rare
+                ? "rare"
+                : "emoji-target"
+
+    if (dry) {
+      console.log("\n--- dry run: nothing generated, annotated, or appended ---")
+      console.log(`mode                 : ${mode}`)
+      if (!standalone) {
+        console.log(`targets (${targets.length})`.padEnd(21) + `: ${targets.join(" ")}`)
+        console.log(`would generate       : ~${targets.length * per} texts (${per}/emoji)`)
+      } else if (negation) {
+        console.log(
+          `would generate       : ${count} texts in ${negBatches.length} batches of up to ${per}`,
+        )
+      } else if (singleEmoji) {
+        console.log(`would re-annotate    : ${singleTexts.length} corpus rows`)
+      } else if (cldr) {
+        console.log(
+          `would generate       : ${cldrKws.length} keywords x ${per} = ${cldrKws.length * per} texts`,
+        )
+      } else if (colors) {
+        console.log(
+          `would generate       : ${colorPlan.reduce((s, b) => s + b.n, 0)} texts over ${COLORS.length} colours`,
+        )
+      } else if (kw) {
+        console.log(
+          `would generate       : ${kwList.length} keywords x ${per} = ${kwList.length * per} texts`,
+        )
+      }
+      break
+    }
+
+    const cands: { text: string; target?: string; color?: string; keyword?: string }[] = []
+    if (singleEmoji) {
+      for (const t of singleTexts) cands.push({ text: t })
+      console.log(`${cands.length} corpus rows selected, annotating`)
+    } else {
+      const genUnit = negation
+        ? "batches"
+        : cldr || kw
+          ? "keywords"
+          : colors
+            ? "batches"
+            : "emojis"
+      const genBar = new cliProgress.SingleBar(
+        {
+          format:
+            `generating |{bar}| {percentage}% | {value}/{total} ${genUnit} | ETA: {eta}s`,
+        },
+        cliProgress.Presets.shades_classic,
+      )
+
+      const genQ = new PQueue({ concurrency: GEN_CONCURRENCY })
+      if (negation) {
+        genBar.start(negBatches.length, 0)
+        genQ.addAll(
+          negBatches.map((n) => async () => {
+            try {
+              for (const t of await genNegationBatch(pickVoice(), n)) {
+                cands.push({ text: t })
+              }
+            } catch (err) {
+              console.warn(`\n  gen (negation) failed: ${err}`)
+            }
+            genBar.increment()
+          }),
+        )
+      } else if (cldr) {
+        genBar.start(cldrKws.length, 0)
+        genQ.addAll(
+          cldrKws.map(({ keyword, targets }) => async () => {
+            try {
+              for (const t of await genCldrBatch(pickVoice(), keyword, targets, per)) {
+                cands.push({ text: t })
+              }
+            } catch (err) {
+              console.warn(`\n  gen (${keyword}) failed: ${err}`)
+            }
+            genBar.increment()
+          }),
+        )
+      } else if (kw) {
+        genBar.start(kwList.length, 0)
+        genQ.addAll(
+          kwList.map((keyword) => async () => {
+            try {
+              for (const t of await genKeywordBatch(pickVoice(), keyword, per)) {
+                cands.push({ text: t, keyword })
+              }
+            } catch (err) {
+              console.warn(`\n  gen (${keyword}) failed: ${err}`)
+            }
+            genBar.increment()
+          }),
+        )
+      } else if (colors) {
+        genBar.start(colorPlan.length, 0)
+        genQ.addAll(
+          colorPlan.map(({ color, n }) => async () => {
+            try {
+              for (const t of await genColorBatch(pickVoice(), color, n)) {
+                cands.push({ text: t, color })
+              }
+            } catch (err) {
+              console.warn(`\n  gen (${color}) failed: ${err}`)
+            }
+            genBar.increment()
+          }),
+        )
+      } else {
+        genBar.start(targets.length, 0)
+        genQ.addAll(
+          targets.map((emoji) => async () => {
+            try {
+              for (const t of await genBatch(pickVoice(), emoji, per)) {
+                cands.push({ text: t, target: emoji })
+              }
+            } catch (err) {
+              console.warn(`\n  gen (${emoji}) failed: ${err}`)
+            }
+            genBar.increment()
+          }),
+        )
+      }
+      await genQ.onIdle()
+      genBar.stop()
+
+      console.log(`\n${cands.length} texts generated, annotating`)
+    }
+
+    const annBar = new cliProgress.SingleBar(
       {
         format:
-          `generating |{bar}| {percentage}% | {value}/{total} ${genUnit} | ETA: {eta}s`,
+          "annotating |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
       },
       cliProgress.Presets.shades_classic,
     )
-
-    const genQ = new PQueue({ concurrency: GEN_CONCURRENCY })
-    if (negation) {
-      genBar.start(negBatches.length, 0)
-      genQ.addAll(
-        negBatches.map((n) => async () => {
-          try {
-            for (const t of await genNegationBatch(pickVoice(), n)) {
-              cands.push({ text: t })
-            }
-          } catch (err) {
-            console.warn(`\n  gen (negation) failed: ${err}`)
-          }
-          genBar.increment()
-        }),
-      )
-    } else if (cldr) {
-      genBar.start(cldrKws.length, 0)
-      genQ.addAll(
-        cldrKws.map(({ keyword, targets }) => async () => {
-          try {
-            for (const t of await genCldrBatch(pickVoice(), keyword, targets, per)) {
-              cands.push({ text: t })
-            }
-          } catch (err) {
-            console.warn(`\n  gen (${keyword}) failed: ${err}`)
-          }
-          genBar.increment()
-        }),
-      )
-    } else if (kw) {
-      genBar.start(kwList.length, 0)
-      genQ.addAll(
-        kwList.map((keyword) => async () => {
-          try {
-            for (const t of await genKeywordBatch(pickVoice(), keyword, per)) {
-              cands.push({ text: t, keyword })
-            }
-          } catch (err) {
-            console.warn(`\n  gen (${keyword}) failed: ${err}`)
-          }
-          genBar.increment()
-        }),
-      )
-    } else if (colors) {
-      genBar.start(colorPlan.length, 0)
-      genQ.addAll(
-        colorPlan.map(({ color, n }) => async () => {
-          try {
-            for (const t of await genColorBatch(pickVoice(), color, n)) {
-              cands.push({ text: t, color })
-            }
-          } catch (err) {
-            console.warn(`\n  gen (${color}) failed: ${err}`)
-          }
-          genBar.increment()
-        }),
-      )
-    } else {
-      genBar.start(targets.length, 0)
-      genQ.addAll(
-        targets.map((emoji) => async () => {
-          try {
-            for (const t of await genBatch(pickVoice(), emoji, per)) {
-              cands.push({ text: t, target: emoji })
-            }
-          } catch (err) {
-            console.warn(`\n  gen (${emoji}) failed: ${err}`)
-          }
-          genBar.increment()
-        }),
-      )
-    }
-    await genQ.onIdle()
-    genBar.stop()
-
-    console.log(`\n${cands.length} texts generated, annotating`)
-  }
-
-  const annBar = new cliProgress.SingleBar(
-    {
-      format:
-        "annotating |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
-    },
-    cliProgress.Presets.shades_classic,
-  )
-  annBar.start(annotateBatchCount(cands.length), 0)
-  const labels = await annotate(
-    cands.map((c) => c.text),
-    { colors: true, fillPalette: true, onBatchDone: () => annBar.increment() },
-  )
-  annBar.stop()
-
-  const today = new Date().toISOString().slice(0, 10)
-  const lines: string[] = []
-  let noLabel = 0
-  let noPalette = 0
-  let noEmoji = 0
-  let hitTarget = 0
-  let missTarget = 0
-  for (let i = 0; i < cands.length; i++) {
-    const label = labels.get(i)
-    if (!label) {
-      noLabel++
-      continue
-    }
-    if (!label.bg || !label.fg) {
-      noPalette++
-      continue
-    }
-    if (singleEmoji && !label.emojis.length) {
-      noEmoji++
-      continue
-    }
-    const target = cands[i].target
-    let emojis: string
-    if (target) {
-      if (label.emojis.includes(target)) hitTarget++
-      else missTarget++
-      emojis = [target, ...label.emojis.filter((e) => e !== target)].join(" ")
-    } else {
-      emojis = label.emojis.join(" ")
-    }
-    const meta: Record<string, unknown> = { date: today }
-    if (singleEmoji) meta["single-emoji"] = true
-    if (cldr) meta.src = "cldr"
-    if (colors) meta.src = "colors"
-    if (kw) meta.src = "keywords"
-    const row: Record<string, unknown> = {
-      text: cands[i].text,
-      emojis,
-      styles: label.styles,
-      bg: label.bg,
-      fg: label.fg,
-    }
-    if (negation) row.neg = "true"
-    if (colors) row.color = cands[i].color
-    if (kw) row.keyword = cands[i].keyword
-    row.meta = meta
-    lines.push(JSON.stringify(row))
-  }
-  await appendJsonl(DATA, lines)
-
-  const mode = negation
-    ? "negation"
-    : singleEmoji
-      ? "single-emoji"
-      : cldr
-        ? "cldr"
-        : colors
-          ? "colors"
-          : kw
-            ? "keywords"
-            : "emoji-target"
-  console.log("\n--- summary ---")
-  console.log(`mode                 : ${mode}`)
-  if (!standalone) console.log(`targets              : ${targets.length}`)
-  if (cldr) console.log(`keywords             : ${cldrKws.length}`)
-  if (kw) console.log(`keywords             : ${kwList.length}`)
-  if (colors) {
-    const perColor = new Map<string, number>()
-    for (const l of lines) {
-      const c = (JSON.parse(l) as { color?: string }).color
-      if (c) perColor.set(c, (perColor.get(c) ?? 0) + 1)
-    }
-    console.log(
-      `per colour appended  : `
-      + COLORS.map((c) => `${c} ${perColor.get(c) ?? 0}`).join(", "),
+    annBar.start(annotateBatchCount(cands.length), 0)
+    const labels = await annotate(
+      cands.map((c) => c.text),
+      { colors: true, fillPalette: true, onBatchDone: () => annBar.increment() },
     )
-  }
-  console.log(`${(singleEmoji ? "selected" : "generated").padEnd(21)}: ${cands.length}`)
-  console.log(`appended -> data     : ${lines.length}`)
-  console.log(`dropped no label     : ${noLabel}`)
-  console.log(`filled palette       : ${lastFills.palette}`)
-  console.log(`dropped no palette   : ${noPalette}`)
-  if (singleEmoji) console.log(`dropped no emoji     : ${noEmoji}`)
-  if (!standalone) {
+    annBar.stop()
+
+    const today = new Date().toISOString().slice(0, 10)
+    const lines: string[] = []
+    let noLabel = 0
+    let noPalette = 0
+    let noEmoji = 0
+    let hitTarget = 0
+    let missTarget = 0
+    for (let i = 0; i < cands.length; i++) {
+      const label = labels.get(i)
+      if (!label) {
+        noLabel++
+        continue
+      }
+      if (!label.bg || !label.fg) {
+        noPalette++
+        continue
+      }
+      if (singleEmoji && !label.emojis.length) {
+        noEmoji++
+        continue
+      }
+      const target = cands[i].target
+      let emojis: string
+      if (target) {
+        if (label.emojis.includes(target)) hitTarget++
+        else missTarget++
+        emojis = [target, ...label.emojis.filter((e) => e !== target)].join(" ")
+      } else {
+        emojis = label.emojis.join(" ")
+      }
+      const meta: Record<string, unknown> = { date: today }
+      if (singleEmoji) meta["single-emoji"] = true
+      if (cldr) meta.src = "cldr"
+      if (colors) meta.src = "colors"
+      if (kw) meta.src = "keywords"
+      if (rare) meta.src = "rare"
+      const row: Record<string, unknown> = {
+        text: cands[i].text,
+        emojis,
+        styles: label.styles,
+        bg: label.bg,
+        fg: label.fg,
+      }
+      if (negation) row.neg = "true"
+      if (colors) row.color = cands[i].color
+      if (kw) row.keyword = cands[i].keyword
+      row.meta = meta
+      lines.push(JSON.stringify(row))
+    }
+    await appendJsonl(DATA, lines)
+
+    console.log("\n--- summary ---")
     console.log(
-      `target hit / miss    : ${hitTarget} / ${missTarget} `
-      + `(target injected either way)`,
+      `mode                 : ${mode}`
+      + (iters > 1 ? ` (iter ${iterIdx + 1}/${iters})` : ""),
     )
+    if (!standalone) console.log(`targets              : ${targets.length}`)
+    if (cldr) console.log(`keywords             : ${cldrKws.length}`)
+    if (kw) console.log(`keywords             : ${kwList.length}`)
+    if (colors) {
+      const perColor = new Map<string, number>()
+      for (const l of lines) {
+        const c = (JSON.parse(l) as { color?: string }).color
+        if (c) perColor.set(c, (perColor.get(c) ?? 0) + 1)
+      }
+      console.log(
+        `per colour appended  : `
+        + COLORS.map((c) => `${c} ${perColor.get(c) ?? 0}`).join(", "),
+      )
+    }
+    console.log(`${(singleEmoji ? "selected" : "generated").padEnd(21)}: ${cands.length}`)
+    console.log(`appended -> data     : ${lines.length}`)
+    console.log(`dropped no label     : ${noLabel}`)
+    console.log(`filled palette       : ${lastFills.palette}`)
+    console.log(`dropped no palette   : ${noPalette}`)
+    if (singleEmoji) console.log(`dropped no emoji     : ${noEmoji}`)
+    if (!standalone) {
+      console.log(
+        `target hit / miss    : ${hitTarget} / ${missTarget} `
+        + `(target injected either way)`,
+      )
+    }
   }
   process.exit(0)
 }
