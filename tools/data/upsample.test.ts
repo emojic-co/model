@@ -5,9 +5,20 @@ import {
   countEmojis,
   failingEmojis,
   missedCldrKeywords,
+  parseKeywords,
   rankWindow,
   singleEmojiTexts,
 } from "./upsample.ts"
+
+test("parseKeywords trims, drops empties, and dedupes while preserving order", () => {
+  expect(parseKeywords("rain, snow ,  , sunshine, rain")).toEqual([
+    "rain",
+    "snow",
+    "sunshine",
+  ])
+  expect(parseKeywords("  ,, ")).toEqual([])
+  expect(parseKeywords("dog walk")).toEqual(["dog walk"])
+})
 
 test("colorBatchPlan splits each colour's per-colour total into batches of at most batchSize", () => {
   const plan = colorBatchPlan(["red", "blue"], 100, 40)

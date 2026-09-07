@@ -1,3 +1,15 @@
+Upsample tool:
+    add the option 
+    upsample --keywords <kw1,kw2,...>
+    to upsample the given keywords:
+    Step 1:
+    text generator is asked to generate texts with the given keywords, a single keyword at a time.
+    Step 2:
+    Standard annotation is done
+    Step 3:
+    Save to data.jsonl with {keyword:<kw>}
+
+
 GAN colors analysis:
     It seems that the GAN perform well, the critic has high score during the first training phase and the generator generate low energy distribution.
     Still, when checking manually on the web page, colors are not good. "Dark" "Bright" keywords are completely ignored.
