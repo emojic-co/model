@@ -1,3 +1,11 @@
-regen --matrix
-update this option to only calculate and print values where
-MATRIX_MAX / MATRIX_MIN is between MIN_MAX_RATIO and MAX_MAX_RATIO
+Web APP:
+    after the user typed the text and the model run measure the time it take for the model and show it to the user in the UI.
+    add an ABOUT.md file to the repo and link from the footer.
+    The ABOUT.md file should include:
+        - a short description what the model does.
+        - a short description of the outputs of the model (# of styles, size of vocabulary, etc.)
+        - compare to keyword search
+        - a short description of the data
+        - a short description of the model architecture
+        - a short description of the performance of the model
+        - a short description about the training process (costs/time)
