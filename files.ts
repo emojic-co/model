@@ -17,3 +17,4 @@ export const PRED_JSONL = `${DATA_DIR}/pred.jsonl`
 export const WEB_PUBLIC_DIR = "web/public"
 export const REPORT_DIR = "report"
 export const RUNS_DIR = "runs"
+export const PREVIEW_DIR = "preview"

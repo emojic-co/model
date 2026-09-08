@@ -9,6 +9,7 @@ export const MODEL = "openai/gpt-5.6-luna"
 
 export const ANNOTATE_BATCH_SIZE = Number(process.env.ANNOTATE_BATCH_SIZE) || 10
 export const ANNOTATE_CONCURRENCY = Number(process.env.ANNOTATE_CONCURRENCY) || 25
+export const PALETTE_CONCURRENCY = Number(process.env.PALETTE_CONCURRENCY) || 100
 export const ANNOTATE_ATTEMPTS = Number(process.env.ANNOTATE_ATTEMPTS) || 1
 
 export const MIN_CONTRAST = 3
@@ -21,6 +22,8 @@ export type Label = {
   bg?: [string, string]
   fg?: string
 }
+
+export type PaletteResult = { bg: [string, string]; fg: string }
 
 export type AnnotateOpts = {
   colors?: boolean
@@ -97,6 +100,12 @@ const Annotation = z.object({
   fg: z.string().optional(),
 })
 
+const PaletteAnnotation = z.object({
+  id: z.number(),
+  bg: z.array(z.string()),
+  fg: z.string(),
+})
+
 const STYLE_BLOCK = STYLES.map((s) => `   ${s} - ${STYLE_LINES[s]}`).join("\n")
 
 const EMOJI_RULES = [
@@ -117,16 +126,53 @@ const STYLE_RULES = [
   STYLE_BLOCK,
 ]
 
+export const PALETTE_GUIDANCE = [
+  "Use the full range: commit to saturated, vivid hues when the imagery or",
+  "feeling is vivid, and reach for muted or near-grey only when the message",
+  "is itself flat or understated - do not default to pastels. Use lightness",
+  "to express the text: dark, low-key gradients for night, weight, grief,",
+  "secrecy, or intensity; bright, high-key gradients for air, sun, ease, or",
+  "play; keep mid-light for genuinely neutral messages.",
+]
+
 const COLOR_RULES = [
   "3. bg, fg - a 3-color palette that captures the mood and imagery of the",
   "   message. When the message names or plainly evokes a specific color,",
   "   let that color lead the gradient; otherwise follow the mood and",
-  '   imagery. "bg" is two colors [top, bottom] for a background gradient;',
-  '   they must sit close enough to read as one gradient, not a clash. "fg"',
-  "   is one color for text over that gradient and must stay clearly",
-  "   readable against both bg stops (strong contrast). All three are",
-  "   lowercase #rrggbb hex.",
+  "   imagery.",
+  ...PALETTE_GUIDANCE.map((l) => `   ${l}`),
+  '   "bg" is two colors [top, bottom] for a background gradient; they must',
+  '   sit close enough to read as one gradient, not a clash. "fg" is one',
+  "   color for text over that gradient and must stay clearly readable",
+  "   against both bg stops (strong contrast). All three are lowercase",
+  "   #rrggbb hex.",
 ]
+
+const PALETTE_ONLY_RULES = [
+  "For each message below return bg, fg - a 3-color palette that captures the",
+  "mood and imagery of the message. When the message names or plainly evokes",
+  "a specific color, let that color lead the gradient; otherwise follow the",
+  "mood and imagery.",
+  ...PALETTE_GUIDANCE,
+  '"bg" is two colors [top, bottom] for a background gradient; they must sit',
+  'close enough to read as one gradient, not a clash. "fg" is one color for',
+  "text over that gradient and must stay clearly readable against both bg",
+  "stops (strong contrast). All three are lowercase #rrggbb hex.",
+]
+
+export function paletteInstructions(): string {
+  return [
+    "You are a colour annotator. For each message below return only a",
+    "background gradient and a readable text colour.",
+    "",
+    ...PALETTE_ONLY_RULES,
+    "",
+    "Return exactly one object per input message, echoing its id.",
+    "Do not add, drop, reorder, or merge items.",
+    'Format: {"annotations": [{"id": 0, "bg": ["#c9d8e5", "#9fb4c8"],'
+    + ' "fg": "#172b3a"}]}',
+  ].join("\n")
+}
 
 function instructions(colors: boolean): string {
   const parts = [
@@ -229,6 +275,67 @@ export function resolvePalette(
   if (palette) return { palette, filled: false }
   if (!fill) return { palette: null, filled: false }
   return { palette: randomFallbackPalette(), filled: true }
+}
+
+function hexToRgb(hex: string): [number, number, number] {
+  const n = parseInt(hex.slice(1), 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+  const h = (v: number) =>
+    Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")
+  return `#${h(r)}${h(g)}${h(b)}`
+}
+
+function fgReadable(bg: [string, string], fg: string): boolean {
+  return (
+    contrast(fg, bg[0]) >= MIN_CONTRAST && contrast(fg, bg[1]) >= MIN_CONTRAST
+  )
+}
+
+export function repairFg(bg: [string, string], fg: string): string | null {
+  if (fgReadable(bg, fg)) return fg
+  const [r, g, b] = hexToRgb(fg)
+  const bgLum = (luminance(bg[0]) + luminance(bg[1])) / 2
+  const dirs = bgLum > 0.4 ? [0, 255] : [255, 0]
+  for (const toward of dirs) {
+    for (let t = 0.1; t <= 1.0001; t += 0.1) {
+      const cand = rgbToHex(
+        r + (toward - r) * t,
+        g + (toward - g) * t,
+        b + (toward - b) * t,
+      )
+      if (fgReadable(bg, cand)) return cand
+    }
+  }
+  return null
+}
+
+export type PaletteResolve =
+  | { ok: true; bg: [string, string]; fg: string; repaired: boolean }
+  | { ok: false; reason: "badHex" | "unfixable" }
+
+export function resolvePaletteRepairing(
+  bg: unknown,
+  fg: unknown,
+): PaletteResolve {
+  if (!Array.isArray(bg) || bg.length < 2) return { ok: false, reason: "badHex" }
+  const bg0 = cleanHex(typeof bg[0] === "string" ? bg[0] : "")
+  const bg1 = cleanHex(typeof bg[1] === "string" ? bg[1] : "")
+  const fgHex = cleanHex(typeof fg === "string" ? fg : "")
+  if (!bg0 || !bg1 || !fgHex) return { ok: false, reason: "badHex" }
+  const fixed = repairFg([bg0, bg1], fgHex)
+  if (!fixed) return { ok: false, reason: "unfixable" }
+  return { ok: true, bg: [bg0, bg1], fg: fixed, repaired: fixed !== fgHex }
+}
+
+export const lastPaletteFix = { repaired: 0, badHex: 0, unfixable: 0 }
+
+function resetPaletteFix(): void {
+  lastPaletteFix.repaired = 0
+  lastPaletteFix.badHex = 0
+  lastPaletteFix.unfixable = 0
 }
 
 function cleanLabel(
@@ -359,4 +466,104 @@ export async function annotate(
 
 export function annotateBatchCount(n: number): number {
   return Math.ceil(n / ANNOTATE_BATCH_SIZE)
+}
+
+async function annotatePaletteBatch(
+  batch: { id: number; text: string }[],
+  usage: Usage,
+  drops: Drops,
+): Promise<Map<number, PaletteResult>> {
+  const ids = new Set(batch.map((b) => b.id))
+  const byId = new Map<number, PaletteResult>()
+  const reason = new Map<number, DropReason>()
+  let threw = false
+
+  for (
+    let attempt = 0;
+    attempt < ANNOTATE_ATTEMPTS && byId.size < ids.size;
+    attempt++
+  ) {
+    try {
+      const res = await generateText({
+        model: MODEL,
+        output: Output.object({
+          schema: z.object({ annotations: z.array(PaletteAnnotation) }),
+        }),
+        prompt: [
+          paletteInstructions(),
+          "",
+          "Messages:",
+          JSON.stringify(batch),
+        ].join("\n"),
+      })
+      addUsage(usage, res.usage)
+      threw = false
+      for (const a of res.output.annotations) {
+        if (!ids.has(a.id) || byId.has(a.id)) continue
+        const r = resolvePaletteRepairing(a.bg, a.fg)
+        if (!r.ok) {
+          reason.set(a.id, "noPalette")
+          if (r.reason === "badHex") lastPaletteFix.badHex++
+          else lastPaletteFix.unfixable++
+          if (process.env.ANNOTATE_DEBUG)
+            console.warn(
+              `\n  #${a.id} noPalette (${r.reason}): bg=${JSON.stringify(a.bg)}`
+              + ` fg=${JSON.stringify(a.fg)}`,
+            )
+        } else {
+          if (r.repaired) lastPaletteFix.repaired++
+          byId.set(a.id, { bg: r.bg, fg: r.fg })
+          reason.delete(a.id)
+        }
+      }
+    } catch (err) {
+      threw = true
+      if (attempt === ANNOTATE_ATTEMPTS - 1) {
+        console.warn(`\n  palette batch of ${batch.length} failed: ${err}`)
+      }
+    }
+  }
+
+  for (const b of batch) {
+    if (byId.has(b.id)) continue
+    const r = reason.get(b.id)
+    if (r) drops[r]++
+    else if (threw) drops.batch++
+    else drops.missingId++
+    console.warn(`\n  dropped id ${b.id}: ${r ?? (threw ? "batch" : "missingId")}`)
+  }
+  return byId
+}
+
+export async function annotateColors(
+  texts: string[],
+  opts: { onBatchDone?: () => void } = {},
+): Promise<Map<number, PaletteResult>> {
+  const items = texts.map((text, id) => ({ id, text }))
+  const result = new Map<number, PaletteResult>()
+  const queue = new PQueue({ concurrency: PALETTE_CONCURRENCY })
+
+  lastUsage.calls = 0
+  lastUsage.input = 0
+  lastUsage.output = 0
+  lastUsage.total = 0
+  resetDrops(lastDrops)
+  resetPaletteFix()
+
+  queue.addAll(
+    chunk(items, ANNOTATE_BATCH_SIZE).map((batch) => async () => {
+      const got = await annotatePaletteBatch(batch, lastUsage, lastDrops)
+      for (const [id, p] of got) result.set(id, p)
+      opts.onBatchDone?.()
+    }),
+  )
+  await queue.onIdle()
+
+  console.log(`\n${formatUsage(lastUsage)}`)
+  console.log(formatDrops(lastDrops))
+  console.log(
+    `palette: repaired ${lastPaletteFix.repaired} · bad hex `
+    + `${lastPaletteFix.badHex} · unfixable ${lastPaletteFix.unfixable}`,
+  )
+  return result
 }

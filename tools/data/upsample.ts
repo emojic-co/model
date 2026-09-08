@@ -1,5 +1,5 @@
 import { readdirSync } from "node:fs"
-import { readFile } from "node:fs/promises"
+import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 
 import { generateText } from "ai"
@@ -7,11 +7,21 @@ import { cac } from "cac"
 import cliProgress from "cli-progress"
 import PQueue from "p-queue"
 
-import { DATA_JSONL as DATA, REPORT_DIR } from "../../files.ts"
-import { MODEL, annotate, annotateBatchCount, lastFills } from "./annotate.ts"
+import { DATA_JSONL as DATA, PREVIEW_DIR, REPORT_DIR } from "../../files.ts"
+import type { Label, PaletteResult } from "./annotate.ts"
+import {
+  MODEL,
+  annotate,
+  annotateBatchCount,
+  annotateColors,
+  lastFills,
+  lastPaletteFix,
+} from "./annotate.ts"
+import { SEED } from "./config"
 import { splitEmojis } from "./emoji.ts"
 import { appendJsonl, readJsonl } from "./io.ts"
 import { normalize } from "./normalize.ts"
+import { chroma, meanBgOklab } from "./oklab.ts"
 
 const MIN_RANK = 600
 const MAX_RANK = 800
@@ -24,6 +34,7 @@ const SINGLE_EMOJI_COUNT = 5000
 const KEYWORDS_PER = 50
 const COLOR_PER = 1000
 const COLOR_BATCH = 50
+const REANNOT_COUNT = 300
 const MIN_LEN = 4
 const MAX_LEN = 42
 const GEN_CONCURRENCY = 20
@@ -87,6 +98,74 @@ export function singleEmojiTexts(
     out.push(row.text)
   }
   return out
+}
+
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0
+  return () => {
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+function seededShuffle<T>(arr: T[], seed: number): T[] {
+  const rand = mulberry32(seed)
+  const out = [...arr]
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1))
+      ;[out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
+}
+
+export type ReannotRow = {
+  text: string
+  emojis: string
+  styles: string[]
+  bg: string[]
+  fg: string
+}
+
+export function reannotateTexts(
+  rows: {
+    text?: unknown
+    emojis?: unknown
+    styles?: unknown
+    bg?: unknown
+    fg?: unknown
+    reannotated?: unknown
+  }[],
+  count: number,
+  seed = SEED,
+): ReannotRow[] {
+  const done = new Set<string>()
+  for (const row of rows) {
+    if (row.reannotated === "colors" && typeof row.text === "string") {
+      const k = normalize(row.text)
+      if (k) done.add(k)
+    }
+  }
+  const seen = new Set<string>()
+  const pool: ReannotRow[] = []
+  for (const row of rows) {
+    if (typeof row.text !== "string") continue
+    const key = normalize(row.text)
+    if (!key || done.has(key) || seen.has(key)) continue
+    const { bg, fg, emojis, styles } = row
+    if (!Array.isArray(bg) || bg.length < 2 || typeof fg !== "string") continue
+    if (typeof emojis !== "string" || !Array.isArray(styles)) continue
+    seen.add(key)
+    pool.push({
+      text: row.text,
+      emojis,
+      styles: styles.filter((s): s is string => typeof s === "string"),
+      bg: (bg as unknown[]).slice(0, 2).map(String),
+      fg,
+    })
+  }
+  return seededShuffle(pool, seed).slice(0, Math.max(0, count))
 }
 
 export function parseKeywords(s: string): string[] {
@@ -334,7 +413,8 @@ cli
   .option("--short", "standalone: generate short texts capped at the last report's median length (ignores emoji targeting)")
   .option("--single-emoji", "standalone: re-annotate corpus rows that carry at most one emoji (ignores emoji targeting)")
   .option("--colors", `standalone: generate texts related to each of ${COLORS.join(", ")} (ignores emoji targeting)`)
-  .option("--count <n>", `cap on texts for --negation (default ${NEG_COUNT}) / --short (default ${SHORT_COUNT}) / --single-emoji (default ${SINGLE_EMOJI_COUNT})`)
+  .option("--reannotate <what>", `standalone: re-annotate the palette of a seeded random sample of data.jsonl rows (value: colors); appends {reannotated: "colors"} rows`)
+  .option("--count <n>", `cap on texts for --negation (default ${NEG_COUNT}) / --short (default ${SHORT_COUNT}) / --single-emoji (default ${SINGLE_EMOJI_COUNT}) / --reannotate (default ${REANNOT_COUNT})`)
   .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
 cli.help()
 
@@ -348,6 +428,8 @@ if (import.meta.main) {
   const short = Boolean(options.short)
   const singleEmoji = Boolean(options.singleEmoji)
   const colors = Boolean(options.colors)
+  const reannot = options.reannotate != null
+  const reannotWhat = reannot ? String(options.reannotate).trim() : ""
   const rare = Boolean(options.rare)
   const dry = Boolean(options.dry)
   const minFreq = Number(options.minFreq ?? RARE_MIN_FREQ)
@@ -365,16 +447,26 @@ if (import.meta.main) {
   )
   const count = Number(
     options.count
-    ?? (singleEmoji ? SINGLE_EMOJI_COUNT : short ? SHORT_COUNT : NEG_COUNT),
+    ?? (reannot
+      ? REANNOT_COUNT
+      : singleEmoji
+        ? SINGLE_EMOJI_COUNT
+        : short
+          ? SHORT_COUNT
+          : NEG_COUNT),
   )
 
-  if ([negation, short, singleEmoji, colors, kw].filter(Boolean).length > 1) {
+  if (reannot && reannotWhat !== "colors") {
+    console.error(`--reannotate only supports "colors", got ${JSON.stringify(options.reannotate)}`)
+    process.exit(1)
+  }
+  if ([negation, short, singleEmoji, colors, kw, reannot].filter(Boolean).length > 1) {
     console.error(
-      "--negation, --short, --single-emoji, --colors and --keywords are mutually exclusive",
+      "--negation, --short, --single-emoji, --colors, --keywords and --reannotate are mutually exclusive",
     )
     process.exit(1)
   }
-  const standalone = negation || short || singleEmoji || colors || kw
+  const standalone = negation || short || singleEmoji || colors || kw || reannot
   if (
     rare
     && (standalone || only || options.minRank != null || options.maxRank != null)
@@ -417,7 +509,9 @@ if (import.meta.main) {
         ? "single-emoji"
         : colors
           ? "colors"
-          : "keywords"
+          : reannot
+            ? "reannotate"
+            : "keywords"
   if (standalone && (only || options.minRank != null || options.maxRank != null)) {
     console.warn(
       `--${standaloneName} ignores --emojis / --min-rank / --max-rank`,
@@ -427,7 +521,13 @@ if (import.meta.main) {
     console.warn("--single-emoji ignores --per")
   }
   if ((!standalone || colors || kw) && options.count != null) {
-    console.warn("--count only applies with --negation / --short / --single-emoji")
+    console.warn(
+      "--count only applies with --negation / --short / --single-emoji / --reannotate",
+    )
+  }
+  if (reannot && !(count >= 1)) {
+    console.error(`--count must be >= 1, got ${JSON.stringify(options.count)}`)
+    process.exit(1)
   }
   if (!(per >= 1)) {
     console.error(`--per must be >= 1, got ${JSON.stringify(options.per)}`)
@@ -440,8 +540,28 @@ if (import.meta.main) {
     let shortBatches: number[] = []
     let shortMedianLen = 0
     let singleTexts: string[] = []
+    let reannotRows: ReannotRow[] = []
     let colorPlan: { color: string; n: number }[] = []
-    if (singleEmoji) {
+    if (reannot) {
+      const rows = await readJsonl<Record<string, unknown>>(DATA)
+      const done = new Set(
+        rows
+          .filter((r) => r.reannotated === "colors" && typeof r.text === "string")
+          .map((r) => normalize(r.text as string))
+          .filter(Boolean),
+      )
+      reannotRows = reannotateTexts(rows, count)
+      targets = []
+      console.log(
+        `reannotate mode -> ${rows.length} master rows -> `
+        + `${reannotRows.length} rows selected (seeded sample, cap ${count}; `
+        + `${done.size} already re-annotated, skipped)`,
+      )
+      if (!reannotRows.length) {
+        console.error("no rows available to re-annotate")
+        process.exit(1)
+      }
+    } else if (singleEmoji) {
       if (!(count >= 1)) {
         console.error(`--count must be >= 1, got ${JSON.stringify(options.count)}`)
         process.exit(1)
@@ -539,11 +659,13 @@ if (import.meta.main) {
           ? "single-emoji"
           : colors
             ? "colors"
-            : kw
-              ? "keywords"
-              : rare
-                ? "rare"
-                : "emoji-target"
+            : reannot
+              ? "reannotate"
+              : kw
+                ? "keywords"
+                : rare
+                  ? "rare"
+                  : "emoji-target"
 
     if (dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
@@ -564,6 +686,10 @@ if (import.meta.main) {
         )
       } else if (singleEmoji) {
         console.log(`would re-annotate    : ${singleTexts.length} corpus rows`)
+      } else if (reannot) {
+        console.log(
+          `would re-annotate    : ${reannotRows.length} corpus rows (palette only, seeded sample)`,
+        )
       } else if (colors) {
         console.log(
           `would generate       : ${colorPlan.reduce((s, b) => s + b.n, 0)} texts over ${COLORS.length} colours`,
@@ -576,8 +702,17 @@ if (import.meta.main) {
       break
     }
 
-    const cands: { text: string; target?: string; color?: string; keyword?: string }[] = []
-    if (singleEmoji) {
+    const cands: {
+      text: string
+      target?: string
+      color?: string
+      keyword?: string
+      orig?: ReannotRow
+    }[] = []
+    if (reannot) {
+      for (const r of reannotRows) cands.push({ text: r.text, orig: r })
+      console.log(`${cands.length} corpus rows selected, re-annotating palettes`)
+    } else if (singleEmoji) {
       for (const t of singleTexts) cands.push({ text: t })
       console.log(`${cands.length} corpus rows selected, annotating`)
     } else {
@@ -680,20 +815,67 @@ if (import.meta.main) {
       cliProgress.Presets.shades_classic,
     )
     annBar.start(annotateBatchCount(cands.length), 0)
-    const labels = await annotate(
-      cands.map((c) => c.text),
-      { colors: true, fillPalette: true, onBatchDone: () => annBar.increment() },
-    )
+    const labels = new Map<number, Label>()
+    const paletteLabels = new Map<number, PaletteResult>()
+    if (reannot) {
+      for (const [i, p] of await annotateColors(cands.map((c) => c.text), {
+        onBatchDone: () => annBar.increment(),
+      })) {
+        paletteLabels.set(i, p)
+      }
+    } else {
+      for (const [i, l] of await annotate(cands.map((c) => c.text), {
+        colors: true,
+        fillPalette: true,
+        onBatchDone: () => annBar.increment(),
+      })) {
+        labels.set(i, l)
+      }
+    }
     annBar.stop()
 
     const today = new Date().toISOString().slice(0, 10)
     const lines: string[] = []
+    const pairs: {
+      text: string
+      oldBg: string[]
+      oldFg: string
+      newBg: string[]
+      newFg: string
+    }[] = []
     let noLabel = 0
     let noPalette = 0
     let noEmoji = 0
     let hitTarget = 0
     let missTarget = 0
     for (let i = 0; i < cands.length; i++) {
+      if (reannot) {
+        const p = paletteLabels.get(i)
+        if (!p) {
+          noLabel++
+          continue
+        }
+        const o = cands[i].orig!
+        pairs.push({
+          text: o.text,
+          oldBg: o.bg,
+          oldFg: o.fg,
+          newBg: [p.bg[0], p.bg[1]],
+          newFg: p.fg,
+        })
+        lines.push(
+          JSON.stringify({
+            text: cands[i].text,
+            emojis: o.emojis,
+            styles: o.styles,
+            bg: p.bg,
+            fg: p.fg,
+            reannotated: "colors",
+            meta: { date: today, src: "reannotate" },
+          }),
+        )
+        continue
+      }
       const label = labels.get(i)
       if (!label) {
         noLabel++
@@ -737,6 +919,51 @@ if (import.meta.main) {
     }
     await appendJsonl(DATA, lines)
 
+    if (reannot && pairs.length) {
+      const stamp = new Date()
+        .toISOString()
+        .replace(/[-:T]/g, "")
+        .slice(0, 12)
+      await mkdir(PREVIEW_DIR, { recursive: true })
+      const dest = join(PREVIEW_DIR, `reannotate-${stamp}.jsonl`)
+      await writeFile(
+        dest,
+        pairs
+          .map((p) =>
+            JSON.stringify({
+              text: p.text,
+              old_bg: p.oldBg,
+              old_fg: p.oldFg,
+              new_bg: p.newBg,
+              new_fg: p.newFg,
+            }),
+          )
+          .join("\n") + "\n",
+      )
+      const oL = pairs.map((p) => meanBgOklab(p.oldBg)[0])
+      const nL = pairs.map((p) => meanBgOklab(p.newBg)[0])
+      const oC = pairs.map((p) => chroma(meanBgOklab(p.oldBg)))
+      const nC = pairs.map((p) => chroma(meanBgOklab(p.newBg)))
+      const med = (xs: number[]) =>
+        [...xs].sort((a, b) => a - b)[xs.length >> 1]
+      const band = (xs: number[]) =>
+        `${xs.filter((v) => v < 0.35).length} / `
+        + `${xs.filter((v) => v >= 0.35 && v <= 0.65).length} / `
+        + `${xs.filter((v) => v > 0.65).length}`
+      const darker = oL.filter((v, i) => nL[i] - v < -0.02).length
+      const lighter = oL.filter((v, i) => nL[i] - v > 0.02).length
+      const moreSat = oC.filter((v, i) => nC[i] - v > 0.01).length
+      console.log("\n--- palette shift (mean bg, OKLab) ---")
+      console.log(`median L      : ${med(oL).toFixed(3)} -> ${med(nL).toFixed(3)}`)
+      console.log(`median chroma : ${med(oC).toFixed(3)} -> ${med(nC).toFixed(3)}`)
+      console.log(`L <0.35 / mid / >0.65 : ${band(oL)}  ->  ${band(nL)}`)
+      console.log(
+        `darker / lighter / ~same : ${darker} / ${lighter} / ${pairs.length - darker - lighter}`,
+      )
+      console.log(`more saturated : ${moreSat} / ${pairs.length}`)
+      console.log(`pairs written  : ${dest}`)
+    }
+
     console.log("\n--- summary ---")
     console.log(
       `mode                 : ${mode}`
@@ -755,11 +982,22 @@ if (import.meta.main) {
         + COLORS.map((c) => `${c} ${perColor.get(c) ?? 0}`).join(", "),
       )
     }
-    console.log(`${(singleEmoji ? "selected" : "generated").padEnd(21)}: ${cands.length}`)
+    console.log(
+      `${(singleEmoji || reannot ? "selected" : "generated").padEnd(21)}: ${cands.length}`,
+    )
     console.log(`appended -> data     : ${lines.length}`)
-    console.log(`dropped no label     : ${noLabel}`)
-    console.log(`filled palette       : ${lastFills.palette}`)
-    console.log(`dropped no palette   : ${noPalette}`)
+    console.log(
+      `dropped no ${reannot ? "palette   " : "label     "}: ${noLabel}`,
+    )
+    if (reannot) {
+      console.log(
+        `fg repaired          : ${lastPaletteFix.repaired}`
+        + ` (bad hex ${lastPaletteFix.badHex}, unfixable ${lastPaletteFix.unfixable})`,
+      )
+    } else {
+      console.log(`filled palette       : ${lastFills.palette}`)
+      console.log(`dropped no palette   : ${noPalette}`)
+    }
     if (singleEmoji) console.log(`dropped no emoji     : ${noEmoji}`)
     if (!standalone) {
       console.log(

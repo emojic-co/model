@@ -26,6 +26,11 @@ function initialEmojiSource() {
   }
 }
 
+function formatMs(ms) {
+  if (ms == null) return '—'
+  return ms < 10 ? `${ms.toFixed(1)} ms` : `${Math.round(ms)} ms`
+}
+
 function formatDate(iso) {
   if (!iso) return '—'
   const d = new Date(iso)
@@ -222,6 +227,9 @@ export function App() {
             <p className={'warn' + (text.trim() && tooShort ? '' : ' is-hidden')}>
               text is too short — showing a default card
             </p>
+            <span className={'timing' + (scores ? '' : ' is-hidden')}>
+              model ran in {formatMs(scores?.ms)}
+            </span>
             <div className={'counter' + (maxLen && text.length >= maxLen ? ' full' : '')}>
               {text.length}
               <span>/{maxLen}</span>
@@ -262,6 +270,15 @@ export function App() {
               model updated <span>{formatDate(meta?.exported_at)}</span>
             </span>
             <span>made with ❤️ by Gilad</span>
+            <span>
+              <a
+                href="https://github.com/emojic-co/model/blob/main/ABOUT.md"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                about this model
+              </a>
+            </span>
             <span className="gh">
               <GitHubButton
                 href="https://github.com/emojic-co/model"

@@ -43,11 +43,14 @@ export function useOnnx() {
     const m = metaRef.current
     const ids = encode(text, m, char2idxRef.current)
     const tensor = new ort.Tensor('int64', ids, [1, m.max_text_len])
+    const t0 = performance.now()
     const out = await sessionRef.current.run({ input: tensor })
+    const ms = performance.now() - t0
     return {
       feeling: sigmoid(out.style_logits.data),
       emoji: sigmoid(out.emoji_logits.data),
       palettes: decodeColorList(out.color.data),
+      ms,
     }
   }, [])
 

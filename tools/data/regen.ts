@@ -2,12 +2,11 @@ import { cac } from "cac"
 
 import { splitEmojis } from "./emoji.ts"
 import { normalize } from "./normalize.ts"
-import { stableHash } from "./pool.ts"
 import { STYLE_SET } from "./styles.ts"
 
-const MAX_COUNT = 600
-const MIN_COUNT = 50
-const EVAL_SIZE = 2500
+const MIN_COUNT = 75
+const MAX_COUNT = 750
+const EVAL_SIZE = 2000
 
 const MIN_MAX_RATIO = 10
 const MAX_MAX_RATIO = 20
@@ -30,7 +29,7 @@ type Acc = {
   text: string
   emojis: Set<string>
   styles: Set<string>
-  palettes: Palette[]
+  palette: Palette | undefined
   extra: Record<string, unknown>
 }
 
@@ -40,15 +39,6 @@ function rowPalette(row: Record<string, unknown>): Palette | undefined {
     return { bg: (bg as string[]).slice(0, 2), fg }
   }
   return undefined
-}
-
-export function pickPalette(
-  key: string,
-  palettes: Palette[],
-): Palette | undefined {
-  if (!palettes.length) return undefined
-  const r = ((stableHash(key) * 1664525 + 1013904223) >>> 0) / 2 ** 32
-  return palettes[Math.floor(r * palettes.length)]
 }
 
 export function collapse(rows: unknown[]): Row[] {
@@ -64,7 +54,7 @@ export function collapse(rows: unknown[]): Row[] {
         text,
         emojis: new Set(),
         styles: new Set(),
-        palettes: [],
+        palette: undefined,
         extra: {},
       }
       acc.set(key, a)
@@ -78,7 +68,7 @@ export function collapse(rows: unknown[]): Row[] {
       }
     }
     const p = rowPalette(row)
-    if (p) a.palettes.push(p)
+    if (p) a.palette = p
     for (const [k, v] of Object.entries(row)) {
       if (BASE_FIELDS.has(k) || v === undefined || k in a.extra) continue
       a.extra[k] = v
@@ -86,16 +76,15 @@ export function collapse(rows: unknown[]): Row[] {
   }
 
   const out: Row[] = []
-  for (const [key, a] of acc) {
+  for (const [, a] of acc) {
     const rec: Row = {
       text: a.text,
       emojis: [...a.emojis].join(" "),
       styles: [...a.styles],
     }
-    const p = pickPalette(key, a.palettes)
-    if (p) {
-      rec.bg = p.bg
-      rec.fg = p.fg
+    if (a.palette) {
+      rec.bg = a.palette.bg
+      rec.fg = a.palette.fg
     }
     if (Object.keys(a.extra).length) rec.extra = a.extra
     out.push(rec)

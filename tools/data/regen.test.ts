@@ -4,13 +4,12 @@ import {
   collapse,
   emojiVocab,
   greedyCap,
-  pickPalette,
   toLine,
 } from "./regen.ts"
 
 const P = (a: string, b: string, f: string) => ({ bg: [a, b], fg: f })
 
-test("collapse unions emojis and styles across rows with the same normalized text", () => {
+test("collapse unions emojis and styles across rows with the same normalized text, last palette wins", () => {
   const out = collapse([
     { text: "Bus is late", emojis: "🚌", styles: ["Irritated"], ...P("#111111", "#222222", "#eeeeee") },
     { text: "  bus   is late  ", emojis: "😤 🚌", styles: ["Tense", "Irritated"], ...P("#333333", "#444444", "#dddddd") },
@@ -18,8 +17,29 @@ test("collapse unions emojis and styles across rows with the same normalized tex
   expect(out).toHaveLength(1)
   expect(out[0].emojis.split(" ").sort()).toEqual(["😤", "🚌"].sort())
   expect(out[0].styles.sort()).toEqual(["Irritated", "Tense"])
-  expect(out[0].bg).toHaveLength(2)
-  expect(typeof out[0].fg).toBe("string")
+  expect(out[0].bg).toEqual(["#333333", "#444444"])
+  expect(out[0].fg).toBe("#dddddd")
+})
+
+test("collapse keeps an earlier palette when a later row for the same key has none", () => {
+  const out = collapse([
+    { text: "quiet lake", emojis: "🏞️", styles: ["Wistful"], ...P("#111111", "#222222", "#eeeeee") },
+    { text: "quiet  lake", emojis: "", styles: ["Deadpan"] },
+  ])
+  expect(out).toHaveLength(1)
+  expect(out[0].bg).toEqual(["#111111", "#222222"])
+  expect(out[0].fg).toBe("#eeeeee")
+})
+
+test("collapse takes the re-annotated palette appended after the original", () => {
+  const out = collapse([
+    { text: "sun on the water", emojis: "☀️", styles: ["Serene"], ...P("#eef2f6", "#dbe3ec", "#26323f") },
+    { text: "sun on the water", emojis: "☀️", styles: ["Serene"], ...P("#1b3a5c", "#0d2036", "#e8eef6"), reannotated: "colors" },
+  ])
+  expect(out).toHaveLength(1)
+  expect(out[0].bg).toEqual(["#1b3a5c", "#0d2036"])
+  expect(out[0].fg).toBe("#e8eef6")
+  expect(out[0].extra).toEqual({ reannotated: "colors" })
 })
 
 test("collapse drops rows that normalize to empty", () => {
@@ -88,21 +108,6 @@ test("toLine emits extra fields after the base schema fields", () => {
     emojis: "",
     styles: [],
   })
-})
-
-test("pickPalette is deterministic and returns one of the given palettes", () => {
-  const palettes = [
-    P("#aaaaaa", "#bbbbbb", "#000000"),
-    P("#cccccc", "#dddddd", "#111111"),
-    P("#eeeeee", "#ffffff", "#222222"),
-  ]
-  const a = pickPalette("some key", palettes)
-  expect(pickPalette("some key", palettes)).toEqual(a!)
-  expect(palettes).toContainEqual(a!)
-})
-
-test("pickPalette returns undefined when there are no palettes", () => {
-  expect(pickPalette("k", [])).toBeUndefined()
 })
 
 const R = (emojis: string, text = emojis): { text: string; emojis: string; styles: string[] } => ({

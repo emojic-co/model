@@ -6,6 +6,7 @@ import {
   parseKeywords,
   rankWindow,
   rareEmojis,
+  reannotateTexts,
   singleEmojiTexts,
   weightedMedian,
 } from "./upsample.ts"
@@ -141,4 +142,38 @@ test("singleEmojiTexts ignores rows with missing or non-string fields", () => {
     { text: "   ", emojis: "🌫️" },
   ]
   expect(singleEmojiTexts(rows, 100)).toEqual(["keep me"])
+})
+
+test("reannotateTexts samples rows with a palette, skips dups, palette-less, and already-done keys", () => {
+  const rows = [
+    { text: "alpha one", emojis: "🅰️", styles: ["Serene"], bg: ["#111111", "#222222"], fg: "#eeeeee" },
+    { text: "beta two", emojis: "🅱️", styles: ["Tense"], bg: ["#333333", "#444444"], fg: "#dddddd" },
+    { text: "  Alpha  One ", emojis: "🔤", styles: [], bg: ["#555555", "#666666"], fg: "#cccccc" },
+    { text: "gamma three", emojis: "", styles: ["Deadpan"], bg: ["#777777", "#888888"], fg: "#bbbbbb", reannotated: "colors" },
+    { text: "gamma three", emojis: "", styles: ["Deadpan"], bg: ["#777777", "#888888"], fg: "#bbbbbb" },
+    { text: "delta four", emojis: "🔺", styles: ["Playful"] },
+    { text: "epsilon five", emojis: "5️⃣", styles: ["Wry"], bg: ["#999999", "#aaaaaa"], fg: "#000000" },
+  ]
+  const out = reannotateTexts(rows, 10)
+  expect(out.map((r) => r.text).sort()).toEqual(["alpha one", "beta two", "epsilon five"])
+  const alpha = out.find((r) => r.text === "alpha one")!
+  expect(alpha.emojis).toBe("🅰️")
+  expect(alpha.styles).toEqual(["Serene"])
+  expect(alpha.bg).toEqual(["#111111", "#222222"])
+  expect(alpha.fg).toBe("#eeeeee")
+})
+
+test("reannotateTexts caps at count after a deterministic seeded shuffle", () => {
+  const rows = Array.from({ length: 20 }, (_, i) => ({
+    text: `row number ${i}`,
+    emojis: "",
+    styles: ["Serene"],
+    bg: ["#111111", "#222222"],
+    fg: "#eeeeee",
+  }))
+  const a = reannotateTexts(rows, 5)
+  const b = reannotateTexts(rows, 5)
+  expect(a).toEqual(b)
+  expect(a).toHaveLength(5)
+  expect(new Set(a.map((r) => r.text)).size).toBe(5)
 })

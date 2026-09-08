@@ -28,7 +28,9 @@ KEYWORDS_PATH = KEYWORDS_JSON
 
 EMOJI_KS = list(range(1, 11))
 CLDR_MIN_KEYWORD_LEN = 3
-CARD_DIST_THRESHOLD = 0.15
+CARD_DIST_THRESHOLD = 0.05
+CARD_PURE_THRESHOLD_RGB = 0.251
+CARD_PURE_THRESHOLD_L = 0.6
 CARD_COLORS = ("red", "green", "blue", "dark", "bright")
 GOLD_PER_COLOR = 25
 
@@ -267,6 +269,10 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
             + _hex_to_offsets(r["bg"][1])
             + _hex_to_offsets(r["fg"])
         )
+        dp = min(
+            _pure_distance(palettes[i, k].tolist(), r["color"])
+            for k in range(palettes.shape[1])
+        )
         df = min(
             _card_distance(palettes[i, k].tolist(), gold9, r["color"])
             for k in range(palettes.shape[1])
@@ -286,25 +292,29 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
                 "gt_bg1": r["bg"][0],
                 "gt_bg2": r["bg"][1],
                 "gt_text_color": r["fg"],
+                "dP": dp,
                 "dF": df,
+                "hit_pure": dp < _pure_threshold(r["color"]),
                 "hit": df < CARD_DIST_THRESHOLD,
             }
         )
-    per_color = {}
-    for c in CARD_COLORS:
-        ds = [x["dF"] for x in out_rows if x["color"] == c]
-        per_color[c] = {
-            "accuracy": sum(d < CARD_DIST_THRESHOLD for d in ds) / (len(ds) or 1),
-            "mean_distance": sum(ds) / (len(ds) or 1),
+
+    def _stats(rs):
+        n = len(rs) or 1
+        return {
+            "pure_accuracy": sum(x["hit_pure"] for x in rs) / n,
+            "pure_mean_distance": sum(x["dP"] for x in rs) / n,
+            "gt_accuracy": sum(x["dF"] < CARD_DIST_THRESHOLD for x in rs) / n,
+            "gt_mean_distance": sum(x["dF"] for x in rs) / n,
         }
-    alld = [x["dF"] for x in out_rows]
-    per_color["all"] = {
-        "accuracy": sum(d < CARD_DIST_THRESHOLD for d in alld) / (len(alld) or 1),
-        "mean_distance": sum(alld) / (len(alld) or 1),
-    }
+
+    per_color = {c: _stats([x for x in out_rows if x["color"] == c]) for c in CARD_COLORS}
+    per_color["all"] = _stats(out_rows)
     return {
         "n": len(rows),
         "threshold": CARD_DIST_THRESHOLD,
+        "pure_threshold_rgb": CARD_PURE_THRESHOLD_RGB,
+        "pure_threshold_l": CARD_PURE_THRESHOLD_L,
         "emoji_acc_at_k": emoji_acc,
         "style_acc_at_k": style_acc,
         "per_color": per_color,
@@ -464,6 +474,30 @@ def _card_distance(pred9, gold9, color: str) -> float:
     else:
         d = (p - g).norm(dim=-1)
     return d.mean().item()
+
+
+PURE_HEX = {
+    "red": "#ff0000",
+    "green": "#00ff00",
+    "blue": "#0000ff",
+    "dark": "#000000",
+    "bright": "#ffffff",
+}
+
+
+def _pure_threshold(color: str) -> float:
+    if color in ("dark", "bright"):
+        return CARD_PURE_THRESHOLD_L
+    return CARD_PURE_THRESHOLD_RGB
+
+
+def _pure_distance(pred9, color: str) -> float:
+    p = rgb_to_oklab(torch.tensor(pred9, dtype=torch.float32)).reshape(3, 3)
+    bg = p[:2].mean(dim=0)
+    pure = rgb_to_oklab(torch.tensor(_hex_to_offsets(PURE_HEX[color]), dtype=torch.float32))
+    if color in ("dark", "bright"):
+        return (bg[0] - pure[0]).abs().item()
+    return (bg - pure).norm().item()
 
 
 def _bars(items, maxv, rotated=False) -> str:
@@ -674,14 +708,20 @@ def _cards_html(d) -> str:
     pc = d["per_color"]
     trows = "".join(
         f"<tr><td>{_esc(c)}</td>"
-        f'<td class="n">{pc[c]["accuracy"]:.2f}</td>'
-        f'<td class="n">{pc[c]["mean_distance"]:.3f}</td></tr>'
+        f'<td class="n">{pc[c]["pure_mean_distance"]:.3f}</td>'
+        f'<td class="n">{pc[c]["pure_accuracy"]:.2f}</td>'
+        f'<td class="n">{pc[c]["gt_mean_distance"]:.3f}</td>'
+        f'<td class="n">{pc[c]["gt_accuracy"]:.2f}</td></tr>'
         for c in (*CARD_COLORS, "all")
     )
     out.append(
-        f"<h3>Accuracy (dF &lt; {d['threshold']:.2f}) &amp; mean distance</h3>"
-        '<table><tr><th>Color</th><th class="n">Accuracy</th>'
-        '<th class="n">Mean distance</th></tr>'
+        "<h3>Colour distance — d(model, pure) then d(model, GT)</h3>"
+        '<p class="note">Pure acc: dP &lt; '
+        f"{d['pure_threshold_rgb']:.3f} (r/g/b), &lt; {d['pure_threshold_l']:.2f} "
+        f"(|&Delta;L|, dark/bright). GT acc: dF &lt; {d['threshold']:.2f}.</p>"
+        "<table><tr><th>Color</th>"
+        '<th class="n">Pure dist</th><th class="n">Pure acc</th>'
+        '<th class="n">GT dist</th><th class="n">GT acc</th></tr>'
         f"{trows}</table>"
     )
     by_color = {}
