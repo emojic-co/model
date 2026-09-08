@@ -99,6 +99,11 @@ def mrr(logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
     return (rel / ranks).amax(dim=-1)
 
 
+def harmonic_mean(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
+    s = a + b
+    return torch.where(s > 0, 2 * a * b / s, torch.zeros_like(s))
+
+
 def roc_auc(pos: torch.Tensor, neg: torch.Tensor) -> torch.Tensor:
     if pos.numel() == 0 or neg.numel() == 0:
         return pos.new_zeros(())
@@ -186,6 +191,8 @@ class LitEncoder(pl.LightningModule):
         self._val_neg: list[torch.Tensor] = []
         self._trn_pos: list[torch.Tensor] = []
         self._trn_neg: list[torch.Tensor] = []
+        self._val_rr: list[torch.Tensor] = []
+        self._trn_rr: list[torch.Tensor] = []
 
     def _log(self, name, val, bs):
         self.log(name, val, on_step=False, on_epoch=True, prog_bar=True, batch_size=bs)
@@ -210,11 +217,13 @@ class LitEncoder(pl.LightningModule):
             self._log(f"loss/e/{split}", loss_emoji, bs)
             has_e = emoji.sum(dim=-1) > 0
             n_e = int(has_e.sum())
-            emoji_mrr = (
-                mrr(emoji_logits[has_e], emoji[has_e]).mean()
-                if n_e
-                else torch.zeros((), device=emoji.device)
-            )
+            if n_e:
+                rr = mrr(emoji_logits[has_e], emoji[has_e])
+                emoji_mrr = rr.mean()
+                buf = self._val_rr if split == "val" else self._trn_rr
+                buf.append(rr.detach())
+            else:
+                emoji_mrr = torch.zeros((), device=emoji.device)
             self._log(f"MRR/e/{split}", emoji_mrr, max(n_e, 1))
 
         if "critic" in self.heads:
@@ -240,20 +249,27 @@ class LitEncoder(pl.LightningModule):
     def on_validation_epoch_start(self):
         self._val_pos.clear()
         self._val_neg.clear()
+        self._val_rr.clear()
 
     def on_validation_epoch_end(self):
-        if "critic" in self.heads and self._val_pos:
-            auc = buffered_auc(self._val_pos, self._val_neg)
-            self.log("auc/critic/val", auc, prog_bar=True)
+        self._epoch_metrics("val", self._val_pos, self._val_neg, self._val_rr)
 
     def on_train_epoch_start(self):
         self._trn_pos.clear()
         self._trn_neg.clear()
+        self._trn_rr.clear()
 
     def on_train_epoch_end(self):
-        if "critic" in self.heads and self._trn_pos:
-            auc = buffered_auc(self._trn_pos, self._trn_neg)
-            self.log("auc/critic/train", auc, prog_bar=True)
+        self._epoch_metrics("train", self._trn_pos, self._trn_neg, self._trn_rr)
+
+    def _epoch_metrics(self, split, pos_buf, neg_buf, rr_buf):
+        auc = None
+        if "critic" in self.heads and pos_buf:
+            auc = buffered_auc(pos_buf, neg_buf)
+            self.log(f"auc/critic/{split}", auc, prog_bar=True)
+        if auc is not None and rr_buf:
+            emoji_mrr = torch.cat(rr_buf).mean()
+            self.log(f"F1/{split}", harmonic_mean(emoji_mrr, auc), prog_bar=True)
 
     def training_step(self, batch, batch_idx):
         return self._step(batch, "train")
@@ -424,7 +440,9 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
     monitor = (
-        "MRR/e/val"
+        "F1/val"
+        if {"emoji", "critic"} <= set(heads)
+        else "MRR/e/val"
         if "emoji" in heads
         else "MRR/s/val"
         if "style" in heads
@@ -871,8 +889,9 @@ def cli(
       pt/ only with --local. A dirty git tree always aborts.
 
     Heads (stage 1 eval / checkpoint monitor)
-      emoji -> MRR/e/val, style -> MRR/s/val, critic -> auc/critic/val;
-      the first present in that order is the checkpoint + early-stop metric.
+      emoji+critic -> F1/val (harmonic mean of MRR/e/val and auc/critic/val),
+      else emoji -> MRR/e/val, style -> MRR/s/val, critic -> auc/critic/val;
+      the first match in that order is the checkpoint + early-stop metric.
     """
     resolved = _validate(stage, local, heads, pt, out)
     if local:
