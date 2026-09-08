@@ -1,5 +1,6 @@
 import html
 import json
+import random
 import re
 import sys
 from collections import Counter
@@ -13,9 +14,9 @@ import torch
 import typer
 from torch.nn.functional import normalize as _l2norm
 
-from files import CLDR_BASELINE_JSON, CLDR_JSONL, DATA_JSONL, GOLD_JSONL, KEYWORDS_JSON
+from files import CLDR_BASELINE_JSON, CLDR_JSONL, DATA_JSONL, KEYWORDS_JSON
 from model.color import COLOR_SHIFT, rgb_to_oklab
-from model.config import EMOJIS, STYLES, Z_WEIGHT
+from model.config import EMOJIS, SEED, STYLES, Z_WEIGHT
 from model.data import EVAL_PATH, TRAIN_PATH, read, text_to_tensor
 from model.data import normalize as norm_text
 from model.export_onnx import CONST_Z
@@ -29,6 +30,15 @@ EMOJI_KS = list(range(1, 11))
 CLDR_MIN_KEYWORD_LEN = 3
 CARD_DIST_THRESHOLD = 0.15
 CARD_COLORS = ("red", "green", "blue", "dark", "bright")
+GOLD_POOL = 100
+GOLD_PER_COLOR = 25
+GOLD_PURE_HEX = {
+    "red": "#ff0000",
+    "green": "#00ff00",
+    "blue": "#0000ff",
+    "dark": "#000000",
+    "bright": "#ffffff",
+}
 
 
 def _ts() -> str:
@@ -216,6 +226,40 @@ def _section_cldr(enc, head):
     return _cldr_probe(enc, head)
 
 
+def _bg_oklab(bg):
+    stops = torch.tensor(
+        [_hex_to_offsets(bg[0]), _hex_to_offsets(bg[1])], dtype=torch.float32
+    )
+    return rgb_to_oklab(stops).mean(dim=0)
+
+
+def _pure_dist(lab, color):
+    pure = rgb_to_oklab(
+        torch.tensor(_hex_to_offsets(GOLD_PURE_HEX[color]), dtype=torch.float32)
+    )
+    if color in ("dark", "bright"):
+        return (lab[0] - pure[0]).abs().item()
+    return (lab - pure).norm().item()
+
+
+def _gold_rows():
+    rows = [
+        r
+        for r in _rows(EVAL_PATH)
+        if isinstance(r.get("bg"), list) and len(r["bg"]) == 2 and r.get("fg")
+    ]
+    if not rows:
+        return []
+    labs = [_bg_oklab(r["bg"]) for r in rows]
+    rng = random.Random(SEED)
+    out = []
+    for color in CARD_COLORS:
+        pool = sorted(range(len(rows)), key=lambda i: _pure_dist(labs[i], color))[:GOLD_POOL]
+        for i in rng.sample(pool, min(GOLD_PER_COLOR, len(pool))):
+            out.append({**rows[i], "color": color})
+    return out
+
+
 def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
     if None in (enc, style_head, emoji_head, gen) or not gold_rows:
         return {}
@@ -262,6 +306,11 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
                 "bg1": _offsets_to_hex(flat[0:3]),
                 "bg2": _offsets_to_hex(flat[3:6]),
                 "text_color": _offsets_to_hex(flat[6:9]),
+                "gt_emoji": " ".join(str(r["emojis"]).split()),
+                "gt_style": " · ".join(r["styles"]),
+                "gt_bg1": r["bg"][0],
+                "gt_bg2": r["bg"][1],
+                "gt_text_color": r["fg"],
                 "dF": df,
                 "hit": df < CARD_DIST_THRESHOLD,
             }
@@ -322,7 +371,7 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
     prov["consistent"] = not prov["issues"]
 
     eval_records = list(read(EVAL_PATH)) if "emoji" in want else []
-    gold_rows = _rows(str(GOLD_JSONL)) if "cards" in want else ()
+    gold_rows = _gold_rows() if "cards" in want else ()
 
     report = {
         "generated": datetime.now().isoformat(timespec="seconds"),
@@ -403,7 +452,7 @@ th{font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:.03em
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 tr:last-child td{border-bottom:none}
 .cards-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:18px 0 0}
-.mini{aspect-ratio:4/3;border-radius:12px;padding:12px 10px;display:flex;
+.mini{aspect-ratio:1/1;border-radius:12px;padding:12px 10px;display:flex;
 flex-direction:column;justify-content:center;align-items:center;text-align:center;
 overflow:hidden}
 .mini .em{font-size:24px;line-height:1}
@@ -637,21 +686,9 @@ def _cards_html(d) -> str:
     out = [
         "<h2>Cards</h2>",
         '<p class="note">End-to-end test of the shipped inference graph on '
-        f"data/gold.jsonl ({d['n']} rows).</p>",
+        f"{d['n']} gold rows sampled from eval.jsonl by background-colour match "
+        "(top-100 nearest each pure colour in OKLab, 25 drawn at random).</p>",
     ]
-    by_color = {}
-    for r in d["rows"]:
-        by_color.setdefault(r["color"], []).append(r)
-    for c in CARD_COLORS:
-        cards = "".join(
-            '<div class="mini" style="background:linear-gradient(135deg,'
-            f'{_esc(r["bg1"])},{_esc(r["bg2"])});color:{_esc(r["text_color"])}">'
-            f'<span class="em">{_esc(r["emoji"])}</span>'
-            f'<span class="tx">{_esc(r["text"])}</span>'
-            f'<span class="st">{_esc(r["style"])}</span></div>'
-            for r in by_color.get(c, [])
-        )
-        out.append(f'<h3>{_esc(c)}</h3><div class="cards-grid">{cards}</div>')
     ek = list(zip((str(k) for k in EMOJI_KS), d["emoji_acc_at_k"], strict=True))
     chart = _linechart(
         ek,
@@ -672,6 +709,26 @@ def _cards_html(d) -> str:
         '<th class="n">Mean distance</th></tr>'
         f"{trows}</table>"
     )
+    by_color = {}
+    for r in d["rows"]:
+        by_color.setdefault(r["color"], []).append(r)
+
+    def _grids(bg1, bg2, tc, em, st):
+        for c in CARD_COLORS:
+            cards = "".join(
+                '<div class="mini" style="background:linear-gradient(135deg,'
+                f'{_esc(r[bg1])},{_esc(r[bg2])});color:{_esc(r[tc])}">'
+                f'<span class="em">{_esc(r[em])}</span>'
+                f'<span class="tx">{_esc(r["text"])}</span>'
+                f'<span class="st">{_esc(r[st])}</span></div>'
+                for r in by_color.get(c, [])
+            )
+            out.append(f'<h3>{_esc(c)}</h3><div class="cards-grid">{cards}</div>')
+
+    out.append("<h3>Model output</h3>")
+    _grids("bg1", "bg2", "text_color", "emoji", "style")
+    out.append("<h3>Ground truth — gold set (eval.jsonl annotations)</h3>")
+    _grids("gt_bg1", "gt_bg2", "gt_text_color", "gt_emoji", "gt_style")
     return "".join(out)
 
 

@@ -12,7 +12,6 @@ CLDR_BASELINE_JSON = f"{DATA_DIR}/cldr-baseline.json"
 KEYWORDS_JSON = f"{DATA_DIR}/keywords.json"
 ENERGY_KEYWORDS_TXT = f"{DATA_DIR}/energy_keywords.txt"
 PRED_JSONL = f"{DATA_DIR}/pred.jsonl"
-GOLD_JSONL = f"{DATA_DIR}/gold.jsonl"
 
 ENC_PT = f"{PT_DIR}/enc.pt"
 STYLE_PT = f"{PT_DIR}/style.pt"

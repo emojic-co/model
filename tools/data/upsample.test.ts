@@ -7,6 +7,7 @@ import {
   rankWindow,
   rareEmojis,
   singleEmojiTexts,
+  weightedMedian,
 } from "./upsample.ts"
 
 test("parseKeywords trims, drops empties, and dedupes while preserving order", () => {
@@ -82,6 +83,19 @@ test("rareEmojis returns the rarest first, drops emoji below minFreq, ties by fi
   expect(rareEmojis(counts, 10, 2)).toEqual(["c", "d"])
   expect(rareEmojis(counts, 0, 3)).toEqual(["e", "a", "c"])
   expect(rareEmojis(counts, 200, 10)).toEqual([])
+})
+
+test("weightedMedian returns the lower median length of a [length, count] distribution", () => {
+  expect(weightedMedian([[10, 1], [20, 1], [30, 1]])).toBe(20)
+  expect(weightedMedian([[10, 2], [20, 2]])).toBe(10)
+  expect(weightedMedian([[5, 3], [9, 1]])).toBe(5)
+  expect(weightedMedian([[42, 7]])).toBe(42)
+  expect(weightedMedian([[30, 5], [20, 5], [40, 1]])).toBe(30)
+})
+
+test("weightedMedian throws on an empty or zero-count distribution", () => {
+  expect(() => weightedMedian([])).toThrow()
+  expect(() => weightedMedian([[10, 0]])).toThrow()
 })
 
 test("singleEmojiTexts keeps rows with a unique normalized text and at most one emoji", () => {

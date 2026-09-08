@@ -158,3 +158,14 @@ Architectural updates:
             4. Make the `tran.py` script clean, concise and easy to read. Dropped any old code that is not needed anymore.
             5. Write a detailed help message for the `train` script, including all the subcommands and flags.
             6. Document the new architecture and training procedure in the CLAUDE.md and in the docs/model.md files.
+
+
+Done:
+    Gold Standard:
+        I removed the data/gold.jsonl file.
+        Instead, in the final report do the following:
+            For each in red, green, blue extract top 100 records from data/eval.jsonl with bg color with min dF to the pure color.
+            Sample random 25 records from the 100 records and use them as the gold standard dataset.
+            Same for dark and bright, but just use the L channel of the OKLab color space.
+            minor: set the aspect ratio of the mini cards in the report to 1:1
+            also: move the gold standard performance above the mini cards grids.

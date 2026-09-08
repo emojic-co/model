@@ -7,6 +7,7 @@ import { STYLE_SET } from "./styles.ts"
 
 const MAX_COUNT = 1400
 const MIN_COUNT = 50
+const EVAL_SIZE = 2000
 
 const MATRIX_MIN = [50, 100, 150, 200]
 const MATRIX_MAX = [600, 800, 1000, 1200, 1400]
@@ -216,7 +217,7 @@ if (import.meta.main) {
   if (options.help) process.exit(0)
   const minCount = Number(options.minCount ?? MIN_COUNT)
   const maxCount = Number(options.maxCount ?? MAX_COUNT)
-  const n = Number(options.n ?? 1500)
+  const n = Number(options.n ?? EVAL_SIZE)
 
   const useCldr = options.cldr !== false
   if (useCldr && !existsSync(CLDR)) {

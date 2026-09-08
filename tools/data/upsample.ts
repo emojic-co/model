@@ -1,9 +1,13 @@
+import { readdirSync } from "node:fs"
+import { readFile } from "node:fs/promises"
+import { join } from "node:path"
+
 import { generateText } from "ai"
 import { cac } from "cac"
 import cliProgress from "cli-progress"
 import PQueue from "p-queue"
 
-import { DATA_JSONL as DATA } from "../../files.ts"
+import { DATA_JSONL as DATA, REPORT_DIR } from "../../files.ts"
 import { MODEL, annotate, annotateBatchCount, lastFills } from "./annotate.ts"
 import { splitEmojis } from "./emoji.ts"
 import { appendJsonl, readJsonl } from "./io.ts"
@@ -15,6 +19,7 @@ const RARE_MIN_FREQ = 10
 const RARE_MAX_COUNT = 100
 const TEXTS_PER_EMOJI = 50
 const NEG_COUNT = 1000
+const SHORT_COUNT = 2000
 const SINGLE_EMOJI_COUNT = 5000
 const KEYWORDS_PER = 50
 const COLOR_PER = 1000
@@ -127,6 +132,43 @@ export function batchSizes(total: number, per: number): number[] {
   return out
 }
 
+export function weightedMedian(pairs: [number, number][]): number {
+  const total = pairs.reduce((s, [, c]) => s + c, 0)
+  if (total <= 0) throw new Error("weightedMedian: empty distribution")
+  let acc = 0
+  for (const [len, c] of [...pairs].sort((a, b) => a[0] - b[0])) {
+    acc += c
+    if (acc * 2 >= total) return len
+  }
+  return pairs[pairs.length - 1][0]
+}
+
+async function latestReportMedianLen(): Promise<number> {
+  let dirs: string[] = []
+  try {
+    dirs = readdirSync(REPORT_DIR, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => d.name)
+      .sort()
+  } catch {
+    dirs = []
+  }
+  for (const name of dirs.reverse()) {
+    try {
+      const report = JSON.parse(
+        await readFile(join(REPORT_DIR, name, "report.json"), "utf8"),
+      ) as { data?: { length_distribution?: [number, number][] } }
+      const dist = report.data?.length_distribution
+      if (dist?.length) return weightedMedian(dist)
+    } catch {
+      continue
+    }
+  }
+  throw new Error(
+    `no ${REPORT_DIR}/*/report.json with data.length_distribution - run tools/report.py first`,
+  )
+}
+
 export function colorBatchPlan(
   colors: string[],
   per: number,
@@ -196,6 +238,18 @@ function genNegationPrompt(voice: string, per: number): string {
   ].join("\n")
 }
 
+function genShortPrompt(voice: string, per: number, maxLen: number): string {
+  return [
+    `Write ${per} short text messages as if sent by ${voice}, one per line.`,
+    `Each message between ${MIN_LEN} and ${maxLen} characters - keep them brief.`,
+    `Do not put any emoji in the output.`,
+    `Vary sender, tone, and intent: updates, questions, complaints, plans,`,
+    `reactions, reminders, small talk. Cover positive, negative, and flat moods.`,
+    `Sound real and specific; do not lean on any single persona or sentence shape.`,
+    `No numbering, no bullets, no quotes, no commentary.`,
+  ].join("\n")
+}
+
 function cleanLines(text: string): string[] {
   return text
     .split("\n")
@@ -224,6 +278,18 @@ async function genNegationBatch(voice: string, per: number): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
     prompt: genNegationPrompt(voice, per),
+  })
+  return cleanLines(text)
+}
+
+async function genShortBatch(
+  voice: string,
+  per: number,
+  maxLen: number,
+): Promise<string[]> {
+  const { text } = await generateText({
+    model: MODEL,
+    prompt: genShortPrompt(voice, per, maxLen),
   })
   return cleanLines(text)
 }
@@ -265,9 +331,10 @@ cli
   .option("--keywords <list>", "standalone: generate texts using each comma-separated keyword, one keyword at a time (ignores emoji targeting)")
   .option("--per <n>", `texts to generate per target emoji / keyword / batch (default ${TEXTS_PER_EMOJI}, ${KEYWORDS_PER} with --keywords, ${COLOR_PER} per colour with --colors, ${TEXTS_PER_EMOJI} with --rare)`)
   .option("--negation", "standalone: generate negation-heavy texts (ignores emoji targeting)")
+  .option("--short", "standalone: generate short texts capped at the last report's median length (ignores emoji targeting)")
   .option("--single-emoji", "standalone: re-annotate corpus rows that carry at most one emoji (ignores emoji targeting)")
   .option("--colors", `standalone: generate texts related to each of ${COLORS.join(", ")} (ignores emoji targeting)`)
-  .option("--count <n>", `cap on texts for --negation (default ${NEG_COUNT}) / --single-emoji (default ${SINGLE_EMOJI_COUNT})`)
+  .option("--count <n>", `cap on texts for --negation (default ${NEG_COUNT}) / --short (default ${SHORT_COUNT}) / --single-emoji (default ${SINGLE_EMOJI_COUNT})`)
   .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
 cli.help()
 
@@ -278,6 +345,7 @@ if (import.meta.main) {
   const minRank = Number(options.minRank ?? MIN_RANK)
   const maxRank = Number(options.maxRank ?? MAX_RANK)
   const negation = Boolean(options.negation)
+  const short = Boolean(options.short)
   const singleEmoji = Boolean(options.singleEmoji)
   const colors = Boolean(options.colors)
   const rare = Boolean(options.rare)
@@ -296,16 +364,17 @@ if (import.meta.main) {
     ?? (kw ? KEYWORDS_PER : colors ? COLOR_PER : TEXTS_PER_EMOJI),
   )
   const count = Number(
-    options.count ?? (singleEmoji ? SINGLE_EMOJI_COUNT : NEG_COUNT),
+    options.count
+    ?? (singleEmoji ? SINGLE_EMOJI_COUNT : short ? SHORT_COUNT : NEG_COUNT),
   )
 
-  if ([negation, singleEmoji, colors, kw].filter(Boolean).length > 1) {
+  if ([negation, short, singleEmoji, colors, kw].filter(Boolean).length > 1) {
     console.error(
-      "--negation, --single-emoji, --colors and --keywords are mutually exclusive",
+      "--negation, --short, --single-emoji, --colors and --keywords are mutually exclusive",
     )
     process.exit(1)
   }
-  const standalone = negation || singleEmoji || colors || kw
+  const standalone = negation || short || singleEmoji || colors || kw
   if (
     rare
     && (standalone || only || options.minRank != null || options.maxRank != null)
@@ -342,11 +411,13 @@ if (import.meta.main) {
   }
   const standaloneName = negation
     ? "negation"
-    : singleEmoji
-      ? "single-emoji"
-      : colors
-        ? "colors"
-        : "keywords"
+    : short
+      ? "short"
+      : singleEmoji
+        ? "single-emoji"
+        : colors
+          ? "colors"
+          : "keywords"
   if (standalone && (only || options.minRank != null || options.maxRank != null)) {
     console.warn(
       `--${standaloneName} ignores --emojis / --min-rank / --max-rank`,
@@ -356,7 +427,7 @@ if (import.meta.main) {
     console.warn("--single-emoji ignores --per")
   }
   if ((!standalone || colors || kw) && options.count != null) {
-    console.warn("--count only applies with --negation / --single-emoji")
+    console.warn("--count only applies with --negation / --short / --single-emoji")
   }
   if (!(per >= 1)) {
     console.error(`--per must be >= 1, got ${JSON.stringify(options.per)}`)
@@ -366,6 +437,8 @@ if (import.meta.main) {
   for (let iterIdx = 0; iterIdx < iters; iterIdx++) {
     let targets: string[]
     let negBatches: number[] = []
+    let shortBatches: number[] = []
+    let shortMedianLen = 0
     let singleTexts: string[] = []
     let colorPlan: { color: string; n: number }[] = []
     if (singleEmoji) {
@@ -395,6 +468,18 @@ if (import.meta.main) {
       console.log(
         `negation mode -> generating ${count} texts in ${negBatches.length} `
         + `batches of up to ${per}`,
+      )
+    } else if (short) {
+      if (!(count >= 1)) {
+        console.error(`--count must be >= 1, got ${JSON.stringify(options.count)}`)
+        process.exit(1)
+      }
+      targets = []
+      shortMedianLen = await latestReportMedianLen()
+      shortBatches = batchSizes(count, per)
+      console.log(
+        `short mode -> generating ${count} texts (<= ${shortMedianLen} chars, `
+        + `last report's median) in ${shortBatches.length} batches of up to ${per}`,
       )
     } else if (colors) {
       targets = []
@@ -448,15 +533,17 @@ if (import.meta.main) {
 
     const mode = negation
       ? "negation"
-      : singleEmoji
-        ? "single-emoji"
-        : colors
-          ? "colors"
-          : kw
-            ? "keywords"
-            : rare
-              ? "rare"
-              : "emoji-target"
+      : short
+        ? "short"
+        : singleEmoji
+          ? "single-emoji"
+          : colors
+            ? "colors"
+            : kw
+              ? "keywords"
+              : rare
+                ? "rare"
+                : "emoji-target"
 
     if (dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
@@ -467,6 +554,13 @@ if (import.meta.main) {
       } else if (negation) {
         console.log(
           `would generate       : ${count} texts in ${negBatches.length} batches of up to ${per}`,
+        )
+      } else if (short) {
+        console.log(
+          `median length        : ${shortMedianLen} (last report)`,
+        )
+        console.log(
+          `would generate       : ${count} texts in ${shortBatches.length} batches of up to ${per}`,
         )
       } else if (singleEmoji) {
         console.log(`would re-annotate    : ${singleTexts.length} corpus rows`)
@@ -487,13 +581,11 @@ if (import.meta.main) {
       for (const t of singleTexts) cands.push({ text: t })
       console.log(`${cands.length} corpus rows selected, annotating`)
     } else {
-      const genUnit = negation
+      const genUnit = negation || short || colors
         ? "batches"
         : kw
           ? "keywords"
-          : colors
-            ? "batches"
-            : "emojis"
+          : "emojis"
       const genBar = new cliProgress.SingleBar(
         {
           format:
@@ -513,6 +605,20 @@ if (import.meta.main) {
               }
             } catch (err) {
               console.warn(`\n  gen (negation) failed: ${err}`)
+            }
+            genBar.increment()
+          }),
+        )
+      } else if (short) {
+        genBar.start(shortBatches.length, 0)
+        genQ.addAll(
+          shortBatches.map((n) => async () => {
+            try {
+              for (const t of await genShortBatch(pickVoice(), n, shortMedianLen)) {
+                cands.push({ text: t })
+              }
+            } catch (err) {
+              console.warn(`\n  gen (short) failed: ${err}`)
             }
             genBar.increment()
           }),
@@ -612,6 +718,7 @@ if (import.meta.main) {
       }
       const meta: Record<string, unknown> = { date: today }
       if (singleEmoji) meta["single-emoji"] = true
+      if (short) meta.src = "short"
       if (colors) meta.src = "colors"
       if (kw) meta.src = "keywords"
       if (rare) meta.src = "rare"
