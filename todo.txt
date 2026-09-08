@@ -1,39 +1,3 @@
-Report:
-    Update the report structure:
-        remove:
-            missed texts
-            missed keywords
-            missed cldr
-        
-        add:
-            keywords acc:
-                Add a chart line of the acc@k (1-10) for the list of keywords.
-                Only consider keywords with at least one emoji in the vocab.
-                Do not add any other details about regarding the keywords performance.
-
-            cldr acc:
-                Add a chart line of the acc@k (1-10) for the list of cldr.
-                Only consider cldr with at least one emoji in the vocab.
-                Do not add any other details about regarding the cldr performance.
-
-        cards:
-            This is an end to end test of the model.
-            Create high quality, verified, gold standard, small dataset to use in the final report:
-                For each of the colors (red, green, blue, dark, bright)
-                Generate 25 texts with strong association to the color.
-                Annotate these texts (emojis and styles) and double verified the annotations.
-
-                On the report show the final output of the model for each of the colors by drawing a 5x5 grid with mini cards (same as the web app but smaller).
-                In addition:
-                A line chart of the emoji and style acc@k (1-10) for the gold standard dataset (two lines, single chart).
-                For each of the colors report both accuracy and mean distance where distance is dF and accuracy is measure with respect to a predefined threshold
-
-
-    Note:
-        drop the option to `upsample --report` this is not valid anymore.
-
-
-
 
 regen tool:
     make a flag for the regen tool:
@@ -161,6 +125,10 @@ Architectural updates:
 
 
 Done:
+    Report:
+        Update the color section:
+            Keep everything the same, the only difference is the records are selected by their {color} attribute and then sampled for the final 25 cards.
+
     Gold Standard:
         I removed the data/gold.jsonl file.
         Instead, in the final report do the following:

@@ -30,15 +30,7 @@ EMOJI_KS = list(range(1, 11))
 CLDR_MIN_KEYWORD_LEN = 3
 CARD_DIST_THRESHOLD = 0.15
 CARD_COLORS = ("red", "green", "blue", "dark", "bright")
-GOLD_POOL = 100
 GOLD_PER_COLOR = 25
-GOLD_PURE_HEX = {
-    "red": "#ff0000",
-    "green": "#00ff00",
-    "blue": "#0000ff",
-    "dark": "#000000",
-    "bright": "#ffffff",
-}
 
 
 def _ts() -> str:
@@ -226,22 +218,6 @@ def _section_cldr(enc, head):
     return _cldr_probe(enc, head)
 
 
-def _bg_oklab(bg):
-    stops = torch.tensor(
-        [_hex_to_offsets(bg[0]), _hex_to_offsets(bg[1])], dtype=torch.float32
-    )
-    return rgb_to_oklab(stops).mean(dim=0)
-
-
-def _pure_dist(lab, color):
-    pure = rgb_to_oklab(
-        torch.tensor(_hex_to_offsets(GOLD_PURE_HEX[color]), dtype=torch.float32)
-    )
-    if color in ("dark", "bright"):
-        return (lab[0] - pure[0]).abs().item()
-    return (lab - pure).norm().item()
-
-
 def _gold_rows():
     rows = [
         r
@@ -250,13 +226,12 @@ def _gold_rows():
     ]
     if not rows:
         return []
-    labs = [_bg_oklab(r["bg"]) for r in rows]
     rng = random.Random(SEED)
     out = []
     for color in CARD_COLORS:
-        pool = sorted(range(len(rows)), key=lambda i: _pure_dist(labs[i], color))[:GOLD_POOL]
-        for i in rng.sample(pool, min(GOLD_PER_COLOR, len(pool))):
-            out.append({**rows[i], "color": color})
+        pool = [r for r in rows if r.get("color") == color]
+        for r in rng.sample(pool, min(GOLD_PER_COLOR, len(pool))):
+            out.append({**r, "color": color})
     return out
 
 
@@ -686,8 +661,8 @@ def _cards_html(d) -> str:
     out = [
         "<h2>Cards</h2>",
         '<p class="note">End-to-end test of the shipped inference graph on '
-        f"{d['n']} gold rows sampled from eval.jsonl by background-colour match "
-        "(top-100 nearest each pure colour in OKLab, 25 drawn at random).</p>",
+        f"{d['n']} gold rows sampled from eval.jsonl by their annotated colour tag "
+        "(up to 25 drawn at random per colour).</p>",
     ]
     ek = list(zip((str(k) for k in EMOJI_KS), d["emoji_acc_at_k"], strict=True))
     chart = _linechart(

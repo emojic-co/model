@@ -5,9 +5,9 @@ import { normalize } from "./normalize.ts"
 import { stableHash } from "./pool.ts"
 import { STYLE_SET } from "./styles.ts"
 
-const MAX_COUNT = 1400
+const MAX_COUNT = 1000
 const MIN_COUNT = 50
-const EVAL_SIZE = 2000
+const EVAL_SIZE = 2500
 
 const MATRIX_MIN = [50, 100, 150, 200]
 const MATRIX_MAX = [600, 800, 1000, 1200, 1400, 1500, 3000]
