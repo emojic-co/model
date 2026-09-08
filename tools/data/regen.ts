@@ -4,14 +4,14 @@ import { splitEmojis } from "./emoji.ts"
 import { normalize } from "./normalize.ts"
 import { STYLE_SET } from "./styles.ts"
 
-const MIN_COUNT = 75
-const MAX_COUNT = 750
+const MIN_COUNT = 50
+const MAX_COUNT = 600
 const EVAL_SIZE = 2000
 
 const MIN_MAX_RATIO = 10
 const MAX_MAX_RATIO = 20
 const MATRIX_MIN = [50, 75, 100, 125, 150, 200]
-const MATRIX_MAX = [500, 750, 1000, 1250, 1500, 2000, 3000, 4000]
+const MATRIX_MAX = [500, 600, 750, 1000, 1250, 1500, 2000, 3000, 4000]
 
 export type Palette = { bg: string[]; fg: string }
 export type Row = {
