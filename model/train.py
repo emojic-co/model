@@ -573,8 +573,7 @@ def _run_local(
 
 CPU = 16
 MEMORY_MIB = 16384
-TIMEOUT_S = 60 * 60
-TIMEOUT_S_ALL = 90 * 60
+TIMEOUT_S = 60 * 120
 REPO = "/repo"
 VENV_PY = sys.executable
 TB_PORT = 6006
@@ -811,11 +810,7 @@ def _run_remote(stage: str, heads: str, git_sha: str, run_time: str) -> dict[str
             "critic_bytes": Path(CRITIC_PT).read_bytes(),
         }
 
-    timeout = TIMEOUT_S_ALL if stage == "" else TIMEOUT_S
-    fn = train_remote
-    if timeout != TIMEOUT_S:
-        fn = train_remote.with_options(timeout=timeout)
-    return fn.remote(
+    return train_remote.remote(
         stage=stage,
         heads=heads,
         threads=CPU,
