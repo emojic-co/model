@@ -10,7 +10,7 @@ const MIN_COUNT = 50
 const EVAL_SIZE = 2000
 
 const MATRIX_MIN = [50, 100, 150, 200]
-const MATRIX_MAX = [600, 800, 1000, 1200, 1400]
+const MATRIX_MAX = [600, 800, 1000, 1200, 1400, 1500, 3000]
 
 export type Palette = { bg: string[]; fg: string }
 export type Row = {
