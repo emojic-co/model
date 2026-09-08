@@ -9,8 +9,10 @@ const MAX_COUNT = 600
 const MIN_COUNT = 50
 const EVAL_SIZE = 2500
 
+const MIN_MAX_RATIO = 10
+const MAX_MAX_RATIO = 20
 const MATRIX_MIN = [50, 75, 100, 125, 150, 200]
-const MATRIX_MAX = [500, 750, 1000, 1250, 1500, 2000]
+const MATRIX_MAX = [500, 750, 1000, 1250, 1500, 2000, 3000, 4000]
 
 export type Palette = { bg: string[]; fg: string }
 export type Row = {
@@ -167,15 +169,27 @@ export function toLine(r: Row): string {
 
 function printMatrix(records: Row[], useCldr: boolean): void {
   const shuffled = shuffle(records)
+  const inWindow = (min: number, max: number) => {
+    const r = max / min
+    return r >= MIN_MAX_RATIO && r <= MAX_MAX_RATIO
+  }
+
   const caps = MATRIX_MAX.map((max) => {
+    if (!MATRIX_MIN.some((min) => inWindow(min, max))) {
+      return { max, samples: 0, counts: null as Map<string, number> | null }
+    }
     const { kept, counts } = greedyCap(shuffled, max)
     return { max, samples: kept.length, counts }
   })
 
-  const cell = (samples: number, vocab: number) => `${samples}/${vocab}`
+  const k = (n: number) => `${Math.round(n / 1000)}k`
   const grid = MATRIX_MIN.map((min) => ({
     min,
-    cells: caps.map((c) => cell(c.samples, emojiVocab(c.counts, min).length)),
+    cells: caps.map((c) =>
+      c.counts && inWindow(min, c.max)
+        ? `${k(c.samples)}/${emojiVocab(c.counts, min).length}`
+        : "·",
+    ),
   }))
 
   const colW =
@@ -187,7 +201,7 @@ function printMatrix(records: Row[], useCldr: boolean): void {
     Math.max("min\\max".length, ...MATRIX_MIN.map((m) => String(m).length)) + 2
 
   console.log(
-    `\nmatrix: kept-rows / emoji-vocab  (cldr: ${useCldr ? "included" : "excluded"}, distinct texts: ${records.length})\n`,
+    `\nmatrix: kept-rows / emoji-vocab  (cldr: ${useCldr ? "included" : "excluded"}, distinct texts: ${records.length}, max/min ratio ${MIN_MAX_RATIO}-${MAX_MAX_RATIO})\n`,
   )
   console.log(
     "min\\max".padStart(headW) + MATRIX_MAX.map((m) => String(m).padStart(colW)).join(""),

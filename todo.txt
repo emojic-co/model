@@ -1,4 +1,3 @@
-Done:
-Early Stop:
-    During training also log the harmonic mean of MRR/e/val and auc/critic/val as F1/val and F1/train.
-    Early stop and choose the best model based on F1/val.
+regen --matrix
+update this option to only calculate and print values where
+MATRIX_MAX / MATRIX_MIN is between MIN_MAX_RATIO and MAX_MAX_RATIO
