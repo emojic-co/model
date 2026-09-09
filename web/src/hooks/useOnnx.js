@@ -46,22 +46,19 @@ export function useOnnx() {
   const predict = useCallback(async (text) => {
     const m = metaRef.current
     const fr = flexRef.current
-    const V = m.emojis.length
     const ids = encode(text, m, char2idxRef.current)
-    const flexRaw = fr.flexRaw(text)
-    const flexQ = Float32Array.from(fr.flexQ(text))
+    const flexTf = Float32Array.from(fr.tfVec(text))
     const t0 = performance.now()
     const out = await sessionRef.current.run({
       input: new ort.Tensor('int64', ids, [1, m.max_text_len]),
-      flex: new ort.Tensor('float32', flexRaw, [1, V, 10]),
-      flex_q: new ort.Tensor('float32', flexQ, [1, 5]),
+      flex_tf: new ort.Tensor('float32', flexTf, [1, m.flex_n]),
     })
     const ms = performance.now() - t0
     return {
       feeling: sigmoid(out.style_logits.data),
       emoji: sigmoid(out.emoji_logits.data),
+      kw: sigmoid(out.kw_logits.data),
       fusion: sigmoid(out.fusion_logits.data),
-      keywordRank: fr.rank(text).map((row) => row[0]),
       palettes: decodeColorList(out.color.data),
       ms,
     }
