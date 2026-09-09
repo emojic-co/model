@@ -43,6 +43,7 @@ from model.color import rgb_to_oklab
 from model.config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE,
+    ENERGY_WEIGHT,
     ENERGY_Z_SAMPLES,
     EPOCHS_GAN,
     EPOCHS_TASK,
@@ -403,9 +404,11 @@ class LitColorGAN(pl.LightningModule):
             torch.cat([cond, cond], dim=0),
             torch.cat([colors, fake], dim=0),
         ).chunk(2, dim=0)
-        loss_gen = torch.relu(
+        hinge = torch.relu(
             gen_real.detach() - gen_fake + GAN_GEN_MARGIN
         ).mean()
+        energy = energy_distance(rgb_to_oklab(fake), rgb_to_oklab(colors))
+        loss_gen = hinge + ENERGY_WEIGHT * energy
 
         opt_gen.zero_grad()
         self.manual_backward(loss_gen)
@@ -419,6 +422,7 @@ class LitColorGAN(pl.LightningModule):
 
         self.log("loss/gan/tst", loss_tst, prog_bar=True)
         self.log("loss/gan/gen", loss_gen, prog_bar=True)
+        self.log("energy/gan/train", energy, prog_bar=True)
 
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=GAN_GEN_LR)

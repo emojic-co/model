@@ -58,7 +58,7 @@ style_str = " ".join([
     for p in (STYLE_EMBED_SIZE, TEXT_EMBED_SIZE, DROPOUT_STYLE)])
 
 # GAN
-Z_WEIGHT = 0.1
+Z_WEIGHT = 0.35
 GEN_CHANNELS = [64, 32]
 CRITIC_COLOR_CHANNELS = [96]
 CRITIC_TEXT_CHANNELS = [64]
@@ -66,6 +66,7 @@ DROPOUT_CRITIC = 0.2
 GAN_GEN_LR = 0.01
 GAN_CRITIC_LR = 0.02
 GAN_GEN_MARGIN = 1.0
+ENERGY_WEIGHT = 5.0
 
 gan_str = " ".join([
     str(p)
@@ -77,7 +78,8 @@ gan_str = " ".join([
         DROPOUT_CRITIC,
         GAN_GEN_LR,
         GAN_CRITIC_LR,
-        GAN_GEN_MARGIN)])
+        GAN_GEN_MARGIN,
+        ENERGY_WEIGHT)])
 
 
 # TRAINING
