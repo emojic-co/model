@@ -10,6 +10,17 @@ const MAX_COUNT = 1000
 const EVAL_SIZE = 2000
 const FLEX_K = 32
 
+const FLEX_FIXTURE_TEXTS = [
+  "Cupcakes are in the break room",
+  "I found a ladybug in my book",
+  "pizza time with friends tonight",
+  "feeling anxious about the meeting",
+  "the dog is running fast in the park",
+  "not good at all",
+  "Woof!",
+  "xyzzy qwerty",
+]
+
 const MIN_MAX_RATIO = 10
 const MAX_MAX_RATIO = 30
 const MATRIX_MIN = [50, 75, 100, 125, 150, 200, 250]
@@ -153,6 +164,7 @@ import {
   CLDR_JSONL as CLDR,
   DATA_JSONL as DATA,
   EVAL_JSONL as EVAL,
+  FLEX_FIXTURE_JSON,
   FLEX_JSON,
   LABELS_JSON as LABELS,
   REGEN_MD,
@@ -359,6 +371,14 @@ if (import.meta.main) {
     }
     const flexJson = ranker.buildJson(emojis)
     await writeFileAtomic(FLEX_JSON, JSON.stringify(flexJson) + "\n")
+    const cases = FLEX_FIXTURE_TEXTS.map((text) => {
+      const { flexsearch, flexq } = ranker.rank(text, vocabMap)
+      return { text, flexsearch, flexq }
+    })
+    await writeFileAtomic(
+      FLEX_FIXTURE_JSON,
+      JSON.stringify({ vocab: emojis, cases }, null, 2) + "\n",
+    )
     const denom = split.length || 1
     flexLine =
       `flexsearch            : K=${flexK}, mean list ${(listLenSum / denom).toFixed(1)}, `

@@ -16,7 +16,9 @@ export const ENERGY_KEYWORDS_TXT = `${DATA_DIR}/energy_keywords.txt`
 export const PRED_JSONL = `${DATA_DIR}/pred.jsonl`
 
 export const WEB_PUBLIC_DIR = "web/public"
+export const WEB_SRC_DIR = "web/src"
 export const FLEX_JSON = `${WEB_PUBLIC_DIR}/flex.json`
+export const FLEX_FIXTURE_JSON = `${WEB_SRC_DIR}/flexrank.fixture.json`
 export const REPORT_DIR = "report"
 export const RUNS_DIR = "runs"
 export const PREVIEW_DIR = "preview"
