@@ -1,3 +1,9 @@
+update the regen tool:
+    During a regeneration both data/train.jsonl and data/eval.jsonl need to have a ranked list of emojis based on the CLDR + FlexSearch ranking, i.e.
+    {text:string, emojis:string, bg: [string, string], fg: string, flexsearch: {emoji: string, score:number}[]}
+    When regenerating, build a reverse CLDR index and use the flexsearch to generate a ranked list for each text, then save it to the data/train.jsonl and data/eval.jsonl files. 
+
+
 create a tool `tools/data/minimize.ts`
 the tool first:
 move data/data.jsonl to archive/data.<version>.jsonl
@@ -10,3 +16,5 @@ then:
 Notes:
     archive/* file should stored as lfs.
     data/data.jsonl should be stored as lfs.
+    we might want to also remove data.jsonl from the git history once we run the minimize tool?
+    the goal is to keep the data.jsonl file as small as possible.
