@@ -1,45 +1,46 @@
+import { queryTokens } from "./cldr-baseline.ts"
 import { loadCldrAnnotations } from "../data/cldr.ts"
 
-const MIN_LENGTHS = [5, 6, 7, 8]
-const MAX_LENGTHS = [8, 9, 10, 11]
+const MIN_ROWS = [5, 6, 7, 8]
+const MAX_COLS = [8, 9, 10, 11]
 
-export function maxIdfKeywords(annotations: Map<string, string[]>): string[] {
-  const index = new Map<string, Set<string>>()
-  for (const [glyph, keywords] of annotations) {
-    for (const raw of keywords) {
-      const keyword = raw.trim()
-      if (!keyword || /\s/.test(keyword)) continue
-      let set = index.get(keyword)
-      if (!set) index.set(keyword, (set = new Set()))
-      set.add(glyph)
-    }
+function dfByKeyword(ann: Map<string, string[]>): Map<string, number> {
+  const df = new Map<string, number>()
+  for (const [, kws] of ann) {
+    const uniq = new Set(kws.map((k) => k.trim().toLowerCase()).filter(Boolean))
+    for (const k of uniq) df.set(k, (df.get(k) ?? 0) + 1)
   }
-  return [...index.entries()].filter(([, set]) => set.size === 1).map(([kw]) => kw)
+  return df
 }
 
-export function lengthMatrix(
-  keywords: string[],
-  minLengths: number[] = MIN_LENGTHS,
-  maxLengths: number[] = MAX_LENGTHS,
-): number[][] {
-  const lens = keywords.map((k) => k.length)
-  return minLengths.map((min) =>
-    maxLengths.map((max) => lens.filter((n) => n >= min && n <= max).length),
+function matrix(words: string[]): string {
+  const rng = (mn: number, mx: number) =>
+    words.filter((w) => w.length >= mn && w.length <= mx).length
+  const head = "        " + MAX_COLS.map((c) => `max=${c}`.padStart(8)).join("")
+  const rows = MIN_ROWS.map(
+    (mn) =>
+      `min=${mn}  ` + MAX_COLS.map((mx) => String(rng(mn, mx)).padStart(8)).join(""),
   )
+  return [head, ...rows].join("\n")
 }
 
-if (import.meta.main) {
-  const annotations = await loadCldrAnnotations()
-  const keywords = maxIdfKeywords(annotations)
-  const matrix = lengthMatrix(keywords)
+const ann = await loadCldrAnnotations()
+const df = dfByKeyword(ann)
+const maxIdf = [...df.values()].filter((n) => n === 1)
+const all = [...df.entries()].filter(([, n]) => n === 1).map(([k]) => k)
+const singleTok = all.filter((k) => {
+  const qt = queryTokens(k)
+  return qt.length === 1 && qt[0] === k
+})
 
-  console.log(
-    `${annotations.size} CLDR emoji -> ${keywords.length} max-IDF keywords `
-    + `(each appears in exactly one emoji)\n`,
-  )
-  const cell = (s: string) => s.padStart(8)
-  console.log([cell("min\\max"), ...MAX_LENGTHS.map((m) => cell(`${m}`))].join(" "))
-  MIN_LENGTHS.forEach((min, i) => {
-    console.log([cell(`${min}`), ...matrix[i].map((n) => cell(`${n}`))].join(" "))
-  })
-}
+console.log(`CLDR keywords (default + derived + tts, trimmed + lowercased)`)
+console.log(`  distinct keywords : ${df.size}`)
+console.log(`  max-IDF (df == 1) : ${maxIdf.length}`)
+console.log(``)
+console.log(`max-IDF keyword count by [min length, max length] (chars):`)
+console.log(``)
+console.log(`all max-IDF keywords:`)
+console.log(matrix(all))
+console.log(``)
+console.log(`single-token [a-z0-9]+ max-IDF keywords (fusion-vocab candidates):`)
+console.log(matrix(singleTok))
