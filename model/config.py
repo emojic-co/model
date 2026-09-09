@@ -49,6 +49,20 @@ DROPOUT_EMOJI = 0.2
 
 emj_str = " ".join([str(p) for p in (EMOJI_EMBED_SIZE, DROPOUT_EMOJI)])
 
+# FUSION
+FUSION_HIDDEN = 48
+DROPOUT_FUSION = 0.1
+FUSION_INT_CLAMP = 16
+FUSION_INT_EMBED_SIZE = 8
+
+fus_str = " ".join([
+    str(p)
+    for p in (
+        FUSION_HIDDEN,
+        DROPOUT_FUSION,
+        FUSION_INT_CLAMP,
+        FUSION_INT_EMBED_SIZE)])
+
 # STYLE
 STYLE_EMBED_SIZE = 16
 DROPOUT_STYLE = 0.5
@@ -129,6 +143,7 @@ RUN_TIME = os.environ.get(
 CONFIG_PARTS = [
     f"ENCODER: {enc_str}",
     f"EMOJI: {emj_str}",
+    f"FUSION: {fus_str}",
     f"STYLE: {style_str}",
     f"GAN: {gan_str}",
     f"TRAIN: {train_str}",
