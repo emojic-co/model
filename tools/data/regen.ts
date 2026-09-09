@@ -1,14 +1,13 @@
 import { cac } from "cac"
 
 import { splitEmojis } from "./emoji.ts"
-import type { FlexHit, FlexQ } from "./flexrank.ts"
+import { buildFlexRanker } from "./flexrank.ts"
 import { normalize } from "./normalize.ts"
 import { STYLE_SET } from "./styles.ts"
 
 const MIN_COUNT = 50
 const MAX_COUNT = 1000
 const EVAL_SIZE = 2000
-const FLEX_K = 32
 
 const FLEX_FIXTURE_TEXTS = [
   "Cupcakes are in the break room",
@@ -34,8 +33,7 @@ export type Row = {
   bg?: string[]
   fg?: string
   extra?: Record<string, unknown>
-  flexsearch?: FlexHit[]
-  flexq?: FlexQ
+  flex_tf?: [number, number][]
 }
 
 const BASE_FIELDS = new Set([
@@ -44,8 +42,7 @@ const BASE_FIELDS = new Set([
   "styles",
   "bg",
   "fg",
-  "flexsearch",
-  "flexq",
+  "flex_tf",
 ])
 
 type Acc = {
@@ -170,9 +167,8 @@ import {
   REGEN_MD,
   TRAIN_JSONL as TRAIN,
 } from "../../files.ts"
-import { runBaseline, stripVS } from "../analysis/cldr-baseline.ts"
+import { runBaseline } from "../analysis/cldr-baseline.ts"
 import { SEED, STYLES } from "./config"
-import { buildFlexRanker } from "./flexrank.ts"
 import { readJsonl, writeFileAtomic } from "./io.ts"
 
 export function toLine(r: Row): string {
@@ -182,9 +178,7 @@ export function toLine(r: Row): string {
       : { text: r.text, emojis: r.emojis, styles: r.styles }
   const withExtra = r.extra ? { ...base, ...r.extra } : base
   return JSON.stringify(
-    r.flexsearch
-      ? { ...withExtra, flexsearch: r.flexsearch, flexq: r.flexq }
-      : withExtra,
+    r.flex_tf ? { ...withExtra, flex_tf: r.flex_tf } : withExtra,
   )
 }
 
@@ -299,12 +293,8 @@ cli
     `write ${REGEN_MD} (train-vocab vs CLDR emoji coverage) and nothing else`,
   )
   .option(
-    "--flex-k <n>",
-    `emojis per row in the CLDR keyword-retrieval ranked list (default ${FLEX_K})`,
-  )
-  .option(
-    "--no-flexsearch",
-    "skip the CLDR keyword-retrieval ranked list on train/eval rows",
+    "--no-kw",
+    "skip the soft-TF fusion signal (flex_tf) on train/eval rows",
   )
 cli.help()
 
@@ -353,37 +343,36 @@ if (import.meta.main) {
   const held = split.slice(0, n)
   const rest = split.slice(n)
 
-  const useFlex = options.flexsearch !== false
-  const flexK = Number(options.flexK ?? FLEX_K)
-  let flexLine = "flexsearch            : skipped (--no-flexsearch)"
-  if (useFlex) {
-    console.log("computing flexsearch ranked lists...")
-    const ranker = await buildFlexRanker(flexK)
-    const vocabMap = new Map(emojis.map((e) => [stripVS(e), e]))
-    let listLenSum = 0
-    let zeroMatched = 0
+  const useKw = options.kw !== false
+  let kwLine = "flex_tf               : skipped (--no-kw)"
+  if (useKw) {
+    console.log("computing soft-TF fusion vectors...")
+    const corpusTexts = (master as { text?: unknown }[])
+      .map((r) => r.text)
+      .filter((t): t is string => typeof t === "string")
+    const ranker = await buildFlexRanker(corpusTexts)
+    let nzSum = 0
     for (const r of split) {
-      const { flexsearch, flexq } = ranker.rank(r.text, vocabMap)
-      r.flexsearch = flexsearch
-      r.flexq = flexq
-      listLenSum += flexsearch.length
-      if (flexq.matched === 0) zeroMatched++
+      const pairs = ranker
+        .tfVec(r.text)
+        .map((v, i) => [i, v] as [number, number])
+        .filter(([, v]) => v > 0)
+      r.flex_tf = pairs
+      nzSum += pairs.length
     }
-    const flexJson = ranker.buildJson(emojis)
-    await writeFileAtomic(FLEX_JSON, JSON.stringify(flexJson) + "\n")
-    const cases = FLEX_FIXTURE_TEXTS.map((text) => {
-      const { flexsearch, flexq } = ranker.rank(text, vocabMap)
-      return { text, flexsearch, flexq }
-    })
+    await writeFileAtomic(FLEX_JSON, JSON.stringify(ranker.buildJson()) + "\n")
+    const cases = FLEX_FIXTURE_TEXTS.map((text) => ({
+      text,
+      tf: ranker.tfVec(text),
+    }))
     await writeFileAtomic(
       FLEX_FIXTURE_JSON,
-      JSON.stringify({ vocab: emojis, cases }, null, 2) + "\n",
+      JSON.stringify({ kw_vocab: ranker.kwVocab, cases }, null, 2) + "\n",
     )
     const denom = split.length || 1
-    flexLine =
-      `flexsearch            : K=${flexK}, mean list ${(listLenSum / denom).toFixed(1)}, `
-      + `rows w/ 0 matched ${((100 * zeroMatched) / denom).toFixed(0)}%, `
-      + `flex.json ${flexJson.emojis.length} emoji`
+    kwLine =
+      `flex_tf               : N=${ranker.kwVocab.length}, `
+      + `mean nz ${(nzSum / denom).toFixed(2)}`
   }
 
   await writeFileAtomic(EVAL, held.map(toLine).join("\n") + "\n")
@@ -429,7 +418,7 @@ if (import.meta.main) {
   console.log(
     `-> ${LABELS}    : ${labels.styles.length} styles, ${labels.emojis.length} emojis`,
   )
-  console.log(flexLine)
+  console.log(kwLine)
   console.log(baselineLine)
   process.exit(0)
 }
