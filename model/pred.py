@@ -10,9 +10,17 @@ from tqdm import tqdm
 
 from files import FLEX_JSON
 from model.config import MAX_TEXT_LEN, SEED
-from model.data import EMOJIS, STYLES, _row_flex, normalize, scatter_flex, text_to_tensor
+from model.data import EMOJIS, FLEX_N, STYLES, normalize, text_to_tensor
 from model.flexrank import FlexRanker
-from model.model import ColorGen, EmojiHead, FusionHead, StyleHead, TextEncoder
+from model.model import (
+    ColorGen,
+    EmojiEmbedding,
+    EmojiHead,
+    FusionHead,
+    KWHead,
+    StyleHead,
+    TextEncoder,
+)
 from model.runmeta import load_pt
 
 
@@ -71,14 +79,23 @@ def predict(
     enc = _load(TextEncoder(), pt_dir / "enc.pt")
     gen = _load(ColorGen(), pt_dir / "gen.pt")
     style = _load(StyleHead(), pt_dir / "style.pt")
+    emoji_embed = _load(EmojiEmbedding(), pt_dir / "emoji_embed.pt")
     emoji = _load(EmojiHead(), pt_dir / "emoji.pt")
 
-    fusion = ranker = None
-    if (pt_dir / "fusion.pt").exists() and Path(FLEX_JSON).exists():
+    fusion = kw = ranker = None
+    if (
+        (pt_dir / "fusion.pt").exists()
+        and (pt_dir / "kw.pt").exists()
+        and Path(FLEX_JSON).exists()
+    ):
         fusion = _load(FusionHead(), pt_dir / "fusion.pt")
+        kw = _load(KWHead(), pt_dir / "kw.pt")
         ranker = FlexRanker(FLEX_JSON)
     else:
-        print("fusion.pt / flex.json missing -- skipping fusion_top_labels", file=sys.stderr)
+        print(
+            "kw.pt / fusion.pt / flex.json missing -- skipping fusion_top_labels",
+            file=sys.stderr,
+        )
 
     records = []
     with torch.no_grad():
@@ -87,7 +104,8 @@ def predict(
             emb = enc(text_tensor)
 
             styles = top_labels(style(emb), STYLES, min_k=1, max_k=3)
-            emoji_logits = emoji(emb)
+            q_txt = emoji(emb)
+            emoji_logits = emoji_embed.score(q_txt)
             emojis = top_labels(emoji_logits, EMOJIS, min_k=1, max_k=1)
 
             colors = gen(emb).squeeze(0)
@@ -101,11 +119,12 @@ def predict(
                 "fg": hexes[2],
             }
             if fusion is not None:
-                fi, fr, fq = _row_flex(
-                    {"flexsearch": ranker.rank(text), "flexq": ranker.flexq(text)}
-                )
-                dense = scatter_flex(fi.unsqueeze(0), fr.unsqueeze(0))
-                fusion_logits = fusion(emoji_logits, dense, fq.unsqueeze(0))
+                tf = torch.zeros(1, FLEX_N)
+                for i, v in enumerate(ranker.tf_vec(text)):
+                    tf[0, i] = v
+                q_kw = kw(tf)
+                a = fusion(emb, tf).unsqueeze(-1)
+                fusion_logits = emoji_embed.score(a * q_txt + (1 - a) * q_kw)
                 record["fusion_top_labels"] = top_labels(
                     fusion_logits, EMOJIS, min_k=1, max_k=1
                 )
