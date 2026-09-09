@@ -14,13 +14,20 @@ import torch
 import typer
 from torch.nn.functional import normalize as _l2norm
 
-from files import CLDR_BASELINE_JSON, CLDR_JSONL, DATA_JSONL, KEYWORDS_JSON
+from files import (
+    CLDR_BASELINE_JSON,
+    CLDR_JSONL,
+    DATA_JSONL,
+    FLEX_JSON,
+    FUSION_PT,
+    KEYWORDS_JSON,
+)
 from model.color import COLOR_SHIFT, rgb_to_oklab
 from model.config import EMOJIS, SEED, STYLES, Z_WEIGHT
-from model.data import EVAL_PATH, TRAIN_PATH, read, text_to_tensor
+from model.data import EVAL_PATH, TRAIN_PATH, _row_flex, read, scatter_flex, text_to_tensor
 from model.data import normalize as norm_text
 from model.export_onnx import CONST_Z
-from model.model import ColorGen, EmojiHead, StyleHead, TextEncoder
+from model.model import ColorGen, EmojiHead, FusionHead, StyleHead, TextEncoder
 from model.runmeta import load_pt, run_meta
 
 DATA_PATH = DATA_JSONL
@@ -67,6 +74,75 @@ def _acc_at_k(logits, target, k):
     k = min(k, logits.size(-1))
     top = logits.topk(k, dim=-1).indices
     return target.gather(1, top).amax(dim=-1)
+
+
+FLEX_SMOKE_MIN = 0.7
+
+
+@cache
+def _flex_ranker():
+    if not Path(FLEX_JSON).exists():
+        return None
+    from model.flexrank import FlexRanker
+
+    return FlexRanker(FLEX_JSON)
+
+
+@cache
+def _fusion_head():
+    if not Path(FUSION_PT).exists():
+        return None
+    head, err = _load(FusionHead(), FUSION_PT)
+    return None if err else head
+
+
+def _flex_tensors(records):
+    flex = [_row_flex(r) for r in records]
+    return (
+        torch.stack([f[0] for f in flex]),
+        torch.stack([f[1] for f in flex]),
+        torch.stack([f[2] for f in flex]),
+    )
+
+
+def _flex_logits(dense):
+    score = dense[..., 0]
+    return torch.where(score > 0, score, torch.full_like(score, -1e9))
+
+
+def _flex_fusion_acc(records, tgt, emoji_logits):
+    if _flex_ranker() is None:
+        return None, None
+    flex_idx, flex_raw, flexq = _flex_tensors(records)
+    dense = scatter_flex(flex_idx, flex_raw)
+    flex_acc = [_acc_at_k(_flex_logits(dense), tgt, k).mean().item() for k in EMOJI_KS]
+    fusion_acc = None
+    head = _fusion_head()
+    if head is not None and emoji_logits is not None:
+        with torch.no_grad():
+            fl = head(emoji_logits, dense, flexq)
+        fusion_acc = [_acc_at_k(fl, tgt, k).mean().item() for k in EMOJI_KS]
+    return flex_acc, fusion_acc
+
+
+def _cldr_flex_smoke():
+    fr = _flex_ranker()
+    if fr is None:
+        return None
+    vocab = set(EMOJIS)
+    scored = []
+    for d in _rows(str(CLDR_JSONL)):
+        word = str(d.get("text", ""))
+        if len(word) < CLDR_MIN_KEYWORD_LEN or not re.search(r"[a-zA-Z]", word):
+            continue
+        targets = {e for e in str(d.get("emojis", "")).split() if e in vocab}
+        if not targets:
+            continue
+        ranked = [row[0] for row in fr.rank(word)]
+        hit = next((i + 1 for i, e in enumerate(ranked) if e in targets), 10**6)
+        scored.append(hit)
+    n = len(scored) or 1
+    return [sum(r <= k for r in scored) / n for k in EMOJI_KS]
 
 
 def _provenance(pt: Path):
@@ -205,9 +281,12 @@ def _section_emoji(enc, head, eval_records):
                 tgt[i, vocab[e]] = 1.0
         with torch.no_grad():
             logits = head(enc(texts))
+        flex_acc, fusion_acc = _flex_fusion_acc(rows, tgt, logits)
         d["eval"] = {
             "n": len(rows),
             "acc_at_k": [_acc_at_k(logits, tgt, k).mean().item() for k in EMOJI_KS],
+            "flex_acc_at_k": flex_acc,
+            "fusion_acc_at_k": fusion_acc,
             "baseline": _cldr_baseline(),
         }
     d["keywords"] = _keyword_probe(enc, head)
@@ -217,7 +296,9 @@ def _section_emoji(enc, head, eval_records):
 def _section_cldr(enc, head):
     if enc is None or head is None:
         return {}
-    return _cldr_probe(enc, head)
+    res = dict(_cldr_probe(enc, head))
+    res["flex_acc_at_k"] = _cldr_flex_smoke()
+    return res
 
 
 def _gold_rows():
@@ -370,6 +451,13 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         report["emoji"] = _section_emoji(enc, emoji_head, eval_records)
     if "cldr" in want:
         report["cldr"] = _section_cldr(enc, emoji_head)
+        fs = report["cldr"].get("flex_acc_at_k")
+        if fs and fs[0] < FLEX_SMOKE_MIN:
+            prov["issues"].append(
+                f"FlexRank acc@1 on cldr.jsonl is {fs[0]:.2f} (< {FLEX_SMOKE_MIN:.2f}) "
+                "-- flex.json / ranker parity looks broken"
+            )
+            prov["consistent"] = not prov["issues"]
     if "cards" in want:
         report["cards"] = _section_cards(enc, style_head, emoji_head, gen, gold_rows)
 
@@ -426,6 +514,7 @@ transform-origin:top right;font-size:12.5px;margin-top:9px}
 .linechart .gtext{font-size:11px;fill:var(--dim)}
 .linechart .lline{fill:none;stroke:var(--accent);stroke-width:2.5}
 .linechart .lline2{fill:none;stroke:#e07b00;stroke-width:2.5}
+.linechart .lline3{fill:none;stroke:#0a9c8b;stroke-width:2.5}
 .linechart .bline{fill:none;stroke:var(--dim);stroke-width:2;stroke-dasharray:5 4}
 .linechart .btext{font-size:11px;fill:var(--dim);font-variant-numeric:tabular-nums}
 .linechart .dot{fill:var(--accent)}
@@ -654,10 +743,22 @@ def _emoji_html(d) -> str:
         e = d["eval"]
         points = list(zip((str(k) for k in EMOJI_KS), e["acc_at_k"], strict=True))
         bl = e.get("baseline")
+        series = []
+        if e.get("flex_acc_at_k"):
+            series.append(("FlexRank", e["flex_acc_at_k"], "lline2"))
+        if e.get("fusion_acc_at_k"):
+            series.append(("Fusion", e["fusion_acc_at_k"], "lline3"))
+        if series:
+            legend = ("EmojiHead", *(name for name, _, _ in series))
+        elif bl:
+            legend = ("model", f"CLDR baseline ({bl['name']})")
+        else:
+            legend = None
         chart = _linechart(
             points,
             baseline=bl["acc_at_k"] if bl else None,
-            legend=("model", f"CLDR baseline ({bl['name']})") if bl else None,
+            legend=legend,
+            series=series or None,
         )
         note = (
             ""
@@ -680,9 +781,19 @@ def _cldr_html(d) -> str:
     if not d:
         return '<h2>CLDR</h2><p class="note">enc.pt / emoji.pt not available.</p>'
     points = list(zip((str(k) for k in EMOJI_KS), d["acc_at_k"], strict=True))
+    fx = d.get("flex_acc_at_k")
+    series = [("FlexRank", fx, "lline2")] if fx else None
+    legend = ("EmojiHead", "FlexRank") if series else None
+    note = (
+        f'<p class="note">FlexRank acc@1 {fx[0]:.2f} — CLDR keyword-retrieval smoke '
+        "test of flex.json / the shared ranker.</p>"
+        if fx
+        else ""
+    )
     return (
         "<h2>CLDR</h2>"
-        f"<h3>Performance on cldr.jsonl ({d['n']} words)</h3>{_linechart(points)}"
+        f"<h3>Performance on cldr.jsonl ({d['n']} words)</h3>"
+        f"{_linechart(points, legend=legend, series=series)}{note}"
     )
 
 
