@@ -1,15 +1,4 @@
-CLDR:
-    1. Keep the CLDR name field into cldr.jsonl (make sure to strip metadata like `flag:`)
-    2. add an option `regen --analysis` which generates a `docs/regen.md` file:
-        for now this file just contains 3 sections:
-            emojis in our train set & in CLDR
-            emojis in our train set but not in CLDR
-            emojis in CLDR but not in our train set
-
-        At the top of the `docs/regen.md` file, add a summary of the number of emojis in each section.
-        Note: do not read directly the data/train.jsonl file, instead read the data/data.jsonl and simulate the regeneration process to get the train set.
-
-    3. 
-        add capital letters to the 
-        CHARS = PAD + "abcdefghijklmnopqrstuvwxyz0123456789!?:()@$%&* "
-        Make sure to update the normalization and remove lower casing from all places to keep capital letters as well.
+train.py
+    I want to use a GPU instance for the remote training to reduce both train time and costs.
+    Make a plan and write a short docs/gpu.md file that explains the pros and cons.
+    Let me review it and decide.

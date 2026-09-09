@@ -1,17 +1,45 @@
-from model.runmeta import load_pt, require_clean_tree, save_pt
-from model.model import (
-    ColorCritic,
-    ColorGen,
-    EmojiHead,
-    StyleHead,
-    TextEncoder,
+import hashlib
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+from datetime import datetime
+from enum import StrEnum
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+import lightning as pl
+import modal
+import torch
+import typer
+from lightning.pytorch.callbacks import (
+    EarlyStopping,
+    ModelCheckpoint,
+    ModelSummary,
+    TQDMProgressBar,
 )
-from model.export_onnx import export
-from model.data import (
-    eval_data_loader,
-    train_data_loader,
-    train_ds,
+from lightning.pytorch.loggers import TensorBoardLogger
+from torch import nn, optim
+from torch.nn.functional import binary_cross_entropy_with_logits, normalize
+
+from files import (
+    CRITIC_PT,
+    DATA_JSONL,
+    EMOJI_PT,
+    ENC_PT,
+    ENERGY_KEYWORDS_TXT,
+    EVAL_JSONL,
+    KEYWORDS_JSON,
+    LABELS_JSON,
+    MODEL_DIR,
+    PT_DIR,
+    STYLE_PT,
+    TOOLS_DIR,
+    TRAIN_JSONL,
 )
+from model.color import rgb_to_oklab
 from model.config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE,
@@ -31,47 +59,20 @@ from model.config import (
     TEXT_EMBED_SIZE,
     VAL_CHECK_INTERVAL,
 )
-from model.color import rgb_to_oklab
-from files import (
-    CRITIC_PT,
-    DATA_JSONL,
-    EMOJI_PT,
-    ENC_PT,
-    ENERGY_KEYWORDS_TXT,
-    EVAL_JSONL,
-    KEYWORDS_JSON,
-    LABELS_JSON,
-    MODEL_DIR,
-    PT_DIR,
-    STYLE_PT,
-    TOOLS_DIR,
-    TRAIN_JSONL,
+from model.data import (
+    eval_data_loader,
+    train_data_loader,
+    train_ds,
 )
-import hashlib
-import os
-import shutil
-import subprocess
-import sys
-import tempfile
-from datetime import datetime
-from enum import StrEnum
-from pathlib import Path
-
-import lightning as pl
-import modal
-import torch
-import typer
-from lightning.pytorch.callbacks import (
-    EarlyStopping,
-    ModelCheckpoint,
-    ModelSummary,
-    TQDMProgressBar,
+from model.export_onnx import export
+from model.model import (
+    ColorCritic,
+    ColorGen,
+    EmojiHead,
+    StyleHead,
+    TextEncoder,
 )
-from lightning.pytorch.loggers import TensorBoardLogger
-from torch import nn, optim
-from torch.nn.functional import binary_cross_entropy_with_logits, normalize
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from model.runmeta import load_pt, require_clean_tree, save_pt
 
 
 def lse_infonce(
