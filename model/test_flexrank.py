@@ -13,17 +13,13 @@ FIX = Path("web/src/flexrank.fixture.json")
 def test_matches_shared_fixture():
     fix = json.loads(FIX.read_text())
     r = FlexRanker(FLEX_JSON)
+    assert r.kw_vocab == fix["kw_vocab"], "kw_vocab drift vs fixture"
     for case in fix["cases"]:
-        got = r.rank(case["text"])
-        exp = case["flexsearch"]
-        assert len(got) == len(exp), case["text"]
-        for g, e in zip(got, exp, strict=True):
-            assert g[0] == e[0], (case["text"], g, e)
-            for gi, ei in zip(g[1:], e[1:], strict=True):
-                assert abs(float(gi) - float(ei)) < 1e-6, (case["text"], g, e)
-        q = r.flexq(case["text"])
-        for k, v in case["flexq"].items():
-            assert abs(q[k] - v) < 1e-6, (case["text"], k, q[k], v)
+        got = r.tf_vec(case["text"])
+        exp = case["tf"]
+        assert len(got) == len(exp), (case["text"], len(got), len(exp))
+        for i, (g, e) in enumerate(zip(got, exp, strict=True)):
+            assert abs(g - e) < 1e-6, (case["text"], i, g, e)
 
 
 if __name__ == "__main__":
