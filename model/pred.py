@@ -8,9 +8,11 @@ import torch
 import typer
 from tqdm import tqdm
 
+from files import FLEX_JSON
 from model.config import MAX_TEXT_LEN, SEED
-from model.data import EMOJIS, STYLES, normalize, text_to_tensor
-from model.model import ColorGen, EmojiHead, StyleHead, TextEncoder
+from model.data import EMOJIS, STYLES, _row_flex, normalize, scatter_flex, text_to_tensor
+from model.flexrank import FlexRanker
+from model.model import ColorGen, EmojiHead, FusionHead, StyleHead, TextEncoder
 from model.runmeta import load_pt
 
 
@@ -71,6 +73,13 @@ def predict(
     style = _load(StyleHead(), pt_dir / "style.pt")
     emoji = _load(EmojiHead(), pt_dir / "emoji.pt")
 
+    fusion = ranker = None
+    if (pt_dir / "fusion.pt").exists() and Path(FLEX_JSON).exists():
+        fusion = _load(FusionHead(), pt_dir / "fusion.pt")
+        ranker = FlexRanker(FLEX_JSON)
+    else:
+        print("fusion.pt / flex.json missing -- skipping fusion_top_labels", file=sys.stderr)
+
     records = []
     with torch.no_grad():
         for text in tqdm(texts, desc="predicting"):
@@ -78,20 +87,29 @@ def predict(
             emb = enc(text_tensor)
 
             styles = top_labels(style(emb), STYLES, min_k=1, max_k=3)
-            emojis = top_labels(emoji(emb), EMOJIS, min_k=1, max_k=1)
+            emoji_logits = emoji(emb)
+            emojis = top_labels(emoji_logits, EMOJIS, min_k=1, max_k=1)
 
             colors = gen(emb).squeeze(0)
             hexes = rgb_to_hex(colors)
 
-            records.append(
-                {
-                    "text": text,
-                    "emojis": " ".join(emojis),
-                    "styles": styles,
-                    "bg": hexes[:2],
-                    "fg": hexes[2],
-                }
-            )
+            record = {
+                "text": text,
+                "emojis": " ".join(emojis),
+                "styles": styles,
+                "bg": hexes[:2],
+                "fg": hexes[2],
+            }
+            if fusion is not None:
+                fi, fr, fq = _row_flex(
+                    {"flexsearch": ranker.rank(text), "flexq": ranker.flexq(text)}
+                )
+                dense = scatter_flex(fi.unsqueeze(0), fr.unsqueeze(0))
+                fusion_logits = fusion(emoji_logits, dense, fq.unsqueeze(0))
+                record["fusion_top_labels"] = top_labels(
+                    fusion_logits, EMOJIS, min_k=1, max_k=1
+                )
+            records.append(record)
     return records
 
 
