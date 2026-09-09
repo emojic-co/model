@@ -1,7 +1,12 @@
-I want to run a full re-annotation task, emoji only:
-    The annotator see the text and all the already existing emojis and it should expand the emoji list (do not force it to)
-    Update the `upsample` tool, add this flag and respect the `--count` flag.
-    Result records should include a meta fields indicating that this is a re-annotation task, and the additional emojis.
-    Make sure to avoid reannotating records that already have the `reannotated` meta field.
-    Make a concise specific prompt for this task, do not use the standard annotation pipeline.
-    Use high concurrency for this task.
+create a tool `tools/data/minimize.ts`
+the tool first:
+move data/data.jsonl to archive/data.<version>.jsonl
+then:
+1. reads archive/data.<version>.jsonl
+2. collapse records with the existing collapse logic (union styles, union emojis, keep last color palette)
+3. strip off any metadata fields that are not essential (keep only {text, emojis, styles, bg, fg})
+4. Write the new minimized data/data.jsonl 
+
+Notes:
+    archive/* file should stored as lfs.
+    data/data.jsonl should be stored as lfs.
