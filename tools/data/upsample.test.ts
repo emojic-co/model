@@ -3,10 +3,12 @@ import { expect, test } from "bun:test"
 import {
   colorBatchPlan,
   countEmojis,
+  mergeEmojiAdditions,
   parseKeywords,
   rankWindow,
   rareEmojis,
   reannotateTexts,
+  reannotatedKeys,
   singleEmojiTexts,
   weightedMedian,
 } from "./upsample.ts"
@@ -161,6 +163,44 @@ test("reannotateTexts samples rows with a palette, skips dups, palette-less, and
   expect(alpha.styles).toEqual(["Serene"])
   expect(alpha.bg).toEqual(["#111111", "#222222"])
   expect(alpha.fg).toBe("#eeeeee")
+})
+
+test("reannotatedKeys collects normalized keys for rows carrying the named marker field", () => {
+  const rows = [
+    { text: "Alpha  One", reannotated: "colors" },
+    { text: "beta two", remojis: ["🎉"] },
+    { text: "gamma three" },
+    { text: "delta four", remojis: [] },
+    { text: 7 as unknown as string, reannotated: "colors" },
+  ]
+  expect([...reannotatedKeys(rows, "reannotated")].sort()).toEqual(["alpha one"])
+  expect([...reannotatedKeys(rows, "remojis")].sort()).toEqual([
+    "beta two",
+    "delta four",
+  ])
+})
+
+test("reannotateTexts with the remojis marker skips only remojis rows, not colors ones", () => {
+  const rows = [
+    { text: "alpha one", emojis: "🅰️", styles: ["Serene"], bg: ["#111111", "#222222"], fg: "#eeeeee", reannotated: "colors" },
+    { text: "beta two", emojis: "🅱️", styles: ["Tense"], bg: ["#333333", "#444444"], fg: "#dddddd", remojis: ["📞"] },
+    { text: "beta two", emojis: "🅱️", styles: ["Tense"], bg: ["#333333", "#444444"], fg: "#dddddd" },
+  ]
+  expect(reannotateTexts(rows, 10, "remojis").map((r) => r.text)).toEqual([
+    "alpha one",
+  ])
+  expect(reannotateTexts(rows, 10, "reannotated").map((r) => r.text)).toEqual([
+    "beta two",
+  ])
+})
+
+test("mergeEmojiAdditions drops already-present, unrecognized, and duplicate emojis, keeping order", () => {
+  expect(mergeEmojiAdditions("🅰️ 🎉", ["🎉", "🍰", "hello", "🍰", "🚗"])).toEqual([
+    "🍰",
+    "🚗",
+  ])
+  expect(mergeEmojiAdditions("", [])).toEqual([])
+  expect(mergeEmojiAdditions("🍰", ["🍰"])).toEqual([])
 })
 
 test("reannotateTexts caps at count after a deterministic seeded shuffle", () => {

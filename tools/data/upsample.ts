@@ -14,6 +14,7 @@ import {
   annotate,
   annotateBatchCount,
   annotateColors,
+  expandEmojis,
   lastFills,
   lastPaletteFix,
 } from "./annotate.ts"
@@ -35,6 +36,7 @@ const KEYWORDS_PER = 50
 const COLOR_PER = 1000
 const COLOR_BATCH = 50
 const REANNOT_COUNT = 300
+const REANNOT_EMOJI_COUNT = 300
 const MIN_LEN = 4
 const MAX_LEN = 42
 const GEN_CONCURRENCY = 20
@@ -128,6 +130,37 @@ export type ReannotRow = {
   fg: string
 }
 
+export type ReannotMarker = "reannotated" | "remojis"
+
+export function reannotatedKeys(
+  rows: { text?: unknown }[],
+  marker: ReannotMarker,
+): Set<string> {
+  const done = new Set<string>()
+  for (const row of rows) {
+    if (typeof row.text !== "string") continue
+    if ((row as Record<string, unknown>)[marker] == null) continue
+    const k = normalize(row.text)
+    if (k) done.add(k)
+  }
+  return done
+}
+
+export function mergeEmojiAdditions(
+  original: string,
+  add: string[],
+): string[] {
+  const have = new Set(splitEmojis(original))
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const e of splitEmojis(add.join(" "))) {
+    if (have.has(e) || seen.has(e)) continue
+    seen.add(e)
+    out.push(e)
+  }
+  return out
+}
+
 export function reannotateTexts(
   rows: {
     text?: unknown
@@ -136,17 +169,13 @@ export function reannotateTexts(
     bg?: unknown
     fg?: unknown
     reannotated?: unknown
+    remojis?: unknown
   }[],
   count: number,
+  marker: ReannotMarker = "reannotated",
   seed = SEED,
 ): ReannotRow[] {
-  const done = new Set<string>()
-  for (const row of rows) {
-    if (row.reannotated === "colors" && typeof row.text === "string") {
-      const k = normalize(row.text)
-      if (k) done.add(k)
-    }
-  }
+  const done = reannotatedKeys(rows, marker)
   const seen = new Set<string>()
   const pool: ReannotRow[] = []
   for (const row of rows) {
@@ -413,8 +442,8 @@ cli
   .option("--short", "standalone: generate short texts capped at the last report's median length (ignores emoji targeting)")
   .option("--single-emoji", "standalone: re-annotate corpus rows that carry at most one emoji (ignores emoji targeting)")
   .option("--colors", `standalone: generate texts related to each of ${COLORS.join(", ")} (ignores emoji targeting)`)
-  .option("--reannotate <what>", `standalone: re-annotate the palette of a seeded random sample of data.jsonl rows (value: colors); appends {reannotated: "colors"} rows`)
-  .option("--count <n>", `cap on texts for --negation (default ${NEG_COUNT}) / --short (default ${SHORT_COUNT}) / --single-emoji (default ${SINGLE_EMOJI_COUNT}) / --reannotate (default ${REANNOT_COUNT})`)
+  .option("--reannotate <what>", `standalone: re-annotate a seeded random sample of data.jsonl rows (value: colors | emojis); colors rewrites the palette ({reannotated: "colors"}), emojis expands the emoji list ({remojis: [...]}); skips rows already carrying either marker`)
+  .option("--count <n>", `cap on texts for --negation (default ${NEG_COUNT}) / --short (default ${SHORT_COUNT}) / --single-emoji (default ${SINGLE_EMOJI_COUNT}) / --reannotate colors (default ${REANNOT_COUNT}) / --reannotate emojis (default ${REANNOT_EMOJI_COUNT})`)
   .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
 cli.help()
 
@@ -432,6 +461,8 @@ if (import.meta.main) {
   const colors = Boolean(options.colors)
   const reannot = options.reannotate != null
   const reannotWhat = reannot ? String(options.reannotate).trim() : ""
+  const reannotColors = reannot && reannotWhat === "colors"
+  const reannotEmojis = reannot && reannotWhat === "emojis"
   const rare = Boolean(options.rare)
   const dry = Boolean(options.dry)
   const minFreq = Number(options.minFreq ?? RARE_MIN_FREQ)
@@ -449,17 +480,19 @@ if (import.meta.main) {
   )
   const count = Number(
     options.count
-    ?? (reannot
-      ? REANNOT_COUNT
-      : singleEmoji
-        ? SINGLE_EMOJI_COUNT
-        : short
-          ? SHORT_COUNT
-          : NEG_COUNT),
+    ?? (reannotEmojis
+      ? REANNOT_EMOJI_COUNT
+      : reannot
+        ? REANNOT_COUNT
+        : singleEmoji
+          ? SINGLE_EMOJI_COUNT
+          : short
+            ? SHORT_COUNT
+            : NEG_COUNT),
   )
 
-  if (reannot && reannotWhat !== "colors") {
-    console.error(`--reannotate only supports "colors", got ${JSON.stringify(options.reannotate)}`)
+  if (reannot && !reannotColors && !reannotEmojis) {
+    console.error(`--reannotate only supports "colors" or "emojis", got ${JSON.stringify(options.reannotate)}`)
     process.exit(1)
   }
   if ([negation, short, singleEmoji, colors, kw, reannot].filter(Boolean).length > 1) {
@@ -546,18 +579,14 @@ if (import.meta.main) {
     let colorPlan: { color: string; n: number }[] = []
     if (reannot) {
       const rows = await readJsonl<Record<string, unknown>>(DATA)
-      const done = new Set(
-        rows
-          .filter((r) => r.reannotated === "colors" && typeof r.text === "string")
-          .map((r) => normalize(r.text as string))
-          .filter(Boolean),
-      )
-      reannotRows = reannotateTexts(rows, count)
+      const marker: ReannotMarker = reannotEmojis ? "remojis" : "reannotated"
+      const done = reannotatedKeys(rows, marker)
+      reannotRows = reannotateTexts(rows, count, marker)
       targets = []
       console.log(
-        `reannotate mode -> ${rows.length} master rows -> `
+        `reannotate (${reannotWhat}) mode -> ${rows.length} master rows -> `
         + `${reannotRows.length} rows selected (seeded sample, cap ${count}; `
-        + `${done.size} already re-annotated, skipped)`,
+        + `${done.size} with a ${marker} field, skipped)`,
       )
       if (!reannotRows.length) {
         console.error("no rows available to re-annotate")
@@ -662,7 +691,7 @@ if (import.meta.main) {
           : colors
             ? "colors"
             : reannot
-              ? "reannotate"
+              ? `reannotate-${reannotWhat}`
               : kw
                 ? "keywords"
                 : rare
@@ -690,7 +719,8 @@ if (import.meta.main) {
         console.log(`would re-annotate    : ${singleTexts.length} corpus rows`)
       } else if (reannot) {
         console.log(
-          `would re-annotate    : ${reannotRows.length} corpus rows (palette only, seeded sample)`,
+          `would re-annotate    : ${reannotRows.length} corpus rows `
+          + `(${reannotEmojis ? "emoji list" : "palette"} only, seeded sample)`,
         )
       } else if (colors) {
         console.log(
@@ -713,7 +743,10 @@ if (import.meta.main) {
     }[] = []
     if (reannot) {
       for (const r of reannotRows) cands.push({ text: r.text, orig: r })
-      console.log(`${cands.length} corpus rows selected, re-annotating palettes`)
+      console.log(
+        `${cands.length} corpus rows selected, re-annotating `
+        + `${reannotEmojis ? "emoji lists" : "palettes"}`,
+      )
     } else if (singleEmoji) {
       for (const t of singleTexts) cands.push({ text: t })
       console.log(`${cands.length} corpus rows selected, annotating`)
@@ -819,7 +852,16 @@ if (import.meta.main) {
     annBar.start(annotateBatchCount(cands.length), 0)
     const labels = new Map<number, Label>()
     const paletteLabels = new Map<number, PaletteResult>()
-    if (reannot) {
+    const addedLabels = new Map<number, string[]>()
+    if (reannotEmojis) {
+      for (const [i, add] of await expandEmojis(
+        cands.map((c) => c.text),
+        cands.map((c) => c.orig?.emojis ?? ""),
+        { onBatchDone: () => annBar.increment() },
+      )) {
+        addedLabels.set(i, add)
+      }
+    } else if (reannot) {
       for (const [i, p] of await annotateColors(cands.map((c) => c.text), {
         onBatchDone: () => annBar.increment(),
       })) {
@@ -845,12 +887,38 @@ if (import.meta.main) {
       newBg: string[]
       newFg: string
     }[] = []
+    const emojiPairs: { text: string; old: string; added: string[] }[] = []
     let noLabel = 0
     let noPalette = 0
     let noEmoji = 0
+    let noAdd = 0
     let hitTarget = 0
     let missTarget = 0
     for (let i = 0; i < cands.length; i++) {
+      if (reannotEmojis) {
+        const add = addedLabels.get(i)
+        if (!add) {
+          noLabel++
+          continue
+        }
+        const o = cands[i].orig!
+        const remojis = mergeEmojiAdditions(o.emojis, add)
+        if (!remojis.length) noAdd++
+        emojiPairs.push({ text: o.text, old: o.emojis, added: remojis })
+        const emojis = [...splitEmojis(o.emojis), ...remojis].join(" ")
+        lines.push(
+          JSON.stringify({
+            text: cands[i].text,
+            emojis,
+            styles: o.styles,
+            bg: o.bg,
+            fg: o.fg,
+            remojis,
+            meta: { date: today, src: "reannotate" },
+          }),
+        )
+        continue
+      }
       if (reannot) {
         const p = paletteLabels.get(i)
         if (!p) {
@@ -921,7 +989,34 @@ if (import.meta.main) {
     }
     await appendJsonl(DATA, lines)
 
-    if (reannot && pairs.length) {
+    if (reannotEmojis && emojiPairs.length) {
+      const stamp = new Date()
+        .toISOString()
+        .replace(/[-:T]/g, "")
+        .slice(0, 12)
+      await mkdir(PREVIEW_DIR, { recursive: true })
+      const dest = join(PREVIEW_DIR, `reannotate-emojis-${stamp}.jsonl`)
+      await writeFile(
+        dest,
+        emojiPairs
+          .map((p) =>
+            JSON.stringify({ text: p.text, old: p.old, added: p.added }),
+          )
+          .join("\n") + "\n",
+      )
+      const addedCounts = emojiPairs.map((p) => p.added.length)
+      const total = addedCounts.reduce((s, n) => s + n, 0)
+      const withAny = addedCounts.filter((n) => n > 0).length
+      console.log("\n--- emoji expansion ---")
+      console.log(`rows with additions  : ${withAny} / ${emojiPairs.length}`)
+      console.log(
+        `emojis added         : ${total} `
+        + `(${(total / Math.max(1, emojiPairs.length)).toFixed(2)}/row)`,
+      )
+      console.log(`pairs written        : ${dest}`)
+    }
+
+    if (reannotColors && pairs.length) {
       const stamp = new Date()
         .toISOString()
         .replace(/[-:T]/g, "")
@@ -989,9 +1084,12 @@ if (import.meta.main) {
     )
     console.log(`appended -> data     : ${lines.length}`)
     console.log(
-      `dropped no ${reannot ? "palette   " : "label     "}: ${noLabel}`,
+      `dropped no ${reannotEmojis ? "response  " : reannot ? "palette   " : "label     "}`
+      + `: ${noLabel}`,
     )
-    if (reannot) {
+    if (reannotEmojis) {
+      console.log(`rows with no addition : ${noAdd} (appended, remojis [])`)
+    } else if (reannot) {
       console.log(
         `fg repaired          : ${lastPaletteFix.repaired}`
         + ` (bad hex ${lastPaletteFix.badHex}, unfixable ${lastPaletteFix.unfixable})`,

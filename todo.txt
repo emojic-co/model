@@ -1,8 +1,7 @@
-Discussion:
-    GAN performance:
-        Should I revert the CRITIC_COLOR_CHANNELS back to [96]?
-        When looking at the auc/critic/val with new configuration it is much better.
-        But when looking at the GAN losses the critic is at 1.34 (random pick) and the energy stays very high.
-        Also in the report the colors look bad in general.
-        How can we explain these results?
-        What should we do?
+I want to run a full re-annotation task, emoji only:
+    The annotator see the text and all the already existing emojis and it should expand the emoji list (do not force it to)
+    Update the `upsample` tool, add this flag and respect the `--count` flag.
+    Result records should include a meta fields indicating that this is a re-annotation task, and the additional emojis.
+    Make sure to avoid reannotating records that already have the `reannotated` meta field.
+    Make a concise specific prompt for this task, do not use the standard annotation pipeline.
+    Use high concurrency for this task.

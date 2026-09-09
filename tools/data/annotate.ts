@@ -10,6 +10,7 @@ export const MODEL = "openai/gpt-5.6-luna"
 export const ANNOTATE_BATCH_SIZE = Number(process.env.ANNOTATE_BATCH_SIZE) || 10
 export const ANNOTATE_CONCURRENCY = Number(process.env.ANNOTATE_CONCURRENCY) || 25
 export const PALETTE_CONCURRENCY = Number(process.env.PALETTE_CONCURRENCY) || 100
+export const EXPAND_CONCURRENCY = Number(process.env.EXPAND_CONCURRENCY) || 100
 export const ANNOTATE_ATTEMPTS = Number(process.env.ANNOTATE_ATTEMPTS) || 1
 
 export const MIN_CONTRAST = 3
@@ -106,6 +107,11 @@ const PaletteAnnotation = z.object({
   fg: z.string(),
 })
 
+const ExpandAnnotation = z.object({
+  id: z.number(),
+  add: z.string(),
+})
+
 const STYLE_BLOCK = STYLES.map((s) => `   ${s} - ${STYLE_LINES[s]}`).join("\n")
 
 const EMOJI_RULES = [
@@ -159,6 +165,23 @@ const PALETTE_ONLY_RULES = [
   "text over that gradient and must stay clearly readable against both bg",
   "stops (strong contrast). All three are lowercase #rrggbb hex.",
 ]
+
+export function expandEmojiInstructions(): string {
+  return [
+    "You extend emoji annotations. Each message below already has 0 or more",
+    "emojis. Add only emojis that clearly fit the message's subject, activity,",
+    "place, or mood and are NOT already in its list. Prefer a specific emoji",
+    "over a generic one; add a mood emoji only when the mood is strong. Add",
+    "nothing when the list is already complete - an empty string is fine.",
+    "Never remove or reorder the existing emojis.",
+    "",
+    "Return exactly one object per input message, echoing its id.",
+    "Do not add, drop, reorder, or merge items.",
+    '"add" is a space-separated string of ONLY the new emojis, most relevant',
+    'first. Format: {"annotations": [{"id": 0, "add": "\u{1F389} \u{1F370}"},'
+    + ' {"id": 1, "add": ""}]}',
+  ].join("\n")
+}
 
 export function paletteInstructions(): string {
   return [
@@ -565,5 +588,88 @@ export async function annotateColors(
     `palette: repaired ${lastPaletteFix.repaired} · bad hex `
     + `${lastPaletteFix.badHex} · unfixable ${lastPaletteFix.unfixable}`,
   )
+  return result
+}
+
+async function expandEmojiBatch(
+  batch: { id: number; text: string; emojis: string }[],
+  usage: Usage,
+  drops: Drops,
+): Promise<Map<number, string[]>> {
+  const ids = new Set(batch.map((b) => b.id))
+  const byId = new Map<number, string[]>()
+  let threw = false
+
+  for (
+    let attempt = 0;
+    attempt < ANNOTATE_ATTEMPTS && byId.size < ids.size;
+    attempt++
+  ) {
+    try {
+      const res = await generateText({
+        model: MODEL,
+        output: Output.object({
+          schema: z.object({ annotations: z.array(ExpandAnnotation) }),
+        }),
+        prompt: [
+          expandEmojiInstructions(),
+          "",
+          "Messages:",
+          JSON.stringify(batch),
+        ].join("\n"),
+      })
+      addUsage(usage, res.usage)
+      threw = false
+      for (const a of res.output.annotations) {
+        if (!ids.has(a.id) || byId.has(a.id)) continue
+        byId.set(a.id, splitEmojis(a.add))
+      }
+    } catch (err) {
+      threw = true
+      if (attempt === ANNOTATE_ATTEMPTS - 1) {
+        console.warn(`\n  expand batch of ${batch.length} failed: ${err}`)
+      }
+    }
+  }
+
+  for (const b of batch) {
+    if (byId.has(b.id)) continue
+    if (threw) drops.batch++
+    else drops.missingId++
+    console.warn(`\n  dropped id ${b.id}: ${threw ? "batch" : "missingId"}`)
+  }
+  return byId
+}
+
+export async function expandEmojis(
+  texts: string[],
+  existing: string[],
+  opts: { onBatchDone?: () => void } = {},
+): Promise<Map<number, string[]>> {
+  const items = texts.map((text, id) => ({
+    id,
+    text,
+    emojis: existing[id] ?? "",
+  }))
+  const result = new Map<number, string[]>()
+  const queue = new PQueue({ concurrency: EXPAND_CONCURRENCY })
+
+  lastUsage.calls = 0
+  lastUsage.input = 0
+  lastUsage.output = 0
+  lastUsage.total = 0
+  resetDrops(lastDrops)
+
+  queue.addAll(
+    chunk(items, ANNOTATE_BATCH_SIZE).map((batch) => async () => {
+      const got = await expandEmojiBatch(batch, lastUsage, lastDrops)
+      for (const [id, add] of got) result.set(id, add)
+      opts.onBatchDone?.()
+    }),
+  )
+  await queue.onIdle()
+
+  console.log(`\n${formatUsage(lastUsage)}`)
+  console.log(formatDrops(lastDrops))
   return result
 }
