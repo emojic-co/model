@@ -178,8 +178,8 @@ class FusionHead(nn.Module):
             nn.Dropout(p=DROPOUT_FUSION),
             nn.Linear(FUSION_HIDDEN, 1))
 
-        nn.init.zeros_(self.net[-1].weight)
-        nn.init.zeros_(self.net[-1].bias)
+        nn.init.zeros_(self.net[-1].weight)  # type: ignore
+        nn.init.zeros_(self.net[-1].bias)  # type: ignore
 
     def forward(
         self,
