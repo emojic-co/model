@@ -14,12 +14,26 @@ runner = CliRunner()
 
 
 def test_parse_heads_default():
-    assert T._parse_heads(None) == ("style", "emoji", "critic")
+    assert T._parse_heads(None) == ("style", "emoji", "critic", "fusion")
 
 
 def test_parse_heads_orders_canonically():
     assert T._parse_heads("emoji,style") == ("style", "emoji")
     assert T._parse_heads(" critic , emoji ") == ("emoji", "critic")
+
+
+def test_all_heads_includes_fusion():
+    assert T.ALL_HEADS == ("style", "emoji", "critic", "fusion")
+
+
+def test_heads_fusion_requires_emoji():
+    assert T._parse_heads("emoji,fusion") == ("emoji", "fusion")
+    raised = False
+    try:
+        T._parse_heads("style,fusion")
+    except typer.BadParameter:
+        raised = True
+    assert raised
 
 
 def test_parse_heads_rejects_unknown():
@@ -54,6 +68,7 @@ def test_validate_nondefault_folder_needs_local():
         "style",
         "emoji",
         "critic",
+        "fusion",
     )
 
 
@@ -194,6 +209,8 @@ def main() -> None:
     """Run the train.py CLI assertion checks."""
     test_parse_heads_default()
     test_parse_heads_orders_canonically()
+    test_all_heads_includes_fusion()
+    test_heads_fusion_requires_emoji()
     test_parse_heads_rejects_unknown()
     test_validate_heads_only_with_enc()
     test_validate_nondefault_folder_needs_local()
