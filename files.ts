@@ -2,6 +2,7 @@ export const MODEL_DIR = "model"
 export const TOOLS_DIR = "tools"
 export const DATA_DIR = "data"
 export const PT_DIR = "pt"
+export const ARCHIVE_DIR = "archive"
 
 export const DATA_JSONL = `${DATA_DIR}/data.jsonl`
 export const CLDR_JSONL = `${DATA_DIR}/cldr.jsonl`
