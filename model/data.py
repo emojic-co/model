@@ -14,7 +14,7 @@ EVAL_PATH = EVAL_JSONL
 
 PAD = "·"
 PAD_IDX = 0
-CHARS = PAD + "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?:()@$%&* "
+CHARS = PAD + "abcdefghijklmnopqrstuvwxyz0123456789!?:()@$%&* "
 VOCAB_SIZE = len(CHARS)
 
 
@@ -43,7 +43,7 @@ def rnd_color_tensor() -> torch.Tensor:
 
 
 def normalize(text: str) -> str:
-    text = re.sub(r"\s+", " ", text).strip()
+    text = re.sub(r"\s+", " ", text).strip().lower()
     text = re.sub(r'(.)\1{2,}', r'\1\1', text)
     return "".join(c for c in text if c in char2idx)
 
@@ -144,9 +144,8 @@ def keyword_index(
     kws = [k.lower() for k in keywords]
     hits: dict[str, list[record]] = {k: [] for k in kws}
     for r in read(TRAIN_PATH):
-        lowered = r.text.lower()
         for k in kws:
-            if k in lowered:
+            if k in r.text:
                 hits[k].append(r)
 
     g = torch.Generator().manual_seed(seed)

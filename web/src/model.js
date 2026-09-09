@@ -2,6 +2,7 @@ export function normalize(text, char2idx) {
   const t = text
     .replace(/\s+/g, ' ')
     .trim()
+    .toLowerCase()
     .replace(/(.)\1{2,}/g, '$1$1')
   let out = ''
   for (const c of t) if (char2idx.has(c)) out += c

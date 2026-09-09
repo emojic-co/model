@@ -102,7 +102,7 @@ test("weightedMedian throws on an empty or zero-count distribution", () => {
 test("singleEmojiTexts keeps rows with a unique normalized text and at most one emoji", () => {
   const rows = [
     { text: "walking the dog", emojis: "🐕" },
-    { text: "  walking  the dog  ", emojis: "🚶" },
+    { text: "  Walking  the DOG  ", emojis: "🚶" },
     { text: "made pizza tonight", emojis: "🍕" },
     { text: "no emoji here", emojis: "" },
     { text: "two of them", emojis: "🍕 🚗" },
@@ -116,7 +116,7 @@ test("singleEmojiTexts: zero-emoji rows still need a unique normalized text", ()
   const rows = [
     { text: "solo blank", emojis: "" },
     { text: "dup blank", emojis: "" },
-    { text: "dup  blank", emojis: "🍕" },
+    { text: "Dup  Blank", emojis: "🍕" },
   ]
   expect(singleEmojiTexts(rows, 100)).toEqual(["solo blank"])
 })
@@ -148,7 +148,7 @@ test("reannotateTexts samples rows with a palette, skips dups, palette-less, and
   const rows = [
     { text: "alpha one", emojis: "🅰️", styles: ["Serene"], bg: ["#111111", "#222222"], fg: "#eeeeee" },
     { text: "beta two", emojis: "🅱️", styles: ["Tense"], bg: ["#333333", "#444444"], fg: "#dddddd" },
-    { text: "  alpha  one ", emojis: "🔤", styles: [], bg: ["#555555", "#666666"], fg: "#cccccc" },
+    { text: "  Alpha  One ", emojis: "🔤", styles: [], bg: ["#555555", "#666666"], fg: "#cccccc" },
     { text: "gamma three", emojis: "", styles: ["Deadpan"], bg: ["#777777", "#888888"], fg: "#bbbbbb", reannotated: "colors" },
     { text: "gamma three", emojis: "", styles: ["Deadpan"], bg: ["#777777", "#888888"], fg: "#bbbbbb" },
     { text: "delta four", emojis: "🔺", styles: ["Playful"] },

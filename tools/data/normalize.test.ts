@@ -2,18 +2,14 @@ import { expect, test } from "bun:test"
 
 import { normalize } from "./normalize.ts"
 
-test("collapses whitespace and trims, preserving case", () => {
-  expect(normalize("  Hello    There  ")).toBe("Hello There")
+test("collapses whitespace, trims, lowercases", () => {
+  expect(normalize("  Hello    There  ")).toBe("hello there")
 })
 
 test("collapses any run of 3+ identical chars to 2", () => {
-  expect(normalize("Heyyy")).toBe("Heyy")
-  expect(normalize("AAAA")).toBe("AA")
+  expect(normalize("Heyyy")).toBe("heyy")
+  expect(normalize("AAAA")).toBe("aa")
   expect(normalize("wow!!!")).toBe("wow!!")
-})
-
-test("keeps capital letters", () => {
-  expect(normalize("NASA visited the UK")).toBe("NASA visited the UK")
 })
 
 test("drops characters outside the model vocab", () => {
