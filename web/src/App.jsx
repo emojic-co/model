@@ -33,12 +33,8 @@ export function initialEmojiMode() {
 
 export function pickEmojiList(mode, scores, meta, slots) {
   if (!scores || !meta) return []
-  if (mode === 'keywords') {
-    return (scores.keywordRank || [])
-      .slice(0, slots)
-      .map((emoji, i) => ({ emoji, p: 1 - i / slots }))
-  }
-  const arr = mode === 'fusion' ? scores.fusion : scores.emoji
+  const arr =
+    mode === 'fusion' ? scores.fusion : mode === 'keywords' ? scores.kw : scores.emoji
   if (!arr) return []
   return [...arr.keys()]
     .sort((a, b) => arr[b] - arr[a])
