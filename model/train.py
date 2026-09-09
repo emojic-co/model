@@ -27,12 +27,14 @@ from torch.nn.functional import binary_cross_entropy_with_logits, normalize
 from files import (
     CRITIC_PT,
     DATA_JSONL,
+    EMOJI_EMBED_PT,
     EMOJI_PT,
     ENC_PT,
     ENERGY_KEYWORDS_TXT,
     EVAL_JSONL,
     FUSION_PT,
     KEYWORDS_JSON,
+    KW_PT,
     LABELS_JSON,
     MODEL_DIR,
     PT_DIR,
@@ -63,7 +65,6 @@ from model.config import (
 )
 from model.data import (
     eval_data_loader,
-    scatter_flex,
     train_data_loader,
     train_ds,
 )
@@ -71,8 +72,10 @@ from model.export_onnx import export
 from model.model import (
     ColorCritic,
     ColorGen,
+    EmojiEmbedding,
     EmojiHead,
     FusionHead,
+    KWHead,
     StyleHead,
     TextEncoder,
 )
@@ -200,10 +203,12 @@ class LitEncoder(pl.LightningModule):
         if "style" in self.heads:
             self.style = StyleHead()
         if "emoji" in self.heads:
+            self.emoji_embed = EmojiEmbedding()
             self.emoji = EmojiHead()
         if "critic" in self.heads:
             self.critic = ColorCritic()
         if "fusion" in self.heads:
+            self.kw = KWHead()
             self.fusion = FusionHead()
 
         self._val_pos: list[torch.Tensor] = []
@@ -218,7 +223,7 @@ class LitEncoder(pl.LightningModule):
                  prog_bar=True, batch_size=bs)
 
     def _step(self, batch, split):
-        text, emoji, style, colors, flex_idx, flex_raw, flexq = batch
+        text, emoji, style, colors, flex_tf = batch
         enc = self.enc(text)
         loss = enc.new_zeros(())
         bs = text.size(0)
@@ -231,7 +236,8 @@ class LitEncoder(pl.LightningModule):
             self._log(f"MRR/s/{split}", mrr(style_logits, style).mean(), bs)
 
         if "emoji" in self.heads:
-            emoji_logits = self.emoji(enc)
+            q_txt = self.emoji(enc)
+            emoji_logits = self.emoji_embed.score(q_txt)
             loss_emoji = lse_infonce(emoji_logits, emoji, INFONCE_TEMP)
             loss = loss + loss_emoji
             self._log(f"loss/e/{split}", loss_emoji, bs)
@@ -247,24 +253,29 @@ class LitEncoder(pl.LightningModule):
             self._log(f"MRR/e/{split}", emoji_mrr, max(n_e, 1))
 
         if "fusion" in self.heads:
-            flex_dense = scatter_flex(flex_idx, flex_raw)
-            fusion_logits = self.fusion(emoji_logits.detach(), flex_dense, flexq)
+            q_kw = self.kw(flex_tf)
+            kw_logits = self.emoji_embed.score(q_kw)
+            loss_kw = lse_infonce(kw_logits, emoji, INFONCE_TEMP)
+            loss = loss + loss_kw
+            self._log(f"loss/kw/{split}", loss_kw, bs)
+
+            a = self.fusion(enc, flex_tf).unsqueeze(-1)
+            q_fused = a * q_txt.detach() + (1 - a) * q_kw.detach()
+            w = self.emoji_embed.embed.weight.detach()
+            b = self.emoji_embed.bias.detach()
+            fusion_logits = q_fused @ w.t() + b
             loss_fusion = lse_infonce(fusion_logits, emoji, INFONCE_TEMP)
             loss = loss + loss_fusion
             self._log(f"loss/fusion/{split}", loss_fusion, bs)
 
-            flex_score = flex_dense[..., 0]
-            flex_logits = torch.where(
-                flex_score > 0, flex_score, flex_score.new_full((), -1e9)
-            )
             if n_e:
+                krr = mrr(kw_logits[has_e], emoji[has_e]).mean()
                 frr = mrr(fusion_logits[has_e], emoji[has_e]).mean()
-                xrr = mrr(flex_logits[has_e], emoji[has_e]).mean()
             else:
+                krr = torch.zeros((), device=emoji.device)
                 frr = torch.zeros((), device=emoji.device)
-                xrr = torch.zeros((), device=emoji.device)
+            self._log(f"MRR/kw/{split}", krr, max(n_e, 1))
             self._log(f"MRR/fusion/{split}", frr, max(n_e, 1))
-            self._log(f"MRR/flex/{split}", xrr, max(n_e, 1))
 
         if "critic" in self.heads:
             shift = 1 if split == "val" else int(torch.randint(1, bs, (1,)).item())
@@ -319,8 +330,12 @@ class LitEncoder(pl.LightningModule):
 
     def configure_optimizers(self):
         params = list(self.enc.parameters())
+        if "emoji" in self.heads:
+            params += list(self.emoji_embed.parameters())
         for h in self.heads:
             params += list(getattr(self, h).parameters())
+        if "fusion" in self.heads:
+            params += list(self.kw.parameters())
         return optim.Adam(params, lr=LR)
 
 
@@ -522,6 +537,14 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
         mod = LitEncoder.load_from_checkpoint(ckpt.best_model_path)
 
     save_pt(mod.enc.state_dict(), str(out_dir / "enc.pt"), stage="enc")
+    if "emoji" in heads:
+        save_pt(
+            mod.emoji_embed.state_dict(),
+            str(out_dir / "emoji_embed.pt"),
+            stage="enc",
+        )
+    if "fusion" in heads:
+        save_pt(mod.kw.state_dict(), str(out_dir / "kw.pt"), stage="enc")
     for h in ALL_HEADS:
         if h in heads:
             save_pt(getattr(mod, h).state_dict(), str(
@@ -594,7 +617,16 @@ def _run_local(
 
     if stage == Stage.gan:
         _require_pt(
-            pt_dir, ["enc.pt", "critic.pt", "style.pt", "emoji.pt", "fusion.pt"]
+            pt_dir,
+            [
+                "enc.pt",
+                "critic.pt",
+                "style.pt",
+                "emoji.pt",
+                "emoji_embed.pt",
+                "kw.pt",
+                "fusion.pt",
+            ],
         )
         enc = _load(TextEncoder(), str(pt_dir / "enc.pt"))
         critic = _load(ColorCritic(), str(pt_dir / "critic.pt"))
@@ -721,6 +753,8 @@ def train_remote(
     enc_bytes: bytes | None = None,
     style_bytes: bytes | None = None,
     emoji_bytes: bytes | None = None,
+    emoji_embed_bytes: bytes | None = None,
+    kw_bytes: bytes | None = None,
     critic_bytes: bytes | None = None,
     fusion_bytes: bytes | None = None,
 ) -> dict[str, int]:
@@ -738,6 +772,8 @@ def train_remote(
         ENC_PT: enc_bytes,
         STYLE_PT: style_bytes,
         EMOJI_PT: emoji_bytes,
+        EMOJI_EMBED_PT: emoji_embed_bytes,
+        KW_PT: kw_bytes,
         CRITIC_PT: critic_bytes,
         FUSION_PT: fusion_bytes,
     }
@@ -861,11 +897,21 @@ def _run_remote(
         "enc_bytes": None,
         "style_bytes": None,
         "emoji_bytes": None,
+        "emoji_embed_bytes": None,
+        "kw_bytes": None,
         "critic_bytes": None,
         "fusion_bytes": None,
     }
     if stage == "gan":
-        for name in (ENC_PT, STYLE_PT, EMOJI_PT, CRITIC_PT, FUSION_PT):
+        for name in (
+            ENC_PT,
+            STYLE_PT,
+            EMOJI_PT,
+            EMOJI_EMBED_PT,
+            KW_PT,
+            CRITIC_PT,
+            FUSION_PT,
+        ):
             if not Path(name).exists():
                 raise typer.BadParameter(
                     f"{name} not found -- run `train enc --local` "
@@ -875,6 +921,8 @@ def _run_remote(
             "enc_bytes": Path(ENC_PT).read_bytes(),
             "style_bytes": Path(STYLE_PT).read_bytes(),
             "emoji_bytes": Path(EMOJI_PT).read_bytes(),
+            "emoji_embed_bytes": Path(EMOJI_EMBED_PT).read_bytes(),
+            "kw_bytes": Path(KW_PT).read_bytes(),
             "critic_bytes": Path(CRITIC_PT).read_bytes(),
             "fusion_bytes": Path(FUSION_PT).read_bytes(),
         }
