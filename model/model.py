@@ -14,11 +14,15 @@ from model.config import (
     CRITIC_TEXT_CHANNELS,
     DROPOUT_CRITIC,
     DROPOUT_EMOJI,
+    DROPOUT_FUSION,
     DROPOUT_STYLE,
     EMOJI_EMBED_SIZE,
     ENCODER_CHANNELS,
     ENCODER_DILATION,
     ENCODER_KERNEL_SIZE,
+    FUSION_HIDDEN,
+    FUSION_INT_CLAMP,
+    FUSION_INT_EMBED_SIZE,
     GEN_CHANNELS,
     RELU_SLOPE,
     STYLE_EMBED_SIZE,
@@ -100,6 +104,101 @@ class EmojiHead(nn.Module):
     def forward(self, text_embedding: torch.Tensor) -> torch.Tensor:
         q = self.net(text_embedding)
         return q @ self.embed.weight.t() + self.bias
+
+
+_FUSION_EPS = 1e-6
+
+
+def fusion_features(
+    emoji_logit: torch.Tensor,
+    flex_raw: torch.Tensor,
+    flexq: torch.Tensor,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    score = flex_raw[..., 0]
+    score_norm = flex_raw[..., 1]
+    exact = flex_raw[..., 2]
+    fuzzy = flex_raw[..., 3]
+    best_idf = flex_raw[..., 4]
+    rank_recip = flex_raw[..., 5]
+    n_kw = flex_raw[..., 6]
+    kw_len = flex_raw[..., 7]
+    word_len = flex_raw[..., 8]
+    overlap = flex_raw[..., 9]
+    present = (score > 0).float()
+
+    q = flexq.unsqueeze(1)
+    tokens = q[..., 0]
+    matched = q[..., 1]
+    qsum = q[..., 2]
+    qmax = q[..., 3]
+    qcand = q[..., 4]
+
+    scal = torch.stack(
+        [
+            emoji_logit,
+            present,
+            torch.log1p(score.clamp(min=0.0)),
+            score_norm,
+            score / (qsum + _FUSION_EPS),
+            exact,
+            fuzzy,
+            exact / (tokens + _FUSION_EPS),
+            fuzzy / (tokens + _FUSION_EPS),
+            best_idf / 10.0,
+            rank_recip,
+            overlap / (word_len + _FUSION_EPS),
+            tokens.expand_as(present),
+            matched.expand_as(present),
+            (matched / (tokens + _FUSION_EPS)).expand_as(present),
+            torch.log1p(qsum.clamp(min=0.0)).expand_as(present),
+            qmax.expand_as(present),
+            torch.log1p(qcand.clamp(min=0.0)).expand_as(present),
+        ],
+        dim=-1,
+    )
+    ints = torch.stack([n_kw, kw_len, word_len, overlap], dim=-1)
+    idx = ints.round().clamp(0, FUSION_INT_CLAMP).long()
+    return scal, idx
+
+
+class FusionHead(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        c = FUSION_INT_CLAMP + 1
+        e = FUSION_INT_EMBED_SIZE
+        self.emb_nkw = nn.Embedding(c, e)
+        self.emb_kwlen = nn.Embedding(c, e)
+        self.emb_wlen = nn.Embedding(c, e)
+        self.emb_ovl = nn.Embedding(c, e)
+
+        self.net = nn.Sequential(
+            nn.Linear(18 + 4 * e, FUSION_HIDDEN),
+            nn.LeakyReLU(negative_slope=RELU_SLOPE),
+            nn.Dropout(p=DROPOUT_FUSION),
+            nn.Linear(FUSION_HIDDEN, 1))
+
+        nn.init.zeros_(self.net[-1].weight)
+        nn.init.zeros_(self.net[-1].bias)
+
+    def forward(
+        self,
+        emoji_logit: torch.Tensor,
+        flex_raw: torch.Tensor,
+        flexq: torch.Tensor,
+    ) -> torch.Tensor:
+        scal, idx = fusion_features(emoji_logit, flex_raw, flexq)
+        emb = torch.cat(
+            [
+                self.emb_nkw(idx[..., 0]),
+                self.emb_kwlen(idx[..., 1]),
+                self.emb_wlen(idx[..., 2]),
+                self.emb_ovl(idx[..., 3]),
+            ],
+            dim=-1,
+        )
+        g = self.net(torch.cat([scal, emb], dim=-1)).squeeze(-1)
+        return emoji_logit + g
 
 
 # GAN
