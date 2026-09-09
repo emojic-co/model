@@ -59,7 +59,6 @@ export async function buildFlexRanker(k: number): Promise<FlexRankerBundle> {
   const glyphs: string[] = []
   const kwCount: number[] = []
   const kwTokens: string[][] = []
-  const globalKw = new Set<string>()
   const kwToGlyphs = new Map<string, Set<number>>()
   const prefix4 = new Map<string, Set<string>>()
   for (const [glyph, keywords] of annotations) {
@@ -69,7 +68,6 @@ export async function buildFlexRanker(k: number): Promise<FlexRankerBundle> {
     kwTokens.push(toks)
     kwCount.push(toks.length)
     for (const kw of toks) {
-      for (const w of kw.split(/\s+/)) if (w) globalKw.add(w)
       let gs = kwToGlyphs.get(kw)
       if (!gs) kwToGlyphs.set(kw, (gs = new Set()))
       gs.add(gi)
@@ -83,7 +81,26 @@ export async function buildFlexRanker(k: number): Promise<FlexRankerBundle> {
   }
   const idf = makeIdf(kwTokens)
 
+  let memoVocab: Map<string, string> | null = null
+  let memoVocabKw = new Set<string>()
+  let memoVocabRank = new Map<string, number>()
+  const ensureVocab = (vocab: Map<string, string>) => {
+    if (vocab === memoVocab) return
+    memoVocab = vocab
+    memoVocabKw = new Set()
+    memoVocabRank = new Map()
+    let pos = 0
+    for (const stripped of vocab.keys()) memoVocabRank.set(stripped, pos++)
+    for (let gi = 0; gi < glyphs.length; gi++) {
+      if (!vocab.has(glyphs[gi])) continue
+      for (const kw of kwTokens[gi]) {
+        for (const w of kw.split(/\s+/)) if (w) memoVocabKw.add(w)
+      }
+    }
+  }
+
   const rank: FlexRanker = (text, vocab) => {
+    ensureVocab(vocab)
     const qTokens = queryTokens(text)
     type Acc = {
       score: number
@@ -105,6 +122,7 @@ export async function buildFlexRanker(k: number): Promise<FlexRankerBundle> {
       kwLen: number,
       overlap: number,
     ) => {
+      if (!vocab.has(glyphs[gi])) return
       let e = acc.get(gi)
       if (!e) {
         e = {
@@ -164,16 +182,16 @@ export async function buildFlexRanker(k: number): Promise<FlexRankerBundle> {
       sum += v.score
       if (v.score > max) max = v.score
     }
+    const vrank = (gi: number) => memoVocabRank.get(glyphs[gi]) ?? 0
     const ranked = [...acc.entries()].sort(
       (a, b) =>
         b[1].score - a[1].score ||
         (b[1].exact + b[1].fuzzy) - (a[1].exact + a[1].fuzzy) ||
-        a[0] - b[0],
+        vrank(a[0]) - vrank(b[0]),
     )
     const list: FlexHit[] = []
     for (const [gi, v] of ranked) {
-      const orig = vocab.get(glyphs[gi])
-      if (orig === undefined) continue
+      const orig = vocab.get(glyphs[gi])!
       list.push([
         orig,
         r3(v.score),
@@ -188,7 +206,7 @@ export async function buildFlexRanker(k: number): Promise<FlexRankerBundle> {
       ])
       if (list.length >= k) break
     }
-    const matched = qTokens.filter((w) => globalKw.has(w)).length
+    const matched = qTokens.filter((w) => memoVocabKw.has(w)).length
     return {
       flexsearch: list,
       flexq: { tokens: qTokens.length, matched, sum: r3(sum), max: r3(max), cand: acc.size },
