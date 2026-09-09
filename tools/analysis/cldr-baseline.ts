@@ -8,9 +8,9 @@ const VARIATION_SELECTORS = /[︎️]/g
 const SEARCH_LIMIT = 50
 const KS = Array.from({ length: 10 }, (_, i) => i + 1)
 const TOKENIZERS = ["strict", "forward"] as const
-const FUZZY_MIN_LEN = 4
+export const FUZZY_MIN_LEN = 4
 const FUZZY_MAX_LEN_DELTA = 3
-const FUZZY_WEIGHT = 0.6
+export const FUZZY_WEIGHT = 0.6
 
 const STOPWORDS = new Set(
   ("a an the to of in on at is it its i you we they he she this that for and or but"
@@ -63,27 +63,48 @@ export function makeIdf(docs: string[][]): (word: string) => number {
   return (word) => Math.log((n + 1) / ((df.get(word) ?? 0) + 1)) + 1
 }
 
+export function scoreDoc(
+  qTokens: string[],
+  doc: string[],
+  idf: (word: string) => number,
+): { score: number; hits: number } {
+  const kw = new Set(doc)
+  let score = 0
+  let hits = 0
+  for (const w of qTokens) {
+    if (kw.has(w)) {
+      score += idf(w)
+      hits++
+    } else if ([...kw].some((k) => fuzzyMatch(w, k))) {
+      score += idf(w) * FUZZY_WEIGHT
+      hits++
+    }
+  }
+  return { score, hits }
+}
+
+export function overlapScores(
+  qTokens: string[],
+  docs: string[][],
+  idf: (word: string) => number,
+): { i: number; score: number; hits: number }[] {
+  const out: { i: number; score: number; hits: number }[] = []
+  for (let i = 0; i < docs.length; i++) {
+    const { score, hits } = scoreDoc(qTokens, docs[i], idf)
+    if (score > 0) out.push({ i, score, hits })
+  }
+  return out
+}
+
 export function overlapRank(
   qTokens: string[],
   docs: string[][],
   glyphs: string[],
   idf: (word: string) => number,
 ): string[] {
-  const scored: { glyph: string; score: number; i: number }[] = []
-  for (let i = 0; i < docs.length; i++) {
-    const kw = new Set(docs[i])
-    let score = 0
-    for (const w of qTokens) {
-      if (kw.has(w)) {
-        score += idf(w)
-      } else if ([...kw].some((k) => fuzzyMatch(w, k))) {
-        score += idf(w) * FUZZY_WEIGHT
-      }
-    }
-    if (score > 0) scored.push({ glyph: glyphs[i], score, i })
-  }
-  scored.sort((a, b) => b.score - a.score || a.i - b.i)
-  return scored.map((s) => s.glyph)
+  return overlapScores(qTokens, docs, idf)
+    .sort((a, b) => b.score - a.score || a.i - b.i)
+    .map((s) => glyphs[s.i])
 }
 
 export function hitAtK(preds: string[], targets: string[], k: number): boolean {
