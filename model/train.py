@@ -167,6 +167,7 @@ def _validate(
     pt: Path,
     out: Path,
     gpu: str,
+    cpu: bool,
 ) -> tuple[str, ...] | None:
     if heads is not None and stage != Stage.enc:
         raise typer.BadParameter("--heads is only valid with the 'enc' stage")
@@ -174,6 +175,8 @@ def _validate(
         raise typer.BadParameter(
             "--pt / -o must be the default (pt/) unless --local is set"
         )
+    if gpu and cpu:
+        raise typer.BadParameter("--gpu and --cpu are mutually exclusive")
     if gpu and local:
         raise typer.BadParameter(
             "--gpu picks a Modal GPU and can't be combined with --local"
@@ -586,6 +589,7 @@ def _run_local(
 
 CPU = 16
 GPU_CPU = 8
+DEFAULT_GPU = "T4"
 GPU_TASK_BATCH_SIZE = 512
 GPU_GAN_BATCH_SIZE = 1024
 MEMORY_MIB = 16384
@@ -904,8 +908,13 @@ def cli(
     gpu: str = typer.Option(
         "",
         "--gpu",
-        help="Modal GPU type (e.g. T4, L4, A10G); empty runs a CPU box. "
-        "Not valid with --local.",
+        help="Modal GPU type (e.g. T4, L4, A10G); defaults to "
+        f"{DEFAULT_GPU} on remote. Not valid with --local.",
+    ),
+    cpu: bool = typer.Option(
+        False,
+        "--cpu",
+        help="Run the Modal job on a CPU box instead of the default GPU.",
     ),
 ) -> None:
     """Train the emojic model.
@@ -919,21 +928,21 @@ def cli(
                emoji.pt in --pt. Writes gen.pt, then export + report.
 
     Location
-      Runs on Modal by default; --local runs here. --gpu <type> runs the
-      Modal job on that GPU (larger batches, pinned-memory loaders); without
-      it the Modal box is CPU-only. --pt / -o may differ from pt/ only with
-      --local. A dirty git tree always aborts.
+      Runs on Modal by default, on a GPU (a T4 unless --gpu <type> picks
+      another; larger batches, pinned-memory loaders). --cpu runs the Modal
+      job on a CPU box instead. --local runs here. --pt / -o may differ from
+      pt/ only with --local. A dirty git tree always aborts.
 
     Heads (stage 1 eval / checkpoint monitor)
       emoji+critic -> F1/val (harmonic mean of MRR/e/val and auc/critic/val),
       else emoji -> MRR/e/val, style -> MRR/s/val, critic -> auc/critic/val;
       the first match in that order is the checkpoint + early-stop metric.
     """
-    resolved = _validate(stage, local, heads, pt, out, gpu)
+    resolved = _validate(stage, local, heads, pt, out, gpu, cpu)
     if local:
         _run_local(stage, resolved, pt, out)
     else:
-        _dispatch(stage, heads or "", gpu)
+        _dispatch(stage, heads or "", "" if cpu else (gpu or DEFAULT_GPU))
 
 
 if __name__ == "__main__":

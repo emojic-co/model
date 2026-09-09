@@ -36,7 +36,7 @@ def test_validate_heads_only_with_enc():
     for stage in (None, T.Stage.gan):
         raised = False
         try:
-            T._validate(stage, True, "emoji", Path("pt"), Path("pt"), "")
+            T._validate(stage, True, "emoji", Path("pt"), Path("pt"), "", False)
         except typer.BadParameter:
             raised = True
         assert raised
@@ -45,12 +45,12 @@ def test_validate_heads_only_with_enc():
 def test_validate_nondefault_folder_needs_local():
     raised = False
     try:
-        T._validate(None, False, None, Path("other"), Path("pt"), "")
+        T._validate(None, False, None, Path("other"), Path("pt"), "", False)
     except typer.BadParameter:
         raised = True
     assert raised
-    assert T._validate(None, True, None, Path("other"), Path("pt"), "") is None
-    assert T._validate(T.Stage.enc, True, None, Path("pt"), Path("pt"), "") == (
+    assert T._validate(None, True, None, Path("other"), Path("pt"), "", False) is None
+    assert T._validate(T.Stage.enc, True, None, Path("pt"), Path("pt"), "", False) == (
         "style",
         "emoji",
         "critic",
@@ -60,11 +60,21 @@ def test_validate_nondefault_folder_needs_local():
 def test_validate_gpu_rejects_local():
     raised = False
     try:
-        T._validate(None, True, None, Path("pt"), Path("pt"), "T4")
+        T._validate(None, True, None, Path("pt"), Path("pt"), "T4", False)
     except typer.BadParameter:
         raised = True
     assert raised
-    assert T._validate(None, False, None, Path("pt"), Path("pt"), "T4") is None
+    assert T._validate(None, False, None, Path("pt"), Path("pt"), "T4", False) is None
+
+
+def test_validate_gpu_and_cpu_mutually_exclusive():
+    raised = False
+    try:
+        T._validate(None, False, None, Path("pt"), Path("pt"), "T4", True)
+    except typer.BadParameter:
+        raised = True
+    assert raised
+    assert T._validate(None, False, None, Path("pt"), Path("pt"), "", True) is None
 
 
 def test_roc_auc_perfect_and_reversed():
@@ -137,6 +147,42 @@ def test_cli_valid_enc_dispatches_local():
         T._run_local, T._dispatch = orig_local, orig_dispatch
 
 
+def test_cli_remote_defaults_to_gpu():
+    orig_local, orig_dispatch = T._run_local, T._dispatch
+    calls = _stub_runners()
+    try:
+        res = runner.invoke(T._app, ["enc"])
+        assert res.exit_code == 0, res.output
+        (a, _k) = calls["dispatch"]
+        assert a[2] == T.DEFAULT_GPU
+    finally:
+        T._run_local, T._dispatch = orig_local, orig_dispatch
+
+
+def test_cli_cpu_flag_forces_cpu_box():
+    orig_local, orig_dispatch = T._run_local, T._dispatch
+    calls = _stub_runners()
+    try:
+        res = runner.invoke(T._app, ["enc", "--cpu"])
+        assert res.exit_code == 0, res.output
+        (a, _k) = calls["dispatch"]
+        assert a[2] == ""
+    finally:
+        T._run_local, T._dispatch = orig_local, orig_dispatch
+
+
+def test_cli_gpu_type_override():
+    orig_local, orig_dispatch = T._run_local, T._dispatch
+    calls = _stub_runners()
+    try:
+        res = runner.invoke(T._app, ["enc", "--gpu", "A10G"])
+        assert res.exit_code == 0, res.output
+        (a, _k) = calls["dispatch"]
+        assert a[2] == "A10G"
+    finally:
+        T._run_local, T._dispatch = orig_local, orig_dispatch
+
+
 _app = typer.Typer(
     add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
@@ -152,6 +198,7 @@ def main() -> None:
     test_validate_heads_only_with_enc()
     test_validate_nondefault_folder_needs_local()
     test_validate_gpu_rejects_local()
+    test_validate_gpu_and_cpu_mutually_exclusive()
     test_roc_auc_perfect_and_reversed()
     test_roc_auc_chance_and_empty()
     test_litencoder_builds_only_selected_heads()
@@ -161,6 +208,9 @@ def main() -> None:
     test_cli_heads_with_gan_aborts()
     test_cli_nondefault_pt_on_modal_aborts()
     test_cli_valid_enc_dispatches_local()
+    test_cli_remote_defaults_to_gpu()
+    test_cli_cpu_flag_forces_cpu_box()
+    test_cli_gpu_type_override()
     print("ok")
 
 

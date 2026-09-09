@@ -1,16 +1,18 @@
 # GPU remote training
 
 Should the Modal remote run (`model/train.py`, no `--local`) use a GPU box
-instead of the 16‑core CPU box? The `gpu` branch wires this up as an opt‑in
-`--gpu <type>` flag. This note is the reasoning behind it and what still has to
-be measured before we keep it.
+instead of the 16‑core CPU box? The `gpu` branch makes a **GPU box the default
+for remote runs**, with `--cpu` to fall back. This note is the reasoning behind
+it and what still has to be measured before we keep it.
 
 ## What the `gpu` branch changes
 
-- **`train --gpu T4` (or `L4`, `A10G`, …)** dispatches the Modal job onto that
-  GPU via `Function.with_options(gpu=…, cpu=8, …)`. No `--gpu` → the Modal box
-  is CPU‑only exactly as before. `--gpu` with `--local` is rejected (a local GPU
-  is already picked up by Lightning's `accelerator="auto"`).
+- **`train` (remote) now runs on a GPU by default** (`DEFAULT_GPU = "T4"`),
+  dispatched via `Function.with_options(gpu=…, cpu=8, …)`. `--gpu L4` /
+  `--gpu A10G` pick another type; **`--cpu`** forces the old CPU box; `--gpu`
+  and `--cpu` are mutually exclusive. `--gpu` with `--local` is rejected (a
+  local GPU is already used by Lightning's `accelerator="auto"`); `--local`
+  itself is unaffected.
 - **torch is now a `cpu` / `gpu` group split** (`pyproject.toml`). `uv sync` /
   `uv run` locally still resolve `torch==2.13.0+cpu` (default groups
   `dev`, `cpu`) — unchanged. The Modal image builds with
@@ -36,11 +38,12 @@ cost lever.
 ## How to run
 
 ```
-train --gpu T4              # stage 1 + stage 2 + export on one T4
-train enc --gpu L4          # stage 1 only
-train gan --gpu A10G        # stage 2 only (needs enc.pt/critic.pt/style.pt/emoji.pt)
-train                       # unchanged: CPU Modal box
-train --local               # unchanged: this machine
+train                      # stage 1 + stage 2 + export on a T4 (default)
+train enc                  # stage 1 only, on a T4
+train --gpu L4             # override the GPU type
+train gan --gpu A10G       # stage 2 only (needs enc.pt/critic.pt/style.pt/emoji.pt)
+train --cpu                # fall back to the CPU Modal box
+train --local              # unchanged: this machine
 ```
 
 Tune without code edits via env vars on the dispatch, e.g.
@@ -103,6 +106,6 @@ factor roughly tracks the speedup. Rates move — confirm against
 2. One `train enc --gpu T4` and one `train gan --gpu T4`; compare wall‑clock,
    cost, and `MRR/e/val` / `energy/gan/val` against the baseline.
 3. Repeat on L4 / A10G if T4 is loader‑ or memory‑bound.
-4. Keep `--gpu` as the default suggestion only if both the speedup **and** the
-   cost factor land above ~2× with no metric regression; otherwise leave it as
-   an opt‑in flag or revert the branch.
+4. Keep the GPU default only if both the speedup **and** the cost factor land
+   above ~2× with no metric regression; otherwise flip the default back so
+   remote runs are CPU unless `--gpu` is passed, or revert the branch.
