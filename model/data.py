@@ -1,13 +1,18 @@
 import json
 import os
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import torch
 from torch.utils.data import DataLoader, Dataset
 
 from files import EVAL_JSONL, TRAIN_JSONL
 from model.config import EMOJIS, MAX_TEXT_LEN, STYLES
+
+FLEX_MAX_K = 32
+FLEX_RAW_DIM = 10
+FLEXQ_DIM = 5
+_FLEXQ_KEYS = ("tokens", "matched", "sum", "max", "cand")
 
 TRAIN_PATH = TRAIN_JSONL
 EVAL_PATH = EVAL_JSONL
@@ -78,6 +83,8 @@ class record:
     emojis: list[str]
     styles: list[str]
     colors: list[str]
+    flexsearch: list = field(default_factory=list)
+    flexq: dict = field(default_factory=dict)
 
 
 def read(path):
@@ -106,7 +113,68 @@ def read(path):
                 if not styles:
                     continue
 
-                yield record(text, emojis, styles, [*bg, fg])
+                yield record(
+                    text,
+                    emojis,
+                    styles,
+                    [*bg, fg],
+                    d.get("flexsearch") or [],
+                    d.get("flexq") or {})
+
+
+def _row_flex(row):
+    if isinstance(row, dict):
+        fs = row.get("flexsearch") or []
+        fq = row.get("flexq") or {}
+    else:
+        fs = row.flexsearch or []
+        fq = row.flexq or {}
+
+    idx = torch.full((FLEX_MAX_K,), -1, dtype=torch.long)
+    raw = torch.zeros(FLEX_MAX_K, FLEX_RAW_DIM, dtype=torch.float32)
+    pos = 0
+    for entry in fs:
+        if pos >= FLEX_MAX_K:
+            break
+        vi = emoji2idx.get(entry[0])
+        if vi is None:
+            continue
+        score, score_norm, exact, fuzzy, best_idf, n_kw, kw_len, word_len, overlap = (
+            entry[1:]
+        )
+        idx[pos] = vi
+        raw[pos] = torch.tensor(
+            [
+                score,
+                score_norm,
+                exact,
+                fuzzy,
+                best_idf,
+                1.0 / (pos + 1),
+                n_kw,
+                kw_len,
+                word_len,
+                overlap,
+            ],
+            dtype=torch.float32,
+        )
+        pos += 1
+
+    flexq = torch.tensor(
+        [float(fq.get(k, 0.0)) for k in _FLEXQ_KEYS], dtype=torch.float32
+    )
+    return idx, raw, flexq
+
+
+def scatter_flex(flex_idx: torch.Tensor, flex_raw: torch.Tensor) -> torch.Tensor:
+    b = flex_idx.size(0)
+    v = len(EMOJIS)
+    dense = flex_raw.new_zeros(b, v, FLEX_RAW_DIM)
+    safe = flex_idx.clamp(min=0)
+    mask = (flex_idx >= 0).unsqueeze(-1)
+    src = flex_raw * mask
+    dense.scatter_add_(1, safe.unsqueeze(-1).expand(-1, -1, FLEX_RAW_DIM), src)
+    return dense
 
 
 def load_energy_keywords(path: str) -> list[str]:
@@ -170,12 +238,24 @@ class EmojiDataset(Dataset):
         self.emoji = torch.stack([emojis_to_tensor(r.emojis) for r in records])
         self.style = torch.stack([styles_to_tensor(r.styles) for r in records])
         self.colors = torch.stack([colors2tensor(r.colors) for r in records])
+        flex = [_row_flex(r) for r in records]
+        self.flex_idx = torch.stack([f[0] for f in flex])
+        self.flex_raw = torch.stack([f[1] for f in flex])
+        self.flexq = torch.stack([f[2] for f in flex])
 
     def __len__(self):
         return len(self.text)
 
     def __getitem__(self, idx):
-        return self.text[idx], self.emoji[idx], self.style[idx], self.colors[idx]
+        return (
+            self.text[idx],
+            self.emoji[idx],
+            self.style[idx],
+            self.colors[idx],
+            self.flex_idx[idx],
+            self.flex_raw[idx],
+            self.flexq[idx],
+        )
 
 
 def train_ds():
