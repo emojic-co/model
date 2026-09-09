@@ -12,31 +12,28 @@ from torch import nn
 from torch.nn.functional import normalize
 
 from files import (
+    EMOJI_EMBED_PT,
     EMOJI_PT,
     ENC_PT,
     FUSION_PT,
     GEN_PT,
+    KW_PT,
     LABELS_JSON,
     STYLE_PT,
     WEB_PUBLIC_DIR,
 )
 from model.config import EMOJIS, MAX_TEXT_LEN, SEED, STYLES, TEXT_EMBED_SIZE, Z_WEIGHT
-from model.data import CHARS, FLEX_MAX_K, FLEX_RAW_DIM, FLEXQ_DIM, PAD_IDX
-from model.model import ColorGen, EmojiHead, FusionHead, StyleHead, TextEncoder
+from model.data import CHARS, FLEX_N, KW_VOCAB, PAD_IDX
+from model.model import (
+    ColorGen,
+    EmojiEmbedding,
+    EmojiHead,
+    FusionHead,
+    KWHead,
+    StyleHead,
+    TextEncoder,
+)
 from model.runmeta import load_pt
-
-FLEX_COLS = [
-    "score",
-    "score_norm",
-    "exact",
-    "fuzzy",
-    "best_idf",
-    "rank_recip",
-    "n_kw",
-    "kw_len",
-    "word_len",
-    "overlap",
-]
 
 WEB_PUBLIC = Path(WEB_PUBLIC_DIR)
 ONNX_OPSET = 18
@@ -73,14 +70,18 @@ class ExportWrapper(nn.Module):
         self,
         enc: nn.Module,
         style: nn.Module,
+        emoji_embed: nn.Module,
         emoji: nn.Module,
+        kw: nn.Module,
         gen: nn.Module,
         fusion: nn.Module,
     ) -> None:
         super().__init__()
         self.enc = enc
         self.style = style
+        self.emoji_embed = emoji_embed
         self.emoji = emoji
+        self.kw = kw
         self.gen = gen
         self.fusion = fusion
         self.register_buffer("z", CONST_Z)
@@ -88,23 +89,25 @@ class ExportWrapper(nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        flex: torch.Tensor,
-        flex_q: torch.Tensor,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        flex_tf: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         emb = self.enc(x)
         style_logits = self.style(emb)
-        emoji_logits = self.emoji(emb)
-        fusion_logits = self.fusion(emoji_logits, flex, flex_q)
+        q_txt = self.emoji(emb)
+        emoji_logits = self.emoji_embed.score(q_txt)
+        q_kw = self.kw(flex_tf)
+        kw_logits = self.emoji_embed.score(q_kw)
+        a = self.fusion(emb, flex_tf).unsqueeze(-1)
+        fusion_logits = self.emoji_embed.score(a * q_txt + (1 - a) * q_kw)
         seed = (1 - Z_WEIGHT) * normalize(emb) + Z_WEIGHT * self.z
         color = torch.tanh(self.gen.net(seed)) * 127.5 + 127.5
-        return style_logits, emoji_logits, fusion_logits, color
+        return style_logits, emoji_logits, kw_logits, fusion_logits, color
 
 
 def export_onnx(wrapper: nn.Module, dst: Path) -> None:
     dummy = (
         torch.zeros(1, MAX_TEXT_LEN, dtype=torch.long),
-        torch.zeros(1, len(EMOJIS), FLEX_RAW_DIM, dtype=torch.float32),
-        torch.zeros(1, FLEXQ_DIM, dtype=torch.float32),
+        torch.zeros(1, FLEX_N, dtype=torch.float32),
     )
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -112,10 +115,11 @@ def export_onnx(wrapper: nn.Module, dst: Path) -> None:
             wrapper,
             dummy,
             str(dst),
-            input_names=["input", "flex", "flex_q"],
+            input_names=["input", "flex_tf"],
             output_names=[
                 "style_logits",
                 "emoji_logits",
+                "kw_logits",
                 "fusion_logits",
                 "color",
             ],
@@ -123,10 +127,10 @@ def export_onnx(wrapper: nn.Module, dst: Path) -> None:
             dynamo=False,
             dynamic_axes={
                 "input": {0: "batch"},
-                "flex": {0: "batch"},
-                "flex_q": {0: "batch"},
+                "flex_tf": {0: "batch"},
                 "style_logits": {0: "batch"},
                 "emoji_logits": {0: "batch"},
+                "kw_logits": {0: "batch"},
                 "fusion_logits": {0: "batch"},
             },
         )
@@ -141,8 +145,8 @@ def export_web(wrapper: nn.Module) -> None:
         "max_text_len": MAX_TEXT_LEN,
         "emojis": EMOJIS,
         "styles": STYLES,
-        "flex_cols": FLEX_COLS,
-        "flex_k": FLEX_MAX_K,
+        "flex_kw": KW_VOCAB,
+        "flex_n": FLEX_N,
         "exported_at": datetime.now(UTC).isoformat(timespec="minutes"),
         "model_meta": getattr(wrapper.enc, "_pt_meta", None),
     }
@@ -157,7 +161,9 @@ def export_web(wrapper: nn.Module) -> None:
 def export() -> None:
     enc = _load(TextEncoder(), ENC_PT)
     style = _load(StyleHead(), STYLE_PT)
+    emoji_embed = _load(EmojiEmbedding(), EMOJI_EMBED_PT)
     emoji = _load(EmojiHead(), EMOJI_PT)
+    kw = _load(KWHead(), KW_PT)
     gen = _load(ColorGen(), GEN_PT)
     fusion = _load(FusionHead(), FUSION_PT)
 
@@ -166,15 +172,15 @@ def export() -> None:
             f"style.pt has {style.embed.weight.shape[0]} styles, "
             f"{LABELS_JSON} has {len(STYLES)} -- retrain or restore {LABELS_JSON}"
         )
-    if emoji.embed.weight.shape[0] != len(EMOJIS):
+    if emoji_embed.embed.weight.shape[0] != len(EMOJIS):
         raise SystemExit(
-            f"emoji.pt has {emoji.embed.weight.shape[0]} emojis, "
+            f"emoji_embed.pt has {emoji_embed.embed.weight.shape[0]} emojis, "
             f"{LABELS_JSON} has {len(EMOJIS)} -- retrain or restore {LABELS_JSON}"
         )
 
     _strip_spectral_norm(enc)
 
-    wrapper = ExportWrapper(enc, style, emoji, gen, fusion).eval()
+    wrapper = ExportWrapper(enc, style, emoji_embed, emoji, kw, gen, fusion).eval()
     export_web(wrapper)
     print(f"wrote {WEB_PUBLIC}/model.onnx + meta.json + config.json")
 
