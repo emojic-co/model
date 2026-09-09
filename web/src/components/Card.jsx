@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useFitText } from '../hooks/useFitText'
 import { resolveFeeling } from '../feelings'
+import { contrastRatio } from '../model'
+
+function watermarkInk(bg) {
+  return contrastRatio('#000000', bg) >= contrastRatio('#ffffff', bg) ? '#000000' : '#ffffff'
+}
 
 const FADE_MS = 150
 
@@ -56,6 +61,13 @@ export function Card({ text, emoji, feeling, colors, onCopy }) {
       <button className="copy-btn" type="button" aria-label="Copy card as image" onClick={onCopy}>
         copy
       </button>
+      <span
+        className="card-watermark"
+        aria-hidden="true"
+        style={colors ? { color: watermarkInk(colors.bg2) } : undefined}
+      >
+        emojify.ing
+      </span>
     </div>
   )
 }

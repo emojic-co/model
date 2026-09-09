@@ -7,14 +7,20 @@ import {
   sigmoid,
   decodeColors,
   decodeColorList,
+  srgbToOklab,
+  oklabToSrgb,
+  contrastRatio,
+  fixContrast,
+  CONTRAST_MIN,
 } from './model'
 
-const CHARS = '·abcdefghijklmnopqrstuvwxyz0123456789!?:()@$%&* '
+const CHARS =
+  '·abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?:()@$%&* '
 const idx = new Map([...CHARS].map((c, i) => [c, i]))
 
 describe('normalize', () => {
-  it('lowercases and collapses whitespace', () => {
-    expect(normalize('Hello   WORLD', idx)).toBe('hello world')
+  it('collapses whitespace but keeps case', () => {
+    expect(normalize('Hello   WORLD', idx)).toBe('Hello WORLD')
   })
   it('collapses 3+ char repeats to 2', () => {
     expect(normalize('soooo good', idx)).toBe('soo good')
@@ -78,6 +84,76 @@ describe('decodeColorList', () => {
     ])
   })
 })
+
+describe('oklab', () => {
+  it('round-trips sRGB through OKLab', () => {
+    for (const rgb of [
+      [255, 255, 255],
+      [0, 0, 0],
+      [128, 64, 200],
+      [20, 180, 90],
+    ]) {
+      const back = oklabToSrgb(srgbToOklab(rgb)).map(Math.round)
+      expect(back).toEqual(rgb)
+    }
+  })
+  it('white is L≈1 with near-zero a/b', () => {
+    const [L, a, b] = srgbToOklab([255, 255, 255])
+    expect(L).toBeCloseTo(1, 3)
+    expect(a).toBeCloseTo(0, 3)
+    expect(b).toBeCloseTo(0, 3)
+  })
+})
+
+describe('contrastRatio', () => {
+  it('is 21 for black on white and 1 for a colour on itself', () => {
+    expect(contrastRatio('#000000', '#ffffff')).toBeCloseTo(21, 5)
+    expect(contrastRatio('#3a7bd5', '#3a7bd5')).toBeCloseTo(1, 5)
+  })
+  it('is symmetric', () => {
+    expect(contrastRatio('#123456', '#abcdef')).toBeCloseTo(
+      contrastRatio('#abcdef', '#123456'),
+      10,
+    )
+  })
+})
+
+describe('fixContrast', () => {
+  it('leaves a readable palette untouched (same object)', () => {
+    const p = { bg1: '#a8e2f4', bg2: '#78c9f4', text_color: '#282e36' }
+    expect(fixContrast(p)).toBe(p)
+  })
+
+  it('repairs a low-contrast palette so both stops clear the threshold', () => {
+    const p = { bg1: '#2b2b2b', bg2: '#3a3a3a', text_color: '#444444' }
+    const fixed = fixContrast(p)
+    expect(fixed.text_color).not.toBe(p.text_color)
+    expect(fixed.bg1).toBe(p.bg1)
+    expect(fixed.bg2).toBe(p.bg2)
+    expect(contrastRatio(fixed.text_color, fixed.bg1)).toBeGreaterThanOrEqual(CONTRAST_MIN)
+    expect(contrastRatio(fixed.text_color, fixed.bg2)).toBeGreaterThanOrEqual(CONTRAST_MIN)
+  })
+
+  it('nudges lightness while roughly preserving hue', () => {
+    const p = { bg1: '#c94f4f', bg2: '#d46b4b', text_color: '#b84a3a' }
+    const fixed = fixContrast(p)
+    const [, a0, b0] = srgbToOklab([0xb8, 0x4a, 0x3a])
+    const n = parseInt(fixed.text_color.slice(1), 16)
+    const [, a1, b1] = srgbToOklab([(n >> 16) & 255, (n >> 8) & 255, n & 255])
+    expect(Math.sign(a1)).toBe(Math.sign(a0))
+    expect(Math.sign(b1)).toBe(Math.sign(b0))
+  })
+
+  it('respects a custom threshold', () => {
+    const p = { bg1: '#ffffff', bg2: '#f4f4f4', text_color: '#8a8a8a' }
+    const fixed = fixContrast(p, 4.5)
+    expect(minOf(fixed)).toBeGreaterThanOrEqual(4.5)
+  })
+})
+
+function minOf({ bg1, bg2, text_color }) {
+  return Math.min(contrastRatio(text_color, bg1), contrastRatio(text_color, bg2))
+}
 
 describe('argmax / softmax', () => {
   it('argmax returns the index of the max', () => {

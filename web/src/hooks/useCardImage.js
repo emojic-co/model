@@ -1,8 +1,11 @@
 import { useCallback } from 'react'
 import { fitCanvasFont, wrapLines } from '../fit'
 import { resolveFeeling } from '../feelings'
+import { contrastRatio } from '../model'
 
 const S = 512
+const WATERMARK = 'emojify.ing'
+const WATERMARK_PX = Math.round(0.044 * S)
 const EMOJI_STACK = '"Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif'
 
 const PAD = 0.07 * S
@@ -18,7 +21,10 @@ const MAX_LINES = 10
 
 async function ensureFonts(stack, emoji) {
   if (!document.fonts) return
-  const jobs = [document.fonts.load(`400 120px "Noto Color Emoji"`, emoji)]
+  const jobs = [
+    document.fonts.load(`400 120px "Noto Color Emoji"`, emoji),
+    document.fonts.load(`700 ${WATERMARK_PX}px "Caveat"`, WATERMARK),
+  ]
   const name = stack.match(/"([^"]+)"/)?.[1]
   if (name) {
     jobs.push(document.fonts.load(`600 24px "${name}"`))
@@ -90,6 +96,18 @@ async function render({ text, emoji, feeling, colors }) {
   }
   ctx.globalAlpha = 1
   if ('letterSpacing' in ctx) ctx.letterSpacing = '0px'
+
+  ctx.save()
+  ctx.textAlign = 'right'
+  ctx.textBaseline = 'alphabetic'
+  ctx.font = `700 ${WATERMARK_PX}px "Caveat", ui-sans-serif, sans-serif`
+  ctx.fillStyle =
+    contrastRatio('#000000', colors.bg2) >= contrastRatio('#ffffff', colors.bg2)
+      ? '#000000'
+      : '#ffffff'
+  ctx.globalAlpha = 0.28
+  ctx.fillText(WATERMARK, S - 0.055 * S, S - 0.055 * S)
+  ctx.restore()
 
   return new Promise((resolve, reject) => {
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('toBlob failed'))), 'image/png')

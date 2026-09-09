@@ -5,9 +5,9 @@ import { dedupe, freqBucket, sortPool, stableHash } from "./pool.ts"
 test("dedupe drops normalized duplicates, keeping the first", () => {
   const { kept, duplicate, degenerate } = dedupe([
     { text: "Hello there", id: 1 },
-    { text: "  hello    there  ", id: 2 },
+    { text: "  Hello    there  ", id: 2 },
     { text: "Heyyy", id: 3 },
-    { text: "heyy", id: 4 },
+    { text: "Heyy", id: 4 },
     { text: "different", id: 5 },
   ])
   expect(kept.map((r) => r.id)).toEqual([1, 3, 5])

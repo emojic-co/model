@@ -11,7 +11,7 @@ const P = (a: string, b: string, f: string) => ({ bg: [a, b], fg: f })
 
 test("collapse unions emojis and styles across rows with the same normalized text, last palette wins", () => {
   const out = collapse([
-    { text: "Bus is late", emojis: "🚌", styles: ["Irritated"], ...P("#111111", "#222222", "#eeeeee") },
+    { text: "bus is late", emojis: "🚌", styles: ["Irritated"], ...P("#111111", "#222222", "#eeeeee") },
     { text: "  bus   is late  ", emojis: "😤 🚌", styles: ["Tense", "Irritated"], ...P("#333333", "#444444", "#dddddd") },
   ])
   expect(out).toHaveLength(1)
@@ -67,11 +67,19 @@ test("collapse emits a record with no bg/fg when no source row had a palette", (
 test("collapse keeps the first-seen raw text for a merged key", () => {
   const out = collapse([
     { text: "Hello  World", emojis: "😀", styles: [] },
-    { text: "hello world", emojis: "🌍", styles: [] },
+    { text: "Hello World", emojis: "🌍", styles: [] },
   ])
   expect(out).toHaveLength(1)
   expect(out[0].text).toBe("Hello  World")
   expect(out[0].emojis.split(" ").sort()).toEqual(["😀", "🌍"].sort())
+})
+
+test("collapse treats a case difference as a distinct key", () => {
+  const out = collapse([
+    { text: "Paris", emojis: "🇫🇷", styles: [] },
+    { text: "paris", emojis: "🥖", styles: [] },
+  ])
+  expect(out.map((r) => r.text).sort()).toEqual(["Paris", "paris"])
 })
 
 test("collapse carries non-base fields through as extra, first-seen wins", () => {

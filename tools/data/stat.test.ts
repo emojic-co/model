@@ -11,13 +11,13 @@ const R = (text: string, emojis: string, styles: string[] = [], extra: Record<st
 
 test("computeStats collapses raw rows by normalized text and counts records per text", () => {
   const s = computeStats([
-    R("Bus is late", "🚌", ["Irritated"]),
+    R("bus is late", "🚌", ["Irritated"]),
     R("  bus   is   late ", "😤 🚌", ["Tense"]),
     R("something else", "🐈", ["Joyful"]),
   ])
   expect(s.rawRows).toBe(3)
   expect(s.texts).toBe(2)
-  const busRow = s.disagreement.find((d) => d.text === "Bus is late")
+  const busRow = s.disagreement.find((d) => d.text === "bus is late")
   expect(busRow?.records).toBe(2)
   expect(busRow?.emojis).toEqual(["😤", "🚌"])
   expect(busRow?.uniqueEmojis).toBe(2)

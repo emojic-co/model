@@ -17,6 +17,9 @@ const EMOJIBASE_DATA = "node_modules/emojibase-data/en/data.json"
 const MAX_EMOJIS_PER_KEYWORD = 10
 const MIN_KEYWORD_LEN = 2
 
+export const stripTtsPrefix = (s: string): string =>
+  s.replace(/^[a-z]+:\s*/i, "").trim()
+
 type Annotation = { default?: string[]; tts?: string[] }
 type CldrAnnotations = { annotations: { annotations: Record<string, Annotation> } }
 type CldrAnnotationsDerived = {
@@ -52,10 +55,13 @@ export async function loadCldrAnnotations(): Promise<Map<string, string[]>> {
     ...cldrDerived.annotationsDerived.annotations,
   }
   const out = new Map<string, string[]>()
-  for (const [key, { default: keywords = [] }] of Object.entries(merged)) {
+  for (const [key, { default: keywords = [], tts = [] }] of Object.entries(merged)) {
     const glyph = canonicalById.get(stripVariationSelector(key))
     if (!glyph) continue
-    out.set(glyph, keywords)
+    const names = tts
+      .map(stripTtsPrefix)
+      .filter((k) => k.length >= MIN_KEYWORD_LEN)
+    out.set(glyph, [...keywords, ...names])
   }
   return out
 }

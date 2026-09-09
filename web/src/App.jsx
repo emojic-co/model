@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOnnx } from './hooks/useOnnx'
-import { argmax, normalize } from './model'
+import { argmax, normalize, fixContrast } from './model'
 import { topFeelings, DEFAULT_COLORS } from './feelings'
 import { cycle } from './nav'
 import { cldrEmojis } from './cldrEmojis'
@@ -17,12 +17,21 @@ import { useMediaQuery } from './hooks/useMediaQuery'
 const MIN_CHARS = 3
 const DEBOUNCE_MS = 250
 const EMOJI_SOURCE_KEY = 'emojiSource'
+const CONTRAST_FIX_KEY = 'contrastFix'
 
 function initialEmojiSource() {
   try {
     return localStorage.getItem(EMOJI_SOURCE_KEY) === 'cldr' ? 'cldr' : 'model'
   } catch {
     return 'model'
+  }
+}
+
+function initialContrastFix() {
+  try {
+    return localStorage.getItem(CONTRAST_FIX_KEY) !== 'off'
+  } catch {
+    return true
   }
 }
 
@@ -57,6 +66,7 @@ export function App() {
   const [override, setOverride] = useState({ emoji: null, feeling: null, color: 0 })
   const [emojiSource, setEmojiSource] = useState(initialEmojiSource)
   const useCldrEmojis = emojiSource === 'cldr'
+  const [contrastFix, setContrastFix] = useState(initialContrastFix)
   const [toast, setToast] = useState({ msg: '', n: 0 })
   const showToast = useCallback((msg) => setToast((s) => ({ msg, n: s.n + 1 })), [])
   const seq = useRef(0)
@@ -72,6 +82,12 @@ export function App() {
       localStorage.setItem(EMOJI_SOURCE_KEY, emojiSource)
     } catch {}
   }, [emojiSource])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CONTRAST_FIX_KEY, contrastFix ? 'on' : 'off')
+    } catch {}
+  }, [contrastFix])
 
   useEffect(() => {
     if (!ready || !char2idx) return
@@ -123,7 +139,11 @@ export function App() {
   }, [useCldrEmojis, cldrTop, emojiScores, meta, emojiSlots])
   const emojiList = useMemo(() => emojiTop?.map((x) => x.emoji) ?? [], [emojiTop])
 
-  const palettes = useMemo(() => scores?.palettes ?? [DEFAULT_COLORS], [scores])
+  const rawPalettes = useMemo(() => scores?.palettes ?? [DEFAULT_COLORS], [scores])
+  const palettes = useMemo(
+    () => (contrastFix ? rawPalettes.map((p) => fixContrast(p)) : rawPalettes),
+    [rawPalettes, contrastFix],
+  )
   const colors = palettes[override.color] ?? palettes[0]
 
   const cardData =
@@ -193,7 +213,6 @@ export function App() {
               <h1>
                 emojify<span className="tld">.ing</span>
               </h1>
-              <span className="slug">emojify anything</span>
             </header>
             <div className="emoji-source" role="group" aria-label="emoji source">
               {['model', 'cldr'].map((src) => (
@@ -268,6 +287,16 @@ export function App() {
           <footer className="footer">
             <span>
               model updated <span>{formatDate(meta?.exported_at)}</span>
+            </span>
+            <span className="contrast-toggle">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={contrastFix}
+                  onChange={(e) => setContrastFix(e.target.checked)}
+                />
+                fix low-contrast palettes
+              </label>
             </span>
             <span>made with ❤️ by Gilad</span>
             <span>

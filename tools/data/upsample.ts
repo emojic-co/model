@@ -400,7 +400,7 @@ async function genKeywordBatch(
 const cli = cac("upsample")
 cli.usage("[options]")
 cli
-  .option("--emojis <list>", "target exactly these emoji instead of a rank window")
+  .option("--emojis <list>", "target exactly these emoji (comma- or space-separated) instead of a rank window")
   .option("--min-rank <n>", `lowest (most frequent) rank to target (default ${MIN_RANK})`)
   .option("--max-rank <n>", `highest (least frequent) rank to target (default ${MAX_RANK})`)
   .option("--rare", "target the rarest emoji in data.jsonl first, by record count (not standalone)")
@@ -419,9 +419,11 @@ cli
 cli.help()
 
 if (import.meta.main) {
-  const { options } = cli.parse(process.argv, { run: false })
+  const { options, args } = cli.parse(process.argv, { run: false })
   if (options.help) process.exit(0)
-  const only = options.emojis ? String(options.emojis).trim() || undefined : undefined
+  const only = options.emojis
+    ? [String(options.emojis), ...args].join(" ").trim() || undefined
+    : undefined
   const minRank = Number(options.minRank ?? MIN_RANK)
   const maxRank = Number(options.maxRank ?? MAX_RANK)
   const negation = Boolean(options.negation)

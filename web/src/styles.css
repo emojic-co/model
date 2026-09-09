@@ -36,10 +36,11 @@ main {
 
 h1 {
   margin: 0;
-  font-size: 1.375em;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  font-family: "Caveat", ui-sans-serif, cursive;
+  font-size: 2em;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: lowercase;
   color: var(--muted);
 }
 
@@ -66,6 +67,20 @@ h1 .tld {
   color: inherit;
   text-decoration: underline;
   text-underline-offset: 0.2em;
+}
+
+.footer .contrast-toggle label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+}
+
+.footer .contrast-toggle input {
+  accent-color: var(--ink);
+  cursor: pointer;
+  margin: 0;
 }
 
 .footer a:hover {
@@ -137,15 +152,6 @@ h1 .tld {
   display: flex;
   align-items: baseline;
   gap: 0.875em;
-}
-
-.masthead .slug {
-  font-family: "Caveat", ui-sans-serif, cursive;
-  font-size: 1.5em;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  text-transform: lowercase;
-  color: var(--muted);
 }
 
 .stage>.card {
@@ -758,6 +764,20 @@ h1 .tld {
 .copy-btn:focus-visible {
   opacity: 1;
   outline: none;
+}
+
+.card-watermark {
+  position: absolute;
+  right: 5.5%;
+  bottom: 4.5%;
+  font-family: "Caveat", ui-sans-serif, cursive;
+  font-size: 4.4cqw;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  opacity: 0.28;
+  pointer-events: none;
+  user-select: none;
 }
 
 .card-emoji {

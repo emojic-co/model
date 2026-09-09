@@ -18,3 +18,5 @@ export const WEB_PUBLIC_DIR = "web/public"
 export const REPORT_DIR = "report"
 export const RUNS_DIR = "runs"
 export const PREVIEW_DIR = "preview"
+export const DOCS_DIR = "docs"
+export const REGEN_MD = `${DOCS_DIR}/regen.md`

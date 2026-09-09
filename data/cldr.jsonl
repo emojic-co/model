@@ -3537,3 +3537,1230 @@
 {"text":"shiitake","emojis":"🍄‍🟫","styles":["Deadpan"],"bg":["#d8b38a","#b9825e"],"fg":"#2d1b14","meta":{"date":"2026-09-06","cldr":true}}
 {"text":"watermelon","emojis":"🍉","styles":["Deadpan"],"bg":["#f3a39b","#d87878"],"fg":"#3a1820","meta":{"date":"2026-09-06","cldr":true}}
 {"text":"waterpolo","emojis":"🤽 🤽‍♀️ 🤽‍♂️","styles":["Deadpan"],"bg":["#8ed5e6","#4da8c5"],"fg":"#082b38","meta":{"date":"2026-09-06","cldr":true}}
+{"text":"1st place medal","emojis":"🥇","styles":["Proud"],"bg":["#f6c343","#d99a16"],"fg":"#3a2500","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"2nd place medal","emojis":"🥈","styles":["Deadpan"],"bg":["#dfe5eb","#aeb8c3"],"fg":"#17212b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"A button (blood type)","emojis":"🅰️","styles":["Deadpan"],"bg":["#ef4b4b","#b91f32"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"AB button (blood type)","emojis":"🆎","styles":["Deadpan"],"bg":["#3b8fd8","#1757a6"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Afghanistan","emojis":"🇦🇫","styles":["Deadpan"],"bg":["#b51f2a","#087443"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Albania","emojis":"🇦🇱","styles":["Deadpan"],"bg":["#d82035","#8e1020"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Algeria","emojis":"🇩🇿","styles":["Deadpan"],"bg":["#2f9e62","#087443"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Andorra","emojis":"🇦🇩","styles":["Deadpan"],"bg":["#2455a4","#c91f2b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Angola","emojis":"🇦🇴","styles":["Deadpan"],"bg":["#b51f2a","#252525"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Anguilla","emojis":"🇦🇮","styles":["Deadpan"],"bg":["#1778b5","#d97828"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Antarctica","emojis":"🇦🇶","styles":["Deadpan"],"bg":["#b9e8ff","#3a87b8"],"fg":"#102a43","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Antigua & Barbuda","emojis":"🇦🇬","styles":["Deadpan"],"bg":["#d62828","#164a8a"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Argentina","emojis":"🇦🇷","styles":["Deadpan"],"bg":["#87ceeb","#4aa3c7"],"fg":"#102a43","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Armenia","emojis":"🇦🇲","styles":["Deadpan"],"bg":["#b51f2a","#1d4e89"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Aruba","emojis":"🇦🇼","styles":["Deadpan"],"bg":["#1769aa","#c62828"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Austria","emojis":"🇦🇹","styles":["Deadpan"],"bg":["#a6192e","#d73545"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Azerbaijan","emojis":"🇦🇿","styles":["Deadpan"],"bg":["#168dcc","#c92d3b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"B button (blood type)","emojis":"🅱️","styles":["Deadpan"],"bg":["#d94b52","#8f1d2c"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"BACK arrow","emojis":"🔙","styles":["Deadpan"],"bg":["#4b9bd1","#1f5f9d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Bahrain","emojis":"🇧🇭","styles":["Deadpan"],"bg":["#d51f36","#a91226"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Bangladesh","emojis":"🇧🇩","styles":["Deadpan"],"bg":["#168447","#075b32"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Barbados","emojis":"🇧🇧","styles":["Deadpan"],"bg":["#1688bf","#075a91"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Belarus","emojis":"🇧🇾","styles":["Deadpan"],"bg":["#c52d38","#237b43"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Belgium","emojis":"🇧🇪","styles":["Deadpan"],"bg":["#e0ae18","#c52c35"],"fg":"#161616","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Belize","emojis":"🇧🇿","styles":["Deadpan"],"bg":["#147db0","#07547e"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Benin","emojis":"🇧🇯","styles":["Deadpan"],"bg":["#008751","#fcd116"],"fg":"#102a1a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Bermuda","emojis":"🇧🇲","styles":["Deadpan"],"bg":["#d71920","#8b1118"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Bhutan","emojis":"🇧🇹","styles":["Deadpan"],"bg":["#ffcc33","#ff6f00"],"fg":"#301500","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Bolivia","emojis":"🇧🇴","styles":["Deadpan"],"bg":["#d52b1e","#007934"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Bouvet Island","emojis":"🇧🇻","styles":["Deadpan"],"bg":["#ba0c2f","#7a1028"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Brazil","emojis":"🇧🇷","styles":["Deadpan"],"bg":["#009c3b","#ffdf00"],"fg":"#102616","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"British Indian Ocean Territory","emojis":"🇮🇴","styles":["Deadpan"],"bg":["#003f87","#005baa"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"British Virgin Islands","emojis":"🇻🇬","styles":["Deadpan"],"bg":["#00247d","#cf142b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Brunei","emojis":"🇧🇳","styles":["Deadpan"],"bg":["#f2c94c","#d9a441"],"fg":"#241b12","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Burkina Faso","emojis":"🇧🇫","styles":["Deadpan"],"bg":["#d94b45","#4d9b58"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Burundi","emojis":"🇧🇮","styles":["Deadpan"],"bg":["#d94b45","#4d9b58"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"CL button","emojis":"🆑","styles":["Deadpan"],"bg":["#e74b58","#c72f43"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Cambodia","emojis":"🇰🇭","styles":["Deadpan"],"bg":["#c83b45","#244a9b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Cameroon","emojis":"🇨🇲","styles":["Deadpan"],"bg":["#d84a43","#36965b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Canada","emojis":"🇨🇦","styles":["Deadpan"],"bg":["#d8323f","#b82031"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Canary Islands","emojis":"🇮🇨","styles":["Deadpan"],"bg":["#2f83c9","#e2b83f"],"fg":"#172b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Cape Verde","emojis":"🇨🇻","styles":["Deadpan"],"bg":["#2b6cb0","#164e8a"],"fg":"#f8fafc","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Caribbean Netherlands","emojis":"🇧🇶","styles":["Deadpan"],"bg":["#c94747","#245b91"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Cayman Islands","emojis":"🇰🇾","styles":["Deadpan"],"bg":["#2b78b8","#14527f"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Central African Republic","emojis":"🇨🇫","styles":["Deadpan"],"bg":["#2674a8","#2f8048"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Ceuta & Melilla","emojis":"🇪🇦","styles":["Deadpan"],"bg":["#d62828","#e9a91b"],"fg":"#111111","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Chad","emojis":"🇹🇩","styles":["Deadpan"],"bg":["#2455a4","#173a75"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Chile","emojis":"🇨🇱","styles":["Deadpan"],"bg":["#b52b32","#7e1e28"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"China","emojis":"🇨🇳","styles":["Deadpan"],"bg":["#b5121b","#7f0d14"],"fg":"#ffd447","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Christmas Island","emojis":"🇨🇽","styles":["Deadpan"],"bg":["#176b91","#0d405c"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Christmas tree","emojis":"🎄","styles":["Deadpan"],"bg":["#2f8f4e","#125b31"],"fg":"#fff1a8","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Clipperton Island","emojis":"🇨🇵","styles":["Deadpan"],"bg":["#2b9aaa","#d9b26f"],"fg":"#102a43","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Cocos (Keeling) Islands","emojis":"🇨🇨","styles":["Deadpan"],"bg":["#168a62","#63c7d9"],"fg":"#102a43","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Comoros","emojis":"🇰🇲","styles":["Deadpan"],"bg":["#138a55","#2878b5"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Congo - Brazzaville","emojis":"🇨🇬","styles":["Deadpan"],"bg":["#f0c83e","#2f8f58"],"fg":"#18251d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Congo - Kinshasa","emojis":"🇨🇩","styles":["Deadpan"],"bg":["#2176b5","#c93645"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Cook Islands","emojis":"🇨🇰","styles":["Deadpan"],"bg":["#168bb5","#d94a3d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Costa Rica","emojis":"🇨🇷","styles":["Deadpan"],"bg":["#174ea6","#c93645"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Croatia","emojis":"🇭🇷","styles":["Deadpan"],"bg":["#d62839","#2463a5"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Cuba","emojis":"🇨🇺","styles":["Deadpan"],"bg":["#1769aa","#c73545"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Curaçao","emojis":"🇨🇼","styles":["Deadpan"],"bg":["#1687c9","#0e5f9b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Cyprus","emojis":"🇨🇾","styles":["Deadpan"],"bg":["#f4eee2","#d6c8ae"],"fg":"#29351f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Czechia","emojis":"🇨🇿","styles":["Deadpan"],"bg":["#2b4f9b","#a92f3a"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Denmark","emojis":"🇩🇰","styles":["Deadpan"],"bg":["#d62839","#a91227"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Diego Garcia","emojis":"🇩🇬","styles":["Deadpan"],"bg":["#1b9bd1","#075b91"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Djibouti","emojis":"🇩🇯","styles":["Deadpan"],"bg":["#23a9c7","#27935b"],"fg":"#10252b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Dominica","emojis":"🇩🇲","styles":["Deadpan"],"bg":["#198b4b","#0b5b35"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Dominican Republic","emojis":"🇩🇴","styles":["Deadpan"],"bg":["#2454a6","#a52d3b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"END arrow","emojis":"🔚","styles":["Deadpan"],"bg":["#6d737a","#3e444b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Ecuador","emojis":"🇪🇨","styles":["Deadpan"],"bg":["#f2c500","#1769aa"],"fg":"#101820","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Egypt","emojis":"🇪🇬","styles":["Deadpan"],"bg":["#d9272e","#a71924"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"England","emojis":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","styles":["Deadpan"],"bg":["#d71920","#a50f15"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Equatorial Guinea","emojis":"🇬🇶","styles":["Deadpan"],"bg":["#16834b","#1769aa"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Eritrea","emojis":"🇪🇷","styles":["Deadpan"],"bg":["#c62828","#167447"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Estonia","emojis":"🇪🇪","styles":["Deadpan"],"bg":["#2f6f9f","#1d2733"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Eswatini","emojis":"🇸🇿","styles":["Deadpan"],"bg":["#155fa0","#b51f2a"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Ethiopia","emojis":"🇪🇹","styles":["Deadpan"],"bg":["#16834b","#e0b52b"],"fg":"#101820","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"European Union","emojis":"🇪🇺","styles":["Deadpan"],"bg":["#164194","#2456b8"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"FREE button","emojis":"🆓","styles":["Deadpan"],"bg":["#b8e986","#68c43f"],"fg":"#12321b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Falkland Islands","emojis":"🇫🇰","styles":["Deadpan"],"bg":["#244f9e","#b83b45"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Faroe Islands","emojis":"🇫🇴","styles":["Deadpan"],"bg":["#c94a55","#6b2f8f"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Fiji","emojis":"🇫🇯","styles":["Deadpan"],"bg":["#8bd3ed","#3b8fbe"],"fg":"#102d43","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Finland","emojis":"🇫🇮","styles":["Deadpan"],"bg":["#d9f0f7","#91cfe3"],"fg":"#123b5a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"France","emojis":"🇫🇷","styles":["Deadpan"],"bg":["#2854a6","#d3484d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"French Guiana","emojis":"🇬🇫","styles":["Deadpan"],"bg":["#2e9b58","#e4c83f"],"fg":"#17351f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"French Polynesia","emojis":"🇵🇫","styles":["Deadpan"],"bg":["#d9484f","#a82745"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"French Southern Territories","emojis":"🇹🇫","styles":["Deadpan"],"bg":["#173f8f","#356ac0"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Gabon","emojis":"🇬🇦","styles":["Deadpan"],"bg":["#239b62","#1e78a8"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Gambia","emojis":"🇬🇲","styles":["Deadpan"],"bg":["#d83a3a","#2f8f5b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Georgia","emojis":"🇬🇪","styles":["Deadpan"],"bg":["#f2f2f2","#c62828"],"fg":"#111111","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Germany","emojis":"🇩🇪","styles":["Deadpan"],"bg":["#2b2b2b","#c7362f"],"fg":"#fff3c4","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Ghana","emojis":"🇬🇭","styles":["Deadpan"],"bg":["#c9363e","#3b8b52"],"fg":"#fff1ae","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Gibraltar","emojis":"🇬🇮","styles":["Deadpan"],"bg":["#f4f4f4","#d33131"],"fg":"#171717","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Greece","emojis":"🇬🇷","styles":["Deadpan"],"bg":["#2f6fae","#dfeaf4"],"fg":"#10233d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Greenland","emojis":"🇬🇱","styles":["Deadpan"],"bg":["#f1f1f1","#c83232"],"fg":"#171717","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Grenada","emojis":"🇬🇩","styles":["Deadpan"],"bg":["#c92f35","#3c8b4a"],"fg":"#fff1ae","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Guadeloupe","emojis":"🇬🇵","styles":["Deadpan"],"bg":["#126b52","#1f6fa8"],"fg":"#fff3a3","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Guam","emojis":"🇬🇺","styles":["Deadpan"],"bg":["#155a9c","#c43b45"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Guatemala","emojis":"🇬🇹","styles":["Deadpan"],"bg":["#3b82c4","#dceef7"],"fg":"#12304a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Guyana","emojis":"🇬🇾","styles":["Deadpan"],"bg":["#168a49","#d7b531"],"fg":"#102c22","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Haiti","emojis":"🇭🇹","styles":["Deadpan"],"bg":["#124e96","#b51f32"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Heard & McDonald Islands","emojis":"🇭🇲","styles":["Deadpan"],"bg":["#176b9e","#3b8c68"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Hungary","emojis":"🇭🇺","styles":["Deadpan"],"bg":["#cf2e3d","#27834b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"ID button","emojis":"🆔","styles":["Deadpan"],"bg":["#d7e0e8","#aebdca"],"fg":"#17232d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Iceland","emojis":"🇮🇸","styles":["Deadpan"],"bg":["#1c5b91","#b51f35"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"India","emojis":"🇮🇳","styles":["Deadpan"],"bg":["#ff9933","#138808"],"fg":"#17202a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Indonesia","emojis":"🇮🇩","styles":["Deadpan"],"bg":["#d71932","#f2eee5"],"fg":"#171717","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Iran","emojis":"🇮🇷","styles":["Deadpan"],"bg":["#23904b","#c72532"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Iraq","emojis":"🇮🇶","styles":["Deadpan"],"bg":["#176b48","#c5222d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Ireland","emojis":"🇮🇪","styles":["Deadpan"],"bg":["#169b62","#ff883e"],"fg":"#17202a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Italy","emojis":"🇮🇹","styles":["Deadpan"],"bg":["#009246","#ce2b37"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Jamaica","emojis":"🇯🇲","styles":["Deadpan"],"bg":["#087f3e","#d4a72c"],"fg":"#111111","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Japanese dolls","emojis":"🎎","styles":["Deadpan"],"bg":["#d94f70","#f3b6a8"],"fg":"#24132b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Japanese post office","emojis":"🏣","styles":["Deadpan"],"bg":["#c62828","#f0d6b5"],"fg":"#241313","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Japanese symbol for beginner","emojis":"🔰","styles":["Deadpan"],"bg":["#d7b52c","#7b9418"],"fg":"#17210b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Japanese “acceptable” button","emojis":"🉑","styles":["Deadpan"],"bg":["#3b78a4","#a9d0e5"],"fg":"#101b2d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Japanese “application” button","emojis":"🈸","styles":["Deadpan"],"bg":["#b83b5e","#e89aaf"],"fg":"#2a101a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Japanese “bargain” button","emojis":"🉐","styles":["Deadpan"],"bg":["#b8860b","#f0cf62"],"fg":"#241a05","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Japanese “discount” button","emojis":"🈹","styles":["Deadpan"],"bg":["#b83232","#ef9a8f"],"fg":"#280d0d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Japanese “free of charge” button","emojis":"🈚️","styles":["Deadpan"],"bg":["#d9f2df","#8fd19e"],"fg":"#12351d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Japanese “here” button","emojis":"🈁","styles":["Deadpan"],"bg":["#d9eaf7","#91bfe3"],"fg":"#102b45","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Japanese “monthly amount” button","emojis":"🈷️","styles":["Deadpan"],"bg":["#fff0c2","#e6bb55"],"fg":"#3d2b05","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Japanese “no vacancy” button","emojis":"🈵","styles":["Deadpan"],"bg":["#f6d0d0","#d87878"],"fg":"#4a1111","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Japanese “not free of charge” button","emojis":"🈶","styles":["Deadpan"],"bg":["#ffe0c2","#e99a54"],"fg":"#472006","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Japanese “open for business” button","emojis":"🈺","styles":["Deadpan"],"bg":["#d5f0d8","#75c987"],"fg":"#123c1b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Japanese “passing grade” button","emojis":"🈴","styles":["Deadpan"],"bg":["#d8e8f7","#83b4df"],"fg":"#102b45","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Japanese “prohibited” button","emojis":"🈲","styles":["Deadpan"],"bg":["#f2cccc","#c94747"],"fg":"#410d0d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Japanese “reserved” button","emojis":"🈯️","styles":["Deadpan"],"bg":["#e7dcf5","#ad8bd1"],"fg":"#28153f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Japanese “secret” button","emojis":"㊙️","styles":["Deadpan"],"bg":["#292747","#51437b"],"fg":"#f4efff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Japanese “service charge” button","emojis":"🈂️","styles":["Deadpan"],"bg":["#d52b2b","#f3d9d9"],"fg":"#241313","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Japanese “vacancy” button","emojis":"🈳","styles":["Deadpan"],"bg":["#3778c7","#dcecff"],"fg":"#10233d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Jersey","emojis":"🇯🇪","styles":["Deadpan"],"bg":["#c93636","#e8b94f"],"fg":"#241313","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Jordan","emojis":"🇯🇴","styles":["Deadpan"],"bg":["#20242a","#1f6b48"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Kazakhstan","emojis":"🇰🇿","styles":["Deadpan"],"bg":["#32a9d0","#168aa9"],"fg":"#102b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Kenya","emojis":"🇰🇪","styles":["Deadpan"],"bg":["#1d2524","#b83232"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Kiribati","emojis":"🇰🇮","styles":["Deadpan"],"bg":["#d9363e","#2876a8"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Kuwait","emojis":"🇰🇼","styles":["Deadpan"],"bg":["#202524","#24704c"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Kyrgyzstan","emojis":"🇰🇬","styles":["Deadpan"],"bg":["#d92f35","#e1ad32"],"fg":"#241313","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Laos","emojis":"🇱🇦","styles":["Deadpan"],"bg":["#d62828","#123b7a"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Latvia","emojis":"🇱🇻","styles":["Deadpan"],"bg":["#9e1b32","#6f1024"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Lebanon","emojis":"🇱🇧","styles":["Deadpan"],"bg":["#d61f2f","#197a4b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Lesotho","emojis":"🇱🇸","styles":["Deadpan"],"bg":["#2d8fc4","#2f7d4a"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Liberia","emojis":"🇱🇷","styles":["Deadpan"],"bg":["#c62836","#214b8f"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Libya","emojis":"🇱🇾","styles":["Deadpan"],"bg":["#161616","#16834b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Liechtenstein","emojis":"🇱🇮","styles":["Deadpan"],"bg":["#2456a6","#c6283d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Macao SAR China","emojis":"🇲🇴","styles":["Deadpan"],"bg":["#167447","#b51f2d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Madagascar","emojis":"🇲🇬","styles":["Deadpan"],"bg":["#d7192f","#168a45"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Malawi","emojis":"🇲🇼","styles":["Deadpan"],"bg":["#111111","#168a45"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Malaysia","emojis":"🇲🇾","styles":["Deadpan"],"bg":["#d71920","#0b3d91"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Maldives","emojis":"🇲🇻","styles":["Deadpan"],"bg":["#d71920","#168a45"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Mali","emojis":"🇲🇱","styles":["Deadpan"],"bg":["#168a45","#d71920"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Malta","emojis":"🇲🇹","styles":["Deadpan"],"bg":["#f4f4f0","#d71920"],"fg":"#241f20","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Marshall Islands","emojis":"🇲🇭","styles":["Deadpan"],"bg":["#006ca8","#d97825"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Martinique","emojis":"🇲🇶","styles":["Deadpan"],"bg":["#164b9b","#d71920"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Mauritius","emojis":"🇲🇺","styles":["Deadpan"],"bg":["#d71920","#164b9b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Mayotte","emojis":"🇾🇹","styles":["Deadpan"],"bg":["#dbe8f1","#b7cbd9"],"fg":"#172b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Mexico","emojis":"🇲🇽","styles":["Deadpan"],"bg":["#087f5b","#b52a35"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Moldova","emojis":"🇲🇩","styles":["Deadpan"],"bg":["#6f9ed8","#e4c35a"],"fg":"#1b2430","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Monaco","emojis":"🇲🇨","styles":["Deadpan"],"bg":["#d52b3f","#a9182b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Mongolia","emojis":"🇲🇳","styles":["Deadpan"],"bg":["#2b4fa3","#c9343c"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Montenegro","emojis":"🇲🇪","styles":["Deadpan"],"bg":["#b53a3b","#8f242c"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Montserrat","emojis":"🇲🇸","styles":["Deadpan"],"bg":["#2d5f9e","#173d73"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Morocco","emojis":"🇲🇦","styles":["Deadpan"],"bg":["#c1272d","#8f171f"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Mozambique","emojis":"🇲🇿","styles":["Deadpan"],"bg":["#3f9b55","#24733e"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Mrs. Claus","emojis":"🤶","styles":["Deadpan"],"bg":["#c62828","#1b5e20"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Mx Claus","emojis":"🧑‍🎄","styles":["Deadpan"],"bg":["#c62828","#1b5e20"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Myanmar (Burma)","emojis":"🇲🇲","styles":["Deadpan"],"bg":["#f4c542","#d62828"],"fg":"#111827","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"NEW button","emojis":"🆕","styles":["Deadpan"],"bg":["#3b82f6","#1d4ed8"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"NG button","emojis":"🆖","styles":["Deadpan"],"bg":["#3b82f6","#1d4ed8"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Namibia","emojis":"🇳🇦","styles":["Deadpan"],"bg":["#1976a3","#d62828"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Nauru","emojis":"🇳🇷","styles":["Deadpan"],"bg":["#f4c542","#1976a3"],"fg":"#111827","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Nepal","emojis":"🇳🇵","styles":["Deadpan"],"bg":["#dc2626","#2563eb"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Netherlands","emojis":"🇳🇱","styles":["Deadpan"],"bg":["#d62828","#21468b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"New Caledonia","emojis":"🇳🇨","styles":["Deadpan"],"bg":["#1d4ed8","#16a34a"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"New Zealand","emojis":"🇳🇿","styles":["Deadpan"],"bg":["#1f5f8b","#163f5c"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Nicaragua","emojis":"🇳🇮","styles":["Deadpan"],"bg":["#4ba3c7","#d9f0f5"],"fg":"#123047","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Niger","emojis":"🇳🇪","styles":["Deadpan"],"bg":["#f28c28","#4b9b52"],"fg":"#24170b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Nigeria","emojis":"🇳🇬","styles":["Deadpan"],"bg":["#198754","#0f5c3b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Niue","emojis":"🇳🇺","styles":["Deadpan"],"bg":["#3b8dcc","#e0b83f"],"fg":"#10263d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Norfolk Island","emojis":"🇳🇫","styles":["Deadpan"],"bg":["#2f6fa3","#1d4d78"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"North Korea","emojis":"🇰🇵","styles":["Deadpan"],"bg":["#b51f2a","#263f82"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"North Macedonia","emojis":"🇲🇰","styles":["Deadpan"],"bg":["#d83a2e","#f0a51a"],"fg":"#24100b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Northern Mariana Islands","emojis":"🇲🇵","styles":["Deadpan"],"bg":["#4d9fd1","#b9dff0"],"fg":"#17324a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Norway","emojis":"🇳🇴","styles":["Deadpan"],"bg":["#b51f2a","#7e1722"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"O button (blood type)","emojis":"🅾️","styles":["Deadpan"],"bg":["#8b0000","#d62828"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"OK button","emojis":"🆗","styles":["Deadpan"],"bg":["#0d47a1","#1976d2"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"OK hand","emojis":"👌","styles":["Deadpan"],"bg":["#f4b400","#f57c00"],"fg":"#2b1600","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"ON! arrow","emojis":"🔛","styles":["Deadpan"],"bg":["#0b3d91","#1976d2"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Oman","emojis":"🇴🇲","styles":["Deadpan"],"bg":["#b51d2a","#198754"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"P button","emojis":"🅿️","styles":["Deadpan"],"bg":["#0b3d91","#2f80ed"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Pakistan","emojis":"🇵🇰","styles":["Deadpan"],"bg":["#00401a","#009b4d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Palau","emojis":"🇵🇼","styles":["Deadpan"],"bg":["#4aa9d8","#83c9e8"],"fg":"#12304a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Palestinian Territories","emojis":"🇵🇸","styles":["Deadpan"],"bg":["#111827","#007a3d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Panama","emojis":"🇵🇦","styles":["Deadpan"],"bg":["#9e1b32","#274690"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Papua New Guinea","emojis":"🇵🇬","styles":["Deadpan"],"bg":["#9b1734","#243548"],"fg":"#f4d35e","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Paraguay","emojis":"🇵🇾","styles":["Deadpan"],"bg":["#c5223d","#244f87"],"fg":"#f7f7f2","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Peru","emojis":"🇵🇪","styles":["Deadpan"],"bg":["#c82032","#8f1827"],"fg":"#fff5ed","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Philippines","emojis":"🇵🇭","styles":["Deadpan"],"bg":["#1767a8","#b52d3c"],"fg":"#ffe27a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Pitcairn Islands","emojis":"🇵🇳","styles":["Deadpan"],"bg":["#1e6091","#26735b"],"fg":"#f4d35e","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Portugal","emojis":"🇵🇹","styles":["Deadpan"],"bg":["#17633f","#9d2638"],"fg":"#fff1d0","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Puerto Rico","emojis":"🇵🇷","styles":["Deadpan"],"bg":["#1d5c9b","#b92d3b"],"fg":"#fff5ed","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Qatar","emojis":"🇶🇦","styles":["Deadpan"],"bg":["#7e1735","#541127"],"fg":"#fff4e6","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Romania","emojis":"🇷🇴","styles":["Deadpan"],"bg":["#1f4eaa","#c1121f"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Rwanda","emojis":"🇷🇼","styles":["Deadpan"],"bg":["#1877c9","#2e8b57"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"SOON arrow","emojis":"🔜","styles":["Hopeful"],"bg":["#2784c6","#14538d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"SOS button","emojis":"🆘","styles":["Tense"],"bg":["#d62828","#8b1010"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Samoa","emojis":"🇼🇸","styles":["Deadpan"],"bg":["#c62828","#123b73"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"San Marino","emojis":"🇸🇲","styles":["Deadpan"],"bg":["#b9d9f2","#f4f7fa"],"fg":"#18324b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Santa Claus","emojis":"🎅","styles":["Joyful","Whimsical"],"bg":["#e53935","#9e1b1b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Sark","emojis":"🇨🇶","styles":["Deadpan"],"bg":["#4aa8c7","#d5a84b"],"fg":"#102f3d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Saudi Arabia","emojis":"🇸🇦","styles":["Deadpan"],"bg":["#0b6b3a","#16834a"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Scotland","emojis":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","styles":["Deadpan"],"bg":["#164a85","#2865a8"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Senegal","emojis":"🇸🇳","styles":["Deadpan"],"bg":["#087443","#b6212d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Serbia","emojis":"🇷🇸","styles":["Deadpan"],"bg":["#b51e32","#244a8f"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Seychelles","emojis":"🇸🇨","styles":["Deadpan"],"bg":["#1768a5","#16834d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Sierra Leone","emojis":"🇸🇱","styles":["Deadpan"],"bg":["#16834a","#1e5d9b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Singapore","emojis":"🇸🇬","styles":["Deadpan"],"bg":["#c92735","#e04a4a"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Sint Maarten","emojis":"🇸🇽","styles":["Deadpan"],"bg":["#b92332","#235b9f"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Slovakia","emojis":"🇸🇰","styles":["Deadpan"],"bg":["#b92135","#28548f"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Slovenia","emojis":"🇸🇮","styles":["Deadpan"],"bg":["#214d91","#b62a35"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Solomon Islands","emojis":"🇸🇧","styles":["Deadpan"],"bg":["#258fca","#328653"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Somalia","emojis":"🇸🇴","styles":["Deadpan"],"bg":["#4b9bc4","#86c2dc"],"fg":"#102a43","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"South Africa","emojis":"🇿🇦","styles":["Deadpan"],"bg":["#16804b","#d6a629"],"fg":"#101f33","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"South Georgia & South Sandwich Islands","emojis":"🇬🇸","styles":["Deadpan"],"bg":["#173c78","#5278ad"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"South Korea","emojis":"🇰🇷","styles":["Deadpan"],"bg":["#e7edf4","#cfdbea"],"fg":"#18213b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"South Sudan","emojis":"🇸🇸","styles":["Deadpan"],"bg":["#151a25","#2f7d56"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"St. Barthélemy","emojis":"🇧🇱","styles":["Deadpan"],"bg":["#6ba8d1","#d98d72"],"fg":"#172b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"St. Helena","emojis":"🇸🇭","styles":["Deadpan"],"bg":["#183d76","#5279ad"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"St. Kitts & Nevis","emojis":"🇰🇳","styles":["Deadpan"],"bg":["#d62828","#3a9d23"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"St. Martin","emojis":"🇲🇫","styles":["Deadpan"],"bg":["#174a9c","#c51f32"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"St. Pierre & Miquelon","emojis":"🇵🇲","styles":["Deadpan"],"bg":["#2468a8","#d83a32"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"St. Vincent & Grenadines","emojis":"🇻🇨","styles":["Deadpan"],"bg":["#1684c4","#2e9d45"],"fg":"#101820","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Statue of Liberty","emojis":"🗽","styles":["Deadpan"],"bg":["#78c7c5","#3f8f88"],"fg":"#102a43","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Sudan","emojis":"🇸🇩","styles":["Deadpan"],"bg":["#d62828","#198754"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Suriname","emojis":"🇸🇷","styles":["Deadpan"],"bg":["#18794e","#c92a2a"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Svalbard & Jan Mayen","emojis":"🇸🇯","styles":["Deadpan"],"bg":["#b8d8e8","#5b86a4"],"fg":"#102a43","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Sweden","emojis":"🇸🇪","styles":["Deadpan"],"bg":["#1f6fb2","#14508a"],"fg":"#ffd34e","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Switzerland","emojis":"🇨🇭","styles":["Deadpan"],"bg":["#8f1020","#d52235"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Syria","emojis":"🇸🇾","styles":["Deadpan"],"bg":["#176b3a","#8f1825"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"São Tomé & Príncipe","emojis":"🇸🇹","styles":["Deadpan"],"bg":["#14753b","#b51d2a"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"TOP arrow","emojis":"🔝","styles":["Deadpan"],"bg":["#245b9e","#4b8dcc"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Taiwan","emojis":"🇹🇼","styles":["Deadpan"],"bg":["#164b8f","#c9222d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Tajikistan","emojis":"🇹🇯","styles":["Deadpan"],"bg":["#a91f2d","#287343"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Tanzania","emojis":"🇹🇿","styles":["Deadpan"],"bg":["#17663e","#176d9b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Thailand","emojis":"🇹🇭","styles":["Deadpan"],"bg":["#9e1c2b","#173b78"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Timor-Leste","emojis":"🇹🇱","styles":["Deadpan"],"bg":["#8f1d24","#7e5420"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Togo","emojis":"🇹🇬","styles":["Deadpan"],"bg":["#176c3b","#68751e"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Tokelau","emojis":"🇹🇰","styles":["Deadpan"],"bg":["#1677a8","#0d527d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Tokyo tower","emojis":"🗼","styles":["Deadpan"],"bg":["#ed4b32","#b92820"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Tonga","emojis":"🇹🇴","styles":["Deadpan"],"bg":["#d71938","#a80f2b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Trinidad & Tobago","emojis":"🇹🇹","styles":["Deadpan"],"bg":["#d71920","#a70f18"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Tunisia","emojis":"🇹🇳","styles":["Deadpan"],"bg":["#e31b34","#b9152b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Turkmenistan","emojis":"🇹🇲","styles":["Deadpan"],"bg":["#16804b","#0d5d38"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Turks & Caicos Islands","emojis":"🇹🇨","styles":["Deadpan"],"bg":["#2b9ccc","#19709c"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Türkiye","emojis":"🇹🇷","styles":["Deadpan"],"bg":["#e32636","#b51429"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"U.S. Outlying Islands","emojis":"🇺🇲","styles":["Deadpan"],"bg":["#123b66","#1b5f8a"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"U.S. Virgin Islands","emojis":"🇻🇮","styles":["Deadpan"],"bg":["#214f9b","#b91c2c"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Uganda","emojis":"🇺🇬","styles":["Deadpan"],"bg":["#171717","#d92323"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Ukraine","emojis":"🇺🇦","styles":["Deadpan"],"bg":["#1976c9","#f2c230"],"fg":"#14213d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"United Arab Emirates","emojis":"🇦🇪","styles":["Deadpan"],"bg":["#087f3f","#c8a400"],"fg":"#111827","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"United Kingdom","emojis":"🇬🇧","styles":["Deadpan"],"bg":["#173b83","#a51c30"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"United States","emojis":"🇺🇸","styles":["Deadpan"],"bg":["#173f73","#b22234"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Uruguay","emojis":"🇺🇾","styles":["Deadpan"],"bg":["#7fc8e8","#dff5ff"],"fg":"#14213d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Uzbekistan","emojis":"🇺🇿","styles":["Deadpan"],"bg":["#3b82c4","#39a852"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"VS button","emojis":"🆚","styles":["Deadpan"],"bg":["#315f9c","#b8323c"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Vanuatu","emojis":"🇻🇺","styles":["Deadpan"],"bg":["#b51f2a","#2f8f4e"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Vatican City","emojis":"🇻🇦","styles":["Deadpan"],"bg":["#f2cf43","#f4f1e8"],"fg":"#172b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Vietnam","emojis":"🇻🇳","styles":["Deadpan"],"bg":["#d62828","#b71c1c"],"fg":"#ffd84a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Wales","emojis":"🏴󠁧󠁢󠁷󠁬󠁳󠁿","styles":["Deadpan"],"bg":["#2f8f46","#c62828"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Wallis & Futuna","emojis":"🇼🇫","styles":["Deadpan"],"bg":["#234e9b","#d52b3f"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Yemen","emojis":"🇾🇪","styles":["Deadpan"],"bg":["#c62828","#202020"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"ZZZ","emojis":"💤","styles":["Serene"],"bg":["#26364a","#101923"],"fg":"#f1f4f6","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Zambia","emojis":"🇿🇲","styles":["Deadpan"],"bg":["#198754","#d94b3d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"adhesive bandage","emojis":"🩹","styles":["Deadpan"],"bg":["#f0c7a8","#d99b78"],"fg":"#45271d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"admission tickets","emojis":"🎟️","styles":["Deadpan"],"bg":["#e6b84f","#c97a28"],"fg":"#321d0d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"adult, adult, child","emojis":"🧑‍🧑‍🧒","styles":["Deadpan"],"bg":["#d8dee5","#aeb8c4"],"fg":"#202a35","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"adult, adult, child, child","emojis":"🧑‍🧑‍🧒‍🧒","styles":["Deadpan"],"bg":["#d8dee5","#aeb8c4"],"fg":"#202a35","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"adult, child","emojis":"🧑‍🧒","styles":["Deadpan"],"bg":["#d8dee5","#aeb8c4"],"fg":"#202a35","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"adult, child, child","emojis":"🧑‍🧒‍🧒","styles":["Deadpan"],"bg":["#d8dee5","#aeb8c4"],"fg":"#202a35","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"aerial tramway","emojis":"🚡","styles":["Deadpan"],"bg":["#8ed0e8","#4b9fc1"],"fg":"#102c3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"airplane arrival","emojis":"🛬","styles":["Deadpan"],"bg":["#b9e4ff","#6fb6e8"],"fg":"#12324a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"airplane departure","emojis":"🛫","styles":["Deadpan"],"bg":["#d7efff","#7ab9e8"],"fg":"#12324a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"alarm clock","emojis":"⏰️","styles":["Deadpan"],"bg":["#ffd45a","#f29b38"],"fg":"#332000","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"alien monster","emojis":"👾","styles":["Whimsical","Playful"],"bg":["#6b2c91","#2c8f68"],"fg":"#fff7d6","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"american football","emojis":"🏈","styles":["Deadpan"],"bg":["#8b5a2b","#d49a52"],"fg":"#1c130c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"anatomical heart","emojis":"🫀","styles":["Deadpan"],"bg":["#ef5b63","#9f1f38"],"fg":"#fff5f2","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"angry face","emojis":"😠","styles":["Furious"],"bg":["#ff8570","#e6382f"],"fg":"#3b0b0b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"angry face with horns","emojis":"👿","styles":["Furious","Playful"],"bg":["#8f1d2c","#4a0c19"],"fg":"#ffe9c2","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"anguished face","emojis":"😧","styles":["Anxious"],"bg":["#6d8ca8","#344f70"],"fg":"#f4f7fb","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"antenna bars","emojis":"📶","styles":["Deadpan"],"bg":["#b8d9e8","#6fa9c5"],"fg":"#102b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"anxious face with sweat","emojis":"😰","styles":["Anxious"],"bg":["#b9d8e5","#6f9eb4"],"fg":"#172b35","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"articulated lorry","emojis":"🚛","styles":["Deadpan"],"bg":["#b9d2c5","#6d9b82"],"fg":"#17352a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"artist palette","emojis":"🎨","styles":["Deadpan"],"bg":["#f2b544","#d85b51"],"fg":"#3a1d24","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"astonished face","emojis":"😲","styles":["Startled"],"bg":["#f1c35b","#db754e"],"fg":"#351b20","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"atom symbol","emojis":"⚛️","styles":["Deadpan"],"bg":["#6f55b5","#3d3b91"],"fg":"#f3ecff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"auto rickshaw","emojis":"🛺","styles":["Deadpan"],"bg":["#55c4b2","#e58a3d"],"fg":"#18353a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"baby angel","emojis":"👼","styles":["Whimsical","Tender"],"bg":["#d9c47a","#8eb8d0"],"fg":"#263348","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"baby bottle","emojis":"🍼","styles":["Deadpan"],"bg":["#d9edf5","#9bc8dd"],"fg":"#173342","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"baby chick","emojis":"🐤","styles":["Tender"],"bg":["#f6d34f","#e9a83d"],"fg":"#3d2910","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"baby symbol","emojis":"🚼️","styles":["Deadpan"],"bg":["#b8d9e8","#e7b8c7"],"fg":"#243447","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"backhand index pointing down","emojis":"👇️","styles":["Deadpan"],"bg":["#4f8fc9","#285b99"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"backhand index pointing left","emojis":"👈️","styles":["Deadpan"],"bg":["#4f8fc9","#285b99"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"backhand index pointing right","emojis":"👉️","styles":["Deadpan"],"bg":["#4f8fc9","#285b99"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"backhand index pointing up","emojis":"👆️","styles":["Deadpan"],"bg":["#4f8fc9","#285b99"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"baguette bread","emojis":"🥖","styles":["Deadpan"],"bg":["#f0c66a","#b96b2c"],"fg":"#3a2112","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"balance scale","emojis":"⚖️","styles":["Deadpan"],"bg":["#c8d3dc","#8799a8"],"fg":"#17232d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"ballet dancer","emojis":"🧑‍🩰","styles":["Deadpan"],"bg":["#e7a7c4","#a96da5"],"fg":"#321d3b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"ballet shoes","emojis":"🩰","styles":["Deadpan"],"bg":["#f3b2c7","#c76f94"],"fg":"#351526","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"ballot box with ballot","emojis":"🗳️","styles":["Deadpan"],"bg":["#d9e4ef","#a9bdd2"],"fg":"#172536","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"bar chart","emojis":"📊","styles":["Deadpan"],"bg":["#dce7f2","#afc5da"],"fg":"#182b3b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"barber pole","emojis":"💈","styles":["Deadpan"],"bg":["#d94b4b","#9f3040"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"beach with umbrella","emojis":"🏖️","styles":["Serene"],"bg":["#62c9e8","#f2c45b"],"fg":"#15354a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"beaming face with smiling eyes","emojis":"😁","styles":["Joyful"],"bg":["#ffd84a","#f2a51f"],"fg":"#3b2300","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"beer mug","emojis":"🍺","styles":["Deadpan"],"bg":["#f5c45a","#c97920"],"fg":"#3a2108","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"bell pepper","emojis":"🫑","styles":["Deadpan"],"bg":["#9dcc57","#4f8d38"],"fg":"#173817","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"bell with slash","emojis":"🔕","styles":["Deadpan"],"bg":["#b9c2cc","#7d8996"],"fg":"#18232d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"bellhop bell","emojis":"🛎️","styles":["Deadpan"],"bg":["#e5b94d","#b97922"],"fg":"#3a2208","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"bento box","emojis":"🍱","styles":["Deadpan"],"bg":["#d8a85f","#a56f3f"],"fg":"#24170f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"beverage box","emojis":"🧃","styles":["Deadpan"],"bg":["#b9dff0","#6aa6c4"],"fg":"#102d3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"billed cap","emojis":"🧢","styles":["Deadpan"],"bg":["#79a9d1","#47729e"],"fg":"#102235","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"birthday cake","emojis":"🎂","styles":["Joyful"],"bg":["#ffb6c8","#f07b91"],"fg":"#4a1225","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"black bird","emojis":"🐦‍⬛","styles":["Deadpan"],"bg":["#39433e","#171b1c"],"fg":"#f1eee5","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"black cat","emojis":"🐈‍⬛","styles":["Deadpan"],"bg":["#40374d","#191820"],"fg":"#f4edf7","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"black circle","emojis":"⚫️","styles":["Deadpan"],"bg":["#303030","#090909"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"black flag","emojis":"🏴","styles":["Deadpan"],"bg":["#353535","#0c0c0c"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"black heart","emojis":"🖤","styles":["Deadpan"],"bg":["#3b2935","#100d13"],"fg":"#fff4fa","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"black large square","emojis":"⬛️","styles":["Deadpan"],"bg":["#111111","#2a2a2a"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"black medium square","emojis":"◼️","styles":["Deadpan"],"bg":["#181818","#333333"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"black medium-small square","emojis":"◾️","styles":["Deadpan"],"bg":["#202020","#3b3b3b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"black nib","emojis":"✒️","styles":["Deadpan"],"bg":["#101820","#26313b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"black small square","emojis":"▪️","styles":["Deadpan"],"bg":["#242424","#444444"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"black square button","emojis":"🔲","styles":["Deadpan"],"bg":["#161616","#303030"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"blond hair","emojis":"👱 👱‍♀️ 👱‍♂️","styles":["Deadpan"],"bg":["#c47a16","#f0b52f"],"fg":"#241506","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"blue book","emojis":"📘","styles":["Deadpan"],"bg":["#124a8a","#3b82c4"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"blue circle","emojis":"🔵","styles":["Deadpan"],"bg":["#075bbb","#2294e8"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"blue heart","emojis":"💙","styles":["Deadpan"],"bg":["#0b4fa3","#2376d8"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"blue square","emojis":"🟦","styles":["Deadpan"],"bg":["#3b82f6","#1d4ed8"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"bookmark tabs","emojis":"📑","styles":["Deadpan"],"bg":["#e8d7b5","#b9945b"],"fg":"#2d2418","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"bottle with popping cork","emojis":"🍾","styles":["Excited"],"bg":["#f6d365","#d89b2b"],"fg":"#3a2508","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"bow and arrow","emojis":"🏹","styles":["Deadpan"],"bg":["#8b5a2b","#4b2e18"],"fg":"#fff4df","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"bowl with spoon","emojis":"🥣","styles":["Deadpan"],"bg":["#d9eef5","#8bb8c8"],"fg":"#19313a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"boxing glove","emojis":"🥊","styles":["Determined"],"bg":["#d83a3a","#8f1d2c"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"bridge at night","emojis":"🌉","styles":["Serene"],"bg":["#203a68","#0b1733"],"fg":"#f1e8d0","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"bright button","emojis":"🔆","styles":["Deadpan"],"bg":["#ffe45e","#f5b400"],"fg":"#3a2700","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"broken chain","emojis":"⛓️‍💥","styles":["Determined"],"bg":["#6f7b86","#39434d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"broken heart","emojis":"💔","styles":["Melancholy"],"bg":["#6b1f2a","#2d0d16"],"fg":"#ffe5e8","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"brown circle","emojis":"🟤","styles":["Deadpan"],"bg":["#8b5a2b","#5c3a21"],"fg":"#fff4df","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"brown heart","emojis":"🤎","styles":["Deadpan"],"bg":["#9a5a3a","#633522"],"fg":"#fff1df","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"brown mushroom","emojis":"🍄‍🟫","styles":["Deadpan"],"bg":["#9b6a43","#68452d"],"fg":"#fff3dc","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"brown square","emojis":"🟫","styles":["Deadpan"],"bg":["#87502f","#59301f"],"fg":"#fff0d6","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"bubble tea","emojis":"🧋","styles":["Deadpan"],"bg":["#d49a68","#a96542"],"fg":"#2b1b19","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"building construction","emojis":"🏗️","styles":["Deadpan"],"bg":["#f2b632","#d87525"],"fg":"#172436","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"bullet train","emojis":"🚅","styles":["Deadpan"],"bg":["#6ca6c9","#39749b"],"fg":"#102638","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"bus stop","emojis":"🚏","styles":["Deadpan"],"bg":["#c75b4b","#8f3540"],"fg":"#fff4df","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"bust in silhouette","emojis":"👤","styles":["Deadpan"],"bg":["#3d4650","#171b22"],"fg":"#f0e6d2","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"busts in silhouette","emojis":"👥","styles":["Deadpan"],"bg":["#3d4650","#171b22"],"fg":"#f0e6d2","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"call me hand","emojis":"🤙","styles":["Deadpan"],"bg":["#d8b07a","#b9784f"],"fg":"#24180f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"camera with flash","emojis":"📸","styles":["Deadpan"],"bg":["#dbe8f2","#93a9bd"],"fg":"#111923","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"canned food","emojis":"🥫","styles":["Deadpan"],"bg":["#b7c7a0","#7e9567"],"fg":"#182014","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"card file box","emojis":"🗃️","styles":["Deadpan"],"bg":["#c9a77b","#9b704c"],"fg":"#21150d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"card index","emojis":"📇","styles":["Deadpan"],"bg":["#9dc6d9","#5e91ad"],"fg":"#10232d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"card index dividers","emojis":"🗂️","styles":["Deadpan"],"bg":["#c4d2d8","#8da5b0"],"fg":"#17242a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"carousel horse","emojis":"🎠","styles":["Whimsical"],"bg":["#f6c35b","#e8784f"],"fg":"#3b170d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"carp streamer","emojis":"🎏","styles":["Whimsical"],"bg":["#77c9dd","#3184b3"],"fg":"#10212a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"carpentry saw","emojis":"🪚","styles":["Deadpan"],"bg":["#c99b68","#95633e"],"fg":"#24170f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cat face","emojis":"🐱","styles":["Deadpan"],"bg":["#d2b18f","#a67b5b"],"fg":"#211811","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cat with tears of joy","emojis":"😹","styles":["Joyful"],"bg":["#ffd84d","#ff9f1c"],"fg":"#3b2100","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cat with wry smile","emojis":"😼","styles":["Sarcastic"],"bg":["#c8bfd9","#8d829f"],"fg":"#241d2b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"chart decreasing","emojis":"📉","styles":["Deadpan"],"bg":["#b8c9d9","#7893aa"],"fg":"#142330","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"chart increasing","emojis":"📈","styles":["Deadpan"],"bg":["#b7d99b","#62ad70"],"fg":"#12351d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"chart increasing with yen","emojis":"💹","styles":["Deadpan"],"bg":["#b6d995","#4eaa69"],"fg":"#12351d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"check box with check","emojis":"☑️","styles":["Deadpan"],"bg":["#b8d7ee","#6fadd2"],"fg":"#102638","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"check mark","emojis":"✔️","styles":["Deadpan"],"bg":["#c5d9e8","#7fa8c2"],"fg":"#132536","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"check mark button","emojis":"✅️","styles":["Deadpan"],"bg":["#b7dfb5","#58b86a"],"fg":"#12351d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cheese wedge","emojis":"🧀","styles":["Deadpan"],"bg":["#ffe477","#e7a82f"],"fg":"#3b2600","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"chequered flag","emojis":"🏁","styles":["Deadpan"],"bg":["#e95b5b","#a91f36"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cherry blossom","emojis":"🌸","styles":["Deadpan"],"bg":["#f7b7c8","#e98fae"],"fg":"#4a1830","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"chess pawn","emojis":"♟️","styles":["Deadpan"],"bg":["#d8d0c2","#a99f91"],"fg":"#1d1a17","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"children crossing","emojis":"🚸","styles":["Deadpan"],"bg":["#f5d84a","#e7b92f"],"fg":"#20230f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"chocolate bar","emojis":"🍫","styles":["Deadpan"],"bg":["#8b4a2f","#5c2b1e"],"fg":"#fff1d6","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"circled M","emojis":"Ⓜ️","styles":["Deadpan"],"bg":["#69aee8","#347fc1"],"fg":"#082744","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"circus tent","emojis":"🎪","styles":["Deadpan"],"bg":["#e84848","#b92735"],"fg":"#fff1c7","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cityscape at dusk","emojis":"🌆","styles":["Deadpan"],"bg":["#6d568f","#302c59"],"fg":"#ffe0a3","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"clapper board","emojis":"🎬️","styles":["Deadpan"],"bg":["#5a6470","#303841"],"fg":"#f3d36b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"clapping hands","emojis":"👏","styles":["Deadpan"],"bg":["#f2b27f","#d98157"],"fg":"#3b1c16","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"classical building","emojis":"🏛️","styles":["Deadpan"],"bg":["#c8d0d1","#9da8aa"],"fg":"#202c31","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"clinking beer mugs","emojis":"🍻","styles":["Joyful"],"bg":["#f6c453","#b86b20"],"fg":"#24170d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"clinking glasses","emojis":"🥂","styles":["Joyful"],"bg":["#f7d889","#c99a35"],"fg":"#24170d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"clockwise vertical arrows","emojis":"🔃","styles":["Deadpan"],"bg":["#b7c9d6","#7895a8"],"fg":"#172b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"closed mailbox with lowered flag","emojis":"📪️","styles":["Deadpan"],"bg":["#a9c0cf","#718c9f"],"fg":"#172833","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"closed mailbox with raised flag","emojis":"📫️","styles":["Deadpan"],"bg":["#8fb6d0","#557b9c"],"fg":"#102333","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"closed umbrella","emojis":"🌂","styles":["Deadpan"],"bg":["#59627f","#353b5d"],"fg":"#f2e9d8","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cloud with lightning","emojis":"🌩️","styles":["Deadpan"],"bg":["#4d5f78","#252f48"],"fg":"#f8d34f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cloud with lightning and rain","emojis":"⛈️","styles":["Deadpan"],"bg":["#537d9f","#2d5879"],"fg":"#f3f7fa","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cloud with rain","emojis":"🌧️","styles":["Deadpan"],"bg":["#9bb8cc","#6f96b2"],"fg":"#183044","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cloud with snow","emojis":"🌨️","styles":["Deadpan"],"bg":["#8aa9c1","#d7e5ee"],"fg":"#102536","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"clown face","emojis":"🤡","styles":["Playful"],"bg":["#d93b32","#f0b52f"],"fg":"#24110d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"club suit","emojis":"♣️","styles":["Deadpan"],"bg":["#183b2d","#376b4a"],"fg":"#f4f1dc","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cocktail glass","emojis":"🍸️","styles":["Deadpan"],"bg":["#5b2d66","#d66b83"],"fg":"#fff4f6","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cold face","emojis":"🥶","styles":["Deadpan"],"bg":["#b9e8f5","#6fa9c4"],"fg":"#12303d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"computer mouse","emojis":"🖱️","styles":["Deadpan"],"bg":["#c7cdd1","#8b969e"],"fg":"#172127","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"confetti ball","emojis":"🎊","styles":["Joyful"],"bg":["#e64a55","#f2b632"],"fg":"#24131c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"confounded face","emojis":"😖","styles":["Anxious"],"bg":["#5a6170","#a08c9c"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"confused face","emojis":"😕","styles":["Anxious"],"bg":["#f4d35e","#d99a32"],"fg":"#3a2608","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"construction worker","emojis":"👷","styles":["Deadpan"],"bg":["#f6b73c","#e57b21"],"fg":"#24170b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"control knobs","emojis":"🎛️","styles":["Deadpan"],"bg":["#536d91","#2e405f"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"convenience store","emojis":"🏪","styles":["Deadpan"],"bg":["#f05a47","#d63230"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cooked rice","emojis":"🍚","styles":["Deadpan"],"bg":["#f4ead5","#d8c7a8"],"fg":"#352a1d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"couple with heart: man, man","emojis":"👨‍❤️‍👨","styles":["Tender"],"bg":["#d95f8a","#a92f63"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"couple with heart: woman, woman","emojis":"👩‍❤️‍👩","styles":["Tender"],"bg":["#f6b6c8","#d95b7a"],"fg":"#4a1023","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cow face","emojis":"🐮","styles":["Deadpan"],"bg":["#ead7b7","#a8754b"],"fg":"#2f2118","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cowboy hat face","emojis":"🤠","styles":["Playful"],"bg":["#e6b85c","#b86f3c"],"fg":"#2b1a12","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"credit card","emojis":"💳️","styles":["Deadpan"],"bg":["#b9d7e8","#668da8"],"fg":"#102638","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"crescent moon","emojis":"🌙","styles":["Serene"],"bg":["#26345f","#51427d"],"fg":"#f5edc8","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cricket game","emojis":"🏏","styles":["Deadpan"],"bg":["#b7d47a","#4f8a56"],"fg":"#17351f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cross mark","emojis":"❌️","styles":["Deadpan"],"bg":["#f06a5f","#bd292d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cross mark button","emojis":"❎️","styles":["Deadpan"],"bg":["#9bd09c","#4e9b63"],"fg":"#12351d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"crossed fingers","emojis":"🤞","styles":["Hopeful"],"bg":["#f1c56b","#d98a45"],"fg":"#3b2111","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"crossed flags","emojis":"🎌","styles":["Deadpan"],"bg":["#f2d6d6","#c95a5a"],"fg":"#3b1015","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"crying cat","emojis":"😿","styles":["Melancholy"],"bg":["#7187a3","#3d4b63"],"fg":"#f4f7fb","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"crystal ball","emojis":"🔮","styles":["Whimsical"],"bg":["#7651a8","#39205f"],"fg":"#fff4d6","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cup with straw","emojis":"🥤","styles":["Deadpan"],"bg":["#b9dff0","#6fa9c5"],"fg":"#123044","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"curling stone","emojis":"🥌","styles":["Deadpan"],"bg":["#d5e1e6","#8ea5b1"],"fg":"#1d2d35","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"curly loop","emojis":"➰️","styles":["Deadpan"],"bg":["#d8c9e8","#aa8bc5"],"fg":"#30213f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"currency exchange","emojis":"💱","styles":["Deadpan"],"bg":["#9fc9a8","#57906a"],"fg":"#12351d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"curry rice","emojis":"🍛","styles":["Deadpan"],"bg":["#e5a13f","#b85b22"],"fg":"#2b1608","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"cut of meat","emojis":"🥩","styles":["Deadpan"],"bg":["#c97868","#8f3f3c"],"fg":"#fff4ec","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"dark skin tone","emojis":"🏿","styles":["Deadpan"],"bg":["#6b3f2a","#3e241a"],"fg":"#fff1df","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"dashing away","emojis":"💨","styles":["Deadpan"],"bg":["#8ec5ff","#4d8ed8"],"fg":"#10243d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"deaf man","emojis":"🧏‍♂️","styles":["Deadpan"],"bg":["#9eb7c9","#6e879b"],"fg":"#142532","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"deaf person","emojis":"🧏","styles":["Deadpan"],"bg":["#a8bdc9","#7893a1"],"fg":"#172832","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"deaf woman","emojis":"🧏‍♀️","styles":["Deadpan"],"bg":["#c4b1c8","#957f9d"],"fg":"#241a2b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"deciduous tree","emojis":"🌳","styles":["Deadpan"],"bg":["#8fbe63","#4f8b45"],"fg":"#142b18","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"delivery truck","emojis":"🚚","styles":["Deadpan"],"bg":["#b8c9d6","#7895aa"],"fg":"#162632","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"department store","emojis":"🏬","styles":["Deadpan"],"bg":["#d8a85f","#b9783d"],"fg":"#2d1b12","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"derelict house","emojis":"🏚️","styles":["Melancholy"],"bg":["#77716b","#4a4745"],"fg":"#f1ece3","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"desert island","emojis":"🏝️","styles":["Serene"],"bg":["#69c7d1","#d9b56d"],"fg":"#12313a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"desktop computer","emojis":"🖥️","styles":["Deadpan"],"bg":["#dbe7f2","#a9bfd4"],"fg":"#172b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"diamond suit","emojis":"♦️","styles":["Deadpan"],"bg":["#e5484d","#a51d32"],"fg":"#fff5f2","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"diamond with a dot","emojis":"💠","styles":["Deadpan"],"bg":["#5bd6e8","#208eb5"],"fg":"#063847","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"dim button","emojis":"🔅","styles":["Deadpan"],"bg":["#d8b64c","#92772b"],"fg":"#241b08","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"disappointed face","emojis":"😞","styles":["Melancholy"],"bg":["#aebdca","#718597"],"fg":"#182735","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"disguised face","emojis":"🥸","styles":["Playful"],"bg":["#c7a77b","#856342"],"fg":"#24180f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"distorted face","emojis":"🫪","styles":["Startled"],"bg":["#9a6bd1","#55348e"],"fg":"#fff8ff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"diya lamp","emojis":"🪔","styles":["Serene"],"bg":["#f29b38","#b84d20"],"fg":"#32150b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"dog face","emojis":"🐶","styles":["Tender"],"bg":["#d5a06d","#9b633e"],"fg":"#25160f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"dollar banknote","emojis":"💵","styles":["Deadpan"],"bg":["#d8f3dc","#7acb88"],"fg":"#12351f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"dotted line face","emojis":"🫥","styles":["Deadpan"],"bg":["#d8e0e8","#9aa9b8"],"fg":"#1b2733","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"dotted six-pointed star","emojis":"🔯","styles":["Deadpan"],"bg":["#d8b4fe","#8b5cf6"],"fg":"#24103f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"double curly loop","emojis":"➿️","styles":["Deadpan"],"bg":["#b9e6ff","#5aa9d6"],"fg":"#102b3d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"double exclamation mark","emojis":"‼️","styles":["Excited"],"bg":["#ffd166","#ef6c3d"],"fg":"#431b12","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"down arrow","emojis":"⬇️","styles":["Deadpan"],"bg":["#c7dff5","#6f9dcc"],"fg":"#12283d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"down-left arrow","emojis":"↙️","styles":["Deadpan"],"bg":["#c9d9ed","#7896bd"],"fg":"#17263a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"down-right arrow","emojis":"↘️","styles":["Deadpan"],"bg":["#c9e3df","#6eb3a6"],"fg":"#12332f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"downcast face with sweat","emojis":"😓","styles":["Anxious"],"bg":["#b8cde3","#6d8fb1"],"fg":"#132536","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"downwards button","emojis":"🔽","styles":["Deadpan"],"bg":["#c6d8ff","#6686d9"],"fg":"#15224a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"dragon face","emojis":"🐲","styles":["Deadpan"],"bg":["#7a241c","#c65a24"],"fg":"#fff1c7","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"drooling face","emojis":"🤤","styles":["Deadpan"],"bg":["#d9e7a8","#9fc7c9"],"fg":"#24323a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"drop of blood","emojis":"🩸","styles":["Deadpan"],"bg":["#64151d","#a9272f"],"fg":"#ffe5d1","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"ear of corn","emojis":"🌽","styles":["Deadpan"],"bg":["#d5b52c","#6f9b36"],"fg":"#202817","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"ear with hearing aid","emojis":"🦻","styles":["Deadpan"],"bg":["#d99b83","#6f9caf"],"fg":"#241f29","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"eight-spoked asterisk","emojis":"✳️","styles":["Deadpan"],"bg":["#2d8c74","#70c8a3"],"fg":"#102d2b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"eject button","emojis":"⏏️","styles":["Deadpan"],"bg":["#66727b","#b8c2c5"],"fg":"#111820","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"electric plug","emojis":"🔌","styles":["Deadpan"],"bg":["#d2a52d","#477da8"],"fg":"#171b20","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"eleven o’clock","emojis":"🕚️","styles":["Deadpan"],"bg":["#d8e7f2","#9bb8d0"],"fg":"#17324a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"empty nest","emojis":"🪹","styles":["Wistful"],"bg":["#8f7666","#c5a98f"],"fg":"#241b18","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"enraged face","emojis":"😡","styles":["Furious"],"bg":["#8f1d24","#e34a3f"],"fg":"#fff4ed","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"envelope with arrow","emojis":"📩","styles":["Deadpan"],"bg":["#dcecf5","#9dc7df"],"fg":"#17334a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"euro banknote","emojis":"💶","styles":["Deadpan"],"bg":["#b9e3b0","#55ad67"],"fg":"#12351d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"evergreen tree","emojis":"🌲","styles":["Deadpan"],"bg":["#b9d88b","#4d9b62"],"fg":"#12351c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"exclamation question mark","emojis":"⁉️","styles":["Deadpan"],"bg":["#ffd36a","#f28b35"],"fg":"#3a220d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"exploding head","emojis":"🤯","styles":["Startled"],"bg":["#2b174f","#a52c57"],"fg":"#fff4ed","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"expressionless face","emojis":"😑","styles":["Deadpan"],"bg":["#d7d9d8","#a8acab"],"fg":"#202426","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"eye in speech bubble","emojis":"👁️‍🗨️","styles":["Deadpan"],"bg":["#d8d4c8","#a6a092"],"fg":"#25231f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face blowing a kiss","emojis":"😘","styles":["Tender"],"bg":["#f7b6c8","#e98aa8"],"fg":"#4a1025","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face exhaling","emojis":"😮‍💨","styles":["Serene"],"bg":["#b9d8df","#8fb8c3"],"fg":"#16333a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face in clouds","emojis":"😶‍🌫️","styles":["Whimsical","Serene"],"bg":["#c9d4f2","#9aa9d1"],"fg":"#202946","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face savoring food","emojis":"😋","styles":["Joyful"],"bg":["#ffd27a","#f39a4b"],"fg":"#4b2108","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face screaming in fear","emojis":"😱","styles":["Startled","Anxious"],"bg":["#8f2638","#551522"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face vomiting","emojis":"🤮","styles":["Disgusted"],"bg":["#a9c45b","#718b35"],"fg":"#17210b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face with bags under eyes","emojis":"🫩","styles":["Deadpan"],"bg":["#a9b7c6","#7d8d9e"],"fg":"#17212b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face with crossed-out eyes","emojis":"😵","styles":["Startled"],"bg":["#b6c0d8","#8793b3"],"fg":"#1b2235","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face with diagonal mouth","emojis":"🫤","styles":["Deadpan"],"bg":["#c5c7ba","#9da18d"],"fg":"#202219","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face with hand over mouth","emojis":"🤭","styles":["Deadpan"],"bg":["#f3d7c8","#dca99b"],"fg":"#3a2020","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face with head-bandage","emojis":"🤕","styles":["Deadpan"],"bg":["#d9e7f2","#a8bfd4"],"fg":"#172b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face with medical mask","emojis":"😷","styles":["Deadpan"],"bg":["#d5eceb","#a4cbca"],"fg":"#173b3b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face with monocle","emojis":"🧐","styles":["Deadpan"],"bg":["#ead9ad","#c8a85d"],"fg":"#30230d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face with open eyes and hand over mouth","emojis":"🫢","styles":["Deadpan"],"bg":["#ffe0a8","#f2a36f"],"fg":"#40200e","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face with open mouth","emojis":"😮","styles":["Deadpan"],"bg":["#dcecff","#9fc5ef"],"fg":"#142b49","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face with peeking eye","emojis":"🫣","styles":["Deadpan"],"bg":["#f6d6c8","#e8a9b5"],"fg":"#3b202c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face with raised eyebrow","emojis":"🤨","styles":["Deadpan"],"bg":["#e8dfd2","#c5b7a4"],"fg":"#302920","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face with rolling eyes","emojis":"🙄","styles":["Deadpan"],"bg":["#ddd8ed","#b7afd4"],"fg":"#26203d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face with spiral eyes","emojis":"😵‍💫","styles":["Deadpan"],"bg":["#c8d2ed","#8f9bd0"],"fg":"#171e43","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face with steam from nose","emojis":"😤","styles":["Irritated"],"bg":["#d94a2b","#8f241f"],"fg":"#fff4e6","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face with symbols on mouth","emojis":"🤬","styles":["Furious"],"bg":["#c62828","#5b1018"],"fg":"#fff5f5","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face with tears of joy","emojis":"😂","styles":["Joyful"],"bg":["#ffd84d","#f39a24"],"fg":"#3b2108","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face with thermometer","emojis":"🤒","styles":["Melancholy"],"bg":["#9bb8c9","#66899e"],"fg":"#102633","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face with tongue","emojis":"😛","styles":["Playful"],"bg":["#ffd1b8","#f18a72"],"fg":"#431d28","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"face without mouth","emojis":"😶","styles":["Deadpan"],"bg":["#c9d0d4","#9da8ae"],"fg":"#20282d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"fast down button","emojis":"⏬️","styles":["Deadpan"],"bg":["#b8d7e8","#6f9fba"],"fg":"#102b3d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"fast reverse button","emojis":"⏪️","styles":["Deadpan"],"bg":["#b7c4dc","#7889ad"],"fg":"#17233f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"fast up button","emojis":"⏫️","styles":["Deadpan"],"bg":["#d9d2f2","#a89bd8"],"fg":"#21183d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"fast-forward button","emojis":"⏩️","styles":["Deadpan"],"bg":["#ffe29a","#f5b84b"],"fg":"#3a2508","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"fax machine","emojis":"📠","styles":["Deadpan"],"bg":["#d9e3e8","#aebfc8"],"fg":"#1d2d35","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"fearful face","emojis":"😨","styles":["Deadpan"],"bg":["#f8df58","#d5c13d"],"fg":"#292400","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"female sign","emojis":"♀️","styles":["Deadpan"],"bg":["#ead2f1","#c58bd5"],"fg":"#37133f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"ferris wheel","emojis":"🎡","styles":["Deadpan"],"bg":["#f8b5c8","#e77c9c"],"fg":"#3b1730","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"field hockey","emojis":"🏑","styles":["Deadpan"],"bg":["#b7d98b","#6fa84f"],"fg":"#183417","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"fight cloud","emojis":"🫯","styles":["Deadpan"],"bg":["#f29a52","#c94d38"],"fg":"#30130c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"file cabinet","emojis":"🗄️","styles":["Deadpan"],"bg":["#cbd4d8","#8d9ca4"],"fg":"#17252b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"file folder","emojis":"📁","styles":["Deadpan"],"bg":["#ffe27a","#e9b83f"],"fg":"#3b2a05","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"film frames","emojis":"🎞️","styles":["Deadpan"],"bg":["#3a2f35","#8b5e4a"],"fg":"#fff1d0","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"film projector","emojis":"📽️","styles":["Deadpan"],"bg":["#20252b","#4d5963"],"fg":"#f3d18b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"fire engine","emojis":"🚒","styles":["Deadpan"],"bg":["#b51f24","#e05a32"],"fg":"#fff4df","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"fire extinguisher","emojis":"🧯","styles":["Deadpan"],"bg":["#a71920","#d94b32"],"fg":"#fff5df","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"first quarter moon","emojis":"🌓","styles":["Deadpan"],"bg":["#101b3d","#344d83"],"fg":"#f5e9b8","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"first quarter moon face","emojis":"🌛","styles":["Deadpan"],"bg":["#182348","#4e5f91"],"fg":"#ffe6a3","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"fish cake with swirl","emojis":"🍥","styles":["Deadpan"],"bg":["#f2b7b3","#fff0d2"],"fg":"#542c3b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"flag in hole","emojis":"⛳️","styles":["Deadpan"],"bg":["#4f9a50","#b9d96c"],"fg":"#193321","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"flat shoe","emojis":"🥿","styles":["Deadpan"],"bg":["#d8c2a8","#b18d68"],"fg":"#24170e","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"flexed biceps","emojis":"💪","styles":["Deadpan"],"bg":["#8fc7e8","#3b82b8"],"fg":"#081b2b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"floppy disk","emojis":"💾","styles":["Deadpan"],"bg":["#b8c9d8","#71869a"],"fg":"#142331","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"flower playing cards","emojis":"🎴","styles":["Whimsical"],"bg":["#f2a6b8","#c85d82"],"fg":"#3b1020","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"flushed face","emojis":"😳","styles":["Startled"],"bg":["#f49a91","#d95d68"],"fg":"#3a1018","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"flying disc","emojis":"🥏","styles":["Playful"],"bg":["#9ed9df","#4baab8"],"fg":"#08252b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"flying saucer","emojis":"🛸","styles":["Whimsical"],"bg":["#5c6f92","#263653"],"fg":"#f1f5ff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"folded hands","emojis":"🙏","styles":["Earnest"],"bg":["#d8c4a8","#aa8d6e"],"fg":"#25180f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"folding hand fan","emojis":"🪭","styles":["Whimsical"],"bg":["#f2b6c8","#d9799b"],"fg":"#3b1426","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"fork and knife","emojis":"🍴","styles":["Deadpan"],"bg":["#d5d8dc","#a4abb3"],"fg":"#1b2026","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"fork and knife with plate","emojis":"🍽️","styles":["Deadpan"],"bg":["#d7dde2","#aebbc5"],"fg":"#18242d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"fortune cookie","emojis":"🥠","styles":["Deadpan"],"bg":["#f6d58a","#d9a94e"],"fg":"#3a2410","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"fountain pen","emojis":"🖋️","styles":["Deadpan"],"bg":["#b8c9dc","#6e8dad"],"fg":"#102033","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"four leaf clover","emojis":"🍀","styles":["Hopeful"],"bg":["#c9e68c","#65ad63"],"fg":"#163a1e","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"four o’clock","emojis":"🕓️","styles":["Deadpan"],"bg":["#d7e0eb","#a7b6cc"],"fg":"#1c2737","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"framed picture","emojis":"🖼️","styles":["Deadpan"],"bg":["#e6c69d","#b8895f"],"fg":"#2b1b12","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"french fries","emojis":"🍟","styles":["Deadpan"],"bg":["#ffe082","#f4ad32"],"fg":"#43230b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"fried shrimp","emojis":"🍤","styles":["Deadpan"],"bg":["#f5b09c","#df775e"],"fg":"#3c1715","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"front-facing baby chick","emojis":"🐥","styles":["Tender"],"bg":["#ffe58a","#f5c84b"],"fg":"#3a2c08","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"frowning face","emojis":"☹️","styles":["Melancholy"],"bg":["#aeb8c4","#697787"],"fg":"#1d2730","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"frowning face with open mouth","emojis":"😦","styles":["Deadpan"],"bg":["#d9e1e8","#aebdca"],"fg":"#1d2730","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"fuel pump","emojis":"⛽️","styles":["Deadpan"],"bg":["#e34b3f","#a9231f"],"fg":"#fff8f0","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"full moon","emojis":"🌕️","styles":["Deadpan"],"bg":["#f4d98a","#d7b866"],"fg":"#2a2140","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"full moon face","emojis":"🌝","styles":["Deadpan"],"bg":["#f7d76a","#dcae3f"],"fg":"#33220e","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"funeral urn","emojis":"⚱️","styles":["Deadpan"],"bg":["#746b7d","#4b4354"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"game die","emojis":"🎲","styles":["Deadpan"],"bg":["#f2f0ea","#c9c4ba"],"fg":"#252525","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"gem stone","emojis":"💎","styles":["Deadpan"],"bg":["#63d7e8","#4c6fd1"],"fg":"#10203a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"ginger root","emojis":"🫚","styles":["Deadpan"],"bg":["#d99a55","#b96d32"],"fg":"#321b0d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"glass of milk","emojis":"🥛","styles":["Deadpan"],"bg":["#edf7fa","#c8e3ec"],"fg":"#18323c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"globe showing Americas","emojis":"🌎️","styles":["Deadpan"],"bg":["#4fa9c9","#398d86"],"fg":"#102536","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"globe showing Asia-Australia","emojis":"🌏️","styles":["Deadpan"],"bg":["#4f9ec4","#4b8b68"],"fg":"#102a3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"globe showing Europe-Africa","emojis":"🌍️","styles":["Deadpan"],"bg":["#4f9ec4","#4b8b68"],"fg":"#102a3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"globe with meridians","emojis":"🌐","styles":["Deadpan"],"bg":["#6aaed0","#397da5"],"fg":"#102536","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"glowing star","emojis":"🌟","styles":["Awed"],"bg":["#ffd45a","#f39a2f"],"fg":"#452500","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"goal net","emojis":"🥅","styles":["Deadpan"],"bg":["#4b9f59","#24703d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"graduation cap","emojis":"🎓️","styles":["Deadpan"],"bg":["#5c73ad","#293e78"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"green apple","emojis":"🍏","styles":["Deadpan"],"bg":["#a5d54d","#4f9b2f"],"fg":"#173b1c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"green circle","emojis":"🟢","styles":["Deadpan"],"bg":["#5bd35d","#28a745"],"fg":"#073b16","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"green salad","emojis":"🥗","styles":["Deadpan"],"bg":["#b7df63","#4cae4f"],"fg":"#173b22","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"green square","emojis":"🟩","styles":["Deadpan"],"bg":["#65d36e","#209447"],"fg":"#092d19","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"grey heart","emojis":"🩶","styles":["Tender"],"bg":["#d2d6da","#8e979f"],"fg":"#263039","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"grimacing face","emojis":"😬","styles":["Anxious"],"bg":["#ffe477","#e5a43b"],"fg":"#3b2811","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"grinning cat","emojis":"😺","styles":["Joyful","Playful"],"bg":["#ffd36a","#f08a32"],"fg":"#43200e","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"grinning cat with smiling eyes","emojis":"😸","styles":["Joyful","Playful"],"bg":["#ffe07a","#f4a340"],"fg":"#42220d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"grinning face","emojis":"😀","styles":["Joyful"],"bg":["#ffe477","#f2b233"],"fg":"#3b260c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"grinning face with big eyes","emojis":"😃","styles":["Joyful","Excited"],"bg":["#ffe98a","#f5b83e"],"fg":"#38240b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"grinning face with smiling eyes","emojis":"😄","styles":["Joyful"],"bg":["#ffe98a","#f4c24f"],"fg":"#38250d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"grinning face with sweat","emojis":"😅","styles":["Anxious","Joyful"],"bg":["#ffe58a","#8bc9c5"],"fg":"#19333b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"grinning squinting face","emojis":"😆","styles":["Joyful"],"bg":["#ffe36e","#ffb347"],"fg":"#3a2108","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"growing heart","emojis":"💗","styles":["Tender","Hopeful"],"bg":["#ff9fba","#f05b83"],"fg":"#4a1028","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"guide dog","emojis":"🦮","styles":["Earnest"],"bg":["#f2d27d","#c69a4b"],"fg":"#2c2416","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"hair pick","emojis":"🪮","styles":["Deadpan"],"bg":["#79c7c5","#368f9b"],"fg":"#102f36","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"hairy creature","emojis":"🫈","styles":["Whimsical"],"bg":["#b8784e","#70422f"],"fg":"#fff1d2","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"hammer and pick","emojis":"⚒️","styles":["Determined"],"bg":["#8fa9bd","#536d82"],"fg":"#10202b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"hammer and wrench","emojis":"🛠️","styles":["Determined"],"bg":["#e09a52","#b86436"],"fg":"#30170d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"hand with fingers splayed","emojis":"🖐️","styles":["Deadpan"],"bg":["#f5b38f","#d98268"],"fg":"#3d2118","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"hand with index finger and thumb crossed","emojis":"🫰","styles":["Playful","Tender"],"bg":["#e7a1c2","#a75c9b"],"fg":"#321433","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"hatching chick","emojis":"🐣","styles":["Joyful","Tender"],"bg":["#ffe77a","#f5b83d"],"fg":"#3a2808","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"head shaking horizontally","emojis":"🙂‍↔️","styles":["Deadpan"],"bg":["#d9e7f2","#a8c5db"],"fg":"#17324d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"head shaking vertically","emojis":"🙂‍↕️","styles":["Deadpan"],"bg":["#d7eeef","#9fcbd1"],"fg":"#16343b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"health worker","emojis":"🧑‍⚕️","styles":["Earnest"],"bg":["#d8f0e8","#9bcfc0"],"fg":"#16352f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"hear-no-evil monkey","emojis":"🙉","styles":["Playful"],"bg":["#d9a66f","#a96b3f"],"fg":"#321b12","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"heart decoration","emojis":"💟","styles":["Tender"],"bg":["#ffd1dc","#f29ab0"],"fg":"#561226","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"heart exclamation","emojis":"❣️","styles":["Earnest"],"bg":["#ffb3b3","#ef5b5b"],"fg":"#4d1010","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"heart hands","emojis":"🫶","styles":["Tender"],"bg":["#ffd0dc","#f39ab4"],"fg":"#4c1525","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"heart on fire","emojis":"❤️‍🔥","styles":["Excited"],"bg":["#ff7a45","#d62929"],"fg":"#310b0b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"heart suit","emojis":"♥️","styles":["Deadpan"],"bg":["#e64b4b","#a8142d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"heart with arrow","emojis":"💘","styles":["Tender"],"bg":["#ffb6c8","#e96a89"],"fg":"#4b1021","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"heart with ribbon","emojis":"💝","styles":["Tender"],"bg":["#ef476f","#c92a55"],"fg":"#fff5f7","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"heavy equals sign","emojis":"🟰","styles":["Deadpan"],"bg":["#90caf9","#42a5f5"],"fg":"#102a43","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"high voltage","emojis":"⚡️","styles":["Deadpan"],"bg":["#ffd166","#f08a24"],"fg":"#3b2200","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"high-heeled shoe","emojis":"👠","styles":["Deadpan"],"bg":["#f7c5d0","#e85d75"],"fg":"#3a1020","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"hiking boot","emojis":"🥾","styles":["Deadpan"],"bg":["#b8794b","#70452d"],"fg":"#fff5e8","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"hindu temple","emojis":"🛕","styles":["Deadpan"],"bg":["#f2a65a","#c94c4c"],"fg":"#2b1212","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"honey pot","emojis":"🍯","styles":["Deadpan"],"bg":["#ffd166","#d99a18"],"fg":"#3b2600","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"horse face","emojis":"🐴","styles":["Deadpan"],"bg":["#9a5a32","#d59a5b"],"fg":"#20130d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"horse racing","emojis":"🏇","styles":["Deadpan"],"bg":["#176b45","#b58a27"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"hot beverage","emojis":"☕️","styles":["Deadpan"],"bg":["#6f351f","#c87836"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"hot pepper","emojis":"🌶️","styles":["Deadpan"],"bg":["#b62420","#e36b2c"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"hot springs","emojis":"♨️","styles":["Deadpan"],"bg":["#147d91","#54c7c2"],"fg":"#082b35","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"hourglass not done","emojis":"⏳️","styles":["Deadpan"],"bg":["#29356f","#b77b32"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"house with garden","emojis":"🏡","styles":["Deadpan"],"bg":["#b8d99a","#6fa66b"],"fg":"#17351f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"hundred points","emojis":"💯","styles":["Proud"],"bg":["#ffd166","#f08a24"],"fg":"#4a1b00","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"hushed face","emojis":"😯","styles":["Deadpan"],"bg":["#d8eef2","#8fc5cf"],"fg":"#14333b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"ice cream","emojis":"🍨","styles":["Deadpan"],"bg":["#ffe2c9","#f3a6b8"],"fg":"#4a1f2a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"ice hockey","emojis":"🏒","styles":["Deadpan"],"bg":["#d9f2ff","#82b9dc"],"fg":"#102d46","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"ice skate","emojis":"⛸️","styles":["Deadpan"],"bg":["#e1f7fa","#91cdd8"],"fg":"#12343d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"identification card","emojis":"🪪","styles":["Deadpan"],"bg":["#d5e4f7","#7da6d4"],"fg":"#142943","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"inbox tray","emojis":"📥️","styles":["Deadpan"],"bg":["#dcd5f2","#9283c7"],"fg":"#21183d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"incoming envelope","emojis":"📨","styles":["Deadpan"],"bg":["#d9ebf7","#8bb8d8"],"fg":"#142b40","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"index pointing at the viewer","emojis":"🫵","styles":["Deadpan"],"bg":["#ffe09a","#f0a64b"],"fg":"#452100","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"index pointing up","emojis":"☝️","styles":["Deadpan"],"bg":["#d9e8f5","#a9c7e3"],"fg":"#102a43","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"input latin letters","emojis":"🔤","styles":["Deadpan"],"bg":["#e6eef7","#b9cde3"],"fg":"#172b4d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"input latin lowercase","emojis":"🔡","styles":["Deadpan"],"bg":["#e4f0e8","#b5d3bf"],"fg":"#173b2b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"input latin uppercase","emojis":"🔠","styles":["Deadpan"],"bg":["#f4e2e2","#d7aeb0"],"fg":"#461b20","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"input numbers","emojis":"🔢","styles":["Deadpan"],"bg":["#e9e3f5","#c5b8df"],"fg":"#261a4a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"input symbols","emojis":"🔣","styles":["Deadpan"],"bg":["#f3ead7","#d9c08d"],"fg":"#3e2b12","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"khanda","emojis":"🪯","styles":["Deadpan"],"bg":["#e7d6a4","#b68b2c"],"fg":"#2d2108","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"kick scooter","emojis":"🛴","styles":["Deadpan"],"bg":["#d8f0f2","#8bcbd1"],"fg":"#10363b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"kiss mark","emojis":"💋","styles":["Tender"],"bg":["#f3c1c9","#d94d68"],"fg":"#4a0d1b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"kissing cat","emojis":"😽","styles":["Tender","Playful"],"bg":["#f5d7c4","#e69b83"],"fg":"#4a2118","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"kissing face","emojis":"😗","styles":["Tender"],"bg":["#f7b6c8","#e889a5"],"fg":"#4a1025","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"kissing face with closed eyes","emojis":"😚","styles":["Tender"],"bg":["#f4b0c4","#d9789b"],"fg":"#431023","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"kissing face with smiling eyes","emojis":"😙","styles":["Tender"],"bg":["#f8c1b2","#e98d86"],"fg":"#4a1820","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"kitchen knife","emojis":"🔪","styles":["Deadpan"],"bg":["#aebbc4","#71818d"],"fg":"#17232b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"kiwi fruit","emojis":"🥝","styles":["Deadpan"],"bg":["#b9d879","#75aa4d"],"fg":"#18351d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"lab coat","emojis":"🥼","styles":["Deadpan"],"bg":["#e7f3f7","#b8d8e2"],"fg":"#17333d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"landslide","emojis":"🛘","styles":["Tense"],"bg":["#8b6a52","#493b38"],"fg":"#fff0d2","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"large blue diamond","emojis":"🔷","styles":["Deadpan"],"bg":["#5eb9f2","#2472c5"],"fg":"#071d3d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"large orange diamond","emojis":"🔶","styles":["Deadpan"],"bg":["#ffc05a","#e87820"],"fg":"#3b1a05","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"last quarter moon","emojis":"🌗","styles":["Serene"],"bg":["#17233f","#344b73"],"fg":"#f3f6ff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"last quarter moon face","emojis":"🌜️","styles":["Whimsical"],"bg":["#30204f","#5b3d72"],"fg":"#fff4c7","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"last track button","emojis":"⏮️","styles":["Deadpan"],"bg":["#26384d","#526b83"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"latin cross","emojis":"✝️","styles":["Earnest"],"bg":["#3b2028","#70404a"],"fg":"#fff4df","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"leaf fluttering in wind","emojis":"🍃","styles":["Whimsical"],"bg":["#b9e7c0","#5ca878"],"fg":"#123d2a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"leafless tree","emojis":"🪾","styles":["Melancholy"],"bg":["#4b4a43","#82786a"],"fg":"#fff8e8","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"leafy green","emojis":"🥬","styles":["Deadpan"],"bg":["#7bcf3f","#278b45"],"fg":"#102d1c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"left arrow","emojis":"⬅️","styles":["Deadpan"],"bg":["#d7e4ef","#9db9d1"],"fg":"#183047","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"left arrow curving right","emojis":"↪️","styles":["Deadpan"],"bg":["#d9e7ee","#9dbbc7"],"fg":"#18343d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"left luggage","emojis":"🛅","styles":["Deadpan"],"bg":["#b9d9d2","#57928d"],"fg":"#102f35","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"left speech bubble","emojis":"🗨️","styles":["Deadpan"],"bg":["#d7e3ed","#a9bfd1"],"fg":"#1b2d3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"left-facing fist","emojis":"🤛","styles":["Deadpan"],"bg":["#d8b39a","#b77f62"],"fg":"#291b18","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"left-right arrow","emojis":"↔️","styles":["Deadpan"],"bg":["#c5d9e8","#8eafc8"],"fg":"#183044","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"leftwards hand","emojis":"🫲","styles":["Deadpan"],"bg":["#e3b99d","#c68d70"],"fg":"#2c1b17","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"leftwards pushing hand","emojis":"🫷","styles":["Deadpan"],"bg":["#e0b397","#bf805f"],"fg":"#291814","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"level slider","emojis":"🎚️","styles":["Deadpan"],"bg":["#c5cbd0","#929ba3"],"fg":"#20262b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"light blue heart","emojis":"🩵","styles":["Deadpan"],"bg":["#b9e9f5","#76c9df"],"fg":"#12313b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"light bulb","emojis":"💡","styles":["Deadpan"],"bg":["#ffe58a","#f4b83f"],"fg":"#3b2600","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"light rail","emojis":"🚈","styles":["Deadpan"],"bg":["#c4d6df","#8baab8"],"fg":"#17303a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"light skin tone","emojis":"🏻","styles":["Deadpan"],"bg":["#efd0b4","#dca47e"],"fg":"#3a2419","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"linked paperclips","emojis":"🖇️","styles":["Deadpan"],"bg":["#c7d1d8","#8e9da8"],"fg":"#18252d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"litter in bin sign","emojis":"🚮","styles":["Deadpan"],"bg":["#b8d49a","#6f9d62"],"fg":"#18351e","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"locked with key","emojis":"🔐","styles":["Deadpan"],"bg":["#52677f","#26384d"],"fg":"#f4f0d8","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"locked with pen","emojis":"🔏","styles":["Deadpan"],"bg":["#7d8999","#4c586a"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"long drum","emojis":"🪘","styles":["Deadpan"],"bg":["#b8784f","#75452f"],"fg":"#fff0d0","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"lotion bottle","emojis":"🧴","styles":["Deadpan"],"bg":["#b9ddea","#78afc2"],"fg":"#163746","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"loudly crying face","emojis":"😭","styles":["Melancholy"],"bg":["#4c5f91","#272e5d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"love letter","emojis":"💌","styles":["Tender","Earnest"],"bg":["#f2a2a9","#d45b70"],"fg":"#571b2b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"love-you gesture","emojis":"🤟","styles":["Tender"],"bg":["#e6a15a","#c85d3c"],"fg":"#3b1c16","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"low battery","emojis":"🪫","styles":["Anxious"],"bg":["#5b4a18","#a47724"],"fg":"#fff3c4","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"magic wand","emojis":"🪄","styles":["Whimsical"],"bg":["#39206b","#7046a8"],"fg":"#f5eaff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"magnifying glass tilted left","emojis":"🔍️","styles":["Deadpan"],"bg":["#294b68","#5f89a8"],"fg":"#f1f7fb","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"magnifying glass tilted right","emojis":"🔎","styles":["Deadpan"],"bg":["#294b68","#5f89a8"],"fg":"#f1f7fb","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"mahjong red dragon","emojis":"🀄️","styles":["Deadpan"],"bg":["#7d171c","#c33a32"],"fg":"#fff2d6","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"male sign","emojis":"♂️","styles":["Deadpan"],"bg":["#214d78","#5f91ba"],"fg":"#f0f7ff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man artist","emojis":"👨‍🎨","styles":["Deadpan"],"bg":["#8b3d24","#c47735"],"fg":"#fff4dc","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man astronaut","emojis":"👨‍🚀","styles":["Awed"],"bg":["#101b45","#293d85"],"fg":"#eef3ff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man biking","emojis":"🚴‍♂️","styles":["Deadpan"],"bg":["#226044","#4d9b62"],"fg":"#f1ffe9","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man bouncing ball","emojis":"⛹️‍♂️","styles":["Deadpan"],"bg":["#ffd166","#f4a261"],"fg":"#3b1f0b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man bowing","emojis":"🙇‍♂️","styles":["Deadpan"],"bg":["#d9e2ec","#a9b8c8"],"fg":"#1b2733","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man cartwheeling","emojis":"🤸‍♂️","styles":["Playful"],"bg":["#ffb35c","#ef6f6c"],"fg":"#35120f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man climbing","emojis":"🧗‍♂️","styles":["Determined"],"bg":["#9bcf8a","#4f9d69"],"fg":"#102719","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man construction worker","emojis":"👷‍♂️","styles":["Deadpan"],"bg":["#ffd166","#e09f3e"],"fg":"#2b1b05","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man cook","emojis":"👨‍🍳","styles":["Deadpan"],"bg":["#f4a261","#e76f51"],"fg":"#35130d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man dancing","emojis":"🕺","styles":["Playful"],"bg":["#f78fb3","#c056a6"],"fg":"#34122f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man detective","emojis":"🕵️‍♂️","styles":["Deadpan"],"bg":["#405a8d","#263b63"],"fg":"#f5f1df","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man elf","emojis":"🧝‍♂️","styles":["Whimsical"],"bg":["#8fcf76","#4e9f63"],"fg":"#122b18","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man facepalming","emojis":"🤦‍♂️","styles":["Irritated"],"bg":["#8b7d8b","#5b4b63"],"fg":"#fff7f0","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man fairy","emojis":"🧚‍♂️","styles":["Whimsical"],"bg":["#8d65b8","#b87fca"],"fg":"#20132b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man farmer","emojis":"👨‍🌾","styles":["Deadpan"],"bg":["#56733b","#9a7b45"],"fg":"#17220f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man feeding baby","emojis":"👨‍🍼","styles":["Tender"],"bg":["#e39a70","#f2c18f"],"fg":"#3a1d16","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man genie","emojis":"🧞‍♂️","styles":["Whimsical"],"bg":["#47368f","#8853b6"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man gesturing NO","emojis":"🙅‍♂️","styles":["Determined"],"bg":["#6e2730","#b24a42"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man gesturing OK","emojis":"🙆‍♂️","styles":["Deadpan"],"bg":["#4b8d64","#8dc18a"],"fg":"#102c1b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man getting haircut","emojis":"💇‍♂️","styles":["Deadpan"],"bg":["#427caa","#91b8cf"],"fg":"#102338","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man getting massage","emojis":"💆‍♂️","styles":["Deadpan"],"bg":["#d8b7a5","#b88f82"],"fg":"#241b1b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man golfing","emojis":"🏌️‍♂️","styles":["Deadpan"],"bg":["#9fcf8f","#4f9b68"],"fg":"#102b1b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man guard","emojis":"💂‍♂️","styles":["Deadpan"],"bg":["#9b3434","#4d1822"],"fg":"#fff3df","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man health worker","emojis":"👨‍⚕️","styles":["Deadpan"],"bg":["#b9e3ee","#6bb6cf"],"fg":"#102630","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man in lotus position","emojis":"🧘‍♂️","styles":["Deadpan"],"bg":["#cdb9e8","#8c70b5"],"fg":"#201434","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man in manual wheelchair","emojis":"👨‍🦽","styles":["Deadpan"],"bg":["#9fc7df","#568caf"],"fg":"#102331","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man in manual wheelchair: facing right","emojis":"👨‍🦽‍➡️","styles":["Deadpan"],"bg":["#9fc7df","#568caf"],"fg":"#102331","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man in motorized wheelchair","emojis":"👨‍🦼","styles":["Deadpan"],"bg":["#86d1e0","#3788a7"],"fg":"#102331","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man in motorized wheelchair: facing right","emojis":"👨‍🦼‍➡️","styles":["Deadpan"],"bg":["#86d1e0","#3788a7"],"fg":"#102331","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man in steamy room","emojis":"🧖‍♂️","styles":["Deadpan"],"bg":["#d9e1df","#9bb8b6"],"fg":"#1d2929","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man in tuxedo","emojis":"🤵‍♂️","styles":["Deadpan"],"bg":["#20242b","#59616d"],"fg":"#fff4d6","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man judge","emojis":"👨‍⚖️","styles":["Deadpan"],"bg":["#243b5a","#b08d35"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man juggling","emojis":"🤹‍♂️","styles":["Playful"],"bg":["#e85d3f","#f2b134"],"fg":"#24120d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man kneeling","emojis":"🧎‍♂️","styles":["Deadpan"],"bg":["#8797a8","#c7d0d8"],"fg":"#17222c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man kneeling: facing right","emojis":"🧎‍♂️‍➡️","styles":["Deadpan"],"bg":["#8797a8","#c7d0d8"],"fg":"#17222c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man lifting weights","emojis":"🏋️‍♂️","styles":["Determined"],"bg":["#7a241f","#d46a2f"],"fg":"#fff4df","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man mage","emojis":"🧙‍♂️","styles":["Whimsical"],"bg":["#34205f","#7b3fa1"],"fg":"#f5e9ff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man mechanic","emojis":"👨‍🔧","styles":["Deadpan"],"bg":["#4d6572","#b87832"],"fg":"#fff8e8","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man pilot","emojis":"👨‍✈️","styles":["Deadpan"],"bg":["#8ecae6","#3a86c8"],"fg":"#102a43","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man playing handball","emojis":"🤾‍♂️","styles":["Deadpan"],"bg":["#f4a261","#e76f51"],"fg":"#3b1608","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man playing water polo","emojis":"🤽‍♂️","styles":["Deadpan"],"bg":["#48cae4","#0077b6"],"fg":"#032b43","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man police officer","emojis":"👮‍♂️","styles":["Deadpan"],"bg":["#5c7cfa","#243b7a"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man pouting","emojis":"🙎‍♂️","styles":["Irritated"],"bg":["#f4b183","#d96c4f"],"fg":"#40140d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man raising hand","emojis":"🙋‍♂️","styles":["Deadpan"],"bg":["#ffd166","#f4a261"],"fg":"#3a2100","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man running","emojis":"🏃‍♂️","styles":["Deadpan"],"bg":["#80ed99","#38b000"],"fg":"#073b18","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man running: facing right","emojis":"🏃‍♂️‍➡️","styles":["Deadpan"],"bg":["#a0c4ff","#4361ee"],"fg":"#101840","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man scientist","emojis":"👨‍🔬","styles":["Deadpan"],"bg":["#b8f2e6","#56cfe1"],"fg":"#063b45","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man shrugging","emojis":"🤷‍♂️","styles":["Deadpan"],"bg":["#d5dde3","#aebdca"],"fg":"#1d2a35","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man singer","emojis":"👨‍🎤","styles":["Deadpan"],"bg":["#c45b8f","#713f91"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man standing","emojis":"🧍‍♂️","styles":["Deadpan"],"bg":["#d9d5cc","#b9b4aa"],"fg":"#292923","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man student","emojis":"👨‍🎓","styles":["Deadpan"],"bg":["#b8d4e8","#6f9fc2"],"fg":"#102b40","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man superhero","emojis":"🦸‍♂️","styles":["Deadpan"],"bg":["#3569c8","#c52f3d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man supervillain","emojis":"🦹‍♂️","styles":["Deadpan"],"bg":["#43264f","#811f2b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man teacher","emojis":"👨‍🏫","styles":["Deadpan"],"bg":["#d7b56d","#a8753d"],"fg":"#241b12","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man technologist","emojis":"👨‍💻","styles":["Deadpan"],"bg":["#34495e","#1c2833"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man tipping hand","emojis":"💁‍♂️","styles":["Deadpan"],"bg":["#d9c3a5","#b89b78"],"fg":"#241b16","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man vampire","emojis":"🧛‍♂️","styles":["Deadpan"],"bg":["#4b1d4f","#24132f"],"fg":"#f5e7f7","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man walking","emojis":"🚶‍♂️","styles":["Deadpan"],"bg":["#b7d7d1","#80aaa8"],"fg":"#172d32","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man walking: facing right","emojis":"🚶‍♂️‍➡️","styles":["Deadpan"],"bg":["#b9d2e6","#83a9c5"],"fg":"#172b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man wearing turban","emojis":"👳‍♂️","styles":["Deadpan"],"bg":["#d7b36a","#aa783c"],"fg":"#291b0d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man with veil","emojis":"👰‍♂️","styles":["Deadpan"],"bg":["#e4e1dc","#b9b8b5"],"fg":"#252525","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man with white cane","emojis":"👨‍🦯","styles":["Deadpan"],"bg":["#d4d9df","#9ea9b5"],"fg":"#1d2730","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man with white cane: facing right","emojis":"👨‍🦯‍➡️","styles":["Deadpan"],"bg":["#c4d8e8","#8faec6"],"fg":"#182b39","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man zombie","emojis":"🧟‍♂️","styles":["Deadpan"],"bg":["#6d7d4d","#39472f"],"fg":"#f1f3dc","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man, boy","emojis":"👨‍👦","styles":["Deadpan"],"bg":["#b9d1e2","#86a8c0"],"fg":"#182b38","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man, boy, boy","emojis":"👨‍👦‍👦","styles":["Deadpan"],"bg":["#d8e0e8","#b5c3d0"],"fg":"#1d2935","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man, girl","emojis":"👨‍👧","styles":["Deadpan"],"bg":["#d8e0e8","#b5c3d0"],"fg":"#1d2935","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man, girl, boy","emojis":"👨‍👧‍👦","styles":["Deadpan"],"bg":["#d8e0e8","#b5c3d0"],"fg":"#1d2935","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man, girl, girl","emojis":"👨‍👧‍👧","styles":["Deadpan"],"bg":["#d8e0e8","#b5c3d0"],"fg":"#1d2935","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man, man","emojis":"👨‍❤️‍💋‍👨","styles":["Deadpan"],"bg":["#d8e0e8","#b5c3d0"],"fg":"#1d2935","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man, man, boy","emojis":"👨‍👨‍👦","styles":["Deadpan"],"bg":["#d8e0e8","#b5c3d0"],"fg":"#1d2935","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man, man, boy, boy","emojis":"👨‍👨‍👦‍👦","styles":["Deadpan"],"bg":["#d8e0e8","#b5c3d0"],"fg":"#1d2935","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man, man, girl","emojis":"👨‍👨‍👧","styles":["Deadpan"],"bg":["#d8e0e8","#b5c3d0"],"fg":"#1d2935","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man, man, girl, boy","emojis":"👨‍👨‍👧‍👦","styles":["Deadpan"],"bg":["#d8e0e8","#b5c3d0"],"fg":"#1d2935","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man, man, girl, girl","emojis":"👨‍👨‍👧‍👧","styles":["Deadpan"],"bg":["#d8e0e8","#b5c3d0"],"fg":"#1d2935","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man, woman, boy","emojis":"👨‍👩‍👦","styles":["Deadpan"],"bg":["#ead8c0","#c9b293"],"fg":"#2b2118","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man, woman, boy, boy","emojis":"👨‍👩‍👦‍👦","styles":["Deadpan"],"bg":["#e4d2bb","#bfa487"],"fg":"#261c16","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man, woman, girl","emojis":"👨‍👩‍👧","styles":["Deadpan"],"bg":["#ead9c8","#c8aa91"],"fg":"#2a1e18","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man, woman, girl, boy","emojis":"👨‍👩‍👧‍👦","styles":["Deadpan"],"bg":["#e5d5c2","#bfa88e"],"fg":"#241b16","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man, woman, girl, girl","emojis":"👨‍👩‍👧‍👧","styles":["Deadpan"],"bg":["#ead7c7","#c5a38d"],"fg":"#291c17","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"mantelpiece clock","emojis":"🕰️","styles":["Deadpan"],"bg":["#d8c09b","#a98252"],"fg":"#21170f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"manual wheelchair","emojis":"🦽","styles":["Deadpan"],"bg":["#d5e1e5","#9db4bf"],"fg":"#16252c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"man’s shoe","emojis":"👞","styles":["Deadpan"],"bg":["#d8c1a8","#997052"],"fg":"#21150e","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"map of Japan","emojis":"🗾","styles":["Deadpan"],"bg":["#f3dfe1","#d58f98"],"fg":"#35151b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"maple leaf","emojis":"🍁","styles":["Deadpan"],"bg":["#f0b14a","#c75a25"],"fg":"#2b160b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"martial arts uniform","emojis":"🥋","styles":["Deadpan"],"bg":["#dbe7f2","#9fb8cf"],"fg":"#172b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"meat on bone","emojis":"🍖","styles":["Deadpan"],"bg":["#a8432f","#67251f"],"fg":"#fff1d6","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"mechanical arm","emojis":"🦾","styles":["Deadpan"],"bg":["#b7c4cc","#71828c"],"fg":"#17232b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"mechanical leg","emojis":"🦿","styles":["Deadpan"],"bg":["#b7c4cc","#71828c"],"fg":"#17232b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"medical symbol","emojis":"⚕️","styles":["Deadpan"],"bg":["#b9e2e0","#5aabb0"],"fg":"#12383d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"medium-dark skin tone","emojis":"🏾","styles":["Deadpan"],"bg":["#a86443","#713b2c"],"fg":"#fff0df","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"medium-light skin tone","emojis":"🏼","styles":["Deadpan"],"bg":["#e2ad8d","#c77d61"],"fg":"#3b2119","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"melting face","emojis":"🫠","styles":["Deadpan"],"bg":["#ffd45a","#f08a32"],"fg":"#41200d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"men holding hands","emojis":"👬","styles":["Tender"],"bg":["#eab1a5","#c86f72"],"fg":"#401c2a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"men with bunny ears","emojis":"👯‍♂️","styles":["Playful","Whimsical"],"bg":["#f4c4d8","#e9a6b9"],"fg":"#421c35","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"men wrestling","emojis":"🤼‍♂️","styles":["Deadpan"],"bg":["#4d6b86","#293d57"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"mending heart","emojis":"❤️‍🩹","styles":["Tender","Hopeful"],"bg":["#f2a0a8","#d86f78"],"fg":"#4a1720","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"men’s room","emojis":"🚹️","styles":["Deadpan"],"bg":["#b9c8d3","#8fa5b5"],"fg":"#172b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"middle finger","emojis":"🖕","styles":["Furious","Irritated"],"bg":["#682f4d","#3d1d35"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"military medal","emojis":"🎖️","styles":["Proud"],"bg":["#e5bd4f","#b47b20"],"fg":"#33200b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"milky way","emojis":"🌌","styles":["Awed","Whimsical"],"bg":["#20205f","#0b123b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"mirror ball","emojis":"🪩","styles":["Joyful","Playful"],"bg":["#7b58b8","#315f9d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"mobile phone","emojis":"📱","styles":["Deadpan"],"bg":["#b8c5d1","#8798a8"],"fg":"#17232f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"mobile phone off","emojis":"📴","styles":["Deadpan"],"bg":["#34495e","#1f2d3d"],"fg":"#f4f7fa","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"money bag","emojis":"💰️","styles":["Deadpan"],"bg":["#d4a72c","#8a6416"],"fg":"#241b08","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"money with wings","emojis":"💸","styles":["Deadpan"],"bg":["#72b84b","#31824a"],"fg":"#102b18","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"money-mouth face","emojis":"🤑","styles":["Deadpan"],"bg":["#f4c542","#d99621"],"fg":"#382500","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"monkey face","emojis":"🐵","styles":["Deadpan"],"bg":["#a66a3f","#704226"],"fg":"#fff5e6","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"moon cake","emojis":"🥮","styles":["Deadpan"],"bg":["#d8943d","#a85d24"],"fg":"#24160b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"moon viewing ceremony","emojis":"🎑","styles":["Deadpan"],"bg":["#263b68","#172548"],"fg":"#fff0a8","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"motor scooter","emojis":"🛵","styles":["Deadpan"],"bg":["#d85b3f","#a5362f"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"motorized wheelchair","emojis":"🦼","styles":["Deadpan"],"bg":["#6f8fa3","#526d82"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"mountain cableway","emojis":"🚠","styles":["Deadpan"],"bg":["#6f9f83","#3f725d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"mountain railway","emojis":"🚞","styles":["Deadpan"],"bg":["#a77b55","#765337"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"mouse face","emojis":"🐭","styles":["Deadpan"],"bg":["#c6c0b8","#98928b"],"fg":"#202020","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"mouse trap","emojis":"🪤","styles":["Deadpan"],"bg":["#b77958","#8e4d3d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"movie camera","emojis":"🎥","styles":["Deadpan"],"bg":["#59636d","#303840"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"musical note","emojis":"🎵","styles":["Deadpan"],"bg":["#8d6bad","#64488a"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"musical notes","emojis":"🎶","styles":["Deadpan"],"bg":["#ad75ba","#7e4a94"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"musical score","emojis":"🎼","styles":["Deadpan"],"bg":["#d9d2e9","#aaa0c4"],"fg":"#241c35","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"muted speaker","emojis":"🔇","styles":["Deadpan"],"bg":["#d5d9dc","#aeb5ba"],"fg":"#1d252b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"nail polish","emojis":"💅","styles":["Deadpan"],"bg":["#f3b1b9","#d97885"],"fg":"#41151d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"name badge","emojis":"📛","styles":["Deadpan"],"bg":["#f4d77d","#e6b94f"],"fg":"#352600","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"national park","emojis":"🏞️","styles":["Deadpan"],"bg":["#8fc7a2","#4f9b72"],"fg":"#102f23","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"nauseated face","emojis":"🤢","styles":["Disgusted"],"bg":["#b8d17b","#79a94f"],"fg":"#1d3515","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"nazar amulet","emojis":"🧿","styles":["Deadpan"],"bg":["#79c9d0","#258b9a"],"fg":"#082d35","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"nerd face","emojis":"🤓","styles":["Playful"],"bg":["#f0c77a","#d78d45"],"fg":"#34200d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"nest with eggs","emojis":"🪺","styles":["Tender"],"bg":["#d9b58a","#b8875c"],"fg":"#2d1b12","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"neutral face","emojis":"😐️","styles":["Deadpan"],"bg":["#d7d9dc","#aeb3b8"],"fg":"#202428","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"new moon","emojis":"🌑","styles":["Serene"],"bg":["#172554","#0b1026"],"fg":"#f4f1de","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"new moon face","emojis":"🌚","styles":["Whimsical"],"bg":["#25205c","#17143d"],"fg":"#f5d38a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"next track button","emojis":"⏭️","styles":["Deadpan"],"bg":["#b9e6ff","#5aa9e6"],"fg":"#09243b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"night with stars","emojis":"🌃","styles":["Serene","Awed"],"bg":["#203b78","#0b183c"],"fg":"#f4e7a1","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"nine o’clock","emojis":"🕘️","styles":["Deadpan"],"bg":["#c8d8e8","#8ea8c2"],"fg":"#172b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"no bicycles","emojis":"🚳","styles":["Deadpan"],"bg":["#f3c3c3","#d95c5c"],"fg":"#421515","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"no entry","emojis":"⛔️","styles":["Tense","Deadpan"],"bg":["#ef9a9a","#c62828"],"fg":"#3b0808","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"no littering","emojis":"🚯","styles":["Deadpan"],"bg":["#b7d99a","#5d9b4a"],"fg":"#143516","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"no mobile phones","emojis":"📵","styles":["Deadpan"],"bg":["#d6b5d9","#9a5ca0"],"fg":"#2d1233","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"no one under eighteen","emojis":"🔞","styles":["Deadpan"],"bg":["#7f1d1d","#b91c1c"],"fg":"#fff7ed","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"no pedestrians","emojis":"🚷","styles":["Deadpan"],"bg":["#7f1d1d","#dc2626"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"no smoking","emojis":"🚭️","styles":["Deadpan"],"bg":["#7f1d1d","#c2410c"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"non-potable water","emojis":"🚱","styles":["Deadpan"],"bg":["#0f4c5c","#1d8ca8"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"notebook with decorative cover","emojis":"📔","styles":["Whimsical"],"bg":["#7c3aed","#c026d3"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"nut and bolt","emojis":"🔩","styles":["Deadpan"],"bg":["#a7b0ba","#6b7280"],"fg":"#111827","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"office building","emojis":"🏢","styles":["Deadpan"],"bg":["#64748b","#cbd5e1"],"fg":"#0f172a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"oil drum","emojis":"🛢️","styles":["Deadpan"],"bg":["#334155","#64748b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"old key","emojis":"🗝️","styles":["Wistful"],"bg":["#5b3a00","#9a6b18"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"old man","emojis":"👴","styles":["Deadpan"],"bg":["#b8a58f","#8f7965"],"fg":"#241b16","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"old woman","emojis":"👵","styles":["Deadpan"],"bg":["#c9a7a9","#a9797d"],"fg":"#2b1b20","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"older person","emojis":"🧓","styles":["Deadpan"],"bg":["#b6b9ad","#8c9187"],"fg":"#20251f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"oncoming automobile","emojis":"🚘️","styles":["Deadpan"],"bg":["#8ea9c4","#587896"],"fg":"#101d2a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"oncoming bus","emojis":"🚍️","styles":["Deadpan"],"bg":["#d4a34d","#b8752f"],"fg":"#24170b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"oncoming taxi","emojis":"🚖","styles":["Deadpan"],"bg":["#e0b84f","#c68a27"],"fg":"#2b1b08","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"one o’clock","emojis":"🕐️","styles":["Deadpan"],"bg":["#9da8bc","#68758d"],"fg":"#172033","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"one-piece swimsuit","emojis":"🩱","styles":["Deadpan"],"bg":["#d87991","#b44768"],"fg":"#32121f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"open book","emojis":"📖","styles":["Deadpan"],"bg":["#f1e3c2","#d8c18f"],"fg":"#2b2418","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"open file folder","emojis":"📂","styles":["Deadpan"],"bg":["#f3c85b","#d79a24"],"fg":"#2b2110","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"open hands","emojis":"👐","styles":["Deadpan"],"bg":["#f2c6a0","#d99570"],"fg":"#2d1b16","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"open mailbox with lowered flag","emojis":"📭️","styles":["Deadpan"],"bg":["#c9d8e5","#9fb4c8"],"fg":"#172b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"open mailbox with raised flag","emojis":"📬️","styles":["Deadpan"],"bg":["#c9d8e5","#9fb4c8"],"fg":"#172b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"optical disk","emojis":"💿️","styles":["Deadpan"],"bg":["#c9d3dc","#8d9eac"],"fg":"#172533","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"orange book","emojis":"📙","styles":["Deadpan"],"bg":["#f28c28","#d85a16"],"fg":"#32180b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"orange circle","emojis":"🟠","styles":["Deadpan"],"bg":["#ffb000","#ed7200"],"fg":"#321700","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"orange heart","emojis":"🧡","styles":["Deadpan"],"bg":["#ff9d1c","#e8660c"],"fg":"#321500","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"orange square","emojis":"🟧","styles":["Deadpan"],"bg":["#ffad1f","#e87808"],"fg":"#321600","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"orca","emojis":"🫍","styles":["Deadpan"],"bg":["#0b4f6c","#137177"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"orthodox cross","emojis":"☦️","styles":["Deadpan"],"bg":["#5b1a1a","#9b2c2c"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"outbox tray","emojis":"📤️","styles":["Deadpan"],"bg":["#d9e2ec","#9fb3c8"],"fg":"#172b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"page facing up","emojis":"📄","styles":["Deadpan"],"bg":["#f4f1ea","#d9d2c3"],"fg":"#252525","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"page with curl","emojis":"📃","styles":["Deadpan"],"bg":["#f1eadc","#d6c6a8"],"fg":"#29251f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"palm down hand","emojis":"🫳","styles":["Deadpan"],"bg":["#e4b08a","#c77b58"],"fg":"#301b16","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"palm tree","emojis":"🌴","styles":["Deadpan"],"bg":["#27a9a1","#f2b84b"],"fg":"#173b38","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"palm up hand","emojis":"🫴","styles":["Deadpan"],"bg":["#e4b08a","#c77b58"],"fg":"#301b16","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"palms up together","emojis":"🤲","styles":["Deadpan"],"bg":["#e9b28d","#c98262"],"fg":"#301b16","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"part alternation mark","emojis":"〽️","styles":["Deadpan"],"bg":["#d6a72c","#b87516"],"fg":"#241807","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"party popper","emojis":"🎉","styles":["Joyful","Excited"],"bg":["#f04f9d","#7b2fc2"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"partying face","emojis":"🥳","styles":["Joyful","Playful"],"bg":["#ffb52e","#f06a4f"],"fg":"#3b160d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"passport control","emojis":"🛂","styles":["Deadpan"],"bg":["#9bb7c9","#58758d"],"fg":"#102534","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"pause button","emojis":"⏸️","styles":["Deadpan"],"bg":["#c5c9ce","#858b93"],"fg":"#20252b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"paw prints","emojis":"🐾","styles":["Deadpan"],"bg":["#c7a783","#8d684c"],"fg":"#2b1b12","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"pea pod","emojis":"🫛","styles":["Deadpan"],"bg":["#b6d957","#5c9b3d"],"fg":"#193817","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"peace symbol","emojis":"☮️","styles":["Serene","Hopeful"],"bg":["#8fd3c7","#3c9b9a"],"fg":"#103b42","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"pensive face","emojis":"😔","styles":["Melancholy"],"bg":["#77869d","#3e4b63"],"fg":"#f3f5f7","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"people holding hands","emojis":"🧑‍🤝‍🧑","styles":["Tender"],"bg":["#f2b36b","#d87562"],"fg":"#402016","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"people hugging","emojis":"🫂","styles":["Deadpan"],"bg":["#f7c4b8","#e98f86"],"fg":"#3b1720","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"people with bunny ears","emojis":"👯","styles":["Deadpan"],"bg":["#e3c9f2","#b994d6"],"fg":"#291735","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"people wrestling","emojis":"🤼","styles":["Deadpan"],"bg":["#f0a36a","#d85b45"],"fg":"#32120d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"persevering face","emojis":"😣","styles":["Determined"],"bg":["#f0b35a","#d67832"],"fg":"#341707","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person biking","emojis":"🚴","styles":["Deadpan"],"bg":["#a9dfc0","#58a983"],"fg":"#102d25","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person bouncing ball","emojis":"⛹️","styles":["Deadpan"],"bg":["#f7bd63","#e77b2f"],"fg":"#35170b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person bowing","emojis":"🙇","styles":["Deadpan"],"bg":["#b7d6e8","#7faec9"],"fg":"#142737","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person cartwheeling","emojis":"🤸","styles":["Deadpan"],"bg":["#f5d66e","#e89b3d"],"fg":"#352007","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person facepalming","emojis":"🤦","styles":["Irritated"],"bg":["#6b587a","#40384f"],"fg":"#fff4e6","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person feeding baby","emojis":"🧑‍🍼","styles":["Tender"],"bg":["#f3b48f","#d98274"],"fg":"#3b1f2b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person fencing","emojis":"🤺","styles":["Determined","Excited"],"bg":["#b8d8e8","#5f9fba"],"fg":"#102a43","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person gesturing NO","emojis":"🙅","styles":["Irritated","Determined"],"bg":["#d4775f","#a9433f"],"fg":"#fff8e7","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person gesturing OK","emojis":"🙆","styles":["Serene"],"bg":["#8ed1b2","#4e9f87"],"fg":"#12352d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person getting haircut","emojis":"💇","styles":["Deadpan"],"bg":["#d8c3a5","#b4936f"],"fg":"#2d241c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person getting massage","emojis":"💆","styles":["Serene"],"bg":["#b8c9e2","#7894c2"],"fg":"#17233b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person golfing","emojis":"🏌️","styles":["Deadpan"],"bg":["#9fc77b","#5f964f"],"fg":"#17351e","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person in bed","emojis":"🛌","styles":["Serene"],"bg":["#596b91","#303b5c"],"fg":"#f2e9d8","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person in lotus position","emojis":"🧘","styles":["Serene"],"bg":["#b7e4e0","#6fb7b2"],"fg":"#123536","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person in manual wheelchair","emojis":"🧑‍🦽","styles":["Deadpan"],"bg":["#c7dff2","#83afd2"],"fg":"#132b40","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person in manual wheelchair: facing right","emojis":"🧑‍🦽‍➡️","styles":["Deadpan"],"bg":["#c7dff2","#83afd2"],"fg":"#132b40","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person in motorized wheelchair","emojis":"🧑‍🦼","styles":["Deadpan"],"bg":["#b9d8f5","#5d9bd3"],"fg":"#10283d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person in motorized wheelchair: facing right","emojis":"🧑‍🦼‍➡️","styles":["Deadpan"],"bg":["#b9d8f5","#5d9bd3"],"fg":"#10283d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person in steamy room","emojis":"🧖","styles":["Serene"],"bg":["#e9d7c4","#c39b78"],"fg":"#3b271c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person in tuxedo","emojis":"🤵","styles":["Deadpan"],"bg":["#4b5363","#202633"],"fg":"#f4f0e8","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person juggling","emojis":"🤹","styles":["Playful"],"bg":["#f5c34f","#ed7b3a"],"fg":"#351b0d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person kneeling","emojis":"🧎","styles":["Deadpan"],"bg":["#d8d4c9","#a8a294"],"fg":"#292923","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person kneeling: facing right","emojis":"🧎‍➡️","styles":["Deadpan"],"bg":["#d8c7b0","#b89f82"],"fg":"#2b2118","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person lifting weights","emojis":"🏋️","styles":["Deadpan"],"bg":["#f0a23a","#cf6427"],"fg":"#24150d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person mountain biking","emojis":"🚵","styles":["Deadpan"],"bg":["#79b86b","#3f8156"],"fg":"#102719","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person playing handball","emojis":"🤾","styles":["Deadpan"],"bg":["#f39a3d","#d45b32"],"fg":"#25150d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person playing water polo","emojis":"🤽","styles":["Deadpan"],"bg":["#48b9d1","#187eae"],"fg":"#082235","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person pouting","emojis":"🙎","styles":["Deadpan"],"bg":["#d98c9a","#b85e73"],"fg":"#351522","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person raising hand","emojis":"🙋","styles":["Deadpan"],"bg":["#f2c94c","#e39a2f"],"fg":"#30200a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person rowing boat","emojis":"🚣","styles":["Deadpan"],"bg":["#55b8b1","#277f91"],"fg":"#09282d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person running","emojis":"🏃","styles":["Deadpan"],"bg":["#ef7652","#d4473d"],"fg":"#321313","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person running: facing right","emojis":"🏃‍➡️","styles":["Deadpan"],"bg":["#ef7652","#d4473d"],"fg":"#321313","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person shrugging","emojis":"🤷","styles":["Deadpan"],"bg":["#d9e2e8","#aebdca"],"fg":"#17232d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person standing","emojis":"🧍","styles":["Deadpan"],"bg":["#dfe3e6","#b8c0c6"],"fg":"#1b252b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person surfing","emojis":"🏄️","styles":["Deadpan"],"bg":["#55b9d4","#1685ad"],"fg":"#062b3b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person swimming","emojis":"🏊️","styles":["Deadpan"],"bg":["#4eb9d1","#16749e"],"fg":"#062536","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person taking bath","emojis":"🛀","styles":["Deadpan"],"bg":["#d9c6a5","#b78f62"],"fg":"#2c2117","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person tipping hand","emojis":"💁","styles":["Deadpan"],"bg":["#e3d2b9","#c29f78"],"fg":"#2d2118","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person walking","emojis":"🚶","styles":["Deadpan"],"bg":["#d5dce0","#9daab2"],"fg":"#17232b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person walking: facing right","emojis":"🚶‍➡️","styles":["Deadpan"],"bg":["#d5dce0","#9daab2"],"fg":"#17232b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person wearing turban","emojis":"👳","styles":["Deadpan"],"bg":["#c9b8d9","#8e72aa"],"fg":"#241b31","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person with crown","emojis":"🫅","styles":["Deadpan"],"bg":["#f0c84b","#d18a16"],"fg":"#352007","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person with skullcap","emojis":"👲","styles":["Deadpan"],"bg":["#d9e3f0","#aebfd4"],"fg":"#172536","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person with veil","emojis":"👰","styles":["Deadpan"],"bg":["#f4f1eb","#d9e0e8"],"fg":"#29313a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person with white cane","emojis":"🧑‍🦯","styles":["Deadpan"],"bg":["#e8edf0","#c3d0d8"],"fg":"#182b36","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"person with white cane: facing right","emojis":"🧑‍🦯‍➡️","styles":["Deadpan"],"bg":["#e8edf0","#c3d0d8"],"fg":"#182b36","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"petri dish","emojis":"🧫","styles":["Deadpan"],"bg":["#d5f0ed","#8bc8c1"],"fg":"#123c3d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"pig face","emojis":"🐷","styles":["Deadpan"],"bg":["#f3b0ad","#df777d"],"fg":"#421f2b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"pig nose","emojis":"🐽","styles":["Deadpan"],"bg":["#f5b8b1","#df817f"],"fg":"#45202a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"pile of poo","emojis":"💩","styles":["Deadpan"],"bg":["#a76b3f","#704225"],"fg":"#fff1d6","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"pinched fingers","emojis":"🤌","styles":["Deadpan"],"bg":["#f2c49b","#d99268"],"fg":"#3e2119","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"pinching hand","emojis":"🤏","styles":["Deadpan"],"bg":["#ffd0a8","#efa16f"],"fg":"#4b2414","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"pine decoration","emojis":"🎍","styles":["Deadpan"],"bg":["#b8d98a","#4d9b5f"],"fg":"#12351d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"ping pong","emojis":"🏓","styles":["Deadpan"],"bg":["#9ddfbc","#4aa77a"],"fg":"#102d24","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"pink heart","emojis":"🩷","styles":["Tender"],"bg":["#ff9fc4","#f06a9c"],"fg":"#4a102b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"pirate flag","emojis":"🏴‍☠️","styles":["Playful"],"bg":["#29334f","#111827"],"fg":"#f6d36b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"place of worship","emojis":"🛐","styles":["Deadpan"],"bg":["#d8c9b2","#a98d72"],"fg":"#30251d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"play button","emojis":"▶️","styles":["Deadpan"],"bg":["#8dd8f4","#419bd0"],"fg":"#092b43","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"play or pause button","emojis":"⏯️","styles":["Deadpan"],"bg":["#b7c4f4","#7183d2"],"fg":"#171d45","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"playground slide","emojis":"🛝","styles":["Playful"],"bg":["#ffd66b","#f28b3c"],"fg":"#4a1d09","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"pleading face","emojis":"🥺","styles":["Tender","Earnest"],"bg":["#b9d9ff","#7896d8"],"fg":"#101d43","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"polar bear","emojis":"🐻‍❄️","styles":["Deadpan"],"bg":["#dcecf2","#a9cbd6"],"fg":"#18323b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"police car","emojis":"🚓","styles":["Deadpan"],"bg":["#263b63","#1f5875"],"fg":"#f5f7fa","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"police car light","emojis":"🚨","styles":["Deadpan"],"bg":["#b52b35","#e05a32"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"police officer","emojis":"👮","styles":["Deadpan"],"bg":["#273b63","#536f91"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"pool 8 ball","emojis":"🎱","styles":["Deadpan"],"bg":["#17191e","#343943"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"post office","emojis":"🏤","styles":["Deadpan"],"bg":["#b83a3d","#d56a45"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"postal horn","emojis":"📯","styles":["Deadpan"],"bg":["#b87919","#e0ad3d"],"fg":"#241b0b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"potable water","emojis":"🚰","styles":["Deadpan"],"bg":["#3a9eb8","#75c9d2"],"fg":"#10313b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"potted plant","emojis":"🪴","styles":["Deadpan"],"bg":["#4c8b4b","#86b85a"],"fg":"#17351d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"poultry leg","emojis":"🍗","styles":["Deadpan"],"bg":["#c9783d","#8f4728"],"fg":"#fff4df","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"pouring liquid","emojis":"🫗","styles":["Deadpan"],"bg":["#75c9e8","#318ab5"],"fg":"#092b3d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"pouting cat","emojis":"😾","styles":["Deadpan"],"bg":["#9b7a92","#685467"],"fg":"#fff8fb","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"prayer beads","emojis":"📿","styles":["Deadpan"],"bg":["#c89b55","#8e642e"],"fg":"#201507","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"pregnant man","emojis":"🫃","styles":["Deadpan"],"bg":["#e7a889","#c8756f"],"fg":"#3b1c25","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"pregnant person","emojis":"🫄","styles":["Deadpan"],"bg":["#e9b69c","#cf837a"],"fg":"#3b1c25","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"pregnant woman","emojis":"🤰","styles":["Deadpan"],"bg":["#e6a1b5","#c56888"],"fg":"#3b162d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"purple circle","emojis":"🟣","styles":["Deadpan"],"bg":["#8b3fc7","#55218f"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"purple heart","emojis":"💜","styles":["Deadpan"],"bg":["#9b45c7","#5b238f"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"purple square","emojis":"🟪","styles":["Deadpan"],"bg":["#8e44ad","#5b2c83"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"rabbit face","emojis":"🐰","styles":["Deadpan"],"bg":["#e8d5c4","#b8896b"],"fg":"#2b211d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"racing car","emojis":"🏎️","styles":["Deadpan"],"bg":["#ef3b3b","#a81717"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"radio button","emojis":"🔘","styles":["Deadpan"],"bg":["#d9dde2","#9aa3ad"],"fg":"#182027","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"railway car","emojis":"🚃","styles":["Deadpan"],"bg":["#9bb7c9","#607d8b"],"fg":"#172832","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"railway track","emojis":"🛤️","styles":["Deadpan"],"bg":["#8c9299","#4b5157"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"rainbow flag","emojis":"🏳️‍🌈","styles":["Deadpan"],"bg":["#ffcf4a","#e85d75"],"fg":"#321b3f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"raised back of hand","emojis":"🤚","styles":["Deadpan"],"bg":["#f2c3a5","#c9825c"],"fg":"#2d1b15","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"raised fist","emojis":"✊️","styles":["Deadpan"],"bg":["#d99a70","#a85b3d"],"fg":"#281812","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"raised hand","emojis":"✋️","styles":["Deadpan"],"bg":["#f3c7a6","#d99a72"],"fg":"#3a1f16","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"raising hands","emojis":"🙌","styles":["Deadpan"],"bg":["#f3c7a6","#d99a72"],"fg":"#3a1f16","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"record button","emojis":"⏺️","styles":["Deadpan"],"bg":["#555555","#1f1f1f"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"recycling symbol","emojis":"♻️","styles":["Deadpan"],"bg":["#b7df72","#4f9d45"],"fg":"#12351b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"red apple","emojis":"🍎","styles":["Deadpan"],"bg":["#ef5a4f","#b51f2a"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"red circle","emojis":"🔴","styles":["Deadpan"],"bg":["#ff5a52","#c91f2b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"red envelope","emojis":"🧧","styles":["Deadpan"],"bg":["#f04a3e","#a91525"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"red exclamation mark","emojis":"❗️","styles":["Deadpan"],"bg":["#ff5a52","#c91f2b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"red heart","emojis":"❤️","styles":["Deadpan"],"bg":["#f04a4a","#a9152b"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"red paper lantern","emojis":"🏮","styles":["Deadpan"],"bg":["#f05a3f","#b52a24"],"fg":"#fff4d6","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"red question mark","emojis":"❓️","styles":["Deadpan"],"bg":["#ff3b30","#c81d25"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"red square","emojis":"🟥","styles":["Deadpan"],"bg":["#ef233c","#b70924"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"red triangle pointed down","emojis":"🔻","styles":["Deadpan"],"bg":["#ff453a","#c1121f"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"red triangle pointed up","emojis":"🔺","styles":["Deadpan"],"bg":["#ff4d4d","#c1121f"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"relieved face","emojis":"😌","styles":["Serene"],"bg":["#c9e4de","#83c5be"],"fg":"#173b3f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"reminder ribbon","emojis":"🎗️","styles":["Earnest"],"bg":["#f4c95d","#d9822b"],"fg":"#3b2108","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"repeat button","emojis":"🔁","styles":["Deadpan"],"bg":["#6cc4a1","#2f8f83"],"fg":"#102a43","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"repeat single button","emojis":"🔂","styles":["Deadpan"],"bg":["#72b7d2","#327fa3"],"fg":"#102a43","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"rescue worker’s helmet","emojis":"⛑️","styles":["Earnest"],"bg":["#ff9f1c","#e85d04"],"fg":"#3b1700","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"reverse button","emojis":"◀️","styles":["Deadpan"],"bg":["#8ecae6","#3a86b8"],"fg":"#102a43","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"revolving hearts","emojis":"💞","styles":["Tender"],"bg":["#f3a6c8","#d95f93"],"fg":"#4a1230","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"rice ball","emojis":"🍙","styles":["Deadpan"],"bg":["#f1eee5","#d8d0bf"],"fg":"#292721","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"rice cracker","emojis":"🍘","styles":["Deadpan"],"bg":["#eee3c8","#d4b77a"],"fg":"#302515","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"right anger bubble","emojis":"🗯️","styles":["Furious"],"bg":["#f06a4f","#c52f31"],"fg":"#3b0d12","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"right arrow","emojis":"➡️","styles":["Deadpan"],"bg":["#d9e8f5","#9fc4e3"],"fg":"#102b42","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"right arrow curving down","emojis":"⤵️","styles":["Deadpan"],"bg":["#d9e8f5","#9fc4e3"],"fg":"#102b42","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"right arrow curving left","emojis":"↩️","styles":["Deadpan"],"bg":["#d9e8f5","#9fc4e3"],"fg":"#102b42","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"right arrow curving up","emojis":"⤴️","styles":["Deadpan"],"bg":["#d9e8f5","#9fc4e3"],"fg":"#102b42","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"right-facing fist","emojis":"🤜","styles":["Determined"],"bg":["#e8b08b","#c87552"],"fg":"#35170f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"rightwards hand","emojis":"🫱","styles":["Deadpan"],"bg":["#e8b08b","#c87552"],"fg":"#35170f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"rightwards pushing hand","emojis":"🫸","styles":["Deadpan"],"bg":["#dbeafe","#93c5fd"],"fg":"#172554","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"ring buoy","emojis":"🛟","styles":["Deadpan"],"bg":["#fee2e2","#fca5a5"],"fg":"#450a0a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"ringed planet","emojis":"🪐","styles":["Deadpan"],"bg":["#111827","#312e81"],"fg":"#f5f3ff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"roasted sweet potato","emojis":"🍠","styles":["Deadpan"],"bg":["#fed7aa","#ea580c"],"fg":"#431407","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"roll of paper","emojis":"🧻","styles":["Deadpan"],"bg":["#f3f4f6","#d1d5db"],"fg":"#111827","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"rolled-up newspaper","emojis":"🗞️","styles":["Deadpan"],"bg":["#e5e7eb","#9ca3af"],"fg":"#111827","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"roller skate","emojis":"🛼","styles":["Playful"],"bg":["#ccfbf1","#5eead4"],"fg":"#134e4a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"rolling on the floor laughing","emojis":"🤣","styles":["Joyful","Playful"],"bg":["#fef08a","#fb923c"],"fg":"#431407","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"root vegetable","emojis":"🫜","styles":["Deadpan"],"bg":["#d9f99d","#65a30d"],"fg":"#1a2e05","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"round pushpin","emojis":"📍","styles":["Deadpan"],"bg":["#f05a5a","#c93636"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"rugby football","emojis":"🏉","styles":["Deadpan"],"bg":["#6f9f45","#3f6b2a"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"sad but relieved face","emojis":"😥","styles":["Melancholy","Serene"],"bg":["#718aa3","#9aaebe"],"fg":"#172536","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"safety pin","emojis":"🧷","styles":["Deadpan"],"bg":["#b8c4cc","#7d8c98"],"fg":"#17232c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"safety vest","emojis":"🦺","styles":["Deadpan"],"bg":["#f5a623","#d86f12"],"fg":"#241507","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"saluting face","emojis":"🫡","styles":["Earnest"],"bg":["#6f9b72","#3f6e4c"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"satellite antenna","emojis":"📡","styles":["Deadpan"],"bg":["#526f9b","#2e466f"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"see-no-evil monkey","emojis":"🙈","styles":["Playful"],"bg":["#b9825b","#895536"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"service dog","emojis":"🐕‍🦺","styles":["Deadpan"],"bg":["#b8dce0","#6fa8ad"],"fg":"#102f35","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"seven o’clock","emojis":"🕖️","styles":["Deadpan"],"bg":["#c8d0d8","#929daa"],"fg":"#202933","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"sewing needle","emojis":"🪡","styles":["Deadpan"],"bg":["#d8dce2","#9ca8b5"],"fg":"#202832","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"shaking face","emojis":"🫨","styles":["Startled"],"bg":["#e6c95c","#c88432"],"fg":"#321d12","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"shallow pan of food","emojis":"🥘","styles":["Deadpan"],"bg":["#e5b35b","#c56b32"],"fg":"#321b12","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"shaved ice","emojis":"🍧","styles":["Joyful"],"bg":["#f5a6c7","#72c9df"],"fg":"#302047","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"sheaf of rice","emojis":"🌾","styles":["Serene"],"bg":["#d9b957","#9a8734"],"fg":"#30270e","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"shinto shrine","emojis":"⛩️","styles":["Serene"],"bg":["#d35b45","#8f2f2d"],"fg":"#fff1d0","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"shooting star","emojis":"🌠","styles":["Awed","Whimsical"],"bg":["#263b78","#101a45"],"fg":"#ffe58a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"shopping bags","emojis":"🛍️","styles":["Deadpan"],"bg":["#d7a6b8","#ad708c"],"fg":"#321d2b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"shopping cart","emojis":"🛒","styles":["Deadpan"],"bg":["#d8e8f2","#a8c8d8"],"fg":"#163244","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"shuffle tracks button","emojis":"🔀","styles":["Deadpan"],"bg":["#d9d2f0","#aaa0d0"],"fg":"#29234a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"shushing face","emojis":"🤫","styles":["Serene"],"bg":["#d8e6e8","#a9c5c8"],"fg":"#17383c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"sign of the horns","emojis":"🤘","styles":["Playful"],"bg":["#e5c7ee","#bd8dce"],"fg":"#32143d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"six o’clock","emojis":"🕕️","styles":["Deadpan"],"bg":["#d8d1b5","#b6aa82"],"fg":"#2b281c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"skull and crossbones","emojis":"☠️","styles":["Tense"],"bg":["#45424d","#24232b"],"fg":"#f3e7b3","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"sleeping face","emojis":"😴","styles":["Serene"],"bg":["#b9c9e5","#7c91bd"],"fg":"#172344","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"sleepy face","emojis":"😪","styles":["Serene"],"bg":["#c7d8e8","#91aec8"],"fg":"#1b3044","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"slightly frowning face","emojis":"🙁","styles":["Melancholy"],"bg":["#c5ced8","#929daa"],"fg":"#202a35","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"slightly smiling face","emojis":"🙂","styles":["Joyful"],"bg":["#f0d58e","#d9ad59"],"fg":"#3b2910","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"slot machine","emojis":"🎰","styles":["Deadpan"],"bg":["#7a1028","#c43b22"],"fg":"#fff4d6","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"small airplane","emojis":"🛩️","styles":["Deadpan"],"bg":["#a9d8f2","#5b9dcc"],"fg":"#10283d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"small orange diamond","emojis":"🔸","styles":["Deadpan"],"bg":["#d86518","#f3a52f"],"fg":"#321609","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"smiling cat with heart-eyes","emojis":"😻","styles":["Joyful","Tender"],"bg":["#f3a6b8","#e85d82"],"fg":"#421329","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"smiling face","emojis":"☺️","styles":["Joyful"],"bg":["#f7d36a","#f1a83b"],"fg":"#3b2608","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"smiling face with halo","emojis":"😇","styles":["Serene","Tender"],"bg":["#d9efff","#8ec5e8"],"fg":"#17324a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"smiling face with heart-eyes","emojis":"😍","styles":["Joyful","Tender"],"bg":["#f6a1b5","#e75b78"],"fg":"#431225","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"smiling face with hearts","emojis":"🥰","styles":["Tender","Joyful"],"bg":["#f5b7c8","#e47b9a"],"fg":"#421528","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"smiling face with horns","emojis":"😈","styles":["Playful"],"bg":["#6d164f","#b62b57"],"fg":"#fff0f5","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"smiling face with open hands","emojis":"🤗","styles":["Joyful","Tender"],"bg":["#ffd6b3","#f6a889"],"fg":"#4a1f1b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"smiling face with smiling eyes","emojis":"😊","styles":["Joyful"],"bg":["#fff3a3","#ffd166"],"fg":"#513b00","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"smiling face with sunglasses","emojis":"😎","styles":["Playful","Joyful"],"bg":["#8de3f4","#39a9db"],"fg":"#07324a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"smiling face with tear","emojis":"🥲","styles":["Wistful","Melancholy"],"bg":["#d7a6ad","#9b7185"],"fg":"#321d2c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"smirking face","emojis":"😏","styles":["Playful","Sarcastic"],"bg":["#d5a6e8","#9563b8"],"fg":"#261333","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"sneezing face","emojis":"🤧","styles":["Deadpan"],"bg":["#d7e9f4","#a6c9df"],"fg":"#183244","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"snow-capped mountain","emojis":"🏔️","styles":["Awed","Serene"],"bg":["#c7edff","#6fa8c9"],"fg":"#102d42","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"snowman without snow","emojis":"⛄️","styles":["Playful","Whimsical"],"bg":["#dff6ff","#9ed8ee"],"fg":"#16384b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"soccer ball","emojis":"⚽️","styles":["Playful"],"bg":["#9bd66f","#42a85f"],"fg":"#102d18","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"soft ice cream","emojis":"🍦","styles":["Joyful","Playful"],"bg":["#ffe4a3","#f4b860"],"fg":"#4b2812","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"spade suit","emojis":"♠️","styles":["Deadpan"],"bg":["#252337","#171622"],"fg":"#f4f0ff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"sparkling heart","emojis":"💖","styles":["Joyful","Tender"],"bg":["#ff8fbd","#e84f91"],"fg":"#4a102d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"speak-no-evil monkey","emojis":"🙊","styles":["Playful"],"bg":["#d8a66a","#b87845"],"fg":"#26170f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"speaker high volume","emojis":"🔊","styles":["Deadpan"],"bg":["#7188b8","#4c6090"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"speaker low volume","emojis":"🔈️","styles":["Deadpan"],"bg":["#9aa9c5","#7183a5"],"fg":"#17233b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"speech balloon","emojis":"💬","styles":["Deadpan"],"bg":["#83c8df","#4fa2c2"],"fg":"#102d3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"spider web","emojis":"🕸️","styles":["Whimsical"],"bg":["#6e7780","#3f474e"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"spiral calendar","emojis":"🗓️","styles":["Deadpan"],"bg":["#a9b5c4","#7d8b9d"],"fg":"#182431","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"spiral notepad","emojis":"🗒️","styles":["Deadpan"],"bg":["#f1e4c8","#d6bf92"],"fg":"#342817","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"spiral shell","emojis":"🐚","styles":["Deadpan"],"bg":["#e8c9a8","#c58d68"],"fg":"#3b241b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"sport utility vehicle","emojis":"🚙","styles":["Deadpan"],"bg":["#b9cbd8","#7893a6"],"fg":"#172733","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"sports medal","emojis":"🏅","styles":["Deadpan"],"bg":["#f4d35e","#d79b22"],"fg":"#3a2605","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"spouting whale","emojis":"🐳","styles":["Deadpan"],"bg":["#75c9e8","#278cb5"],"fg":"#082c42","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"squinting face with tongue","emojis":"😝","styles":["Playful"],"bg":["#f7df52","#e9a52e"],"fg":"#3a2105","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"star and crescent","emojis":"☪️","styles":["Deadpan"],"bg":["#17254f","#304d88"],"fg":"#f4e7a1","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"star of David","emojis":"✡️","styles":["Deadpan"],"bg":["#5579bd","#304f91"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"steaming bowl","emojis":"🍜","styles":["Deadpan"],"bg":["#f0a04b","#d45a32"],"fg":"#35170f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"stop button","emojis":"⏹️","styles":["Deadpan"],"bg":["#e34b3f","#b9272c"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"stop sign","emojis":"🛑","styles":["Deadpan"],"bg":["#d62828","#9d1c1c"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"straight ruler","emojis":"📏","styles":["Deadpan"],"bg":["#d8e7f2","#9bbbd1"],"fg":"#162b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"studio microphone","emojis":"🎙️","styles":["Deadpan"],"bg":["#d7d7dc","#9b9ca5"],"fg":"#202126","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"stuffed flatbread","emojis":"🥙","styles":["Deadpan"],"bg":["#e6b45c","#c98232"],"fg":"#3a1f0d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"sun behind cloud","emojis":"⛅️","styles":["Serene"],"bg":["#78b9e6","#e9c95b"],"fg":"#18324a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"sun behind large cloud","emojis":"🌥️","styles":["Serene"],"bg":["#8caec8","#b8bec1"],"fg":"#1d2c38","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"sun behind rain cloud","emojis":"🌦️","styles":["Serene"],"bg":["#668fb3","#a9b9c3"],"fg":"#172936","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"sun behind small cloud","emojis":"🌤️","styles":["Serene"],"bg":["#8bc6ec","#f0c957"],"fg":"#18324a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"sun with face","emojis":"🌞","styles":["Joyful"],"bg":["#f7c948","#ee8f24"],"fg":"#4a2107","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"suspension railway","emojis":"🚟","styles":["Deadpan"],"bg":["#b9d8e8","#6fa8c4"],"fg":"#102a3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"sweat droplets","emojis":"💦","styles":["Deadpan"],"bg":["#d8f7ff","#62cfe3"],"fg":"#08323d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"takeout box","emojis":"🥡","styles":["Deadpan"],"bg":["#ffd08a","#e88732"],"fg":"#45220c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"tanabata tree","emojis":"🎋","styles":["Whimsical"],"bg":["#b9df9d","#5aaf78"],"fg":"#173b22","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"teacup without handle","emojis":"🍵","styles":["Deadpan"],"bg":["#d9ead4","#9bc29a"],"fg":"#193326","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"tear-off calendar","emojis":"📆","styles":["Deadpan"],"bg":["#ffe0d2","#e98b73"],"fg":"#4b1d18","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"teddy bear","emojis":"🧸","styles":["Tender"],"bg":["#e8c39b","#b8794d"],"fg":"#351b10","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"telephone receiver","emojis":"📞","styles":["Deadpan"],"bg":["#c7d9ef","#708fc0"],"fg":"#12233d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"ten o’clock","emojis":"🕙️","styles":["Deadpan"],"bg":["#ffe59b","#e9aa45"],"fg":"#472b09","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"test tube","emojis":"🧪","styles":["Deadpan"],"bg":["#e0c8f0","#ad78cf"],"fg":"#29143c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"thinking face","emojis":"🤔","styles":["Deadpan"],"bg":["#cbd5e1","#94a3b8"],"fg":"#172033","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"thong sandal","emojis":"🩴","styles":["Deadpan"],"bg":["#ead09b","#c49a62"],"fg":"#2b2117","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"thought balloon","emojis":"💭","styles":["Whimsical"],"bg":["#d9f0ff","#a9d4ed"],"fg":"#17324a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"three o’clock","emojis":"🕒️","styles":["Deadpan"],"bg":["#d8c6a1","#b49a6b"],"fg":"#2b2418","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"thumbs down","emojis":"👎️","styles":["Irritated"],"bg":["#e49a91","#bd5b57"],"fg":"#351719","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"thumbs up","emojis":"👍️","styles":["Joyful"],"bg":["#b9e39b","#6fbd73"],"fg":"#14301b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"tiger face","emojis":"🐯","styles":["Awed"],"bg":["#f29a2e","#c85c1c"],"fg":"#24150b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"timer clock","emojis":"⏲️","styles":["Tense"],"bg":["#b7c4e8","#7c8fd0"],"fg":"#172044","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"tired face","emojis":"😫","styles":["Melancholy"],"bg":["#71809b","#46536e"],"fg":"#f5f1e8","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"top hat","emojis":"🎩","styles":["Whimsical"],"bg":["#41466d","#22263f"],"fg":"#fff1c7","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"trade mark","emojis":"™️","styles":["Deadpan"],"bg":["#d7e0e8","#aebdca"],"fg":"#172532","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"tram car","emojis":"🚋","styles":["Deadpan"],"bg":["#d94b45","#a92f35"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"transgender flag","emojis":"🏳️‍⚧️","styles":["Deadpan"],"bg":["#b8e7f5","#e9a6c1"],"fg":"#162638","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"transgender symbol","emojis":"⚧️","styles":["Deadpan"],"bg":["#b9e5f2","#d991b2"],"fg":"#182536","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"triangular flag","emojis":"🚩","styles":["Deadpan"],"bg":["#ef5147","#c52d38"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"triangular ruler","emojis":"📐","styles":["Deadpan"],"bg":["#f4c84b","#d99427"],"fg":"#27200f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"trident emblem","emojis":"🔱","styles":["Deadpan"],"bg":["#3b82a0","#1f4d70"],"fg":"#fff0a8","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"trombone","emojis":"🪊","styles":["Deadpan"],"bg":["#e1a52e","#a9681e"],"fg":"#24180b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"tropical drink","emojis":"🍹","styles":["Deadpan"],"bg":["#55c9c1","#f09b4b"],"fg":"#17343a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"twelve o’clock","emojis":"🕛️","styles":["Deadpan"],"bg":["#d8e6f2","#9eb6cf"],"fg":"#17263a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"two hearts","emojis":"💕","styles":["Tender"],"bg":["#ffb3c7","#e86a91"],"fg":"#5a1630","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"two o’clock","emojis":"🕑️","styles":["Deadpan"],"bg":["#d8e6f2","#9eb6cf"],"fg":"#17263a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"two-hump camel","emojis":"🐫","styles":["Deadpan"],"bg":["#e2b36f","#b87332"],"fg":"#3a2415","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"umbrella on ground","emojis":"⛱️","styles":["Deadpan"],"bg":["#f3cf6b","#d98f4f"],"fg":"#3a2415","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"umbrella with rain drops","emojis":"☔️","styles":["Deadpan"],"bg":["#9fc7df","#5d91b3"],"fg":"#10283a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"unamused face","emojis":"😒","styles":["Irritated"],"bg":["#d5d5d2","#9b9b98"],"fg":"#252525","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"up arrow","emojis":"⬆️","styles":["Deadpan"],"bg":["#b8e36b","#55a83b"],"fg":"#16300d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"up-down arrow","emojis":"↕️","styles":["Deadpan"],"bg":["#d8e8f5","#9fc3df"],"fg":"#18324a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"up-left arrow","emojis":"↖️","styles":["Deadpan"],"bg":["#dceaf7","#a8c7e3"],"fg":"#19334c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"up-right arrow","emojis":"↗️","styles":["Deadpan"],"bg":["#d9ebf4","#9bc8d8"],"fg":"#163544","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"upside-down face","emojis":"🙃","styles":["Playful","Whimsical"],"bg":["#ffd86b","#f39a3d"],"fg":"#4a250f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"upwards button","emojis":"🔼","styles":["Deadpan"],"bg":["#d8eaff","#91bdf0"],"fg":"#123052","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"vertical traffic light","emojis":"🚦","styles":["Deadpan"],"bg":["#273d52","#176b61"],"fg":"#ffe27a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"vibration mode","emojis":"📳","styles":["Deadpan"],"bg":["#d9d2f1","#a99ad8"],"fg":"#29234d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"victory hand","emojis":"✌️","styles":["Proud"],"bg":["#ffe27a","#f5a84b"],"fg":"#4b260d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"video camera","emojis":"📹️","styles":["Deadpan"],"bg":["#d6e0e8","#9eafc0"],"fg":"#1b2d3d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"video game","emojis":"🎮️","styles":["Playful","Excited"],"bg":["#6f43c1","#234fa8"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"vulcan salute","emojis":"🖖","styles":["Deadpan"],"bg":["#1d3557","#457b9d"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"waning crescent moon","emojis":"🌘","styles":["Deadpan"],"bg":["#101828","#344054"],"fg":"#f8fafc","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"waning gibbous moon","emojis":"🌖","styles":["Deadpan"],"bg":["#243447","#52677d"],"fg":"#fff7d6","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"water buffalo","emojis":"🐃","styles":["Deadpan"],"bg":["#5b3a29","#8a5a3b"],"fg":"#fff4df","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"water closet","emojis":"🚾","styles":["Deadpan"],"bg":["#dcebf2","#a9c7d4"],"fg":"#17313d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"water pistol","emojis":"🔫","styles":["Playful"],"bg":["#55c7e8","#168aad"],"fg":"#062b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"waving hand","emojis":"👋","styles":["Deadpan"],"bg":["#f6c453","#e88938"],"fg":"#3b1f12","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"wavy dash","emojis":"〰️","styles":["Deadpan"],"bg":["#e8edf2","#b8c5d1"],"fg":"#243447","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"waxing crescent moon","emojis":"🌒","styles":["Deadpan"],"bg":["#18233a","#42526b"],"fg":"#fff3bf","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"waxing gibbous moon","emojis":"🌔","styles":["Serene"],"bg":["#1b2a49","#465b86"],"fg":"#fff4c2","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"weary cat","emojis":"🙀","styles":["Melancholy"],"bg":["#4a4652","#817887"],"fg":"#fff8f0","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"weary face","emojis":"😩","styles":["Melancholy"],"bg":["#4b4654","#827887"],"fg":"#fff8f0","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"wheel of dharma","emojis":"☸️","styles":["Serene"],"bg":["#8b6b32","#d0a84b"],"fg":"#20170b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"white cane","emojis":"🦯","styles":["Deadpan"],"bg":["#6f7477","#b9bec0"],"fg":"#101417","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"white circle","emojis":"⚪️","styles":["Deadpan"],"bg":["#d9dde0","#ffffff"],"fg":"#20252a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"white exclamation mark","emojis":"❕️","styles":["Startled"],"bg":["#f4f0e8","#ffffff"],"fg":"#8b1e1e","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"white flag","emojis":"🏳️","styles":["Melancholy"],"bg":["#6d7378","#b8bdc0"],"fg":"#15191c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"white flower","emojis":"💮","styles":["Tender"],"bg":["#f0d7df","#fff3f5"],"fg":"#4b1f32","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"white heart","emojis":"🤍","styles":["Tender"],"bg":["#ffffff","#e8edf0"],"fg":"#263238","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"white large square","emojis":"⬜️","styles":["Deadpan"],"bg":["#ffffff","#e5e8eb"],"fg":"#20252a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"white medium square","emojis":"◻️","styles":["Deadpan"],"bg":["#ffffff","#e7eaed"],"fg":"#20252a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"white medium-small square","emojis":"◽️","styles":["Deadpan"],"bg":["#ffffff","#e9ebed"],"fg":"#20252a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"white question mark","emojis":"❔️","styles":["Deadpan"],"bg":["#ffffff","#e5e9ed"],"fg":"#20252a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"white small square","emojis":"▫️","styles":["Deadpan"],"bg":["#ffffff","#eceeef"],"fg":"#20252a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"white square button","emojis":"🔳","styles":["Deadpan"],"bg":["#fdfdfd","#dfe4e8"],"fg":"#1d252b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"wilted flower","emojis":"🥀","styles":["Melancholy"],"bg":["#6b3545","#321d2c"],"fg":"#fff1e8","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"wind chime","emojis":"🎐","styles":["Serene","Whimsical"],"bg":["#b9e5ed","#6aa8b8"],"fg":"#12343d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"wind face","emojis":"🌬️","styles":["Whimsical"],"bg":["#c8eef7","#78b9d1"],"fg":"#123442","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"wine glass","emojis":"🍷","styles":["Deadpan"],"bg":["#7b1e3a","#b84a62"],"fg":"#fff4e6","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"winking face","emojis":"😉","styles":["Deadpan"],"bg":["#f6d365","#d99a2b"],"fg":"#3b2412","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"winking face with tongue","emojis":"😜","styles":["Deadpan"],"bg":["#f4c542","#e58b24"],"fg":"#321b0b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman and man holding hands","emojis":"👫","styles":["Deadpan"],"bg":["#d9b8e8","#8f6bb3"],"fg":"#24152f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman astronaut","emojis":"👩‍🚀","styles":["Deadpan"],"bg":["#182848","#4b6cb7"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman biking","emojis":"🚴‍♀️","styles":["Deadpan"],"bg":["#7ac943","#238b45"],"fg":"#102616","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman bowing","emojis":"🙇‍♀️","styles":["Deadpan"],"bg":["#b8c6db","#7f8fa6"],"fg":"#17202a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman cartwheeling","emojis":"🤸‍♀️","styles":["Deadpan"],"bg":["#f6a6d1","#c85aa0"],"fg":"#35122c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman construction worker","emojis":"👷‍♀️","styles":["Deadpan"],"bg":["#f2c94c","#d9822b"],"fg":"#24180b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman cook","emojis":"👩‍🍳","styles":["Deadpan"],"bg":["#e78b5b","#b84b3d"],"fg":"#351612","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman detective","emojis":"🕵️‍♀️","styles":["Deadpan"],"bg":["#66758c","#39485e"],"fg":"#f5f1e8","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman facepalming","emojis":"🤦‍♀️","styles":["Irritated"],"bg":["#b9a6a0","#8c7471"],"fg":"#241b1a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman fairy","emojis":"🧚‍♀️","styles":["Whimsical"],"bg":["#c26fd0","#6f55b5"],"fg":"#241033","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman farmer","emojis":"👩‍🌾","styles":["Deadpan"],"bg":["#88ae58","#a97845"],"fg":"#1b2811","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman feeding baby","emojis":"👩‍🍼","styles":["Tender"],"bg":["#f6c7a8","#df9b83"],"fg":"#3b211c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman firefighter","emojis":"👩‍🚒","styles":["Determined","Earnest"],"bg":["#e84b32","#b92825"],"fg":"#fff4df","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman frowning","emojis":"🙍‍♀️","styles":["Melancholy"],"bg":["#aab8c6","#7d8b9b"],"fg":"#172432","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman genie","emojis":"🧞‍♀️","styles":["Whimsical"],"bg":["#7546a8","#442b82"],"fg":"#fff1b8","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman gesturing NO","emojis":"🙅‍♀️","styles":["Determined","Irritated"],"bg":["#e05a48","#b83238"],"fg":"#fff5e6","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman gesturing OK","emojis":"🙆‍♀️","styles":["Deadpan"],"bg":["#b8d99b","#76b875"],"fg":"#173d2b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman getting haircut","emojis":"💇‍♀️","styles":["Deadpan"],"bg":["#e8b6c1","#c987a1"],"fg":"#3d2032","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman getting massage","emojis":"💆‍♀️","styles":["Serene","Tender"],"bg":["#b8d8d2","#78b4ae"],"fg":"#173c3d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman golfing","emojis":"🏌️‍♀️","styles":["Deadpan"],"bg":["#9bc56b","#4e985a"],"fg":"#173d2b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman guard","emojis":"💂‍♀️","styles":["Earnest","Determined"],"bg":["#b63b3b","#72252f"],"fg":"#fff0d0","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman health worker","emojis":"👩‍⚕️","styles":["Deadpan"],"bg":["#d8eef2","#8fb9c4"],"fg":"#17343d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman in lotus position","emojis":"🧘‍♀️","styles":["Serene"],"bg":["#c9e5d1","#78b58f"],"fg":"#183728","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman in manual wheelchair","emojis":"👩‍🦽","styles":["Deadpan"],"bg":["#d5e3f2","#8faecc"],"fg":"#172b42","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman in manual wheelchair: facing right","emojis":"👩‍🦽‍➡️","styles":["Deadpan"],"bg":["#d5e3f2","#8faecc"],"fg":"#172b42","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman in motorized wheelchair","emojis":"👩‍🦼","styles":["Deadpan"],"bg":["#d8e0f0","#8499c7"],"fg":"#18233d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman in motorized wheelchair: facing right","emojis":"👩‍🦼‍➡️","styles":["Deadpan"],"bg":["#d8e0f0","#8499c7"],"fg":"#18233d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman in steamy room","emojis":"🧖‍♀️","styles":["Serene"],"bg":["#e9d6c2","#c28f72"],"fg":"#3a2119","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman in tuxedo","emojis":"🤵‍♀️","styles":["Deadpan"],"bg":["#737b91","#1d2333"],"fg":"#f5f1e8","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman judge","emojis":"👩‍⚖️","styles":["Deadpan"],"bg":["#d9e0ed","#8e9dbb"],"fg":"#1b263b","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman juggling","emojis":"🤹‍♀️","styles":["Playful"],"bg":["#f4c84d","#e86b45"],"fg":"#321c18","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman kneeling","emojis":"🧎‍♀️","styles":["Deadpan"],"bg":["#d7e0e8","#aebdca"],"fg":"#1b2733","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman kneeling: facing right","emojis":"🧎‍♀️‍➡️","styles":["Deadpan"],"bg":["#d7e0e8","#aebdca"],"fg":"#1b2733","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman lifting weights","emojis":"🏋️‍♀️","styles":["Deadpan"],"bg":["#d7e7f5","#9bb9d8"],"fg":"#172b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman mage","emojis":"🧙‍♀️","styles":["Deadpan"],"bg":["#9d68c7","#4d2b78"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman mechanic","emojis":"👩‍🔧","styles":["Deadpan"],"bg":["#e8b06a","#b86f3e"],"fg":"#24170f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman mountain biking","emojis":"🚵‍♀️","styles":["Deadpan"],"bg":["#c9e27a","#67a84d"],"fg":"#17351d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman office worker","emojis":"👩‍💼","styles":["Deadpan"],"bg":["#d8e3f0","#a8bfd8"],"fg":"#172b3a","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman pilot","emojis":"👩‍✈️","styles":["Deadpan"],"bg":["#b8dcf5","#6da7d3"],"fg":"#143047","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman playing handball","emojis":"🤾‍♀️","styles":["Deadpan"],"bg":["#f5bf62","#df7d3e"],"fg":"#321b0d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman playing water polo","emojis":"🤽‍♀️","styles":["Deadpan"],"bg":["#a7e8ef","#4fb5cf"],"fg":"#083344","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman police officer","emojis":"👮‍♀️","styles":["Deadpan"],"bg":["#54738a","#304b61"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman pouting","emojis":"🙎‍♀️","styles":["Irritated"],"bg":["#d47a72","#a84445"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman raising hand","emojis":"🙋‍♀️","styles":["Deadpan"],"bg":["#f0c45c","#d58d32"],"fg":"#33200d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman rowing boat","emojis":"🚣‍♀️","styles":["Deadpan"],"bg":["#4e9bb0","#246879"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman singer","emojis":"👩‍🎤","styles":["Deadpan"],"bg":["#b45191","#702d72"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman student","emojis":"👩‍🎓","styles":["Deadpan"],"bg":["#dbeafe","#93c5fd"],"fg":"#172554","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman superhero","emojis":"🦸‍♀️","styles":["Deadpan"],"bg":["#312e81","#7c3aed"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman supervillain","emojis":"🦹‍♀️","styles":["Deadpan"],"bg":["#3f0d2e","#8f1d4e"],"fg":"#ffffff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman surfing","emojis":"🏄‍♀️","styles":["Deadpan"],"bg":["#06b6d4","#0284c7"],"fg":"#082f49","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman teacher","emojis":"👩‍🏫","styles":["Deadpan"],"bg":["#fef3c7","#f59e0b"],"fg":"#451a03","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman technologist","emojis":"👩‍💻","styles":["Deadpan"],"bg":["#164e63","#0f766e"],"fg":"#ecfeff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman tipping hand","emojis":"💁‍♀️","styles":["Deadpan"],"bg":["#fbcfe8","#f9a8d4"],"fg":"#500724","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman vampire","emojis":"🧛‍♀️","styles":["Deadpan"],"bg":["#1e1b4b","#581c87"],"fg":"#f5d0fe","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman walking","emojis":"🚶‍♀️","styles":["Deadpan"],"bg":["#d1d5db","#9ca3af"],"fg":"#111827","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman walking: facing right","emojis":"🚶‍♀️‍➡️","styles":["Deadpan"],"bg":["#d8e8e2","#9fc1b3"],"fg":"#18332c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman wearing turban","emojis":"👳‍♀️","styles":["Deadpan"],"bg":["#e8d2b4","#c28d62"],"fg":"#302016","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman with headscarf","emojis":"🧕","styles":["Deadpan"],"bg":["#d7dce8","#a6aec4"],"fg":"#20283d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman with veil","emojis":"👰‍♀️","styles":["Deadpan"],"bg":["#f4f3ee","#cfd2d0"],"fg":"#202527","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman with white cane","emojis":"👩‍🦯","styles":["Deadpan"],"bg":["#f1f2ed","#b9c4c5"],"fg":"#1b292d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman with white cane: facing right","emojis":"👩‍🦯‍➡️","styles":["Deadpan"],"bg":["#e0ebf0","#a7bdc8"],"fg":"#182b35","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman zombie","emojis":"🧟‍♀️","styles":["Deadpan"],"bg":["#536b4d","#29382d"],"fg":"#f0f2d8","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman, boy","emojis":"👩‍👦","styles":["Deadpan"],"bg":["#f0d3b5","#d89a72"],"fg":"#382116","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman, boy, boy","emojis":"👩‍👦‍👦","styles":["Deadpan"],"bg":["#efd0ad","#d38d68"],"fg":"#351d16","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman, girl","emojis":"👩‍👧","styles":["Deadpan"],"bg":["#ead7c7","#c7a895"],"fg":"#30231e","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman, girl, boy","emojis":"👩‍👧‍👦","styles":["Deadpan"],"bg":["#d9e2e8","#b8c8d2"],"fg":"#1f2d36","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman, girl, girl","emojis":"👩‍👧‍👧","styles":["Deadpan"],"bg":["#e1e5e8","#c2ccd2"],"fg":"#202a30","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman, man","emojis":"👩‍❤️‍💋‍👨","styles":["Deadpan"],"bg":["#d8e0e5","#b5c3cb"],"fg":"#1d2b33","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman, woman","emojis":"👩‍❤️‍💋‍👩","styles":["Deadpan"],"bg":["#e2e0e5","#c5c0c9"],"fg":"#29252d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman, woman, boy","emojis":"👩‍👩‍👦","styles":["Deadpan"],"bg":["#dce4e8","#b9cbd3"],"fg":"#1d2d35","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman, woman, boy, boy","emojis":"👩‍👩‍👦‍👦","styles":["Deadpan"],"bg":["#d6e0e6","#afc2cc"],"fg":"#1d2c35","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman, woman, girl","emojis":"👩‍👩‍👧","styles":["Deadpan"],"bg":["#e2e0e8","#c2c0d0"],"fg":"#282632","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman, woman, girl, boy","emojis":"👩‍👩‍👧‍👦","styles":["Deadpan"],"bg":["#dbe3e8","#b8c8d1"],"fg":"#1c2b34","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman, woman, girl, girl","emojis":"👩‍👩‍👧‍👧","styles":["Deadpan"],"bg":["#e5e1e7","#c9c1ce"],"fg":"#2a2530","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman’s boot","emojis":"👢","styles":["Deadpan"],"bg":["#c9b39c","#a98262"],"fg":"#241a14","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman’s clothes","emojis":"👚","styles":["Deadpan"],"bg":["#d9a0b2","#a9687f"],"fg":"#241522","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman’s hat","emojis":"👒","styles":["Deadpan"],"bg":["#f0c66d","#c18a3f"],"fg":"#2b1b0d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woman’s sandal","emojis":"👡","styles":["Deadpan"],"bg":["#d8a16f","#a96742"],"fg":"#25150e","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"women holding hands","emojis":"👭","styles":["Tender"],"bg":["#e7a6b7","#c76d87"],"fg":"#351526","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"women with bunny ears","emojis":"👯‍♀️","styles":["Playful"],"bg":["#d7a7e8","#a86bc7"],"fg":"#24112f","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"women wrestling","emojis":"🤼‍♀️","styles":["Deadpan"],"bg":["#e28a4b","#b83f35"],"fg":"#260f12","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"women’s room","emojis":"🚺️","styles":["Deadpan"],"bg":["#79b9c7","#398596"],"fg":"#10252c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"woozy face","emojis":"🥴","styles":["Anxious"],"bg":["#8573b7","#4b527f"],"fg":"#f4efff","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"world map","emojis":"🗺️","styles":["Deadpan"],"bg":["#77b78b","#3f8065"],"fg":"#102719","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"worried face","emojis":"😟","styles":["Anxious"],"bg":["#8098b5","#536b89"],"fg":"#111c2c","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"wrapped gift","emojis":"🎁","styles":["Joyful"],"bg":["#f6b36b","#e8754f"],"fg":"#3a1720","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"writing hand","emojis":"✍️","styles":["Deadpan"],"bg":["#b9d7f2","#6f9fc8"],"fg":"#10283d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"yawning face","emojis":"🥱","styles":["Serene"],"bg":["#b8c9d9","#8198ad"],"fg":"#172534","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"yellow circle","emojis":"🟡","styles":["Deadpan"],"bg":["#fff176","#fbc02d"],"fg":"#3b2800","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"yellow heart","emojis":"💛","styles":["Tender"],"bg":["#fff176","#f4c430"],"fg":"#3a2800","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"yellow square","emojis":"🟨","styles":["Deadpan"],"bg":["#fff59d","#fdd835"],"fg":"#3a2800","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"yen banknote","emojis":"💴","styles":["Deadpan"],"bg":["#b8d8b8","#72ad82"],"fg":"#102819","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"yin yang","emojis":"☯️","styles":["Serene"],"bg":["#d9d9d9","#a8a8a8"],"fg":"#171717","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"zany face","emojis":"🤪","styles":["Playful"],"bg":["#f6a6d5","#a77bea"],"fg":"#26113d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"zipper-mouth face","emojis":"🤐","styles":["Deadpan"],"bg":["#b7c8df","#7188b2"],"fg":"#14233d","meta":{"date":"2026-09-09","cldr":true}}
+{"text":"Åland Islands","emojis":"🇦🇽","styles":["Deadpan"],"bg":["#b9d9ee","#6fa8c9"],"fg":"#102a43","meta":{"date":"2026-09-09","cldr":true}}

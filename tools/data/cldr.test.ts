@@ -1,6 +1,14 @@
 import { expect, test } from "bun:test"
 
-import { invertedIndex, missingRecords } from "./cldr.ts"
+import { invertedIndex, missingRecords, stripTtsPrefix } from "./cldr.ts"
+
+test("stripTtsPrefix drops a leading `word: ` label, keeps the rest verbatim", () => {
+  expect(stripTtsPrefix("flag: Japan")).toBe("Japan")
+  expect(stripTtsPrefix("flag: St. Kitts & Nevis")).toBe("St. Kitts & Nevis")
+  expect(stripTtsPrefix("keycap: 10")).toBe("10")
+  expect(stripTtsPrefix("grinning face")).toBe("grinning face")
+  expect(stripTtsPrefix("family: man, woman, boy")).toBe("man, woman, boy")
+})
 
 test("invertedIndex maps keyword -> sorted deduped emoji list, records sorted by keyword", () => {
   const annotations = new Map([
