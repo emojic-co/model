@@ -15,7 +15,7 @@ q_fused = a * q_txt + (1 - a) * q_kw          # 64-d
 fusion_logits = q_fused @ E.t() + bias        # E, bias shared with EmojiHead
 ```
 
-`tf_vec` is a length-`N` (N = 200) soft term-frequency vector over a fixed
+`tf_vec` is a length-`N` (N dynamic, ~876) soft term-frequency vector over a fixed
 global keyword vocabulary, produced by the same three ranker surfaces that
 exist today (`tools/data/flexrank.ts`, `model/flexrank.py`,
 `web/src/flexrank.js`), kept in parity by the conformance fixture.
@@ -52,7 +52,7 @@ flex plumbing is removed, not kept alongside.
 
 ## Target architecture (`model/model.py`)
 
-`V = len(EMOJIS)` (957 today, dynamic). `N = 200` (keyword vocab size).
+`V = len(EMOJIS)` (957 today, dynamic). `N` = keyword vocab size (dynamic, ~876).
 
 ### `EmojiEmbedding` (new, shared)
 
@@ -91,8 +91,7 @@ def forward(self, tf_vec):
     return self.net(tf_vec)                  # q_kw, [B, 64]
 ```
 
-`N` is read at construction from `data.py` (`FLEX_N`, sourced from
-`meta.json` / `len(kw_vocab)`). Zero-init on the `Linear` weight so `q_kw = 0`
+`N` is read at construction from `data.py` (`FLEX_N`, = `len` of `flex.json` `kw_vocab`). Zero-init on the `Linear` weight so `q_kw = 0`
 at step 0. Standalone logits (for `MRR/kw/val`, the web `keywords` toggle) =
 `emoji_embedding.score(q_kw)`. Serialized as `kw.pt`.
 
@@ -135,20 +134,36 @@ fusion_logits = emoji_embedding.score(q_fused)
 
 ### Keyword vocabulary (`kw_vocab`, built by `regen`, TS side)
 
+`buildFlexRanker(corpusTexts: string[])` — `regen` passes the `data/data.jsonl`
+master texts (**not** `data/cldr.jsonl`, whose row texts are the keywords
+themselves and would make the corpus filter a no-op).
+
 1. Collect every distinct keyword string across all glyphs'
-   `loadCldrAnnotations()` lists, lowercased.
-2. Candidate filter: no internal whitespace (single-word only) **and**
-   `KW_MIN_LEN <= len <= KW_MAX_LEN` (4..12).
-3. Rank candidates by `idf[kw]` descending; ties broken alphabetically
-   (deterministic across surfaces).
-4. Keep the first `KW_VOCAB_SIZE` (200). This ordered list is `kw_vocab`.
+   `loadCldrAnnotations()` lists, `.trim().toLowerCase()`, deduped per glyph.
+2. Compute `df[kw]` = number of distinct glyphs the keyword appears in.
+3. Candidate filter — keep `kw` iff **all** of:
+   - `df[kw] === 1` (max IDF — appears in exactly one emoji's keyword set),
+   - `queryTokens(kw)` yields exactly `[kw]` (single `[a-z0-9]+` token, >= 2
+     chars, non-stopword),
+   - `KW_MIN_LEN <= kw.length <= KW_MAX_LEN` (6..10),
+   - `kw` occurs >= 1x as a `queryTokens` token across `corpusTexts`.
+4. Sort the survivors alphabetically. This ordered list is `kw_vocab`.
+   **Use all of them** — no fixed size, no truncation.
 
-IDF (`makeIdf` over the per-glyph keyword lists) is a **build-time-only** input
-to selection — it is not needed at serve time and is dropped from `flex.json`.
+`N = kw_vocab.length` is therefore **dynamic** (~876 on the current
+`data/data.jsonl`) and drifts as the master grows. Nothing downstream hardcodes
+it: `FLEX_N` is read from `flex.json` / `meta.json`.
 
-New constants in `tools/data/config.ts`: `KW_VOCAB_SIZE = 200`,
-`KW_MIN_LEN = 4`, `KW_MAX_LEN = 12`, `MIN_FUZZY_SCORE = 0.66`. `FUZZY_MIN_LEN`
-(4) is reused from `tools/analysis/cldr-baseline.ts`.
+IDF here is just `df === 1`; `makeIdf` is not needed. `df` and the corpus scan
+are **build-time-only** — not needed at serve time, dropped from `flex.json`.
+
+New constants in `tools/data/config.ts`: `KW_MIN_LEN = 6`, `KW_MAX_LEN = 10`,
+`MIN_FUZZY_SCORE = 0.66`. `FUZZY_MIN_LEN` (4) is reused from
+`tools/analysis/cldr-baseline.ts`. (No `KW_VOCAB_SIZE`.)
+
+`tools/analysis/cldr-keywords.ts` (standalone) prints the max-IDF keyword-count
+matrix over min-length 5..8 x max-length 8..11 — the tool used to pick the
+`[6, 10]` band.
 
 ### `tf_vec(text)` — the one shared surface
 
@@ -170,7 +185,7 @@ overlap(w, k):
 - Fuzzy contributions land in `[0.66, 1.0)`, graded by length ratio; anything
   weaker is dropped. `FUZZY_WEIGHT` (0.6) and `FUZZY_MAX_LEN_DELTA` (3) are
   **not** used on this path (the 0.66 cutoff is a stricter relative bound).
-- Brute-force: compare each query token to all `N = 200` keywords. No inverted
+- Brute-force: compare each query token to all `N` (~876) keywords. No inverted
   index.
 - `query_tokens` is the existing shared tokenizer (`cldr-baseline.ts` /
   `flexrank.py` / `flexrank.js`). Cell values `r3`-rounded (3 decimals) to keep
@@ -181,9 +196,9 @@ overlap(w, k):
 
 ### `flex.json` / `meta.json`
 
-- `web/public/flex.json` becomes `{ "kw_vocab": string[200] }`.
-- `meta.json`: remove `flex_cols`, `flex_k`; add `flex_kw` (the 200 keyword
-  names, for parity/debug) and `flex_n` (200).
+- `web/public/flex.json` becomes `{ "kw_vocab": string[N] }` (N ~876).
+- `meta.json`: remove `flex_cols`, `flex_k`; add `flex_kw` (the `kw_vocab`
+  names, for parity/debug) and `flex_n` (= N).
 
 ### Per-row field (`regen` output)
 
@@ -195,13 +210,12 @@ keywords):
 "flex_tf": [[12, 1.0], [88, 0.667]]
 ```
 
-`regen` flags: `--flex-k 32` -> `--kw-n 200`; `--no-flexsearch` -> `--no-kw`
+`regen` flags: `--flex-k 32` removed (no size knob); `--no-flexsearch` -> `--no-kw`
 (skips the `flex_tf` field, `flex.json`, and the fixture).
 
 ### `model/data.py`
 
-- New module constants: `FLEX_N` (read from `meta.json` `flex_n`, fallback
-  `len` of `flex.json` `kw_vocab`).
+- New module constants: `KW_VOCAB` / `FLEX_N` (read from `flex.json` `kw_vocab`).
 - `read` captures `flex_tf` onto each `record` (replaces the `flexsearch` /
   `flexq` capture).
 - New `_row_tf(row) -> torch.Tensor [FLEX_N]`: zeros, then scatter the sparse
@@ -211,7 +225,7 @@ keywords):
 
 ### Conformance fixture
 
-`web/src/flexrank.fixture.json` locks the `tf_vec` output (dense length-200,
+`web/src/flexrank.fixture.json` locks the `tf_vec` output (dense length-N,
 `r3`-rounded) for the 8 `FLEX_FIXTURE_TEXTS`, regenerated by `regen` in the
 same pass, replayed by `model/test_flexrank.py` and `web/src/flexrank.test.js`.
 This is now the **sole** cross-surface drift guard.
@@ -223,7 +237,7 @@ This is now the **sole** cross-surface drift guard.
   `KWHead` + `FusionHead`. `emoji` without `fusion` -> `EmojiEmbedding` +
   `EmojiHead` only.
 - Batch tuple: `text, emoji, style, colors, flex_idx, flex_raw, flexq`
-  becomes `text, emoji, style, colors, flex_tf` (one `[B, 200]` tensor).
+  becomes `text, emoji, style, colors, flex_tf` (one `[B, N]` tensor).
 - Losses (all `lse_infonce` at `INFONCE_TEMP`), summed into `loss`:
   - `loss/emoji` on `emoji_embedding.score(q_txt)` — as today.
   - `loss/kw` on `emoji_embedding.score(q_kw)` — only when `fusion` selected.
@@ -250,7 +264,7 @@ Frozen-encoder path unchanged. Required-files check adds `emoji_embed.pt` and
 |---|---|
 | `emoji_embed.pt` | `EmojiEmbedding` (shared table `E` + `bias`) |
 | `emoji.pt` | `EmojiHead` (`Dropout -> Linear(620, 64)`) |
-| `kw.pt` | `KWHead` (`Dropout -> Linear(200, 64)`) |
+| `kw.pt` | `KWHead` (`Dropout -> Linear(N, 64)`) |
 | `fusion.pt` | `FusionHead` (`Linear(820, 1)`) |
 
 - `files.py` / `files.ts`: add `EMOJI_EMBED_PT`, `KW_PT` (keep `FUSION_PT`).
@@ -264,7 +278,7 @@ Frozen-encoder path unchanged. Required-files check adds `emoji_embed.pt` and
 
 - Loads `enc.pt`, `style.pt`, `emoji.pt`, `emoji_embed.pt`, `kw.pt`,
   `fusion.pt`, `gen.pt`.
-- `ExportWrapper` inputs: `input` (int64 char ids) + `flex_tf` `[1, 200]`
+- `ExportWrapper` inputs: `input` (int64 char ids) + `flex_tf` `[1, N]`
   (replaces `flex` `[1, V, 10]` and `flex_q` `[1, 5]`).
 - Outputs: `style_logits`, `emoji_logits` (`score(q_txt)`), `kw_logits`
   (`score(q_kw)`, new), `fusion_logits` (`score(q_fused)`), `color` (`[5, 9]`,
@@ -276,7 +290,7 @@ Frozen-encoder path unchanged. Required-files check adds `emoji_embed.pt` and
 
 ## Web (`web/src/`)
 
-- `flexrank.js:makeFlexRanker(flex.json)` returns only the dense length-200
+- `flexrank.js:makeFlexRanker(flex.json)` returns only the dense length-N
   `flex_tf` vector for a text; no ranking, no `flexq`. `tf_vec` byte-matches
   the TS / Python surfaces (fixture-locked).
 - `model.js` passes `flex_tf` as the single lexical model input (drops the
@@ -304,7 +318,7 @@ Frozen-encoder path unchanged. Required-files check adds `emoji_embed.pt` and
 - Add `DROPOUT_KW`.
 - Remove `FUSION_HIDDEN`, `DROPOUT_FUSION`, `FUSION_INT_CLAMP`,
   `FUSION_INT_EMBED_SIZE`.
-- TF-vector knobs (`KW_VOCAB_SIZE`, `KW_MIN_LEN`, `KW_MAX_LEN`,
+- TF-vector knobs (`KW_MIN_LEN`, `KW_MAX_LEN`,
   `MIN_FUZZY_SCORE`) live on the TS build side only; Python reads `flex_n`.
 
 ## Migration
@@ -350,11 +364,12 @@ Frozen-encoder path unchanged. Required-files check adds `emoji_embed.pt` and
 
 ## Risks / open questions
 
-- **N = 200 highest-IDF keywords** skews toward near-hapax keywords (each
-  pointing at ~1 emoji). `tf_vec` is then close to a 200-way sparse indicator
-  and `KWHead` close to a learned lookup. If `MRR/kw/val` is poor, revisit
-  selection (mid-IDF band, or larger N) — a `regen`-side change only, no model
-  edits.
+- **kw_vocab is all df==1 keywords** (each points at ~1 emoji), corpus-filtered
+  to ones users actually type (len 6..10). ~876 today; ~68% appear >=1x in the
+  corpus, ~20% of rows activate >=1 cell, so `KWHead` trains on a thin slice and
+  the gate `a` sits near 1 for most rows (the designed fallback). If
+  `MRR/kw/val` is poor, widen the length band or relax `df==1` — a `regen`-side
+  change only, no model edits.
 - **Linear gate** may be too weak to express "high TF but conflicting
   semantic confidence". First knob if `MRR/fusion/val` underperforms: one
   hidden layer in `FusionHead`.

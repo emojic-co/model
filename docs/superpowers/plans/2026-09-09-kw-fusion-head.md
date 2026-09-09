@@ -4,7 +4,7 @@
 
 **Goal:** Replace `FusionHead`'s 18+4 hand-crafted feature residual with a
 three-head design (`EmojiHead` + `KWHead` blended by a learned scalar gate,
-scored against a shared emoji-embedding table), fed by a length-200 soft-TF
+scored against a shared emoji-embedding table), fed by a length-N (~876) soft-TF
 keyword vector instead of the per-emoji flex plumbing.
 
 **Architecture:** A new `EmojiEmbedding` module owns the `[V, 64]` label table +
@@ -13,7 +13,7 @@ query). `FusionHead` is now just `Linear(TEXT_EMBED_SIZE + N, 1) -> sigmoid`
 producing a per-row gate `a`; the fused logits are
 `(a * q_txt.detach() + (1-a) * q_kw.detach()) @ E.detach().t() + bias.detach()`,
 so `loss/fusion` trains only the gate. The lexical signal is a length-N
-(`N = 200`) raw soft-TF vector over a fixed global keyword vocabulary, produced
+(N dynamic, ~876) raw soft-TF vector over a fixed global keyword vocabulary, produced
 by the three parity-locked ranker surfaces (`tools/data/flexrank.ts`,
 `model/flexrank.py`, `web/src/flexrank.js`).
 
@@ -24,9 +24,10 @@ toolchain, Vite/React web app with `onnxruntime-web`.
 
 ## Global Constraints
 
-- `V = len(EMOJIS)` from `data/labels.json` (957 today, dynamic). `N = 200`
-  (`KW_VOCAB_SIZE`). `EMOJI_EMBED_SIZE = 64`. `TEXT_EMBED_SIZE = 620`
-  (`sum(ENCODER_CHANNELS) = 120+200+300`).
+- `V = len(EMOJIS)` from `data/labels.json` (957 today, dynamic). `N` = the
+  `kw_vocab` length, **dynamic** (~876 today), read everywhere from
+  `flex.json` / `meta.json` (`FLEX_N`). `EMOJI_EMBED_SIZE = 64`.
+  `TEXT_EMBED_SIZE = 620` (`sum(ENCODER_CHANNELS) = 120+200+300`).
 - No comments or docstrings in source (keep `type: ignore` / `noqa` / shebangs).
   See `no-comments-or-docstrings` memory.
 - Never verify by running training. Verify with `ruff`, the plain-assert test
@@ -39,8 +40,9 @@ toolchain, Vite/React web app with `onnxruntime-web`.
   `tools/data/flexrank.ts` / `model/flexrank.py` / `web/src/flexrank.js`,
   locked by `web/src/flexrank.fixture.json` (dense length-N vectors, values
   rounded to 3 decimals).
-- `MIN_FUZZY_SCORE = 0.66`, `FUZZY_MIN_LEN = 4`, `KW_MIN_LEN = 4`,
-  `KW_MAX_LEN = 12`.
+- `MIN_FUZZY_SCORE = 0.66`, `FUZZY_MIN_LEN = 4`, `KW_MIN_LEN = 6`,
+  `KW_MAX_LEN = 10`. Vocab = all corpus-seen df==1 single-token keywords in
+  that length band (see Task 1); no fixed size.
 - `.pt` files are gitignored — no checkpoint migration; retrain from scratch.
 - Between Task 2 and Task 11 the repo is in a knowingly-broken intermediate
   state (`model/flexrank.py` consumers, `pred.py`, `report.py`, the web app
@@ -60,13 +62,13 @@ toolchain, Vite/React web app with `onnxruntime-web`.
   `EmojiHead`, `KWHead`, `FusionHead` (shapes, init equivalence, gate bias).
 
 **Modified files:**
-- `tools/data/config.ts` — `KW_VOCAB_SIZE`, `KW_MIN_LEN`, `KW_MAX_LEN`,
-  `MIN_FUZZY_SCORE`.
+- `tools/data/config.ts` — `KW_MIN_LEN`, `KW_MAX_LEN`, `MIN_FUZZY_SCORE`.
+- `tools/analysis/cldr-keywords.ts` (new) — max-IDF keyword-count matrix tool.
 - `tools/data/flexrank.ts` — rewrite: `selectKwVocab`, `tfVec`, `buildJson`
   emits `{ kw_vocab }`. Drop `rank`, `flexq`, `FLEX_COLS`, `FlexHit`, `FlexQ`.
-- `tools/data/regen.ts` — `flex_tf` row field, `--kw-n` / `--no-kw` flags, new
+- `tools/data/regen.ts` — `flex_tf` row field, `--no-kw` flag (drop `--flex-k`), new
   `flex.json` + fixture writes, `Row` type / `BASE_FIELDS` / `toLine`.
-- `web/public/flex.json` — regenerated: `{ "kw_vocab": string[200] }`.
+- `web/public/flex.json` — regenerated: `{ "kw_vocab": string[N] }`.
 - `web/src/flexrank.fixture.json` — regenerated: `{ kw_vocab, cases:[{text, tf}] }`.
 - `model/flexrank.py` — `class FlexRanker` keeps only `tf_vec(text) -> list[float]`.
 - `model/test_flexrank.py` — replay `tf` fixture vectors.
@@ -101,59 +103,72 @@ toolchain, Vite/React web app with `onnxruntime-web`.
 
 ## Task 1: TS ranker — keyword vocab + `tfVec`
 
+**Selection rule (locked with the user, supersedes the spec's "N=200"):**
+`kw_vocab` = every CLDR keyword (`.trim().toLowerCase()`, deduped per glyph)
+that satisfies **all** of: (1) `df === 1` (appears in exactly one emoji's
+keyword list — max IDF); (2) `queryTokens(kw)` yields exactly `[kw]` (single
+`[a-z0-9]+` token, ≥2 chars, non-stopword); (3) `6 ≤ kw.length ≤ 10`;
+(4) occurs ≥1× as a `queryTokens` token across the `data/data.jsonl` master
+texts. Sorted alphabetically, used in full. **N is dynamic (~876 today).**
+
 **Files:**
 - Modify: `tools/data/config.ts`
 - Modify: `tools/data/flexrank.ts` (full rewrite of the exported surface)
-- Create: `tools/data/flexrank.test.ts`
+- Modify: `tools/data/flexrank.test.ts` (exists — old-API test, overwrite)
+- Already created this session: `tools/analysis/cldr-keywords.ts` (the
+  max-IDF keyword-count matrix tool; commit it with this task)
 
 **Interfaces:**
-- Consumes: `loadCldrAnnotations()` from `tools/data/cldr.ts`, `makeIdf`,
-  `queryTokens`, `stripVS`, `FUZZY_MIN_LEN` from
-  `tools/analysis/cldr-baseline.ts`.
+- Consumes: `loadCldrAnnotations()` from `tools/data/cldr.ts`; `queryTokens`,
+  `FUZZY_MIN_LEN` from `tools/analysis/cldr-baseline.ts`.
 - Produces:
-  - `tools/data/config.ts`: `export const KW_VOCAB_SIZE = 200`,
-    `KW_MIN_LEN = 4`, `KW_MAX_LEN = 12`, `MIN_FUZZY_SCORE = 0.66`.
+  - `tools/data/config.ts`: `export const KW_MIN_LEN = 6`,
+    `KW_MAX_LEN = 10`, `MIN_FUZZY_SCORE = 0.66` (no `KW_VOCAB_SIZE`).
   - `tools/data/flexrank.ts`:
     - `export type FlexJson = { kw_vocab: string[] }`
-    - `export async function buildFlexRanker(): Promise<{ kwVocab: string[];
-      tfVec: (text: string) => number[]; buildJson: () => FlexJson }>`
+    - `export async function buildFlexRanker(corpusTexts: string[]):
+      Promise<{ kwVocab: string[]; tfVec: (text: string) => number[];
+      buildJson: () => FlexJson }>`
     - `tfVec(text)` returns a dense `number[]` of length `kwVocab.length`,
       each cell `r3`-rounded.
 
 - [ ] **Step 1: Add constants to `tools/data/config.ts`**
 
-Append near the other exported constants:
-
 ```ts
-export const KW_VOCAB_SIZE = 200
-export const KW_MIN_LEN = 4
-export const KW_MAX_LEN = 12
+export const KW_MIN_LEN = 6
+export const KW_MAX_LEN = 10
 export const MIN_FUZZY_SCORE = 0.66
 ```
 
-- [ ] **Step 2: Write the failing test `tools/data/flexrank.test.ts`**
+- [ ] **Step 2: Overwrite `tools/data/flexrank.test.ts` with the failing test**
 
 ```ts
 import { describe, expect, it } from "bun:test"
-import { KW_VOCAB_SIZE } from "./config"
+
+import { DATA_JSONL } from "../../files.ts"
+import { KW_MAX_LEN, KW_MIN_LEN } from "./config"
 import { buildFlexRanker } from "./flexrank.ts"
+import { readJsonl } from "./io.ts"
+
+const corpus = (await readJsonl<{ text?: unknown }>(DATA_JSONL))
+  .map((r) => (typeof r.text === "string" ? r.text : ""))
+  .filter(Boolean)
 
 describe("kw ranker", () => {
-  it("selects a fixed-size single-word 4..12-char vocab", async () => {
-    const r = await buildFlexRanker()
-    expect(r.kwVocab.length).toBe(KW_VOCAB_SIZE)
+  it("vocab: single-token, length-bounded, deduped, alphabetical", async () => {
+    const r = await buildFlexRanker(corpus)
+    expect(r.kwVocab.length).toBeGreaterThan(500)
     for (const k of r.kwVocab) {
       expect(k).toMatch(/^[a-z0-9]+$/)
-      expect(k.length).toBeGreaterThanOrEqual(4)
-      expect(k.length).toBeLessThanOrEqual(12)
+      expect(k.length).toBeGreaterThanOrEqual(KW_MIN_LEN)
+      expect(k.length).toBeLessThanOrEqual(KW_MAX_LEN)
     }
-    const sorted = [...r.kwVocab].sort()
     expect(new Set(r.kwVocab).size).toBe(r.kwVocab.length)
-    expect(sorted).not.toEqual(r.kwVocab) // idf-ordered, not alphabetical
+    expect([...r.kwVocab].sort()).toEqual(r.kwVocab)
   })
 
-  it("tfVec: exact hit = 1.0, fuzzy hit graded, miss = 0", async () => {
-    const r = await buildFlexRanker()
+  it("tfVec: exact hit = 1.0, miss = 0, dense length = |vocab|", async () => {
+    const r = await buildFlexRanker(corpus)
     const kw = r.kwVocab[0]
     const v = r.tfVec(kw)
     expect(v.length).toBe(r.kwVocab.length)
@@ -161,8 +176,21 @@ describe("kw ranker", () => {
     expect(r.tfVec("zzzznotawordzzzz").every((x) => x === 0)).toBe(true)
   })
 
+  it("corpus filter: every vocab word appears in the corpus", async () => {
+    const r = await buildFlexRanker(corpus)
+    const toks = new Set<string>()
+    for (const t of corpus.slice(0, 5000)) for (const w of t.toLowerCase().split(/\s+/)) toks.add(w)
+    // spot check a handful rather than all (perf): first + last few
+    for (const k of [...r.kwVocab.slice(0, 3), ...r.kwVocab.slice(-3)]) {
+      const hit = corpus.some((t) =>
+        t.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).includes(k),
+      )
+      expect(hit).toBe(true)
+    }
+  })
+
   it("buildJson emits only kw_vocab", async () => {
-    const r = await buildFlexRanker()
+    const r = await buildFlexRanker(corpus)
     expect(Object.keys(r.buildJson())).toEqual(["kw_vocab"])
     expect(r.buildJson().kw_vocab).toEqual(r.kwVocab)
   })
@@ -172,21 +200,14 @@ describe("kw ranker", () => {
 - [ ] **Step 3: Run the test to verify it fails**
 
 Run: `bun test tools/data/flexrank.test.ts`
-Expected: FAIL — `buildFlexRanker` still has the old signature / returns `rank`.
+Expected: FAIL — `buildFlexRanker` still has the old `(k: number)` signature.
 
 - [ ] **Step 4: Rewrite `tools/data/flexrank.ts`**
 
-Replace the entire file body (keep the imports it still needs) with:
-
 ```ts
-import {
-  FUZZY_MIN_LEN,
-  makeIdf,
-  queryTokens,
-  stripVS,
-} from "../analysis/cldr-baseline.ts"
+import { FUZZY_MIN_LEN, queryTokens } from "../analysis/cldr-baseline.ts"
 import { loadCldrAnnotations } from "./cldr.ts"
-import { KW_MAX_LEN, KW_MIN_LEN, KW_VOCAB_SIZE, MIN_FUZZY_SCORE } from "./config"
+import { KW_MAX_LEN, KW_MIN_LEN, MIN_FUZZY_SCORE } from "./config"
 
 export type FlexJson = { kw_vocab: string[] }
 
@@ -200,27 +221,31 @@ function overlap(w: string, k: string): number {
   return r >= MIN_FUZZY_SCORE ? r : 0.0
 }
 
-export async function buildFlexRanker(): Promise<{
+export async function buildFlexRanker(corpusTexts: string[]): Promise<{
   kwVocab: string[]
   tfVec: (text: string) => number[]
   buildJson: () => FlexJson
 }> {
   const annotations = await loadCldrAnnotations()
-  const kwTokens: string[][] = []
-  const candidates = new Set<string>()
+  const df = new Map<string, number>()
   for (const [, keywords] of annotations) {
-    const toks = keywords.map((w) => w.toLowerCase())
-    kwTokens.push(toks)
-    for (const kw of toks) {
-      if (/\s/.test(kw)) continue
-      if (kw.length < KW_MIN_LEN || kw.length > KW_MAX_LEN) continue
-      candidates.add(kw)
-    }
+    const uniq = new Set(keywords.map((w) => w.trim().toLowerCase()).filter(Boolean))
+    for (const kw of uniq) df.set(kw, (df.get(kw) ?? 0) + 1)
   }
-  const idf = makeIdf(kwTokens)
-  const kwVocab = [...candidates]
-    .sort((a, b) => idf(b) - idf(a) || (a < b ? -1 : a > b ? 1 : 0))
-    .slice(0, KW_VOCAB_SIZE)
+
+  const corpusTokens = new Set<string>()
+  for (const t of corpusTexts) for (const w of queryTokens(t)) corpusTokens.add(w)
+
+  const kwVocab: string[] = []
+  for (const [kw, n] of df) {
+    if (n !== 1) continue
+    if (kw.length < KW_MIN_LEN || kw.length > KW_MAX_LEN) continue
+    const qt = queryTokens(kw)
+    if (qt.length !== 1 || qt[0] !== kw) continue
+    if (!corpusTokens.has(kw)) continue
+    kwVocab.push(kw)
+  }
+  kwVocab.sort()
 
   const tfVec = (text: string): number[] => {
     const q = queryTokens(text)
@@ -235,21 +260,19 @@ export async function buildFlexRanker(): Promise<{
 }
 ```
 
-Note: `stripVS` import stays only if still referenced elsewhere in the file;
-if not, drop it and let Task 2 re-add it where `regen.ts` needs it. Confirm
-`makeIdf`'s signature (`(docs: string[][]) => (word: string) => number`) — it is
-called with the full per-glyph keyword-string lists, matching today's usage.
-
 - [ ] **Step 5: Run the test to verify it passes**
 
 Run: `bun test tools/data/flexrank.test.ts`
-Expected: PASS (3 tests).
+Expected: PASS (4 tests). Also run `bun test tools/analysis/cldr-baseline.test.ts`
+to confirm the pared-down `cldr-baseline.ts` import surface (only `queryTokens`
+/ `FUZZY_MIN_LEN` used now — `makeIdf` / `stripVS` no longer imported by
+flexrank but still exported and used elsewhere) is intact.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add tools/data/config.ts tools/data/flexrank.ts tools/data/flexrank.test.ts
-git commit -m "feat(flexrank): keyword-vocab selection + tfVec, drop per-emoji rank"
+git add tools/data/config.ts tools/data/flexrank.ts tools/data/flexrank.test.ts tools/analysis/cldr-keywords.ts
+git commit -m "feat(flexrank): corpus-filtered df==1 kw_vocab + tfVec, drop per-emoji rank"
 ```
 
 ---
@@ -262,11 +285,11 @@ git commit -m "feat(flexrank): keyword-vocab selection + tfVec, drop per-emoji r
 - Regenerate + commit: `web/public/flex.json`, `web/src/flexrank.fixture.json`
 
 **Interfaces:**
-- Consumes: `buildFlexRanker` from Task 1.
+- Consumes: `buildFlexRanker(corpusTexts)` from Task 1.
 - Produces: train/eval rows carry `"flex_tf": [[kwIdx, value], ...]` (sparse,
-  `value > 0` only). `web/public/flex.json` = `{ "kw_vocab": string[200] }`.
-  `web/src/flexrank.fixture.json` = `{ "kw_vocab": string[200], "cases":
-  [{ "text": string, "tf": number[200] }] }`.
+  `value > 0` only). `web/public/flex.json` = `{ "kw_vocab": string[N] }`
+  (N ~876). `web/src/flexrank.fixture.json` = `{ "kw_vocab": string[N],
+  "cases": [{ "text": string, "tf": number[N] }] }`.
 
 - [ ] **Step 1: Update `Row` type + `BASE_FIELDS` + imports**
 
@@ -277,8 +300,7 @@ In `tools/data/regen.ts`:
 - `Row` type: replace `flexsearch?: FlexHit[]` / `flexq?: FlexQ` with
   `flex_tf?: [number, number][]`.
 - `BASE_FIELDS`: replace `"flexsearch", "flexq"` with `"flex_tf"`.
-- Replace `const FLEX_K = 32` with `const KW_N = 200` (only used for the log
-  line / flag default now).
+- Delete `const FLEX_K = 32` (no size knob any more).
 
 - [ ] **Step 2: Update `toLine`**
 
@@ -297,20 +319,26 @@ export function toLine(r: Row): string {
 
 - [ ] **Step 3: Update the CLI flags**
 
-- Rename `--flex-k <n>` -> `--kw-n <n>` with description
-  `` `keyword-vocab size for the soft-TF fusion signal (default ${KW_N})` ``
-  (informational only — `buildFlexRanker` reads `KW_VOCAB_SIZE` from config).
+- Delete the `--flex-k <n>` option entirely (no size knob).
 - Rename `--no-flexsearch` -> `--no-kw` with description
   `"skip the soft-TF fusion signal on train/eval rows"`.
 
 - [ ] **Step 4: Rewrite the flex block (`~line 355-386`)**
+
+`master` (the `data/data.jsonl` rows, already read as
+`await readJsonl<unknown>(DATA)` near the top of the `import.meta.main` block)
+is the corpus the vocab is filtered against — pass `master.map((r) => (r as
+{ text?: unknown }).text).filter((t): t is string => typeof t === "string")`.
 
 ```ts
   const useKw = options.kw !== false
   let kwLine = "flex_tf               : skipped (--no-kw)"
   if (useKw) {
     console.log("computing soft-TF fusion vectors...")
-    const ranker = await buildFlexRanker()
+    const corpusTexts = (master as { text?: unknown }[])
+      .map((r) => r.text)
+      .filter((t): t is string => typeof t === "string")
+    const ranker = await buildFlexRanker(corpusTexts)
     let nzSum = 0
     for (const r of split) {
       const dense = ranker.tfVec(r.text)
@@ -341,7 +369,7 @@ Replace the later `console.log(flexLine)` with `console.log(kwLine)`.
 - [ ] **Step 5: Run regen and inspect output**
 
 Run: `bun run regen`
-Expected: completes; prints `flex_tf : N=200, mean nz ...`.
+Expected: completes; prints `flex_tf : N=<~876>, mean nz ...`.
 
 Then:
 ```bash
@@ -350,8 +378,9 @@ python3 -c "import json;d=json.load(open('web/public/flex.json'));print(list(d),
 python3 -c "import json;r=json.loads(open('data/eval.jsonl').readline());print('flex_tf' in r, r.get('flex_tf')[:3])"
 python3 -c "import json;f=json.load(open('web/src/flexrank.fixture.json'));print(len(f['kw_vocab']),len(f['cases']),len(f['cases'][0]['tf']))"
 ```
-Expected: `flex.json` keys `['kw_vocab']`, length 200; eval row has `flex_tf`;
-fixture has 200 kw_vocab, 8 cases, each `tf` length 200.
+Expected: `flex.json` keys `['kw_vocab']`, length ~876; eval row has
+`flex_tf`; fixture kw_vocab length matches flex.json, 8 cases, each `tf` that
+same length.
 
 - [ ] **Step 6: Commit**
 
@@ -621,7 +650,7 @@ from model.data import FLEX_N, KW_VOCAB, _row_tf
 
 def test_flex_n_matches_vocab():
     assert FLEX_N == len(KW_VOCAB)
-    assert FLEX_N == 200
+    assert FLEX_N > 500
 
 
 def test_row_tf_scatters_sparse_pairs():
@@ -1401,7 +1430,7 @@ def test_kw_section_keys():
 
     r = FlexRanker(FLEX_JSON)
     v = r.tf_vec("pizza time with friends tonight")
-    assert len(v) == len(r.kw_vocab) == 200
+    assert len(v) == len(r.kw_vocab) and len(v) > 500
 ```
 
 Run: `uv run python tools/test_report.py`
@@ -1608,7 +1637,7 @@ Rewrite the `FusionHead` description to: shared `EmojiEmbedding` table; three
 heads (`EmojiHead` text->64d, `KWHead` tf->64d, `FusionHead` gate); fused =
 `score(a*q_txt + (1-a)*q_kw)` with `q_txt`/`q_kw`/table detached in the fused
 path so `loss/fusion` trains only the gate; `E`/`bias` co-trained by
-`loss/emoji` + `loss/kw`; the lexical input is a length-200 raw soft-TF vector
+`loss/emoji` + `loss/kw`; the lexical input is a length-N (~876) raw soft-TF vector
 over the highest-IDF single-word 4..12-char CLDR keywords (`flex_tf`, sparse on
 rows); `flex.json` is now `{ kw_vocab }`; `meta.json` has `flex_kw` / `flex_n`;
 ONNX inputs `input` + `flex_tf`, outputs add `kw_logits`; checkpoint order uses
@@ -1659,7 +1688,7 @@ Expected: all green.
 - [ ] **Step 2: Regen (fresh artifacts on the new schema)**
 
 Run: `bun run regen`
-Expected: prints `flex_tf : N=200, mean nz ...`; `data/labels.json` has 21
+Expected: prints `flex_tf : N=<~876>, mean nz ...`; `data/labels.json` has 21
 styles + the emoji vocab.
 
 - [ ] **Step 3: Retrain stage 1 + 2 (long-running — this is the sign-off)**
@@ -1708,8 +1737,8 @@ Invoke `superpowers:finishing-a-development-branch`.
   (`_step`), 9 (`ExportWrapper`), 10 (`pred`), 11 (`report`).
 - Gate init `a ~= 0.98` — Task 7 (`test_gate_starts_near_one`,
   `test_untrained_fusion_matches_emojihead`).
-- `kw_vocab` selection (single-word, 4..12, top-200 by IDF, alpha tiebreak) —
-  Task 1.
+- `kw_vocab` selection (df==1, single-token, len 6..10, corpus-seen, all of
+  them, alphabetical) — Task 1.  [was spec's N=200-by-IDF; changed with user]
 - `tf_vec` overlap rule + `MIN_FUZZY_SCORE = 0.66` — Tasks 1, 3, 4.
 - `flex.json = { kw_vocab }`, `meta.json` `flex_kw`/`flex_n` — Tasks 2, 9.
 - sparse `flex_tf` row field — Tasks 2, 5.
@@ -1737,7 +1766,7 @@ resolved by the Step 1 grep. Both are bounded lookups, not open design.
 **Type consistency:**
 - `FlexRanker.tf_vec(text) -> list[float]` — Tasks 3, 10, 11 all call it the
   same way; `.kw_vocab` attr used in Tasks 3, 11.
-- `buildFlexRanker(): { kwVocab, tfVec, buildJson }` — Task 1 defines, Task 2
+- `buildFlexRanker(corpusTexts): { kwVocab, tfVec, buildJson }` — Task 1 defines, Task 2
   consumes exactly those names.
 - `makeFlexRanker(flexJson) -> { kwVocab, tfVec }` — Task 4 defines, Task 12
   consumes.
