@@ -1,12 +1,14 @@
 import { cac } from "cac"
 
 import { splitEmojis } from "./emoji.ts"
+import type { FlexHit, FlexQ } from "./flexrank.ts"
 import { normalize } from "./normalize.ts"
 import { STYLE_SET } from "./styles.ts"
 
 const MIN_COUNT = 50
 const MAX_COUNT = 1000
 const EVAL_SIZE = 2000
+const FLEX_K = 32
 
 const MIN_MAX_RATIO = 10
 const MAX_MAX_RATIO = 30
@@ -21,9 +23,19 @@ export type Row = {
   bg?: string[]
   fg?: string
   extra?: Record<string, unknown>
+  flexsearch?: FlexHit[]
+  flexq?: FlexQ
 }
 
-const BASE_FIELDS = new Set(["text", "emojis", "styles", "bg", "fg"])
+const BASE_FIELDS = new Set([
+  "text",
+  "emojis",
+  "styles",
+  "bg",
+  "fg",
+  "flexsearch",
+  "flexq",
+])
 
 type Acc = {
   text: string
@@ -141,12 +153,14 @@ import {
   CLDR_JSONL as CLDR,
   DATA_JSONL as DATA,
   EVAL_JSONL as EVAL,
+  FLEX_JSON,
   LABELS_JSON as LABELS,
   REGEN_MD,
   TRAIN_JSONL as TRAIN,
 } from "../../files.ts"
-import { runBaseline } from "../analysis/cldr-baseline.ts"
+import { runBaseline, stripVS } from "../analysis/cldr-baseline.ts"
 import { SEED, STYLES } from "./config"
+import { buildFlexRanker } from "./flexrank.ts"
 import { readJsonl, writeFileAtomic } from "./io.ts"
 
 export function toLine(r: Row): string {
@@ -154,7 +168,12 @@ export function toLine(r: Row): string {
     r.bg && r.fg
       ? { text: r.text, emojis: r.emojis, styles: r.styles, bg: r.bg, fg: r.fg }
       : { text: r.text, emojis: r.emojis, styles: r.styles }
-  return JSON.stringify(r.extra ? { ...base, ...r.extra } : base)
+  const withExtra = r.extra ? { ...base, ...r.extra } : base
+  return JSON.stringify(
+    r.flexsearch
+      ? { ...withExtra, flexsearch: r.flexsearch, flexq: r.flexq }
+      : withExtra,
+  )
 }
 
 function printMatrix(records: Row[], useCldr: boolean): void {
@@ -267,6 +286,14 @@ cli
     "--analysis",
     `write ${REGEN_MD} (train-vocab vs CLDR emoji coverage) and nothing else`,
   )
+  .option(
+    "--flex-k <n>",
+    `emojis per row in the CLDR keyword-retrieval ranked list (default ${FLEX_K})`,
+  )
+  .option(
+    "--no-flexsearch",
+    "skip the CLDR keyword-retrieval ranked list on train/eval rows",
+  )
 cli.help()
 
 if (import.meta.main) {
@@ -314,6 +341,31 @@ if (import.meta.main) {
   const held = split.slice(0, n)
   const rest = split.slice(n)
 
+  const useFlex = options.flexsearch !== false
+  const flexK = Number(options.flexK ?? FLEX_K)
+  let flexLine = "flexsearch            : skipped (--no-flexsearch)"
+  if (useFlex) {
+    console.log("computing flexsearch ranked lists...")
+    const ranker = await buildFlexRanker(flexK)
+    const vocabMap = new Map(emojis.map((e) => [stripVS(e), e]))
+    let listLenSum = 0
+    let zeroMatched = 0
+    for (const r of split) {
+      const { flexsearch, flexq } = ranker.rank(r.text, vocabMap)
+      r.flexsearch = flexsearch
+      r.flexq = flexq
+      listLenSum += flexsearch.length
+      if (flexq.matched === 0) zeroMatched++
+    }
+    const flexJson = ranker.buildJson(emojis)
+    await writeFileAtomic(FLEX_JSON, JSON.stringify(flexJson) + "\n")
+    const denom = split.length || 1
+    flexLine =
+      `flexsearch            : K=${flexK}, mean list ${(listLenSum / denom).toFixed(1)}, `
+      + `rows w/ 0 matched ${((100 * zeroMatched) / denom).toFixed(0)}%, `
+      + `flex.json ${flexJson.emojis.length} emoji`
+  }
+
   await writeFileAtomic(EVAL, held.map(toLine).join("\n") + "\n")
   await writeFileAtomic(TRAIN, rest.map(toLine).join("\n") + "\n")
 
@@ -357,6 +409,7 @@ if (import.meta.main) {
   console.log(
     `-> ${LABELS}    : ${labels.styles.length} styles, ${labels.emojis.length} emojis`,
   )
+  console.log(flexLine)
   console.log(baselineLine)
   process.exit(0)
 }
