@@ -31,6 +31,7 @@ from files import (
     ENC_PT,
     ENERGY_KEYWORDS_TXT,
     EVAL_JSONL,
+    FUSION_PT,
     KEYWORDS_JSON,
     LABELS_JSON,
     MODEL_DIR,
@@ -62,6 +63,7 @@ from model.config import (
 )
 from model.data import (
     eval_data_loader,
+    scatter_flex,
     train_data_loader,
     train_ds,
 )
@@ -70,6 +72,7 @@ from model.model import (
     ColorCritic,
     ColorGen,
     EmojiHead,
+    FusionHead,
     StyleHead,
     TextEncoder,
 )
@@ -139,7 +142,7 @@ def energy_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     return (2 * xy - xx - yy).clamp(min=0.0).sqrt()
 
 
-ALL_HEADS: tuple[str, ...] = ("style", "emoji", "critic")
+ALL_HEADS: tuple[str, ...] = ("style", "emoji", "critic", "fusion")
 _DEFAULT_PT = Path(PT_DIR)
 
 
@@ -158,6 +161,8 @@ def _parse_heads(csv: str | None) -> tuple[str, ...]:
             f"--heads: {', '.join(sorted(bad)) or 'empty'} "
             f"(choose from {', '.join(ALL_HEADS)})"
         )
+    if "fusion" in got and "emoji" not in got:
+        raise typer.BadParameter("--heads: fusion requires emoji")
     return tuple(h for h in ALL_HEADS if h in got)
 
 
@@ -198,6 +203,8 @@ class LitEncoder(pl.LightningModule):
             self.emoji = EmojiHead()
         if "critic" in self.heads:
             self.critic = ColorCritic()
+        if "fusion" in self.heads:
+            self.fusion = FusionHead()
 
         self._val_pos: list[torch.Tensor] = []
         self._val_neg: list[torch.Tensor] = []
@@ -211,7 +218,7 @@ class LitEncoder(pl.LightningModule):
                  prog_bar=True, batch_size=bs)
 
     def _step(self, batch, split):
-        text, emoji, style, colors = batch
+        text, emoji, style, colors, flex_idx, flex_raw, flexq = batch
         enc = self.enc(text)
         loss = enc.new_zeros(())
         bs = text.size(0)
@@ -238,6 +245,26 @@ class LitEncoder(pl.LightningModule):
             else:
                 emoji_mrr = torch.zeros((), device=emoji.device)
             self._log(f"MRR/e/{split}", emoji_mrr, max(n_e, 1))
+
+        if "fusion" in self.heads:
+            flex_dense = scatter_flex(flex_idx, flex_raw)
+            fusion_logits = self.fusion(emoji_logits.detach(), flex_dense, flexq)
+            loss_fusion = lse_infonce(fusion_logits, emoji, INFONCE_TEMP)
+            loss = loss + loss_fusion
+            self._log(f"loss/fusion/{split}", loss_fusion, bs)
+
+            flex_score = flex_dense[..., 0]
+            flex_logits = torch.where(
+                flex_score > 0, flex_score, flex_score.new_full((), -1e9)
+            )
+            if n_e:
+                frr = mrr(fusion_logits[has_e], emoji[has_e]).mean()
+                xrr = mrr(flex_logits[has_e], emoji[has_e]).mean()
+            else:
+                frr = torch.zeros((), device=emoji.device)
+                xrr = torch.zeros((), device=emoji.device)
+            self._log(f"MRR/fusion/{split}", frr, max(n_e, 1))
+            self._log(f"MRR/flex/{split}", xrr, max(n_e, 1))
 
         if "critic" in self.heads:
             shift = 1 if split == "val" else int(torch.randint(1, bs, (1,)).item())
@@ -334,7 +361,7 @@ class LitColorGAN(pl.LightningModule):
         self._val_real.clear()
 
     def validation_step(self, batch, batch_idx):
-        text, _, _, colors = batch
+        text, _, _, colors, *_ = batch
         self._val_text.append(text)
         self._val_real.append(colors)
 
@@ -370,7 +397,7 @@ class LitColorGAN(pl.LightningModule):
                     "energy/gan/ref", ref, self.global_step)
 
     def training_step(self, batch, batch_idx):
-        text, _, _, colors = batch
+        text, _, _, colors, *_ = batch
         opt_gen, opt_tst = self.optimizers()  # type: ignore
 
         cond = self._cond(text)
@@ -456,7 +483,9 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
     monitor = (
-        "F1/val"
+        "MRR/fusion/val"
+        if "fusion" in heads
+        else "F1/val"
         if {"emoji", "critic"} <= set(heads)
         else "MRR/e/val"
         if "emoji" in heads
@@ -564,7 +593,9 @@ def _run_local(
     out_dir.mkdir(parents=True, exist_ok=True)
 
     if stage == Stage.gan:
-        _require_pt(pt_dir, ["enc.pt", "critic.pt", "style.pt", "emoji.pt"])
+        _require_pt(
+            pt_dir, ["enc.pt", "critic.pt", "style.pt", "emoji.pt", "fusion.pt"]
+        )
         enc = _load(TextEncoder(), str(pt_dir / "enc.pt"))
         critic = _load(ColorCritic(), str(pt_dir / "critic.pt"))
         _train_gan(enc, critic, train_ds(), out_dir)  # type: ignore
@@ -690,6 +721,7 @@ def train_remote(
     style_bytes: bytes | None = None,
     emoji_bytes: bytes | None = None,
     critic_bytes: bytes | None = None,
+    fusion_bytes: bytes | None = None,
 ) -> dict[str, int]:
     env = _run_env(threads)
     env["EMOJIC_GIT_SHA"] = git_sha
@@ -706,6 +738,7 @@ def train_remote(
         STYLE_PT: style_bytes,
         EMOJI_PT: emoji_bytes,
         CRITIC_PT: critic_bytes,
+        FUSION_PT: fusion_bytes,
     }
     if any(v is not None for v in uploads.values()):
         Path(REPO, PT_DIR).mkdir(parents=True, exist_ok=True)
@@ -828,9 +861,10 @@ def _run_remote(
         "style_bytes": None,
         "emoji_bytes": None,
         "critic_bytes": None,
+        "fusion_bytes": None,
     }
     if stage == "gan":
-        for name in (ENC_PT, STYLE_PT, EMOJI_PT, CRITIC_PT):
+        for name in (ENC_PT, STYLE_PT, EMOJI_PT, CRITIC_PT, FUSION_PT):
             if not Path(name).exists():
                 raise typer.BadParameter(
                     f"{name} not found -- run `train enc --local` "
@@ -841,6 +875,7 @@ def _run_remote(
             "style_bytes": Path(STYLE_PT).read_bytes(),
             "emoji_bytes": Path(EMOJI_PT).read_bytes(),
             "critic_bytes": Path(CRITIC_PT).read_bytes(),
+            "fusion_bytes": Path(FUSION_PT).read_bytes(),
         }
 
     threads = GPU_CPU if gpu else CPU
