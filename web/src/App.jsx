@@ -3,7 +3,6 @@ import { useOnnx } from './hooks/useOnnx'
 import { argmax, normalize, fixContrast } from './model'
 import { topFeelings, DEFAULT_COLORS } from './feelings'
 import { cycle } from './nav'
-import { cldrEmojis } from './cldrEmojis'
 import GitHubButton from 'react-github-btn'
 import { Card } from './components/Card'
 import { FeelingBar } from './components/FeelingBar'
@@ -16,15 +15,35 @@ import { useMediaQuery } from './hooks/useMediaQuery'
 
 const MIN_CHARS = 3
 const DEBOUNCE_MS = 250
-const EMOJI_SOURCE_KEY = 'emojiSource'
+const EMOJI_MODE_KEY = 'emojiMode'
 const CONTRAST_FIX_KEY = 'contrastFix'
 
-function initialEmojiSource() {
+export const EMOJI_MODES = ['fusion', 'model', 'keywords']
+
+export function initialEmojiMode() {
   try {
-    return localStorage.getItem(EMOJI_SOURCE_KEY) === 'cldr' ? 'cldr' : 'model'
-  } catch {
-    return 'model'
+    const m = localStorage.getItem(EMOJI_MODE_KEY)
+    if (EMOJI_MODES.includes(m)) return m
+    const legacy = localStorage.getItem('emojiSource')
+    if (legacy === 'cldr') return 'keywords'
+    if (legacy === 'model') return 'model'
+  } catch {}
+  return 'fusion'
+}
+
+export function pickEmojiList(mode, scores, meta, slots) {
+  if (!scores || !meta) return []
+  if (mode === 'keywords') {
+    return (scores.keywordRank || [])
+      .slice(0, slots)
+      .map((emoji, i) => ({ emoji, p: 1 - i / slots }))
   }
+  const arr = mode === 'fusion' ? scores.fusion : scores.emoji
+  if (!arr) return []
+  return [...arr.keys()]
+    .sort((a, b) => arr[b] - arr[a])
+    .slice(0, slots)
+    .map((idx) => ({ emoji: meta.emojis[idx], p: arr[idx] }))
 }
 
 function initialContrastFix() {
@@ -64,8 +83,7 @@ export function App() {
   const [text, setText] = useState('')
   const [scores, setScores] = useState(null)
   const [override, setOverride] = useState({ emoji: null, feeling: null, color: 0 })
-  const [emojiSource, setEmojiSource] = useState(initialEmojiSource)
-  const useCldrEmojis = emojiSource === 'cldr'
+  const [emojiMode, setEmojiMode] = useState(initialEmojiMode)
   const [contrastFix, setContrastFix] = useState(initialContrastFix)
   const [toast, setToast] = useState({ msg: '', n: 0 })
   const showToast = useCallback((msg) => setToast((s) => ({ msg, n: s.n + 1 })), [])
@@ -79,9 +97,9 @@ export function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(EMOJI_SOURCE_KEY, emojiSource)
+      localStorage.setItem(EMOJI_MODE_KEY, emojiMode)
     } catch {}
-  }, [emojiSource])
+  }, [emojiMode])
 
   useEffect(() => {
     try {
@@ -107,16 +125,11 @@ export function App() {
     return () => clearTimeout(timer)
   }, [text, ready, char2idx, predict])
 
-  const emojiScores = scores && scores.emoji
-  const cldrTop = useMemo(
-    () => (useCldrEmojis && scores ? cldrEmojis(text) : null),
-    [useCldrEmojis, scores, text],
+  const emojiTop = useMemo(
+    () => pickEmojiList(emojiMode, scores, meta, emojiSlots),
+    [emojiMode, scores, meta, emojiSlots],
   )
-  const predictedEmoji = useCldrEmojis
-    ? (cldrTop?.[0] ?? null)
-    : scores
-      ? meta.emojis[argmax(scores.emoji)]
-      : null
+  const predictedEmoji = emojiTop[0]?.emoji ?? null
   const predictedFeeling = scores ? meta.styles[argmax(scores.feeling)] : null
   const shownEmoji = override.emoji ?? predictedEmoji
   const shownFeeling = override.feeling ?? predictedFeeling
@@ -124,20 +137,7 @@ export function App() {
     () => topFeelings(scores?.feeling, meta?.styles ?? [], shownFeeling, feelingCount),
     [scores, meta, shownFeeling, feelingCount],
   )
-  const emojiTop = useMemo(() => {
-    if (useCldrEmojis) {
-      return cldrTop
-        ? cldrTop.slice(0, emojiSlots).map((emoji, i) => ({ emoji, p: 1 - i / emojiSlots }))
-        : null
-    }
-    return emojiScores
-      ? emojiScores
-          .map((p, i) => ({ emoji: meta.emojis[i], p }))
-          .sort((a, b) => b.p - a.p)
-          .slice(0, emojiSlots)
-      : null
-  }, [useCldrEmojis, cldrTop, emojiScores, meta, emojiSlots])
-  const emojiList = useMemo(() => emojiTop?.map((x) => x.emoji) ?? [], [emojiTop])
+  const emojiList = useMemo(() => emojiTop.map((x) => x.emoji), [emojiTop])
 
   const rawPalettes = useMemo(() => scores?.palettes ?? [DEFAULT_COLORS], [scores])
   const palettes = useMemo(
@@ -214,19 +214,19 @@ export function App() {
                 emojify<span className="tld">.ing</span>
               </h1>
             </header>
-            <div className="emoji-source" role="group" aria-label="emoji source">
-              {['model', 'cldr'].map((src) => (
+            <div className="emoji-source" role="group" aria-label="emoji ranking mode">
+              {EMOJI_MODES.map((mode) => (
                 <button
-                  key={src}
+                  key={mode}
                   type="button"
-                  className={emojiSource === src ? 'active' : undefined}
-                  aria-pressed={emojiSource === src}
+                  className={emojiMode === mode ? 'active' : undefined}
+                  aria-pressed={emojiMode === mode}
                   onClick={() => {
-                    setEmojiSource(src)
+                    setEmojiMode(mode)
                     setOverride((o) => ({ ...o, emoji: null }))
                   }}
                 >
-                  {src === 'model' ? 'model' : 'keywords'}
+                  {mode}
                 </button>
               ))}
             </div>
@@ -256,7 +256,7 @@ export function App() {
           </div>
         </div>
         <EmojiList
-          items={emojiTop}
+          items={scores ? emojiTop : null}
           active={shownEmoji}
           slots={emojiSlots}
           onPick={(e) => setOverride((o) => ({ ...o, emoji: e }))}
