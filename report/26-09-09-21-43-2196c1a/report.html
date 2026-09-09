@@ -1,0 +1,62 @@
+<!doctype html><meta charset="utf-8"><title>emojic report — 26-09-09-21-43</title><style>
+:root{--ink:#1b1f24;--dim:#656b73;--line:#e2e5e9;--panel:#f5f6f8;--accent:#4b32d6;
+--good-bg:#e6f6ec;--good-bd:#b2dec1;--good-fg:#157a3f;--warn-bg:#fdf2e2;
+--warn-bd:#efd4a2;--warn-fg:#a25c07}
+*{box-sizing:border-box}
+body{font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+color:var(--ink);margin:0;background:#fff}
+.wrap{max-width:920px;margin:0 auto;padding:44px 30px 130px}
+h1{font-size:28px;margin:0 0 4px}
+h2{font-size:24px;margin:64px 0 6px;padding-bottom:8px;border-bottom:2px solid var(--ink)}
+h3{font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--dim);
+margin:34px 0 12px}
+.sub{color:var(--dim);font-size:15px}
+.note{color:var(--dim);font-size:14.5px;margin:8px 0 0}
+code{background:var(--panel);padding:1px 6px;border-radius:4px;font-size:15px}
+.banner{border-radius:10px;padding:13px 17px;margin:20px 0 0;font-size:15.5px;
+background:var(--good-bg);border:1px solid var(--good-bd)}
+.banner.amber{background:var(--warn-bg);border-color:var(--warn-bd)}
+.banner ul{margin:6px 0 0;padding-left:20px}
+.counts{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:18px 0}
+.counts.n2{grid-template-columns:repeat(2,1fr)}
+.count{border:1px solid var(--line);border-radius:12px;padding:20px 22px}
+.count .v{font-size:38px;font-weight:650;font-variant-numeric:tabular-nums}
+.count .k{font-size:14px;color:var(--dim);margin-top:3px}
+.chart{display:flex;align-items:flex-end;gap:5px;height:210px;
+border-bottom:2px solid var(--ink);margin:26px 0 0}
+.chart .bar{flex:1;background:var(--accent);border-radius:3px 3px 0 0;
+position:relative;min-height:2px}
+.chart .bar .num{position:absolute;bottom:100%;left:-4px;right:-4px;text-align:center;
+font-size:11px;color:var(--dim);margin-bottom:3px;font-variant-numeric:tabular-nums}
+.chart .bar .lbl{position:absolute;top:100%;left:50%;transform:translateX(-50%);
+margin-top:8px;font-size:15px;white-space:nowrap}
+.chart.rot{margin-bottom:62px}
+.chart.rot .bar .lbl{left:auto;right:50%;transform:rotate(-40deg);
+transform-origin:top right;font-size:12.5px;margin-top:9px}
+.chart-cap{font-size:14px;color:var(--dim);margin:10px 0 0}
+.linechart{display:block;width:100%;height:auto;margin:20px 0 0}
+.linechart .gline{stroke:var(--line);stroke-width:1}
+.linechart .gtext{font-size:11px;fill:var(--dim)}
+.linechart .lline{fill:none;stroke:var(--accent);stroke-width:2.5}
+.linechart .lline2{fill:none;stroke:#e07b00;stroke-width:2.5}
+.linechart .lline3{fill:none;stroke:#0a9c8b;stroke-width:2.5}
+.linechart .bline{fill:none;stroke:var(--dim);stroke-width:2;stroke-dasharray:5 4}
+.linechart .btext{font-size:11px;fill:var(--dim);font-variant-numeric:tabular-nums}
+.linechart .dot{fill:var(--accent)}
+.linechart .vtext{font-size:11px;fill:var(--dim);font-variant-numeric:tabular-nums}
+.linechart .xtext{font-size:12px;fill:var(--ink)}
+table{border-collapse:collapse;width:100%;margin:16px 0;font-size:16px}
+th,td{border-bottom:1px solid var(--line);padding:10px 12px;text-align:left}
+th{font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:.03em}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+.cards-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:18px 0 0}
+.mini{aspect-ratio:1/1;border-radius:12px;padding:12px 10px;display:flex;
+flex-direction:column;justify-content:center;align-items:center;text-align:center;
+overflow:hidden}
+.mini .em{font-size:24px;line-height:1}
+.mini .tx{font-size:12px;font-weight:600;margin-top:6px;overflow-wrap:anywhere;
+line-height:1.3}
+.mini .st{font-size:9px;letter-spacing:.06em;text-transform:uppercase;margin-top:6px;
+opacity:.75}
+</style><div class="wrap"><h1>emojic model report</h1><div class="sub">26-09-09-21-43 · model <code>2196c1a</code> · train.jsonl <code>3984de23</code> · report code <code>e694504</code></div><div class="banner amber"><strong>Check provenance.</strong><ul><li>model trained on train.jsonl 24ef6617dffe but current is 3984de23dd39 - retrain before trusting Emojis</li><li>pt/emoji.pt could not load: Error(s) in loading state_dict for EmojiHead:</li></ul></div><h2>Data</h2><div class="counts"><div class="count"><div class="v">226,119</div><div class="k">records · data.jsonl</div></div><div class="count"><div class="v">145,654</div><div class="k">records · train.jsonl</div></div><div class="count"><div class="v">2,000</div><div class="k">records · eval.jsonl</div></div></div><h3>Text length distribution — train.jsonl (normalized, longest first)</h3><div class="chart rot"><div class="bar" style="height:0.11%"><span class="lbl">45</span></div><div class="bar" style="height:0.14%"><span class="lbl">44</span></div><div class="bar" style="height:0.32%"><span class="lbl">43</span></div><div class="bar" style="height:12.25%"><span class="lbl">42</span></div><div class="bar" style="height:15.13%"><span class="lbl">41</span></div><div class="bar" style="height:19.47%"><span class="lbl">40</span></div><div class="bar" style="height:24.48%"><span class="lbl">39</span></div><div class="bar" style="height:29.86%"><span class="lbl">38</span></div><div class="bar" style="height:37.19%"><span class="lbl">37</span></div><div class="bar" style="height:43.18%"><span class="lbl">36</span></div><div class="bar" style="height:53.91%"><span class="lbl">35</span></div><div class="bar" style="height:63.40%"><span class="lbl">34</span></div><div class="bar" style="height:75.18%"><span class="lbl">33</span></div><div class="bar" style="height:85.02%"><span class="lbl">32</span></div><div class="bar" style="height:94.35%"><span class="lbl">31</span></div><div class="bar" style="height:100.00%"><span class="lbl">30</span></div><div class="bar" style="height:99.97%"><span class="lbl">29</span></div><div class="bar" style="height:94.33%"><span class="lbl">28</span></div><div class="bar" style="height:86.90%"><span class="lbl">27</span></div><div class="bar" style="height:76.11%"><span class="lbl">26</span></div><div class="bar" style="height:64.61%"><span class="lbl">25</span></div><div class="bar" style="height:51.41%"><span class="lbl">24</span></div><div class="bar" style="height:40.81%"><span class="lbl">23</span></div><div class="bar" style="height:31.11%"><span class="lbl">22</span></div><div class="bar" style="height:22.76%"><span class="lbl">21</span></div><div class="bar" style="height:16.58%"><span class="lbl">20</span></div><div class="bar" style="height:11.93%"><span class="lbl">19</span></div><div class="bar" style="height:8.27%"><span class="lbl">18</span></div><div class="bar" style="height:5.70%"><span class="lbl">17</span></div><div class="bar" style="height:3.95%"><span class="lbl">16</span></div><div class="bar" style="height:2.50%"><span class="lbl">15</span></div><div class="bar" style="height:2.11%"><span class="lbl">14</span></div><div class="bar" style="height:2.08%"><span class="lbl">13</span></div><div class="bar" style="height:1.86%"><span class="lbl">12</span></div><div class="bar" style="height:2.02%"><span class="lbl">11</span></div><div class="bar" style="height:2.42%"><span class="lbl">10</span></div><div class="bar" style="height:3.10%"><span class="lbl">9</span></div><div class="bar" style="height:3.85%"><span class="lbl">8</span></div><div class="bar" style="height:4.98%"><span class="lbl">7</span></div><div class="bar" style="height:5.33%"><span class="lbl">6</span></div><div class="bar" style="height:5.42%"><span class="lbl">5</span></div><div class="bar" style="height:4.97%"><span class="lbl">4</span></div><div class="bar" style="height:2.12%"><span class="lbl">3</span></div><div class="bar" style="height:0.39%"><span class="lbl">2</span></div><div class="bar" style="height:0.05%"><span class="lbl">1</span></div></div><h2>Labels</h2><div class="counts n2"><div class="count"><div class="v">21</div><div class="k">styles</div></div><div class="count"><div class="v">957</div><div class="k">emojis</div></div></div><h2>Model — Emojis</h2><p class="note">enc.pt / emoji.pt not available.</p><h2>CLDR</h2><p class="note">enc.pt / emoji.pt not available.</p><h2>Cards</h2><p class="note">enc.pt / style.pt / emoji.pt / gen.pt not all available.</p></div>
