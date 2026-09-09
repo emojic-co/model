@@ -1,3 +1,52 @@
+from model.runmeta import load_pt, require_clean_tree, save_pt
+from model.model import (
+    ColorCritic,
+    ColorGen,
+    EmojiHead,
+    StyleHead,
+    TextEncoder,
+)
+from model.export_onnx import export
+from model.data import (
+    eval_data_loader,
+    train_data_loader,
+    train_ds,
+)
+from model.config import (
+    CONFIG_NAME,
+    EARLY_STOP_PATIENCE,
+    ENERGY_Z_SAMPLES,
+    EPOCHS_GAN,
+    EPOCHS_TASK,
+    GAN_BATCH_SIZE,
+    GAN_CRITIC_LR,
+    GAN_GEN_LR,
+    GAN_GEN_MARGIN,
+    GRAD_CLIP_CRITIC,
+    GRAD_CLIP_GEN,
+    INFONCE_TEMP,
+    LR,
+    SEED,
+    TASK_BATCH_SIZE,
+    TEXT_EMBED_SIZE,
+    VAL_CHECK_INTERVAL,
+)
+from model.color import rgb_to_oklab
+from files import (
+    CRITIC_PT,
+    DATA_JSONL,
+    EMOJI_PT,
+    ENC_PT,
+    ENERGY_KEYWORDS_TXT,
+    EVAL_JSONL,
+    KEYWORDS_JSON,
+    LABELS_JSON,
+    MODEL_DIR,
+    PT_DIR,
+    STYLE_PT,
+    TOOLS_DIR,
+    TRAIN_JSONL,
+)
 import hashlib
 import os
 import shutil
@@ -23,56 +72,6 @@ from torch import nn, optim
 from torch.nn.functional import binary_cross_entropy_with_logits, normalize
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from files import (
-    CRITIC_PT,
-    DATA_JSONL,
-    EMOJI_PT,
-    ENC_PT,
-    ENERGY_KEYWORDS_TXT,
-    EVAL_JSONL,
-    KEYWORDS_JSON,
-    LABELS_JSON,
-    MODEL_DIR,
-    PT_DIR,
-    STYLE_PT,
-    TOOLS_DIR,
-    TRAIN_JSONL,
-)
-from model.color import rgb_to_oklab
-from model.config import (
-    CONFIG_NAME,
-    EARLY_STOP_PATIENCE,
-    ENERGY_Z_SAMPLES,
-    EPOCHS_GAN,
-    EPOCHS_TASK,
-    GAN_BATCH_SIZE,
-    GAN_CRITIC_LR,
-    GAN_GEN_LR,
-    GAN_GEN_MARGIN,
-    GRAD_CLIP_CRITIC,
-    GRAD_CLIP_GEN,
-    INFONCE_TEMP,
-    LR,
-    SEED,
-    TASK_BATCH_SIZE,
-    TEXT_EMBED_SIZE,
-    VAL_CHECK_INTERVAL,
-)
-from model.data import (
-    eval_data_loader,
-    train_data_loader,
-    train_ds,
-)
-from model.export_onnx import export
-from model.model import (
-    ColorCritic,
-    ColorGen,
-    EmojiHead,
-    StyleHead,
-    TextEncoder,
-)
-from model.runmeta import load_pt, require_clean_tree, save_pt
 
 
 def lse_infonce(
@@ -195,7 +194,8 @@ class LitEncoder(pl.LightningModule):
         self._trn_rr: list[torch.Tensor] = []
 
     def _log(self, name, val, bs):
-        self.log(name, val, on_step=False, on_epoch=True, prog_bar=True, batch_size=bs)
+        self.log(name, val, on_step=False, on_epoch=True,
+                 prog_bar=True, batch_size=bs)
 
     def _step(self, batch, split):
         text, emoji, style, colors = batch
@@ -463,7 +463,8 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
         enable_progress_bar=not no_bar,
         callbacks=[
             ckpt,
-            EarlyStopping(monitor=monitor, mode="max", patience=EARLY_STOP_PATIENCE),
+            EarlyStopping(monitor=monitor, mode="max",
+                          patience=EARLY_STOP_PATIENCE),
             *bar_cbs,
             ModelSummary(),
         ],
@@ -478,7 +479,8 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
     save_pt(mod.enc.state_dict(), str(out_dir / "enc.pt"), stage="enc")
     for h in ALL_HEADS:
         if h in heads:
-            save_pt(getattr(mod, h).state_dict(), str(out_dir / f"{h}.pt"), stage="enc")
+            save_pt(getattr(mod, h).state_dict(), str(
+                out_dir / f"{h}.pt"), stage="enc")
 
     return mod
 
@@ -573,7 +575,7 @@ def _run_local(
 
 CPU = 16
 MEMORY_MIB = 16384
-TIMEOUT_S = 60 * 120
+TIMEOUT_S = 60 * 180
 REPO = "/repo"
 VENV_PY = sys.executable
 TB_PORT = 6006
