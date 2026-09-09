@@ -82,8 +82,8 @@ gan_str = " ".join([
 
 # TRAINING
 SEED = 42
-TASK_BATCH_SIZE = 256
-GAN_BATCH_SIZE = 512
+TASK_BATCH_SIZE = int(os.environ.get("EMOJIC_TASK_BATCH_SIZE", "256"))
+GAN_BATCH_SIZE = int(os.environ.get("EMOJIC_GAN_BATCH_SIZE", "512"))
 RELU_SLOPE = 0.1
 LR = 0.01
 GRAD_CLIP_GEN = 1.0

@@ -9,7 +9,6 @@ dependencies = [
     "numpy>=2.4.6",
     "pyyaml>=6.0.3",
     "tensorboard>=2.21.0",
-    'torch',
     "tqdm>=4.70.0",
     "typer>=0.27.2",
 ]
@@ -27,13 +26,25 @@ build-backend = "hatchling.build"
 packages = ["model", "tools"]
 include = ["files.py"]
 
+[tool.uv]
+conflicts = [[{ group = "cpu" }, { group = "gpu" }]]
+default-groups = ["dev", "cpu"]
+
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
 [tool.uv.sources]
-torch = [{ index = "pytorch-cpu" }]
+torch = [
+    { index = "pytorch-cpu", group = "cpu" },
+    { index = "pytorch-cu126", group = "gpu" },
+]
 
 [dependency-groups]
 dev = [
@@ -42,6 +53,8 @@ dev = [
     "onnxscript>=0.7.1",
     "ruff>=0.16.4",
 ]
+cpu = ["torch==2.13.0"]
+gpu = ["torch==2.13.0"]
 
 [tool.ruff]
 target-version = "py313"

@@ -1,4 +1,5 @@
 import json
+import os
 import re
 from dataclasses import dataclass
 
@@ -182,6 +183,18 @@ def train_ds():
     return EmojiDataset(list(read(TRAIN_PATH)))
 
 
+PIN_MEMORY = torch.cuda.is_available()
+DATA_WORKERS = int(os.environ.get("EMOJIC_DATA_WORKERS", "0"))
+
+
+def _loader_kwargs() -> dict:
+    kw: dict = {"num_workers": DATA_WORKERS, "pin_memory": PIN_MEMORY}
+    if DATA_WORKERS > 0:
+        kw["persistent_workers"] = True
+        kw["prefetch_factor"] = 4
+    return kw
+
+
 def train_data_loader(
     *, data_set: EmojiDataset,
         batch_size: int):
@@ -191,7 +204,7 @@ def train_data_loader(
         batch_size=batch_size,
         shuffle=True,
         drop_last=True,
-        num_workers=0,
+        **_loader_kwargs(),
     )
 
 
@@ -201,5 +214,5 @@ def eval_data_loader():
         batch_size=2000,
         shuffle=False,
         drop_last=False,
-        num_workers=0,
+        **_loader_kwargs(),
     )

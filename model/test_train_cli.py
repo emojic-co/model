@@ -36,7 +36,7 @@ def test_validate_heads_only_with_enc():
     for stage in (None, T.Stage.gan):
         raised = False
         try:
-            T._validate(stage, True, "emoji", Path("pt"), Path("pt"))
+            T._validate(stage, True, "emoji", Path("pt"), Path("pt"), "")
         except typer.BadParameter:
             raised = True
         assert raised
@@ -45,16 +45,26 @@ def test_validate_heads_only_with_enc():
 def test_validate_nondefault_folder_needs_local():
     raised = False
     try:
-        T._validate(None, False, None, Path("other"), Path("pt"))
+        T._validate(None, False, None, Path("other"), Path("pt"), "")
     except typer.BadParameter:
         raised = True
     assert raised
-    assert T._validate(None, True, None, Path("other"), Path("pt")) is None
-    assert T._validate(T.Stage.enc, True, None, Path("pt"), Path("pt")) == (
+    assert T._validate(None, True, None, Path("other"), Path("pt"), "") is None
+    assert T._validate(T.Stage.enc, True, None, Path("pt"), Path("pt"), "") == (
         "style",
         "emoji",
         "critic",
     )
+
+
+def test_validate_gpu_rejects_local():
+    raised = False
+    try:
+        T._validate(None, True, None, Path("pt"), Path("pt"), "T4")
+    except typer.BadParameter:
+        raised = True
+    assert raised
+    assert T._validate(None, False, None, Path("pt"), Path("pt"), "T4") is None
 
 
 def test_roc_auc_perfect_and_reversed():
@@ -141,6 +151,7 @@ def main() -> None:
     test_parse_heads_rejects_unknown()
     test_validate_heads_only_with_enc()
     test_validate_nondefault_folder_needs_local()
+    test_validate_gpu_rejects_local()
     test_roc_auc_perfect_and_reversed()
     test_roc_auc_chance_and_empty()
     test_litencoder_builds_only_selected_heads()

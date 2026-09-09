@@ -74,6 +74,9 @@ from model.model import (
 )
 from model.runmeta import load_pt, require_clean_tree, save_pt
 
+_CUDA = torch.cuda.is_available()
+_DETERMINISTIC: bool | str = "warn" if _CUDA else True
+
 
 def lse_infonce(
     logits: torch.Tensor,
@@ -163,12 +166,17 @@ def _validate(
     heads: str | None,
     pt: Path,
     out: Path,
+    gpu: str,
 ) -> tuple[str, ...] | None:
     if heads is not None and stage != Stage.enc:
         raise typer.BadParameter("--heads is only valid with the 'enc' stage")
     if not local and (pt != _DEFAULT_PT or out != _DEFAULT_PT):
         raise typer.BadParameter(
             "--pt / -o must be the default (pt/) unless --local is set"
+        )
+    if gpu and local:
+        raise typer.BadParameter(
+            "--gpu picks a Modal GPU and can't be combined with --local"
         )
     return _parse_heads(heads) if stage == Stage.enc else None
 
@@ -458,7 +466,7 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
         logger=TensorBoardLogger(
             "runs", name=CONFIG_NAME, version="enc", default_hp_metric=False
         ),
-        deterministic=True,
+        deterministic=_DETERMINISTIC,
         max_epochs=EPOCHS_TASK,
         val_check_interval=min(VAL_CHECK_INTERVAL, len(dl)),
         enable_progress_bar=not no_bar,
@@ -502,7 +510,7 @@ def _train_gan(
         logger=TensorBoardLogger(
             "runs", name=CONFIG_NAME, version="gan", default_hp_metric=False
         ),
-        deterministic=True,
+        deterministic=_DETERMINISTIC,
         max_epochs=EPOCHS_GAN,
         enable_progress_bar=not no_bar,
         callbacks=[
@@ -542,7 +550,9 @@ def _run_local(
 ) -> None:
     require_clean_tree()
     pl.seed_everything(SEED, workers=True)
-    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.benchmark = _CUDA
+    if _CUDA:
+        torch.set_float32_matmul_precision("high")
     skip_report = os.environ.get("EMOJIC_SKIP_REPORT") == "1"
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -575,6 +585,9 @@ def _run_local(
 
 
 CPU = 16
+GPU_CPU = 8
+GPU_TASK_BATCH_SIZE = 512
+GPU_GAN_BATCH_SIZE = 1024
 MEMORY_MIB = 16384
 TIMEOUT_S = 60 * 180
 REPO = "/repo"
@@ -611,7 +624,8 @@ modal_image = modal.Image.debian_slim(python_version="3.13").pip_install("uv")
 for _name in DEP_FILES:
     modal_image = modal_image.add_local_file(_name, f"{REPO}/{_name}", copy=True)
 modal_image = modal_image.run_commands(
-    f"cd {REPO} && UV_PROJECT_ENVIRONMENT=/usr/local uv sync --frozen"
+    f"cd {REPO} && UV_PROJECT_ENVIRONMENT=/usr/local "
+    "uv sync --frozen --no-default-groups --group dev --group gpu"
 )
 for _name in CODE_FILES:
     modal_image = modal_image.add_local_file(_name, f"{REPO}/{_name}", copy=True)
@@ -663,6 +677,7 @@ def train_remote(
     threads: int,
     git_sha: str,
     run_time: str,
+    gpu: str = "",
     enc_bytes: bytes | None = None,
     style_bytes: bytes | None = None,
     emoji_bytes: bytes | None = None,
@@ -672,6 +687,11 @@ def train_remote(
     env["EMOJIC_GIT_SHA"] = git_sha
     env["EMOJIC_RUN_TIME"] = run_time
     env["EMOJIC_DISPATCH_CHECKED"] = "1"
+    if gpu:
+        env["EMOJIC_TASK_BATCH_SIZE"] = str(GPU_TASK_BATCH_SIZE)
+        env["EMOJIC_GAN_BATCH_SIZE"] = str(GPU_GAN_BATCH_SIZE)
+        env["EMOJIC_DATA_WORKERS"] = "4"
+        env["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
 
     uploads = {
         ENC_PT: enc_bytes,
@@ -792,7 +812,9 @@ def _retrieve_and_cleanup() -> bool:
         shutil.rmtree(staging, ignore_errors=True)
 
 
-def _run_remote(stage: str, heads: str, git_sha: str, run_time: str) -> dict[str, int]:
+def _run_remote(
+    stage: str, heads: str, git_sha: str, run_time: str, gpu: str
+) -> dict[str, int]:
     pt_bytes: dict[str, bytes | None] = {
         "enc_bytes": None,
         "style_bytes": None,
@@ -813,27 +835,35 @@ def _run_remote(stage: str, heads: str, git_sha: str, run_time: str) -> dict[str
             "critic_bytes": Path(CRITIC_PT).read_bytes(),
         }
 
-    return train_remote.remote(
+    threads = GPU_CPU if gpu else CPU
+    fn = train_remote
+    if gpu:
+        fn = train_remote.with_options(
+            gpu=gpu, cpu=GPU_CPU, memory=MEMORY_MIB, timeout=TIMEOUT_S
+        )
+    return fn.remote(
         stage=stage,
         heads=heads,
-        threads=CPU,
+        threads=threads,
         git_sha=git_sha,
         run_time=run_time,
+        gpu=gpu,
         **pt_bytes,
     )
 
 
-def _dispatch(stage: Stage | None, heads_csv: str) -> None:
+def _dispatch(stage: Stage | None, heads_csv: str, gpu: str) -> None:
     require_clean_tree()
     git_sha = subprocess.run(
         ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True
     ).stdout.strip()
     run_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     stage_str = stage.value if stage else ""
-    print(f"Training {stage_str or 'full pipeline'} on Modal...", flush=True)
+    where = f"Modal {gpu} GPU" if gpu else "Modal"
+    print(f"Training {stage_str or 'full pipeline'} on {where}...", flush=True)
     try:
         with modal.enable_output(), modal_app.run():
-            print(_run_remote(stage_str, heads_csv, git_sha, run_time))
+            print(_run_remote(stage_str, heads_csv, git_sha, run_time, gpu))
     finally:
         landed = _retrieve_and_cleanup()
     if landed:
@@ -871,6 +901,12 @@ def cli(
         "--output",
         help="Folder to write .pt to (default pt/). Non-default skips the web export.",
     ),
+    gpu: str = typer.Option(
+        "",
+        "--gpu",
+        help="Modal GPU type (e.g. T4, L4, A10G); empty runs a CPU box. "
+        "Not valid with --local.",
+    ),
 ) -> None:
     """Train the emojic model.
 
@@ -883,19 +919,21 @@ def cli(
                emoji.pt in --pt. Writes gen.pt, then export + report.
 
     Location
-      Runs on Modal by default; --local runs here. --pt / -o may differ from
-      pt/ only with --local. A dirty git tree always aborts.
+      Runs on Modal by default; --local runs here. --gpu <type> runs the
+      Modal job on that GPU (larger batches, pinned-memory loaders); without
+      it the Modal box is CPU-only. --pt / -o may differ from pt/ only with
+      --local. A dirty git tree always aborts.
 
     Heads (stage 1 eval / checkpoint monitor)
       emoji+critic -> F1/val (harmonic mean of MRR/e/val and auc/critic/val),
       else emoji -> MRR/e/val, style -> MRR/s/val, critic -> auc/critic/val;
       the first match in that order is the checkpoint + early-stop metric.
     """
-    resolved = _validate(stage, local, heads, pt, out)
+    resolved = _validate(stage, local, heads, pt, out, gpu)
     if local:
         _run_local(stage, resolved, pt, out)
     else:
-        _dispatch(stage, heads or "")
+        _dispatch(stage, heads or "", gpu)
 
 
 if __name__ == "__main__":
