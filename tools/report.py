@@ -17,6 +17,7 @@ from torch.nn.functional import normalize as _l2norm
 from files import (
     CLDR_BASELINE_JSON,
     CLDR_JSONL,
+    COLORS_JSONL,
     DATA_JSONL,
     EMOJI_EMBED_PT,
     FLEX_JSON,
@@ -322,7 +323,7 @@ def _section_cldr(enc, head):
 def _gold_rows():
     rows = [
         r
-        for r in _rows(EVAL_PATH)
+        for r in _rows(COLORS_JSONL)
         if isinstance(r.get("bg"), list) and len(r["bg"]) == 2 and r.get("fg")
     ]
     if not rows:
@@ -330,7 +331,10 @@ def _gold_rows():
     rng = random.Random(SEED)
     out = []
     for color in CARD_COLORS:
-        pool = [r for r in rows if r.get("color") == color]
+        pool = sorted(
+            (r for r in rows if r.get("color") == color),
+            key=lambda r: norm_text(r["text"]),
+        )
         for r in rng.sample(pool, min(GOLD_PER_COLOR, len(pool))):
             out.append({**r, "color": color})
     return out
@@ -807,7 +811,8 @@ def _cards_html(d) -> str:
     if not d:
         return (
             "<h2>Cards</h2>"
-            '<p class="note">enc.pt / style.pt / emoji.pt / gen.pt not all available.</p>'
+            '<p class="note">Unavailable — needs enc.pt / style.pt / emoji.pt / '
+            "emoji_embed.pt / gen.pt and a non-empty data/colors.jsonl.</p>"
         )
     out = [
         "<h2>Cards</h2>",

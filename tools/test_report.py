@@ -19,7 +19,7 @@ def test_gold_rows_derived():
 
     rows = _gold_rows()
     if not rows:
-        print("skip test_gold_rows_derived (no colour-tagged eval rows)")
+        print("skip test_gold_rows_derived (no data/colors.jsonl rows)")
         return
     assert len(rows) <= len(_COLORS) * GOLD_PER_COLOR, len(rows)
     counts = Counter(r["color"] for r in rows)
