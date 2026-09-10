@@ -136,17 +136,15 @@ def test_fusion_step_detaches_trunk_and_trains_heads():
     loss = m._step((text, emoji, style, colors, kw), "train")
     loss.backward()
 
-    for name in ("gate", "gain", "mix"):
-        grads = [p.grad for p in m.fusion[name].parameters()]
-        assert grads and all(g is not None for g in grads), name
-        assert any(g.abs().sum() > 0 for g in grads), name
-        assert f"loss/fusion_{name}/train" in logged
+    grads = [p.grad for p in m.fusion.parameters()]
+    assert grads and all(g is not None for g in grads)
+    assert any(g.abs().sum() > 0 for g in grads)
+    assert "loss/fusion/train" in logged
     assert m.emoji.net[1].weight.grad is not None
     assert m.emoji_embed.embed.weight.grad is not None
     assert next(m.enc.parameters()).grad is not None
     assert "MRR/fusion/train" in logged
-    assert "gate/a/train" in logged
-    assert "mix/g/train" in logged
+    assert "fusion/w_search_mean/train" in logged
 
 
 def test_colorcritic_forward_shape():

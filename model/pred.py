@@ -14,7 +14,7 @@ from model.model import (
     ColorGen,
     EmojiEmbedding,
     EmojiHead,
-    FusionHeadGate,
+    FusionHead,
     StyleHead,
     TextEncoder,
 )
@@ -80,11 +80,11 @@ def predict(
     emoji_embed = _load(EmojiEmbedding(), pt_dir / "emoji_embed.pt")
     emoji = _load(EmojiHead(), pt_dir / "emoji.pt")
 
-    gate = None
-    if (pt_dir / "fusion_gate.pt").exists():
-        gate = _load(FusionHeadGate(), pt_dir / "fusion_gate.pt")
+    fusion = None
+    if (pt_dir / "fusion.pt").exists():
+        fusion = _load(FusionHead(), pt_dir / "fusion.pt")
     else:
-        print("fusion_gate.pt missing -- skipping fusion_top_labels", file=sys.stderr)
+        print("fusion.pt missing -- skipping fusion_top_labels", file=sys.stderr)
 
     records = []
     with torch.no_grad():
@@ -108,9 +108,9 @@ def predict(
                 "bg": hexes[:2],
                 "fg": hexes[2],
             }
-            if gate is not None and row["kw"]:
+            if fusion is not None and row["kw"]:
                 kw_vec = _row_kw(row).unsqueeze(0)
-                fused = gate(emoji_logits.detach(), kw_vec)
+                fused = fusion(emoji_logits.detach(), kw_vec)
                 record["fusion_top_labels"] = top_labels(
                     fused, EMOJIS, min_k=1, max_k=1
                 )

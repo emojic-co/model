@@ -9,15 +9,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import torch
 import typer
 from torch import nn
-from torch.nn.functional import normalize, softplus
+from torch.nn.functional import normalize
 
 from files import (
     EMOJI_EMBED_PT,
     EMOJI_PT,
     ENC_PT,
-    FUSION_GAIN_PT,
-    FUSION_GATE_PT,
-    FUSION_MIX_PT,
+    FUSION_PT,
     GEN_PT,
     LABELS_JSON,
     STYLE_PT,
@@ -29,9 +27,7 @@ from model.model import (
     ColorGen,
     EmojiEmbedding,
     EmojiHead,
-    FusionHeadGain,
-    FusionHeadGate,
-    FusionHeadMix,
+    FusionHead,
     StyleHead,
     TextEncoder,
 )
@@ -40,18 +36,6 @@ from model.runmeta import load_pt
 WEB_PUBLIC = Path(WEB_PUBLIC_DIR)
 ONNX_OPSET = 18
 COLOR_SAMPLES = 5
-
-FUSION_EXPORT_VARIANT = "gain"
-_FUSION_CLS = {
-    "gate": FusionHeadGate,
-    "gain": FusionHeadGain,
-    "mix": FusionHeadMix,
-}
-_FUSION_PT = {
-    "gate": FUSION_GATE_PT,
-    "gain": FUSION_GAIN_PT,
-    "mix": FUSION_MIX_PT,
-}
 
 CONST_Z = normalize(
     torch.randn(
@@ -131,18 +115,12 @@ def export_onnx(wrapper: nn.Module, dst: Path) -> None:
         )
 
 
-def _fusion_meta(variant: str, mod: nn.Module) -> dict:
-    if variant == "gate":
-        return {
-            "variant": "gate",
-            "bn_mean": mod.bn.running_mean.tolist(),
-            "bn_var": mod.bn.running_var.tolist(),
-            "w": mod.lin.weight.detach().flatten().tolist(),
-            "b": float(mod.lin.bias.detach()),
-        }
-    if variant == "gain":
-        return {"variant": "gain", "beta": float(softplus(mod.raw_beta.detach()))}
-    return {"variant": "mix", "g": float(torch.sigmoid(mod.raw_g.detach()))}
+def _fusion_meta(mod: nn.Module) -> dict:
+    return {
+        "w_dl": mod.w_dl.detach().tolist(),
+        "w_search": mod.w_search.detach().tolist(),
+        "b": mod.b.detach().tolist(),
+    }
 
 
 def export_web(wrapper: nn.Module) -> None:
@@ -154,7 +132,7 @@ def export_web(wrapper: nn.Module) -> None:
         "max_text_len": MAX_TEXT_LEN,
         "emojis": EMOJIS,
         "styles": STYLES,
-        "fusion": _fusion_meta(FUSION_EXPORT_VARIANT, wrapper.fusion_head),
+        "fusion": _fusion_meta(wrapper.fusion_head),
         "exported_at": datetime.now(UTC).isoformat(timespec="minutes"),
         "model_meta": getattr(wrapper.enc, "_pt_meta", None),
     }
@@ -172,9 +150,7 @@ def export() -> None:
     emoji_embed = _load(EmojiEmbedding(), EMOJI_EMBED_PT)
     emoji = _load(EmojiHead(), EMOJI_PT)
     gen = _load(ColorGen(), GEN_PT)
-    fusion_head = _load(
-        _FUSION_CLS[FUSION_EXPORT_VARIANT](), _FUSION_PT[FUSION_EXPORT_VARIANT]
-    )
+    fusion_head = _load(FusionHead(), FUSION_PT)
 
     if style.embed.weight.shape[0] != len(STYLES):
         raise SystemExit(
@@ -184,6 +160,11 @@ def export() -> None:
     if emoji_embed.embed.weight.shape[0] != len(EMOJIS):
         raise SystemExit(
             f"emoji_embed.pt has {emoji_embed.embed.weight.shape[0]} emojis, "
+            f"{LABELS_JSON} has {len(EMOJIS)} -- retrain or restore {LABELS_JSON}"
+        )
+    if fusion_head.w_dl.shape[0] != len(EMOJIS):
+        raise SystemExit(
+            f"fusion.pt has {fusion_head.w_dl.shape[0]} emojis, "
             f"{LABELS_JSON} has {len(EMOJIS)} -- retrain or restore {LABELS_JSON}"
         )
 

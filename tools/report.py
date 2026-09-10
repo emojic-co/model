@@ -22,9 +22,7 @@ from files import (
     COLORS_JSONL,
     DATA_JSONL,
     EMOJI_EMBED_PT,
-    FUSION_GAIN_PT,
-    FUSION_GATE_PT,
-    FUSION_MIX_PT,
+    FUSION_PT,
     GOAL_DIR,
     GOALS_YML,
     GROUP_JSON,
@@ -101,33 +99,23 @@ def _emoji_embed():
 
 
 @cache
-def _fusion_heads() -> dict:
-    from model.model import FusionHeadGain, FusionHeadGate, FusionHeadMix
+def _fusion_head():
+    from model.model import FusionHead
 
-    specs = {
-        "gate": (FusionHeadGate, FUSION_GATE_PT),
-        "gain": (FusionHeadGain, FUSION_GAIN_PT),
-        "mix": (FusionHeadMix, FUSION_MIX_PT),
-    }
-    out = {}
-    for name, (cls, path) in specs.items():
-        if not Path(path).exists():
-            continue
-        mod, err = _load(cls(), path)
-        if err is None and mod is not None:
-            out[name] = mod
-    return out
+    if not Path(FUSION_PT).exists():
+        return None
+    mod, err = _load(FusionHead(), FUSION_PT)
+    return mod if err is None else None
 
 
 def _emoji_extra_acc(records, tgt, logit_m):
     kw_dense = torch.stack([_row_kw(r) for r in records])
     out = {"keywords": [_acc_at_k(kw_dense, tgt, k).mean().item() for k in EMOJI_KS]}
-    with torch.no_grad():
-        for name, head in _fusion_heads().items():
+    head = _fusion_head()
+    if head is not None:
+        with torch.no_grad():
             fused = head(logit_m.detach(), kw_dense)
-            out[f"fusion_{name}"] = [
-                _acc_at_k(fused, tgt, k).mean().item() for k in EMOJI_KS
-            ]
+        out["fusion"] = [_acc_at_k(fused, tgt, k).mean().item() for k in EMOJI_KS]
     return out
 
 
@@ -353,19 +341,13 @@ def _section_keyword(enc, head) -> dict:
     kw_dense = torch.stack([_kw_exact_dense(word) for word, _ in rows])
     out = {"exact": _rank_acc(kw_dense, id_lists, total)}
     emb = _emoji_embed()
-    heads = _fusion_heads()
-    if enc is not None and head is not None and emb is not None and heads:
+    fh = _fusion_head()
+    if enc is not None and head is not None and emb is not None and fh is not None:
         with torch.no_grad():
             texts = torch.stack([text_to_tensor(norm_text(w)) for w, _ in rows])
             logit_m = emb.score(head(enc(texts)))
-        best = None
-        for fh in heads.values():
-            with torch.no_grad():
-                fused = fh(logit_m.detach(), kw_dense)
-            cand = _rank_acc(fused, id_lists, total)
-            if best is None or cand["acc_at_k"][0] > best["acc_at_k"][0]:
-                best = cand
-        out["fusion"] = best
+            fused = fh(logit_m.detach(), kw_dense)
+        out["fusion"] = _rank_acc(fused, id_lists, total)
     return out
 
 
@@ -485,9 +467,7 @@ def _grade_dir(cur, target, direction, warn=0.9) -> str:
 def _best_emoji_acc(emoji_eval) -> tuple:
     variants = {
         "EmojiHead": emoji_eval.get("acc_at_k"),
-        "Fusion·Gate": emoji_eval.get("fusion_gate_acc_at_k"),
-        "Fusion·Gain": emoji_eval.get("fusion_gain_acc_at_k"),
-        "Fusion·Mix": emoji_eval.get("fusion_mix_acc_at_k"),
+        "Fusion": emoji_eval.get("fusion_acc_at_k"),
     }
     variants = {k: v for k, v in variants.items() if v}
     if not variants:
@@ -816,9 +796,7 @@ def _section_emoji(enc, head, eval_records):
             "n": len(rows),
             "acc_at_k": [_acc_at_k(logits, tgt, k).mean().item() for k in EMOJI_KS],
             "keywords_acc_at_k": extra.get("keywords"),
-            "fusion_gate_acc_at_k": extra.get("fusion_gate"),
-            "fusion_gain_acc_at_k": extra.get("fusion_gain"),
-            "fusion_mix_acc_at_k": extra.get("fusion_mix"),
+            "fusion_acc_at_k": extra.get("fusion"),
             "baseline": _cldr_baseline(),
         }
     return d
@@ -1407,9 +1385,7 @@ def _emoji_html(d) -> str:
         series = []
         for key, label, cls in (
             ("keywords_acc_at_k", "Keywords", "lline2"),
-            ("fusion_gate_acc_at_k", "Fusion·Gate", "lline3"),
-            ("fusion_gain_acc_at_k", "Fusion·Gain", "lline4"),
-            ("fusion_mix_acc_at_k", "Fusion·Mix", "lline5"),
+            ("fusion_acc_at_k", "Fusion", "lline3"),
         ):
             if e.get(key):
                 series.append((label, e[key], cls))
