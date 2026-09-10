@@ -149,6 +149,35 @@ def test_flex_keyword_candidates_and_section():
     assert _section_keywords_flex(None, None) == {}
 
 
+def test_keywords_flex_html():
+    from tools.report import _keywords_flex_html
+
+    empty = _keywords_flex_html({})
+    assert "Model — Keyword vocab" in empty and "not available" in empty
+
+    d = {
+        "candidates": 3,
+        "missed": 2,
+        "ranked": [
+            {
+                "kw": "zzzz",
+                "emojis": ["😀"],
+                "top5": ["🍕", "🎉", "😀", "🐶", "🚀"],
+                "rank": 42,
+            },
+            {"kw": "yyyy", "emojis": ["🎉", "🥳"], "top5": ["🍕", "🎉"], "rank": 11},
+            {"kw": "aaaa", "emojis": ["🍕"], "top5": ["🍕"], "rank": 1},
+        ],
+    }
+    h = _keywords_flex_html(d)
+    assert "<h2>Model — Keyword vocab</h2>" in h
+    assert ">3<" in h or "3 candidates" in h or "3</" in h
+    assert "<th>Keyword</th>" in h and "<th>Rank</th>" in h
+    assert ">zzzz<" in h and ">yyyy<" in h
+    assert ">aaaa<" not in h
+    assert h.index(">zzzz<") < h.index(">yyyy<")
+
+
 _app = typer.Typer(
     add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
@@ -165,6 +194,7 @@ def main() -> None:
     test_emoji_html_three_way()
     test_kw_section_keys()
     test_flex_keyword_candidates_and_section()
+    test_keywords_flex_html()
     print("ok")
 
 

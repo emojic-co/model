@@ -487,6 +487,7 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         "data",
         "labels",
         "emoji",
+        "keywords_flex",
         "cldr",
         "cards",
     }
@@ -495,7 +496,7 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
     prov = _provenance(pt)
 
     enc = emoji_head = style_head = gen = None
-    need_enc = bool({"emoji", "cldr", "cards"} & want)
+    need_enc = bool({"emoji", "cldr", "cards", "keywords_flex"} & want)
     if need_enc and enc_pt.exists():
         enc, err = _load(TextEncoder(), enc_pt)
         if err:
@@ -528,6 +529,8 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         report["labels"] = _section_labels()
     if "emoji" in want:
         report["emoji"] = _section_emoji(enc, emoji_head, eval_records)
+    if "keywords_flex" in want:
+        report["keywords_flex"] = _section_keywords_flex(enc, emoji_head)
     if "cldr" in want:
         report["cldr"] = _section_cldr(enc, emoji_head)
     if "cards" in want:
@@ -852,6 +855,31 @@ def _emoji_html(d) -> str:
     return "".join(out)
 
 
+def _keywords_flex_html(d) -> str:
+    if not d:
+        return (
+            "<h2>Model — Keyword vocab</h2>"
+            '<p class="note">enc.pt / emoji.pt / emoji_embed.pt not available.</p>'
+        )
+    head = (
+        "<h2>Model — Keyword vocab</h2>"
+        f'<p class="note">{_fnum(d["candidates"])} candidates &middot; '
+        f"{_fnum(d['missed'])} missed (rank &gt; 10) &middot; vocab = worst 1000</p>"
+    )
+    misses = [r for r in d["ranked"] if r["rank"] > 10]
+    if not misses:
+        return head + '<p class="note">no misses.</p>'
+    body = "".join(
+        f"<tr><td>{_esc(r['kw'])}</td><td>{_esc(' '.join(r['emojis']))}</td>"
+        f"<td>{_esc(' '.join(r['top5']))}</td><td>{r['rank']}</td></tr>"
+        for r in misses
+    )
+    return (
+        head + "<table><tr><th>Keyword</th><th>CLDR emojis</th>"
+        "<th>Top 5 predictions</th><th>Rank</th></tr>" + body + "</table>"
+    )
+
+
 def _cldr_html(d) -> str:
     if not d:
         return '<h2>CLDR</h2><p class="note">enc.pt / emoji.pt not available.</p>'
@@ -933,6 +961,8 @@ def _render_html(report) -> str:
         body.append(_labels_html(report["labels"]))
     if "emoji" in report:
         body.append(_emoji_html(report["emoji"]))
+    if "keywords_flex" in report:
+        body.append(_keywords_flex_html(report["keywords_flex"]))
     if "cldr" in report:
         body.append(_cldr_html(report["cldr"]))
     if "cards" in report:
