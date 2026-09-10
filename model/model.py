@@ -129,7 +129,7 @@ class FusionHead(nn.Module):
 
         self.net = nn.Linear(TEXT_EMBED_SIZE + FLEX_N, 1)
         nn.init.zeros_(self.net.weight)
-        nn.init.constant_(self.net.bias, 4.0)
+        nn.init.constant_(self.net.bias, 0.0)
 
     def forward(
         self,

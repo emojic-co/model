@@ -114,6 +114,40 @@ def test_litencoder_builds_only_selected_heads():
     assert isinstance(opt, torch.optim.Adam)
 
 
+def test_fusion_step_end_to_end_grad():
+    from model.config import MAX_TEXT_LEN
+    from model.data import EMOJIS, FLEX_N, STYLES
+    from model.model import FusionHead
+
+    assert torch.count_nonzero(FusionHead().net.bias) == 0
+
+    torch.manual_seed(0)
+    m = T.LitEncoder(heads=("style", "emoji", "critic", "fusion"))
+    logged = {}
+    m.log = lambda name, val, *a, **k: logged.__setitem__(name, val)
+
+    b = 4
+    text = torch.randint(1, 5, (b, MAX_TEXT_LEN))
+    emoji = torch.zeros(b, len(EMOJIS))
+    emoji[:, 0] = 1.0
+    style = torch.zeros(b, len(STYLES))
+    style[:, 0] = 1.0
+    colors = torch.zeros(b, 9)
+    flex_tf = torch.zeros(b, FLEX_N)
+    flex_tf[:, 0] = 1.0
+
+    loss = m._step((text, emoji, style, colors, flex_tf), "train")
+    loss.backward()
+
+    assert m.kw.net[1].weight.grad is not None
+    assert m.kw.net[1].weight.grad.abs().sum() > 0
+    assert m.emoji.net[1].weight.grad is not None
+    assert m.emoji.net[1].weight.grad.abs().sum() > 0
+    assert m.emoji_embed.embed.weight.grad is not None
+    assert next(m.enc.parameters()).grad is not None
+    assert "gate/a/train" in logged
+
+
 def test_colorcritic_forward_shape():
     from model.model import ColorCritic
 
@@ -219,6 +253,7 @@ def main() -> None:
     test_roc_auc_perfect_and_reversed()
     test_roc_auc_chance_and_empty()
     test_litencoder_builds_only_selected_heads()
+    test_fusion_step_end_to_end_grad()
     test_colorcritic_forward_shape()
     test_cli_help_ok()
     test_cli_bad_heads_aborts()

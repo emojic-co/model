@@ -240,7 +240,8 @@ class LitEncoder(pl.LightningModule):
             q_txt = self.emoji(enc)
             emoji_logits = self.emoji_embed.score(q_txt)
             loss_emoji = lse_infonce(emoji_logits, emoji, INFONCE_TEMP)
-            loss = loss + loss_emoji
+            if "fusion" not in self.heads:
+                loss = loss + loss_emoji
             self._log(f"loss/e/{split}", loss_emoji, bs)
             has_e = emoji.sum(dim=-1) > 0
             n_e = int(has_e.sum())
@@ -256,18 +257,14 @@ class LitEncoder(pl.LightningModule):
         if "fusion" in self.heads:
             q_kw = self.kw(flex_tf)
             kw_logits = self.emoji_embed.score(q_kw)
-            loss_kw = lse_infonce(kw_logits, emoji, INFONCE_TEMP)
-            loss = loss + loss_kw
-            self._log(f"loss/kw/{split}", loss_kw, bs)
 
             a = self.fusion(enc, flex_tf).unsqueeze(-1)
-            q_fused = a * q_txt.detach() + (1 - a) * q_kw.detach()
-            w = self.emoji_embed.embed.weight.detach()
-            b = self.emoji_embed.bias.detach()
-            fusion_logits = q_fused @ w.t() + b
+            q_fused = a * q_txt + (1 - a) * q_kw
+            fusion_logits = self.emoji_embed.score(q_fused)
             loss_fusion = lse_infonce(fusion_logits, emoji, INFONCE_TEMP)
             loss = loss + loss_fusion
             self._log(f"loss/fusion/{split}", loss_fusion, bs)
+            self._log(f"gate/a/{split}", a.mean(), bs)
 
             if n_e:
                 krr = mrr(kw_logits[has_e], emoji[has_e]).mean()
