@@ -1,8 +1,29 @@
-Can you add to the report a line chart showing the performance (acc@K) of an oracle model:
-    An oracle model is one that runs both the EmojiHead and the KwHead and selects the best prediction.
-    I want to compare it to the FusionHead.
-    So the report should include:
-        EmojiHead acc@K
-        KwHead acc@K
-        FusionHead acc@K
-        Oracle model acc@K
+Selecting Keywords and Training Strategy:
+    Select all keywords from data/ii.json that:
+        - are 3 - 6 chars long inclusive
+        - have at least one emoji in our dataset
+
+    1. Run a trained EmojiHead on these keywords
+    2. Order by rank descending. (rank is the first place the model predicts emoji from the keyword emoji set)
+    3. use the top 1000 keywords as the tf-vector
+
+    Training:
+        Start the backprop from the very end of the FusionHead, not from both the EmojiHead and KWHead.
+        The goal is to split the learning between the two heads and not to force each head to learn the entire space.
+
+    Tasks:
+        1. Update the report tool:
+            Add a keyword section to the report:
+                -   Make a table with all missed keywords sorted by rank descending
+                    Only include keywords with emojis in our dataset
+                    Table should include:
+                        -   Keyword
+                        -   CLDR emojis
+                        -   Top 5 predictions
+                        -   Rank (first place the model predicts emoji from the keyword emoji set)
+        
+        2. Update the regen tool:
+            regen reads the last report and uses top 1000 keywords to generate the tf-vector for the next training run.
+
+        3. Discuss the new training strategy.
+
