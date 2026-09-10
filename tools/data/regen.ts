@@ -318,13 +318,13 @@ if (import.meta.main) {
 
   const master = await readJsonl<unknown>(DATA)
   const cldr = useCldr ? await readJsonl<unknown>(CLDR) : []
-  const raw = [...master, ...cldr]
+  const raw = [...master]
   const records = collapse(raw)
   const merged = records.length
   const dupKeys = raw.length - merged
 
   if (options.matrix) {
-    printMatrix(records, useCldr)
+    printMatrix(records, false)
     process.exit(0)
   }
 
@@ -446,7 +446,9 @@ if (import.meta.main) {
   console.log("\n--- regen ---")
   console.log(`master lines read     : ${master.length}`)
   console.log(
-    `cldr lines read       : ${useCldr ? cldr.length : "skipped (--no-cldr)"}`,
+    `cldr lines             : ${
+      useCldr ? `${cldr.length} (not merged; sampled at train time)` : "skipped (--no-cldr)"
+    }`,
   )
   console.log(`distinct texts        : ${merged} (collapsed away ${dupKeys})`)
   console.log(`min-count / max-count : ${minCount} / ${maxCount}`)
