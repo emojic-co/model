@@ -1,9 +1,22 @@
-Update the upsample tool add a standalone option:
-    upsample --flags
-    This option should pick all the `flag: <country>` emojis:
-    Ask the text generator to generate a short text related to the country and the emoji flag.
-    Ask the annotator to annotate the text, steer the color pallet towards the colors of the flag.
-    Final records is {text: <generated text>, emoji: <flag emoji + annotator emojis>, fg, bg}
-    Where fg and bg should (but not enforced) be the colors of the flag.
+Discussion:
+    I'm looking for the best .js library for keyword search.
+    Our settings are:
+        emojis are documents, each document is just a list of keywords, each keyword is a single word.
+        e.g.
+        {
+            emoji: "😀",
+            keywords: ["happy", "smile", "joy"]
+        }
 
-    respect the --per (default 50) flag
+        A query is a short text, e.g. "I am happy today"
+        We have ~3000 documents (emojis) and ~5000 unique keywords, and a query is no more than 42 chars long and most of the time much shorter.
+        The requirement is to retrieve a scored list of emojis based on the query, it must be lightweight and fast.
+        
+        Under these settings, compare existing search solutions and suggest the best one.
+        For each solution report:
+            - How it works
+            - Expected performance (speed, memory usage)
+            - Expected MRR (very rough estimate)
+            - What is the integration complexity, how much additional code and steps are needed to integrate it into our existing codebase
+
+    output a detailed report to docs/search.md
