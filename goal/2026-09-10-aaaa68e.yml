@@ -5,9 +5,10 @@ meta:
     Iteration 0 — limited-vocab baseline. One linear pipeline: data.jsonl is
     sliced by `bun run regen --min-count 150 --max-count 400 --n 4000` into a
     ~400-emoji vocab, the small char-CNN (ENCODER_CHANNELS [64, 96], dilation
-    [1, 2], MAX_TEXT_LEN 32) trains emoji + fusion heads. Two gates only:
-    exact-keyword Acc@1 (CLDR probe) and full-text emoji Acc@1 (emoji.eval,
-    best fusion variant). Everything else is deferred until these are green.
+    [1, 2], MAX_TEXT_LEN 32) trains emoji + fusion heads. Two gates only: the
+    fusion model's Acc@1 on exact CLDR keywords (keyword.fusion) and full-text
+    emoji Acc@1 (emoji.eval, best fusion variant). Everything else is deferred
+    until these are green.
   deferred:
     - "emoji prediction.exact keyword.acc@5"
     - "emoji prediction.exact keyword.acc@10"

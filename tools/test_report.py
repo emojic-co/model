@@ -262,8 +262,13 @@ def test_section_status_orders_and_grades():
             "exact": {
                 "n": 1500,
                 "total": 4900,
-                "acc_at_k": [0.9 + 0.005 * i for i in range(n)],
-            }
+                "acc_at_k": [0.96 + 0.002 * i for i in range(n)],
+            },
+            "fusion": {
+                "n": 1500,
+                "total": 4900,
+                "acc_at_k": [0.7 + 0.02 * i for i in range(n)],
+            },
         },
         "cldr": {"acc_at_k": [0.42 + 0.02 * i for i in range(n)]},
         "data": {"max_text_len": 32},
@@ -281,7 +286,7 @@ def test_section_status_orders_and_grades():
     assert by_goal["Exact keyword acc@1"]["priority"] == 1
     assert (
         by_goal["Exact keyword acc@1"]["current"]
-        == report["keyword"]["exact"]["acc_at_k"][0]
+        == report["keyword"]["fusion"]["acc_at_k"][0]
     )
     assert by_goal["Full-text emoji acc@1"]["priority"] == 2
     assert (
@@ -334,7 +339,7 @@ def test_status_vocab_coverage_gate():
     hi = [0.999] * n
     report = {
         "emoji": {"eval": {"acc_at_k": hi, "fusion_gain_acc_at_k": hi}},
-        "keyword": {"exact": {"n": 1, "total": 1, "acc_at_k": hi}},
+        "keyword": {"fusion": {"n": 1, "total": 1, "acc_at_k": hi}},
         "data": {"max_text_len": 42},
         "labels": {"emojis": 1000},
         "cards": {"style_acc_at_k": hi, "per_color": {}},

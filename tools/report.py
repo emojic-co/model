@@ -529,10 +529,10 @@ def _goal_specs() -> dict:
         return lambda r: _dig(_best_emoji_acc(_dig(r, "emoji", "eval") or {})[1] or [], i)
 
     def exact_kw(i):
-        return lambda r: _dig(r, "keyword", "exact", "acc_at_k", i)
+        return lambda r: _dig(r, "keyword", "fusion", "acc_at_k", i)
 
     def fuzzy_kw(i):
-        return lambda r: _dig(r, "keyword", "fuzzy", "acc_at_k", i)
+        return lambda r: _dig(r, "keyword", "fuzzy_fusion", "acc_at_k", i)
 
     def style(i):
         return lambda r: _dig(r, "cards", "style_acc_at_k", i)
@@ -648,15 +648,21 @@ def _section_status(report) -> dict:
     vocab_g = g.get("vocabulary") or {}
 
     best_name, best = _best_emoji_acc(emoji_eval)
-    exact = keyword.get("exact") or {}
-    fuzzy = keyword.get("fuzzy") or {}
+    kw_exact = keyword.get("exact") or {}
+    kw_fusion = keyword.get("fusion") or {}
+    kw_fuzzy_fusion = keyword.get("fuzzy_fusion") or {}
     goals = []
 
-    exact_note = "non-learned kw predictor on cldr.jsonl"
-    if exact.get("n") is not None:
-        exact_note += f" ({exact['n']}/{exact['total']} in-vocab)"
+    exact_note = "fusion model on cldr.jsonl keywords (exact-matched kw vector)"
+    if kw_exact.get("acc_at_k"):
+        exact_note += f" · standalone kw-search Acc@1 {kw_exact['acc_at_k'][0]:.3f}"
     _acc_rows(
-        goals, 1, "Exact keyword", ep.get("exact keyword"), exact.get("acc_at_k"), exact_note
+        goals,
+        1,
+        "Exact keyword",
+        ep.get("exact keyword"),
+        kw_fusion.get("acc_at_k"),
+        exact_note,
     )
     _acc_rows(
         goals,
@@ -671,9 +677,9 @@ def _section_status(report) -> dict:
         3,
         "Fuzzy keyword",
         ep.get("fuzzy keyword"),
-        fuzzy.get("acc_at_k"),
-        "fuzzy kw predictor on cldr.jsonl"
-        if fuzzy.get("acc_at_k")
+        kw_fuzzy_fusion.get("acc_at_k"),
+        "fusion model on fuzzy-matched kw vector"
+        if kw_fuzzy_fusion.get("acc_at_k")
         else "unwired — needs a uFuzzy kw sidecar from regen.ts",
     )
 
