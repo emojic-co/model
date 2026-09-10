@@ -309,6 +309,84 @@ def test_status_html_colors_rows():
     assert "0.500" in h and "800" in h and "n/a" in h
 
 
+def test_section_goals_compare_shape():
+    import tools.report as rep
+    from tools.report import EMOJI_KS, _section_goals
+
+    n = len(EMOJI_KS)
+    acc = [0.6 + 0.03 * i for i in range(n)]
+    doc = {
+        "meta": {"rationale": "step 1"},
+        "goals": {
+            "keyword": {"exact": {"acc@1": 0.95}},
+            "text": {"acc@1": 0.70, "acc@5": 0.85},
+            "coverage": {"vocab": 700},
+        },
+    }
+    orig = rep._load_goals
+    rep._load_goals = lambda: ("goal/x.yml", doc)
+    try:
+        report = {
+            "emoji": {"eval": {"acc_at_k": acc, "fusion_gain_acc_at_k": acc}},
+            "labels": {"emojis": 150},
+        }
+        g = _section_goals(report)
+    finally:
+        rep._load_goals = orig
+
+    assert g["source_file"] == "goal/x.yml"
+    t1 = g["compare"]["text"]["acc@1"]
+    assert t1["target"] == 0.70 and t1["dir"] == "max"
+    assert t1["actual"] == acc[0] and t1["met"] is False
+    assert t1["delta"] == round(acc[0] - 0.70, 4)
+    assert g["compare"]["coverage"]["vocab"]["actual"] == 150
+    assert g["compare"]["coverage"]["vocab"]["met"] is False
+    ex = g["compare"]["keyword"]["exact"]["acc@1"]
+    assert ex["actual"] is None and ex["met"] is None
+    assert g["summary"]["unmeasured"] == 1
+    assert g["summary"]["unmet"] == 3
+
+
+def test_goals_html_renders():
+    from tools.report import _goals_html
+
+    goals = {
+        "source_file": "goal/2026-09-10-abc1234.yml",
+        "meta": {"rationale": "prove keyword search"},
+        "compare": {
+            "text": {
+                "acc@1": {
+                    "target": 0.7,
+                    "actual": 0.651,
+                    "met": False,
+                    "dir": "max",
+                    "delta": -0.049,
+                },
+            },
+            "keyword": {
+                "exact": {
+                    "acc@1": {
+                        "target": 0.95,
+                        "actual": None,
+                        "met": None,
+                        "dir": "max",
+                        "delta": None,
+                    },
+                },
+            },
+        },
+        "summary": {"unmet": 1, "unmeasured": 1},
+    }
+    h = _goals_html(goals)
+    assert "Goals for this iteration" in h
+    assert "2026-09-10-abc1234.yml" in h
+    assert "prove keyword search" in h
+    assert 'class="sc-red"' in h and 'class="sc-na"' in h
+    assert "text.acc@1" in h and "keyword.exact.acc@1" in h
+    assert "≥ 0.7" in h and "0.651" in h and "n/a" in h
+    assert "1 unmet" in h and "1 unmeasured" in h
+
+
 _app = typer.Typer(
     add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
@@ -330,6 +408,8 @@ def main() -> None:
     test_coverage_and_diversity_shapes()
     test_status_coverage_active_when_higher_goals_pass()
     test_status_html_colors_rows()
+    test_section_goals_compare_shape()
+    test_goals_html_renders()
     print("ok")
 
 

@@ -2,6 +2,7 @@ MODEL_DIR = "model"
 TOOLS_DIR = "tools"
 DATA_DIR = "data"
 PT_DIR = "pt"
+GOAL_DIR = "goal"
 
 DATA_JSONL = f"{DATA_DIR}/data.jsonl"
 TRAIN_JSONL = f"{DATA_DIR}/train.jsonl"

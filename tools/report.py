@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import torch
 import typer
+import yaml
 from torch.nn.functional import normalize as _l2norm
 
 from files import (
@@ -24,6 +25,7 @@ from files import (
     FUSION_GAIN_PT,
     FUSION_GATE_PT,
     FUSION_MIX_PT,
+    GOAL_DIR,
     II_JSON,
 )
 from model.color import COLOR_SHIFT, rgb_to_oklab
@@ -433,11 +435,7 @@ def _grade(cur, target, warn=0.9) -> str:
     return "red"
 
 
-def _section_status(report) -> dict:
-    emoji_eval = (report.get("emoji") or {}).get("eval") or {}
-    cldr = report.get("cldr") or {}
-    cards = report.get("cards") or {}
-
+def _best_emoji_acc(emoji_eval) -> tuple:
     variants = {
         "EmojiHead": emoji_eval.get("acc_at_k"),
         "Fusion·Gate": emoji_eval.get("fusion_gate_acc_at_k"),
@@ -445,9 +443,121 @@ def _section_status(report) -> dict:
         "Fusion·Mix": emoji_eval.get("fusion_mix_acc_at_k"),
     }
     variants = {k: v for k, v in variants.items() if v}
-    best_name = best = None
-    if variants:
-        best_name, best = max(variants.items(), key=lambda kv: kv[1][0])
+    if not variants:
+        return None, None
+    return max(variants.items(), key=lambda kv: kv[1][0])
+
+
+def _dig(node, *keys):
+    for k in keys:
+        if isinstance(node, dict):
+            node = node.get(k)
+        elif isinstance(node, (list, tuple)) and isinstance(k, int):
+            node = node[k] if -len(node) <= k < len(node) else None
+        else:
+            return None
+    return node
+
+
+def _set_nested(root: dict, path: list, value) -> None:
+    for k in path[:-1]:
+        root = root.setdefault(k, {})
+    root[path[-1]] = value
+
+
+@cache
+def _load_goals():
+    d = Path(GOAL_DIR)
+    if not d.is_dir():
+        return None
+    files = sorted([*d.glob("*.yml"), *d.glob("*.yaml")])
+    if not files:
+        return None
+    path = files[-1]
+    return str(path), (yaml.safe_load(path.read_text(encoding="utf-8")) or {})
+
+
+def _goal_specs() -> dict:
+    def text(i):
+        return lambda r: _dig(_best_emoji_acc(_dig(r, "emoji", "eval") or {})[1] or [], i)
+
+    def color(c):
+        return lambda r: _dig(r, "cards", "per_color", c, "gt_mean_distance")
+
+    return {
+        "keyword.exact.acc@1": ("max", lambda r: _dig(r, "keyword", "exact", "acc_at_k", 0)),
+        "keyword.fuzzy.acc@1": ("max", lambda r: _dig(r, "keyword", "fuzzy", "acc_at_k", 0)),
+        "keyword.fuzzy.acc@5": ("max", lambda r: _dig(r, "keyword", "fuzzy", "acc_at_k", 4)),
+        "keyword.fuzzy.acc@10": (
+            "max",
+            lambda r: _dig(r, "keyword", "fuzzy", "acc_at_k", 9),
+        ),
+        "text.acc@1": ("max", text(0)),
+        "text.acc@5": ("max", text(4)),
+        "text.acc@10": ("max", text(9)),
+        "colors.energy": ("min", lambda r: _dig(r, "cards", "energy")),
+        "colors.red": ("min", color("red")),
+        "colors.green": ("min", color("green")),
+        "colors.blue": ("min", color("blue")),
+        "colors.dark": ("min", color("dark")),
+        "colors.bright": ("min", color("bright")),
+        "coverage.vocab": ("max", lambda r: _dig(r, "labels", "emojis")),
+        "coverage.diversity": ("max", lambda r: _dig(r, "status", "diversity", "score")),
+    }
+
+
+def _section_goals(report) -> dict | None:
+    loaded = _load_goals()
+    if loaded is None:
+        return None
+    path, doc = loaded
+    tree = doc.get("goals") or {}
+    specs = _goal_specs()
+    compare: dict = {}
+    counts = Counter()
+
+    def walk(node, prefix):
+        for k, v in node.items():
+            dotted = f"{prefix}.{k}" if prefix else k
+            if isinstance(v, dict):
+                walk(v, dotted)
+                continue
+            direction, fn = specs.get(dotted, ("max", lambda r: None))
+            actual = fn(report)
+            if actual is None:
+                met, delta = None, None
+                counts["unmeasured"] += 1
+            else:
+                met = actual >= v if direction == "max" else actual <= v
+                delta = round(actual - v, 4)
+                counts["met" if met else "unmet"] += 1
+            _set_nested(
+                compare,
+                dotted.split("."),
+                {
+                    "target": v,
+                    "actual": actual,
+                    "met": met,
+                    "dir": direction,
+                    "delta": delta,
+                },
+            )
+
+    walk(tree, "")
+    return {
+        "source_file": path,
+        "meta": doc.get("meta", {}),
+        "compare": compare,
+        "summary": dict(counts),
+    }
+
+
+def _section_status(report) -> dict:
+    emoji_eval = (report.get("emoji") or {}).get("eval") or {}
+    cldr = report.get("cldr") or {}
+    cards = report.get("cards") or {}
+
+    best_name, best = _best_emoji_acc(emoji_eval)
 
     goals = []
     cldr1 = (cldr.get("acc_at_k") or [None])[0]
@@ -757,6 +867,9 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         report["cards"] = _section_cards(enc, style_head, emoji_head, gen, gold_rows)
 
     report["status"] = _section_status(report)
+    goals = _section_goals(report)
+    if goals is not None:
+        report["goals"] = goals
 
     out_dir = Path(out) / f"{prov['ts']}-{prov['model_sha']}"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -1049,6 +1162,60 @@ def _status_html(status) -> str:
     )
 
 
+_GOAL_WORD = {
+    True: "✅ met",
+    False: "🔴 miss",
+    None: "⚪ unmeasured",
+}
+
+
+def _flatten_compare(node, prefix=""):
+    for k, v in node.items():
+        dotted = f"{prefix}.{k}" if prefix else k
+        if isinstance(v, dict) and "target" in v and "dir" in v:
+            yield dotted, v
+        elif isinstance(v, dict):
+            yield from _flatten_compare(v, dotted)
+
+
+def _goals_html(goals) -> str:
+    rows = []
+    for path, leaf in _flatten_compare(goals["compare"]):
+        met = leaf["met"]
+        klass = {True: "sc-good", False: "sc-red", None: "sc-na"}[met]
+        op = "≥" if leaf["dir"] == "max" else "≤"
+        actual = leaf["actual"]
+        if actual is None:
+            act_txt = "n/a"
+        elif isinstance(actual, float):
+            act_txt = f"{actual:.3f}"
+        else:
+            act_txt = _fnum(actual)
+        delta = leaf["delta"]
+        delta_txt = "" if delta is None else f" ({delta:+g})"
+        rows.append(
+            f'<tr class="{klass}"><td>{_esc(path)}</td>'
+            f'<td class="n">{op} {_esc(leaf["target"])}</td>'
+            f'<td class="n">{act_txt}{delta_txt}</td>'
+            f"<td>{_GOAL_WORD[met]}</td></tr>"
+        )
+    s = goals["summary"]
+    tally = " · ".join(f"{s[k]} {k}" for k in ("met", "unmet", "unmeasured") if s.get(k))
+    meta = goals.get("meta") or {}
+    rationale = meta.get("rationale")
+    note = f'<div class="note">{_esc(rationale.strip())}</div>' if rationale else ""
+    return (
+        '<h2 class="status-h">Goals for this iteration '
+        f'<span class="sub">{_esc(Path(goals["source_file"]).name)}</span></h2>'
+        f"{note}"
+        '<table class="scorecard"><tr><th>Goal</th>'
+        '<th class="n">Target</th><th class="n">Actual</th><th>Result</th></tr>'
+        + "".join(rows)
+        + "</table>"
+        f'<div class="note">{_esc(tally)}</div>'
+    )
+
+
 def _data_html(d) -> str:
     r = d["records"]
     cells = "".join(
@@ -1211,6 +1378,8 @@ def _render_html(report) -> str:
     body = [_header_html(report)]
     if "status" in report:
         body.append(_status_html(report["status"]))
+    if "goals" in report:
+        body.append(_goals_html(report["goals"]))
     if "data" in report:
         body.append(_data_html(report["data"]))
     if "labels" in report:
