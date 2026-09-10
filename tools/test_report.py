@@ -96,19 +96,21 @@ def test_emoji_html_three_way():
             "acc_at_k": [0.3 + 0.05 * i for i in range(n)],
             "kw_acc_at_k": [0.2 + 0.05 * i for i in range(n)],
             "fusion_acc_at_k": [0.4 + 0.05 * i for i in range(n)],
+            "oracle_acc_at_k": [0.45 + 0.05 * i for i in range(n)],
             "baseline": {"name": "overlap", "acc_at_k": [0.1 + 0.04 * i for i in range(n)]},
         },
         "keywords": {"n": 50, "acc_at_k": [0.2 + 0.05 * i for i in range(n)]},
     }
     h = _emoji_html(d)
-    assert 'class="lline2"' in h and 'class="lline3"' in h
-    assert ">EmojiHead<" in h and ">KWHead<" in h and ">Fusion<" in h
+    assert 'class="lline2"' in h and 'class="lline3"' in h and 'class="lline4"' in h
+    assert ">EmojiHead<" in h and ">KWHead<" in h and ">Fusion<" in h and ">Oracle<" in h
     assert 'class="bline"' in h
 
     d["eval"]["kw_acc_at_k"] = None
     d["eval"]["fusion_acc_at_k"] = None
+    d["eval"]["oracle_acc_at_k"] = None
     h2 = _emoji_html(d)
-    assert 'class="lline3"' not in h2
+    assert 'class="lline3"' not in h2 and 'class="lline4"' not in h2
     assert "CLDR baseline (overlap)" in h2
 
 
