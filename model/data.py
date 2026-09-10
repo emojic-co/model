@@ -246,7 +246,7 @@ def train_data_loader(
 
 def eval_data_loader():
     return DataLoader(
-        EmojiDataset(list(read(EVAL_PATH))),
+        EmojiDataset(list(read(EVAL_PATH)), mix_cldr=True),
         batch_size=2000,
         shuffle=False,
         drop_last=False,
