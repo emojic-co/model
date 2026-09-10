@@ -33,10 +33,6 @@ data/eval.jsonl
 data/labels.json
 data/cldr-baseline.json
 
-# Step-1 micro-slice, rebuilt by `bun run regen-step1`; checkpoints from `train ... -o pt-step1`.
-data/step1/
-pt-step1/
-
 # regen writes these via writeFileAtomic (path.tmp then rename); a crash leaves them.
 data/train.jsonl.tmp
 data/eval.jsonl.tmp

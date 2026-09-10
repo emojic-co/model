@@ -20,17 +20,19 @@ STYLE_COUNT = len(STYLES)
 EMOJI_COUNT = len(EMOJIS)
 
 # DATA
-MAX_TEXT_LEN = 42
+# Sized for the step-1 keyword-search model (docs/step1-keyword-search.md):
+# small vocab (~170), short inputs, ~1/5 encoder width.
+MAX_TEXT_LEN = 32
 
 # ENCODER
-CHAR_EMBED_SIZE = 24
+CHAR_EMBED_SIZE = 16
 ENCODER_KERNEL_SIZE = 3
 
 assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
-ENCODER_CHANNELS = [130, 220, 340]
-ENCODER_DILATION = [1, 2, 4]
+ENCODER_CHANNELS = [64, 96]
+ENCODER_DILATION = [1, 2]
 TEXT_EMBED_SIZE = sum(ENCODER_CHANNELS)
 
 assert len(ENCODER_CHANNELS) == len(ENCODER_DILATION), \
@@ -44,8 +46,8 @@ enc_str = " ".join([
         ENCODER_DILATION)])
 
 # EMOJI
-EMOJI_EMBED_SIZE = 64
-DROPOUT_EMOJI = 0.2
+EMOJI_EMBED_SIZE = 32
+DROPOUT_EMOJI = 0.1
 
 emj_str = " ".join([str(p) for p in (EMOJI_EMBED_SIZE, DROPOUT_EMOJI)])
 
@@ -84,7 +86,7 @@ gan_str = " ".join([
 
 # TRAINING
 SEED = 42
-TASK_BATCH_SIZE = int(os.environ.get("EMOJIC_TASK_BATCH_SIZE", "256"))
+TASK_BATCH_SIZE = int(os.environ.get("EMOJIC_TASK_BATCH_SIZE", "128"))
 GAN_BATCH_SIZE = int(os.environ.get("EMOJIC_GAN_BATCH_SIZE", "512"))
 RELU_SLOPE = 0.1
 LR = 0.01
@@ -108,7 +110,7 @@ train_str = " ".join(
     ]
 )
 
-EPOCHS_TASK = 500
+EPOCHS_TASK = 1500
 EPOCHS_GAN = 300
 VAL_CHECK_INTERVAL = 100
 EARLY_STOP_PATIENCE = 20
@@ -122,44 +124,6 @@ ENERGY_Z_SAMPLES = 8
 ENERGY_KEYWORD_MAX_TEXTS = 512
 ENERGY_KEYWORD_MIN_TEXTS = 32
 ENERGY_KEYWORDS_PATH = ENERGY_KEYWORDS_TXT
-
-# STEP 1 - small keyword-search-first model (see docs/step1-keyword-search.md)
-if os.environ.get("EMOJIC_STEP1"):
-    MAX_TEXT_LEN = 32
-    CHAR_EMBED_SIZE = 16
-    ENCODER_CHANNELS = [64, 96]
-    ENCODER_DILATION = [1, 2]
-    TEXT_EMBED_SIZE = sum(ENCODER_CHANNELS)
-    EMOJI_EMBED_SIZE = 32
-    DROPOUT_EMOJI = 0.1
-    TASK_BATCH_SIZE = int(os.environ.get("EMOJIC_TASK_BATCH_SIZE", "128"))
-    EPOCHS_TASK = 1500
-    enc_str = " ".join(
-        str(p)
-        for p in (
-            CHAR_EMBED_SIZE,
-            ENCODER_KERNEL_SIZE,
-            ENCODER_CHANNELS,
-            ENCODER_DILATION,
-        )
-    )
-    emj_str = " ".join([str(p) for p in (EMOJI_EMBED_SIZE, DROPOUT_EMOJI)])
-    style_str = " ".join(
-        [str(p) for p in (STYLE_EMBED_SIZE, TEXT_EMBED_SIZE, DROPOUT_STYLE)]
-    )
-    train_str = " ".join(
-        str(p)
-        for p in (
-            SEED,
-            TASK_BATCH_SIZE,
-            GAN_BATCH_SIZE,
-            RELU_SLOPE,
-            LR,
-            GRAD_CLIP_GEN,
-            GRAD_CLIP_CRITIC,
-            INFONCE_TEMP,
-        )
-    )
 
 # TENSORBOARD RUN NAME
 RUN_TIME = os.environ.get(

@@ -23,8 +23,8 @@ meta:
 
 goals:            # every leaf optional - omit a domain you are not gating
   keyword:
-    exact:  { "acc@1": 0.95 }
-    fuzzy:  { "acc@1": 0.90, "acc@5": 0.95 }
+    "acc@1": 0.90    # exact-keyword probe = CLDR keywords
+    "acc@5": 0.95
   text:
     "acc@1": 0.70
     "acc@5": 0.85
@@ -45,8 +45,7 @@ goals:            # every leaf optional - omit a domain you are not gating
 
 | goal path | dir | report.json source | wired? |
 |---|---|---|---|
-| `keyword.exact.acc@1` | ≥ | `keyword.exact.acc_at_k[0]` | no — needs the exact-keyword probe |
-| `keyword.fuzzy.acc@{1,5,10}` | ≥ | `keyword.fuzzy.acc_at_k[{0,4,9}]` | no — needs the fuzzy probe + `data/step1/fuzzy_eval.jsonl` |
+| `keyword.acc@{1,5,10}` | ≥ | `cldr.acc_at_k[{0,4,9}]` (CLDR keyword probe) | yes |
 | `text.acc@{1,5,10}` | ≥ | `emoji.eval.<best fusion variant>_acc_at_k[{0,4,9}]` | yes |
 | `colors.energy` | ≤ | `cards.energy` | no — `cards` does not compute OKLab energy yet |
 | `colors.{red,green,blue,dark,bright}` | ≤ | `cards.per_color.<c>.gt_mean_distance` | yes |
