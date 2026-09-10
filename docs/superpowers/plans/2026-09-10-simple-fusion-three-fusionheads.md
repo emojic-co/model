@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace the learned `KWHead` + gate `FusionHead` + soft-TF `flexrank` stack with a standalone `EmojiHead`, an offline-computed Fuse.js keyword payload, and three tiny detached learned combiners (`FusionHeadGate` / `FusionHeadGain` / `FusionHeadMix`) trained in parallel for comparison.
+**Goal:** Replace the learned `KWHead` + gate `FusionHead` + soft-TF `flexrank` stack with a standalone `EmojiHead`, an offline-computed uFuzzy keyword payload, and three tiny detached learned combiners (`FusionHeadGate` / `FusionHeadGain` / `FusionHeadMix`) trained in parallel for comparison.
 
-**Architecture:** `EmojiHead` trains alone (`lse_infonce`). `tools/data/regen.ts` runs Fuse.js over `data/ii.json` for every train/eval row and writes a sparse per-emoji `kw` score field + `web/public/kwproj.json`; the browser runs the same Fuse.js live. Each of the three `FusionHead*` modules takes detached `(logit_m, kw)` and returns fused per-emoji scores; `tools/report.py` compares them on `data/eval.jsonl`; `model/export_onnx.py` bakes one winner variant into `meta.json`.
+**Architecture:** `EmojiHead` trains alone (`lse_infonce`). `tools/data/regen.ts` runs uFuzzy (`@leeoniya/uFuzzy`) over `data/ii.json` for every train/eval row and writes a sparse per-emoji `kw` score field + `web/public/kwproj.json`; the browser runs the same uFuzzy live. Word-splitting is the already-shared `normalize` + `.split(" ")` — no bespoke tokenizer. Each of the three `FusionHead*` modules takes detached `(logit_m, kw)` and returns fused per-emoji scores; `tools/report.py` compares them on `data/eval.jsonl`; `model/export_onnx.py` bakes one winner variant into `meta.json`.
 
-**Tech Stack:** PyTorch + Lightning + Typer (`model/`), Bun + TypeScript (`tools/data/`), Vite + React + onnxruntime-web + Fuse.js (`web/`). `uv` for Python, `bun` for tooling, `npm` for `web/`.
+**Tech Stack:** PyTorch + Lightning + Typer (`model/`), Bun + TypeScript (`tools/data/`), Vite + React + onnxruntime-web + `@leeoniya/uFuzzy` (`web/`). `uv` for Python, `bun` for tooling, `npm` for `web/`.
 
 **Spec:** `docs/superpowers/specs/2026-09-10-simple-fusion-three-fusionheads-design.md` — read it alongside this plan.
 
@@ -17,7 +17,8 @@
 - **Determinism:** `regen` must stay deterministic for a fixed `data/data.jsonl` + flags (both shuffles use a `SEED`-seeded mulberry32; `SEED = 42` in `tools/data/config.ts`).
 - **Clean git tree:** `model/train.py` aborts on a dirty tree in every mode. Commit after every task.
 - **Do not run a training run to verify.** Behavioural verification is a deferred `train enc --local`; per-task gates are `ruff`, the plain-assert test scripts, `bun test`, and `npm test`.
-- **Char/normalize parity:** do not touch `model/data.py:normalize`, `CHARS`, `PAD_IDX`, or `INFONCE_TEMP`.
+- **Char/normalize parity:** do not touch `model/data.py:normalize`, `CHARS`, `PAD_IDX`, or `INFONCE_TEMP`. `normalize` (`tools/data/normalize.ts` / `web/src/model.js` / `model/data.py`) is already byte-identical across languages — the keyword word-split reuses it verbatim.
+- **uFuzzy pin:** `@leeoniya/uFuzzy@^1.0.19`, option `{ intraIns: 1 }`, similarity floor `sim >= 0.5` — the exact same literals in `tools/data/regen.ts` and `web/src/keywords.js`.
 - **`N = len(EMOJIS)`** (currently 957) is the emoji vocab size; all fusion tensors are `[B, N]`.
 - Concurrent auto-commit job: scope every `git add` to the exact files in the task. Never `git add -A` / `git add .`.
 - Emoji vocab order is `data/labels.json` `emojis` == `meta.json` `emojis` == `model.config.EMOJIS`.
@@ -27,11 +28,8 @@
 ## File Structure
 
 **New:**
-- `model/tokenize.py` — `query_tokens` + `STOPWORDS`, Python port used only by the `report.py` keyword-vocab diagnostic.
+- `model/tokenize.py` — `query_tokens` + `STOPWORDS`, Python port used **only** by the `report.py` keyword-vocab diagnostic (off the training/inference path; no cross-language parity burden).
 - `model/test_tokenize.py` — plain-assert test for the above.
-- `tools/data/tokenize.ts` — `queryTokens` used by `regen.ts` (offline keyword tokenizing).
-- `tools/data/tokenize.test.ts` — `bun test` for the above.
-- `web/src/tokenize.js` — `queryTokens` used by the browser (live keyword tokenizing); hand-kept in sync with `tools/data/tokenize.ts`.
 - `web/src/keywords.js` — `makeKeywordPredictor(kwprojJson)` → `predict(text): Float32Array(N)`.
 - `web/src/keywords.test.js` — vitest, a few `text → expected emoji` cases.
 - `web/src/fusion.js` — `makeFusion(metaFusion)` → `fuse(emojiLogits, kwArr): Float32Array(N)`.
@@ -45,15 +43,15 @@
 - `model/export_onnx.py` — one input (`input`), three outputs (`style_logits`, `emoji_logits`, `color`); `FUSION_EXPORT_VARIANT` constant; `meta.json` `fusion` block; drop `flex_kw` / `flex_n`.
 - `model/pred.py` — `fusion_top_labels` from `FusionHeadGate` + the row's `kw`.
 - `tools/report.py` — import `query_tokens` from `model.tokenize`; 5-way `acc@k` overlay on `data/eval.jsonl`; `report.json` keys.
-- `tools/data/regen.ts` — Fuse.js `kw` payload; write `web/public/kwproj.json`; drop `flexrank` / `kwvocab` / `flex.json` / fixture.
+- `tools/data/regen.ts` — uFuzzy `kw` payload (per `normalize(text).split(" ")` word); write `web/public/kwproj.json`; drop `flexrank` / `kwvocab` / `flex.json` / fixture.
 - `files.py` — drop `FLEX_JSON`, `KW_PT`, `FUSION_PT`; add `FUSION_GATE_PT`, `FUSION_GAIN_PT`, `FUSION_MIX_PT`, `KWPROJ_JSON`.
 - `files.ts` — drop `FLEX_JSON`, `FLEX_FIXTURE_JSON`; add `KWPROJ_JSON`.
 - `model/test_model_heads.py` — rewrite for the three heads.
 - `model/test_train_cli.py` — rewrite the fusion step test.
 - `web/src/hooks/useOnnx.js` — fetch `kwproj.json`; no `flex_tf` tensor; compute `kw` + `fusion` client-side.
 - `web/src/App.jsx` — `scores.fusion` / `scores.kw` are now raw score arrays.
-- `web/package.json` — add `fuse.js`, remove `flexsearch`.
-- `package.json` (root) — remove `flexsearch` devDependency.
+- `web/package.json` — add `@leeoniya/uFuzzy`, remove `flexsearch`.
+- `package.json` (root) — add `@leeoniya/uFuzzy`, remove `flexsearch` devDependency.
 - `CLAUDE.md` — update the fusion / keyword / flexrank prose.
 
 **Deleted:**
@@ -66,7 +64,13 @@
 
 ---
 
-## Task 1: `model/tokenize.py` — shared Python tokenizer
+## Task 1: `model/tokenize.py` — Python tokenizer for the report diagnostic
+
+`model/flexrank.py` is deleted in Task 4, but `tools/report.py`'s keyword-vocab
+diagnostic still needs `query_tokens` (to filter `data/ii.json` keys to single
+tokens). This task lifts it into its own Python-only module. It is **not** on the
+keyword-predictor path — that path uses uFuzzy + `normalize` + `.split(" ")` and
+needs no tokenizer.
 
 **Files:**
 - Create: `model/tokenize.py`
@@ -348,85 +352,27 @@ git commit -m "feat(model): FusionHeadGate/Gain/Mix — three detached learned c
 
 ---
 
-## Task 3: Fuse.js keyword payload in `regen.ts`
+## Task 3: uFuzzy keyword payload in `regen.ts`
 
 **Files:**
-- Create: `tools/data/tokenize.ts`, `tools/data/tokenize.test.ts`
 - Modify: `tools/data/regen.ts`, `files.ts`, `package.json` (root)
 - Delete: `tools/data/flexrank.ts`, `tools/data/kwvocab.ts`
 
 **Interfaces:**
 - Consumes: nothing from earlier tasks.
 - Produces:
-  - `tools/data/tokenize.ts`: `export function queryTokens(text: string): string[]` and `export const STOPWORDS: Set<string>` — behaviour identical to the current `web/src/flexrank.js:queryTokens`.
   - Each train/eval row in `data/train.jsonl` / `data/eval.jsonl` gains `"kw": [[emojiIdx, value], ...]` (value > 0, rounded to 3 dp; `emojiIdx` in `data/labels.json` `emojis` order). Skipped under `--no-kw`.
   - `web/public/kwproj.json`: `{ "proj": { "<keyword>": [<emojiIdx>, ...], ... } }` — every `data/ii.json` key whose emoji list has ≥1 entry in the current vocab, mapped to those vocab indices. Skipped under `--no-kw`.
   - `files.ts`: `export const KWPROJ_JSON = \`${WEB_PUBLIC_DIR}/kwproj.json\``.
+  - Root `package.json`: `@leeoniya/uFuzzy` in `dependencies`.
 
-- [ ] **Step 1: Add the dependency**
+- [ ] **Step 1: Swap the dependency**
 
-Run: `bun add fuse.js`
-Expected: `fuse.js` appears under `dependencies` in root `package.json`.
+Run: `bun add @leeoniya/uFuzzy && bun remove flexsearch`
+Expected: `@leeoniya/uFuzzy` under `dependencies`, `flexsearch` gone from `devDependencies`, `bun.lock` updated.
+(If `bun remove flexsearch` errors because something still imports it, that is Task 3 Step 4's `git rm` — run `bun add @leeoniya/uFuzzy` now and `bun remove flexsearch` after Step 4.)
 
-- [ ] **Step 2: Write the tokenizer test**
-
-Create `tools/data/tokenize.test.ts`:
-
-```ts
-import { expect, test } from "bun:test"
-import { queryTokens, STOPWORDS } from "./tokenize.ts"
-
-test("splits and lowercases", () => {
-  expect(queryTokens("The Dog is Running FAST")).toEqual(["dog", "running", "fast"])
-})
-
-test("strips punctuation and short tokens", () => {
-  expect(queryTokens("pizza-time, y'all! ok?")).toEqual(["pizza", "time", "all", "ok"])
-})
-
-test("drops stopwords", () => {
-  expect(STOPWORDS.has("the")).toBe(true)
-  expect(queryTokens("a cat and the hat")).toEqual(["cat", "hat"])
-})
-
-test("keeps digits", () => {
-  expect(queryTokens("bus 42 now")).toEqual(["bus", "42", "now"])
-})
-```
-
-- [ ] **Step 3: Run it, verify it fails**
-
-Run: `bun test tools/data/tokenize.test.ts`
-Expected: FAIL — cannot resolve `./tokenize.ts`.
-
-- [ ] **Step 4: Implement the tokenizer**
-
-Create `tools/data/tokenize.ts` (port from `web/src/flexrank.js`):
-
-```ts
-export const STOPWORDS = new Set(
-  (
-    "a an the to of in on at is it its i you we they he she this that for and or but" +
-    " not with my your me am are was were be been being do does did have has had" +
-    " will would can could just so if"
-  ).split(" "),
-)
-
-export function queryTokens(text: string): string[] {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .split(/\s+/)
-    .filter((w) => w.length >= 2 && !STOPWORDS.has(w))
-}
-```
-
-- [ ] **Step 5: Run it, verify it passes**
-
-Run: `bun test tools/data/tokenize.test.ts`
-Expected: 4 pass.
-
-- [ ] **Step 6: Update `files.ts`**
+- [ ] **Step 2: Update `files.ts`**
 
 In `files.ts`: delete the `FLEX_JSON` and `FLEX_FIXTURE_JSON` exports. Add after `WEB_SRC_DIR`:
 
@@ -434,20 +380,19 @@ In `files.ts`: delete the `FLEX_JSON` and `FLEX_FIXTURE_JSON` exports. Add after
 export const KWPROJ_JSON = `${WEB_PUBLIC_DIR}/kwproj.json`
 ```
 
-- [ ] **Step 7: Rewrite the `regen.ts` keyword section**
+- [ ] **Step 3: Rewrite the `regen.ts` keyword section**
 
 Read `tools/data/regen.ts` fully first. Then:
 
 1. Imports (top of file): delete `import { buildFlexRanker } from "./flexrank.ts"` and `import { keywordVocabFromIiJson, keywordVocabFromReport } from "./kwvocab.ts"`. Add:
 
 ```ts
-import Fuse from "fuse.js"
+import uFuzzy from "@leeoniya/uFuzzy"
 import { readFileSync } from "node:fs"
 import { II_JSON } from "../../files.ts"
-import { queryTokens } from "./tokenize.ts"
 ```
 
-(If `readFileSync` / `II_JSON` are already imported, reuse them. `existsSync` is already imported.)
+(`normalize` is already imported from `./normalize.ts`. If `readFileSync` / `II_JSON` are already imported, reuse them. `existsSync` is already imported.)
 
 2. In the `files.ts` import list within `regen.ts`, replace `FLEX_FIXTURE_JSON, FLEX_JSON` with `KWPROJ_JSON`.
 
@@ -457,7 +402,7 @@ import { queryTokens } from "./tokenize.ts"
 
 5. `toLine` / the row-serialize path (line ~182): replace `r.flex_tf ? { ...withExtra, flex_tf: r.flex_tf } : withExtra` with `r.kw ? { ...withExtra, kw: r.kw } : withExtra`.
 
-6. `--no-kw` option help text (line ~296-299): change to `"skip the Fuse.js keyword score field (kw) on train/eval rows"`.
+6. `--no-kw` option help text (line ~296-299): change to `"skip the uFuzzy keyword score field (kw) on train/eval rows"`.
 
 7. Replace the whole `if (useKw) { ... }` block (lines ~347-378) with:
 
@@ -465,7 +410,7 @@ import { queryTokens } from "./tokenize.ts"
   const useKw = options.kw !== false
   let kwLine = "kw                    : skipped (--no-kw)"
   if (useKw) {
-    console.log("computing Fuse.js keyword scores...")
+    console.log("computing uFuzzy keyword scores...")
     const emojiIdx = new Map(emojis.map((e, i) => [e, i]))
     const ii = JSON.parse(readFileSync(II_JSON, "utf8")) as Record<string, string[]>
     const proj: Record<string, number[]> = {}
@@ -475,25 +420,25 @@ import { queryTokens } from "./tokenize.ts"
     }
     const keys = Object.keys(proj)
     const weight = new Map(keys.map((k) => [k, 1 / Math.log2(1 + proj[k].length)]))
-    const fuse = new Fuse(keys, {
-      includeScore: true,
-      threshold: 0.35,
-      ignoreLocation: true,
-      minMatchCharLength: 3,
-    })
+    const uf = new uFuzzy({ intraIns: 1 })
     const kwVec = (text: string): [number, number][] => {
       const best = new Map<string, number>()
-      for (const tok of queryTokens(text)) {
-        for (const { item, score } of fuse.search(tok)) {
-          const s = score ?? 1
-          if (!best.has(item) || s < best.get(item)!) best.set(item, s)
+      for (const word of normalize(text).split(" ")) {
+        if (word.length < 3) continue
+        const idxs = uf.filter(keys, word)
+        if (!idxs || !idxs.length) continue
+        const info = uf.info(idxs, keys, word)
+        for (let i = 0; i < info.idx.length; i++) {
+          const k = keys[info.idx[i]]
+          const sim = info.chars[i] / k.length
+          if (sim >= 0.5 && sim > (best.get(k) ?? 0)) best.set(k, sim)
         }
       }
       const acc = new Map<number, number>()
-      for (const [k, s] of best) {
-        const v = (1 - s) * weight.get(k)!
+      for (const [k, sim] of best) {
+        const v = sim * weight.get(k)!
         for (const e of proj[k]) {
-          if (!acc.has(e) || v > acc.get(e)!) acc.set(e, v)
+          if (v > (acc.get(e) ?? 0)) acc.set(e, v)
         }
       }
       return [...acc.entries()]
@@ -512,28 +457,33 @@ import { queryTokens } from "./tokenize.ts"
   }
 ```
 
+Note `normalize` here is `tools/data/normalize.ts` (already imported) — the same
+lowercase/collapse/trim/drop-non-vocab transform as `model/data.py:normalize`. If
+`uf.info` returns arrays under different names in the installed version, check its
+shape with a one-off `console.log(Object.keys(info))` — the plan assumes
+`{ idx, start, chars, terms, ... }` (uFuzzy ≥ 1.0).
+
 8. Confirm `kwLine` is still printed in the summary block (it was; the variable name is unchanged).
 
-- [ ] **Step 8: Delete the dead modules**
+- [ ] **Step 4: Delete the dead modules**
 
 Run: `git rm tools/data/flexrank.ts tools/data/kwvocab.ts`
-Run: `grep -rn "flexrank\|kwvocab\|buildFlexRanker\|keywordVocabFrom" tools/ --include="*.ts"`
+Run: `grep -rn "flexrank\|kwvocab\|buildFlexRanker\|keywordVocabFrom\|flexsearch" tools/ --include="*.ts"`
 Expected: no matches. (If `tools/preview.ts` or another tool imports `flexrank.ts`, stop and report — the spec did not anticipate that consumer.)
+If Step 1's `bun remove flexsearch` was deferred, run it now.
 
-- [ ] **Step 9: Run regen, verify the payload**
+- [ ] **Step 5: Run regen, verify the payload**
 
 Run: `bun run regen`
-Expected: completes; summary line shows `kw : keys=<n>, mean nz <x>` with `keys` in the low thousands and `mean nz` > 0.
+Expected: completes; summary line shows `kw : keys=<n>, mean nz <x>` with `keys` in the low thousands and `mean nz` > 0. If `mean nz` is 0 or implausibly high, inspect `uf.info` field names (Step 3 note).
 
 Run: `python3 -c "import json; r=[json.loads(l) for l in open('data/eval.jsonl')]; assert all('kw' in x for x in r), 'missing kw'; assert any(x['kw'] for x in r), 'all kw empty'; print('rows', len(r), 'with-kw', sum(1 for x in r if x['kw']))"`
-Expected: prints counts; no assertion error.
+Expected: prints counts; no assertion error. `with-kw` should be a large fraction of `rows`.
 
 Run: `python3 -c "import json; d=json.load(open('web/public/kwproj.json')); p=d['proj']; print('keys', len(p)); assert all(isinstance(v,list) and v for v in p.values())"`
 Expected: prints key count; no error.
 
-- [ ] **Step 10: Verify determinism**
-
-Run: `bun run regen && git stash && bun run regen && git diff --stat` — wait, simpler:
+- [ ] **Step 6: Verify determinism**
 
 ```bash
 cp data/train.jsonl /tmp/t1.jsonl && cp data/eval.jsonl /tmp/e1.jsonl && cp data/labels.json /tmp/l1.json
@@ -543,15 +493,15 @@ diff -q data/train.jsonl /tmp/t1.jsonl && diff -q data/eval.jsonl /tmp/e1.jsonl 
 
 Expected: `DETERMINISTIC` (files byte-identical across two runs).
 
-- [ ] **Step 11: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add tools/data/tokenize.ts tools/data/tokenize.test.ts tools/data/regen.ts files.ts package.json bun.lock web/public/kwproj.json
-git rm web/public/flex.json
-git commit -m "feat(regen): Fuse.js keyword payload (kw field + kwproj.json), drop flexrank/kwvocab"
+git add tools/data/regen.ts files.ts package.json bun.lock web/public/kwproj.json
+git rm tools/data/flexrank.ts tools/data/kwvocab.ts web/public/flex.json
+git commit -m "feat(regen): uFuzzy keyword payload (kw field + kwproj.json), drop flexrank/kwvocab"
 ```
 
-(`data/train.jsonl` / `data/eval.jsonl` / `data/labels.json` are gitignored — do not add them. If `bun.lock` has a different name like `bun.lockb`, add that instead. `web/public/flex.json` deletion lands here since `regen` no longer writes it; `web/src/flexrank.fixture.json` is deleted in Task 6 alongside its test.)
+(`data/train.jsonl` / `data/eval.jsonl` / `data/labels.json` are gitignored — do not add them. If the lockfile is `bun.lockb`, add that instead. `web/public/flex.json` deletion lands here since `regen` no longer writes it; `web/src/flexrank.fixture.json` is deleted in Task 6 alongside its test.)
 
 ---
 
@@ -985,49 +935,30 @@ git commit -m "feat(report): 5-way emoji acc@k overlay (EmojiHead/Keywords/Fusio
 
 ---
 
-## Task 6: Web — `keywords.js`, `fusion.js`, `tokenize.js`, wiring
+## Task 6: Web — `keywords.js`, `fusion.js`, wiring
 
 **Files:**
-- Create: `web/src/tokenize.js`, `web/src/keywords.js`, `web/src/keywords.test.js`, `web/src/fusion.js`, `web/src/fusion.test.js`
+- Create: `web/src/keywords.js`, `web/src/keywords.test.js`, `web/src/fusion.js`, `web/src/fusion.test.js`
 - Modify: `web/src/hooks/useOnnx.js`, `web/src/App.jsx`, `web/package.json`, `package.json` (root)
 - Delete: `web/src/flexrank.js`, `web/src/flexrank.test.js`, `web/src/flexrank.fixture.json`
 
 **Interfaces:**
-- Consumes: `web/public/kwproj.json` (Task 3); `meta.json` `fusion` block (Task 4); ONNX outputs `style_logits`, `emoji_logits`, `color` (Task 4).
+- Consumes: `web/public/kwproj.json` (Task 3); `meta.json` `fusion` block (Task 4); ONNX outputs `style_logits`, `emoji_logits`, `color` (Task 4); `normalize` from `web/src/model.js`.
 - Produces:
-  - `web/src/tokenize.js`: `export function queryTokens(text): string[]` — mirror of `tools/data/tokenize.ts`.
-  - `web/src/keywords.js`: `export function makeKeywordPredictor(kwprojJson, emojiCount): { predict(text): Float32Array }` — Float32Array length `emojiCount`, `kw(e)` per spec §1.3-1.4.
+  - `web/src/keywords.js`: `export function makeKeywordPredictor(kwprojJson, emojiCount): { predict(normText): Float32Array }` — `normText` is an already-`normalize`d string; Float32Array length `emojiCount`, `kw(e)` per spec §1.3-1.4 (uFuzzy per word of `normText.split(' ')`).
   - `web/src/fusion.js`: `export function makeFusion(metaFusion): { fuse(emojiLogits: Float32Array, kwArr: Float32Array): Float32Array }` — implements `gate` / `gain` / `mix` on raw logits (`z()` computed in JS).
+
+No `web/src/tokenize.js` — word-splitting is `normalize(text, char2idx).split(' ')` and `normalize` already lives in `web/src/model.js`.
 
 - [ ] **Step 1: Dependencies**
 
 ```bash
-cd web && npm install fuse.js && npm uninstall flexsearch && cd ..
+cd web && npm install @leeoniya/uFuzzy && npm uninstall flexsearch && cd ..
 ```
 
-Then in root `package.json` remove the `"flexsearch": "..."` line from `devDependencies` (verify nothing needs it: `grep -rn "flexsearch" tools/ web/src/ --include="*.ts" --include="*.js" --include="*.jsx"` → no matches). Run `bun install` at root to refresh `bun.lock`.
+Then verify nothing else needs `flexsearch` (`grep -rn "flexsearch" tools/ web/src/ --include="*.ts" --include="*.js" --include="*.jsx"` → no matches). Root `package.json` `flexsearch` was removed in Task 3 Step 1; if it is still there, `bun remove flexsearch` now.
 
-- [ ] **Step 2: `web/src/tokenize.js`**
-
-```js
-export const STOPWORDS = new Set(
-  (
-    'a an the to of in on at is it its i you we they he she this that for and or but' +
-    ' not with my your me am are was were be been being do does did have has had' +
-    ' will would can could just so if'
-  ).split(' '),
-)
-
-export function queryTokens(text) {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .split(/\s+/)
-    .filter((w) => w.length >= 2 && !STOPWORDS.has(w))
-}
-```
-
-- [ ] **Step 3: `web/src/keywords.js` + failing test**
+- [ ] **Step 2: `web/src/keywords.js` + failing test**
 
 Create `web/src/keywords.test.js`:
 
@@ -1037,7 +968,7 @@ import { makeKeywordPredictor } from './keywords'
 
 const proj = {
   pizza: [0],
-  beach: [1, 2],
+  beaches: [1, 2],
   dog: [3],
 }
 
@@ -1052,7 +983,7 @@ describe('makeKeywordPredictor', () => {
 
   it('down-weights keys that fan out to many emoji', () => {
     const kp = makeKeywordPredictor({ proj }, 4)
-    const v = kp.predict('beach day')
+    const v = kp.predict('a day at the beaches')
     expect(v[1]).toBeGreaterThan(0)
     expect(v[1]).toBeLessThan(1)
   })
@@ -1066,34 +997,33 @@ describe('makeKeywordPredictor', () => {
 
 Run: `cd web && npx vitest run src/keywords.test.js` → FAIL (module missing). `cd ..`
 
-Create `web/src/keywords.js`:
+Create `web/src/keywords.js` (mirror of the `regen.ts` `kwVec` block, Task 3 Step 3):
 
 ```js
-import Fuse from 'fuse.js'
-import { queryTokens } from './tokenize'
+import uFuzzy from '@leeoniya/uFuzzy'
 
 export function makeKeywordPredictor(kwprojJson, emojiCount) {
   const proj = kwprojJson.proj
   const keys = Object.keys(proj)
   const weight = new Map(keys.map((k) => [k, 1 / Math.log2(1 + proj[k].length)]))
-  const fuse = new Fuse(keys, {
-    includeScore: true,
-    threshold: 0.35,
-    ignoreLocation: true,
-    minMatchCharLength: 3,
-  })
+  const uf = new uFuzzy({ intraIns: 1 })
   return {
-    predict(text) {
+    predict(normText) {
       const best = new Map()
-      for (const tok of queryTokens(text)) {
-        for (const { item, score } of fuse.search(tok)) {
-          const s = score ?? 1
-          if (!best.has(item) || s < best.get(item)) best.set(item, s)
+      for (const word of normText.split(' ')) {
+        if (word.length < 3) continue
+        const idxs = uf.filter(keys, word)
+        if (!idxs || !idxs.length) continue
+        const info = uf.info(idxs, keys, word)
+        for (let i = 0; i < info.idx.length; i++) {
+          const k = keys[info.idx[i]]
+          const sim = info.chars[i] / k.length
+          if (sim >= 0.5 && sim > (best.get(k) ?? 0)) best.set(k, sim)
         }
       }
       const out = new Float32Array(emojiCount)
-      for (const [k, s] of best) {
-        const v = (1 - s) * weight.get(k)
+      for (const [k, sim] of best) {
+        const v = sim * weight.get(k)
         for (const e of proj[k]) if (v > out[e]) out[e] = v
       }
       return out
@@ -1103,8 +1033,9 @@ export function makeKeywordPredictor(kwprojJson, emojiCount) {
 ```
 
 Run: `cd web && npx vitest run src/keywords.test.js` → PASS. `cd ..`
+(If the `beaches` case fails, `console.log(uf.info(uf.filter(['beaches'], 'beaches'), ['beaches'], 'beaches'))` to confirm the `chars` field name in the installed uFuzzy and adjust — same check as Task 3 Step 3's note.)
 
-- [ ] **Step 4: `web/src/fusion.js` + failing test**
+- [ ] **Step 3: `web/src/fusion.js` + failing test**
 
 Create `web/src/fusion.test.js`:
 
@@ -1241,16 +1172,18 @@ Run: `cd web && npx vitest run src/fusion.test.js` → PASS. `cd ..`
 
 (Note the BN eval formula uses `eps = 1e-5`, PyTorch `BatchNorm1d`'s default — must match Task 4's export, which reads `running_var` as-is.)
 
-- [ ] **Step 5: `web/src/hooks/useOnnx.js`**
+- [ ] **Step 4: `web/src/hooks/useOnnx.js`**
 
+- Add `normalize` to the `../model` import (currently imports `encode`, `decodeColorList`, `sigmoid`).
 - Replace `import { makeFlexRanker } from '../flexrank'` with `import { makeKeywordPredictor } from '../keywords'` and `import { makeFusion } from '../fusion'`.
 - Rename `flexRef` → `kwRef`; add `fusionRef`.
 - In the load effect: replace the `flex.json` fetch with `fetch(BASE + 'kwproj.json').then((r) => r.json())`; after `setMeta(m)`, `kwRef.current = makeKeywordPredictor(kwproj, m.emojis.length)` and `fusionRef.current = makeFusion(m.fusion)`.
-- `predict`: drop `flexTf` and the `flex_tf` input tensor. Run the session with `{ input: new ort.Tensor('int64', ids, [1, m.max_text_len]) }`. Then:
+- `predict`: drop `flexTf` and the `flex_tf` input tensor. Keep `const ids = encode(text, m, char2idxRef.current)`. Run the session with `{ input: new ort.Tensor('int64', ids, [1, m.max_text_len]) }`. Then:
 
 ```js
     const emojiLogits = out.emoji_logits.data
-    const kwArr = kwRef.current.predict(text)
+    const normText = normalize(text, char2idxRef.current)
+    const kwArr = kwRef.current.predict(normText)
     return {
       feeling: sigmoid(out.style_logits.data),
       emoji: sigmoid(emojiLogits),
@@ -1261,11 +1194,13 @@ Run: `cd web && npx vitest run src/fusion.test.js` → PASS. `cd ..`
     }
 ```
 
-- [ ] **Step 6: `web/src/App.jsx`**
+(`normalize(text, char2idx)` in `web/src/model.js` requires the `char2idx` map — `char2idxRef.current` is already built in the load effect. The regen side uses `tools/data/normalize.ts`; both collapse/lowercase/trim identically.)
+
+- [ ] **Step 5: `web/src/App.jsx`**
 
 Check `pickEmojiList` (line ~37): `mode === 'fusion' ? scores.fusion : mode === 'keywords' ? scores.kw : scores.emoji`. `scores.fusion` and `scores.kw` are now raw score arrays (higher = better), not sigmoid probabilities — confirm `pickEmojiList` only ranks by descending value / `argsort` and applies no probability threshold. If it thresholds at `>= 0.5`, change the `fusion` / `keywords` branches to take the top-N by value with no threshold (match how the model list is sliced by `emojiSlots`). Keep the `EMOJI_MODES` array and the masthead toggle unchanged.
 
-- [ ] **Step 7: Delete flexrank web files**
+- [ ] **Step 6: Delete flexrank web files**
 
 ```bash
 git rm web/src/flexrank.js web/src/flexrank.test.js web/src/flexrank.fixture.json
@@ -1274,7 +1209,7 @@ grep -rn "flexrank\|flex.json\|flex_tf\|makeFlexRanker" web/src/
 
 Expected: no matches.
 
-- [ ] **Step 8: Gate**
+- [ ] **Step 7: Gate**
 
 ```bash
 cd web && npm test && npm run build && cd ..
@@ -1282,12 +1217,12 @@ cd web && npm test && npm run build && cd ..
 
 Expected: vitest all green (including new `keywords.test.js` / `fusion.test.js`, minus the removed `flexrank.test.js`); `npm run build` writes `web/dist` with no errors.
 
-- [ ] **Step 9: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
-git add web/src/tokenize.js web/src/keywords.js web/src/keywords.test.js web/src/fusion.js web/src/fusion.test.js web/src/hooks/useOnnx.js web/src/App.jsx web/package.json web/package-lock.json package.json bun.lock
+git add web/src/keywords.js web/src/keywords.test.js web/src/fusion.js web/src/fusion.test.js web/src/hooks/useOnnx.js web/src/App.jsx web/package.json web/package-lock.json package.json bun.lock
 git rm web/src/flexrank.js web/src/flexrank.test.js web/src/flexrank.fixture.json
-git commit -m "feat(web): live Fuse.js keyword predictor + client-side fusion; drop flexrank"
+git commit -m "feat(web): live uFuzzy keyword predictor + client-side fusion; drop flexrank"
 ```
 
 ---
@@ -1301,15 +1236,15 @@ git commit -m "feat(web): live Fuse.js keyword predictor + client-side fusion; d
 
 Rewrite the stale passages (search for each phrase):
 
-- The `## Project` paragraph on `KWHead` / `FusionHead` / `flex_tf` / `loss/fusion`: replace with — `EmojiHead` trains standalone (`lse_infonce`); the keyword signal is a non-learned Fuse.js lookup over `data/ii.json` projected to the emoji vocab, computed offline by `regen.ts` into a sparse `kw` row field and live in the browser; three detached learned combiners `FusionHeadGate` / `FusionHeadGain` / `FusionHeadMix` (in `model/model.py`) each map `(logit_m.detach(), kw)` → fused per-emoji scores, trained in parallel by `lse_infonce`; checkpoint keys on `MRR/fusion/val` = best of the three; stage 1 writes `fusion_gate.pt` / `fusion_gain.pt` / `fusion_mix.pt`.
+- The `## Project` paragraph on `KWHead` / `FusionHead` / `flex_tf` / `loss/fusion`: replace with — `EmojiHead` trains standalone (`lse_infonce`); the keyword signal is a non-learned uFuzzy lookup over `data/ii.json` projected to the emoji vocab (per `normalize(text).split(" ")` word), computed offline by `regen.ts` into a sparse `kw` row field and live in the browser; three detached learned combiners `FusionHeadGate` / `FusionHeadGain` / `FusionHeadMix` (in `model/model.py`) each map `(logit_m.detach(), kw)` → fused per-emoji scores, trained in parallel by `lse_infonce`; checkpoint keys on `MRR/fusion/val` = best of the three; stage 1 writes `fusion_gate.pt` / `fusion_gain.pt` / `fusion_mix.pt`.
 - `model/train.py` bullet: `--heads … fusion` builds all three combiners; drop the `kw.pt` / `fusion.pt` / `FLEX_N` / `KWHead` references; `gan` stage now requires `fusion_{gate,gain,mix}.pt`.
 - `model/export_onnx.py` bullet: two inputs → **one** (`input`); five outputs → **three** (`style_logits`, `emoji_logits`, `color`); `meta.json` gains a `fusion` block (winner variant, `FUSION_EXPORT_VARIANT`); drops `flex_kw` / `flex_n`; `regen.ts` writes `web/public/kwproj.json`.
-- `tools/report.py` bullet: the emoji `acc@k` overlay is now `EmojiHead` / `Keywords` / `Fusion·Gate` / `Fusion·Gain` / `Fusion·Mix` on `data/eval.jsonl`; `keywords_flex.ranked` no longer feeds `regen`.
-- `regen.ts` bullet: `flex_tf` → `kw` (Fuse.js over `data/ii.json`, projected to vocab); `regen` is deterministic again (no report dependency); writes `web/public/kwproj.json`; `--no-kw` skips both.
-- Remove mentions of `model/flexrank.py`, `tools/data/flexrank.ts`, `tools/data/kwvocab.ts`, `web/src/flexrank.js`, `web/src/flexrank.fixture.json`, `web/public/flex.json`, `FLEX_JSON`, `flexrank.fixture.json` conformance, `model/test_flexrank.py`, `web/src/flexrank.test.js`.
+- `tools/report.py` bullet: the emoji `acc@k` overlay is now `EmojiHead` / `Keywords` / `Fusion·Gate` / `Fusion·Gain` / `Fusion·Mix` on `data/eval.jsonl`; `keywords_flex.ranked` no longer feeds `regen`; `query_tokens` moved to `model/tokenize.py`.
+- `regen.ts` bullet: `flex_tf` → `kw` (uFuzzy over `data/ii.json`, projected to vocab, per normalized word); `regen` is deterministic again (no report dependency); writes `web/public/kwproj.json`; `--no-kw` skips both. No bespoke tokenizer — `normalize` + `.split(" ")`.
+- Remove mentions of `model/flexrank.py`, `tools/data/flexrank.ts`, `tools/data/kwvocab.ts`, `web/src/flexrank.js`, `web/src/flexrank.fixture.json`, `web/public/flex.json`, `FLEX_JSON`, `flexrank.fixture.json` conformance, `model/test_flexrank.py`, `web/src/flexrank.test.js`, `FLEX_FIXTURE_TEXTS`, the `flexsearch` dep.
 - `model/pred.py` bullet: `fusion_top_labels` now needs `pt/fusion_gate.pt` + a `kw` field on the row (from `regen`), not `fusion.pt` / `kw.pt` / `flex.json`.
 - `model/config.py` bullet: drop `DROPOUT_KW`; add `FUSION_GATE_PT` / `FUSION_GAIN_PT` / `FUSION_MIX_PT` / `KWPROJ_JSON` to the `files.py` path list; remove `FLEX_JSON` / `KW_PT` / `FUSION_PT`.
-- Web bullet: 3-way masthead toggle unchanged (`fusion` / `model` / `keywords`) but fusion + keyword scoring is now fully client-side (`web/src/keywords.js` live Fuse.js + `web/src/fusion.js`); `flex.json` → `kwproj.json`.
+- Web bullet: 3-way masthead toggle unchanged (`fusion` / `model` / `keywords`) but fusion + keyword scoring is now fully client-side (`web/src/keywords.js` live uFuzzy + `web/src/fusion.js`); `flex.json` → `kwproj.json`; dep `flexsearch` → `@leeoniya/uFuzzy`.
 
 - [ ] **Step 2: Non-training verification suite**
 
@@ -1320,7 +1255,6 @@ uv run python model/test_tokenize.py
 uv run python model/test_model_heads.py
 uv run python model/test_train_cli.py
 uv run python tools/test_report.py
-bun test tools/data/tokenize.test.ts
 cd web && npm test && npm run build && cd ..
 ```
 
@@ -1330,7 +1264,7 @@ Expected: all green.
 
 ```bash
 git add CLAUDE.md
-git commit -m "docs(CLAUDE): simple fusion — three FusionHeads, offline Fuse.js keyword payload"
+git commit -m "docs(CLAUDE): simple fusion — three FusionHeads, offline uFuzzy keyword payload"
 ```
 
 - [ ] **Step 4: Deferred behavioural check (record, do not block)**
@@ -1349,12 +1283,12 @@ State in the handoff that the behavioural gate is a manual `train enc --local` r
 
 | Spec section | Task |
 |---|---|
-| §1.1 Projection | Task 3 Step 7 |
-| §1.2 Tokenizer (3 langs) | Task 1 (`model/tokenize.py`), Task 3 (`tools/data/tokenize.ts`), Task 6 Step 2 (`web/src/tokenize.js`) |
-| §1.3 Fuse index + query | Task 3 Step 7, Task 6 Step 3 |
-| §1.4 Aggregate `kw(e)` | Task 3 Step 7, Task 6 Step 3 |
-| §1.5 Row `kw` field | Task 3 Step 7 |
-| §1.6 `kwproj.json` | Task 3 Step 7 |
+| §1.1 Projection | Task 3 Step 3 |
+| §1.2 no bespoke tokenizer; `model/tokenize.py` for report only | Task 1 (`model/tokenize.py`); Task 3 Step 3 + Task 6 Step 2 both use `normalize().split(" ")` |
+| §1.3 uFuzzy index + per-word query | Task 3 Step 3, Task 6 Step 2 |
+| §1.4 Aggregate `kw(e)` (`sim * w_k`) | Task 3 Step 3, Task 6 Step 2 |
+| §1.5 Row `kw` field | Task 3 Step 3 |
+| §1.6 `kwproj.json` | Task 3 Step 3 |
 | §2 `FusionHeadGain/Mix/Gate` | Task 2 |
 | §3.1 `nn.ModuleDict` heads | Task 4 Step 5 |
 | §3.2 detached step + `loss_emoji` always added | Task 4 Step 5 |
@@ -1371,7 +1305,7 @@ State in the handoff that the behavioural gate is a manual `train enc --local` r
 | §6.2 web modules + wiring + deps | Task 6 |
 | §7 deletions + file inventory | Tasks 3, 4, 6 (`git rm` steps) |
 | §8 verification | Task 7 Step 2 + per-task gates |
-| §9 open risk (no fixture; keyword smoke test) | Task 6 Step 3 (`keywords.test.js`) |
+| §9 open risk (no fixture; keyword smoke test) | Task 6 Step 2 (`keywords.test.js`) |
 
 No gaps.
 
@@ -1384,8 +1318,9 @@ Task 5 Steps 3-4 name locals abstractly (`_acc_at_k`, `eval_text`, `eval_targets
 - `_row_kw(row)` accepts a dict (`row.get("kw")`) or a `record` (`row.kw`) — used with dicts in `pred.py` (Task 4 Step 7) and `report.py` (Task 5 Step 3), with `record` inside `EmojiDataset` (Task 4 Step 3). Matches the old `_row_tf` dual-mode signature.
 - `FusionHead*.forward(logit_m, kw)` — call sites: `train.py` `head(lm, kw)` (Task 4 Step 5), `report.py` `head(logit_m.detach(), kw_dense)` (Task 5 Step 3), `pred.py` `gate(emoji_logits.detach(), kw_vec)` (Task 4 Step 7), tests (Task 2). All pass `[B, N]` / `[B, N]`.
 - `FusionHeadGate.last_a` — set in Task 2, read in `train.py` as `self.fusion["gate"].last_a` (Task 4 Step 5) and asserted in Task 2 tests. Consistent (a non-persistent buffer, scalar).
-- `makeFusion(metaFusion)` / `makeKeywordPredictor(kwprojJson, emojiCount)` — defined Task 6 Steps 3-4, called in `useOnnx.js` Task 6 Step 5 with `m.fusion` and `(kwproj, m.emojis.length)`. Consistent.
-- `meta.json` `fusion` block keys (`variant`, `bn_mean`, `bn_var`, `w`, `b` / `beta` / `g`) — written by `_fusion_meta` (Task 4 Step 6), read by `makeFusion` (Task 6 Step 4). Consistent, including BN `eps = 1e-5`.
-- `FUSION_GATE_PT` / `FUSION_GAIN_PT` / `FUSION_MIX_PT` — defined `files.py` (Task 4 Step 1), consumed in `train.py` (Task 4 Step 5), `export_onnx.py` (Task 4 Step 6), `report.py` (Task 5 Step 2). `KWPROJ_JSON` — `files.py` (Task 4 Step 1) + `files.ts` (Task 3 Step 6); `regen.ts` writes via the `files.ts` constant, web fetches the literal `kwproj.json` path.
+- `makeFusion(metaFusion)` / `makeKeywordPredictor(kwprojJson, emojiCount)` — defined Task 6 Steps 2-3, called in `useOnnx.js` Task 6 Step 4 with `m.fusion` and `(kwproj, m.emojis.length)`. `makeKeywordPredictor.predict` takes an **already-`normalize`d** string; `useOnnx.js` calls `normalize(text, char2idx)` before `predict`. `regen.ts`'s `kwVec` calls `normalize(text)` (from `tools/data/normalize.ts`) — same transform. Consistent.
+- uFuzzy usage — `new uFuzzy({ intraIns: 1 })`, `uf.filter(keys, word)`, `uf.info(idxs, keys, word)` reading `info.idx[i]` / `info.chars[i]`, `sim = info.chars[i] / keys[info.idx[i]].length`, floor `sim >= 0.5` — identical in `regen.ts` (Task 3 Step 3) and `web/src/keywords.js` (Task 6 Step 2). Both tasks carry the same "verify `uf.info` field names" note in case the installed uFuzzy differs.
+- `meta.json` `fusion` block keys (`variant`, `bn_mean`, `bn_var`, `w`, `b` / `beta` / `g`) — written by `_fusion_meta` (Task 4 Step 6), read by `makeFusion` (Task 6 Step 3). Consistent, including BN `eps = 1e-5`.
+- `FUSION_GATE_PT` / `FUSION_GAIN_PT` / `FUSION_MIX_PT` — defined `files.py` (Task 4 Step 1), consumed in `train.py` (Task 4 Step 5), `export_onnx.py` (Task 4 Step 6), `report.py` (Task 5 Step 2). `KWPROJ_JSON` — `files.py` (Task 4 Step 1) + `files.ts` (Task 3 Step 2); `regen.ts` writes via the `files.ts` constant, web fetches the literal `kwproj.json` path.
 
-Fixes applied inline: none needed beyond the notes above.
+Fixes applied inline: renumbered Task 3 (tokenizer steps removed) and Task 6 (no `tokenize.js`) after the uFuzzy swap; cross-references updated.
