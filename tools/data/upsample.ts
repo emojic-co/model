@@ -7,7 +7,12 @@ import { cac } from "cac"
 import cliProgress from "cli-progress"
 import PQueue from "p-queue"
 
-import { DATA_JSONL as DATA, PREVIEW_DIR, REPORT_DIR } from "../../files.ts"
+import {
+  DATA_JSONL as DATA,
+  GROUP_JSON,
+  PREVIEW_DIR,
+  REPORT_DIR,
+} from "../../files.ts"
 import type { Label, PaletteResult } from "./annotate.ts"
 import {
   MODEL,
@@ -312,6 +317,10 @@ async function loadFlags(): Promise<{ emoji: string; country: string }[]> {
   return parseFlagLabels(raw)
 }
 
+async function loadGroups(): Promise<Record<string, string[]>> {
+  return JSON.parse(await readFile(GROUP_JSON, "utf8")) as Record<string, string[]>
+}
+
 function genPrompt(voice: string, emoji: string, per: number): string {
   return [
     `Write ${per} short text messages as if sent by ${voice}, one per line.`,
@@ -486,6 +495,7 @@ cli
   .option("--min-rank <n>", `lowest (most frequent) rank to target (default ${MIN_RANK})`)
   .option("--max-rank <n>", `highest (least frequent) rank to target (default ${MAX_RANK})`)
   .option("--rare", "target the rarest emoji in data.jsonl first, by record count (not standalone)")
+  .option("--group <name>", "target every emoji in one Unicode subgroup from data/group.json (--count caps to a random N; not combinable with a standalone mode / --emojis / --min-rank / --max-rank / --rare)")
   .option("--min-freq <n>", `with --rare, skip emoji with fewer than this many records (default ${RARE_MIN_FREQ})`)
   .option("--max-count <n>", `with --rare, how many of the rarest emoji to target - a target count, not a freq cap (default ${RARE_MAX_COUNT})`)
   .option("--iter <n>", "with --rare, repeat the whole select/generate/annotate/append cycle this many times, recomputing the rarest set each pass (default 1)")
@@ -519,6 +529,8 @@ if (import.meta.main) {
   const reannotColors = reannot && reannotWhat === "colors"
   const reannotEmojis = reannot && reannotWhat === "emojis"
   const rare = Boolean(options.rare)
+  const group = options.group != null
+  const groupName = group ? String(options.group).trim() : ""
   const dry = Boolean(options.dry)
   const minFreq = Number(options.minFreq ?? RARE_MIN_FREQ)
   const maxCount = Number(options.maxCount ?? RARE_MAX_COUNT)
@@ -553,6 +565,8 @@ if (import.meta.main) {
   )
   const flagCap =
     flags && options.count != null ? Number(options.count) : Infinity
+  const groupCap =
+    group && options.count != null ? Number(options.count) : Infinity
 
   if (reannot && !reannotColors && !reannotEmojis) {
     console.error(`--reannotate only supports "colors" or "emojis", got ${JSON.stringify(options.reannotate)}`)
@@ -573,6 +587,23 @@ if (import.meta.main) {
     console.error(
       "--rare cannot be combined with a standalone mode / --emojis / --min-rank / --max-rank",
     )
+    process.exit(1)
+  }
+  if (
+    group
+    && (standalone
+      || rare
+      || only
+      || options.minRank != null
+      || options.maxRank != null)
+  ) {
+    console.error(
+      "--group cannot be combined with a standalone mode / --rare / --emojis / --min-rank / --max-rank",
+    )
+    process.exit(1)
+  }
+  if (group && options.count != null && !(groupCap >= 1)) {
+    console.error(`--count must be >= 1, got ${JSON.stringify(options.count)}`)
     process.exit(1)
   }
   if (
@@ -621,9 +652,9 @@ if (import.meta.main) {
   if (singleEmoji && options.per != null) {
     console.warn("--single-emoji ignores --per")
   }
-  if ((!standalone || colors || kw) && options.count != null) {
+  if ((!standalone || colors || kw) && !group && options.count != null) {
     console.warn(
-      "--count only applies with --negation / --short / --single-emoji / --flags / --reannotate",
+      "--count only applies with --negation / --short / --single-emoji / --flags / --group / --reannotate",
     )
   }
   if (reannot && !(count >= 1)) {
@@ -753,6 +784,36 @@ if (import.meta.main) {
         + `(${counts.get(targets[0])}..${counts.get(targets.at(-1) ?? "")} rows each)`
         + (iters > 1 ? ` [iter ${iterIdx + 1}/${iters}]` : ""),
       )
+    } else if (group) {
+      let groups: Record<string, string[]>
+      try {
+        groups = await loadGroups()
+      } catch {
+        console.error(`${GROUP_JSON} not found - run \`bun run build-groups\` first`)
+        process.exit(1)
+      }
+      const members = groups[groupName]
+      if (!members) {
+        console.error(
+          `unknown group ${JSON.stringify(groupName)}. valid groups:\n  `
+          + Object.keys(groups).join(", "),
+        )
+        process.exit(1)
+      }
+      targets = Number.isFinite(groupCap)
+        ? seededShuffle(members, SEED).slice(0, groupCap)
+        : [...members]
+      if (!targets.length) {
+        console.error(`group ${JSON.stringify(groupName)} has no emoji`)
+        process.exit(1)
+      }
+      console.log(
+        `group ${groupName} -> ${members.length} emoji`
+        + (Number.isFinite(groupCap)
+          ? ` -> random ${targets.length} (seed ${SEED})`
+          : "")
+        + ` -> ${per} texts each`,
+      )
     } else if (only) {
       targets = [...new Set(splitEmojis(only))]
       if (!targets.length) {
@@ -787,11 +848,14 @@ if (import.meta.main) {
                   ? "keywords"
                   : rare
                     ? "rare"
-                    : "emoji-target"
+                    : group
+                      ? "group"
+                      : "emoji-target"
 
     if (dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : ${mode}`)
+      if (group) console.log(`group                : ${groupName}`)
       if (!standalone) {
         console.log(`targets (${targets.length})`.padEnd(21) + `: ${targets.join(" ")}`)
         console.log(`would generate       : ~${targets.length * per} texts (${per}/emoji)`)
@@ -1095,6 +1159,7 @@ if (import.meta.main) {
       if (kw) meta.src = "keywords"
       if (rare) meta.src = "rare"
       if (flags) meta.src = "flags"
+      if (group) meta.src = "group"
       const row: Record<string, unknown> = {
         text: cands[i].text,
         emojis,
@@ -1106,6 +1171,7 @@ if (import.meta.main) {
       if (colors) row.color = cands[i].color
       if (kw) row.keyword = cands[i].keyword
       if (flags) row.flag = cands[i].flag
+      if (group) row.group = groupName
       row.meta = meta
       lines.push(JSON.stringify(row))
     }
@@ -1188,6 +1254,7 @@ if (import.meta.main) {
       `mode                 : ${mode}`
       + (iters > 1 ? ` (iter ${iterIdx + 1}/${iters})` : ""),
     )
+    if (group) console.log(`group                : ${groupName}`)
     if (!standalone) console.log(`targets              : ${targets.length}`)
     if (kw) console.log(`keywords             : ${kwList.length}`)
     if (flags) console.log(`countries            : ${flagList.length}`)

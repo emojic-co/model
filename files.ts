@@ -13,6 +13,7 @@ export const LABELS_JSON = `${DATA_DIR}/labels.json`
 export const CLDR_BASELINE_JSON = `${DATA_DIR}/cldr-baseline.json`
 export const II_JSON = `${DATA_DIR}/ii.json`
 export const EMOJI_POPULARITY_JSON = `${DATA_DIR}/emoji_popularity.json`
+export const GROUP_JSON = `${DATA_DIR}/group.json`
 export const ENERGY_KEYWORDS_TXT = `${DATA_DIR}/energy_keywords.txt`
 export const PRED_JSONL = `${DATA_DIR}/pred.jsonl`
 
@@ -24,3 +25,4 @@ export const RUNS_DIR = "runs"
 export const PREVIEW_DIR = "preview"
 export const DOCS_DIR = "docs"
 export const REGEN_MD = `${DOCS_DIR}/regen.md`
+export const GOALS_YML = "goals.yml"
