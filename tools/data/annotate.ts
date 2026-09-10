@@ -29,6 +29,7 @@ export type PaletteResult = { bg: [string, string]; fg: string }
 export type AnnotateOpts = {
   colors?: boolean
   fillPalette?: boolean
+  paletteHints?: (string | undefined)[]
   onBatchDone?: () => void
 }
 
@@ -197,13 +198,21 @@ export function paletteInstructions(): string {
   ].join("\n")
 }
 
-function instructions(colors: boolean): string {
+const PALETTE_HINT_RULE = [
+  "   When an item carries a \"palette_hint\", bias the bg gradient toward the",
+  "   colours it names (the flag colours of a country the message is about),",
+  "   but keep fg clearly readable against both bg stops - drop the hint",
+  "   before you sacrifice readability.",
+]
+
+function instructions(colors: boolean, paletteHint: boolean): string {
   const parts = [
     "You are an annotator. For each message below choose"
     + (colors ? " three things:" : " two things:"),
     ...EMOJI_RULES,
     ...STYLE_RULES,
     ...(colors ? COLOR_RULES : []),
+    ...(colors && paletteHint ? PALETTE_HINT_RULE : []),
     "",
     "Return exactly one object per input message, echoing its id.",
     "Do not add, drop, reorder, or merge items.",
@@ -382,7 +391,7 @@ function cleanLabel(
 }
 
 async function annotateBatch(
-  batch: { id: number; text: string }[],
+  batch: { id: number; text: string; palette_hint?: string }[],
   colors: boolean,
   fillPalette: boolean,
   usage: Usage,
@@ -406,7 +415,7 @@ async function annotateBatch(
           schema: z.object({ annotations: z.array(Annotation) }),
         }),
         prompt: [
-          instructions(colors),
+          instructions(colors, batch.some((b) => b.palette_hint != null)),
           "",
           "Messages:",
           JSON.stringify(batch),
@@ -454,7 +463,11 @@ export async function annotate(
 ): Promise<Map<number, Label>> {
   const colors = opts.colors ?? false
   const fillPalette = opts.fillPalette ?? false
-  const items = texts.map((text, id) => ({ id, text }))
+  const hints = opts.paletteHints ?? []
+  const items = texts.map((text, id) => {
+    const hint = hints[id]
+    return hint ? { id, text, palette_hint: hint } : { id, text }
+  })
   const result = new Map<number, Label>()
   const queue = new PQueue({ concurrency: ANNOTATE_CONCURRENCY })
 

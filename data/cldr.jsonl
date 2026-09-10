@@ -4764,3 +4764,268 @@
 {"text":"zany face","emojis":"🤪","styles":["Playful"],"bg":["#f6a6d5","#a77bea"],"fg":"#26113d","meta":{"date":"2026-09-09","cldr":true}}
 {"text":"zipper-mouth face","emojis":"🤐","styles":["Deadpan"],"bg":["#b7c8df","#7188b2"],"fg":"#14233d","meta":{"date":"2026-09-09","cldr":true}}
 {"text":"Åland Islands","emojis":"🇦🇽","styles":["Deadpan"],"bg":["#b9d9ee","#6fa8c9"],"fg":"#102a43","meta":{"date":"2026-09-09","cldr":true}}
+{"text": "30", "emojis": "🕜️ 🕝️ 🕞️ 🕟️ 🕠️ 🕡️ 🕢️ 🕣️ 🕤️ 🕥️ 🕦️ 🕧️", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "143", "emojis": "💓 💕 💖 💗 💘 💙 💚 💛 💜 💝 💞 💟 😍 😗 😙 😚 🤍 🤎 🧡 🩵 🩶 🩷", "styles": ["Tender"], "bg": ["#f3c6cf", "#dfa0ad"], "fg": "#541d2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "3rd place medal", "emojis": "🥉", "styles": ["Proud"], "bg": ["#e0a878", "#c07f4a"], "fg": "#3a1f0c", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "ATM sign", "emojis": "🏧", "styles": ["Deadpan"], "bg": ["#b8d4e8", "#89b5d4"], "fg": "#122b3d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "American Samoa", "emojis": "🇦🇸", "styles": ["Deadpan"], "bg": ["#00247d", "#c8102e"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Ascension Island", "emojis": "🇦🇨", "styles": ["Deadpan"], "bg": ["#012169", "#c8102e"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Bahamas", "emojis": "🇧🇸", "styles": ["Deadpan"], "bg": ["#00abc9", "#ffc72c"], "fg": "#0b1b1f", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Bosnia & Herzegovina", "emojis": "🇧🇦", "styles": ["Deadpan"], "bg": ["#002395", "#fecb00"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Botswana", "emojis": "🇧🇼", "styles": ["Deadpan"], "bg": ["#75aadb", "#1a1a1a"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Bulgaria", "emojis": "🇧🇬", "styles": ["Deadpan"], "bg": ["#00966e", "#d62612"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "COOL button", "emojis": "🆒", "styles": ["Playful"], "bg": ["#b8d4e8", "#89b5d4"], "fg": "#122b3d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Colombia", "emojis": "🇨🇴", "styles": ["Deadpan"], "bg": ["#fcd116", "#003893"], "fg": "#1a1a1a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Côte d’Ivoire", "emojis": "🇨🇮", "styles": ["Deadpan"], "bg": ["#f77f00", "#009e60"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "El Salvador", "emojis": "🇸🇻", "styles": ["Deadpan"], "bg": ["#0f47af", "#3d6fd0"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Guernsey", "emojis": "🇬🇬", "styles": ["Deadpan"], "bg": ["#e8112d", "#c00f26"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Guinea", "emojis": "🇬🇳", "styles": ["Deadpan"], "bg": ["#ce1126", "#009460"], "fg": "#fcd116", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Guinea-Bissau", "emojis": "🇬🇼", "styles": ["Deadpan"], "bg": ["#ce1126", "#009e49"], "fg": "#fcd116", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Honduras", "emojis": "🇭🇳", "styles": ["Deadpan"], "bg": ["#0073cf", "#5aa0e0"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Hong Kong SAR China", "emojis": "🇭🇰", "styles": ["Deadpan"], "bg": ["#de2910", "#b21f0d"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Isle of Man", "emojis": "🇮🇲", "styles": ["Deadpan"], "bg": ["#cf142b", "#a91022"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Israel", "emojis": "🇮🇱", "styles": ["Deadpan"], "bg": ["#0038b8", "#4a7fd6"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Japanese", "emojis": "㊗️ ㊙️ 🈁 🈂️ 🈚️ 🈯️ 🈲 🈳 🈴 🈵 🈶 🈷️ 🈸 🈹 🈺 🉐 🉑 🍙 🍡 🎋 🎌 🎍 🎎 🎴 🏣 🏯 🔰", "styles": ["Deadpan"], "bg": ["#e7b8b8", "#d58f8f"], "fg": "#451414", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Japanese castle", "emojis": "🏯", "styles": ["Serene"], "bg": ["#e8d5b8", "#cbb188"], "fg": "#332615", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Japanese “congratulations” button", "emojis": "㊗️", "styles": ["Proud"], "bg": ["#e7b8b8", "#d58f8f"], "fg": "#451414", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Kosovo", "emojis": "🇽🇰", "styles": ["Deadpan"], "bg": ["#244aa5", "#d0a850"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Lithuania", "emojis": "🇱🇹", "styles": ["Deadpan"], "bg": ["#fdb913", "#006a44"], "fg": "#3a1a00", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Luxembourg", "emojis": "🇱🇺", "styles": ["Deadpan"], "bg": ["#ed2939", "#00a1de"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Mauritania", "emojis": "🇲🇷", "styles": ["Deadpan"], "bg": ["#00693f", "#ffc400"], "fg": "#0b2016", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Micronesia", "emojis": "🇫🇲", "styles": ["Deadpan"], "bg": ["#75b2dd", "#a9cfe8"], "fg": "#0d2a3d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Poland", "emojis": "🇵🇱", "styles": ["Deadpan"], "bg": ["#dc143c", "#b01030"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Poseidon", "emojis": "🧜‍♂️", "styles": ["Awed"], "bg": ["#b9c2d6", "#8592b0"], "fg": "#0e1526", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Russia", "emojis": "🇷🇺", "styles": ["Deadpan"], "bg": ["#0039a6", "#d52b1e"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Réunion", "emojis": "🇷🇪", "styles": ["Deadpan"], "bg": ["#0055a4", "#ef4135"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Spain", "emojis": "🇪🇸", "styles": ["Deadpan"], "bg": ["#c60b1e", "#ffc400"], "fg": "#3a0208", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Sri Lanka", "emojis": "🇱🇰", "styles": ["Deadpan"], "bg": ["#8d2029", "#f9a01b"], "fg": "#2a0a0e", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "St. Lucia", "emojis": "🇱🇨", "styles": ["Deadpan"], "bg": ["#66ccff", "#1a1a1a"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Tristan da Cunha", "emojis": "🇹🇦", "styles": ["Deadpan"], "bg": ["#012169", "#1a3a8f"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Tuvalu", "emojis": "🇹🇻", "styles": ["Deadpan"], "bg": ["#5b97dd", "#9cc4ea"], "fg": "#0d2a44", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "UP! button", "emojis": "🆙", "styles": ["Playful"], "bg": ["#d8f0d2", "#a8d8c0"], "fg": "#123b32", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "United Nations", "emojis": "🇺🇳", "styles": ["Deadpan"], "bg": ["#5b92e5", "#8fb8ef"], "fg": "#0d2a52", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Venezuela", "emojis": "🇻🇪", "styles": ["Deadpan"], "bg": ["#ffcc00", "#00247d"], "fg": "#3a2a00", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Western Sahara", "emojis": "🇪🇭", "styles": ["Deadpan"], "bg": ["#007a3d", "#c4111b"], "fg": "#ffffff", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "Zimbabwe", "emojis": "🇿🇼", "styles": ["Deadpan"], "bg": ["#006400", "#ffd200"], "fg": "#0b1f0b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "accessibility", "emojis": "🐕‍🦺 👨‍🦯 👨‍🦯‍➡️ 👨‍🦼 👨‍🦼‍➡️ 👨‍🦽 👨‍🦽‍➡️ 👩‍🦯 👩‍🦯‍➡️ 👩‍🦼 👩‍🦼‍➡️ 👩‍🦽 👩‍🦽‍➡️ 🛗 🦮 🦯 🦻 🦼 🦽 🦾 🦿 🧏 🧏‍♀️ 🧏‍♂️ 🧑‍🦯 🧑‍🦯‍➡️ 🧑‍🦼 🧑‍🦼‍➡️ 🧑‍🦽 🧑‍🦽‍➡️", "styles": ["Earnest"], "bg": ["#b8d4e8", "#89b5d4"], "fg": "#122b3d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "adult", "emojis": "👨 👨‍🦰 👨‍🦱 👨‍🦲 👨‍🦳 👩 👩‍🦰 👩‍🦱 👩‍🦲 👩‍🦳 👴 👵 🧑 🧑‍🦰 🧑‍🦱 🧑‍🦲 🧑‍🦳 🧑‍🧑‍🧒 🧑‍🧑‍🧒‍🧒 🧑‍🧒 🧑‍🧒‍🧒 🧓", "styles": ["Earnest"], "bg": ["#e8d5b8", "#cbb188"], "fg": "#332615", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "anger symbol", "emojis": "💢", "styles": ["Furious"], "bg": ["#e8b1aa", "#c96f68"], "fg": "#3b1414", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "animal", "emojis": "🐀 🐁 🐂 🐃 🐄 🐅 🐆 🐇 🐈‍⬛ 🐈️ 🐉 🐊 🐋 🐌 🐍 🐎 🐏 🐐 🐑 🐒 🐓 🐔 🐕‍🦺 🐕️ 🐖 🐗 🐘 🐙 🐚 🐛 🐜 🐝 🐞 🐟️ 🐠 🐡 🐢 🐣 🐤 🐥 🐦‍⬛ 🐦️ 🐧 🐨 🐩 🐪 🐫 🐬 🐭 🐮 🐯 🐰 🐱 🐲 🐳 🐴 🐵 🐶 🐷 🐸 🐹 🐺 🐻 🐻‍❄️ 🐼 🐽 🐿️ 🕷️ 😸 😹 😺 😻 😼 😽 😾 😿 🙀 🙉 🙊 🦁 🦅 🦆 🦇 🦈 🦉 🦊 🦌 🦍 🦎 🦏 🦑 🦒 🦓 🦔 🦗 🦘 🦙 🦚 🦛 🦜 🦝 🦞 🦡 🦢 🦣 🦤 🦦 🦧 🦨 🦩 🦫 🦬 🦭 🦮 🪰 🪱 🪲 🪳 🪼 🪿 🫎 🫏", "styles": ["Whimsical"], "bg": ["#c8d9c1", "#8caf91"], "fg": "#1e3024", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "anniversary", "emojis": "👨‍❤️‍👨 👨‍❤️‍💋‍👨 👩‍❤️‍👨 👩‍❤️‍👩 👩‍❤️‍💋‍👨 👩‍❤️‍💋‍👩 💏 💐 💑 💕 💝 💞", "styles": ["Tender"], "bg": ["#f3c6cf", "#dfa0ad"], "fg": "#541d2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "arrow", "emojis": "↔️ ↕️ ↖️ ↗️ ↘️ ↙️ ↩️ ↪️ ⏩️ ⏪️ ⏫️ ⏬️ ⏭️ ⏮️ ⏯️ ▶️ ◀️ ➡️ ⤴️ ⤵️ ⬅️ ⬆️ ⬇️ 🏹 💘 📩 📲 🔀 🔁 🔂 🔃 🔄 🔙 🔚 🔛 🔜 🔝 🔼 🔽", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "baby", "emojis": "🍼 🐣 🐤 🐥 👨‍🍼 👩‍🍼 👶 👼 🚼️ 🤱 🧑‍🍼", "styles": ["Tender"], "bg": ["#f0b8c4", "#db8fa0"], "fg": "#4a1622", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "bae", "emojis": "👨‍❤️‍👨 👨‍❤️‍💋‍👨 👩‍❤️‍👨 👩‍❤️‍👩 👩‍❤️‍💋‍👨 👩‍❤️‍💋‍👩 👫 👬 👭 💏 💑 😍 😘 😚 🧑‍🤝‍🧑", "styles": ["Tender"], "bg": ["#f0b8c4", "#db8fa0"], "fg": "#4a1622", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "baggage claim", "emojis": "🛄", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "ball", "emojis": "⚽️ ⚾️ ⛹️ ⛹️‍♀️ ⛹️‍♂️ 🍙 🎊 🎱 🎳 🎾 🏀 🏈 🏉 🏌️ 🏌️‍♀️ 🏌️‍♂️ 🏏 🏐 🏑 🏓 🔮 🤾 🤾‍♀️ 🤾‍♂️ 🥍 🥎 🧶 🪩", "styles": ["Determined"], "bg": ["#f4b183", "#d97745"], "fg": "#3b1708", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "bank", "emojis": "🏦 🏧 💰️ 💱 💳️ 💴 💵 💶 💷 💸 💹", "styles": ["Deadpan"], "bg": ["#b9d9b0", "#82b77d"], "fg": "#17351a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "bar", "emojis": "⏸️ 🍫 🍶 🍷 🍸️ 🍹 🍺 🍻 🍾 🏮 📊 📶 🧼", "styles": ["Playful"], "bg": ["#e8c38f", "#c98752"], "fg": "#3a2418", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "beach", "emojis": "🌞 🌴 🏄‍♀️ 🏄‍♂️ 🏄️ 🏖️ 🐋 🐚 🐬 🐳 👙 😎 🩴", "styles": ["Serene"], "bg": ["#bfe4e0", "#8fc9c2"], "fg": "#0e302c", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "beating heart", "emojis": "💓", "styles": ["Tender"], "bg": ["#f3c6cf", "#dfa0ad"], "fg": "#541d2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "bird", "emojis": "🐓 🐔 🐣 🐤 🐥 🐦‍⬛ 🐦️ 🐧 🕊️ 🦃 🦅 🦆 🦉 🦚 🦜 🦢 🦤 🦩 🪶 🪺 🪽 🪿", "styles": ["Whimsical"], "bg": ["#c8d9c1", "#8caf91"], "fg": "#1e3024", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "biting lip", "emojis": "🫦", "styles": ["Playful"], "bg": ["#f0b8c4", "#db8fa0"], "fg": "#4a1622", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "black", "emojis": "▪️ ◼️ ◾️ ⚫️ ✒️ ⬛️ 🏴 🐈‍⬛ 🐦‍⬛ 🔲 🖤", "styles": ["Deadpan"], "bg": ["#b9c2d6", "#8592b0"], "fg": "#0e1526", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "blue", "emojis": "🏳️‍⚧️ 👕 👖 💙 📘 🔵 🔷 🔹 😰 🟦 🥶 🧿 🩵 🫐", "styles": ["Serene"], "bg": ["#b8d4e8", "#89b5d4"], "fg": "#122b3d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "box", "emojis": "☑️ 🍱 🎁 📤️ 📥️ 📦️ 🗃️ 🗳️ 🥡 🧃 🧰 🪗", "styles": ["Deadpan"], "bg": ["#e8c38f", "#c98752"], "fg": "#3a2418", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "boy", "emojis": "👦 👨‍👦 👨‍👦‍👦 👨‍👧‍👦 👨‍👨‍👦 👨‍👨‍👦‍👦 👨‍👨‍👧‍👦 👨‍👩‍👦 👨‍👩‍👦‍👦 👨‍👩‍👧‍👦 👩‍👦 👩‍👦‍👦 👩‍👧‍👦 👩‍👩‍👦 👩‍👩‍👦‍👦 👩‍👩‍👧‍👦", "styles": ["Earnest"], "bg": ["#e8d5b8", "#cbb188"], "fg": "#332615", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "building", "emojis": "🌆 🌇 🏗️ 🏛️ 🏠️ 🏡 🏢 🏣 🏤 🏥 🏦 🏨 🏩 🏪 🏫 🏬 🏭️ 🏯 🏰", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "button", "emojis": "⏏️ ⏩️ ⏪️ ⏫️ ⏬️ ⏭️ ⏮️ ⏯️ ⏸️ ⏹️ ⏺️ ▶️ ◀️ ✅️ ❎️ ㊗️ ㊙️ 🅰️ 🅱️ 🅾️ 🅿️ 🆎 🆑 🆒 🆓 🆔 🆕 🆖 🆗 🆘 🆙 🆚 🈁 🈂️ 🈚️ 🈯️ 🈲 🈳 🈴 🈵 🈶 🈷️ 🈸 🈹 🈺 🉐 🉑 🔀 🔁 🔂 🔄 🔅 🔆 🔘 🔲 🔳 🔼 🔽", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "car", "emojis": "🏎️ 🚃 🚋 🚓 🚔️ 🚕 🚗 🚘️ 🚙 🚚 🚛 🚞 🚡 🚨 🛞 🛻", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "card", "emojis": "♠️ ♣️ ♥️ ♦️ 🃏 🎴 💳️ 📇 🗂️ 🗃️ 🟥 🟨 🪧 🪪", "styles": ["Playful"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "cat", "emojis": "🐅 🐆 🐈‍⬛ 🐈️ 🐯 🐱 😸 😹 😺 😻 😼 😽 😾 😿 🙀", "styles": ["Whimsical"], "bg": ["#e8c38f", "#c98752"], "fg": "#3a2418", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "celebration", "emojis": "🎀 🎁 🎂 🎃 🎄 🎅 🎆 🎇 🎈 🎉 🎊 🎋 🎌 🎍 🎎 🎏 🎐 🎑 🎓️ 🎖️ 🎗️ 🙌 🤶 🥳 🧑‍🎄 🪅", "styles": ["Joyful"], "bg": ["#f4b183", "#d97745"], "fg": "#3b1708", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "child", "emojis": "👦 👧 👨‍👦 👨‍👦‍👦 👨‍👧 👨‍👧‍👦 👨‍👧‍👧 👨‍👨‍👦 👨‍👨‍👦‍👦 👨‍👨‍👧 👨‍👨‍👧‍👦 👨‍👨‍👧‍👧 👨‍👩‍👦 👨‍👩‍👦‍👦 👨‍👩‍👧 👨‍👩‍👧‍👦 👨‍👩‍👧‍👧 👩‍👦 👩‍👦‍👦 👩‍👧 👩‍👧‍👦 👩‍👧‍👧 👩‍👩‍👦 👩‍👩‍👦‍👦 👩‍👩‍👧 👩‍👩‍👧‍👦 👩‍👩‍👧‍👧 👪️ 🚸 🧑‍🧑‍🧒 🧑‍🧑‍🧒‍🧒 🧑‍🧒 🧑‍🧒‍🧒 🧒", "styles": ["Tender"], "bg": ["#e8d5b8", "#cbb188"], "fg": "#332615", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "circle", "emojis": "⏺️ Ⓜ️ ⚪️ ⚫️ ⭕️ 🔴 🔵 🛞 🟠 🟡 🟢 🟣 🟤", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "clock", "emojis": "⌚️ ⏰️ ⏱️ ⏲️ 🕐️ 🕑️ 🕒️ 🕓️ 🕔️ 🕕️ 🕖️ 🕗️ 🕘️ 🕙️ 🕚️ 🕛️ 🕜️ 🕝️ 🕞️ 🕟️ 🕠️ 🕡️ 🕢️ 🕣️ 🕤️ 🕥️ 🕦️ 🕧️ 🕰️", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "closed", "emojis": "🌂 📕 📪️ 📫️ 🔐 🔒️ 😆 😙 😚 😝 😽", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "closed book", "emojis": "📕", "styles": ["Deadpan"], "bg": ["#e7b8b8", "#d58f8f"], "fg": "#451414", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "clothes", "emojis": "🎩 👒 👕 👖 👗 👚 👛 👜 👝 👞 👟 👠 👢 🥼", "styles": ["Playful"], "bg": ["#e8c38f", "#c98752"], "fg": "#3a2418", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "clothing", "emojis": "☂️ ☔️ 🌂 🎓️ 🎩 👑 👒 👓️ 👔 👕 👖 👗 👘 👙 👚 👛 👜 👝 👞 👟 👠 👡 👢 👣 📿 🥻", "styles": ["Playful"], "bg": ["#e8c38f", "#c98752"], "fg": "#3a2418", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "cloud", "emojis": "☁️ ⛅️ ⛈️ 🌤️ 🌥️ 🌦️ 🌧️ 🌨️ 🌩️ 🌪️ 🌫️ 🌬️ 💨 💭", "styles": ["Serene"], "bg": ["#d3e6f0", "#a9c9dd"], "fg": "#12303d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "clutch bag", "emojis": "👝", "styles": ["Playful"], "bg": ["#e8c38f", "#c98752"], "fg": "#3a2418", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "cold", "emojis": "☃️ ⛄️ ❄️ 🌨️ 🏔️ 💧 😅 😓 😰 😷 🥶 🧊 🧣 🧥", "styles": ["Tense"], "bg": ["#d3e6f0", "#a9c9dd"], "fg": "#12303d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "comic", "emojis": "💠 💡 💢 💣️ 💤 💥 💦 💧 💨 💩 💫 💬 💭", "styles": ["Playful"], "bg": ["#c9b8e8", "#9d86c7"], "fg": "#21152f", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "communication", "emojis": "📝 📞 📟️ 📠 📢 📦️ 📩 📫️ 📰 📱 📲 📳 📶", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "computer", "emojis": "⌨️ 👨‍💻 👩‍💻 💻️ 💽 💾 💿️ 📀 🖥️ 🖨️ 🖱️ 🖲️ 🛜 🧑‍💻", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "computer disk", "emojis": "💽", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "couch and lamp", "emojis": "🛋️", "styles": ["Serene"], "bg": ["#e8c38f", "#c98752"], "fg": "#3a2418", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "counterclockwise arrows button", "emojis": "🔄", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "couple", "emojis": "👨‍❤️‍👨 👨‍❤️‍💋‍👨 👩‍❤️‍👨 👩‍❤️‍👩 👩‍❤️‍💋‍👨 👩‍❤️‍💋‍👩 👫 👬 👭 💏 💑 🧑‍🤝‍🧑", "styles": ["Tender"], "bg": ["#f3c6cf", "#dfa0ad"], "fg": "#541d2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "couple with heart", "emojis": "💑", "styles": ["Tender"], "bg": ["#f3c6cf", "#dfa0ad"], "fg": "#541d2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "couple with heart: woman, man", "emojis": "👩‍❤️‍👨", "styles": ["Tender"], "bg": ["#f3c6cf", "#dfa0ad"], "fg": "#541d2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "cross", "emojis": "☦️ ⛑️ ⛪️ ✝️ ❌️ ❎️ 🎌 🤞 🧘 🧘‍♀️ 🧘‍♂️", "styles": ["Earnest"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "crossed swords", "emojis": "⚔️", "styles": ["Determined"], "bg": ["#aebdce", "#77899f"], "fg": "#101c2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "crying face", "emojis": "😢", "styles": ["Melancholy"], "bg": ["#aebdce", "#77899f"], "fg": "#101c2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "date", "emojis": "👨‍❤️‍💋‍👨 👩‍❤️‍💋‍👨 👩‍❤️‍💋‍👩 💄 💏 💐 💕 💘 📅 😗 😙 😚", "styles": ["Tender"], "bg": ["#f0b8c4", "#db8fa0"], "fg": "#4a1622", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "dating", "emojis": "👨‍❤️‍👨 👨‍❤️‍💋‍👨 👩‍❤️‍👨 👩‍❤️‍👩 👩‍❤️‍💋‍👨 👩‍❤️‍💋‍👩 👫 👬 👭 💋 💏 💑 💕 😗 😙 😚 🧑‍🤝‍🧑", "styles": ["Tender"], "bg": ["#f0b8c4", "#db8fa0"], "fg": "#4a1622", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "dead", "emojis": "☠️ ⚰️ 💀 😑 😳 😵 🧟 🧟‍♀️ 🧟‍♂️ 🪦 🪾", "styles": ["Melancholy"], "bg": ["#b9c2d6", "#8592b0"], "fg": "#0e1526", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "dessert", "emojis": "🍡 🍦 🍧 🍨 🍩 🍪 🍫 🍬 🍭 🍮 🍰 🎂 🧁", "styles": ["Playful"], "bg": ["#f0b8c4", "#db8fa0"], "fg": "#4a1622", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "diving mask", "emojis": "🤿", "styles": ["Playful"], "bg": ["#bfe4e0", "#8fc9c2"], "fg": "#0e302c", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "down", "emojis": "⏬️ ⤵️ ⬇️ 🐨 👇️ 👎️ 📉 📩 🔻 🔽 🫳", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "drink", "emojis": "☕️ 🍵 🍶 🍷 🍸️ 🍹 🍺 🍼 🍾 🏺 🥂 🥛 🥤 🧉 🫖 🫗", "styles": ["Playful"], "bg": ["#e8c38f", "#c98752"], "fg": "#3a2418", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "eight o’clock", "emojis": "🕗️", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "eight-pointed star", "emojis": "✴️", "styles": ["Awed"], "bg": ["#c3c0d8", "#9a95bd"], "fg": "#171531", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "emotion", "emojis": "♥️ ❤️ 💋 💓 💔 💕 💖 💗 💘 💙 💚 💛 💜 💝 💞 💟 🩵 🩶 🩷", "styles": ["Tender"], "bg": ["#f3c6cf", "#dfa0ad"], "fg": "#541d2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "excited", "emojis": "🎉 👏 👻 💖 💗 😅 🤩 🤸 🤸‍♀️ 🤸‍♂️ 🥳", "styles": ["Excited"], "bg": ["#f4b183", "#d97745"], "fg": "#3b1708", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "eye", "emojis": "👀 👁️ 👁️‍🗨️ 👓️ 🕶️ 😁 😄 😊 😍 😙 😚 😜 😝 😸 😻 😽 🤪 🥽 🫣", "styles": ["Playful"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "eyes", "emojis": "👀 😁 😃 😄 😆 😊 😙 😚 😝 😵 😵‍💫 😸 😽 🙄 🤩 🤪 🥴 🥺 🫢 🫩", "styles": ["Playful"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "face", "emojis": "☠️ ☹️ ☺️ ⛑️ 🌚 🌛 🌜️ 🌝 🌞 🌬️ 🐨 🐭 🐮 🐯 🐰 🐱 🐲 🐳 🐴 🐵 🐶 🐷 🐸 🐹 🐺 🐻 🐼 🐽 👀 👹 👺 👻 👼 👽️ 👾 👿 💀 💆 💆‍♀️ 💆‍♂️ 💩 🗣️ 🗿 😀 😁 😂 😃 😄 😅 😆 😇 😈 😉 😊 😋 😌 😍 😎 😏 😐️ 😑 😒 😓 😔 😕 😖 😗 😘 😙 😚 😛 😜 😝 😞 😟 😠 😡 😢 😣 😤 😥 😦 😧 😨 😩 😪 😫 😬 😭 😮 😮‍💨 😯 😰 😱 😲 😳 😴 😵 😵‍💫 😶 😶‍🌫️ 😷 😸 😹 😺 😻 😼 😽 😾 😿 🙀 🙁 🙂 🙃 🙄 🙈 🙉 🙊 🤐 🤑 🤒 🤓 🤔 🤕 🤖 🤗 🤠 🤡 🤢 🤣 🤤 🤥 🤧 🤨 🤩 🤪 🤫 🤬 🤭 🤮 🥰 🥱 🥲 🥳 🥴 🥵 🥶 🥸 🥹 🥺 🦁 🦄 🦊 🧐 🫠 🫡 🫢 🫣 🫤 🫥 🫨 🫩", "styles": ["Playful"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "face holding back tears", "emojis": "🥹", "styles": ["Wistful"], "bg": ["#e8c38f", "#c98752"], "fg": "#3a2418", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "facing", "emojis": "🏃‍♀️‍➡️ 🏃‍♂️‍➡️ 🏃‍➡️ 👨‍🦯‍➡️ 👨‍🦼‍➡️ 👨‍🦽‍➡️ 👩‍🦯‍➡️ 👩‍🦼‍➡️ 👩‍🦽‍➡️ 📄 🚶‍♀️‍➡️ 🚶‍♂️‍➡️ 🚶‍➡️ 🧎‍♀️‍➡️ 🧎‍♂️‍➡️ 🧎‍➡️ 🧑‍🦯‍➡️ 🧑‍🦼‍➡️ 🧑‍🦽‍➡️", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "factory worker", "emojis": "🧑‍🏭", "styles": ["Determined"], "bg": ["#aebdce", "#77899f"], "fg": "#101c2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "fairy", "emojis": "🎅 🐉 🐲 👸 👹 👺 👻 👼 👽️ 👾 👿 💀 🔮 😇 😈 🤴 🤶 🧌 🧑‍🎄 🧚 🧚‍♀️ 🧚‍♂️", "styles": ["Whimsical"], "bg": ["#d9c0df", "#b088b9"], "fg": "#32173a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "fairytale", "emojis": "🐉 🐲 👸 👹 👺 👻 👼 👽️ 👾 👿 💀 🔮 😇 😈 🤴 🧚 🧚‍♀️ 🧚‍♂️ 🧜 🧜‍♀️ 🧜‍♂️", "styles": ["Whimsical"], "bg": ["#d9c0df", "#b088b9"], "fg": "#32173a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "fallen leaf", "emojis": "🍂", "styles": ["Wistful"], "bg": ["#e8c38f", "#c98752"], "fg": "#3a2418", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "family", "emojis": "👑 👨‍👦 👨‍👦‍👦 👨‍👧 👨‍👧‍👦 👨‍👧‍👧 👨‍👨‍👦 👨‍👨‍👦‍👦 👨‍👨‍👧 👨‍👨‍👧‍👦 👨‍👨‍👧‍👧 👨‍👩‍👦 👨‍👩‍👦‍👦 👨‍👩‍👧 👨‍👩‍👧‍👦 👨‍👩‍👧‍👧 👩‍👦 👩‍👦‍👦 👩‍👧 👩‍👧‍👦 👩‍👧‍👧 👩‍👩‍👦 👩‍👩‍👦‍👦 👩‍👩‍👧 👩‍👩‍👧‍👦 👩‍👩‍👧‍👧 👪️ 🧑‍🧑‍🧒 🧑‍🧑‍🧒‍🧒 🧑‍🧒 🧑‍🧒‍🧒", "styles": ["Tender"], "bg": ["#e8c38f", "#c98752"], "fg": "#3a2418", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "fantasy", "emojis": "🎅 🐦‍🔥 👸 👹 👺 👻 👼 👽️ 👾 👿 📖 📗 📘 📙 📚️ 🔮 😇 😈 🤴 🤶 🧌 🧑‍🎄 🧙 🧙‍♀️ 🧙‍♂️ 🧚 🧚‍♀️ 🧚‍♂️ 🧝 🧝‍♀️ 🧝‍♂️ 🧞 🧞‍♀️ 🧞‍♂️", "styles": ["Whimsical"], "bg": ["#d9c0df", "#b088b9"], "fg": "#32173a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "farm", "emojis": "🌽 🐂 🐄 🐎 🐐 🐑 🐖 🐮 🐴 🐷 🐽", "styles": ["Serene"], "bg": ["#c8d9c1", "#8caf91"], "fg": "#1e3024", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "fast", "emojis": "⏩️ ⏪️ ⏫️ ⏬️ 🍔 🍟 🏃 🏃‍♀️ 🏃‍♀️‍➡️ 🏃‍♂️ 🏃‍♂️‍➡️ 🏃‍➡️ 👟 💨", "styles": ["Determined"], "bg": ["#aebdce", "#77899f"], "fg": "#101c2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "feels", "emojis": "😂 😍 😓 😖 😠 😡 😢 😤 😩 😫 😵", "styles": ["Melancholy"], "bg": ["#aebdce", "#77899f"], "fg": "#101c2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "finger", "emojis": "☝️ 👆️ 👇️ 👈️ 👉️ 🖐️ 🖕 🖖 🤘 🤞 🫰 🫵", "styles": ["Deadpan"], "bg": ["#e8d5b8", "#cbb188"], "fg": "#332615", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "fishing pole", "emojis": "🎣", "styles": ["Serene"], "bg": ["#bfe4e0", "#8fc9c2"], "fg": "#0e302c", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "five o’clock", "emojis": "🕔️", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "flag", "emojis": "⛳️ 🇦🇨 🇦🇩 🇦🇪 🇦🇫 🇦🇬 🇦🇮 🇦🇱 🇦🇲 🇦🇴 🇦🇶 🇦🇷 🇦🇸 🇦🇹 🇦🇺 🇦🇼 🇦🇽 🇦🇿 🇧🇦 🇧🇧 🇧🇩 🇧🇪 🇧🇫 🇧🇬 🇧🇭 🇧🇮 🇧🇯 🇧🇱 🇧🇲 🇧🇳 🇧🇴 🇧🇶 🇧🇷 🇧🇸 🇧🇹 🇧🇻 🇧🇼 🇧🇾 🇧🇿 🇨🇦 🇨🇨 🇨🇩 🇨🇫 🇨🇬 🇨🇭 🇨🇮 🇨🇰 🇨🇱 🇨🇲 🇨🇳 🇨🇴 🇨🇵 🇨🇶 🇨🇷 🇨🇺 🇨🇻 🇨🇼 🇨🇽 🇨🇾 🇨🇿 🇩🇪 🇩🇬 🇩🇯 🇩🇰 🇩🇲 🇩🇴 🇩🇿 🇪🇦 🇪🇨 🇪🇪 🇪🇬 🇪🇭 🇪🇷 🇪🇸 🇪🇹 🇪🇺 🇫🇮 🇫🇯 🇫🇰 🇫🇲 🇫🇴 🇫🇷 🇬🇦 🇬🇧 🇬🇩 🇬🇪 🇬🇫 🇬🇬 🇬🇭 🇬🇮 🇬🇱 🇬🇲 🇬🇳 🇬🇵 🇬🇶 🇬🇷 🇬🇸 🇬🇹 🇬🇺 🇬🇼 🇬🇾 🇭🇰 🇭🇲 🇭🇳 🇭🇷 🇭🇹 🇭🇺 🇮🇨 🇮🇩 🇮🇪 🇮🇱 🇮🇲 🇮🇳 🇮🇴 🇮🇶 🇮🇷 🇮🇸 🇮🇹 🇯🇪 🇯🇲 🇯🇴 🇯🇵 🇰🇪 🇰🇬 🇰🇭 🇰🇮 🇰🇲 🇰🇳 🇰🇵 🇰🇷 🇰🇼 🇰🇾 🇰🇿 🇱🇦 🇱🇧 🇱🇨 🇱🇮 🇱🇰 🇱🇷 🇱🇸 🇱🇹 🇱🇺 🇱🇻 🇱🇾 🇲🇦 🇲🇨 🇲🇩 🇲🇪 🇲🇫 🇲🇬 🇲🇭 🇲🇰 🇲🇱 🇲🇲 🇲🇳 🇲🇴 🇲🇵 🇲🇶 🇲🇷 🇲🇸 🇲🇹 🇲🇺 🇲🇻 🇲🇼 🇲🇽 🇲🇾 🇲🇿 🇳🇦 🇳🇨 🇳🇪 🇳🇫 🇳🇬 🇳🇮 🇳🇱 🇳🇴 🇳🇵 🇳🇷 🇳🇺 🇳🇿 🇴🇲 🇵🇦 🇵🇪 🇵🇫 🇵🇬 🇵🇭 🇵🇰 🇵🇱 🇵🇲 🇵🇳 🇵🇷 🇵🇸 🇵🇹 🇵🇼 🇵🇾 🇶🇦 🇷🇪 🇷🇴 🇷🇸 🇷🇺 🇷🇼 🇸🇦 🇸🇧 🇸🇨 🇸🇩 🇸🇪 🇸🇬 🇸🇭 🇸🇮 🇸🇯 🇸🇰 🇸🇱 🇸🇲 🇸🇳 🇸🇴 🇸🇷 🇸🇸 🇸🇹 🇸🇻 🇸🇽 🇸🇾 🇸🇿 🇹🇦 🇹🇨 🇹🇩 🇹🇫 🇹🇬 🇹🇭 🇹🇯 🇹🇰 🇹🇱 🇹🇲 🇹🇳 🇹🇴 🇹🇷 🇹🇹 🇹🇻 🇹🇼 🇹🇿 🇺🇦 🇺🇬 🇺🇲 🇺🇳 🇺🇸 🇺🇾 🇺🇿 🇻🇦 🇻🇨 🇻🇪 🇻🇬 🇻🇮 🇻🇳 🇻🇺 🇼🇫 🇼🇸 🇽🇰 🇾🇪 🇾🇹 🇿🇦 🇿🇲 🇿🇼 🏁 🏳️ 🏳️‍⚧️ 🏳️‍🌈 🏴 🏴‍☠️ 🏴󠁧󠁢󠁥󠁮󠁧󠁿 🏴󠁧󠁢󠁳󠁣󠁴󠁿 🏴󠁧󠁢󠁷󠁬󠁳󠁿 📪️ 📫️ 📬️ 📭️ 🚩", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "flirt", "emojis": "👫 👬 👭 😉 😏 😗 😘 😙 😚 🧑‍🤝‍🧑 🪭 🫦", "styles": ["Playful"], "bg": ["#f0b8c4", "#db8fa0"], "fg": "#4a1622", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "flower", "emojis": "🌷 🌸 🌹 🌺 🌻 🌼 🎴 💐 💮 🥀 🪷 🪻", "styles": ["Joyful"], "bg": ["#f0b8c4", "#db8fa0"], "fg": "#4a1622", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "food", "emojis": "🍄‍🟫 🍅 🍎 🍔 🍕 🍘 🍙 🍚 🍛 🍜 🍝 🍞 🍟 🍠 🍢 🍣 🍥 🍦 🍨 🍩 🍭 🍯 🍱 🍲 🍴 😋 🥐 🥑 🥒 🥓 🥔 🥕 🥖 🥗 🥘 🥙 🥚 🥜 🥝 🥞 🥡 🥫 🥭 🦐 🦑 🧋 🫐 🫑 🫒 🫓 🫔 🫕 🫖 🫘 🫜", "styles": ["Serene"], "bg": ["#e8c38f", "#c98752"], "fg": "#3a2418", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "forbidden", "emojis": "⛔️ 📵 🔕 🔞 🙅 🙅‍♀️ 🙅‍♂️ 🙈 🙉 🙊 🚫 🚭️ 🚯 🚳 🚷", "styles": ["Irritated"], "bg": ["#e7b8b8", "#d58f8f"], "fg": "#451414", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "fruit", "emojis": "🍅 🍇 🍈 🍉 🍊 🍋 🍋‍🟩 🍌 🍍 🍎 🍏 🍐 🍑 🍒 🍓 🥑 🥝 🥧 🥭 🫐", "styles": ["Playful"], "bg": ["#f4b183", "#d97745"], "fg": "#3b1708", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "game", "emojis": "♠️ ♣️ ♥️ ♦️ 🀄️ 🃏 🎮️ 🎯 🎰 🎱 🎲 🎳 🎴 🏁 🏏 🏐 🏑 🏒 🏓 🏸 👾 🕹️ 🥌", "styles": ["Playful"], "bg": ["#c9b8e8", "#9d86c7"], "fg": "#21152f", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "geometric", "emojis": "▪️ ▫️ ◻️ ◼️ ◽️ ◾️ ⚪️ ⚫️ ⬛️ ⬜️ 💠 🔘 🔲 🔳 🔴 🔵 🔶 🔷 🔸 🔹 🔺 🔻", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "gesture", "emojis": "🙅 🙅‍♀️ 🙅‍♂️ 🙆 🙆‍♀️ 🙆‍♂️ 🙇 🙇‍♀️ 🙇‍♂️ 🙈 🙉 🙊 🙋 🙋‍♀️ 🙋‍♂️ 🙌 🙍 🙍‍♀️ 🙍‍♂️ 🙏 🤌 🤟 🧏 🧏‍♀️ 🧏‍♂️", "styles": ["Deadpan"], "bg": ["#e8d5b8", "#cbb188"], "fg": "#332615", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "girl", "emojis": "👧 👨‍👧 👨‍👧‍👦 👨‍👧‍👧 👨‍👨‍👧 👨‍👨‍👧‍👦 👨‍👨‍👧‍👧 👨‍👩‍👧 👨‍👩‍👧‍👦 👨‍👩‍👧‍👧 👩‍👧 👩‍👧‍👦 👩‍👧‍👧 👩‍👩‍👧 👩‍👩‍👧‍👦 👩‍👩‍👧‍👧", "styles": ["Earnest"], "bg": ["#e8d5b8", "#cbb188"], "fg": "#332615", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "good", "emojis": "👍️ 👎️ 👏 💖 💤 😪 😴 🛌 🦸 🦸‍♀️ 🦸‍♂️ 🧧 🫡", "styles": ["Hopeful"], "bg": ["#d8f0d2", "#a8d8c0"], "fg": "#123b32", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "green", "emojis": "🌳 🍏 🏌️ 🏌️‍♀️ 🏌️‍♂️ 💚 📗 🔰 🟢 🟩 🥗 🥬", "styles": ["Serene"], "bg": ["#b9d9b0", "#82b77d"], "fg": "#17351a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "green book", "emojis": "📗", "styles": ["Deadpan"], "bg": ["#b9d9b0", "#82b77d"], "fg": "#17351a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "green heart", "emojis": "💚", "styles": ["Tender"], "bg": ["#b9d9b0", "#82b77d"], "fg": "#17351a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "halloween", "emojis": "🍫 🍬 🎃 🐈‍⬛ 👻 🧛 🧛‍♀️ 🧛‍♂️ 🧟 🧟‍♀️ 🧟‍♂️", "styles": ["Playful"], "bg": ["#d9c0df", "#b088b9"], "fg": "#32173a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "hand", "emojis": "☝️ ✊️ ✋️ ✌️ ✍️ 👆️ 👇️ 👈️ 👉️ 👊 👋 👌 👍️ 👎️ 👏 👐 👫 👬 👭 💁 💁‍♀️ 💁‍♂️ 🖐️ 🖕 🖖 🙅 🙅‍♀️ 🙅‍♂️ 🙆 🙆‍♀️ 🙆‍♂️ 🙋 🙋‍♀️ 🙋‍♂️ 🙌 🙏 🤌 🤏 🤘 🤙 🤚 🤝 🤞 🤟 🤭 🧑‍🤝‍🧑 🧤 🪬 🪭 🫢 🫰 🫱 🫲 🫳 🫴 🫵 🫷 🫸", "styles": ["Deadpan"], "bg": ["#e8d5b8", "#cbb188"], "fg": "#332615", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "happy", "emojis": "☺️ 🎂 😀 😁 😂 😃 😄 😆 😇 🙂 🤣 🤸 🤸‍♀️ 🤸‍♂️ 🥲 🥳", "styles": ["Joyful"], "bg": ["#f0b36e", "#df7e52"], "fg": "#3a180b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "hat", "emojis": "⛑️ 🎓️ 🎩 👒 👲 👷 👷‍♀️ 👷‍♂️ 🤠 🥳 🧢", "styles": ["Playful"], "bg": ["#e8c38f", "#c98752"], "fg": "#3a2418", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "heart", "emojis": "♥️ ❣️ ❤️ ❤️‍🔥 ❤️‍🩹 🏠️ 🏡 👨‍❤️‍👨 👨‍❤️‍💋‍👨 👩‍❤️‍👨 👩‍❤️‍👩 👩‍❤️‍💋‍👨 👩‍❤️‍💋‍👩 💋 💌 💏 💑 💓 💔 💕 💖 💗 💘 💙 💚 💛 💜 💝 💞 💟 🖤 😘 😻 🤍 🤎 🥰 🧡 🩵 🩶 🩷 🩺 🫀 🫰 🫶", "styles": ["Tender"], "bg": ["#f3c6cf", "#dfa0ad"], "fg": "#541d2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "heavy dollar sign", "emojis": "💲", "styles": ["Deadpan"], "bg": ["#b9d9b0", "#82b77d"], "fg": "#17351a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "high-speed train", "emojis": "🚄", "styles": ["Determined"], "bg": ["#b8d4e8", "#89b5d4"], "fg": "#122b3d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "hollow red circle", "emojis": "⭕️", "styles": ["Deadpan"], "bg": ["#e7b8b8", "#d58f8f"], "fg": "#451414", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "horizontal traffic light", "emojis": "🚥", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "horoscope", "emojis": "♈️ ♉️ ♊️ ♋️ ♌️ ♍️ ♎️ ♏️ ♐️ ♑️ ♒️ ♓️", "styles": ["Awed"], "bg": ["#c3c0d8", "#9a95bd"], "fg": "#171531", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "hot dog", "emojis": "🌭", "styles": ["Playful"], "bg": ["#f0b36e", "#df7e52"], "fg": "#3a180b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "hot face", "emojis": "🥵", "styles": ["Tense"], "bg": ["#f4b183", "#d97745"], "fg": "#3b1708", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "hourglass done", "emojis": "⌛️", "styles": ["Deadpan"], "bg": ["#e8d5b8", "#cbb188"], "fg": "#332615", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "ideograph", "emojis": "㊗️ ㊙️ 🈚️ 🈯️ 🈲 🈳 🈴 🈵 🈶 🈷️ 🈸 🈹 🈺 🉐 🉑", "styles": ["Deadpan"], "bg": ["#e7b8b8", "#d58f8f"], "fg": "#451414", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "ily", "emojis": "💓 💕 💖 💗 💘 💙 💚 💛 💜 💝 😍 😗 😘 😙 😚 🥰 🩵 🩶 🩷", "styles": ["Tender"], "bg": ["#f3c6cf", "#dfa0ad"], "fg": "#541d2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "insect", "emojis": "🐛 🐜 🐝 🐞 🕷️ 🦋 🦗 🦟 🪰 🪲 🪳", "styles": ["Whimsical"], "bg": ["#c8d9c1", "#8caf91"], "fg": "#1e3024", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "instrument", "emojis": "🎷 🎸 🎹 🎺 🎻 🪇 🪈 🪉 🪊 🪗 🪘", "styles": ["Joyful"], "bg": ["#d9c0df", "#b088b9"], "fg": "#32173a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "keycap", "emojis": "#️⃣ *️⃣ 0️⃣ 1️⃣ 2️⃣ 3️⃣ 4️⃣ 5️⃣ 6️⃣ 7️⃣ 8️⃣ 9️⃣ 🔟", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "kiss", "emojis": "👄 👨‍❤️‍👨 👨‍❤️‍💋‍👨 👩‍❤️‍👨 👩‍❤️‍👩 👩‍❤️‍💋‍👨 👩‍❤️‍💋‍👩 💋 💏 💑 😗 😘 😙 😽 🫦", "styles": ["Tender"], "bg": ["#f0b8c4", "#db8fa0"], "fg": "#4a1622", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "lady beetle", "emojis": "🐞", "styles": ["Whimsical"], "bg": ["#e7b8b8", "#d58f8f"], "fg": "#451414", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "light", "emojis": "🏮 🏳️‍⚧️ 🏻 💡 🔆 🔦 🕯️ 🚈 🚥 🚦 🚨 🧨 🩵 🪔 🪶", "styles": ["Hopeful"], "bg": ["#f0b36e", "#df7e52"], "fg": "#3a180b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "love", "emojis": "❤️ ❤️‍🔥 🌹 🏩 👨‍❤️‍👨 👨‍❤️‍💋‍👨 👩‍❤️‍👨 👩‍❤️‍👩 👩‍❤️‍💋‍👨 👩‍❤️‍💋‍👩 💌 💏 💐 💑 💓 💕 💘 💙 💚 💛 💜 😍 😗 😘 😙 😻 🤟 🥰 🩵 🩶 🩷 🪉 🫂 🫰 🫶", "styles": ["Tender"], "bg": ["#f3c6cf", "#dfa0ad"], "fg": "#541d2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "love hotel", "emojis": "🏩", "styles": ["Playful"], "bg": ["#f3c6cf", "#dfa0ad"], "fg": "#541d2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "lying face", "emojis": "🤥", "styles": ["Sarcastic"], "bg": ["#e3c2b8", "#c99a8d"], "fg": "#321c1a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "mail", "emojis": "💌 📤️ 📥️ 📧 📨 📩 📪️ 📫️ 📬️ 📭️ 📮", "styles": ["Earnest"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "man", "emojis": "☃️ ♂️ ⛄️ ⛹️‍♂️ 🏃‍♂️ 🏃‍♂️‍➡️ 🏄‍♂️ 🏊‍♀️ 🏊‍♂️ 🏋️‍♂️ 🏌️‍♂️ 👞 👨 👨‍⚕️ 👨‍⚖️ 👨‍✈️ 👨‍❤️‍👨 👨‍❤️‍💋‍👨 👨‍🌾 👨‍🍳 👨‍🍼 👨‍🎓 👨‍🎤 👨‍🎨 👨‍🏫 👨‍🏭 👨‍👦 👨‍👦‍👦 👨‍👧 👨‍👧‍👦 👨‍👧‍👧 👨‍👨‍👦 👨‍👨‍👦‍👦 👨‍👨‍👧 👨‍👨‍👧‍👦 👨‍👨‍👧‍👧 👨‍👩‍👦 👨‍👩‍👦‍👦 👨‍👩‍👧 👨‍👩‍👧‍👦 👨‍👩‍👧‍👧 👨‍💻 👨‍💼 👨‍🔧 👨‍🔬 👨‍🚀 👨‍🚒 👨‍🦯 👨‍🦯‍➡️ 👨‍🦰 👨‍🦱 👨‍🦲 👨‍🦳 👨‍🦼 👨‍🦼‍➡️ 👨‍🦽 👨‍🦽‍➡️ 👩‍❤️‍👨 👩‍❤️‍💋‍👨 👫 👮‍♂️ 👰‍♂️ 👱‍♂️ 👳‍♂️ 👴 👷 👷‍♀️ 👷‍♂️ 💁‍♂️ 💂‍♂️ 💆‍♂️ 💇‍♂️ 🕵️‍♂️ 🕺 🙅‍♂️ 🙆‍♂️ 🙇‍♂️ 🙋‍♂️ 🙍‍♂️ 🙎‍♂️ 🚣‍♂️ 🚴‍♂️ 🚵‍♂️ 🚶 🚶‍♀️ 🚶‍♀️‍➡️ 🚶‍♂️ 🚶‍♂️‍➡️ 🚶‍➡️ 🚹️ 🤦‍♂️ 🤵‍♂️ 🤷‍♂️ 🤸‍♂️ 🤹‍♂️ 🤽‍♂️ 🤾‍♂️ 🦸‍♂️ 🦹‍♂️ 🧍‍♂️ 🧎‍♂️ 🧎‍♂️‍➡️ 🧏‍♂️ 🧔‍♂️ 🧖‍♂️ 🧗‍♂️ 🧘‍♂️ 🧙‍♂️ 🧚‍♂️ 🧛‍♂️ 🧝‍♂️ 🧞‍♂️ 🧟‍♂️ 🫃", "styles": ["Earnest"], "bg": ["#e8d5b8", "#cbb188"], "fg": "#332615", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "man factory worker", "emojis": "👨‍🏭", "styles": ["Determined"], "bg": ["#aebdce", "#77899f"], "fg": "#101c2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "man firefighter", "emojis": "👨‍🚒", "styles": ["Determined"], "bg": ["#e7b8b8", "#d58f8f"], "fg": "#451414", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "man frowning", "emojis": "🙍‍♂️", "styles": ["Melancholy"], "bg": ["#aebdce", "#77899f"], "fg": "#101c2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "man mountain biking", "emojis": "🚵‍♂️", "styles": ["Determined"], "bg": ["#c8d9c1", "#8caf91"], "fg": "#1e3024", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "man office worker", "emojis": "👨‍💼", "styles": ["Earnest"], "bg": ["#b9c2d6", "#8592b0"], "fg": "#0e1526", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "man rowing boat", "emojis": "🚣‍♂️", "styles": ["Determined"], "bg": ["#b8d4e8", "#89b5d4"], "fg": "#122b3d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "man surfing", "emojis": "🏄‍♂️", "styles": ["Playful"], "bg": ["#bfe4e0", "#8fc9c2"], "fg": "#0e302c", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "man swimming", "emojis": "🏊‍♂️", "styles": ["Determined"], "bg": ["#b8d4e8", "#89b5d4"], "fg": "#122b3d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "mark", "emojis": "‼️ ⁉️ ™️ ✅️ ✔️ ❌️ ❎️ ❓️ ❔️ ❕️ ❗️ ❣️ 〽️ 🆙 💋 📑 🔖 🔛", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "medium skin tone", "emojis": "🏽", "styles": ["Deadpan"], "bg": ["#e3c2b8", "#c99a8d"], "fg": "#321c1a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "military helmet", "emojis": "🪖", "styles": ["Determined"], "bg": ["#cdd0a8", "#a8ac78"], "fg": "#26280f", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "mobile phone with arrow", "emojis": "📲", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "money", "emojis": "🏧 💎 💰️ 💱 💲 💳️ 💴 💵 💶 💷 💸 💹 🤑 🧧 🪎 🪙 🫰", "styles": ["Deadpan"], "bg": ["#b9d9b0", "#82b77d"], "fg": "#17351a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "moon", "emojis": "🌑 🌒 🌓 🌔 🌕️ 🌖 🌗 🌘 🌙 🌚 🌛 🌜️ 🌝 🎑 🥮", "styles": ["Serene"], "bg": ["#b9c2d6", "#8592b0"], "fg": "#0e1526", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "motor boat", "emojis": "🛥️", "styles": ["Serene"], "bg": ["#b8d4e8", "#89b5d4"], "fg": "#122b3d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "mount fuji", "emojis": "🗻", "styles": ["Awed"], "bg": ["#d3e6f0", "#a9c9dd"], "fg": "#12303d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "mountain", "emojis": "⛰️ 🌋 🏔️ 🗻 🚞 🚠 🚵 🚵‍♀️ 🚵‍♂️ 🛘 🧗 🧗‍♀️ 🧗‍♂️", "styles": ["Awed"], "bg": ["#d3e6f0", "#a9c9dd"], "fg": "#12303d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "mouth", "emojis": "👄 😃 😄 😅 😆 😦 😮 😰 😶 😺 🤐 🤑 🤬 🤭 🥴 🫢 🫤", "styles": ["Playful"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "music", "emojis": "🎙️ 🎚️ 🎛️ 🎤 🎵 🎶 🎷 🎸 🎹 🎺 🎻 🎼 🔊 🥁 🪇 🪈 🪉 🪊 🪕 🪗", "styles": ["Joyful"], "bg": ["#d9c0df", "#b088b9"], "fg": "#32173a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "musical keyboard", "emojis": "🎹", "styles": ["Playful"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "nature", "emojis": "⚡️ 🌅 🌈 🌊 🌋 🌵 🍄‍🟫 🐌 🐝 🐞 💧 🗻", "styles": ["Serene"], "bg": ["#d8f0d2", "#a8d8c0"], "fg": "#123b32", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "nesting dolls", "emojis": "🪆", "styles": ["Whimsical"], "bg": ["#e7b8b8", "#d58f8f"], "fg": "#451414", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "night", "emojis": "🌃 🌉 🌟 🌠 💖 💤 😙 😪 😴 🛌 🥱", "styles": ["Serene"], "bg": ["#b9c2d6", "#8592b0"], "fg": "#0e1526", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "no", "emojis": "⛔️ 🈵 👎️ 📵 🔕 🔞 😲 🙂‍↔️ 🙈 🙉 🙊 🚫 🚭️ 🚯 🚳 🚷 🤦 🤦‍♀️ 🤦‍♂️ 🤯 🦲", "styles": ["Irritated"], "bg": ["#e7b8b8", "#d58f8f"], "fg": "#451414", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "not", "emojis": "⏳️ ⛔️ 🈶 📵 🔕 🔞 😑 😕 😥 🙅 🙅‍♀️ 🙅‍♂️ 🙉 🙊 🚫 🚭️ 🚯 🚳 🚷 🤦 🤦‍♀️ 🤦‍♂️ 🥺", "styles": ["Deadpan"], "bg": ["#e7b8b8", "#d58f8f"], "fg": "#451414", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "ocean", "emojis": "🌊 🏄‍♀️ 🏄‍♂️ 🏄️ 🐋 🐙 🐬 🐳 🦭 🧜 🧜‍♀️ 🧜‍♂️ 🪸 🪼 🫍", "styles": ["Serene"], "bg": ["#b8d4e8", "#89b5d4"], "fg": "#122b3d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "office worker", "emojis": "🧑‍💼", "styles": ["Earnest"], "bg": ["#b9c2d6", "#8592b0"], "fg": "#0e1526", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "omg", "emojis": "👀 😑 😝 😮 😯 😲 😵‍💫 🙆 🙆‍♀️ 🙆‍♂️ 🙈 🤦 🤦‍♀️ 🤦‍♂️ 🫢 🫨", "styles": ["Startled"], "bg": ["#c9b8e8", "#9d86c7"], "fg": "#21152f", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "oncoming fist", "emojis": "👊", "styles": ["Determined"], "bg": ["#e7b8b8", "#d58f8f"], "fg": "#451414", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "oncoming police car", "emojis": "🚔️", "styles": ["Tense"], "bg": ["#aebdce", "#77899f"], "fg": "#101c2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "open", "emojis": "🈺 👐 📂 📖 📬️ 📭️ 🔓️ 😃 😄 😅 😆 😦 😮 😰 😺 🤗 🫢", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "ornithology", "emojis": "🐓 🐔 🐤 🐥 🐦‍⬛ 🐦️ 🐧 🕊️ 🦅 🦆 🦉 🦚 🦜 🦢 🦤 🦩 🪿", "styles": ["Serene"], "bg": ["#c8d9c1", "#8caf91"], "fg": "#1e3024", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "o’clock", "emojis": "🕐️ 🕑️ 🕒️ 🕓️ 🕔️ 🕕️ 🕖️ 🕗️ 🕘️ 🕙️ 🕚️ 🕛️", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "party", "emojis": "🍹 🎉 🎊 👒 👯 👯‍♀️ 👯‍♂️ 😛 😜 🥳 🪅 🪇 🪩", "styles": ["Excited"], "bg": ["#f4b183", "#d97745"], "fg": "#3b1708", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "passenger ship", "emojis": "🛳️", "styles": ["Serene"], "bg": ["#b8d4e8", "#89b5d4"], "fg": "#122b3d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "performing arts", "emojis": "🎭️", "styles": ["Whimsical"], "bg": ["#d9c0df", "#b088b9"], "fg": "#32173a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "person", "emojis": "⛹️ 🏃 🏃‍➡️ 🏄‍♀️ 🏄️ 🏊️ 🏋️ 🏌️ 👨‍❤️‍👨 👨‍❤️‍💋‍👨 👩‍❤️‍👨 👩‍❤️‍👩 👩‍❤️‍💋‍👨 👩‍❤️‍💋‍👩 👰 👱 👲 👳 👷 💁 💆 💇 💇‍♀️ 💇‍♂️ 💏 💑 🕴️ 🙅 🙆 🙇 🙋 🙍 🙎 🚣 🚴 🚵 🚶 🚶‍➡️ 🛀 🛌 🤦 🤵 🤷 🤸 🤹 🤺 🤽 🤾 🥷 🥸 🧍 🧎 🧎‍➡️ 🧏 🧑 🧑‍🦯 🧑‍🦯‍➡️ 🧑‍🦰 🧑‍🦱 🧑‍🦲 🧑‍🦳 🧑‍🦼 🧑‍🦼‍➡️ 🧑‍🦽 🧑‍🦽‍➡️ 🧓 🧔 🧖 🧗 🧘 🧚 🧚‍♀️ 🧚‍♂️ 🫄 🫅", "styles": ["Earnest"], "bg": ["#e8d5b8", "#cbb188"], "fg": "#332615", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "person climbing", "emojis": "🧗", "styles": ["Determined"], "bg": ["#c8d9c1", "#8caf91"], "fg": "#1e3024", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "person frowning", "emojis": "🙍", "styles": ["Melancholy"], "bg": ["#aebdce", "#77899f"], "fg": "#101c2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "person in suit levitating", "emojis": "🕴️", "styles": ["Whimsical"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "pickup truck", "emojis": "🛻", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "plant", "emojis": "☘️ 🌰 🌱 🌴 🌵 🌷 🌸 🌹 🌺 🌻 🌼 🌾 🌿 🍀 🎍 🏵️ 💐 🪏 🪴 🪻", "styles": ["Serene"], "bg": ["#c8d9c1", "#8caf91"], "fg": "#1e3024", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "pot of food", "emojis": "🍲", "styles": ["Serene"], "bg": ["#e8c38f", "#c98752"], "fg": "#3a2418", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "pound banknote", "emojis": "💷", "styles": ["Deadpan"], "bg": ["#b9d9b0", "#82b77d"], "fg": "#17351a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "prohibited", "emojis": "⛔️ 🈲 📵 🔕 🔞 🙈 🙉 🙊 🚫 🚭️ 🚯 🚱 🚳 🚷", "styles": ["Irritated"], "bg": ["#e7b8b8", "#d58f8f"], "fg": "#451414", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "puzzle piece", "emojis": "🧩", "styles": ["Playful"], "bg": ["#d8f0d2", "#a8d8c0"], "fg": "#123b32", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "racing", "emojis": "🏁 🏃 🏃‍♀️ 🏃‍♀️‍➡️ 🏃‍♂️ 🏃‍♂️‍➡️ 🏃‍➡️ 🏇 🏍️ 🏎️ 🐎", "styles": ["Determined"], "bg": ["#aebdce", "#77899f"], "fg": "#101c2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "red", "emojis": "❓️ ❗️ ❤️ ⭕️ 🀄️ 🌹 🍎 🍒 🏮 🔴 🔺 🔻 🔼 🔽 😡 🟥 🥩 🦰 🧧 🧰 🫀", "styles": ["Determined"], "bg": ["#e7b8b8", "#d58f8f"], "fg": "#451414", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "religion", "emojis": "☦️ ☪️ ☯️ ☸️ ⛩️ ⛪️ ✝️ ✡️ 📿 🕉️ 🕋 🕌 🕍 🕎 🛐 🪯", "styles": ["Earnest"], "bg": ["#c3c0d8", "#9a95bd"], "fg": "#171531", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "restaurant", "emojis": "🍝 🍞 🍢 🍥 🍦 🍧 🍨 🍬 🍭 🍳 🍴 🍶 🍷 🏮", "styles": ["Serene"], "bg": ["#e8c38f", "#c98752"], "fg": "#3a2418", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "right", "emojis": "↩️ ↪️ ⏯️ ▶️ ➡️ ⤴️ ⤵️ 🏃‍♀️‍➡️ 🏃‍♂️‍➡️ 🏃‍➡️ 👉️ 👨‍🦯‍➡️ 👨‍🦼‍➡️ 👨‍🦽‍➡️ 👩‍🦯‍➡️ 👩‍🦼‍➡️ 👩‍🦽‍➡️ 📈 🔎 🗯️ 🚶‍♀️‍➡️ 🚶‍♂️‍➡️ 🚶‍➡️ 🧎‍♀️‍➡️ 🧎‍♂️‍➡️ 🧎‍➡️ 🧑‍🦯‍➡️ 🧑‍🦼‍➡️ 🧑‍🦽‍➡️ 🫱", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "roller coaster", "emojis": "🎢", "styles": ["Excited"], "bg": ["#f4b183", "#d97745"], "fg": "#3b1708", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "romance", "emojis": "👨‍❤️‍👨 👨‍❤️‍💋‍👨 👩‍❤️‍👨 👩‍❤️‍👩 👩‍❤️‍💋‍👨 👩‍❤️‍💋‍👩 💋 💌 💍 💎 💏 💐 💑 💒 💘 💙 😍 🥰", "styles": ["Tender"], "bg": ["#f0b8c4", "#db8fa0"], "fg": "#4a1622", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "running shirt", "emojis": "🎽", "styles": ["Determined"], "bg": ["#f4b183", "#d97745"], "fg": "#3b1708", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "running shoe", "emojis": "👟", "styles": ["Determined"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "sad", "emojis": "☹️ 💔 💧 😓 😔 😕 😖 😞 😟 😢 😥 😩 😪 😫 😭 😿 🙁 🥹 🥺 🪊", "styles": ["Melancholy"], "bg": ["#aebdce", "#77899f"], "fg": "#101c2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "shopping", "emojis": "👕 👖 👗 👚 👛 👜 👞 👟 👠 👢 🛍️ 🛒", "styles": ["Playful"], "bg": ["#e8c38f", "#c98752"], "fg": "#3a2418", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "sign", "emojis": "☢️ ☣️ ♀️ ♂️ ✖️ ➖️ ➗️ 🏧 💲 🚮 🛑 🟰 🤘 🪧", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "small blue diamond", "emojis": "🔹", "styles": ["Deadpan"], "bg": ["#b8d4e8", "#89b5d4"], "fg": "#122b3d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "smile", "emojis": "☺️ 😀 😁 😃 😄 😅 😆 😇 😈 😊 😋 😍 😎 😙 😬 😸 😺 😻 😼 🙂 🙃 🤩 🥰 🥲", "styles": ["Joyful"], "bg": ["#f0b36e", "#df7e52"], "fg": "#3a180b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "smiling", "emojis": "☺️ 😀 😁 😃 😄 😅 😆 😇 😈 😊 😋 😙 😬 😸 😺 😻 🙂 🤗 🥰 🥲", "styles": ["Joyful"], "bg": ["#f0b36e", "#df7e52"], "fg": "#3a180b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "sound", "emojis": "🎤 🎧️ 🎵 🎶 👂️ 📢 📣 🔇 🔈️ 🔉 🔊 🔔 🔕", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "space", "emojis": "☀️ ☄️ 🌌 🌑 🌒 🌓 🌔 🌕️ 🌖 🌗 🌘 🌙 🌚 🌛 🌠 👨‍🚀 👩‍🚀 👽️ 👾 🚀 🛰️ 🧑‍🚀", "styles": ["Awed"], "bg": ["#b9c2d6", "#8592b0"], "fg": "#0e1526", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "speaker medium volume", "emojis": "🔉", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "speaking head", "emojis": "🗣️", "styles": ["Earnest"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "sport", "emojis": "⚽️ ⚾️ ⛳️ 🎣 🎳 🎾 🎿 🏀 🏁 🏂️ 🏄‍♀️ 🏄‍♂️ 🏄️ 🏆️ 🏇 🏈 🏉 🏊‍♀️ 🏊‍♂️ 🏊️ 🚙 🚴 🚴‍♀️ 🚴‍♂️ 🚵 🚵‍♀️ 🚵‍♂️ 🛼 🤽 🤽‍♀️ 🤽‍♂️ 🤾 🤾‍♀️ 🤾‍♂️", "styles": ["Determined"], "bg": ["#f4b183", "#d97745"], "fg": "#3b1708", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "square", "emojis": "⏹️ ▪️ ▫️ ◻️ ◼️ ◽️ ◾️ ❎️ ⬛️ ⬜️ 🔲 🔳 🟥 🟦 🟧 🟨 🟩 🟪 🟫", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "star", "emojis": "☪️ ✡️ ✨️ ✴️ ⭐️ 🌃 🌟 🌠 👨‍🎤 👩‍🎤 💫 🔯 🤩 🧑‍🎤", "styles": ["Awed"], "bg": ["#c3c0d8", "#9a95bd"], "fg": "#171531", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "sun", "emojis": "☀️ ⛅️ ⛱️ 🌄 🌅 🌆 🌇 🌞 🌤️ 🌥️ 🌦️ 🌻", "styles": ["Hopeful"], "bg": ["#f0b36e", "#df7e52"], "fg": "#3a180b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "sunrise over mountains", "emojis": "🌄", "styles": ["Hopeful"], "bg": ["#f0b36e", "#df7e52"], "fg": "#3a180b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "sweet", "emojis": "🍠 🍡 🍦 🍧 🍨 🍩 🍪 🍫 🍬 🍭 🍮 🍯 🍰 🎂 👌 😛 🧁 🧃 🩷", "styles": ["Playful"], "bg": ["#f0b8c4", "#db8fa0"], "fg": "#4a1622", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "tale", "emojis": "🎅 🐉 🐲 👸 👹 👺 👻 👼 👽️ 👾 👿 💀 🔮 😇 😈 🤴 🤶 🧌 🧑‍🎄 🧚 🧚‍♀️ 🧚‍♂️", "styles": ["Whimsical"], "bg": ["#d9c0df", "#b088b9"], "fg": "#32173a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "thirty", "emojis": "🕜️ 🕝️ 🕞️ 🕟️ 🕠️ 🕡️ 🕢️ 🕣️ 🕤️ 🕥️ 🕦️ 🕧️", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "time", "emojis": "⌚️ ⌛️ ⏰️ ⏱️ 🕐️ 🕑️ 🕒️ 🕓️ 🕔️ 🕕️ 🕗️ 🕘️ 🕚️ 🕛️ 🕜️ 🕝️ 🕞️ 🕟️ 🕠️ 🕣️ 🕤️ 🕥️ 🕦️ 🕧️ 🕰️ 😥", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "tool", "emojis": "⚒️ ⚓️ ⚖️ ⚗️ ⚙️ ⛏️ ✂️ 🏹 🏺 💉 🔍️ 🔎 🔥 🔦 🔧 🔨 🔩 🔪 🔫 🔬 🔭 🔮 🔰 🔱 🗜️ 🛠️ 🧰 🪚 🪛", "styles": ["Deadpan"], "bg": ["#aebdce", "#77899f"], "fg": "#101c2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "travel", "emojis": "✈️ 🗿 🚀 🚁 🚂 🚃 🚅 🚇️ 🚢 🚤 🛄 🧳", "styles": ["Hopeful"], "bg": ["#b8d4e8", "#89b5d4"], "fg": "#122b3d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "treasure chest", "emojis": "🪎", "styles": ["Whimsical"], "bg": ["#f0b36e", "#df7e52"], "fg": "#3a180b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "tropical fish", "emojis": "🐠", "styles": ["Playful"], "bg": ["#bfe4e0", "#8fc9c2"], "fg": "#0e302c", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "tumbler glass", "emojis": "🥃", "styles": ["Deadpan"], "bg": ["#e8c38f", "#c98752"], "fg": "#3a2418", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "unhappy", "emojis": "😐️ 😑 😒 😞 😠 😡 😢 😤 😧 😩 😭", "styles": ["Melancholy"], "bg": ["#aebdce", "#77899f"], "fg": "#101c2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "up", "emojis": "⏫️ ☝️ ⤴️ ⬆️ 🍳 👆️ 👍️ 📄 📈 🔝 🔺 🔼 🤮 🤲 🧗 🧗‍♀️ 🧗‍♂️ 🧣 🧥 🫳", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "vehicle", "emojis": "🚁 🚌 🚐 🚑️ 🚕 🚗 🚘️ 🚙 🚚 🚛 🚜 🚝 🛞", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "water", "emojis": "♒️ 🌊 🐃 💦 💧 🔫 🚰 🚱 🚾 🚿 🤽 🤽‍♀️ 🤽‍♂️ 🥤 🫗", "styles": ["Serene"], "bg": ["#bfe4e0", "#8fc9c2"], "fg": "#0e302c", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "water wave", "emojis": "🌊", "styles": ["Awed"], "bg": ["#b8d4e8", "#89b5d4"], "fg": "#122b3d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "weather", "emojis": "☀️ ☁️ ☔️ ⛅️ ❄️ 🌀 🌈 🌞 🌡️ 🌤️ 🌥️ 🌦️ 🌧️ 🌨️ 🌩️ 🌪️ 🌫️ 💧", "styles": ["Serene"], "bg": ["#d3e6f0", "#a9c9dd"], "fg": "#12303d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "whatever", "emojis": "💁 💁‍♀️ 💁‍♂️ 💅 😐️ 😑 😒 😝 😴 🙄 🤷 🤷‍♀️ 🤷‍♂️ 🥱 🫤 🫥", "styles": ["Sarcastic"], "bg": ["#e2d9eb", "#c2b0d2"], "fg": "#30223b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "wheelchair", "emojis": "♿️ 👨‍🦼 👨‍🦼‍➡️ 👨‍🦽 👨‍🦽‍➡️ 👩‍🦼 👩‍🦼‍➡️ 👩‍🦽 👩‍🦽‍➡️ 🦼 🦽 🧑‍🦼 🧑‍🦼‍➡️ 🧑‍🦽 🧑‍🦽‍➡️", "styles": ["Earnest"], "bg": ["#b8d4e8", "#89b5d4"], "fg": "#122b3d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "wheelchair symbol", "emojis": "♿️", "styles": ["Deadpan"], "bg": ["#b8d4e8", "#89b5d4"], "fg": "#122b3d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "white", "emojis": "▫️ ◻️ ◽️ ⚪️ ❔️ ❕️ ⬜️ ⭐️ 🏳️ 🏳️‍⚧️ 🐻‍❄️ 👨‍🦯 👨‍🦯‍➡️ 👩‍🦯 👩‍🦯‍➡️ 💟 💮 🔳 🤍 🥼 🦯 🦳 🦷 🧑‍🦯 🧑‍🦯‍➡️", "styles": ["Deadpan"], "bg": ["#e4e7eb", "#c8cdd3"], "fg": "#20252b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "woman", "emojis": "♀️ ⛹️‍♀️ 🏃‍♀️ 🏃‍♀️‍➡️ 🏋️‍♀️ 🏌️‍♀️ 👒 👚 👠 👡 👢 👨‍👩‍👦 👨‍👩‍👦‍👦 👨‍👩‍👧 👨‍👩‍👧‍👦 👨‍👩‍👧‍👧 👩 👩‍⚕️ 👩‍⚖️ 👩‍✈️ 👩‍❤️‍👨 👩‍❤️‍👩 👩‍❤️‍💋‍👨 👩‍❤️‍💋‍👩 👩‍🌾 👩‍🍳 👩‍🍼 👩‍🎓 👩‍🎤 👩‍🎨 👩‍🏫 👩‍🏭 👩‍👦 👩‍👦‍👦 👩‍👧 👩‍👧‍👦 👩‍👧‍👧 👩‍👩‍👦 👩‍👩‍👦‍👦 👩‍👩‍👧 👩‍👩‍👧‍👦 👩‍👩‍👧‍👧 👩‍💻 👩‍💼 👩‍🔧 👩‍🔬 👩‍🚀 👩‍🚒 👩‍🦯 👩‍🦯‍➡️ 👩‍🦰 👩‍🦱 👩‍🦲 👩‍🦳 👩‍🦼 👩‍🦼‍➡️ 👩‍🦽 👩‍🦽‍➡️ 👫 👮‍♀️ 👰‍♀️ 👱‍♀️ 👳‍♀️ 👵 👷‍♀️ 💁‍♀️ 💂‍♀️ 💃 💆‍♀️ 💇‍♀️ 🕵️‍♀️ 🙅‍♀️ 🙆‍♀️ 🙇‍♀️ 🙋‍♀️ 🙍‍♀️ 🙎‍♀️ 🚣‍♀️ 🚴‍♀️ 🚵‍♀️ 🚶‍♀️ 🚶‍♀️‍➡️ 🚺️ 🤦‍♀️ 🤰 🤱 🤵‍♀️ 🤷‍♀️ 🤸‍♀️ 🤹‍♀️ 🤽‍♀️ 🤾‍♀️ 🦸‍♀️ 🦹‍♀️ 🧍‍♀️ 🧎‍♀️ 🧎‍♀️‍➡️ 🧏‍♀️ 🧔‍♀️ 🧕 🧖‍♀️ 🧗‍♀️ 🧘‍♀️ 🧙‍♀️ 🧚‍♀️ 🧛‍♀️ 🧝‍♀️ 🧞‍♀️ 🧟‍♀️", "styles": ["Earnest"], "bg": ["#e8d5b8", "#cbb188"], "fg": "#332615", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "woman artist", "emojis": "👩‍🎨", "styles": ["Whimsical"], "bg": ["#d9c0df", "#b088b9"], "fg": "#32173a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "woman bouncing ball", "emojis": "⛹️‍♀️", "styles": ["Determined"], "bg": ["#f4b183", "#d97745"], "fg": "#3b1708", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "woman climbing", "emojis": "🧗‍♀️", "styles": ["Determined"], "bg": ["#c8d9c1", "#8caf91"], "fg": "#1e3024", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "woman dancing", "emojis": "💃", "styles": ["Joyful"], "bg": ["#e7b8b8", "#d58f8f"], "fg": "#451414", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "woman elf", "emojis": "🧝‍♀️", "styles": ["Whimsical"], "bg": ["#b9d9b0", "#82b77d"], "fg": "#17351a", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "woman factory worker", "emojis": "👩‍🏭", "styles": ["Determined"], "bg": ["#aebdce", "#77899f"], "fg": "#101c2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "woman running", "emojis": "🏃‍♀️", "styles": ["Determined"], "bg": ["#f4b183", "#d97745"], "fg": "#3b1708", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "woman running: facing right", "emojis": "🏃‍♀️‍➡️", "styles": ["Determined"], "bg": ["#f4b183", "#d97745"], "fg": "#3b1708", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "woman scientist", "emojis": "👩‍🔬", "styles": ["Earnest"], "bg": ["#bfe4e0", "#8fc9c2"], "fg": "#0e302c", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "woman shrugging", "emojis": "🤷‍♀️", "styles": ["Sarcastic"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "woman standing", "emojis": "🧍‍♀️", "styles": ["Deadpan"], "bg": ["#dfe4e9", "#c2cad2"], "fg": "#1c2430", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "woman swimming", "emojis": "🏊‍♀️", "styles": ["Determined"], "bg": ["#b8d4e8", "#89b5d4"], "fg": "#122b3d", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "worker", "emojis": "👨‍⚕️ 👨‍🏭 👨‍💼 👩‍⚕️ 👩‍🏭 👩‍💼 👷 👷‍♀️ 👷‍♂️ 🧑‍⚕️ 🧑‍🏭 🧑‍💼", "styles": ["Determined"], "bg": ["#aebdce", "#77899f"], "fg": "#101c2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "xoxo", "emojis": "👨‍❤️‍💋‍👨 👩‍❤️‍💋‍👨 👩‍❤️‍💋‍👩 💏 💕 💖 💗 💝 😍 😗 😘 😚", "styles": ["Tender"], "bg": ["#f0b8c4", "#db8fa0"], "fg": "#4a1622", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "you", "emojis": "👋 👨‍❤️‍👨 👩‍❤️‍👨 👩‍❤️‍👩 💑 😗 😘 😮 🤟 🥰 🫵 🫶", "styles": ["Tender"], "bg": ["#f3c6cf", "#dfa0ad"], "fg": "#541d2b", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text": "zodiac", "emojis": "♈️ ♉️ ♊️ ♋️ ♌️ ♍️ ♎️ ♏️ ♐️ ♑️ ♒️ ♓️ ⚖️ ⛎️ 🏹 🏺 🐂 🐍 🐏 🐐 🐟️ 👧 🦀 🦁 🦂", "styles": ["Awed"], "bg": ["#c3c0d8", "#9a95bd"], "fg": "#171531", "meta": {"date": "2026-09-10", "cldr": true}}

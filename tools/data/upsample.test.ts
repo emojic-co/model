@@ -4,6 +4,7 @@ import {
   colorBatchPlan,
   countEmojis,
   mergeEmojiAdditions,
+  parseFlagLabels,
   parseKeywords,
   rankWindow,
   rareEmojis,
@@ -21,6 +22,30 @@ test("parseKeywords trims, drops empties, and dedupes while preserving order", (
   ])
   expect(parseKeywords("  ,, ")).toEqual([])
   expect(parseKeywords("dog walk")).toEqual(["dog walk"])
+})
+
+test("parseFlagLabels keeps only 'flag: X' entries, strips the prefix, preserves order", () => {
+  const entries = [
+    { emoji: "🏁", label: "chequered flag" },
+    { emoji: "🇦🇪", label: "flag: United Arab Emirates" },
+    { emoji: "🏳️‍🌈", label: "rainbow flag" },
+    { emoji: "🇯🇵", label: "flag: Japan" },
+    { emoji: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", label: "flag: Wales" },
+  ]
+  expect(parseFlagLabels(entries)).toEqual([
+    { emoji: "🇦🇪", country: "United Arab Emirates" },
+    { emoji: "🇯🇵", country: "Japan" },
+    { emoji: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", country: "Wales" },
+  ])
+})
+
+test("parseFlagLabels drops entries with an empty country or a missing emoji", () => {
+  const entries = [
+    { emoji: "🇯🇵", label: "flag: Japan" },
+    { emoji: "🇽🇽", label: "flag:   " },
+    { emoji: "", label: "flag: Nowhere" },
+  ]
+  expect(parseFlagLabels(entries)).toEqual([{ emoji: "🇯🇵", country: "Japan" }])
 })
 
 test("colorBatchPlan splits each colour's per-colour total into batches of at most batchSize", () => {
