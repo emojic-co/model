@@ -3,7 +3,6 @@ import torch
 from torch import nn
 from torch.nn.functional import (
     normalize,
-    softplus,
     tanh,
 )
 from torch.nn.utils import spectral_norm as sn
@@ -109,58 +108,16 @@ class EmojiHead(nn.Module):
         return self.net(text_embedding)
 
 
-def _z(x: torch.Tensor) -> torch.Tensor:
-    return (x - x.mean(-1, keepdim=True)) / (x.std(-1, keepdim=True) + 1e-6)
-
-
-class FusionHeadGain(nn.Module):
+class FusionHead(nn.Module):
     def __init__(self):
         super().__init__()
-        self.raw_beta = nn.Parameter(torch.zeros(()))
+        n = len(EMOJIS)
+        self.w_dl = nn.Parameter(torch.ones(n))
+        self.w_search = nn.Parameter(torch.ones(n))
+        self.b = nn.Parameter(torch.zeros(n))
 
     def forward(self, logit_m: torch.Tensor, kw: torch.Tensor) -> torch.Tensor:
-        return logit_m + softplus(self.raw_beta) * kw
-
-
-class FusionHeadMix(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.raw_g = nn.Parameter(torch.full((), -2.0))
-
-    def forward(self, logit_m: torch.Tensor, kw: torch.Tensor) -> torch.Tensor:
-        g = torch.sigmoid(self.raw_g)
-        return (1 - g) * _z(logit_m) + g * kw
-
-
-class FusionHeadGate(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.bn = nn.BatchNorm1d(6, affine=False)
-        self.lin = nn.Linear(6, 1)
-        nn.init.zeros_(self.lin.weight)
-        nn.init.zeros_(self.lin.bias)
-        self.register_buffer("last_a", torch.zeros(()), persistent=False)
-
-    def _features(self, logit_m: torch.Tensor, kw: torch.Tensor) -> torch.Tensor:
-        top2 = logit_m.topk(2, dim=-1).values
-        p = torch.softmax(logit_m, dim=-1)
-        ent = -(p * torch.log(p + 1e-9)).sum(-1)
-        return torch.stack(
-            [
-                logit_m.max(-1).values,
-                top2[:, 0] - top2[:, 1],
-                ent,
-                kw.max(-1).values,
-                (kw > 0).sum(-1).float(),
-                kw.sum(-1),
-            ],
-            dim=-1,
-        )
-
-    def forward(self, logit_m: torch.Tensor, kw: torch.Tensor) -> torch.Tensor:
-        a = torch.sigmoid(self.lin(self.bn(self._features(logit_m, kw))))
-        self.last_a = a.detach().mean()
-        return a * _z(logit_m) + (1 - a) * kw
+        return self.w_dl * logit_m + self.w_search * kw + self.b
 
 
 # GAN

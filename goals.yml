@@ -37,6 +37,7 @@ goals:
   vocabulary:
     size: 700
     coverage:
+      # https://www.unicode.org/emoji/charts/full-emoji-list.html
       # Fraction of each Unicode emoji subgroup that must be in the vocabulary.
       # Groups are the unicode.org/emoji/charts/emoji-list.html subgroups
       # (== emojibase messages.json subgroups); membership lives in data/group.json.

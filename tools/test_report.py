@@ -86,7 +86,7 @@ def test_linechart_three_way():
     assert ">EmojiHead<" in svg and ">KWHead<" in svg and ">Fusion<" in svg
 
 
-def test_emoji_html_five_way():
+def test_emoji_html_overlay():
     from tools.report import EMOJI_KS, _emoji_html
 
     n = len(EMOJI_KS)
@@ -95,26 +95,21 @@ def test_emoji_html_five_way():
             "n": 100,
             "acc_at_k": [0.3 + 0.05 * i for i in range(n)],
             "keywords_acc_at_k": [0.2 + 0.05 * i for i in range(n)],
-            "fusion_gate_acc_at_k": [0.4 + 0.04 * i for i in range(n)],
-            "fusion_gain_acc_at_k": [0.4 + 0.045 * i for i in range(n)],
-            "fusion_mix_acc_at_k": [0.4 + 0.05 * i for i in range(n)],
+            "fusion_acc_at_k": [0.4 + 0.045 * i for i in range(n)],
             "baseline": {"name": "overlap", "acc_at_k": [0.1 + 0.04 * i for i in range(n)]},
         },
         "keywords": {"n": 50, "acc_at_k": [0.2 + 0.05 * i for i in range(n)]},
     }
     h = _emoji_html(d)
     assert 'class="lline2"' in h and 'class="lline3"' in h
-    assert 'class="lline4"' in h and 'class="lline5"' in h
     assert ">EmojiHead<" in h and ">Keywords<" in h
-    assert ">Fusion·Gate<" in h and ">Fusion·Mix<" in h
+    assert ">Fusion<" in h
     assert 'class="bline"' in h
 
     d["eval"]["keywords_acc_at_k"] = None
-    d["eval"]["fusion_gate_acc_at_k"] = None
-    d["eval"]["fusion_gain_acc_at_k"] = None
-    d["eval"]["fusion_mix_acc_at_k"] = None
+    d["eval"]["fusion_acc_at_k"] = None
     h2 = _emoji_html(d)
-    assert 'class="lline3"' not in h2 and 'class="lline4"' not in h2
+    assert 'class="lline2"' not in h2 and 'class="lline3"' not in h2
     assert "CLDR baseline (overlap)" in h2
 
 
@@ -255,7 +250,7 @@ def test_section_status_orders_and_grades():
         "emoji": {
             "eval": {
                 "acc_at_k": [0.5 + 0.03 * i for i in range(n)],
-                "fusion_gain_acc_at_k": [0.6 + 0.03 * i for i in range(n)],
+                "fusion_acc_at_k": [0.6 + 0.03 * i for i in range(n)],
             }
         },
         "keyword": {
@@ -281,7 +276,7 @@ def test_section_status_orders_and_grades():
     st = _section_status(report)
     prios = [g["priority"] for g in st["goals"]]
     assert prios == sorted(prios)
-    assert st["best_emoji_variant"] == "Fusion·Gain"
+    assert st["best_emoji_variant"] == "Fusion"
     by_goal = {g["goal"]: g for g in st["goals"]}
     assert by_goal["Exact keyword acc@1"]["priority"] == 1
     assert (
@@ -291,7 +286,7 @@ def test_section_status_orders_and_grades():
     assert by_goal["Full-text emoji acc@1"]["priority"] == 2
     assert (
         by_goal["Full-text emoji acc@1"]["current"]
-        == report["emoji"]["eval"]["fusion_gain_acc_at_k"][0]
+        == report["emoji"]["eval"]["fusion_acc_at_k"][0]
     )
     assert by_goal["Fuzzy keyword acc@1"]["status"] == "na"
     assert by_goal["Color energy · global"]["priority"] == 4
@@ -338,7 +333,7 @@ def test_status_vocab_coverage_gate():
     n = len(EMOJI_KS)
     hi = [0.999] * n
     report = {
-        "emoji": {"eval": {"acc_at_k": hi, "fusion_gain_acc_at_k": hi}},
+        "emoji": {"eval": {"acc_at_k": hi, "fusion_acc_at_k": hi}},
         "keyword": {"fusion": {"n": 1, "total": 1, "acc_at_k": hi}},
         "data": {"max_text_len": 42},
         "labels": {"emojis": 1000},
@@ -414,7 +409,7 @@ def test_section_goals_compare_shape():
     rep._load_goals = lambda: ("goal/x.yml", doc)
     try:
         report = {
-            "emoji": {"eval": {"acc_at_k": acc, "fusion_gain_acc_at_k": acc}},
+            "emoji": {"eval": {"acc_at_k": acc, "fusion_acc_at_k": acc}},
             "labels": {"emojis": 150},
             "status": {"vocab_coverage": {"groups": {"face-smiling": {"score": 0.5}}}},
         }
@@ -491,7 +486,7 @@ def main() -> None:
     test_dark_ignores_chroma()
     test_linechart_series()
     test_linechart_three_way()
-    test_emoji_html_five_way()
+    test_emoji_html_overlay()
     test_emoji_extra_acc_reads_precomputed_kw()
     test_flex_keyword_candidates_and_section()
     test_keywords_flex_html()
