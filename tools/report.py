@@ -870,12 +870,12 @@ def _keywords_flex_html(d) -> str:
     if not misses:
         return head + '<p class="note">no misses.</p>'
     body = "".join(
-        f"<tr><td>{_esc(r['kw'])}</td><td>{_esc(' '.join(r['emojis']))}</td>"
+        f"<tr><td>{i}</td><td>{_esc(r['kw'])}</td><td>{_esc(' '.join(r['emojis']))}</td>"
         f"<td>{_esc(' '.join(r['top5']))}</td><td>{r['rank']}</td></tr>"
-        for r in misses
+        for i, r in enumerate(misses, 1)
     )
     return (
-        head + "<table><tr><th>Keyword</th><th>CLDR emojis</th>"
+        head + "<table><tr><th>#</th><th>Keyword</th><th>CLDR emojis</th>"
         "<th>Top 5 predictions</th><th>Rank</th></tr>" + body + "</table>"
     )
 
