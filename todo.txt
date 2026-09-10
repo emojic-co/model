@@ -1,2 +1,61 @@
-Also, slicing the data.jsonl into train and eval should always be done via the regen command.
-You should set its params according to the goals and to the coverage needed, you can use its --matrix flag to help you decide on the correct split.
+Goals:
+    Make a global `goals.yml` file.
+    This file specify the goals for the project.
+    It is dynamic and can be changed from time to time but there is only a single global goals file and it specifies the long term goals of the project.
+    Its structure:
+
+    goals:
+        emoji prediction:
+            exact keyword:
+                acc@1: .95
+                acc@5: .95
+                acc@10: .95
+            full text:
+                acc@1: .8
+                acc@5: .85
+                acc@10: .9
+            fuzzy keyword:
+                acc@1: .9
+                acc@5: .95
+                acc@10: .95
+
+        style prediction:
+            full text:
+                acc@1: .8
+                acc@5: .85
+                acc@10: .9
+
+        color generator:        
+            energy distance:
+                global: 0.01
+                red: 0.01
+                green: 0.01
+                blue: 0.01
+                dark: 0.01
+                bright: 0.01
+
+        max text len: 42
+
+        vocabulary:
+            size: 700
+            coverage:
+                # coverage is the percentage of the emojis from each group that is in the vocabulary.
+                # see https://www.unicode.org/emoji/charts/emoji-list.html for the full list of groups.
+                # Your task is to extract all groups from the above link and assign sensible values to each group.
+                face-smiling: 0.2
+                face-affection: 0.2
+                .
+                .
+                .
+                country-flag: 1.0
+                subdivision-flag: 1.0
+
+
+    Your tasks are:
+        1.  Create a `goals.yml` file with the above structure and sensible values, extract the full list of groups from the provided link, and assign values to each group.
+        2.  Update the report to reflect the new goals and their values.
+        3.  Update the goal/*.yml files to follow the new structure, each goal/*.yml file is a subset of the global goal.yml with values that are relevant to that specific goal. 
+        4.  Update the planning-emojic-improvements to be aware of this file.
+        5.  Create a (git tracked) file data/group.json that is a single dictionary from group name to group emojis.
+            You can use this file to check the coverage of each group and show this in the report.
+        6. Update the upsample tool to have `upsample --group <group_name>` option to upsample from a specific group.
