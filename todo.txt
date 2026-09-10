@@ -1,22 +1,40 @@
-Discussion:
-    I'm looking for the best .js library for keyword search.
-    Our settings are:
-        emojis are documents, each document is just a list of keywords, each keyword is a single word.
-        e.g.
-        {
-            emoji: "😀",
-            keywords: ["happy", "smile", "joy"]
-        }
+Links:
+    - https://tinyurl.com/3h72b85d (emoji statists)
 
-        A query is a short text, e.g. "I am happy today"
-        We have ~3000 documents (emojis) and ~5000 unique keywords, and a query is no more than 42 chars long and most of the time much shorter.
-        The requirement is to retrieve a scored list of emojis based on the query, it must be lightweight and fast.
-        
-        Under these settings, compare existing search solutions and suggest the best one.
-        For each solution report:
-            - How it works
-            - Expected performance (speed, memory usage)
-            - Expected MRR (very rough estimate)
-            - What is the integration complexity, how much additional code and steps are needed to integrate it into our existing codebase
+Project Goals:
+    The goal of this project is to be the leading emoji search engine for short texts (up to 42 chars long).
+    Today, mobile and web applications relies on the CLDR emoji dataset to retrieve and search emojis based on keywords.
+    However, the CLDR dataset is not optimized for short texts and does not provide a good search experience for users.
+    This project aims to improve it by combining the CLDR dataset with a large dataset of short texts and their corresponding emojis, and training a deep learning model to predict the most relevant emojis for a given short text.
+    In addition, the project aims to be a full emotional search engine where emotions are expressed through emojis, feelings (styles) and colors. 
+    Goals By priority:
+        1. High accuracy on emoji search for keywords - should be at least as good as the CLDR dataset.
+        2. High accuracy on emoji search for short texts - should be the leading search engine for short texts, outperforming by margin existing solutions.
+        3. High accuracy on color palette generation for short texts - be the industry leader.
+        4. High accuracy on style prediction for short texts - be the industry leader.
 
-    output a detailed report to docs/search.md
+    Dataset:
+        - We created a dataset of more than 239,227 short texts annotated with emojis, styles and colors.
+        - In addition, we use the CLDR 5,031 keywords annotated with emojis, styles and colors.
+
+
+    Evaluation and Goals:
+        - Our emoji vocabulary currently contains 1,281 distinct emojis, out of the 3,953 existing ones.
+        - Our goal is to cover the most popular emojis, not each and every emoji, as many of them are rarely used.
+        - For the set we choose to cover (the vocabulary) however, we must present exceptional accuracy:
+            acc@1 on CLDR exact keywords: 0.95
+            acc@1 on CLDR fuzzy keywords: 0.90
+            acc@1 on short texts: 0.80
+            acc@5 on short texts: 0.90
+            acc@10 on short texts: 0.95
+
+    Model:
+        Our model is based on character level convolution with a fusion head that combines keyword search based results into deep learning model results.
+        We have a feedback loop:
+            train -> report -> improve -> train -> ...
+
+    After each training loop we have to decide:
+        - Dataset improvements
+        - Model configuration improvements
+        - Model architecture improvements
+            
