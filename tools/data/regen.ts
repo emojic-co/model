@@ -2,6 +2,7 @@ import { cac } from "cac"
 
 import { splitEmojis } from "./emoji.ts"
 import { buildFlexRanker } from "./flexrank.ts"
+import { keywordVocabFromIiJson, keywordVocabFromReport } from "./kwvocab.ts"
 import { normalize } from "./normalize.ts"
 import { STYLE_SET } from "./styles.ts"
 
@@ -347,10 +348,10 @@ if (import.meta.main) {
   let kwLine = "flex_tf               : skipped (--no-kw)"
   if (useKw) {
     console.log("computing soft-TF fusion vectors...")
-    const corpusTexts = (master as { text?: unknown }[])
-      .map((r) => r.text)
-      .filter((t): t is string => typeof t === "string")
-    const ranker = await buildFlexRanker(corpusTexts)
+    const reportVocab = keywordVocabFromReport()
+    const kwVocab = reportVocab ?? keywordVocabFromIiJson(emojis)
+    const kwSource = reportVocab ? "report" : "ii.json bootstrap"
+    const ranker = buildFlexRanker(kwVocab)
     let nzSum = 0
     for (const r of split) {
       const pairs = ranker
@@ -372,7 +373,7 @@ if (import.meta.main) {
     const denom = split.length || 1
     kwLine =
       `flex_tf               : N=${ranker.kwVocab.length}, `
-      + `mean nz ${(nzSum / denom).toFixed(2)}`
+      + `mean nz ${(nzSum / denom).toFixed(2)}, source=${kwSource}`
   }
 
   await writeFileAtomic(EVAL, held.map(toLine).join("\n") + "\n")
