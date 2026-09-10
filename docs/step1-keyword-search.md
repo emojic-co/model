@@ -109,7 +109,7 @@ Inference for query text `t`:
    - `FusionHeadGate` — per-text `a·z(logit_m) + (1−a)·kw`.
    - `FusionHeadMix` — scalar `g`, `(1−g)·z(logit_m) + g·kw`.
 
-4. **Report probes** (`tools/report.py`, step-1 mode) — for each of `exact_eval` / `fuzzy_eval` / `eval` (short text), report **fused**, **index-only (`kw`)**, and **model-only (`logit_m`)** Acc@1, so it's clear which component is short. These become three `status.goals` rows gating on 0.95 / 0.90 / 0.70.
+4. **Report probes** (`tools/report.py`, step-1 mode = `EMOJIC_STEP1=1`) — for each of `exact_eval` / `fuzzy_eval`, report **fused** (best combiner), **index-only (`kw`)**, and **model-only (`logit_m`)** Acc@{1,5,10} under `report.json.keyword.{exact,fuzzy}`; short-text is the standard `emoji.eval` section over `data/step1/eval.jsonl`. Grading is via the per-iteration `goal/<date>-<sha>.yml` → `report.json.goals.compare` (`keyword.exact.acc@1` ≥ 0.95, `keyword.fuzzy.acc@1` ≥ 0.90, `text.acc@1` ≥ 0.70), **not** hard-coded `status.goals` rows.
 
 ### Why the targets are reachable
 
@@ -119,10 +119,18 @@ Inference for query text `t`:
 
 ### Build order
 
-1. `tools/data/regen-step1.ts` — curation + all `data/step1/*` + `ii.json` / `kwproj.json` + `kw` fields.
-2. `tools/data/fuzz_keywords.ts` — deterministic variant generator.
-3. `model/config.py` + `files.py` — `EMOJIC_STEP1` branch.
-4. Postings-ordering fix in the `kw` builder + `web/src/keywords.js`.
-5. `train enc --local --heads emoji,fusion -o pt-step1`.
-6. `tools/report.py` — step-1 probes + `status.goals` rows.
-7. Iterate with the `planning-emojic-improvements` loop against the three step-1 gates.
+1. ✅ `tools/data/fuzz_keywords.ts` — deterministic variant generator (`fuzzVariants(keyword)`).
+2. ✅ `tools/data/regen-step1.ts` (`bun run regen-step1`) — curation + `data/step1/{labels.json,ii.json,kwproj.json,train.jsonl,eval.jsonl,exact_eval.jsonl,fuzzy_eval.jsonl}` + `kw` fields with the primary-emoji bonus. All curation knobs are top-of-file constants.
+3. ✅ `files.py` + `files.ts` + `model/config.py` — `EMOJIC_STEP1` branch (paths → `data/step1/`; `MAX_TEXT_LEN 32`, `ENCODER_CHANNELS [64,96]`, `ENCODER_DILATION [1,2]`, `CHAR_EMBED_SIZE 16`, `EMOJI_EMBED_SIZE 32`, `DROPOUT_EMOJI 0.1`, `TASK_BATCH_SIZE 128`, `EPOCHS_TASK 1500`). `.gitignore` += `data/step1/`, `pt-step1/`; `package.json` += `regen-step1`.
+4. ✅ Primary-emoji bonus — in `regen-step1.ts`'s `kw` builder only (step-1 isolated; `PRIMARY_BONUS = 0.15` on the most-popular in-vocab target). Main `regen.ts` / `web/src/keywords.js` untouched — promoting it to the main pipeline needs a full main retrain and is a separate change.
+5. ⬜ `EMOJIC_STEP1=1 train enc --local --heads emoji,fusion -o pt-step1` — **user runs this** (commit the tree first; `train` aborts on a dirty tree).
+6. ✅ `tools/report.py` — `EMOJIC_STEP1=1` mode: `report.json.keyword.{exact,fuzzy}` probes (fused / kw-only / model-only Acc@k), `cldr` + `cards` dropped from the default sections, `Keyword search (step 1)` HTML block. Grading via `goal/*.yml`.
+7. ⬜ Iterate with the `planning-emojic-improvements` loop against `goal/<date>-<sha>.yml`.
+
+### Deviations from this doc
+
+- Curation ranks each keyword's targets by **EmojiTracker popularity**, not CLDR posting order (`data/ii.json` arrays are not reliably primary-first); `proj[k][0]` = most-used in-vocab target, and that is what gets `PRIMARY_BONUS`.
+- The primary bonus is **step-1 only** (see build step 4).
+- Probes are graded through the goal-file mechanism, not new `status.goals` rows (see §3.4).
+- `curate()` currently yields ~356 keywords / ~170 emoji (the category-floor pass overshoots the ~150 vocab target); tune the constants if a tighter slice is wanted.
+- The assembled train set is short-text-dominated (~39k short vs ~285 exact + ~570 fuzzy rows). If exact/fuzzy Acc@1 lags, raise `FUZZY_TRAIN_PER_KW` and/or cap the short-text slice.
