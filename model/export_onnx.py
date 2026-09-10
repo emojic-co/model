@@ -41,7 +41,7 @@ WEB_PUBLIC = Path(WEB_PUBLIC_DIR)
 ONNX_OPSET = 18
 COLOR_SAMPLES = 5
 
-FUSION_EXPORT_VARIANT = "gate"
+FUSION_EXPORT_VARIANT = "gain"
 _FUSION_CLS = {
     "gate": FusionHeadGate,
     "gain": FusionHeadGain,
