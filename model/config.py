@@ -4,7 +4,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from files import ENERGY_KEYWORDS_TXT, LABELS_JSON
+from files import LABELS_JSON
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -31,7 +31,7 @@ ENCODER_KERNEL_SIZE = 3
 assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
-ENCODER_CHANNELS = [64, 96]
+ENCODER_CHANNELS = [80, 100]
 ENCODER_DILATION = [1, 2]
 TEXT_EMBED_SIZE = sum(ENCODER_CHANNELS)
 
@@ -46,7 +46,7 @@ enc_str = " ".join([
         ENCODER_DILATION)])
 
 # EMOJI
-EMOJI_EMBED_SIZE = 32
+EMOJI_EMBED_SIZE = 42
 DROPOUT_EMOJI = 0.1
 
 emj_str = " ".join([str(p) for p in (EMOJI_EMBED_SIZE, DROPOUT_EMOJI)])
@@ -93,7 +93,7 @@ LR = 0.01
 GRAD_CLIP_GEN = 1.0
 GRAD_CLIP_CRITIC = 10.0
 INFONCE_TEMP = 0.7
-CLDR_WEIGHT = 0.05
+CLDR_WEIGHT = 0.5
 
 train_str = " ".join(
     [
@@ -125,7 +125,6 @@ STYLE_AP_K = 5
 ENERGY_Z_SAMPLES = 8
 ENERGY_KEYWORD_MAX_TEXTS = 512
 ENERGY_KEYWORD_MIN_TEXTS = 32
-ENERGY_KEYWORDS_PATH = ENERGY_KEYWORDS_TXT
 
 # TENSORBOARD RUN NAME
 RUN_TIME = os.environ.get(
