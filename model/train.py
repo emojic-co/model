@@ -627,7 +627,8 @@ GPU_CPU = 8
 DEFAULT_GPU = "T4"
 GPU_TASK_BATCH_SIZE = 512
 GPU_GAN_BATCH_SIZE = 1024
-MEMORY_MIB = 16384
+CPU_MEMORY_MIB = 8192
+GPU_MEMORY_MIB = 16384
 TIMEOUT_S = 60 * 180
 REPO = "/repo"
 VENV_PY = sys.executable
@@ -705,7 +706,7 @@ def _stash(dst: str) -> int:
 
 @modal_app.function(
     cpu=CPU,
-    memory=MEMORY_MIB,
+    memory=CPU_MEMORY_MIB,
     timeout=TIMEOUT_S,
     volumes={ARTIFACTS: vol},
     include_source=False,
@@ -882,7 +883,7 @@ def _run_remote(
     fn = train_remote
     if gpu:
         fn = train_remote.with_options(
-            gpu=gpu, cpu=GPU_CPU, memory=MEMORY_MIB, timeout=TIMEOUT_S
+            gpu=gpu, cpu=GPU_CPU, memory=GPU_MEMORY_MIB, timeout=TIMEOUT_S
         )
     return fn.remote(
         stage=stage,
