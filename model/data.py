@@ -6,11 +6,12 @@ from dataclasses import dataclass, field
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from files import EVAL_JSONL, TRAIN_JSONL
-from model.config import EMOJIS, MAX_TEXT_LEN, STYLES
+from files import CLDR_JSONL, EVAL_JSONL, TRAIN_JSONL
+from model.config import CLDR_WEIGHT, EMOJIS, MAX_TEXT_LEN, STYLES
 
 TRAIN_PATH = TRAIN_JSONL
 EVAL_PATH = EVAL_JSONL
+CLDR_PATH = CLDR_JSONL
 
 PAD = "·"
 PAD_IDX = 0
@@ -118,6 +119,22 @@ def _row_kw(row) -> torch.Tensor:
     return out
 
 
+def _cldr_pool():
+    try:
+        recs = [r for r in read(CLDR_PATH) if r.emojis]
+    except FileNotFoundError:
+        return None
+    if not recs:
+        return None
+    return (
+        torch.stack([text_to_tensor(r.text) for r in recs]),
+        torch.stack([emojis_to_tensor(r.emojis) for r in recs]),
+        torch.stack([styles_to_tensor(r.styles) for r in recs]),
+        torch.stack([colors2tensor(r.colors) for r in recs]),
+        torch.zeros(len(recs), len(EMOJIS), dtype=torch.float32),
+    )
+
+
 def load_energy_keywords(path: str) -> list[str]:
     try:
         with open(path, encoding="utf-8") as f:
@@ -174,17 +191,21 @@ def keyword_index(
 
 
 class EmojiDataset(Dataset):
-    def __init__(self, records: list[record]):
+    def __init__(self, records: list[record], mix_cldr: bool = False):
         self.text = torch.stack([text_to_tensor(r.text) for r in records])
         self.emoji = torch.stack([emojis_to_tensor(r.emojis) for r in records])
         self.style = torch.stack([styles_to_tensor(r.styles) for r in records])
         self.colors = torch.stack([colors2tensor(r.colors) for r in records])
         self.kw = torch.stack([_row_kw(r) for r in records])
+        self.cldr = _cldr_pool() if mix_cldr and CLDR_WEIGHT > 0 else None
 
     def __len__(self):
         return len(self.text)
 
     def __getitem__(self, idx):
+        if self.cldr is not None and torch.rand(1).item() < CLDR_WEIGHT:
+            j = int(torch.randint(len(self.cldr[0]), (1,)).item())
+            return tuple(col[j] for col in self.cldr)
         return (
             self.text[idx],
             self.emoji[idx],
@@ -195,7 +216,7 @@ class EmojiDataset(Dataset):
 
 
 def train_ds():
-    return EmojiDataset(list(read(TRAIN_PATH)))
+    return EmojiDataset(list(read(TRAIN_PATH)), mix_cldr=True)
 
 
 PIN_MEMORY = torch.cuda.is_available()
