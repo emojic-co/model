@@ -4,7 +4,7 @@
 
 **Goal:** Replace the learned `KWHead` + gate `FusionHead` + soft-TF `flexrank` stack with a standalone `EmojiHead`, an offline-computed hand-rolled inverted-index + uFuzzy keyword payload, and three tiny detached learned combiners (`FusionHeadGate` / `FusionHeadGain` / `FusionHeadMix`) trained in parallel for comparison.
 
-**Architecture:** `EmojiHead` trains alone (`lse_infonce`). Per `docs/search.md` §3: `tools/data/regen.ts` builds a hand-rolled inverted index from `data/ii.json` (`proj` = keyword → vocab emoji indices) + IDF `weight = 1/log2(1+df)`, and for every train/eval row runs `queryTokens(text)` → `matches(word)` (exact posting hit strength `1.0`, plus `@leeoniya/uFuzzy` as the fuzzy step, `sim >= 0.5`), aggregating `kw[e] = max(strength * weight[k])`; it writes a sparse per-emoji `kw` score field + `web/public/kwproj.json`. The browser runs the identical `matches` + aggregation live. `queryTokens` is relocated **verbatim** from `flexrank.*` into `tools/data/tokenize.ts` / `web/src/tokenize.js` (byte-identical, hand-kept like `normalize`) + `model/tokenize.py` (report diagnostic only). Each of the three `FusionHead*` modules takes detached `(logit_m, kw)` and returns fused per-emoji scores; `tools/report.py` compares them on `data/eval.jsonl`; `model/export_onnx.py` bakes one winner variant into `meta.json`.
+**Architecture:** `EmojiHead` trains alone (`lse_infonce`). Per `docs/search.md` §3: `tools/data/regen.ts` builds a hand-rolled inverted index from `data/ii.json` (`proj` = keyword → vocab emoji indices) + IDF `weight = 1/log2(1+df)`, and for every train/eval row runs `queryTokens(text)` → `matches(word)` (exact posting hit strength `1.0`, plus `@leeoniya/uFuzzy` as the fuzzy step, `sim >= 0.5`), aggregating `kw[e] = max(strength * weight[k])`; it writes a sparse per-emoji `kw` score field + `web/public/kwproj.json`. The browser runs the identical `matches` + aggregation live. `queryTokens` is relocated **verbatim** from `flexrank.*` into `tools/data/tokenize.ts` / `web/src/tokenize.js` (byte-identical, hand-kept like `normalize`) + `model/kwtokens.py` (report diagnostic only). Each of the three `FusionHead*` modules takes detached `(logit_m, kw)` and returns fused per-emoji scores; `tools/report.py` compares them on `data/eval.jsonl`; `model/export_onnx.py` bakes one winner variant into `meta.json`.
 
 **Tech Stack:** PyTorch + Lightning + Typer (`model/`), Bun + TypeScript (`tools/data/`), Vite + React + onnxruntime-web + `@leeoniya/uFuzzy` (`web/`). `uv` for Python, `bun` for tooling, `npm` for `web/`.
 
@@ -28,8 +28,8 @@
 ## File Structure
 
 **New:**
-- `model/tokenize.py` — `query_tokens` + `STOPWORDS`, Python port used **only** by the `report.py` keyword-vocab diagnostic (off the training/inference path; a faithful port, but not byte-locked to the JS/TS copies since Python never runs the keyword predictor).
-- `model/test_tokenize.py` — plain-assert test for the above.
+- `model/kwtokens.py` — `query_tokens` + `STOPWORDS`, Python port used **only** by the `report.py` keyword-vocab diagnostic (off the training/inference path; a faithful port, but not byte-locked to the JS/TS copies since Python never runs the keyword predictor).
+- `model/test_kwtokens.py` — plain-assert test for the above.
 - `tools/data/tokenize.ts` — `queryTokens` + `STOPWORDS`, relocated **verbatim** from `tools/data/flexrank.ts`; the offline (regen) keyword-predictor tokenizer.
 - `tools/data/tokenize.test.ts` — `bun test`, a few `text → tokens` cases.
 - `web/src/tokenize.js` — `queryTokens` + `STOPWORDS`, relocated **verbatim** from `web/src/flexrank.js`; the browser keyword-predictor tokenizer. Same logic as `tools/data/tokenize.ts` — both copied from the identical `flexrank` source, hand-kept in sync like `normalize`.
@@ -45,7 +45,7 @@
 - `model/train.py` — `self.fusion` becomes an `nn.ModuleDict` of the three heads; detached fusion loss; per-variant logging; `MRR/fusion/{split}` = best of three; write `fusion_{gate,gain,mix}.pt`; gan required-file list + Modal byte plumbing.
 - `model/export_onnx.py` — one input (`input`), three outputs (`style_logits`, `emoji_logits`, `color`); `FUSION_EXPORT_VARIANT` constant; `meta.json` `fusion` block; drop `flex_kw` / `flex_n`.
 - `model/pred.py` — `fusion_top_labels` from `FusionHeadGate` + the row's `kw`.
-- `tools/report.py` — import `query_tokens` from `model.tokenize`; 5-way `acc@k` overlay on `data/eval.jsonl`; `report.json` keys.
+- `tools/report.py` — import `query_tokens` from `model.kwtokens`; 5-way `acc@k` overlay on `data/eval.jsonl`; `report.json` keys.
 - `tools/data/regen.ts` — uFuzzy `kw` payload (exact posting hit + uFuzzy fuzzy step, per `queryTokens(text)` word); import `queryTokens` from `./tokenize`; write `web/public/kwproj.json`; drop `flexrank` / `kwvocab` / `flex.json` / fixture.
 - `files.py` — drop `FLEX_JSON`, `KW_PT`, `FUSION_PT`; add `FUSION_GATE_PT`, `FUSION_GAIN_PT`, `FUSION_MIX_PT`, `KWPROJ_JSON`.
 - `files.ts` — drop `FLEX_JSON`, `FLEX_FIXTURE_JSON`; add `KWPROJ_JSON`.
@@ -67,7 +67,7 @@
 
 ---
 
-## Task 1: `model/tokenize.py` — Python tokenizer for the report diagnostic
+## Task 1: `model/kwtokens.py` — Python tokenizer for the report diagnostic
 
 `model/flexrank.py` is deleted in Task 4, but `tools/report.py`'s keyword-vocab
 diagnostic still needs `query_tokens` (to filter `data/ii.json` keys to single
@@ -79,15 +79,15 @@ Python never runs the keyword predictor — so it carries no byte-parity burden
 with the JS/TS pair.
 
 **Files:**
-- Create: `model/tokenize.py`
-- Test: `model/test_tokenize.py`
+- Create: `model/kwtokens.py`
+- Test: `model/test_kwtokens.py`
 
 **Interfaces:**
 - Produces: `query_tokens(text: str) -> list[str]`; `STOPWORDS: set[str]`. Identical behaviour to the current `model/flexrank.py:query_tokens` (lowercase, `[^a-z0-9\s]` → space, split on whitespace, keep tokens with `len >= 2` not in `STOPWORDS`).
 
 - [ ] **Step 1: Write the failing test**
 
-Create `model/test_tokenize.py`:
+Create `model/test_kwtokens.py`:
 
 ```python
 import sys
@@ -95,7 +95,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from model.tokenize import STOPWORDS, query_tokens
+from model.kwtokens import STOPWORDS, query_tokens
 
 
 def test_splits_and_lowercases():
@@ -125,12 +125,12 @@ if __name__ == "__main__":
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `uv run python model/test_tokenize.py`
-Expected: `ModuleNotFoundError: No module named 'model.tokenize'`
+Run: `uv run python model/test_kwtokens.py`
+Expected: `ModuleNotFoundError: No module named 'model.kwtokens'`
 
 - [ ] **Step 3: Write minimal implementation**
 
-Create `model/tokenize.py` (port verbatim from `model/flexrank.py`):
+Create `model/kwtokens.py` (port verbatim from `model/flexrank.py`):
 
 ```python
 import re
@@ -153,19 +153,19 @@ def query_tokens(text: str) -> list[str]:
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `uv run python model/test_tokenize.py`
+Run: `uv run python model/test_kwtokens.py`
 Expected: `ok`
 
 - [ ] **Step 5: Lint**
 
-Run: `uv run ruff check model/tokenize.py model/test_tokenize.py && uv run ruff format --check model/tokenize.py model/test_tokenize.py`
-Expected: no errors. (If `ruff format --check` complains, run `uv run ruff format model/tokenize.py model/test_tokenize.py` and re-check.)
+Run: `uv run ruff check model/kwtokens.py model/test_kwtokens.py && uv run ruff format --check model/kwtokens.py model/test_kwtokens.py`
+Expected: no errors. (If `ruff format --check` complains, run `uv run ruff format model/kwtokens.py model/test_kwtokens.py` and re-check.)
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add model/tokenize.py model/test_tokenize.py
-git commit -m "feat(tokenize): model/tokenize.py — query_tokens port for report diagnostics"
+git add model/kwtokens.py model/test_kwtokens.py
+git commit -m "feat(tokenize): model/kwtokens.py — query_tokens port for report diagnostics"
 ```
 
 ---
@@ -831,7 +831,7 @@ def read_rows(lines: list[str]) -> list[dict]:
 
 - [ ] **Step 8: `tools/report.py` — import swap only**
 
-- In `_flex_keyword_candidates`, change `from model.flexrank import query_tokens` → `from model.tokenize import query_tokens`.
+- In `_flex_keyword_candidates`, change `from model.flexrank import query_tokens` → `from model.kwtokens import query_tokens`.
 - Run `grep -n "flexrank\|FLEX_JSON\|flex\.json" tools/report.py` → no matches. (The 5-way overlay is Task 5; nothing else changes here.)
 
 - [ ] **Step 9: Delete the dead Python modules**
@@ -890,7 +890,7 @@ Update the `main()` command body: replace the `test_fusion_step_end_to_end_grad(
 ```bash
 uv run ruff check . && uv run ruff format --check .
 uv run python model/test_runmeta.py
-uv run python model/test_tokenize.py
+uv run python model/test_kwtokens.py
 uv run python model/test_model_heads.py
 uv run python model/test_train_cli.py
 uv run python tools/test_report.py
@@ -1330,12 +1330,12 @@ git commit -m "feat(web): live uFuzzy keyword predictor + client-side fusion; dr
 
 Rewrite the stale passages (search for each phrase):
 
-- The `## Project` paragraph on `KWHead` / `FusionHead` / `flex_tf` / `loss/fusion`: replace with — `EmojiHead` trains standalone (`lse_infonce`); the keyword signal is a non-learned hand-rolled inverted index (`data/ii.json` postings projected to the emoji vocab + IDF weight `1/log2(1+df)`) with `queryTokens` (relocated verbatim into `tools/data/tokenize.ts` / `web/src/tokenize.js` / `model/tokenize.py`) and `@leeoniya/uFuzzy` as the fuzzy step of `matches(word)`, computed offline by `regen.ts` into a sparse `kw` row field + `web/public/kwproj.json` and live in the browser; three detached learned combiners `FusionHeadGate` / `FusionHeadGain` / `FusionHeadMix` (in `model/model.py`) each map `(logit_m.detach(), kw)` → fused per-emoji scores, trained in parallel by `lse_infonce`; checkpoint keys on `MRR/fusion/val` = best of the three; stage 1 writes `fusion_gate.pt` / `fusion_gain.pt` / `fusion_mix.pt`.
+- The `## Project` paragraph on `KWHead` / `FusionHead` / `flex_tf` / `loss/fusion`: replace with — `EmojiHead` trains standalone (`lse_infonce`); the keyword signal is a non-learned hand-rolled inverted index (`data/ii.json` postings projected to the emoji vocab + IDF weight `1/log2(1+df)`) with `queryTokens` (relocated verbatim into `tools/data/tokenize.ts` / `web/src/tokenize.js` / `model/kwtokens.py`) and `@leeoniya/uFuzzy` as the fuzzy step of `matches(word)`, computed offline by `regen.ts` into a sparse `kw` row field + `web/public/kwproj.json` and live in the browser; three detached learned combiners `FusionHeadGate` / `FusionHeadGain` / `FusionHeadMix` (in `model/model.py`) each map `(logit_m.detach(), kw)` → fused per-emoji scores, trained in parallel by `lse_infonce`; checkpoint keys on `MRR/fusion/val` = best of the three; stage 1 writes `fusion_gate.pt` / `fusion_gain.pt` / `fusion_mix.pt`.
 - `model/train.py` bullet: `--heads … fusion` builds all three combiners; drop the `kw.pt` / `fusion.pt` / `FLEX_N` / `KWHead` references; `gan` stage now requires `fusion_{gate,gain,mix}.pt`.
 - `model/export_onnx.py` bullet: two inputs → **one** (`input`); five outputs → **three** (`style_logits`, `emoji_logits`, `color`); `meta.json` gains a `fusion` block (winner variant, `FUSION_EXPORT_VARIANT`); drops `flex_kw` / `flex_n`; `regen.ts` writes `web/public/kwproj.json`.
-- `tools/report.py` bullet: the emoji `acc@k` overlay is now `EmojiHead` / `Keywords` / `Fusion·Gate` / `Fusion·Gain` / `Fusion·Mix` on `data/eval.jsonl`; `keywords_flex.ranked` no longer feeds `regen`; `query_tokens` moved to `model/tokenize.py`.
+- `tools/report.py` bullet: the emoji `acc@k` overlay is now `EmojiHead` / `Keywords` / `Fusion·Gate` / `Fusion·Gain` / `Fusion·Mix` on `data/eval.jsonl`; `keywords_flex.ranked` no longer feeds `regen`; `query_tokens` moved to `model/kwtokens.py`.
 - `regen.ts` bullet: `flex_tf` → `kw` (inverted index + IDF + uFuzzy over `data/ii.json`, projected to vocab, per `queryTokens(text)` word; `queryTokens` imported from `./tokenize`); `regen` is deterministic again (no report dependency); writes `web/public/kwproj.json`; `--no-kw` skips both.
-- Remove mentions of `model/flexrank.py`, `tools/data/flexrank.ts`, `tools/data/kwvocab.ts`, `web/src/flexrank.js`, `web/src/flexrank.fixture.json`, `web/public/flex.json`, `FLEX_JSON`, `flexrank.fixture.json` conformance, `model/test_flexrank.py`, `web/src/flexrank.test.js`, `FLEX_FIXTURE_TEXTS`, the `flexsearch` dep. Where the three-byte-identical-ranker-surfaces sentence stood, note instead that `queryTokens` now lives in `tools/data/tokenize.ts` + `web/src/tokenize.js` (byte-identical, hand-kept like `normalize`) + `model/tokenize.py` (report diagnostic only), and the browser + `regen` keyword predictor share the `matches(word)` = exact-posting + uFuzzy shape with no fixture golden.
+- Remove mentions of `model/flexrank.py`, `tools/data/flexrank.ts`, `tools/data/kwvocab.ts`, `web/src/flexrank.js`, `web/src/flexrank.fixture.json`, `web/public/flex.json`, `FLEX_JSON`, `flexrank.fixture.json` conformance, `model/test_flexrank.py`, `web/src/flexrank.test.js`, `FLEX_FIXTURE_TEXTS`, the `flexsearch` dep. Where the three-byte-identical-ranker-surfaces sentence stood, note instead that `queryTokens` now lives in `tools/data/tokenize.ts` + `web/src/tokenize.js` (byte-identical, hand-kept like `normalize`) + `model/kwtokens.py` (report diagnostic only), and the browser + `regen` keyword predictor share the `matches(word)` = exact-posting + uFuzzy shape with no fixture golden.
 - `model/pred.py` bullet: `fusion_top_labels` now needs `pt/fusion_gate.pt` + a `kw` field on the row (from `regen`), not `fusion.pt` / `kw.pt` / `flex.json`.
 - `model/config.py` bullet: drop `DROPOUT_KW`; add `FUSION_GATE_PT` / `FUSION_GAIN_PT` / `FUSION_MIX_PT` / `KWPROJ_JSON` to the `files.py` path list; remove `FLEX_JSON` / `KW_PT` / `FUSION_PT`.
 - Web bullet: 3-way masthead toggle unchanged (`fusion` / `model` / `keywords`) but fusion + keyword scoring is now fully client-side (`web/src/keywords.js` live uFuzzy + `web/src/fusion.js`); `flex.json` → `kwproj.json`; dep `flexsearch` → `@leeoniya/uFuzzy`.
@@ -1345,7 +1345,7 @@ Rewrite the stale passages (search for each phrase):
 ```bash
 uv run ruff check . && uv run ruff format --check .
 uv run python model/test_runmeta.py
-uv run python model/test_tokenize.py
+uv run python model/test_kwtokens.py
 uv run python model/test_model_heads.py
 uv run python model/test_train_cli.py
 uv run python tools/test_report.py
@@ -1379,7 +1379,7 @@ State in the handoff that the behavioural gate is a manual `train enc --local` r
 | Spec section | Task |
 |---|---|
 | §1.1 Projection | Task 3 Step 4 |
-| §1.2 `queryTokens` relocated verbatim (`tools/data/tokenize.ts` + `web/src/tokenize.js`, byte-identical); `model/tokenize.py` for the report diagnostic only | Task 1 (`model/tokenize.py`); Task 3 Step 2 (`tools/data/tokenize.ts`); Task 6 Step 2 (`web/src/tokenize.js`) |
+| §1.2 `queryTokens` relocated verbatim (`tools/data/tokenize.ts` + `web/src/tokenize.js`, byte-identical); `model/kwtokens.py` for the report diagnostic only | Task 1 (`model/kwtokens.py`); Task 3 Step 2 (`tools/data/tokenize.ts`); Task 6 Step 2 (`web/src/tokenize.js`) |
 | §1.3 uFuzzy index; `matches(word)` = exact posting hit (1.0) + uFuzzy fuzzy step (`sim >= 0.5`) per `queryTokens` word | Task 3 Step 4, Task 6 Step 3 |
 | §1.4 Aggregate `kw(e) = max(strength * w_k)` | Task 3 Step 4, Task 6 Step 3 |
 | §1.5 Row `kw` field | Task 3 Step 4 |
@@ -1411,7 +1411,7 @@ Task 5 Steps 3-4 name locals abstractly (`_acc_at_k`, `eval_text`, `eval_targets
 **3. Type consistency**
 
 - `_row_kw(row)` accepts a dict (`row.get("kw")`) or a `record` (`row.kw`) — used with dicts in `pred.py` (Task 4 Step 7) and `report.py` (Task 5 Step 3), with `record` inside `EmojiDataset` (Task 4 Step 3). Matches the old `_row_tf` dual-mode signature.
-- `queryTokens(text)` — one implementation, three copies: `tools/data/tokenize.ts` (Task 3 Step 2, from `flexrank.ts`), `web/src/tokenize.js` (Task 6 Step 2, from `flexrank.js`), `model/tokenize.py` (Task 1). The TS and JS copies are copied verbatim from the identical `flexrank` source and stay byte-identical by hand (like `normalize`); `model/tokenize.py` is a port for the report diagnostic only. Call sites: `regen.ts` `kwVec` (Task 3 Step 4), `web/src/keywords.js` `predict` (Task 6 Step 3), `tools/report.py` `_flex_keyword_candidates` (Task 5, via `model.tokenize.query_tokens`).
+- `queryTokens(text)` — one implementation, three copies: `tools/data/tokenize.ts` (Task 3 Step 2, from `flexrank.ts`), `web/src/tokenize.js` (Task 6 Step 2, from `flexrank.js`), `model/kwtokens.py` (Task 1). The TS and JS copies are copied verbatim from the identical `flexrank` source and stay byte-identical by hand (like `normalize`); `model/kwtokens.py` is a port for the report diagnostic only. Call sites: `regen.ts` `kwVec` (Task 3 Step 4), `web/src/keywords.js` `predict` (Task 6 Step 3), `tools/report.py` `_flex_keyword_candidates` (Task 5, via `model.kwtokens.query_tokens`).
 - `FusionHead*.forward(logit_m, kw)` — call sites: `train.py` `head(lm, kw)` (Task 4 Step 5), `report.py` `head(logit_m.detach(), kw_dense)` (Task 5 Step 3), `pred.py` `gate(emoji_logits.detach(), kw_vec)` (Task 4 Step 7), tests (Task 2). All pass `[B, N]` / `[B, N]`.
 - `FusionHeadGate.last_a` — set in Task 2, read in `train.py` as `self.fusion["gate"].last_a` (Task 4 Step 5) and asserted in Task 2 tests. Consistent (a non-persistent buffer, scalar).
 - `makeFusion(metaFusion)` / `makeKeywordPredictor(kwprojJson, emojiCount)` — defined Task 6 Steps 3-4, called in `useOnnx.js` Task 6 Step 5 with `m.fusion` and `(kwproj, m.emojis.length)`. `makeKeywordPredictor.predict` takes the **raw** input string and tokenizes internally via `queryTokens` (`web/src/tokenize.js`); `regen.ts`'s `kwVec` calls `queryTokens(text)` (`tools/data/tokenize.ts`, byte-identical) — same tokens. No `normalize` on the keyword path. Consistent.
@@ -1419,4 +1419,4 @@ Task 5 Steps 3-4 name locals abstractly (`_acc_at_k`, `eval_text`, `eval_targets
 - `meta.json` `fusion` block keys (`variant`, `bn_mean`, `bn_var`, `w`, `b` / `beta` / `g`) — written by `_fusion_meta` (Task 4 Step 6), read by `makeFusion` (Task 6 Step 4). Consistent, including BN `eps = 1e-5`.
 - `FUSION_GATE_PT` / `FUSION_GAIN_PT` / `FUSION_MIX_PT` — defined `files.py` (Task 4 Step 1), consumed in `train.py` (Task 4 Step 5), `export_onnx.py` (Task 4 Step 6), `report.py` (Task 5 Step 2). `KWPROJ_JSON` — `files.py` (Task 4 Step 1) + `files.ts` (Task 3 Step 2); `regen.ts` writes via the `files.ts` constant, web fetches the literal `kwproj.json` path.
 
-Fixes applied inline: aligned to `docs/search.md` — `queryTokens` is relocated verbatim (not dropped) into `tools/data/tokenize.ts` + `web/src/tokenize.js` (byte-identical) + `model/tokenize.py` (report-only port); `matches(word)` = exact posting hit + uFuzzy fuzzy step; Task 3 (8 steps) and Task 6 (9 steps) renumbered; cross-references and the §1.2/§1.3/§9 rows updated.
+Fixes applied inline: aligned to `docs/search.md` — `queryTokens` is relocated verbatim (not dropped) into `tools/data/tokenize.ts` + `web/src/tokenize.js` (byte-identical) + `model/kwtokens.py` (report-only port); `matches(word)` = exact posting hit + uFuzzy fuzzy step; Task 3 (8 steps) and Task 6 (9 steps) renumbered; cross-references and the §1.2/§1.3/§9 rows updated.

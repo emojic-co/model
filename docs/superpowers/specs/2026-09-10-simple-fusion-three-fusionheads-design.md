@@ -31,7 +31,7 @@ emoji performance:
   similarity `< 1.0`). Accumulate `score[e] = max(score[e], strength * weight[k])`.
   This runs **once offline in `regen.ts`** over every train/eval row and **live in
   the browser** on user input. Python never reimplements it (the report keyword
-  diagnostic keeps only `queryTokens`, via `model/tokenize.py`).
+  diagnostic keeps only `queryTokens`, via `model/kwtokens.py`).
 - A **minimal learned combiner** replaces `FusionHead`. Three variants are
   implemented and trained **in parallel in one run** so they can be compared:
   `FusionHeadGate`, `FusionHeadGain`, `FusionHeadMix`. Each consumes the same
@@ -78,7 +78,7 @@ standalone modules:
 
 - `tools/data/tokenize.ts` — used by `regen.ts`
 - `web/src/tokenize.js` — used by the browser
-- `model/tokenize.py` — used **only** by the `report.py` "Keyword vocab"
+- `model/kwtokens.py` — used **only** by the `report.py` "Keyword vocab"
   diagnostic (`query_tokens(k) == [k]` single-token filter over `data/ii.json`
   keys); off the training/inference path
 
@@ -346,7 +346,7 @@ not recompute uFuzzy in Python.
 
 Kept as a pure diagnostic (every qualifying `data/ii.json` key scored by
 `EmojiHead` rank). Its `query_tokens` import moves from `model.flexrank` to
-`model.tokenize`. `report.json.keywords_flex.ranked` **no longer feeds `regen`**
+`model.kwtokens`. `report.json.keywords_flex.ranked` **no longer feeds `regen`**
 (the `kwvocab.ts` consumer is deleted) — note this in the section text.
 
 ### 5.3 `report.json`
@@ -433,7 +433,7 @@ Kept as a pure diagnostic (every qualifying `data/ii.json` key scored by
 
 ### New
 
-- `model/tokenize.py` (report keyword-vocab diagnostic only), `model/test_tokenize.py`
+- `model/kwtokens.py` (report keyword-vocab diagnostic only), `model/test_kwtokens.py`
 - `tools/data/tokenize.ts` (`queryTokens` for `regen.ts`), `tools/data/tokenize.test.ts`
 - `web/src/tokenize.js` (`queryTokens` for the browser)
 - `web/src/keywords.js`, `web/src/keywords.test.js`
@@ -477,7 +477,7 @@ Non-training:
 
 - `uv run ruff check .` / `uv run ruff format --check .`
 - `uv run python model/test_runmeta.py`
-- `uv run python model/test_tokenize.py`
+- `uv run python model/test_kwtokens.py`
 - `uv run python model/test_train_cli.py`
 - `uv run python model/test_model_heads.py`
 - `uv run python tools/test_report.py`
@@ -515,6 +515,6 @@ match strength; if that ratio proves noisy in the report comparison, `sim >= 0.5
 and `intraIns` are the two knobs (or fall back to a reciprocal-rank `sim`). `queryTokens` already drops stopwords, so the short-word
 over-match uFuzzy is prone to is largely pre-empted; the `< 3` skip + `0.5` floor
 cover the rest. Python parity for the keyword predictor is **not** kept — the
-report's keyword diagnostic reuses only `query_tokens` (`model/tokenize.py`) and
+report's keyword diagnostic reuses only `query_tokens` (`model/kwtokens.py`) and
 the fused `acc@k` curves read the precomputed `kw` payload, never recompute uFuzzy
 (consistent with `docs/search.md` §3).
