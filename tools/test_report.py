@@ -127,6 +127,28 @@ def test_kw_section_keys():
     assert len(v) == len(r.kw_vocab) and len(v) > 500
 
 
+def test_flex_keyword_candidates_and_section():
+    from model.flexrank import query_tokens
+    from tools.report import (
+        EMOJIS,
+        _flex_keyword_candidates,
+        _section_keywords_flex,
+    )
+
+    cands = _flex_keyword_candidates()
+    if not cands:
+        print("skip test_flex_keyword_candidates_and_section (no data/ii.json)")
+        return
+    vocab = set(EMOJIS)
+    for kw, tgt in cands:
+        assert 3 <= len(kw) <= 6, kw
+        assert query_tokens(kw) == [kw], kw
+        assert tgt and all(e in vocab for e in tgt), (kw, tgt)
+    assert list(cands) == sorted(cands), "candidates not sorted"
+
+    assert _section_keywords_flex(None, None) == {}
+
+
 _app = typer.Typer(
     add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
@@ -142,6 +164,7 @@ def main() -> None:
     test_linechart_three_way()
     test_emoji_html_three_way()
     test_kw_section_keys()
+    test_flex_keyword_candidates_and_section()
     print("ok")
 
 
