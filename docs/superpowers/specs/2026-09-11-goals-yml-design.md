@@ -97,8 +97,8 @@ scorecard targets. Removes module constants `SHORT_TEXT_ACC_TARGETS`,
 
 | flattened goal path | dir | report.json source |
 |---|---|---|
-| `emoji prediction.exact keyword.acc@{1,5,10}` | max | `keyword.exact.acc_at_k[{0,4,9}]` |
-| `emoji prediction.fuzzy keyword.acc@{1,5,10}` | max | `keyword.fuzzy.acc_at_k[…]` — null until wired |
+| `emoji prediction.exact keyword.acc@{1,5,10}` | max | `keyword.fusion.acc_at_k[{0,4,9}]` — the fusion model on CLDR keywords (exact-matched kw vector); the whole `emoji prediction` branch grades the fusion model, not the standalone kw search (`keyword.exact`) |
+| `emoji prediction.fuzzy keyword.acc@{1,5,10}` | max | `keyword.fuzzy_fusion.acc_at_k[…]` — fusion model on a uFuzzy kw vector — null until wired |
 | `emoji prediction.full text.acc@{1,5,10}` | max | best fusion variant `emoji.eval.*_acc_at_k[…]` |
 | `style prediction.full text.acc@{1,5,10}` | max | `cards.style_acc_at_k[…]` |
 | `color generator.energy distance.global` | min | `cards.energy` — null until wired |
@@ -210,7 +210,7 @@ CLAUDE.md: update the `upsample.ts` bullet, the `data/` bullet (new
 
 ## Out of scope
 
-- Wiring `keyword.fuzzy.*` and `cards.energy` (still unmeasured; unchanged from
+- Wiring `keyword.fuzzy_fusion.*` and `cards.energy` (still unmeasured; unchanged from
   today).
 - Re-tuning any target value against a real run — the numbers here are initial.
 - Any model / training / `normalize` change.

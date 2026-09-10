@@ -2,15 +2,15 @@ meta:
   based_on: docs/step1-keyword-search.md
   written_after_report: report/26-09-11-00-21-992cabb
   rationale: >
-    Iteration 1 — the milestone-1 keyword-search baseline is validated. The
-    report-side probe (report.json `keyword`) scores the non-learned
-    inverted-index kw predictor directly on data/cldr.jsonl: exact-postings
-    Acc@1 = 0.966, which clears the priority-1 gate (>= 0.95). The remaining
-    open gate is full-text emoji Acc@1 (emoji.eval, best fusion variant =
-    Fusion.Gain, 0.538). Sub-signals watched but not gated: model-only CLDR
-    Acc@1 (0.312 — the encoder has not learned bare keyword->emoji, expected
-    for milestone 1) and fusion Acc@1 on CLDR (0.680 — the shipped combiner
-    drags the clean kw ranking down; combiner routing is recommend-only).
+    Iteration 1 — the milestone-1 keyword path is validated. Priority 1 is the
+    fusion model's Acc@1 on exact CLDR keywords (report.json
+    keyword.fusion.acc_at_k[0]) = 0.680 — the standalone inverted-index search
+    (keyword.exact.acc_at_k[0] = 0.966) already clears 0.95, so the whole gap is
+    the combiner dragging the clean kw ranking down with model noise; combiner
+    routing is recommend-only. Priority 2 is full-text emoji Acc@1 (emoji.eval,
+    best fusion variant = Fusion.Gain, 0.538). Sub-signal: model-only CLDR Acc@1
+    (0.312 — the encoder has not learned bare keyword->emoji, expected for
+    milestone 1).
   deferred:
     - "emoji prediction.exact keyword.acc@5"
     - "emoji prediction.exact keyword.acc@10"
@@ -25,6 +25,6 @@ meta:
 goals:
   emoji prediction:
     exact keyword:
-      "acc@1": 0.95
+      "acc@1": 0.72
     full text:
       "acc@1": 0.58

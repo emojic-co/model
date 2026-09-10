@@ -21,7 +21,7 @@ description: Use when a training run has finished (train then tools/report.py) a
 
 The report already carries a priority-ordered scorecard at `status.goals` (the coloured banner atop `report.html`, targets from `goals.yml`), the per-Unicode-group vocab breakdown at `status.vocab_coverage`, and — once a `goal/*.yml` exists — a target-vs-actual table at `goals.compare`. Steps 3–6 turn that into the next goals file and the next set of moves; they do not re-derive the scorecard.
 
-Core principle: **CLDR keyword parity is priority 1 and must never regress.** Every recommendation states its risk to the CLDR probe explicitly. A short-text-emoji gain that costs CLDR accuracy is not an improvement.
+Core principle: **the fusion model's Acc@1 on exact CLDR keywords (`keyword.fusion.acc_at_k[0]`) is priority 1 and must never regress.** Every recommendation states its risk to that number explicitly. A full-text-emoji gain that costs exact-keyword fusion accuracy is not an improvement. (The standalone inverted-index search `keyword.exact` stays a monitored sub-signal — it is not the gate.)
 
 **Every loop must aim for a *visible* jump on a failing goal — not a marginal gain.** Before writing the plan, decide the loop's verdict:
 - **step-change** — there is a concrete action (or short stack) with a credible path to a visible move (rule of thumb: ≥ +0.02 Acc@1 on the top failing goal, or clearing a category gate). Write it and implement it.
@@ -35,26 +35,32 @@ the long-term project-goals statement (`GOALS_YML` in `files.py` / `files.ts`); 
 numbers in this table are just a quick reference and can lag the file. Each
 `goal/<date>-<sha>.yml` is a **strict subset** of its nested tree.
 
+Every `emoji prediction` leaf measures **the fusion model** (the shipped system: best of
+the detached combiners over model logits + kw), by input type. The standalone
+inverted-index keyword search (`report.json.keyword.exact` / `keyword.fuzzy`) is a
+diagnostic, not a graded goal.
+
 | Target | goals.yml path | report.json source | Threshold (as of writing) |
 |---|---|---|---|
-| Full-text emoji Acc@{1,5,10} | `emoji prediction.full text.acc@{1,5,10}` | `emoji.eval.<best fusion variant>_acc_at_k` | ≥ 0.80 / 0.85 / 0.90 |
-| CLDR keyword Acc@{1,5,10} (exact) | `emoji prediction.exact keyword.acc@{1,5,10}` | `keyword.exact.acc_at_k` | ≥ 0.95 |
-| CLDR keyword Acc@{1,5,10} (fuzzy) | `emoji prediction.fuzzy keyword.acc@{1,5,10}` | `keyword.fuzzy.acc_at_k` † | ≥ 0.90 / 0.95 / 0.95 |
+| Fusion model — exact keywords Acc@{1,5,10} | `emoji prediction.exact keyword.acc@{1,5,10}` | `keyword.fusion.acc_at_k` (best combiner over model + **exact** kw, on CLDR keywords) | ≥ 0.95 |
+| Fusion model — fuzzy keywords Acc@{1,5,10} | `emoji prediction.fuzzy keyword.acc@{1,5,10}` | `keyword.fuzzy_fusion.acc_at_k` † (best combiner over model + **uFuzzy** kw, on CLDR keywords) | ≥ 0.90 / 0.95 / 0.95 |
+| Fusion model — full text Acc@{1,5,10} | `emoji prediction.full text.acc@{1,5,10}` | `emoji.eval.<best fusion variant>_acc_at_k` | ≥ 0.80 / 0.85 / 0.90 |
 | Style Acc@{1,5,10} | `style prediction.full text.acc@{1,5,10}` | `cards.style_acc_at_k` | ≥ 0.80 / 0.85 / 0.90 |
 | Colour energy distance | `color generator.energy distance.{global,red,green,blue,dark,bright}` | `cards.energy` ‡ / `cards.per_color.<c>.gt_mean_distance` | ≤ 0.01 |
 | Max text len | `max text len` | `data.max_text_len` (= `config.MAX_TEXT_LEN`) | ≥ 42 |
 | Vocab size | `vocabulary.size` | `labels.emojis` | ≥ 700 |
 | Per-group vocab coverage | `vocabulary.coverage.<group>` | `status.vocab_coverage.groups.<group>.score` | per-group, see `goals.yml` |
 
-† `keyword.fuzzy.*` is **not wired** — needs a uFuzzy `kw` sidecar from `regen.ts`; the
-exact split (`keyword.exact.*`) is wired. ‡ `cards.energy` (OKLab energy distance) is not
-computed yet; the per-colour `gt_mean_distance` legs are wired but only when the `cards`
-section runs (off by default this milestone).
+† `keyword.fuzzy_fusion.*` is **not wired** — needs a uFuzzy `kw` sidecar from `regen.ts`
+(then fuse it the same way `keyword.fusion` fuses the exact kw vector). ‡ `cards.energy`
+(OKLab energy distance) is not computed yet; the per-colour `gt_mean_distance` legs are
+wired but only when the `cards` section runs (off by default this milestone).
 
-Priority order (scorecard priority number in parens): **1** exact-keyword Acc@k parity —
-no degradation — · **2** full-text emoji Acc@k · **3** fuzzy-keyword Acc@k · **4** colour
-energy distance · **5** style Acc@k · **6** max text len · **7** vocab-size floor · **8**
-per-group vocab coverage (lowest priority of all). Vocab coverage is a **floor gate, not
+Priority order (scorecard priority number in parens): **1** fusion model on exact
+keywords Acc@k — no degradation — · **2** fusion model on full text Acc@k · **3** fusion
+model on fuzzy keywords Acc@k · **4** colour energy distance · **5** style Acc@k · **6**
+max text len · **7** vocab-size floor · **8** per-group vocab coverage (lowest priority of
+all). Vocab coverage is a **floor gate, not
 an optimisation target**: act on a group below its target **only after every
 higher-priority goal is green**. While any higher goal is still failing, the report shows
 the coverage row as `deferred` (grey), not `red`.
@@ -131,7 +137,7 @@ are gone.
 1. **Locate** the newest `report/` dir. Verify its `-<sha>` matches `git rev-parse --short HEAD` and `provenance.issues == []`. If stale or inconsistent, stop and say so (or run `uv run python tools/report.py --pt pt` if the user wants a fresh one).
 2. **Read TensorBoard** — open the newest `runs/<CONFIG_NAME>/` (+ `/gan`). Record: which head's val metric lags (`MRR/e` vs `MRR/s` vs `MRR/fusion` vs `auc/critic` vs `energy/gan`), the early-stop epoch (under- vs over-training), the learned fusion scalars (`gate/a` · `gain/beta` · `mix/g`), and any divergence / plateau shape.
 3. **Scorecard** — copy `status.goals` verbatim; add a **Δ vs previous plan** column per goal (`plans/<prev>/plan.md`). Note `status.best_emoji_variant`. Read `goals.compare` / `goals.summary` — which of last iteration's targets were `met` / `unmet` / `unmeasured`.
-4. **Regression gate** — compare the `CLDR keyword Acc@1` row (and `cldr.acc_at_k[4]`, `[9]`) to the previous plan. Any drop = priority-1 finding, called out at the top of the plan.
+4. **Regression gate** — compare the priority-1 row (fusion model on exact keywords, `keyword.fusion.acc_at_k[0]/[4]/[9]`) to the previous plan; also note `keyword.exact.*` (standalone search) and model-only `cldr.acc_at_k` as sub-signals. Any drop on the fusion row = priority-1 finding, called out at the top of the plan.
 5. **Diagnose**, gathering evidence for each action bucket:
    - *Class balance* — `data.records`; most/least frequent kept emojis; `regen`'s summary (`kw` keys + mean nonzero); which in-vocab emojis have high `keywords_flex` rank / low `emoji.eval` contribution → **upsample** candidates.
    - *Vocab coverage* (lowest priority — only if every higher goal is green) — `status.vocab_coverage`: which groups are under their `goals.yml` target (`groups.<g>.passed == false`), `top_missing`, the weakest groups from the `status.goals` note → **`bun run upsample --group <name>`** and/or **regen `--min-count`** candidates. Skip this bucket entirely while any higher goal fails.
@@ -158,7 +164,7 @@ Only gate branches you're actually working this loop; omit the rest and list the
 
 ### Step 5 — Derive the plan
 
-6. **Set the loop verdict** (step-change / blocked-need-diagnostic / marginal-only, per the Overview) and **prioritize** — rank actions by (expected gain toward the highest-priority *failing* goal) then (cheapest first: analysis script ≈ config edit > data-gen > Modal GPU). Respect the priority order. Never propose a change that risks CLDR parity without a risk line and a mitigation.
+6. **Set the loop verdict** (step-change / blocked-need-diagnostic / marginal-only, per the Overview) and **prioritize** — rank actions by (expected gain toward the highest-priority *failing* goal) then (cheapest first: analysis script ≈ config edit > data-gen > Modal GPU). Respect the priority order. Never propose a change that risks the priority-1 exact-keyword fusion Acc@1 without a risk line and a mitigation.
 7. **Write** `plans/<report-stamp>/plan.md` from the template below (reuse the report dir's exact `<stamp>`). Reference the goals file written in step 4.
 
 ### Step 6 — Implement the plan
@@ -212,7 +218,7 @@ What the loop can reach for at steps 3 and 6. **Have** = exists today; **Should 
 ### Should have — build when a failure is unexplained
 
 **Emoji / CLDR**
-- **CLDR exact vs fuzzy split** — `report.json.keyword.{exact,fuzzy}.acc_at_k`: `kw`-predictor Acc@1 on `data/cldr.jsonl`, exact-postings-only vs uFuzzy-enabled, by keyword length and token count. Closes the `†` metric-mapping TODO and wires four goals-file leaves.
+- **Fuzzy-fusion probe** — `report.json.keyword.fuzzy_fusion.acc_at_k`: build a uFuzzy `kw` sidecar in `regen.ts`, feed it to the fusion combiners the same way `keyword.fusion` uses the exact kw vector, score on `data/cldr.jsonl`. Wires the `emoji prediction.fuzzy keyword.*` leaves. (`keyword.fuzzy` — the standalone uFuzzy search — is the diagnostic counterpart.)
 - **Per-class Acc@k** — Acc@1/@5 for every emoji in the vocab (and per emojibase group / per `meta.src` tag). Surfaces which classes carry the miss rate vs. a uniform sag.
 - **Confusion pairs** — for eval misses, top-1 predicted emoji vs. the gold set. Ranked → merge candidates, annotation noise, or a real semantic gap.
 - **Never-retrieved set** — target emojis that never reach top-10 for any eval row → coverage / embedding-collapse signal.
@@ -257,7 +263,7 @@ Loop verdict: <step-change | blocked — need diagnostic | marginal-only> — <o
 | Emoji vocab size (7) | ≥700 | | | | |
 | Vocab coverage — groups (8) | all ≥ target | | ⚪ deferred | | |
 
-Priority-1 regression gate — exact-keyword Acc@1/@5/@10 vs prev: <PASS / FAIL + numbers>
+Priority-1 regression gate — fusion model on exact keywords Acc@1/@5/@10 (`keyword.fusion`) vs prev: <PASS / FAIL + numbers>
 
 ## Goals for next iteration  (goal/<YYYY-MM-DD>-<sha>.yml)
 
