@@ -93,7 +93,7 @@ LR = 0.01
 GRAD_CLIP_GEN = 1.0
 GRAD_CLIP_CRITIC = 10.0
 INFONCE_TEMP = 0.7
-CLDR_WEIGHT = 0.5
+CLDR_WEIGHT = 0.01
 
 train_str = " ".join(
     [
