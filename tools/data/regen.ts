@@ -1,25 +1,16 @@
+import uFuzzy from "@leeoniya/ufuzzy"
 import { cac } from "cac"
+import { readFileSync } from "node:fs"
 
+import { II_JSON } from "../../files.ts"
 import { splitEmojis } from "./emoji.ts"
-import { buildFlexRanker } from "./flexrank.ts"
-import { keywordVocabFromIiJson, keywordVocabFromReport } from "./kwvocab.ts"
 import { normalize } from "./normalize.ts"
 import { STYLE_SET } from "./styles.ts"
+import { queryTokens } from "./tokenize.ts"
 
 const MIN_COUNT = 50
 const MAX_COUNT = 2000
 const EVAL_SIZE = 2000
-
-const FLEX_FIXTURE_TEXTS = [
-  "Cupcakes are in the break room",
-  "I found a ladybug in my book",
-  "pizza time with friends tonight",
-  "feeling anxious about the meeting",
-  "the dog is running fast in the park",
-  "not good at all",
-  "Woof!",
-  "xyzzy qwerty",
-]
 
 const MIN_MAX_RATIO = 10
 const MAX_MAX_RATIO = 30
@@ -34,7 +25,7 @@ export type Row = {
   bg?: string[]
   fg?: string
   extra?: Record<string, unknown>
-  flex_tf?: [number, number][]
+  kw?: [number, number][]
 }
 
 const BASE_FIELDS = new Set([
@@ -43,7 +34,7 @@ const BASE_FIELDS = new Set([
   "styles",
   "bg",
   "fg",
-  "flex_tf",
+  "kw",
 ])
 
 type Acc = {
@@ -162,8 +153,7 @@ import {
   CLDR_JSONL as CLDR,
   DATA_JSONL as DATA,
   EVAL_JSONL as EVAL,
-  FLEX_FIXTURE_JSON,
-  FLEX_JSON,
+  KWPROJ_JSON,
   LABELS_JSON as LABELS,
   REGEN_MD,
   TRAIN_JSONL as TRAIN,
@@ -179,7 +169,7 @@ export function toLine(r: Row): string {
       : { text: r.text, emojis: r.emojis, styles: r.styles }
   const withExtra = r.extra ? { ...base, ...r.extra } : base
   return JSON.stringify(
-    r.flex_tf ? { ...withExtra, flex_tf: r.flex_tf } : withExtra,
+    r.kw ? { ...withExtra, kw: r.kw } : withExtra,
   )
 }
 
@@ -295,7 +285,7 @@ cli
   )
   .option(
     "--no-kw",
-    "skip the soft-TF fusion signal (flex_tf) on train/eval rows",
+    "skip the uFuzzy keyword score field (kw) on train/eval rows",
   )
 cli.help()
 
@@ -345,35 +335,55 @@ if (import.meta.main) {
   const rest = split.slice(n)
 
   const useKw = options.kw !== false
-  let kwLine = "flex_tf               : skipped (--no-kw)"
+  let kwLine = "kw                    : skipped (--no-kw)"
   if (useKw) {
-    console.log("computing soft-TF fusion vectors...")
-    const reportVocab = keywordVocabFromReport()
-    const kwVocab = reportVocab ?? keywordVocabFromIiJson(emojis)
-    const kwSource = reportVocab ? "report" : "ii.json bootstrap"
-    const ranker = buildFlexRanker(kwVocab)
+    console.log("computing uFuzzy keyword scores...")
+    const emojiIdx = new Map(emojis.map((e, i) => [e, i]))
+    const ii = JSON.parse(readFileSync(II_JSON, "utf8")) as Record<string, string[]>
+    const proj: Record<string, number[]> = {}
+    for (const [k, es] of Object.entries(ii)) {
+      const idxs = es.map((e) => emojiIdx.get(e)).filter((i): i is number => i !== undefined)
+      if (idxs.length) proj[k] = idxs
+    }
+    const keys = Object.keys(proj)
+    const weight = new Map(keys.map((k) => [k, 1 / Math.log2(1 + proj[k].length)]))
+    const uf = new uFuzzy({ intraIns: 1 })
+    const matches = function* (word: string): Generator<[string, number]> {
+      if (proj[word]) yield [word, 1.0]
+      if (word.length < 3) return
+      const idxs = uf.filter(keys, word)
+      if (!idxs || !idxs.length) return
+      const info = uf.info(idxs, keys, word)
+      for (let i = 0; i < info.idx.length; i++) {
+        const k = keys[info.idx[i]]
+        if (k === word) continue
+        const sim = info.chars[i] / k.length
+        if (sim >= 0.5) yield [k, sim]
+      }
+    }
+    const kwVec = (text: string): [number, number][] => {
+      const acc = new Map<number, number>()
+      for (const word of queryTokens(text)) {
+        for (const [k, strength] of matches(word)) {
+          const v = strength * weight.get(k)!
+          for (const e of proj[k]) {
+            if (v > (acc.get(e) ?? 0)) acc.set(e, v)
+          }
+        }
+      }
+      return [...acc.entries()]
+        .map(([i, v]) => [i, Number(v.toFixed(3))] as [number, number])
+        .filter(([, v]) => v > 0)
+        .sort((a, b) => a[0] - b[0])
+    }
     let nzSum = 0
     for (const r of split) {
-      const pairs = ranker
-        .tfVec(r.text)
-        .map((v, i) => [i, v] as [number, number])
-        .filter(([, v]) => v > 0)
-      r.flex_tf = pairs
-      nzSum += pairs.length
+      r.kw = kwVec(r.text)
+      nzSum += r.kw.length
     }
-    await writeFileAtomic(FLEX_JSON, JSON.stringify(ranker.buildJson()) + "\n")
-    const cases = FLEX_FIXTURE_TEXTS.map((text) => ({
-      text,
-      tf: ranker.tfVec(text),
-    }))
-    await writeFileAtomic(
-      FLEX_FIXTURE_JSON,
-      JSON.stringify({ kw_vocab: ranker.kwVocab, cases }, null, 2) + "\n",
-    )
+    await writeFileAtomic(KWPROJ_JSON, JSON.stringify({ proj }) + "\n")
     const denom = split.length || 1
-    kwLine =
-      `flex_tf               : N=${ranker.kwVocab.length}, `
-      + `mean nz ${(nzSum / denom).toFixed(2)}, source=${kwSource}`
+    kwLine = `kw                    : keys=${keys.length}, mean nz ${(nzSum / denom).toFixed(2)}`
   }
 
   await writeFileAtomic(EVAL, held.map(toLine).join("\n") + "\n")
