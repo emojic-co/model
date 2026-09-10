@@ -1,5 +1,6 @@
 import uFuzzy from "@leeoniya/ufuzzy"
 import { cac } from "cac"
+import cliProgress from "cli-progress"
 import { readFileSync } from "node:fs"
 
 import { II_JSON } from "../../files.ts"
@@ -376,11 +377,21 @@ if (import.meta.main) {
         .filter(([, v]) => v > 0)
         .sort((a, b) => a[0] - b[0])
     }
+    const kwBar = new cliProgress.SingleBar(
+      {
+        format:
+          "fuzzy scores |{bar}| {percentage}% | {value}/{total} rows | ETA: {eta}s",
+      },
+      cliProgress.Presets.shades_classic,
+    )
+    kwBar.start(split.length, 0)
     let nzSum = 0
     for (const r of split) {
       r.kw = kwVec(r.text)
       nzSum += r.kw.length
+      kwBar.increment()
     }
+    kwBar.stop()
     await writeFileAtomic(KWPROJ_JSON, JSON.stringify({ proj }) + "\n")
     const denom = split.length || 1
     kwLine = `kw                    : keys=${keys.length}, mean nz ${(nzSum / denom).toFixed(2)}`
