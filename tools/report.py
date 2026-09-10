@@ -22,6 +22,7 @@ from files import (
     EMOJI_EMBED_PT,
     FLEX_JSON,
     FUSION_PT,
+    II_JSON,
     KEYWORDS_JSON,
     KW_PT,
 )
@@ -249,6 +250,61 @@ def _probe(words, enc, head):
 def _keyword_probe(enc, head):
     words = json.loads(Path(KEYWORDS_PATH).read_text(encoding="utf-8"))
     return _probe(words, enc, head)
+
+
+@cache
+def _ii_json() -> dict:
+    p = Path(II_JSON)
+    if not p.exists():
+        return {}
+    return json.loads(p.read_text(encoding="utf-8"))
+
+
+@cache
+def _flex_keyword_candidates() -> tuple:
+    from model.flexrank import query_tokens
+
+    vocab = set(EMOJIS)
+    out = []
+    for kw, emojis in _ii_json().items():
+        if not 3 <= len(kw) <= 6:
+            continue
+        if query_tokens(kw) != [kw]:
+            continue
+        tgt = [e for e in emojis if e in vocab]
+        if not tgt:
+            continue
+        out.append((kw, tgt))
+    return tuple(sorted(out))
+
+
+def _section_keywords_flex(enc, emoji_head) -> dict:
+    emb = _emoji_embed()
+    cands = _flex_keyword_candidates()
+    if enc is None or emoji_head is None or emb is None or not cands:
+        return {}
+    idx = {e: i for i, e in enumerate(EMOJIS)}
+    with torch.no_grad():
+        texts = torch.stack([text_to_tensor(norm_text(kw)) for kw, _ in cands])
+        order = emb.score(emoji_head(enc(texts))).argsort(dim=-1, descending=True)
+    ranked = []
+    for row, (kw, tgt) in enumerate(cands):
+        pos = order[row].tolist()
+        rank = min(pos.index(idx[e]) + 1 for e in tgt)
+        ranked.append(
+            {
+                "kw": kw,
+                "emojis": tgt,
+                "top5": [EMOJIS[i] for i in pos[:5]],
+                "rank": rank,
+            }
+        )
+    ranked.sort(key=lambda r: r["rank"], reverse=True)
+    return {
+        "candidates": len(ranked),
+        "missed": sum(1 for r in ranked if r["rank"] > 10),
+        "ranked": ranked,
+    }
 
 
 def _cldr_probe(enc, head):
