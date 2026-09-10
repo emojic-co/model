@@ -123,6 +123,44 @@ ENERGY_KEYWORD_MAX_TEXTS = 512
 ENERGY_KEYWORD_MIN_TEXTS = 32
 ENERGY_KEYWORDS_PATH = ENERGY_KEYWORDS_TXT
 
+# STEP 1 - small keyword-search-first model (see docs/step1-keyword-search.md)
+if os.environ.get("EMOJIC_STEP1"):
+    MAX_TEXT_LEN = 32
+    CHAR_EMBED_SIZE = 16
+    ENCODER_CHANNELS = [64, 96]
+    ENCODER_DILATION = [1, 2]
+    TEXT_EMBED_SIZE = sum(ENCODER_CHANNELS)
+    EMOJI_EMBED_SIZE = 32
+    DROPOUT_EMOJI = 0.1
+    TASK_BATCH_SIZE = int(os.environ.get("EMOJIC_TASK_BATCH_SIZE", "128"))
+    EPOCHS_TASK = 1500
+    enc_str = " ".join(
+        str(p)
+        for p in (
+            CHAR_EMBED_SIZE,
+            ENCODER_KERNEL_SIZE,
+            ENCODER_CHANNELS,
+            ENCODER_DILATION,
+        )
+    )
+    emj_str = " ".join([str(p) for p in (EMOJI_EMBED_SIZE, DROPOUT_EMOJI)])
+    style_str = " ".join(
+        [str(p) for p in (STYLE_EMBED_SIZE, TEXT_EMBED_SIZE, DROPOUT_STYLE)]
+    )
+    train_str = " ".join(
+        str(p)
+        for p in (
+            SEED,
+            TASK_BATCH_SIZE,
+            GAN_BATCH_SIZE,
+            RELU_SLOPE,
+            LR,
+            GRAD_CLIP_GEN,
+            GRAD_CLIP_CRITIC,
+            INFONCE_TEMP,
+        )
+    )
+
 # TENSORBOARD RUN NAME
 RUN_TIME = os.environ.get(
     "EMOJIC_RUN_TIME") or datetime.now().strftime("%Y-%m-%d %H:%M:%S")
