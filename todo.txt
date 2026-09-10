@@ -1,29 +1,9 @@
-Selecting Keywords and Training Strategy:
-    Select all keywords from data/ii.json that:
-        - are 3 - 6 chars long inclusive
-        - have at least one emoji in our dataset
+Update the upsample tool add a standalone option:
+    upsample --flags
+    This option should pick all the `flag: <country>` emojis:
+    Ask the text generator to generate a short text related to the country and the emoji flag.
+    Ask the annotator to annotate the text, steer the color pallet towards the colors of the flag.
+    Final records is {text: <generated text>, emoji: <flag emoji + annotator emojis>, fg, bg}
+    Where fg and bg should (but not enforced) be the colors of the flag.
 
-    1. Run a trained EmojiHead on these keywords
-    2. Order by rank descending. (rank is the first place the model predicts emoji from the keyword emoji set)
-    3. use the top 1000 keywords as the tf-vector
-
-    Training:
-        Start the backprop from the very end of the FusionHead, not from both the EmojiHead and KWHead.
-        The goal is to split the learning between the two heads and not to force each head to learn the entire space.
-
-    Tasks:
-        1. Update the report tool:
-            Add a keyword section to the report:
-                -   Make a table with all missed keywords sorted by rank descending
-                    Only include keywords with emojis in our dataset
-                    Table should include:
-                        -   Keyword
-                        -   CLDR emojis
-                        -   Top 5 predictions
-                        -   Rank (first place the model predicts emoji from the keyword emoji set)
-        
-        2. Update the regen tool:
-            regen reads the last report and uses top 1000 keywords to generate the tf-vector for the next training run.
-
-        3. Discuss the new training strategy.
-
+    respect the --per (default 50) flag

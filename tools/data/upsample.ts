@@ -35,6 +35,8 @@ const SINGLE_EMOJI_COUNT = 5000
 const KEYWORDS_PER = 50
 const COLOR_PER = 1000
 const COLOR_BATCH = 50
+const FLAG_PER = 50
+const EMOJIBASE_DATA = "node_modules/emojibase-data/en/data.json"
 const REANNOT_COUNT = 300
 const REANNOT_EMOJI_COUNT = 300
 const MIN_LEN = 4
@@ -287,6 +289,29 @@ export function colorBatchPlan(
   )
 }
 
+export function parseFlagLabels(
+  entries: { emoji?: unknown; label?: unknown }[],
+): { emoji: string; country: string }[] {
+  const out: { emoji: string; country: string }[] = []
+  for (const e of entries) {
+    if (typeof e.emoji !== "string" || typeof e.label !== "string") continue
+    const m = /^flag:\s+(.*)$/.exec(e.label)
+    if (!m) continue
+    const country = m[1].trim()
+    if (!e.emoji || !country) continue
+    out.push({ emoji: e.emoji, country })
+  }
+  return out
+}
+
+async function loadFlags(): Promise<{ emoji: string; country: string }[]> {
+  const raw = JSON.parse(await readFile(EMOJIBASE_DATA, "utf8")) as {
+    emoji?: unknown
+    label?: unknown
+  }[]
+  return parseFlagLabels(raw)
+}
+
 function genPrompt(voice: string, emoji: string, per: number): string {
   return [
     `Write ${per} short text messages as if sent by ${voice}, one per line.`,
@@ -324,6 +349,22 @@ function genColorPrompt(voice: string, color: string, per: number): string {
     `beautiful", no "I love ${color}").`,
     `E.g. for red: "the roses are blooming in the garden"; for blue: "the sky`,
     `is clear and the ocean is calm".`,
+    `Do not put any emoji in the output.`,
+    `Vary sender, tone, and intent: updates, questions, complaints, plans,`,
+    `reactions, reminders, small talk. Sound real and specific.`,
+    `No numbering, no bullets, no quotes, no commentary.`,
+  ].join("\n")
+}
+
+function genFlagPrompt(voice: string, country: string, per: number): string {
+  return [
+    `Write ${per} short text messages as if sent by ${voice}, one per line.`,
+    `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
+    `Every message must relate to ${country}: its cities, landmarks, food,`,
+    `sport, music, weather, language, or daily life. Name concrete things a`,
+    `person there might mention.`,
+    `Do not write about flags or nationality in the abstract, and do not just`,
+    `name "${country}" with nothing else around it.`,
     `Do not put any emoji in the output.`,
     `Vary sender, tone, and intent: updates, questions, complaints, plans,`,
     `reactions, reminders, small talk. Sound real and specific.`,
@@ -426,6 +467,18 @@ async function genKeywordBatch(
   return cleanLines(text)
 }
 
+async function genFlagBatch(
+  voice: string,
+  country: string,
+  per: number,
+): Promise<string[]> {
+  const { text } = await generateText({
+    model: MODEL,
+    prompt: genFlagPrompt(voice, country, per),
+  })
+  return cleanLines(text)
+}
+
 const cli = cac("upsample")
 cli.usage("[options]")
 cli
@@ -437,11 +490,12 @@ cli
   .option("--max-count <n>", `with --rare, how many of the rarest emoji to target - a target count, not a freq cap (default ${RARE_MAX_COUNT})`)
   .option("--iter <n>", "with --rare, repeat the whole select/generate/annotate/append cycle this many times, recomputing the rarest set each pass (default 1)")
   .option("--keywords <list>", "standalone: generate texts using each comma-separated keyword, one keyword at a time (ignores emoji targeting)")
-  .option("--per <n>", `texts to generate per target emoji / keyword / batch (default ${TEXTS_PER_EMOJI}, ${KEYWORDS_PER} with --keywords, ${COLOR_PER} per colour with --colors, ${TEXTS_PER_EMOJI} with --rare)`)
+  .option("--per <n>", `texts to generate per target emoji / keyword / batch (default ${TEXTS_PER_EMOJI}, ${KEYWORDS_PER} with --keywords, ${COLOR_PER} per colour with --colors, ${FLAG_PER} per country with --flags, ${TEXTS_PER_EMOJI} with --rare)`)
   .option("--negation", "standalone: generate negation-heavy texts (ignores emoji targeting)")
   .option("--short", "standalone: generate short texts capped at the last report's median length (ignores emoji targeting)")
   .option("--single-emoji", "standalone: re-annotate corpus rows that carry at most one emoji (ignores emoji targeting)")
   .option("--colors", `standalone: generate texts related to each of ${COLORS.join(", ")} (ignores emoji targeting)`)
+  .option("--flags", `standalone: for every "flag: <country>" emoji, generate ${FLAG_PER} country-related texts and steer the palette toward that flag's colours (ignores emoji targeting; --count caps the number of countries)`)
   .option("--reannotate <what>", `standalone: re-annotate a seeded random sample of data.jsonl rows (value: colors | emojis); colors rewrites the palette ({reannotated: "colors"}), emojis expands the emoji list ({remojis: [...]}); skips rows already carrying either marker`)
   .option("--count <n>", `cap on texts for --negation (default ${NEG_COUNT}) / --short (default ${SHORT_COUNT}) / --single-emoji (default ${SINGLE_EMOJI_COUNT}) / --reannotate colors (default ${REANNOT_COUNT}) / --reannotate emojis (default ${REANNOT_EMOJI_COUNT})`)
   .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
@@ -459,6 +513,7 @@ if (import.meta.main) {
   const short = Boolean(options.short)
   const singleEmoji = Boolean(options.singleEmoji)
   const colors = Boolean(options.colors)
+  const flags = Boolean(options.flags)
   const reannot = options.reannotate != null
   const reannotWhat = reannot ? String(options.reannotate).trim() : ""
   const reannotColors = reannot && reannotWhat === "colors"
@@ -476,7 +531,13 @@ if (import.meta.main) {
   const kwList = kw ? parseKeywords(String(options.keywords)) : []
   const per = Number(
     options.per
-    ?? (kw ? KEYWORDS_PER : colors ? COLOR_PER : TEXTS_PER_EMOJI),
+    ?? (kw
+      ? KEYWORDS_PER
+      : colors
+        ? COLOR_PER
+        : flags
+          ? FLAG_PER
+          : TEXTS_PER_EMOJI),
   )
   const count = Number(
     options.count
@@ -490,18 +551,21 @@ if (import.meta.main) {
             ? SHORT_COUNT
             : NEG_COUNT),
   )
+  const flagCap =
+    flags && options.count != null ? Number(options.count) : Infinity
 
   if (reannot && !reannotColors && !reannotEmojis) {
     console.error(`--reannotate only supports "colors" or "emojis", got ${JSON.stringify(options.reannotate)}`)
     process.exit(1)
   }
-  if ([negation, short, singleEmoji, colors, kw, reannot].filter(Boolean).length > 1) {
+  if ([negation, short, singleEmoji, colors, flags, kw, reannot].filter(Boolean).length > 1) {
     console.error(
-      "--negation, --short, --single-emoji, --colors, --keywords and --reannotate are mutually exclusive",
+      "--negation, --short, --single-emoji, --colors, --flags, --keywords and --reannotate are mutually exclusive",
     )
     process.exit(1)
   }
-  const standalone = negation || short || singleEmoji || colors || kw || reannot
+  const standalone =
+    negation || short || singleEmoji || colors || flags || kw || reannot
   if (
     rare
     && (standalone || only || options.minRank != null || options.maxRank != null)
@@ -544,9 +608,11 @@ if (import.meta.main) {
         ? "single-emoji"
         : colors
           ? "colors"
-          : reannot
-            ? "reannotate"
-            : "keywords"
+          : flags
+            ? "flags"
+            : reannot
+              ? "reannotate"
+              : "keywords"
   if (standalone && (only || options.minRank != null || options.maxRank != null)) {
     console.warn(
       `--${standaloneName} ignores --emojis / --min-rank / --max-rank`,
@@ -557,10 +623,14 @@ if (import.meta.main) {
   }
   if ((!standalone || colors || kw) && options.count != null) {
     console.warn(
-      "--count only applies with --negation / --short / --single-emoji / --reannotate",
+      "--count only applies with --negation / --short / --single-emoji / --flags / --reannotate",
     )
   }
   if (reannot && !(count >= 1)) {
+    console.error(`--count must be >= 1, got ${JSON.stringify(options.count)}`)
+    process.exit(1)
+  }
+  if (flags && options.count != null && !(flagCap >= 1)) {
     console.error(`--count must be >= 1, got ${JSON.stringify(options.count)}`)
     process.exit(1)
   }
@@ -577,6 +647,8 @@ if (import.meta.main) {
     let singleTexts: string[] = []
     let reannotRows: ReannotRow[] = []
     let colorPlan: { color: string; n: number }[] = []
+    let flagList: { emoji: string; country: string }[] = []
+    let flagPlan: { color: string; n: number }[] = []
     if (reannot) {
       const rows = await readJsonl<Record<string, unknown>>(DATA)
       const marker: ReannotMarker = reannotEmojis ? "remojis" : "reannotated"
@@ -639,6 +711,23 @@ if (import.meta.main) {
         `colors mode -> ${per} texts per colour for ${COLORS.join(", ")} `
         + `-> ${COLORS.length * per} texts in ${colorPlan.length} batches of up to ${COLOR_BATCH}`,
       )
+    } else if (flags) {
+      targets = []
+      const all = await loadFlags()
+      flagList = Number.isFinite(flagCap) ? all.slice(0, flagCap) : all
+      if (!flagList.length) {
+        console.error(`no "flag: <country>" emoji found in ${EMOJIBASE_DATA}`)
+        process.exit(1)
+      }
+      flagPlan = colorBatchPlan(
+        flagList.map((f) => f.country),
+        per,
+        COLOR_BATCH,
+      )
+      console.log(
+        `flags mode -> ${per} texts per country for ${flagList.length} flag emoji `
+        + `-> ${flagList.length * per} texts in ${flagPlan.length} batches of up to ${COLOR_BATCH}`,
+      )
     } else if (kw) {
       targets = []
       if (!kwList.length) {
@@ -690,13 +779,15 @@ if (import.meta.main) {
           ? "single-emoji"
           : colors
             ? "colors"
-            : reannot
-              ? `reannotate-${reannotWhat}`
-              : kw
-                ? "keywords"
-                : rare
-                  ? "rare"
-                  : "emoji-target"
+            : flags
+              ? "flags"
+              : reannot
+                ? `reannotate-${reannotWhat}`
+                : kw
+                  ? "keywords"
+                  : rare
+                    ? "rare"
+                    : "emoji-target"
 
     if (dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
@@ -726,6 +817,10 @@ if (import.meta.main) {
         console.log(
           `would generate       : ${colorPlan.reduce((s, b) => s + b.n, 0)} texts over ${COLORS.length} colours`,
         )
+      } else if (flags) {
+        console.log(
+          `would generate       : ${flagPlan.reduce((s, b) => s + b.n, 0)} texts over ${flagList.length} countries`,
+        )
       } else if (kw) {
         console.log(
           `would generate       : ${kwList.length} keywords x ${per} = ${kwList.length * per} texts`,
@@ -739,6 +834,7 @@ if (import.meta.main) {
       target?: string
       color?: string
       keyword?: string
+      flag?: string
       orig?: ReannotRow
     }[] = []
     if (reannot) {
@@ -751,7 +847,7 @@ if (import.meta.main) {
       for (const t of singleTexts) cands.push({ text: t })
       console.log(`${cands.length} corpus rows selected, annotating`)
     } else {
-      const genUnit = negation || short || colors
+      const genUnit = negation || short || colors || flags
         ? "batches"
         : kw
           ? "keywords"
@@ -821,6 +917,25 @@ if (import.meta.main) {
             genBar.increment()
           }),
         )
+      } else if (flags) {
+        const countryEmoji = new Map(flagList.map((f) => [f.country, f.emoji]))
+        genBar.start(flagPlan.length, 0)
+        genQ.addAll(
+          flagPlan.map(({ color: country, n }) => async () => {
+            try {
+              for (const t of await genFlagBatch(pickVoice(), country, n)) {
+                cands.push({
+                  text: t,
+                  target: countryEmoji.get(country),
+                  flag: country,
+                })
+              }
+            } catch (err) {
+              console.warn(`\n  gen (${country}) failed: ${err}`)
+            }
+            genBar.increment()
+          }),
+        )
       } else {
         genBar.start(targets.length, 0)
         genQ.addAll(
@@ -871,6 +986,11 @@ if (import.meta.main) {
       for (const [i, l] of await annotate(cands.map((c) => c.text), {
         colors: true,
         fillPalette: true,
+        paletteHints: flags
+          ? cands.map((c) =>
+              c.flag ? `the national flag colours of ${c.flag}` : undefined,
+            )
+          : undefined,
         onBatchDone: () => annBar.increment(),
       })) {
         labels.set(i, l)
@@ -974,6 +1094,7 @@ if (import.meta.main) {
       if (colors) meta.src = "colors"
       if (kw) meta.src = "keywords"
       if (rare) meta.src = "rare"
+      if (flags) meta.src = "flags"
       const row: Record<string, unknown> = {
         text: cands[i].text,
         emojis,
@@ -984,6 +1105,7 @@ if (import.meta.main) {
       if (negation) row.neg = "true"
       if (colors) row.color = cands[i].color
       if (kw) row.keyword = cands[i].keyword
+      if (flags) row.flag = cands[i].flag
       row.meta = meta
       lines.push(JSON.stringify(row))
     }
@@ -1068,6 +1190,7 @@ if (import.meta.main) {
     )
     if (!standalone) console.log(`targets              : ${targets.length}`)
     if (kw) console.log(`keywords             : ${kwList.length}`)
+    if (flags) console.log(`countries            : ${flagList.length}`)
     if (colors) {
       const perColor = new Map<string, number>()
       for (const l of lines) {

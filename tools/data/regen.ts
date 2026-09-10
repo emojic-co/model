@@ -7,7 +7,7 @@ import { normalize } from "./normalize.ts"
 import { STYLE_SET } from "./styles.ts"
 
 const MIN_COUNT = 50
-const MAX_COUNT = 1000
+const MAX_COUNT = 2000
 const EVAL_SIZE = 2000
 
 const FLEX_FIXTURE_TEXTS = [

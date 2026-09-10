@@ -1,4 +1,4 @@
-# Simple fusion: three FusionHeads + offline Fuse.js keyword payload
+# Simple fusion: three FusionHeads + offline uFuzzy keyword payload
 
 ## Problem
 
@@ -20,11 +20,15 @@ emoji performance:
 
 - `EmojiHead` trains **standalone** (`lse_infonce`, no keyword awareness) and stays
   usable as the sole predictor.
-- The keyword predictor is a **non-learned** lookup: fuzzy-match text tokens against
-  `data/ii.json` keys with **Fuse.js**, project the matched keys onto the emoji
-  vocab, aggregate to one score per emoji. Fuse.js runs **once offline in
-  `regen.ts`** over every train/eval row and **live in the browser** on user input.
-  There is exactly one Fuse.js implementation; Python never reimplements it.
+- The keyword predictor is a **non-learned** lookup: for each word of the
+  `normalize`d text, fuzzy-match against `data/ii.json` keys with
+  **uFuzzy** (`@leeoniya/uFuzzy`), project the matched keys onto the emoji vocab,
+  aggregate to one score per emoji. uFuzzy runs **once offline in `regen.ts`** over
+  every train/eval row and **live in the browser** on user input. There is exactly
+  one uFuzzy implementation; Python never reimplements it. Word-splitting is
+  `normalize(text).split(" ")` — the already-shared `normalize` (byte-identical
+  across `model/data.py`, `tools/data/normalize.ts`, `web/src/model.js`) plus a
+  space split; **no bespoke tokenizer**.
 - A **minimal learned combiner** replaces `FusionHead`. Three variants are
   implemented and trained **in parallel in one run** so they can be compared:
   `FusionHeadGate`, `FusionHeadGain`, `FusionHeadMix`. Each consumes the same
@@ -36,7 +40,7 @@ emoji performance:
 
 ## Non-goals
 
-- No Python port of Fuse.js. `report.py` / `pred.py` read the precomputed `kw`
+- No Python port of uFuzzy. `report.py` / `pred.py` read the precomputed `kw`
   payload from the rows; they do not recompute keyword matches.
 - No fused `acc@k` curves for the `data/keywords.json` / CLDR probes in the report
   (those probe strings carry no `kw` payload). First-cut limit, noted below.
@@ -61,50 +65,55 @@ proj = { k: v for k, v in proj if v }          # drop empty projections
 reads a report, **`regen` is deterministic again** for a fixed
 `data/data.jsonl` + flags.
 
-### 1.2 Tokenizer
+### 1.2 Word splitting — no bespoke tokenizer
 
-A small shared token splitter, byte-identical between the regen (offline) and
-browser (live) paths — they must produce the same token stream or the browser sees
-a different input distribution than training:
+The needle words are `normalize(text).split(" ")` filtered to `length >= 3`.
+`normalize` is already shared and byte-identical across `model/data.py`,
+`tools/data/normalize.ts`, and `web/src/model.js` (it lowercases, collapses
+whitespace, trims, collapses 3+ char runs to 2, drops non-vocab chars). No
+stopword list, no punctuation regex, no `tokenize.{ts,js}` file. uFuzzy does its
+own intra-term matching; we only hand it one word at a time.
 
-- lowercase, replace `[^a-z0-9\s]` with space, split on whitespace
-- keep tokens with `length >= 2` that are not in the stopword set (the existing
-  `flexrank` stopword list, moved verbatim)
+`model/tokenize.py` is still added — but **only** for the `report.py` "Keyword
+vocab" diagnostic (`query_tokens(k) == [k]` single-token filter over
+`data/ii.json` keys). It is Python-only, off the training/inference path, and
+carries no cross-language parity burden.
 
-Files:
-- `tools/data/tokenize.ts` — used by `regen.ts`
-- `web/src/tokenize.js` — used by the browser
-- `model/tokenize.py` — `query_tokens` + stopwords, used **only** by the
-  `report.py` "Keyword vocab" diagnostic section (not on the training path, so
-  exact parity is not load-bearing here)
+### 1.3 uFuzzy index and query
 
-These are ~6 lines each and kept in sync by hand, exactly as `normalize` / `encode`
-already are across `model/data.py` and `web/src/model.js`. No fixture golden.
-`web/src/keywords.test.js` carries a few `text -> expected top emoji` assertions as
-a lightweight guard.
-
-### 1.3 Fuse.js index and query
-
-Index over `Object.keys(proj)`. Config:
+Build one uFuzzy instance and search the keyword list `keys = Object.keys(proj)`
+as the haystack:
 
 ```js
-new Fuse(keys, {
-  includeScore: true,
-  threshold: 0.35,
-  ignoreLocation: true,
-  minMatchCharLength: 3,
-})
+import uFuzzy from "@leeoniya/uFuzzy"
+const uf = new uFuzzy({ intraIns: 1 })   // allow 1 extra needle char per term (plurals)
 ```
 
-Query: for each token of the tokenized text, `fuse.search(token)`; union the hits
-across tokens, keeping the **lowest** (best) Fuse score per key.
+Per row / per user input: `words = normalize(text).split(" ").filter(w => w.length >= 3)`.
+For each `word`:
+
+```js
+const idxs = uf.filter(keys, word)          // null when nothing matches
+if (idxs && idxs.length) {
+  const info = uf.info(idxs, keys, word)
+  for (let i = 0; i < info.idx.length; i++) {
+    const k = keys[info.idx[i]]
+    const sim = info.chars[i] / k.length     // matched chars / keyword length, in (0, 1]
+    if (sim >= 0.5) best.set(k, Math.max(best.get(k) ?? 0, sim))
+  }
+}
+```
+
+`sim` replaces Fuse's `1 - score`: 1.0 when the whole keyword is covered by the
+word. `0.5` is the one tunable floor (drops weak partial matches). `intraIns: 1`
+is the one tunable uFuzzy option.
 
 ### 1.4 Aggregate to per-emoji score
 
 For emoji index `e`:
 
 ```
-kw(e) = max over matched keys k with e in proj[k] of  (1 - score_k) * w_k
+kw(e) = max over matched keys k with e in proj[k] of  sim(k) * w_k
 w_k   = 1 / log2(1 + len(proj[k]))
 ```
 
@@ -363,9 +372,11 @@ Kept as a pure diagnostic (every qualifying `data/ii.json` key scored by
 
 ### 6.2 `web/`
 
-- `web/src/keywords.js` — `makeKeywordPredictor(keywordsJson)`: build the Fuse
-  index once; `predict(text) -> Float32Array(957)` via tokenize -> per-token
-  `fuse.search` -> aggregate (section 1.3-1.4).
+- `web/src/keywords.js` — `makeKeywordPredictor(kwprojJson, emojiCount)`: build the
+  uFuzzy instance + haystack once; `predict(normText) -> Float32Array(emojiCount)`
+  via `normText.split(" ")` (filter `length >= 3`) -> per-word `uf.filter` /
+  `uf.info` -> aggregate (section 1.3-1.4). The caller passes the already-`normalize`d
+  text (`useOnnx.js` has `char2idx` and calls `normalize` for `encode` anyway).
 - `web/src/fusion.js` — `makeFusion(meta.fusion)`: `fuse(emojiLogits, kwArr) ->
   Float32Array(957)` implementing the exported variant's formula on **raw logits**
   (`z()` computed in JS: mean/std over the array). Only `gate` needs to be complete
@@ -374,7 +385,7 @@ Kept as a pure diagnostic (every qualifying `data/ii.json` key scored by
   - fetch `kwproj.json` instead of `flex.json`; build `makeKeywordPredictor`
     instead of `makeFlexRanker`.
   - `predict`: no `flex_tf` tensor; run the session with `input` only. Compute
-    `kwArr = keywordPredictor.predict(text)`. Return
+    `kwArr = keywordPredictor.predict(normalize(text, char2idx))`. Return
     `{ feeling, emoji: sigmoid(emoji_logits), kw: kwArr,
        fusion: fusionFn(emoji_logits.data, kwArr), palettes, ms }`.
     (`emoji_logits.data` raw for the fusion input; `emoji` stays sigmoid for the
@@ -382,9 +393,9 @@ Kept as a pure diagnostic (every qualifying `data/ii.json` key scored by
 - `web/src/App.jsx` — `EMOJI_MODES` / `pickEmojiList` / masthead toggle unchanged
   in shape (`fusion` default / `model` / `keywords`); all three now come from the
   `scores` object above.
-- `web/package.json` — add `fuse.js`, remove `flexsearch`.
-- Root `package.json` — remove the `flexsearch` devDependency (only
-  `tools/data/flexrank.ts` used it).
+- `web/package.json` — add `@leeoniya/uFuzzy`, remove `flexsearch`.
+- Root `package.json` — add `@leeoniya/uFuzzy` (used by `regen.ts`), remove the
+  `flexsearch` devDependency (only `tools/data/flexrank.ts` used it).
 
 ---
 
