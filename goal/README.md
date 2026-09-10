@@ -45,7 +45,10 @@ goals:            # every leaf optional - omit a domain you are not gating
 
 | goal path | dir | report.json source | wired? |
 |---|---|---|---|
-| `keyword.acc@{1,5,10}` | ≥ | `cldr.acc_at_k[{0,4,9}]` (CLDR keyword probe) | yes |
+| `keyword.acc@{1,5,10}` | ≥ | `cldr.acc_at_k[{0,4,9}]` (model-only EmojiHead on CLDR — diagnostic) | yes |
+| `keyword.exact.acc@{1,5}` | ≥ | `keyword.exact.acc_at_k[{0,4}]` (non-learned kw predictor on CLDR, exact postings — **priority-1 gate**) | yes |
+| `keyword.fusion.acc@1` | ≥ | `keyword.fusion.acc_at_k[0]` (best fusion combiner over model+kw, on CLDR) | yes |
+| `keyword.fuzzy.acc@{1,5}` | ≥ | — (needs a uFuzzy `kw` sidecar from `regen.ts`) | no |
 | `text.acc@{1,5,10}` | ≥ | `emoji.eval.<best fusion variant>_acc_at_k[{0,4,9}]` | yes |
 | `colors.energy` | ≤ | `cards.energy` | no — `cards` does not compute OKLab energy yet |
 | `colors.{red,green,blue,dark,bright}` | ≤ | `cards.per_color.<c>.gt_mean_distance` | yes |

@@ -1,0 +1,32 @@
+meta:
+  based_on: docs/step1-keyword-search.md
+  written_after_report: report/26-09-11-00-21-992cabb
+  rationale: >
+    Iteration 1 — the milestone-1 keyword-search baseline is validated. A new
+    report-side probe (report.json `keyword`) scores the non-learned inverted-index
+    kw predictor directly on data/cldr.jsonl: exact-postings Acc@1 = 0.966, which
+    clears the priority-1 gate (>= 0.95 exact). The remaining open gate is
+    short-text emoji Acc@1 (emoji.eval, best fusion variant = Fusion.Gain, 0.538).
+    Two sub-signals stay in view: model-only CLDR Acc@1 (0.312 — the encoder has
+    not learned bare keyword->emoji, expected for milestone 1) and fusion Acc@1 on
+    CLDR (0.680 — the shipped default combiner drags the clean kw ranking down with
+    model noise; combiner routing is recommend-only work).
+  deferred:
+    - keyword.acc@5
+    - keyword.acc@10
+    - keyword.fusion.acc@5
+    - text.acc@5
+    - text.acc@10
+    - colors
+    - coverage
+    - style
+
+goals:
+  keyword:
+    exact:
+      "acc@1": 0.95
+    fusion:
+      "acc@1": 0.75
+    "acc@1": 0.40
+  text:
+    "acc@1": 0.58

@@ -188,6 +188,39 @@ def test_keywords_flex_html():
     assert "keywords_flex.ranked" in h
 
 
+def test_section_keyword_exact_probe():
+    from tools.report import _kw_proj, _section_keyword
+
+    if not _kw_proj():
+        print("skip test_section_keyword_exact_probe (no web/public/kwproj.json)")
+        return
+    d = _section_keyword(None, None)
+    assert "exact" in d, d
+    ex = d["exact"]
+    assert 0 < ex["n"] <= ex["total"]
+    assert len(ex["acc_at_k"]) == 10
+    assert all(0.0 <= v <= 1.0 for v in ex["acc_at_k"])
+    assert ex["acc_at_k"] == sorted(ex["acc_at_k"])
+
+
+def test_keyword_html_renders():
+    from tools.report import _keyword_html
+
+    assert _keyword_html({}) == ""
+    d = {
+        "exact": {
+            "n": 1500,
+            "total": 4900,
+            "acc_at_k": [0.9 + 0.005 * i for i in range(10)],
+        },
+        "fusion": {"n": 1500, "acc_at_k": [0.5 + 0.02 * i for i in range(10)]},
+    }
+    h = _keyword_html(d)
+    assert "Keyword predictor — CLDR" in h
+    assert "1500/4900" in h
+    assert ">Exact kw<" in h and ">Fusion<" in h
+
+
 def test_section_status_orders_and_grades():
     from tools.report import EMOJI_KS, _section_status
 
@@ -210,7 +243,9 @@ def test_section_status_orders_and_grades():
     assert prios == sorted(prios)
     assert st["best_emoji_variant"] == "Fusion·Gain"
     by_goal = {g["goal"]: g for g in st["goals"]}
-    assert by_goal["CLDR keyword Acc@1"]["status"] == "red"
+    assert by_goal["CLDR keyword Acc@1 (model-only)"]["status"] == "red"
+    assert by_goal["Keyword Acc@1 (exact kw)"]["status"] == "na"
+    assert by_goal["Keyword Acc@1 (exact kw)"]["priority"] == 1
     assert (
         by_goal["Short-text emoji Acc@1"]["current"]
         == report["emoji"]["eval"]["fusion_gain_acc_at_k"][0]
@@ -410,6 +445,8 @@ def main() -> None:
     test_emoji_extra_acc_reads_precomputed_kw()
     test_flex_keyword_candidates_and_section()
     test_keywords_flex_html()
+    test_section_keyword_exact_probe()
+    test_keyword_html_renders()
     test_section_status_orders_and_grades()
     test_coverage_and_diversity_shapes()
     test_status_coverage_deferred_while_vocab_floor_open()
