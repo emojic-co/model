@@ -20,11 +20,11 @@ from files import (
     COLORS_JSONL,
     DATA_JSONL,
     EMOJI_EMBED_PT,
+    EMOJI_POPULARITY_JSON,
     FUSION_GAIN_PT,
     FUSION_GATE_PT,
     FUSION_MIX_PT,
     II_JSON,
-    KEYWORDS_JSON,
 )
 from model.color import COLOR_SHIFT, rgb_to_oklab
 from model.config import EMOJIS, SEED, STYLES, Z_WEIGHT
@@ -41,7 +41,7 @@ from model.model import (
 from model.runmeta import load_pt, run_meta
 
 DATA_PATH = DATA_JSONL
-KEYWORDS_PATH = KEYWORDS_JSON
+EMOJIBASE_DATA = "node_modules/emojibase-data/en/data.json"
 
 EMOJI_KS = list(range(1, 11))
 CLDR_MIN_KEYWORD_LEN = 3
@@ -50,6 +50,16 @@ CARD_PURE_THRESHOLD_RGB = 0.251
 CARD_PURE_THRESHOLD_L = 0.6
 CARD_COLORS = ("red", "green", "blue", "dark", "bright")
 GOLD_PER_COLOR = 25
+
+VOCAB_SIZE_FLOOR = 700
+VOCAB_COVERAGE_TARGET = 0.80
+VOCAB_DIVERSITY_TARGET = 0.80
+DIVERSITY_WEIGHTS = {"keyword": 0.5, "group_balance": 0.25, "flags": 0.25}
+DIVERSITY_MIN_GROUPS = 6
+DIVERSITY_GROUPS = (0, 3, 4, 5, 6, 7, 8, 9)
+SHORT_TEXT_ACC_TARGETS = {1: 0.80, 5: 0.90, 10: 0.95}
+CLDR_ACC1_TARGET_EXACT = 0.95
+CLDR_ACC1_TARGET_FUZZY = 0.90
 
 
 def _ts() -> str:
@@ -215,11 +225,6 @@ def _probe(words, enc, head):
     }
 
 
-def _keyword_probe(enc, head):
-    words = json.loads(Path(KEYWORDS_PATH).read_text(encoding="utf-8"))
-    return _probe(words, enc, head)
-
-
 @cache
 def _ii_json() -> dict:
     p = Path(II_JSON)
@@ -307,6 +312,253 @@ def _cldr_baseline():
     return {"name": name, "acc_at_k": methods[name]["acc_at_k"]}
 
 
+@cache
+def _emojibase() -> tuple:
+    p = Path(EMOJIBASE_DATA)
+    if not p.exists():
+        return ()
+    return tuple(json.loads(p.read_text(encoding="utf-8")))
+
+
+@cache
+def _emoji_popularity() -> dict:
+    p = Path(EMOJI_POPULARITY_JSON)
+    if not p.exists():
+        return {}
+    return json.loads(p.read_text(encoding="utf-8"))
+
+
+def _strip_variation(e: str) -> str:
+    return e.replace("\ufe0f", "")
+
+
+def _coverage() -> dict:
+    vocab = set(EMOJIS)
+    pop = _emoji_popularity()
+    out = {"target": VOCAB_COVERAGE_TARGET}
+    if not pop:
+        out["measurable"] = False
+        out["reason"] = f"{EMOJI_POPULARITY_JSON} absent"
+        return out
+    pop_norm = {}
+    for e, s in pop.items():
+        pop_norm.setdefault(_strip_variation(e), 0.0)
+        pop_norm[_strip_variation(e)] += float(s)
+    vocab_norm = {_strip_variation(e) for e in vocab}
+    total = sum(pop_norm.values())
+    covered = sum(s for e, s in pop_norm.items() if e in vocab_norm)
+    missing = sorted(
+        ((s, e) for e, s in pop_norm.items() if e not in vocab_norm),
+        reverse=True,
+    )
+    ranks = sorted(pop_norm.items(), key=lambda kv: kv[1], reverse=True)
+    bands = {}
+    for i in range(0, len(ranks), 50):
+        band = ranks[i : i + 50]
+        hit = sum(1 for e, _ in band if e in vocab_norm)
+        bands[f"{i + 1}-{i + len(band)}"] = [hit, len(band)]
+    out.update(
+        measurable=True,
+        score=covered / total if total else 0.0,
+        ranked_emoji=len(pop_norm),
+        covered_bands=bands,
+        top_missing=[e for _, e in missing[:20]],
+        passed=(covered / total if total else 0.0) >= VOCAB_COVERAGE_TARGET,
+    )
+    return out
+
+
+def _diversity() -> dict:
+    vocab = set(EMOJIS)
+    out = {"target": VOCAB_DIVERSITY_TARGET}
+    eb = _emojibase()
+    if not eb:
+        out["measurable"] = False
+        out["reason"] = f"{EMOJIBASE_DATA} not found (run bun install)"
+        return out
+    group_of = {e["emoji"]: e.get("group") for e in eb if e.get("emoji")}
+    flagset = {e["emoji"] for e in eb if str(e.get("label", "")).startswith("flag: ")}
+
+    ii = _ii_json()
+    kw_nonempty = [set(v) for v in ii.values() if v]
+    kw_total = len(kw_nonempty)
+    kw_covered = sum(1 for tgt in kw_nonempty if tgt & vocab)
+    keyword_coverage = kw_covered / kw_total if kw_total else None
+
+    vgroups = Counter(
+        group_of.get(ch) for ch in vocab if group_of.get(ch) in DIVERSITY_GROUPS
+    )
+    g_total = sum(vgroups.values())
+    shares = {g: c / g_total for g, c in vgroups.items()} if g_total else {}
+    inv_simpson = 1.0 / sum(s * s for s in shares.values()) if shares else 0.0
+    group_balance = min(1.0, inv_simpson / len(DIVERSITY_GROUPS))
+    n_groups = len(vgroups)
+
+    flag_completeness = len(flagset & vocab) / len(flagset) if flagset else None
+
+    if keyword_coverage is None or flag_completeness is None:
+        out["measurable"] = False
+        out["reason"] = "data/ii.json or emojibase flag set unavailable"
+        return out
+    score = (
+        DIVERSITY_WEIGHTS["keyword"] * keyword_coverage
+        + DIVERSITY_WEIGHTS["group_balance"] * group_balance
+        + DIVERSITY_WEIGHTS["flags"] * flag_completeness
+    )
+    out.update(
+        measurable=True,
+        score=score,
+        keyword_coverage=keyword_coverage,
+        keywords_covered=kw_covered,
+        keywords_total=kw_total,
+        group_balance=group_balance,
+        effective_groups=inv_simpson,
+        groups_present=n_groups,
+        min_groups=DIVERSITY_MIN_GROUPS,
+        group_shares={str(g): round(s, 3) for g, s in sorted(shares.items())},
+        flag_completeness=flag_completeness,
+        flags_missing=len(flagset - vocab),
+        passed=(score >= VOCAB_DIVERSITY_TARGET and n_groups >= DIVERSITY_MIN_GROUPS),
+    )
+    return out
+
+
+def _grade(cur, target, warn=0.9) -> str:
+    if cur is None:
+        return "na"
+    if cur >= target:
+        return "good"
+    if cur >= warn * target:
+        return "amber"
+    return "red"
+
+
+def _section_status(report) -> dict:
+    emoji_eval = (report.get("emoji") or {}).get("eval") or {}
+    cldr = report.get("cldr") or {}
+    cards = report.get("cards") or {}
+
+    variants = {
+        "EmojiHead": emoji_eval.get("acc_at_k"),
+        "Fusion·Gate": emoji_eval.get("fusion_gate_acc_at_k"),
+        "Fusion·Gain": emoji_eval.get("fusion_gain_acc_at_k"),
+        "Fusion·Mix": emoji_eval.get("fusion_mix_acc_at_k"),
+    }
+    variants = {k: v for k, v in variants.items() if v}
+    best_name = best = None
+    if variants:
+        best_name, best = max(variants.items(), key=lambda kv: kv[1][0])
+
+    goals = []
+    cldr1 = (cldr.get("acc_at_k") or [None])[0]
+    goals.append(
+        {
+            "goal": "CLDR keyword Acc@1",
+            "priority": 1,
+            "target": f"≥ {CLDR_ACC1_TARGET_EXACT:.2f} exact / "
+            f"{CLDR_ACC1_TARGET_FUZZY:.2f} fuzzy",
+            "current": cldr1,
+            "status": _grade(cldr1, CLDR_ACC1_TARGET_FUZZY),
+            "note": "combined cldr.jsonl probe — exact-vs-fuzzy split not implemented yet",
+        }
+    )
+    for k in (1, 5, 10):
+        cur = best[k - 1] if best else None
+        goals.append(
+            {
+                "goal": f"Short-text emoji Acc@{k}",
+                "priority": 2,
+                "target": f"≥ {SHORT_TEXT_ACC_TARGETS[k]:.2f}",
+                "current": cur,
+                "status": _grade(cur, SHORT_TEXT_ACC_TARGETS[k]),
+                "note": f"best variant: {best_name}"
+                if best_name
+                else "emoji.eval not evaluated this run",
+            }
+        )
+    color_cur = ((cards.get("per_color") or {}).get("all") or {}).get("pure_accuracy")
+    goals.append(
+        {
+            "goal": "Color palette (gold set, pure acc)",
+            "priority": 3,
+            "target": "high — no fixed threshold",
+            "current": color_cur,
+            "status": "na",
+            "note": "no numeric target agreed yet",
+        }
+    )
+    style_cur = (cards.get("style_acc_at_k") or [None])[0]
+    goals.append(
+        {
+            "goal": "Style Acc@1 (gold set)",
+            "priority": 4,
+            "target": "high — no fixed threshold",
+            "current": style_cur,
+            "status": "na",
+            "note": "no numeric target agreed yet",
+        }
+    )
+    vocab_size = len(EMOJIS)
+    goals.append(
+        {
+            "goal": "Emoji vocab size",
+            "priority": 5,
+            "target": f"≥ {VOCAB_SIZE_FLOOR}",
+            "current": vocab_size,
+            "status": "good" if vocab_size >= VOCAB_SIZE_FLOOR else "red",
+            "note": "",
+        }
+    )
+
+    higher_open = any(g["status"] in ("red", "amber") for g in goals if g["priority"] <= 5)
+    cov = _coverage()
+    div = _diversity()
+    for pr, name, cd in (
+        (6, "Vocab Coverage (popularity-wtd)", cov),
+        (7, "Vocab Diversity (types + keywords)", div),
+    ):
+        if not cd.get("measurable"):
+            status, cur, note = "na", None, f"not measurable — {cd.get('reason', '')}"
+        elif higher_open:
+            status = "na"
+            cur = cd["score"]
+            note = "deferred — lower priority than open goals above"
+        else:
+            cur = cd["score"]
+            status = "good" if cd["passed"] else _grade(cur, cd["target"])
+            if name.startswith("Vocab Coverage"):
+                note = f"{cd['ranked_emoji']} ranked emoji; top missing: " + " ".join(
+                    cd["top_missing"][:6]
+                )
+            else:
+                note = (
+                    f"kw {cd['keyword_coverage']:.2f} "
+                    f"({cd['keywords_covered']}/{cd['keywords_total']}) · "
+                    f"balance {cd['group_balance']:.2f} "
+                    f"({cd['effective_groups']:.1f} eff groups, "
+                    f"{cd['groups_present']}/{cd['min_groups']}) · "
+                    f"flags {cd['flag_completeness']:.2f}"
+                )
+        goals.append(
+            {
+                "goal": name,
+                "priority": pr,
+                "target": f"≥ {cd['target']:.2f}",
+                "current": cur,
+                "status": status,
+                "note": note,
+            }
+        )
+    goals.sort(key=lambda g: g["priority"])
+    return {
+        "best_emoji_variant": best_name,
+        "summary": dict(Counter(g["status"] for g in goals)),
+        "goals": goals,
+        "coverage": cov,
+        "diversity": div,
+    }
+
+
 def _section_emoji(enc, head, eval_records):
     emb = _emoji_embed()
     if enc is None or head is None or emb is None:
@@ -334,7 +586,6 @@ def _section_emoji(enc, head, eval_records):
             "fusion_mix_acc_at_k": extra.get("fusion_mix"),
             "baseline": _cldr_baseline(),
         }
-    d["keywords"] = _keyword_probe(enc, head)
     return d
 
 
@@ -505,6 +756,8 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
     if "cards" in want:
         report["cards"] = _section_cards(enc, style_head, emoji_head, gen, gold_rows)
 
+    report["status"] = _section_status(report)
+
     out_dir = Path(out) / f"{prov['ts']}-{prov['model_sha']}"
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "report.json").write_text(
@@ -520,7 +773,8 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
 _STYLE = """
 :root{--ink:#1b1f24;--dim:#656b73;--line:#e2e5e9;--panel:#f5f6f8;--accent:#4b32d6;
 --good-bg:#e6f6ec;--good-bd:#b2dec1;--good-fg:#157a3f;--warn-bg:#fdf2e2;
---warn-bd:#efd4a2;--warn-fg:#a25c07}
+--warn-bd:#efd4a2;--warn-fg:#a25c07;--bad-bg:#fdeaea;--bad-bd:#f0b6b6;
+--bad-fg:#b3261e}
 *{box-sizing:border-box}
 body{font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
 color:var(--ink);margin:0;background:#fff}
@@ -536,6 +790,13 @@ code{background:var(--panel);padding:1px 6px;border-radius:4px;font-size:15px}
 background:var(--good-bg);border:1px solid var(--good-bd)}
 .banner.amber{background:var(--warn-bg);border-color:var(--warn-bd)}
 .banner ul{margin:6px 0 0;padding-left:20px}
+.status-h{margin-top:34px}
+.scorecard td:first-child{font-weight:600}
+.scorecard .gnote{font-weight:400;font-size:13px;color:var(--dim);margin-top:3px}
+.scorecard tr.sc-good{background:var(--good-bg)}
+.scorecard tr.sc-amber{background:var(--warn-bg)}
+.scorecard tr.sc-red{background:var(--bad-bg)}
+.scorecard tr.sc-na{background:var(--panel);color:var(--dim)}
 .counts{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:18px 0}
 .counts.n2{grid-template-columns:repeat(2,1fr)}
 .count{border:1px solid var(--line);border-radius:12px;padding:20px 22px}
@@ -754,6 +1015,40 @@ def _header_html(report) -> str:
     return f'<h1>emojic model report</h1><div class="sub">{line}</div>{banner}'
 
 
+_STATUS_WORD = {
+    "good": "✅ on target",
+    "amber": "🟡 close",
+    "red": "🔴 below target",
+    "na": "⚪ not measured",
+}
+
+
+def _status_html(status) -> str:
+    rows = []
+    for g in status["goals"]:
+        cur = g["current"]
+        if cur is None:
+            cur_txt = "n/a"
+        elif isinstance(cur, float):
+            cur_txt = f"{cur:.3f}"
+        else:
+            cur_txt = _fnum(cur)
+        note = f'<div class="gnote">{_esc(g["note"])}</div>' if g.get("note") else ""
+        rows.append(
+            f'<tr class="sc-{g["status"]}"><td>{_esc(g["goal"])}{note}</td>'
+            f'<td class="n">{_esc(g["target"])}</td>'
+            f'<td class="n">{cur_txt}</td>'
+            f"<td>{_STATUS_WORD[g['status']]}</td></tr>"
+        )
+    return (
+        '<h2 class="status-h">Goal status</h2>'
+        '<table class="scorecard"><tr><th>Goal — priority order</th>'
+        '<th class="n">Target</th><th class="n">Current</th><th>Status</th></tr>'
+        + "".join(rows)
+        + "</table>"
+    )
+
+
 def _data_html(d) -> str:
     r = d["records"]
     cells = "".join(
@@ -818,12 +1113,6 @@ def _emoji_html(d) -> str:
             "<code>data/cldr-baseline.json</code>.</p>"
         )
         out.append(f"<h3>Performance on eval.jsonl ({e['n']} rows)</h3>{chart}{note}")
-    kw = d.get("keywords")
-    if kw:
-        points = list(zip((str(k) for k in EMOJI_KS), kw["acc_at_k"], strict=True))
-        out.append(
-            f"<h3>Performance on keywords.json ({kw['n']} words)</h3>{_linechart(points)}"
-        )
     return "".join(out)
 
 
@@ -833,22 +1122,15 @@ def _keywords_flex_html(d) -> str:
             "<h2>Model — Keyword vocab</h2>"
             '<p class="note">enc.pt / emoji.pt / emoji_embed.pt not available.</p>'
         )
-    head = (
+    covered = d["candidates"] - d["missed"]
+    rate = covered / d["candidates"] if d["candidates"] else 0.0
+    return (
         "<h2>Model — Keyword vocab</h2>"
         f'<p class="note">{_fnum(d["candidates"])} candidates &middot; '
-        f"{_fnum(d['missed'])} missed (rank &gt; 10) &middot; vocab = worst 1000</p>"
-    )
-    misses = [r for r in d["ranked"] if r["rank"] > 10]
-    if not misses:
-        return head + '<p class="note">no misses.</p>'
-    body = "".join(
-        f"<tr><td>{i}</td><td>{_esc(r['kw'])}</td><td>{_esc(' '.join(r['emojis']))}</td>"
-        f"<td>{_esc(' '.join(r['top5']))}</td><td>{r['rank']}</td></tr>"
-        for i, r in enumerate(misses, 1)
-    )
-    return (
-        head + "<table><tr><th>#</th><th>Keyword</th><th>CLDR emojis</th>"
-        "<th>Top 5 predictions</th><th>Rank</th></tr>" + body + "</table>"
+        f"{_fnum(covered)} reach rank &le; 10 ({rate:.1%}) &middot; "
+        f"{_fnum(d['missed'])} missed (rank &gt; 10)</p>"
+        '<p class="note">Per-keyword miss list is in <code>report.json</code> '
+        "(<code>keywords_flex.ranked</code>).</p>"
     )
 
 
@@ -927,6 +1209,8 @@ def _cards_html(d) -> str:
 
 def _render_html(report) -> str:
     body = [_header_html(report)]
+    if "status" in report:
+        body.append(_status_html(report["status"]))
     if "data" in report:
         body.append(_data_html(report["data"]))
     if "labels" in report:
