@@ -181,11 +181,132 @@ def test_keywords_flex_html():
     }
     h = _keywords_flex_html(d)
     assert "<h2>Model — Keyword vocab</h2>" in h
-    assert ">3<" in h or "3 candidates" in h or "3</" in h
-    assert "<th>Keyword</th>" in h and "<th>Rank</th>" in h
-    assert ">zzzz<" in h and ">yyyy<" in h
-    assert ">aaaa<" not in h
-    assert h.index(">zzzz<") < h.index(">yyyy<")
+    assert "3 candidates" in h or "3</" in h or ">3<" in h
+    assert "1 " in h and "missed" in h
+    assert "<th>Keyword</th>" not in h and "<th>Rank</th>" not in h
+    assert ">zzzz<" not in h and ">yyyy<" not in h
+    assert "keywords_flex.ranked" in h
+
+
+def test_section_status_orders_and_grades():
+    from tools.report import EMOJI_KS, _section_status
+
+    n = len(EMOJI_KS)
+    report = {
+        "emoji": {
+            "eval": {
+                "acc_at_k": [0.5 + 0.03 * i for i in range(n)],
+                "fusion_gain_acc_at_k": [0.6 + 0.03 * i for i in range(n)],
+            }
+        },
+        "cldr": {"acc_at_k": [0.42 + 0.02 * i for i in range(n)]},
+        "cards": {
+            "style_acc_at_k": [0.7 + 0.02 * i for i in range(n)],
+            "per_color": {"all": {"pure_accuracy": 0.4}},
+        },
+    }
+    st = _section_status(report)
+    prios = [g["priority"] for g in st["goals"]]
+    assert prios == sorted(prios)
+    assert st["best_emoji_variant"] == "Fusion·Gain"
+    by_goal = {g["goal"]: g for g in st["goals"]}
+    assert by_goal["CLDR keyword Acc@1"]["status"] == "red"
+    assert (
+        by_goal["Short-text emoji Acc@1"]["current"]
+        == report["emoji"]["eval"]["fusion_gain_acc_at_k"][0]
+    )
+    assert by_goal["Color palette (gold set, pure acc)"]["status"] == "na"
+    assert "Vocab Coverage (popularity-wtd)" in by_goal
+    assert "Vocab Diversity (types + keywords)" in by_goal
+    assert by_goal["Vocab Coverage (popularity-wtd)"]["priority"] == 6
+    assert by_goal["Vocab Diversity (types + keywords)"]["priority"] == 7
+    assert "deferred" in by_goal["Vocab Coverage (popularity-wtd)"]["note"]
+    assert by_goal["Vocab Coverage (popularity-wtd)"]["status"] == "na"
+    assert all(g["status"] in {"good", "amber", "red", "na"} for g in st["goals"])
+    assert "coverage" in st and "diversity" in st
+
+
+def test_coverage_and_diversity_shapes():
+    from tools.report import _coverage, _diversity
+
+    c = _coverage()
+    if c.get("measurable"):
+        assert 0.0 <= c["score"] <= 1.0
+        assert c["ranked_emoji"] > 0
+        assert isinstance(c["top_missing"], list)
+    else:
+        assert "reason" in c
+
+    d = _diversity()
+    if d.get("measurable"):
+        assert 0.0 <= d["score"] <= 1.0
+        assert 0.0 <= d["keyword_coverage"] <= 1.0
+        assert d["keywords_covered"] <= d["keywords_total"]
+        assert 0.0 <= d["group_balance"] <= 1.0
+        assert 0.0 <= d["flag_completeness"] <= 1.0
+        w = (
+            0.5 * d["keyword_coverage"]
+            + 0.25 * d["group_balance"]
+            + 0.25 * d["flag_completeness"]
+        )
+        assert abs(d["score"] - w) < 1e-9
+    else:
+        assert "reason" in d
+
+
+def test_status_coverage_active_when_higher_goals_pass():
+    from tools.report import EMOJI_KS, _section_status
+
+    n = len(EMOJI_KS)
+    hi = [0.99] * n
+    report = {
+        "emoji": {"eval": {"acc_at_k": hi, "fusion_gain_acc_at_k": hi}},
+        "cldr": {"acc_at_k": hi},
+        "cards": {"style_acc_at_k": hi, "per_color": {"all": {"pure_accuracy": 0.9}}},
+    }
+    st = _section_status(report)
+    by_goal = {g["goal"]: g for g in st["goals"]}
+    cov = by_goal["Vocab Coverage (popularity-wtd)"]
+    if st["coverage"].get("measurable"):
+        assert cov["status"] in {"good", "amber", "red"}
+        assert "deferred" not in cov["note"]
+
+
+def test_status_html_colors_rows():
+    from tools.report import _status_html
+
+    status = {
+        "goals": [
+            {
+                "goal": "G1",
+                "priority": 1,
+                "target": "≥ 0.90",
+                "current": 0.5,
+                "status": "red",
+                "note": "hi",
+            },
+            {
+                "goal": "G2",
+                "priority": 2,
+                "target": "≥ 700",
+                "current": 800,
+                "status": "good",
+                "note": "",
+            },
+            {
+                "goal": "G3",
+                "priority": 3,
+                "target": "high",
+                "current": None,
+                "status": "na",
+                "note": "tbd",
+            },
+        ]
+    }
+    h = _status_html(status)
+    assert 'class="sc-red"' in h and 'class="sc-good"' in h and 'class="sc-na"' in h
+    assert "Goal status" in h
+    assert "0.500" in h and "800" in h and "n/a" in h
 
 
 _app = typer.Typer(
@@ -205,6 +326,10 @@ def main() -> None:
     test_emoji_extra_acc_reads_precomputed_kw()
     test_flex_keyword_candidates_and_section()
     test_keywords_flex_html()
+    test_section_status_orders_and_grades()
+    test_coverage_and_diversity_shapes()
+    test_status_coverage_active_when_higher_goals_pass()
+    test_status_html_colors_rows()
     print("ok")
 
 
