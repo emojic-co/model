@@ -15,7 +15,6 @@ from model.config import (
     CRITIC_TEXT_CHANNELS,
     DROPOUT_CRITIC,
     DROPOUT_EMOJI,
-    DROPOUT_KW,
     DROPOUT_STYLE,
     EMOJI_EMBED_SIZE,
     ENCODER_CHANNELS,
@@ -27,7 +26,7 @@ from model.config import (
     TEXT_EMBED_SIZE,
     Z_WEIGHT,
 )
-from model.data import COLOR_DIM, EMOJIS, FLEX_N, PAD_IDX, STYLES, VOCAB_SIZE
+from model.data import COLOR_DIM, EMOJIS, PAD_IDX, STYLES, VOCAB_SIZE
 
 
 class TextEncoderBlock(nn.Module):
@@ -108,37 +107,6 @@ class EmojiHead(nn.Module):
 
     def forward(self, text_embedding: torch.Tensor) -> torch.Tensor:
         return self.net(text_embedding)
-
-
-class KWHead(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-        self.net = nn.Sequential(
-            nn.Dropout(p=DROPOUT_KW),
-            nn.Linear(FLEX_N, EMOJI_EMBED_SIZE, bias=False))
-
-        nn.init.zeros_(self.net[1].weight)  # type: ignore
-
-    def forward(self, tf_vec: torch.Tensor) -> torch.Tensor:
-        return self.net(tf_vec)
-
-
-class FusionHead(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-        self.net = nn.Linear(TEXT_EMBED_SIZE + FLEX_N, 1)
-        nn.init.zeros_(self.net.weight)
-        nn.init.constant_(self.net.bias, 0.0)
-
-    def forward(
-        self,
-        text_embedding: torch.Tensor,
-        tf_vec: torch.Tensor,
-    ) -> torch.Tensor:
-        x = torch.cat([text_embedding, tf_vec], dim=-1)
-        return torch.sigmoid(self.net(x)).squeeze(-1)
 
 
 def _z(x: torch.Tensor) -> torch.Tensor:

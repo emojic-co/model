@@ -20,23 +20,21 @@ from files import (
     COLORS_JSONL,
     DATA_JSONL,
     EMOJI_EMBED_PT,
-    FLEX_JSON,
-    FUSION_PT,
+    FUSION_GAIN_PT,
+    FUSION_GATE_PT,
+    FUSION_MIX_PT,
     II_JSON,
     KEYWORDS_JSON,
-    KW_PT,
 )
 from model.color import COLOR_SHIFT, rgb_to_oklab
 from model.config import EMOJIS, SEED, STYLES, Z_WEIGHT
-from model.data import EVAL_PATH, FLEX_N, TRAIN_PATH, read, text_to_tensor
+from model.data import EVAL_PATH, TRAIN_PATH, _row_kw, read, text_to_tensor
 from model.data import normalize as norm_text
 from model.export_onnx import CONST_Z
 from model.model import (
     ColorGen,
     EmojiEmbedding,
     EmojiHead,
-    FusionHead,
-    KWHead,
     StyleHead,
     TextEncoder,
 )
@@ -89,31 +87,6 @@ def _acc_at_k(logits, target, k):
 
 
 @cache
-def _flex_ranker():
-    if not Path(FLEX_JSON).exists():
-        return None
-    from model.flexrank import FlexRanker
-
-    return FlexRanker(FLEX_JSON)
-
-
-@cache
-def _fusion_head():
-    if not Path(FUSION_PT).exists():
-        return None
-    head, err = _load(FusionHead(), FUSION_PT)
-    return None if err else head
-
-
-@cache
-def _kw_head():
-    if not Path(KW_PT).exists():
-        return None
-    head, err = _load(KWHead(), KW_PT)
-    return None if err else head
-
-
-@cache
 def _emoji_embed():
     if not Path(EMOJI_EMBED_PT).exists():
         return None
@@ -121,48 +94,43 @@ def _emoji_embed():
     return None if err else m
 
 
-def _tf_batch(records):
-    fr = _flex_ranker()
-    tf = torch.zeros(len(records), FLEX_N)
-    for i, r in enumerate(records):
-        for j, v in enumerate(fr.tf_vec(r.text)):
-            tf[i, j] = v
-    return tf
+@cache
+def _fusion_heads() -> dict:
+    from model.model import FusionHeadGain, FusionHeadGate, FusionHeadMix
+
+    specs = {
+        "gate": (FusionHeadGate, FUSION_GATE_PT),
+        "gain": (FusionHeadGain, FUSION_GAIN_PT),
+        "mix": (FusionHeadMix, FUSION_MIX_PT),
+    }
+    out = {}
+    for name, (cls, path) in specs.items():
+        if not Path(path).exists():
+            continue
+        mod, err = _load(cls(), path)
+        if err is None and mod is not None:
+            out[name] = mod
+    return out
 
 
-def _kw_fusion_acc(records, tgt, enc_emb, q_txt):
-    fr = _flex_ranker()
-    emb = _emoji_embed()
-    kw = _kw_head()
-    if fr is None or emb is None or kw is None or q_txt is None:
-        return None, None, None
-    tf = _tf_batch(records)
+def _emoji_extra_acc(records, tgt, logit_m):
+    kw_dense = torch.stack([_row_kw(r) for r in records])
+    out = {"keywords": [_acc_at_k(kw_dense, tgt, k).mean().item() for k in EMOJI_KS]}
     with torch.no_grad():
-        q_kw = kw(tf)
-        emoji_logits = emb.score(q_txt)
-        kw_logits = emb.score(q_kw)
-        kw_acc = [_acc_at_k(kw_logits, tgt, k).mean().item() for k in EMOJI_KS]
-        oracle_acc = [
-            torch.maximum(_acc_at_k(emoji_logits, tgt, k), _acc_at_k(kw_logits, tgt, k))
-            .mean()
-            .item()
-            for k in EMOJI_KS
-        ]
-        fusion_acc = None
-        head = _fusion_head()
-        if head is not None:
-            a = head(enc_emb, tf).unsqueeze(-1)
-            fl = emb.score(a * q_txt + (1 - a) * q_kw)
-            fusion_acc = [_acc_at_k(fl, tgt, k).mean().item() for k in EMOJI_KS]
-    return kw_acc, fusion_acc, oracle_acc
+        for name, head in _fusion_heads().items():
+            fused = head(logit_m.detach(), kw_dense)
+            out[f"fusion_{name}"] = [
+                _acc_at_k(fused, tgt, k).mean().item() for k in EMOJI_KS
+            ]
+    return out
 
 
 def _provenance(pt: Path):
     enc_pt, emoji_pt = str(pt / "enc.pt"), str(pt / "emoji.pt")
     style_pt, gen_pt = str(pt / "style.pt"), str(pt / "gen.pt")
-    emoji_embed_pt, kw_pt = str(pt / "emoji_embed.pt"), str(pt / "kw.pt")
+    emoji_embed_pt = str(pt / "emoji_embed.pt")
     rm = run_meta()
-    paths = [enc_pt, emoji_pt, emoji_embed_pt, kw_pt, style_pt, gen_pt]
+    paths = [enc_pt, emoji_pt, emoji_embed_pt, style_pt, gen_pt]
     metas = {p: (load_pt(p)[1] if Path(p).exists() else None) for p in paths}
     present = {p: m for p, m in metas.items() if m}
     missing = [p for p in paths if not Path(p).exists()]
@@ -262,7 +230,7 @@ def _ii_json() -> dict:
 
 @cache
 def _flex_keyword_candidates() -> tuple:
-    from model.flexrank import query_tokens
+    from model.kwtokens import query_tokens
 
     vocab = set(EMOJIS)
     out = []
@@ -356,13 +324,14 @@ def _section_emoji(enc, head, eval_records):
             enc_emb = enc(texts)
             q_txt = head(enc_emb)
             logits = emb.score(q_txt)
-        kw_acc, fusion_acc, oracle_acc = _kw_fusion_acc(rows, tgt, enc_emb, q_txt)
+        extra = _emoji_extra_acc(rows, tgt, logits)
         d["eval"] = {
             "n": len(rows),
             "acc_at_k": [_acc_at_k(logits, tgt, k).mean().item() for k in EMOJI_KS],
-            "kw_acc_at_k": kw_acc,
-            "fusion_acc_at_k": fusion_acc,
-            "oracle_acc_at_k": oracle_acc,
+            "keywords_acc_at_k": extra.get("keywords"),
+            "fusion_gate_acc_at_k": extra.get("fusion_gate"),
+            "fusion_gain_acc_at_k": extra.get("fusion_gain"),
+            "fusion_mix_acc_at_k": extra.get("fusion_mix"),
             "baseline": _cldr_baseline(),
         }
     d["keywords"] = _keyword_probe(enc, head)
@@ -591,6 +560,7 @@ transform-origin:top right;font-size:12.5px;margin-top:9px}
 .linechart .lline2{fill:none;stroke:#e07b00;stroke-width:2.5}
 .linechart .lline3{fill:none;stroke:#0a9c8b;stroke-width:2.5}
 .linechart .lline4{fill:none;stroke:#8b5cf6;stroke-width:2.5}
+.linechart .lline5{fill:none;stroke:#d6336c;stroke-width:2.5}
 .linechart .bline{fill:none;stroke:var(--dim);stroke-width:2;stroke-dasharray:5 4}
 .linechart .btext{font-size:11px;fill:var(--dim);font-variant-numeric:tabular-nums}
 .linechart .dot{fill:var(--accent)}
@@ -820,12 +790,14 @@ def _emoji_html(d) -> str:
         points = list(zip((str(k) for k in EMOJI_KS), e["acc_at_k"], strict=True))
         bl = e.get("baseline")
         series = []
-        if e.get("kw_acc_at_k"):
-            series.append(("KWHead", e["kw_acc_at_k"], "lline2"))
-        if e.get("fusion_acc_at_k"):
-            series.append(("Fusion", e["fusion_acc_at_k"], "lline3"))
-        if e.get("oracle_acc_at_k"):
-            series.append(("Oracle", e["oracle_acc_at_k"], "lline4"))
+        for key, label, cls in (
+            ("keywords_acc_at_k", "Keywords", "lline2"),
+            ("fusion_gate_acc_at_k", "Fusion·Gate", "lline3"),
+            ("fusion_gain_acc_at_k", "Fusion·Gain", "lline4"),
+            ("fusion_mix_acc_at_k", "Fusion·Mix", "lline5"),
+        ):
+            if e.get(key):
+                series.append((label, e[key], cls))
         if series:
             legend = ("EmojiHead", *(name for name, _, _ in series))
         elif bl:

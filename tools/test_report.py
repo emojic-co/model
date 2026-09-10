@@ -86,7 +86,7 @@ def test_linechart_three_way():
     assert ">EmojiHead<" in svg and ">KWHead<" in svg and ">Fusion<" in svg
 
 
-def test_emoji_html_three_way():
+def test_emoji_html_five_way():
     from tools.report import EMOJI_KS, _emoji_html
 
     n = len(EMOJI_KS)
@@ -94,41 +94,51 @@ def test_emoji_html_three_way():
         "eval": {
             "n": 100,
             "acc_at_k": [0.3 + 0.05 * i for i in range(n)],
-            "kw_acc_at_k": [0.2 + 0.05 * i for i in range(n)],
-            "fusion_acc_at_k": [0.4 + 0.05 * i for i in range(n)],
-            "oracle_acc_at_k": [0.45 + 0.05 * i for i in range(n)],
+            "keywords_acc_at_k": [0.2 + 0.05 * i for i in range(n)],
+            "fusion_gate_acc_at_k": [0.4 + 0.04 * i for i in range(n)],
+            "fusion_gain_acc_at_k": [0.4 + 0.045 * i for i in range(n)],
+            "fusion_mix_acc_at_k": [0.4 + 0.05 * i for i in range(n)],
             "baseline": {"name": "overlap", "acc_at_k": [0.1 + 0.04 * i for i in range(n)]},
         },
         "keywords": {"n": 50, "acc_at_k": [0.2 + 0.05 * i for i in range(n)]},
     }
     h = _emoji_html(d)
-    assert 'class="lline2"' in h and 'class="lline3"' in h and 'class="lline4"' in h
-    assert ">EmojiHead<" in h and ">KWHead<" in h and ">Fusion<" in h and ">Oracle<" in h
+    assert 'class="lline2"' in h and 'class="lline3"' in h
+    assert 'class="lline4"' in h and 'class="lline5"' in h
+    assert ">EmojiHead<" in h and ">Keywords<" in h
+    assert ">Fusion·Gate<" in h and ">Fusion·Mix<" in h
     assert 'class="bline"' in h
 
-    d["eval"]["kw_acc_at_k"] = None
-    d["eval"]["fusion_acc_at_k"] = None
-    d["eval"]["oracle_acc_at_k"] = None
+    d["eval"]["keywords_acc_at_k"] = None
+    d["eval"]["fusion_gate_acc_at_k"] = None
+    d["eval"]["fusion_gain_acc_at_k"] = None
+    d["eval"]["fusion_mix_acc_at_k"] = None
     h2 = _emoji_html(d)
     assert 'class="lline3"' not in h2 and 'class="lline4"' not in h2
     assert "CLDR baseline (overlap)" in h2
 
 
-def test_kw_section_keys():
-    from files import FLEX_JSON
+def test_emoji_extra_acc_reads_precomputed_kw():
+    import torch
 
-    if not Path(FLEX_JSON).exists():
-        print("skip test_kw_section_keys (no flex.json)")
-        return
-    from model.flexrank import FlexRanker
+    from model.data import record
+    from tools.report import EMOJI_KS, EMOJIS, _emoji_extra_acc
 
-    r = FlexRanker(FLEX_JSON)
-    v = r.tf_vec("pizza time with friends tonight")
-    assert len(v) == len(r.kw_vocab) and len(v) > 500
+    n = len(EMOJIS)
+    rows = [
+        record("pizza tonight", ["x"], ["Neutral"], ["#000", "#000", "#fff"], [[0, 0.9]]),
+        record("a quiet walk", [], ["Neutral"], ["#000", "#000", "#fff"], []),
+    ]
+    tgt = torch.zeros(2, n)
+    tgt[0, 0] = 1.0
+    logit_m = torch.randn(2, n)
+    out = _emoji_extra_acc(rows, tgt, logit_m)
+    assert len(out["keywords"]) == len(EMOJI_KS)
+    assert all(0.0 <= v <= 1.0 for v in out["keywords"])
 
 
 def test_flex_keyword_candidates_and_section():
-    from model.flexrank import query_tokens
+    from model.kwtokens import query_tokens
     from tools.report import (
         EMOJIS,
         _flex_keyword_candidates,
@@ -191,8 +201,8 @@ def main() -> None:
     test_dark_ignores_chroma()
     test_linechart_series()
     test_linechart_three_way()
-    test_emoji_html_three_way()
-    test_kw_section_keys()
+    test_emoji_html_five_way()
+    test_emoji_extra_acc_reads_precomputed_kw()
     test_flex_keyword_candidates_and_section()
     test_keywords_flex_html()
     print("ok")
