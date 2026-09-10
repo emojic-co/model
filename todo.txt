@@ -1,20 +1,8 @@
-update the regen tool:
-    During a regeneration both data/train.jsonl and data/eval.jsonl need to have a ranked list of emojis based on the CLDR + FlexSearch ranking, i.e.
-    {text:string, emojis:string, bg: [string, string], fg: string, flexsearch: {emoji: string, score:number}[]}
-    When regenerating, build a reverse CLDR index and use the flexsearch to generate a ranked list for each text, then save it to the data/train.jsonl and data/eval.jsonl files. 
+Make a tool
+tools/analysis/cldr-keywords.ts
 
-
-create a tool `tools/data/minimize.ts`
-the tool first:
-move data/data.jsonl to archive/data.<version>.jsonl
-then:
-1. reads archive/data.<version>.jsonl
-2. collapse records with the existing collapse logic (union styles, union emojis, keep last color palette)
-3. strip off any metadata fields that are not essential (keep only {text, emojis, styles, bg, fg})
-4. Write the new minimized data/data.jsonl 
-
-Notes:
-    archive/* file should stored as lfs.
-    data/data.jsonl should be stored as lfs.
-    we might want to also remove data.jsonl from the git history once we run the minimize tool?
-    the goal is to keep the data.jsonl file as small as possible.
+The tool finds all the keywords in the CLDR with max IDF (i.e. only appear in one emoji) 
+The tool prints matrix with the count of such keywords.
+The matrix rows correspond to the min length of the keywords, and the columns correspond to the max length of the keywords.
+min values are 5..8 (inclusive)
+max values are 8..11 (inclusive)
