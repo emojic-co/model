@@ -329,7 +329,7 @@ shape mismatch drops that curve (not fatal), consistent with the existing
 
 The second chart (the `data/keywords.json` probe) and the CLDR probe chart stay
 **EmojiHead-only + baseline** — those probe strings carry no `kw` payload and we do
-not recompute Fuse in Python.
+not recompute uFuzzy in Python.
 
 ### 5.2 Model -> Keyword vocab section
 
@@ -421,9 +421,7 @@ Kept as a pure diagnostic (every qualifying `data/ii.json` key scored by
 
 ### New
 
-- `model/tokenize.py`
-- `tools/data/tokenize.ts`
-- `web/src/tokenize.js`
+- `model/tokenize.py` (report keyword-vocab diagnostic only)
 - `web/src/keywords.js`, `web/src/keywords.test.js`
 - `web/src/fusion.js`, `web/src/fusion.test.js`
 
@@ -465,6 +463,7 @@ Non-training:
 
 - `uv run ruff check .` / `uv run ruff format --check .`
 - `uv run python model/test_runmeta.py`
+- `uv run python model/test_tokenize.py`
 - `uv run python model/test_train_cli.py`
 - `uv run python model/test_model_heads.py`
 - `uv run python tools/test_report.py`
@@ -488,8 +487,18 @@ Behavioural (full run, not a smoke test):
 ## 9. Open risk
 
 Dropping `flexrank.fixture.json` removes the cross-language conformance guarantee.
-Mitigation: the surviving cross-language surface is just the tokenizer (~6 trivial
-lines, same class of hand-kept parity as `normalize` / `encode` already in the
-tree) plus Fuse.js config constants; `web/src/keywords.test.js` pins a handful of
+Mitigation: there is no longer a bespoke tokenizer to keep in sync — word-splitting
+is the already-shared `normalize` + `.split(" ")`. The remaining cross-language
+surface is the pinned `@leeoniya/uFuzzy` version, the `{ intraIns: 1 }` option, and
+the `sim >= 0.5` floor — all identical literals in `regen.ts` and
+`web/src/keywords.js`. `web/src/keywords.test.js` pins a handful of
 `text -> expected emoji` cases. The soft-TF fuzzy matcher that actually needed a
 fixture is gone.
+
+uFuzzy's `uf.info(...).chars` and the `sim = chars / keyword.length` ratio are the
+scoring substitute for Fuse's `1 - score`; if that ratio proves noisy in the report
+comparison, the `sim` floor and `intraIns` are the two knobs to turn (or fall back
+to a reciprocal-rank `sim`). Common short words that survive the `length >= 3`
+filter (`the`, `and`, `but`, …) can fuzzy-match a keyword substring; the `0.5` floor
+drops most such hits, and a stopword filter can be added later if the report shows
+a problem.
