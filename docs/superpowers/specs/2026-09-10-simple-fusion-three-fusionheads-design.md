@@ -20,15 +20,18 @@ emoji performance:
 
 - `EmojiHead` trains **standalone** (`lse_infonce`, no keyword awareness) and stays
   usable as the sole predictor.
-- The keyword predictor is a **non-learned** lookup: for each word of the
-  `normalize`d text, fuzzy-match against `data/ii.json` keys with
-  **uFuzzy** (`@leeoniya/uFuzzy`), project the matched keys onto the emoji vocab,
-  aggregate to one score per emoji. uFuzzy runs **once offline in `regen.ts`** over
-  every train/eval row and **live in the browser** on user input. There is exactly
-  one uFuzzy implementation; Python never reimplements it. Word-splitting is
-  `normalize(text).split(" ")` — the already-shared `normalize` (byte-identical
-  across `model/data.py`, `tools/data/normalize.ts`, `web/src/model.js`) plus a
-  space split; **no bespoke tokenizer**.
+- The keyword predictor is a **non-learned hand-rolled inverted index + IDF** (per
+  `docs/search.md` §1 / §3): `postings: Map<keyword, emojiIdx[]>` from
+  `data/ii.json` filtered to the emoji vocab, `weight[keyword] = 1/log2(1+df)`
+  (`df = postings[keyword].length`). Per query: `queryTokens(text)` (the **existing**
+  tokenizer, relocated verbatim out of the deleted `flexrank.*` — lowercase, strip
+  punctuation, split, drop stopwords, `len >= 2`), then for each token
+  `matches(word)` = an exact `postings` hit (strength `1.0`) **plus** a
+  **uFuzzy** (`@leeoniya/uFuzzy`) fuzzy match for typo/morphology (strength =
+  similarity `< 1.0`). Accumulate `score[e] = max(score[e], strength * weight[k])`.
+  This runs **once offline in `regen.ts`** over every train/eval row and **live in
+  the browser** on user input. Python never reimplements it (the report keyword
+  diagnostic keeps only `queryTokens`, via `model/tokenize.py`).
 - A **minimal learned combiner** replaces `FusionHead`. Three variants are
   implemented and trained **in parallel in one run** so they can be compared:
   `FusionHeadGate`, `FusionHeadGain`, `FusionHeadMix`. Each consumes the same
@@ -65,61 +68,69 @@ proj = { k: v for k, v in proj if v }          # drop empty projections
 reads a report, **`regen` is deterministic again** for a fixed
 `data/data.jsonl` + flags.
 
-### 1.2 Word splitting — no bespoke tokenizer
+### 1.2 Tokenizer — the existing `queryTokens`, relocated
 
-The needle words are `normalize(text).split(" ")` filtered to `length >= 3`.
-`normalize` is already shared and byte-identical across `model/data.py`,
-`tools/data/normalize.ts`, and `web/src/model.js` (it lowercases, collapses
-whitespace, trims, collapses 3+ char runs to 2, drops non-vocab chars). No
-stopword list, no punctuation regex, no `tokenize.{ts,js}` file. uFuzzy does its
-own intra-term matching; we only hand it one word at a time.
+`queryTokens` + `STOPWORDS` already exist in `web/src/flexrank.js` /
+`tools/data/flexrank.ts` / `model/flexrank.py` (lowercase, `[^a-z0-9\s]` ->
+space, split on whitespace, keep tokens `len >= 2` not in `STOPWORDS`). The
+`flexrank.*` files are deleted; `queryTokens` moves **verbatim** into small
+standalone modules:
 
-`model/tokenize.py` is still added — but **only** for the `report.py` "Keyword
-vocab" diagnostic (`query_tokens(k) == [k]` single-token filter over
-`data/ii.json` keys). It is Python-only, off the training/inference path, and
-carries no cross-language parity burden.
+- `tools/data/tokenize.ts` — used by `regen.ts`
+- `web/src/tokenize.js` — used by the browser
+- `model/tokenize.py` — used **only** by the `report.py` "Keyword vocab"
+  diagnostic (`query_tokens(k) == [k]` single-token filter over `data/ii.json`
+  keys); off the training/inference path
 
-### 1.3 uFuzzy index and query
+Kept in sync by hand, same discipline as `normalize` / `encode` already have
+across `model/data.py` and `web/src/model.js`. No fixture golden (the fixture
+locked the soft-TF `overlap`, which is gone). `web/src/keywords.test.js` and a
+`bun test` on `tokenize.ts` pin a few cases.
 
-Build one uFuzzy instance and search the keyword list `keys = Object.keys(proj)`
-as the haystack:
+### 1.3 Match: exact + uFuzzy
+
+Build once: `keys = Object.keys(proj)` (the ~5k keyword haystack) and one uFuzzy
+instance:
 
 ```js
 import uFuzzy from "@leeoniya/uFuzzy"
-const uf = new uFuzzy({ intraIns: 1 })   // allow 1 extra needle char per term (plurals)
+const uf = new uFuzzy({ intraIns: 1 })   // 1 extra needle char per term (plurals: "cats"->"cat")
 ```
 
-Per row / per user input: `words = normalize(text).split(" ").filter(w => w.length >= 3)`.
-For each `word`:
+`matches(word)` yields `[keyword, strength]` pairs:
 
 ```js
-const idxs = uf.filter(keys, word)          // null when nothing matches
-if (idxs && idxs.length) {
+function* matches(word) {
+  if (proj[word]) yield [word, 1.0]                 // exact posting hit
+  if (word.length < 3) return                        // uFuzzy over-matches short words
+  const idxs = uf.filter(keys, word)                 // null when nothing matches
+  if (!idxs || !idxs.length) return
   const info = uf.info(idxs, keys, word)
   for (let i = 0; i < info.idx.length; i++) {
     const k = keys[info.idx[i]]
-    const sim = info.chars[i] / k.length     // matched chars / keyword length, in (0, 1]
-    if (sim >= 0.5) best.set(k, Math.max(best.get(k) ?? 0, sim))
+    if (k === word) continue                          // already yielded exact
+    const sim = info.chars[i] / k.length              // matched chars / keyword length, in (0, 1]
+    if (sim >= 0.5) yield [k, sim]
   }
 }
 ```
 
-`sim` replaces Fuse's `1 - score`: 1.0 when the whole keyword is covered by the
-word. `0.5` is the one tunable floor (drops weak partial matches). `intraIns: 1`
-is the one tunable uFuzzy option.
+`sim` is the fuzzy match strength: 1.0 when the whole keyword is covered.
+`sim >= 0.5` and `intraIns: 1` are the two tunable knobs, identical literals in
+`regen.ts` and `web/src/keywords.js`.
 
 ### 1.4 Aggregate to per-emoji score
 
-For emoji index `e`:
-
 ```
-kw(e) = max over matched keys k with e in proj[k] of  sim(k) * w_k
-w_k   = 1 / log2(1 + len(proj[k]))
+for word in queryTokens(text):
+  for (k, strength) in matches(word):
+    w = strength * weight[k]                          # weight[k] = 1 / log2(1 + len(proj[k]))
+    for e in proj[k]: kw[e] = max(kw[e], w)
 ```
 
-`w_k` down-weights keys that fan out to many emoji (e.g. `"143"` -> 22 hearts).
-`kw(e)` is `0` for every emoji not reached by a matched key, and `0` means **"no
-opinion"**, never a negative vote.
+`weight[k]` down-weights keys that fan out to many emoji (e.g. `"143"` -> 22
+hearts). `kw(e)` is `0` for every emoji not reached by a matched key, and `0`
+means **"no opinion"**, never a negative vote.
 
 ### 1.5 Row field
 
@@ -372,11 +383,12 @@ Kept as a pure diagnostic (every qualifying `data/ii.json` key scored by
 
 ### 6.2 `web/`
 
-- `web/src/keywords.js` — `makeKeywordPredictor(kwprojJson, emojiCount)`: build the
-  uFuzzy instance + haystack once; `predict(normText) -> Float32Array(emojiCount)`
-  via `normText.split(" ")` (filter `length >= 3`) -> per-word `uf.filter` /
-  `uf.info` -> aggregate (section 1.3-1.4). The caller passes the already-`normalize`d
-  text (`useOnnx.js` has `char2idx` and calls `normalize` for `encode` anyway).
+- `web/src/tokenize.js` — `queryTokens` + `STOPWORDS`, moved verbatim from the
+  deleted `web/src/flexrank.js`.
+- `web/src/keywords.js` — `makeKeywordPredictor(kwprojJson, emojiCount)`: build
+  `proj` / `keys` / `weight` / the uFuzzy instance once; `predict(text) ->
+  Float32Array(emojiCount)` via `queryTokens(text)` -> per-token `matches(word)`
+  (exact + uFuzzy, section 1.3) -> `max` aggregation (section 1.4).
 - `web/src/fusion.js` — `makeFusion(meta.fusion)`: `fuse(emojiLogits, kwArr) ->
   Float32Array(957)` implementing the exported variant's formula on **raw logits**
   (`z()` computed in JS: mean/std over the array). Only `gate` needs to be complete
@@ -385,7 +397,7 @@ Kept as a pure diagnostic (every qualifying `data/ii.json` key scored by
   - fetch `kwproj.json` instead of `flex.json`; build `makeKeywordPredictor`
     instead of `makeFlexRanker`.
   - `predict`: no `flex_tf` tensor; run the session with `input` only. Compute
-    `kwArr = keywordPredictor.predict(normalize(text, char2idx))`. Return
+    `kwArr = keywordPredictor.predict(text)` (the predictor tokenizes). Return
     `{ feeling, emoji: sigmoid(emoji_logits), kw: kwArr,
        fusion: fusionFn(emoji_logits.data, kwArr), palettes, ms }`.
     (`emoji_logits.data` raw for the fusion input; `emoji` stays sigmoid for the
@@ -421,7 +433,9 @@ Kept as a pure diagnostic (every qualifying `data/ii.json` key scored by
 
 ### New
 
-- `model/tokenize.py` (report keyword-vocab diagnostic only)
+- `model/tokenize.py` (report keyword-vocab diagnostic only), `model/test_tokenize.py`
+- `tools/data/tokenize.ts` (`queryTokens` for `regen.ts`), `tools/data/tokenize.test.ts`
+- `web/src/tokenize.js` (`queryTokens` for the browser)
 - `web/src/keywords.js`, `web/src/keywords.test.js`
 - `web/src/fusion.js`, `web/src/fusion.test.js`
 
@@ -467,10 +481,11 @@ Non-training:
 - `uv run python model/test_train_cli.py`
 - `uv run python model/test_model_heads.py`
 - `uv run python tools/test_report.py`
+- `bun test tools/data/tokenize.test.ts`
 - `bun run regen` — confirm each train/eval row has a `kw` field; run twice and
   diff `data/train.jsonl` / `data/eval.jsonl` / `data/labels.json` to confirm
   determinism.
-- `cd web && npm test` (adds `keywords.test.js`, `fusion.test.js`; removes
+- `cd web && npm test` (adds `tokenize`/`keywords`/`fusion` tests; removes
   `flexrank.test.js`) and `npm run build`.
 
 Behavioural (full run, not a smoke test):
@@ -487,18 +502,19 @@ Behavioural (full run, not a smoke test):
 ## 9. Open risk
 
 Dropping `flexrank.fixture.json` removes the cross-language conformance guarantee.
-Mitigation: there is no longer a bespoke tokenizer to keep in sync — word-splitting
-is the already-shared `normalize` + `.split(" ")`. The remaining cross-language
-surface is the pinned `@leeoniya/uFuzzy` version, the `{ intraIns: 1 }` option, and
-the `sim >= 0.5` floor — all identical literals in `regen.ts` and
-`web/src/keywords.js`. `web/src/keywords.test.js` pins a handful of
-`text -> expected emoji` cases. The soft-TF fuzzy matcher that actually needed a
-fixture is gone.
+Mitigation: the cross-language surface shrinks to (a) `queryTokens` — moved
+verbatim, ~6 trivial lines, same hand-kept discipline as `normalize` / `encode`
+already carry; and (b) the match step — pinned `@leeoniya/uFuzzy` version, the
+`{ intraIns: 1 }` option, and the `sim >= 0.5` floor, identical literals in
+`tools/data/tokenize.ts` + `regen.ts` and `web/src/tokenize.js` + `keywords.js`.
+`web/src/keywords.test.js` and a `bun test` on `tokenize.ts` pin a handful of
+cases. The soft-TF `overlap` matcher that actually needed a byte-fixture is gone.
 
 uFuzzy's `uf.info(...).chars` and the `sim = chars / keyword.length` ratio are the
-scoring substitute for Fuse's `1 - score`; if that ratio proves noisy in the report
-comparison, the `sim` floor and `intraIns` are the two knobs to turn (or fall back
-to a reciprocal-rank `sim`). Common short words that survive the `length >= 3`
-filter (`the`, `and`, `but`, …) can fuzzy-match a keyword substring; the `0.5` floor
-drops most such hits, and a stopword filter can be added later if the report shows
-a problem.
+match strength; if that ratio proves noisy in the report comparison, `sim >= 0.5`
+and `intraIns` are the two knobs (or fall back to a reciprocal-rank `sim`). `queryTokens` already drops stopwords, so the short-word
+over-match uFuzzy is prone to is largely pre-empted; the `< 3` skip + `0.5` floor
+cover the rest. Python parity for the keyword predictor is **not** kept — the
+report's keyword diagnostic reuses only `query_tokens` (`model/tokenize.py`) and
+the fused `acc@k` curves read the precomputed `kw` payload, never recompute uFuzzy
+(consistent with `docs/search.md` §3).
