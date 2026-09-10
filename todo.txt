@@ -1,8 +1,8 @@
-Make a tool
-tools/analysis/cldr-keywords.ts
-
-The tool finds all the keywords in the CLDR with max IDF (i.e. only appear in one emoji) 
-The tool prints matrix with the count of such keywords.
-The matrix rows correspond to the min length of the keywords, and the columns correspond to the max length of the keywords.
-min values are 5..8 (inclusive)
-max values are 8..11 (inclusive)
+Can you add to the report a line chart showing the performance (acc@K) of an oracle model:
+    An oracle model is one that runs both the EmojiHead and the KwHead and selects the best prediction.
+    I want to compare it to the FusionHead.
+    So the report should include:
+        EmojiHead acc@K
+        KwHead acc@K
+        FusionHead acc@K
+        Oracle model acc@K

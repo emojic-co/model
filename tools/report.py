@@ -133,18 +133,26 @@ def _kw_fusion_acc(records, tgt, enc_emb, q_txt):
     emb = _emoji_embed()
     kw = _kw_head()
     if fr is None or emb is None or kw is None or q_txt is None:
-        return None, None
+        return None, None, None
     tf = _tf_batch(records)
     with torch.no_grad():
         q_kw = kw(tf)
-        kw_acc = [_acc_at_k(emb.score(q_kw), tgt, k).mean().item() for k in EMOJI_KS]
+        emoji_logits = emb.score(q_txt)
+        kw_logits = emb.score(q_kw)
+        kw_acc = [_acc_at_k(kw_logits, tgt, k).mean().item() for k in EMOJI_KS]
+        oracle_acc = [
+            torch.maximum(_acc_at_k(emoji_logits, tgt, k), _acc_at_k(kw_logits, tgt, k))
+            .mean()
+            .item()
+            for k in EMOJI_KS
+        ]
         fusion_acc = None
         head = _fusion_head()
         if head is not None:
             a = head(enc_emb, tf).unsqueeze(-1)
             fl = emb.score(a * q_txt + (1 - a) * q_kw)
             fusion_acc = [_acc_at_k(fl, tgt, k).mean().item() for k in EMOJI_KS]
-    return kw_acc, fusion_acc
+    return kw_acc, fusion_acc, oracle_acc
 
 
 def _provenance(pt: Path):
@@ -291,12 +299,13 @@ def _section_emoji(enc, head, eval_records):
             enc_emb = enc(texts)
             q_txt = head(enc_emb)
             logits = emb.score(q_txt)
-        kw_acc, fusion_acc = _kw_fusion_acc(rows, tgt, enc_emb, q_txt)
+        kw_acc, fusion_acc, oracle_acc = _kw_fusion_acc(rows, tgt, enc_emb, q_txt)
         d["eval"] = {
             "n": len(rows),
             "acc_at_k": [_acc_at_k(logits, tgt, k).mean().item() for k in EMOJI_KS],
             "kw_acc_at_k": kw_acc,
             "fusion_acc_at_k": fusion_acc,
+            "oracle_acc_at_k": oracle_acc,
             "baseline": _cldr_baseline(),
         }
     d["keywords"] = _keyword_probe(enc, head)
@@ -518,6 +527,7 @@ transform-origin:top right;font-size:12.5px;margin-top:9px}
 .linechart .lline{fill:none;stroke:var(--accent);stroke-width:2.5}
 .linechart .lline2{fill:none;stroke:#e07b00;stroke-width:2.5}
 .linechart .lline3{fill:none;stroke:#0a9c8b;stroke-width:2.5}
+.linechart .lline4{fill:none;stroke:#8b5cf6;stroke-width:2.5}
 .linechart .bline{fill:none;stroke:var(--dim);stroke-width:2;stroke-dasharray:5 4}
 .linechart .btext{font-size:11px;fill:var(--dim);font-variant-numeric:tabular-nums}
 .linechart .dot{fill:var(--accent)}
@@ -751,6 +761,8 @@ def _emoji_html(d) -> str:
             series.append(("KWHead", e["kw_acc_at_k"], "lline2"))
         if e.get("fusion_acc_at_k"):
             series.append(("Fusion", e["fusion_acc_at_k"], "lline3"))
+        if e.get("oracle_acc_at_k"):
+            series.append(("Oracle", e["oracle_acc_at_k"], "lline4"))
         if series:
             legend = ("EmojiHead", *(name for name, _, _ in series))
         elif bl:
