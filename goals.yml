@@ -1,0 +1,163 @@
+# Global project goals — the single, long-term statement of what emojic aims at.
+# Dynamic: re-tune values here as priorities shift. tools/report.py reads this
+# for every scorecard target; each goal/<date>-<sha>.yml is a subset of this tree.
+
+goals:
+  emoji prediction:
+    exact keyword:
+      "acc@1": 0.95
+      "acc@5": 0.95
+      "acc@10": 0.95
+    fuzzy keyword:
+      "acc@1": 0.90
+      "acc@5": 0.95
+      "acc@10": 0.95
+    full text:
+      "acc@1": 0.80
+      "acc@5": 0.85
+      "acc@10": 0.90
+
+  style prediction:
+    full text:
+      "acc@1": 0.80
+      "acc@5": 0.85
+      "acc@10": 0.90
+
+  color generator:
+    energy distance:
+      global: 0.01
+      red: 0.01
+      green: 0.01
+      blue: 0.01
+      dark: 0.01
+      bright: 0.01
+
+  max text len: 42
+
+  vocabulary:
+    size: 700
+    coverage:
+      # Fraction of each Unicode emoji subgroup that must be in the vocabulary.
+      # Groups are the unicode.org/emoji/charts/emoji-list.html subgroups
+      # (== emojibase messages.json subgroups); membership lives in data/group.json.
+
+      # Smileys & Emotion
+      face-smiling: 0.50
+      face-affection: 0.45
+      face-tongue: 0.35
+      face-hand: 0.35
+      face-neutral-skeptical: 0.40
+      face-sleepy: 0.35
+      face-unwell: 0.30
+      face-hat: 0.33
+      face-glasses: 0.33
+      face-concerned: 0.40
+      face-negative: 0.40
+      face-costume: 0.35
+      cat-face: 0.20
+      monkey-face: 0.33
+      heart: 0.55
+      emotion: 0.45
+
+      # People & Body  (hands used heavily; person-* long tail kept low)
+      hand-fingers-open: 0.30
+      hand-fingers-partial: 0.30
+      hand-single-finger: 0.30
+      hand-fingers-closed: 0.35
+      hands: 0.30
+      hand-prop: 0.33
+      body-parts: 0.20
+      person: 0.10
+      person-gesture: 0.10
+      person-role: 0.05
+      person-fantasy: 0.08
+      person-activity: 0.08
+      person-sport: 0.08
+      person-resting: 0.20
+      family: 0.05
+      person-symbol: 0.15
+
+      # Component
+      skin-tone: 0.0
+      hair-style: 0.0
+
+      # Animals & Nature
+      animal-mammal: 0.45
+      animal-bird: 0.40
+      animal-amphibian: 1.0
+      animal-reptile: 0.50
+      animal-marine: 0.45
+      animal-bug: 0.45
+      plant-flower: 0.55
+      plant-other: 0.55
+
+      # Food & Drink
+      food-fruit: 0.65
+      food-vegetable: 0.60
+      food-prepared: 0.60
+      food-asian: 0.55
+      food-marine: 0.50
+      food-sweet: 0.65
+      drink: 0.60
+      dishware: 0.45
+
+      # Travel & Places
+      place-map: 0.35
+      place-geographic: 0.45
+      place-building: 0.40
+      place-religious: 0.35
+      place-other: 0.35
+      transport-ground: 0.35
+      transport-water: 0.40
+      transport-air: 0.45
+      hotel: 0.50
+      time: 0.30
+      sky-weather: 0.50
+
+      # Activities
+      event: 0.45
+      award-medal: 0.50
+      sport: 0.40
+      game: 0.40
+      arts-crafts: 0.45
+
+      # Objects
+      clothing: 0.35
+      sound: 0.40
+      music: 0.45
+      musical-instrument: 0.45
+      phone: 0.60
+      computer: 0.50
+      light-video: 0.40
+      book-paper: 0.45
+      money: 0.40
+      mail: 0.35
+      writing: 0.50
+      office: 0.40
+      lock: 0.40
+      tool: 0.35
+      science: 0.40
+      medical: 0.40
+      household: 0.35
+      other-object: 0.30
+
+      # Symbols
+      transport-sign: 0.25
+      warning: 0.40
+      arrow: 0.20
+      religion: 0.30
+      zodiac: 0.30
+      av-symbol: 0.20
+      gender: 0.33
+      math: 0.35
+      punctuation: 0.40
+      currency: 0.50
+      other-symbol: 0.35
+      keycap: 0.15
+      alphanum: 0.15
+      geometric: 0.25
+
+      # Flags
+      flag: 0.80
+      country-flag: 1.0
+      subdivision-flag: 1.0

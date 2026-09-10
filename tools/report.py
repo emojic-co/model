@@ -22,11 +22,12 @@ from files import (
     COLORS_JSONL,
     DATA_JSONL,
     EMOJI_EMBED_PT,
-    EMOJI_POPULARITY_JSON,
     FUSION_GAIN_PT,
     FUSION_GATE_PT,
     FUSION_MIX_PT,
     GOAL_DIR,
+    GOALS_YML,
+    GROUP_JSON,
     II_JSON,
     KWPROJ_JSON,
 )
@@ -45,25 +46,15 @@ from model.model import (
 from model.runmeta import load_pt, run_meta
 
 DATA_PATH = DATA_JSONL
-EMOJIBASE_DATA = "node_modules/emojibase-data/en/data.json"
 
 EMOJI_KS = list(range(1, 11))
+ACC_K_INDEX = {"acc@1": 0, "acc@5": 4, "acc@10": 9}
 CLDR_MIN_KEYWORD_LEN = 3
 CARD_DIST_THRESHOLD = 0.05
 CARD_PURE_THRESHOLD_RGB = 0.251
 CARD_PURE_THRESHOLD_L = 0.6
 CARD_COLORS = ("red", "green", "blue", "dark", "bright")
 GOLD_PER_COLOR = 25
-
-VOCAB_SIZE_FLOOR = 700
-VOCAB_COVERAGE_TARGET = 0.80
-VOCAB_DIVERSITY_TARGET = 0.80
-DIVERSITY_WEIGHTS = {"keyword": 0.5, "group_balance": 0.25, "flags": 0.25}
-DIVERSITY_MIN_GROUPS = 6
-DIVERSITY_GROUPS = (0, 3, 4, 5, 6, 7, 8, 9)
-SHORT_TEXT_ACC_TARGETS = {1: 0.80, 5: 0.90, 10: 0.95}
-CLDR_ACC1_TARGET_EXACT = 0.95
-CLDR_ACC1_TARGET_FUZZY = 0.90
 KW_PRIMARY_BONUS = 0.15
 
 
@@ -200,6 +191,7 @@ def _section_data():
             "eval": len(_rows(EVAL_PATH)),
         },
         "length_distribution": _length_distribution(),
+        "max_text_len": MAX_TEXT_LEN,
     }
 
 
@@ -396,115 +388,78 @@ def _cldr_baseline():
     return {"name": name, "acc_at_k": methods[name]["acc_at_k"]}
 
 
-@cache
-def _emojibase() -> tuple:
-    p = Path(EMOJIBASE_DATA)
-    if not p.exists():
-        return ()
-    return tuple(json.loads(p.read_text(encoding="utf-8")))
+def _strip_variation(e: str) -> str:
+    return e.replace("\ufe0f", "")
 
 
 @cache
-def _emoji_popularity() -> dict:
-    p = Path(EMOJI_POPULARITY_JSON)
+def _group_json() -> dict:
+    p = Path(GROUP_JSON)
     if not p.exists():
         return {}
     return json.loads(p.read_text(encoding="utf-8"))
 
 
-def _strip_variation(e: str) -> str:
-    return e.replace("\ufe0f", "")
+@cache
+def _load_global_goals() -> dict:
+    p = Path(GOALS_YML)
+    if not p.exists():
+        return {}
+    return (yaml.safe_load(p.read_text(encoding="utf-8")) or {}).get("goals") or {}
 
 
-def _coverage() -> dict:
-    vocab = set(EMOJIS)
-    pop = _emoji_popularity()
-    out = {"target": VOCAB_COVERAGE_TARGET}
-    if not pop:
-        out["measurable"] = False
-        out["reason"] = f"{EMOJI_POPULARITY_JSON} absent"
-        return out
-    pop_norm = {}
-    for e, s in pop.items():
-        pop_norm.setdefault(_strip_variation(e), 0.0)
-        pop_norm[_strip_variation(e)] += float(s)
-    vocab_norm = {_strip_variation(e) for e in vocab}
-    total = sum(pop_norm.values())
-    covered = sum(s for e, s in pop_norm.items() if e in vocab_norm)
-    missing = sorted(
-        ((s, e) for e, s in pop_norm.items() if e not in vocab_norm),
-        reverse=True,
-    )
-    ranks = sorted(pop_norm.items(), key=lambda kv: kv[1], reverse=True)
-    bands = {}
-    for i in range(0, len(ranks), 50):
-        band = ranks[i : i + 50]
-        hit = sum(1 for e, _ in band if e in vocab_norm)
-        bands[f"{i + 1}-{i + len(band)}"] = [hit, len(band)]
-    out.update(
-        measurable=True,
-        score=covered / total if total else 0.0,
-        ranked_emoji=len(pop_norm),
-        covered_bands=bands,
-        top_missing=[e for _, e in missing[:20]],
-        passed=(covered / total if total else 0.0) >= VOCAB_COVERAGE_TARGET,
-    )
-    return out
+def _coverage_targets() -> dict:
+    return ((_load_global_goals().get("vocabulary") or {}).get("coverage")) or {}
 
 
-def _diversity() -> dict:
-    vocab = set(EMOJIS)
-    out = {"target": VOCAB_DIVERSITY_TARGET}
-    eb = _emojibase()
-    if not eb:
-        out["measurable"] = False
-        out["reason"] = f"{EMOJIBASE_DATA} not found (run bun install)"
-        return out
-    group_of = {e["emoji"]: e.get("group") for e in eb if e.get("emoji")}
-    flagset = {e["emoji"] for e in eb if str(e.get("label", "")).startswith("flag: ")}
-
-    ii = _ii_json()
-    kw_nonempty = [set(v) for v in ii.values() if v]
-    kw_total = len(kw_nonempty)
-    kw_covered = sum(1 for tgt in kw_nonempty if tgt & vocab)
-    keyword_coverage = kw_covered / kw_total if kw_total else None
-
-    vgroups = Counter(
-        group_of.get(ch) for ch in vocab if group_of.get(ch) in DIVERSITY_GROUPS
-    )
-    g_total = sum(vgroups.values())
-    shares = {g: c / g_total for g, c in vgroups.items()} if g_total else {}
-    inv_simpson = 1.0 / sum(s * s for s in shares.values()) if shares else 0.0
-    group_balance = min(1.0, inv_simpson / len(DIVERSITY_GROUPS))
-    n_groups = len(vgroups)
-
-    flag_completeness = len(flagset & vocab) / len(flagset) if flagset else None
-
-    if keyword_coverage is None or flag_completeness is None:
-        out["measurable"] = False
-        out["reason"] = "data/ii.json or emojibase flag set unavailable"
-        return out
-    score = (
-        DIVERSITY_WEIGHTS["keyword"] * keyword_coverage
-        + DIVERSITY_WEIGHTS["group_balance"] * group_balance
-        + DIVERSITY_WEIGHTS["flags"] * flag_completeness
-    )
-    out.update(
-        measurable=True,
-        score=score,
-        keyword_coverage=keyword_coverage,
-        keywords_covered=kw_covered,
-        keywords_total=kw_total,
-        group_balance=group_balance,
-        effective_groups=inv_simpson,
-        groups_present=n_groups,
-        min_groups=DIVERSITY_MIN_GROUPS,
-        group_shares={str(g): round(s, 3) for g, s in sorted(shares.items())},
-        flag_completeness=flag_completeness,
-        flags_missing=len(flagset - vocab),
-        passed=(score >= VOCAB_DIVERSITY_TARGET and n_groups >= DIVERSITY_MIN_GROUPS),
-    )
-    return out
+def _vocab_coverage() -> dict:
+    groups = _group_json()
+    if not groups:
+        return {
+            "measurable": False,
+            "reason": f"{GROUP_JSON} absent (run bun run build-groups)",
+        }
+    targets = _coverage_targets()
+    vocab_norm = {_strip_variation(e) for e in EMOJIS}
+    out_groups = {}
+    measurable = passed = 0
+    missing = []
+    for name, members in groups.items():
+        total = len(members)
+        tgt = targets.get(name)
+        covered = sum(1 for e in members if _strip_variation(e) in vocab_norm)
+        missing.extend(e for e in members if _strip_variation(e) not in vocab_norm)
+        if not total:
+            out_groups[name] = {
+                "score": None,
+                "covered": 0,
+                "total": 0,
+                "target": tgt,
+                "passed": None,
+            }
+            continue
+        score = covered / total
+        ok = None if tgt is None else score >= tgt
+        out_groups[name] = {
+            "score": score,
+            "covered": covered,
+            "total": total,
+            "target": tgt,
+            "passed": ok,
+        }
+        if ok is not None:
+            measurable += 1
+            passed += bool(ok)
+    return {
+        "measurable": True,
+        "groups": out_groups,
+        "groups_total": len(groups),
+        "groups_measurable": measurable,
+        "groups_passed": passed,
+        "score": passed / measurable if measurable else 0.0,
+        "passed": measurable > 0 and passed == measurable,
+        "top_missing": missing[:30],
+    }
 
 
 def _grade(cur, target, warn=0.9) -> str:
@@ -515,6 +470,16 @@ def _grade(cur, target, warn=0.9) -> str:
     if cur >= warn * target:
         return "amber"
     return "red"
+
+
+def _grade_dir(cur, target, direction, warn=0.9) -> str:
+    if cur is None or target is None:
+        return "na"
+    if direction == "min":
+        if cur <= target:
+            return "good"
+        return "amber" if cur <= target / warn else "red"
+    return _grade(cur, target, warn)
 
 
 def _best_emoji_acc(emoji_eval) -> tuple:
@@ -560,34 +525,53 @@ def _load_goals():
 
 
 def _goal_specs() -> dict:
-    def text(i):
+    def full_text(i):
         return lambda r: _dig(_best_emoji_acc(_dig(r, "emoji", "eval") or {})[1] or [], i)
+
+    def exact_kw(i):
+        return lambda r: _dig(r, "keyword", "exact", "acc_at_k", i)
+
+    def fuzzy_kw(i):
+        return lambda r: _dig(r, "keyword", "fuzzy", "acc_at_k", i)
+
+    def style(i):
+        return lambda r: _dig(r, "cards", "style_acc_at_k", i)
 
     def color(c):
         return lambda r: _dig(r, "cards", "per_color", c, "gt_mean_distance")
 
-    return {
-        "keyword.acc@1": ("max", lambda r: _dig(r, "cldr", "acc_at_k", 0)),
-        "keyword.acc@5": ("max", lambda r: _dig(r, "cldr", "acc_at_k", 4)),
-        "keyword.acc@10": ("max", lambda r: _dig(r, "cldr", "acc_at_k", 9)),
-        "keyword.exact.acc@1": ("max", lambda r: _dig(r, "keyword", "exact", "acc_at_k", 0)),
-        "keyword.exact.acc@5": ("max", lambda r: _dig(r, "keyword", "exact", "acc_at_k", 4)),
-        "keyword.fusion.acc@1": (
-            "max",
-            lambda r: _dig(r, "keyword", "fusion", "acc_at_k", 0),
+    specs = {
+        "max text len": ("max", lambda r: _dig(r, "data", "max_text_len")),
+        "vocabulary.size": ("max", lambda r: _dig(r, "labels", "emojis")),
+        "color generator.energy distance.global": (
+            "min",
+            lambda r: _dig(r, "cards", "energy"),
         ),
-        "text.acc@1": ("max", text(0)),
-        "text.acc@5": ("max", text(4)),
-        "text.acc@10": ("max", text(9)),
-        "colors.energy": ("min", lambda r: _dig(r, "cards", "energy")),
-        "colors.red": ("min", color("red")),
-        "colors.green": ("min", color("green")),
-        "colors.blue": ("min", color("blue")),
-        "colors.dark": ("min", color("dark")),
-        "colors.bright": ("min", color("bright")),
-        "coverage.vocab": ("max", lambda r: _dig(r, "labels", "emojis")),
-        "coverage.diversity": ("max", lambda r: _dig(r, "status", "diversity", "score")),
     }
+    for name, idx in ACC_K_INDEX.items():
+        specs[f"emoji prediction.exact keyword.{name}"] = ("max", exact_kw(idx))
+        specs[f"emoji prediction.fuzzy keyword.{name}"] = ("max", fuzzy_kw(idx))
+        specs[f"emoji prediction.full text.{name}"] = ("max", full_text(idx))
+        specs[f"style prediction.full text.{name}"] = ("max", style(idx))
+    for c in CARD_COLORS:
+        specs[f"color generator.energy distance.{c}"] = ("min", color(c))
+    return specs
+
+
+_COVERAGE_PREFIX = "vocabulary.coverage."
+
+
+def _goal_spec_for(dotted, specs):
+    spec = specs.get(dotted)
+    if spec is not None:
+        return spec
+    if dotted.startswith(_COVERAGE_PREFIX):
+        grp = dotted[len(_COVERAGE_PREFIX) :]
+        return (
+            "max",
+            lambda r, grp=grp: _dig(r, "status", "vocab_coverage", "groups", grp, "score"),
+        )
+    return ("max", lambda r: None)
 
 
 def _section_goals(report) -> dict | None:
@@ -606,7 +590,7 @@ def _section_goals(report) -> dict | None:
             if isinstance(v, dict):
                 walk(v, dotted)
                 continue
-            direction, fn = specs.get(dotted, ("max", lambda r: None))
+            direction, fn = _goal_spec_for(dotted, specs)
             actual = fn(report)
             if actual is None:
                 met, delta = None, None
@@ -636,141 +620,171 @@ def _section_goals(report) -> dict | None:
     }
 
 
-def _section_status(report) -> dict:
-    emoji_eval = (report.get("emoji") or {}).get("eval") or {}
-    cldr = report.get("cldr") or {}
-    keyword = report.get("keyword") or {}
-    cards = report.get("cards") or {}
-
-    best_name, best = _best_emoji_acc(emoji_eval)
-
-    goals = []
-    cldr1 = (cldr.get("acc_at_k") or [None])[0]
-    exact = keyword.get("exact") or {}
-    fusion = keyword.get("fusion") or {}
-    exact1 = (exact.get("acc_at_k") or [None])[0]
-    fusion1 = (fusion.get("acc_at_k") or [None])[0]
-    kw_note = "non-learned kw predictor on cldr.jsonl"
-    if exact.get("n") is not None:
-        kw_note += f" ({exact['n']}/{exact['total']} in-vocab)"
-    if fusion1 is not None:
-        kw_note += f" · fusion Acc@1 {fusion1:.3f}"
-    if cldr1 is not None:
-        kw_note += f" · model-only Acc@1 {cldr1:.3f}"
-    goals.append(
-        {
-            "goal": "Keyword Acc@1 (exact kw)",
-            "priority": 1,
-            "target": f"≥ {CLDR_ACC1_TARGET_EXACT:.2f} exact",
-            "current": exact1,
-            "status": _grade(exact1, CLDR_ACC1_TARGET_EXACT),
-            "note": kw_note,
-        }
-    )
-    goals.append(
-        {
-            "goal": "CLDR keyword Acc@1 (model-only)",
-            "priority": 1,
-            "target": f"≥ {CLDR_ACC1_TARGET_FUZZY:.2f} fuzzy",
-            "current": cldr1,
-            "status": _grade(cldr1, CLDR_ACC1_TARGET_FUZZY),
-            "note": "diagnostic — milestone-1 keyword path is the exact-kw predictor above",
-        }
-    )
-    for k in (1, 5, 10):
-        cur = best[k - 1] if best else None
+def _acc_rows(goals, priority, label, targets, values, note, direction="max"):
+    for name, idx in ACC_K_INDEX.items():
+        tgt = (targets or {}).get(name)
+        cur = values[idx] if values and len(values) > idx else None
         goals.append(
             {
-                "goal": f"Short-text emoji Acc@{k}",
-                "priority": 2,
-                "target": f"≥ {SHORT_TEXT_ACC_TARGETS[k]:.2f}",
+                "goal": f"{label} {name}",
+                "priority": priority,
+                "target": "—" if tgt is None else f"≥ {tgt:.2f}",
                 "current": cur,
-                "status": _grade(cur, SHORT_TEXT_ACC_TARGETS[k]),
-                "note": f"best variant: {best_name}"
-                if best_name
-                else "emoji.eval not evaluated this run",
+                "status": _grade_dir(cur, tgt, direction),
+                "note": note,
             }
         )
-    color_cur = ((cards.get("per_color") or {}).get("all") or {}).get("pure_accuracy")
-    goals.append(
-        {
-            "goal": "Color palette (gold set, pure acc)",
-            "priority": 3,
-            "target": "high — no fixed threshold",
-            "current": color_cur,
-            "status": "na",
-            "note": "no numeric target agreed yet",
-        }
+
+
+def _section_status(report) -> dict:
+    emoji_eval = (report.get("emoji") or {}).get("eval") or {}
+    keyword = report.get("keyword") or {}
+    cards = report.get("cards") or {}
+    data = report.get("data") or {}
+    g = _load_global_goals()
+    ep = g.get("emoji prediction") or {}
+    sp = g.get("style prediction") or {}
+    energy_tgt = (g.get("color generator") or {}).get("energy distance") or {}
+    vocab_g = g.get("vocabulary") or {}
+
+    best_name, best = _best_emoji_acc(emoji_eval)
+    exact = keyword.get("exact") or {}
+    fuzzy = keyword.get("fuzzy") or {}
+    goals = []
+
+    exact_note = "non-learned kw predictor on cldr.jsonl"
+    if exact.get("n") is not None:
+        exact_note += f" ({exact['n']}/{exact['total']} in-vocab)"
+    _acc_rows(
+        goals, 1, "Exact keyword", ep.get("exact keyword"), exact.get("acc_at_k"), exact_note
     )
-    style_cur = (cards.get("style_acc_at_k") or [None])[0]
+    _acc_rows(
+        goals,
+        2,
+        "Full-text emoji",
+        ep.get("full text"),
+        best or [],
+        f"best variant: {best_name}" if best_name else "emoji.eval not evaluated this run",
+    )
+    _acc_rows(
+        goals,
+        3,
+        "Fuzzy keyword",
+        ep.get("fuzzy keyword"),
+        fuzzy.get("acc_at_k"),
+        "fuzzy kw predictor on cldr.jsonl"
+        if fuzzy.get("acc_at_k")
+        else "unwired — needs a uFuzzy kw sidecar from regen.ts",
+    )
+
+    energy_global = cards.get("energy")
     goals.append(
         {
-            "goal": "Style Acc@1 (gold set)",
+            "goal": "Color energy · global",
             "priority": 4,
-            "target": "high — no fixed threshold",
-            "current": style_cur,
-            "status": "na",
-            "note": "no numeric target agreed yet",
+            "target": "—"
+            if energy_tgt.get("global") is None
+            else f"≤ {energy_tgt['global']:.2f}",
+            "current": energy_global,
+            "status": _grade_dir(energy_global, energy_tgt.get("global"), "min"),
+            "note": "cards.energy — not wired yet" if energy_global is None else "",
         }
     )
+    for c in CARD_COLORS:
+        cur = _dig(cards, "per_color", c, "gt_mean_distance")
+        goals.append(
+            {
+                "goal": f"Color energy · {c}",
+                "priority": 4,
+                "target": "—" if energy_tgt.get(c) is None else f"≤ {energy_tgt[c]:.2f}",
+                "current": cur,
+                "status": _grade_dir(cur, energy_tgt.get(c), "min"),
+                "note": "cards off this run" if cur is None else "",
+            }
+        )
+
+    _acc_rows(
+        goals,
+        5,
+        "Style",
+        sp.get("full text"),
+        cards.get("style_acc_at_k"),
+        "cards off this run" if not cards.get("style_acc_at_k") else "",
+    )
+
+    mtl = g.get("max text len")
+    mtl_cur = data.get("max_text_len")
+    goals.append(
+        {
+            "goal": "Max text len",
+            "priority": 6,
+            "target": "—" if mtl is None else f"≥ {mtl}",
+            "current": mtl_cur,
+            "status": "na"
+            if (mtl is None or mtl_cur is None)
+            else ("good" if mtl_cur >= mtl else "red"),
+            "note": f"config.MAX_TEXT_LEN = {mtl_cur}" if mtl_cur is not None else "",
+        }
+    )
+
+    size_tgt = vocab_g.get("size")
     vocab_size = len(EMOJIS)
     goals.append(
         {
             "goal": "Emoji vocab size",
-            "priority": 5,
-            "target": f"≥ {VOCAB_SIZE_FLOOR}",
+            "priority": 7,
+            "target": "—" if size_tgt is None else f"≥ {size_tgt}",
             "current": vocab_size,
-            "status": "good" if vocab_size >= VOCAB_SIZE_FLOOR else "red",
+            "status": "na"
+            if size_tgt is None
+            else ("good" if vocab_size >= size_tgt else "red"),
             "note": "",
         }
     )
 
-    higher_open = any(g["status"] in ("red", "amber") for g in goals if g["priority"] <= 5)
-    cov = _coverage()
-    div = _diversity()
-    for pr, name, cd in (
-        (6, "Vocab Coverage (popularity-wtd)", cov),
-        (7, "Vocab Diversity (types + keywords)", div),
-    ):
-        if not cd.get("measurable"):
-            status, cur, note = "na", None, f"not measurable — {cd.get('reason', '')}"
-        elif higher_open:
-            status = "na"
-            cur = cd["score"]
-            note = "deferred — lower priority than open goals above"
-        else:
-            cur = cd["score"]
-            status = "good" if cd["passed"] else _grade(cur, cd["target"])
-            if name.startswith("Vocab Coverage"):
-                note = f"{cd['ranked_emoji']} ranked emoji; top missing: " + " ".join(
-                    cd["top_missing"][:6]
-                )
-            else:
-                note = (
-                    f"kw {cd['keyword_coverage']:.2f} "
-                    f"({cd['keywords_covered']}/{cd['keywords_total']}) · "
-                    f"balance {cd['group_balance']:.2f} "
-                    f"({cd['effective_groups']:.1f} eff groups, "
-                    f"{cd['groups_present']}/{cd['min_groups']}) · "
-                    f"flags {cd['flag_completeness']:.2f}"
-                )
+    higher_open = any(x["status"] in ("red", "amber") for x in goals if x["priority"] <= 7)
+    vc = _vocab_coverage()
+    if not vc.get("measurable"):
         goals.append(
             {
-                "goal": name,
-                "priority": pr,
-                "target": f"≥ {cd['target']:.2f}",
-                "current": cur,
+                "goal": "Vocab coverage (per Unicode group)",
+                "priority": 8,
+                "target": "all groups ≥ target",
+                "current": None,
+                "status": "na",
+                "note": f"not measurable — {vc.get('reason', '')}",
+            }
+        )
+    else:
+        frac = f"{vc['groups_passed']}/{vc['groups_measurable']} groups meet target"
+        worst = sorted(
+            (v["score"] - v["target"], k)
+            for k, v in vc["groups"].items()
+            if v["score"] is not None and v["target"] is not None
+        )[:4]
+        weak = " · weakest: " + ", ".join(f"{k} {d:+.2f}" for d, k in worst) if worst else ""
+        if higher_open:
+            status, note = "na", "deferred — lower priority than open goals above · " + frac
+        else:
+            status = "good" if vc["passed"] else "red"
+            note = frac + weak
+        goals.append(
+            {
+                "goal": "Vocab coverage (per Unicode group)",
+                "priority": 8,
+                "target": "all groups ≥ target",
+                "current": vc["groups_passed"],
                 "status": status,
                 "note": note,
             }
         )
-    goals.sort(key=lambda g: g["priority"])
+
+    goals.sort(key=lambda x: x["priority"])
     return {
         "best_emoji_variant": best_name,
-        "summary": dict(Counter(g["status"] for g in goals)),
+        "summary": dict(Counter(x["status"] for x in goals)),
         "goals": goals,
-        "coverage": cov,
-        "diversity": div,
+        "vocab_coverage": vc,
     }
 
 
@@ -1261,13 +1275,36 @@ def _status_html(status) -> str:
             f'<td class="n">{cur_txt}</td>'
             f"<td>{_STATUS_WORD[g['status']]}</td></tr>"
         )
-    return (
+    out = [
         '<h2 class="status-h">Goal status</h2>'
         '<table class="scorecard"><tr><th>Goal — priority order</th>'
         '<th class="n">Target</th><th class="n">Current</th><th>Status</th></tr>'
         + "".join(rows)
         + "</table>"
-    )
+    ]
+    vc = status.get("vocab_coverage") or {}
+    if vc.get("measurable"):
+        grp_rows = []
+        for name, v in vc["groups"].items():
+            sc = "—" if v["score"] is None else f"{v['score']:.2f}"
+            tg = "—" if v["target"] is None else f"{v['target']:.2f}"
+            klass = (
+                "sc-na" if v["passed"] is None else "sc-good" if v["passed"] else "sc-red"
+            )
+            grp_rows.append(
+                f'<tr class="{klass}"><td>{_esc(name)}</td>'
+                f'<td class="n">{v["covered"]}/{v["total"]}</td>'
+                f'<td class="n">{sc}</td><td class="n">{tg}</td></tr>'
+            )
+        out.append(
+            "<details><summary>Per-group vocab coverage — "
+            f"{vc['groups_passed']}/{vc['groups_measurable']} groups meet target"
+            "</summary>"
+            '<table class="scorecard"><tr><th>Unicode group</th>'
+            '<th class="n">In vocab</th><th class="n">Score</th>'
+            '<th class="n">Target</th></tr>' + "".join(grp_rows) + "</table></details>"
+        )
+    return "".join(out)
 
 
 _GOAL_WORD = {
@@ -1334,8 +1371,10 @@ def _data_html(d) -> str:
     dist = d["length_distribution"]
     maxv = max((v for _, v in dist), default=1)
     bars = _bars([[str(length), count] for length, count in dist], maxv, rotated=True)
+    mtl = d.get("max_text_len")
+    mtl_html = f'<p class="note">MAX_TEXT_LEN = {mtl}</p>' if mtl is not None else ""
     return (
-        f'<h2>Data</h2><div class="counts">{cells}</div>'
+        f'<h2>Data</h2><div class="counts">{cells}</div>{mtl_html}'
         "<h3>Text length distribution — train.jsonl (normalized, longest first)</h3>"
         f"{bars}"
     )

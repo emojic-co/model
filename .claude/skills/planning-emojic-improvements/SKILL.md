@@ -19,7 +19,7 @@ description: Use when a training run has finished (train then tools/report.py) a
 | **6** | **Implement the plan** — data, config, analysis, regen changes (guardrails below); architecture / loss are recommend-only | **this skill** |
 | 7 | back to step 1 | user |
 
-The report already carries a priority-ordered scorecard at `status.goals` (the coloured banner atop `report.html`), the vocab breakdowns at `status.coverage` / `status.diversity`, and — once a goals file exists — a target-vs-actual table at `goals.compare`. Steps 3–6 turn that into the next goals file and the next set of moves; they do not re-derive the scorecard.
+The report already carries a priority-ordered scorecard at `status.goals` (the coloured banner atop `report.html`, targets from `goals.yml`), the per-Unicode-group vocab breakdown at `status.vocab_coverage`, and — once a `goal/*.yml` exists — a target-vs-actual table at `goals.compare`. Steps 3–6 turn that into the next goals file and the next set of moves; they do not re-derive the scorecard.
 
 Core principle: **CLDR keyword parity is priority 1 and must never regress.** Every recommendation states its risk to the CLDR probe explicitly. A short-text-emoji gain that costs CLDR accuracy is not an improvement.
 
@@ -30,54 +30,64 @@ Core principle: **CLDR keyword parity is priority 1 and must never regress.** Ev
 
 ## Hard targets
 
-| Target | Metric | Threshold |
-|---|---|---|
-| Short-text emoji Acc@1 | `emoji.eval` best fusion variant, k=1 | ≥ 0.80 |
-| Short-text emoji Acc@5 | same, k=5 | ≥ 0.90 |
-| Short-text emoji Acc@10 | same, k=10 | ≥ 0.95 |
-| CLDR keyword Acc@1 (exact) | `cldr.acc_at_k[0]` † | ≥ 0.95 |
-| CLDR keyword Acc@1 (fuzzy) | `cldr.acc_at_k[0]` † | ≥ 0.90 |
-| Color palette | `cards.per_color.*` accuracy / OKLab distance | high (no fixed number) |
-| Style | `cards.style_acc_at_k`, TB `MRR/s/val` | high (no fixed number) |
-| Vocab size | `len(data/labels.json.emojis)` | ≥ 700 (floor) |
-| Vocab **Coverage** (popularity-weighted) | see *Vocabulary coverage & diversity* | ≥ 0.80 |
-| Vocab **Diversity** (types + keywords) | see *Vocabulary coverage & diversity* | ≥ 0.80 |
+**`goals.yml` (repo root) is the single source of truth for every target below.** It is
+the long-term project-goals statement (`GOALS_YML` in `files.py` / `files.ts`); the
+numbers in this table are just a quick reference and can lag the file. Each
+`goal/<date>-<sha>.yml` is a **strict subset** of its nested tree.
 
-† **TODO — unresolved metric mapping.** `report.json` currently has a single CLDR probe (`cldr` section: `EmojiHead` scored over `data/cldr.jsonl`, no exact-vs-fuzzy split); `status.goals` grades that one number against the fuzzy bar (0.90) and notes the gap. The goals file already has separate `keyword.exact.acc@1` / `keyword.fuzzy.acc@{1,5}` leaves, but they read back `null` until the probe is split. If CLDR becomes the blocking target, the first recommended action is: extend `tools/report.py` to emit `kw`-predictor Acc@1 on `data/cldr.jsonl` with exact-postings-only vs. uFuzzy-enabled under `report.json.keyword.{exact,fuzzy}.acc_at_k`, and split the `status` row in two.
+| Target | goals.yml path | report.json source | Threshold (as of writing) |
+|---|---|---|---|
+| Full-text emoji Acc@{1,5,10} | `emoji prediction.full text.acc@{1,5,10}` | `emoji.eval.<best fusion variant>_acc_at_k` | ≥ 0.80 / 0.85 / 0.90 |
+| CLDR keyword Acc@{1,5,10} (exact) | `emoji prediction.exact keyword.acc@{1,5,10}` | `keyword.exact.acc_at_k` | ≥ 0.95 |
+| CLDR keyword Acc@{1,5,10} (fuzzy) | `emoji prediction.fuzzy keyword.acc@{1,5,10}` | `keyword.fuzzy.acc_at_k` † | ≥ 0.90 / 0.95 / 0.95 |
+| Style Acc@{1,5,10} | `style prediction.full text.acc@{1,5,10}` | `cards.style_acc_at_k` | ≥ 0.80 / 0.85 / 0.90 |
+| Colour energy distance | `color generator.energy distance.{global,red,green,blue,dark,bright}` | `cards.energy` ‡ / `cards.per_color.<c>.gt_mean_distance` | ≤ 0.01 |
+| Max text len | `max text len` | `data.max_text_len` (= `config.MAX_TEXT_LEN`) | ≥ 42 |
+| Vocab size | `vocabulary.size` | `labels.emojis` | ≥ 700 |
+| Per-group vocab coverage | `vocabulary.coverage.<group>` | `status.vocab_coverage.groups.<group>.score` | per-group, see `goals.yml` |
 
-Priority order: **1** CLDR parity (no degradation) · **2** short-text emoji Acc@k · **3** color palette · **4** style · then the **vocab-size floor** · then **Coverage & Diversity (lowest priority of all)**. Coverage/Diversity are a **floor gate, not an optimisation target**: act on a sub-0.80 score **only after every accuracy goal above is green**, and never push either past 0.80. While any higher goal is still failing, the report shows them as `deferred`, not `red`.
+† `keyword.fuzzy.*` is **not wired** — needs a uFuzzy `kw` sidecar from `regen.ts`; the
+exact split (`keyword.exact.*`) is wired. ‡ `cards.energy` (OKLab energy distance) is not
+computed yet; the per-colour `gt_mean_distance` legs are wired but only when the `cards`
+section runs (off by default this milestone).
 
-## Vocabulary coverage & diversity
+Priority order (scorecard priority number in parens): **1** exact-keyword Acc@k parity —
+no degradation — · **2** full-text emoji Acc@k · **3** fuzzy-keyword Acc@k · **4** colour
+energy distance · **5** style Acc@k · **6** max text len · **7** vocab-size floor · **8**
+per-group vocab coverage (lowest priority of all). Vocab coverage is a **floor gate, not
+an optimisation target**: act on a group below its target **only after every
+higher-priority goal is green**. While any higher goal is still failing, the report shows
+the coverage row as `deferred` (grey), not `red`.
 
-Two independent gates on the current vocab `V` = `data/labels.json.emojis` (dynamic from `regen`), **both ≥ 0.80**, **both lowest priority** (see priority note above). Reported as `status.coverage` / `status.diversity` with full sub-breakdowns.
+## Vocabulary coverage — per Unicode group
 
-### Coverage — popularity-weighted
-
-"Of the emoji people actually use, weighted by how much they use them, what fraction does `V` hold."
+One gate on the current vocab `V` = `data/labels.json.emojis` (dynamic from `regen`):
+for each of the 101 Unicode emoji subgroups, the share of that group's emoji that `V`
+holds must clear the group's target in `goals.yml` `vocabulary.coverage`.
 
 ```
-Coverage = Σ_{e ∈ V} w(e)  /  Σ_{e ∈ R ∪ V} w(e)
+coverage(group) = |{ e ∈ group : strip_FE0F(e) ∈ V }| / |group|
 ```
-- `R` / `row(e)` — Unicode's emoji-frequency ranking (`unicode.org/emoji/frequency.html`): a tier system, row 0 = most used (😂 anchor), each row ≈ half the previous, down to ~row 15 (rows 16–17 are sparse samples). Skin-tone / gender variants are consolidated there. Transcribed **once** into committed `data/emoji_popularity.json` = `{ "<emoji>": <row 0..17> }` (path constant `EMOJI_POPULARITY_JSON` in `files.py`). Match `V` to it after stripping `FE0F` / skin-tone modifiers / ZWJ-gender.
-- `w(e) = 2^(-row(e))`; an emoji not in `R` → floor row 17 → ~0 weight.
-- Row 0 outweighs row 10 by 2^10, so Coverage is dominated by whether `V` holds the common emoji; dropping only the long tail barely moves it — which is the point.
 
-Report: `Coverage`, ranked-emoji covered per row (`row 0: 8/8 · row 1: 15/16 · …`), and the highest-`w` missing emoji.
-
-### Diversity — breadth across types
-
-```
-Diversity = 0.50·keyword_coverage + 0.25·group_balance + 0.25·flag_completeness
-```
-- **keyword_coverage** = `|{ k ∈ data/ii.json : proj(k) ∩ V ≠ ∅ }| / |{ k : proj(k) ≠ ∅ }|` — fraction of the inverted-index keyword vocabulary that has ≥ 1 target emoji in `V`. Also report the raw covered-keyword **count**. This is the "distinct emotions / animals / objects / concepts covered" measure across every topic at once, no hand-maintained list.
-- **group_balance** = normalized inverse-Simpson of `V` over the 8 emojibase groups (`people-body` excluded, flags counted): `(1 / Σ_b share_b²) / 8`, clipped to [0, 1]. 1.0 = even spread; low = piled in one type. **Hard sub-gate:** ≥ 6 of the 8 groups non-empty.
-- **flag_completeness** = `|flags ∩ V| / 262` (emoji whose emojibase `label` matches `/^flag: /`).
-
-Report: `Diversity`, the three sub-scores, the per-group vocab share, and covered-keyword count.
+- **Group membership** — committed `data/group.json` = `{ "<subgroup-key>": ["😀", …] }`,
+  one entry per unicode.org/emoji/charts/emoji-list.html subgroup (== emojibase
+  `messages.json` subgroups). Rebuilt by `bun run build-groups` (reads
+  `node_modules/emojibase-data`); `GROUP_JSON` in `files.py` / `files.ts`.
+- **Targets** — `goals.yml` `vocabulary.coverage.<group>` (0–1 per group). Tune these
+  freely; they encode "how much of each category the vocab should carry" (e.g. flags
+  1.0, `person-role` 0.05).
+- Empty groups (`food-marine` in the current emojibase) are reported `n/a`, not graded.
 
 ### In the report
 
-`tools/report.py:_coverage` / `_diversity` emit `status.coverage` and `status.diversity` (with full sub-breakdowns — covered bands, top missing emoji, per-group shares, uncovered-keyword counts) and two `status.goals` rows at **priority 6–7**. While any higher-priority goal is failing, the score is computed but renders as `deferred` (grey), not `red`; once every accuracy goal is green it becomes an active ≥ 0.80 gate. `data/emoji_popularity.json` is committed (EmojiTracker ranking, `{emoji: score}`); if it's ever missing, Coverage shows `not measurable`.
+`tools/report.py:_vocab_coverage` emits `status.vocab_coverage`:
+`{ groups: {<g>: {score, covered, total, target, passed}}, groups_passed,
+groups_measurable, groups_total, score (= groups_passed/groups_measurable), passed,
+top_missing }`, plus one `status.goals` row at **priority 8** (`N/M groups meet target`,
+weakest four groups in the note) and the full per-group breakdown as a collapsible table
+in `report.html`. While any higher-priority goal is failing it renders `deferred`
+(grey). The old popularity-weighted `status.coverage` and composite `status.diversity`
+are gone.
 
 ## Inputs
 
@@ -85,23 +95,23 @@ Report: `Diversity`, the three sub-scores, the per-group vocab share, and covere
 |---|---|
 | `report/<newest>-<sha>/report.json` | **Primary** — all Acc@k numbers, the `status` block (per-goal target vs current, priority-ordered), and `goals.compare` (target-vs-actual vs the last goals file). Confirm `provenance.issues == []` first; if not, stop and tell the user the report/`.pt` are inconsistent. |
 | `runs/<CONFIG_NAME>/` (gitignored TensorBoard) | **Required at step 3** — loss curves, `MRR/{e,s,fusion,kw}/val`, per-variant `MRR/fusion_{gate,gain,mix}/val`, `auc/critic/val`, `energy/gan/val`, `gate/a` · `gain/beta` · `mix/g`, early-stop epoch. Read with `uv run tensorboard --logdir runs` or `tensorboard.backend.event_processing.event_accumulator.EventAccumulator`. Note the newest run dir (`ls -t runs`). |
+| `goals.yml` (repo root) | **Long-term targets — source of truth.** Every `status` scorecard target is read from here; the newest `goal/*.yml` is a subset of its tree. |
 | `goal/<newest>.yml` + `goal/README.md` | The targets this iteration was aiming at, and the schema + leaf→`report.json` source map for the file step 4 writes. |
 | `model/config.py` + `uv run python model/config.py` | Current hyperparameters, param count, receptive field (15) vs `MAX_TEXT_LEN` (42). |
 | `data/labels.json` | Current emoji vocab list + size (dynamic). |
-| `node_modules/emojibase-data/en/data.json` (groups + `flag:` labels) · `data/ii.json` (keyword→emoji index) · `data/emoji_popularity.json` (Unicode frequency rows) | Coverage & Diversity inputs (see *Vocabulary coverage & diversity*). |
+| `data/group.json` (`bun run build-groups`) · `data/ii.json` (keyword→emoji index) | Per-group vocab-coverage input (see *Vocabulary coverage — per Unicode group*). |
 | newest previous `plans/*/plan.md` | Regression gate — diff the scorecard. |
 | `git log --oneline -15` | What changed since the last plan (data grow, config edit, arch). |
 
 ### report.json field map
 
-- `status.goals` — priority-ordered scorecard: `{goal, priority, target, current, status (good|amber|red|na), note}` per goal. **Start here.**
+- `status.goals` — priority-ordered scorecard: `{goal, priority, target, current, status (good|amber|red|na), note}` per goal, targets from `goals.yml`. **Start here.**
 - `status.best_emoji_variant` — which fusion variant the short-text rows used.
-- `status.coverage` — popularity-weighted vocab coverage: `score`, `covered_bands`, `top_missing`, `passed`.
-- `status.diversity` — `score`, `keyword_coverage` (+ `keywords_covered`/`keywords_total`), `group_balance` (+ `effective_groups`, `group_shares`), `flag_completeness` (+ `flags_missing`), `passed`.
+- `status.vocab_coverage` — per-Unicode-group vocab coverage: `groups.<g>.{score,covered,total,target,passed}`, `groups_passed` / `groups_measurable` / `groups_total`, `score`, `passed`, `top_missing`.
 - `status.summary` — counts of good/amber/red/na.
 - `goals.source_file` — path of the goals file this report was graded against (newest `goal/*.yml`).
 - `goals.meta` — that file's `meta` block (`rationale`, `based_on`, `deferred`, …).
-- `goals.compare` — mirrors the `goals:` tree; each leaf `{target, actual, met, dir (max|min), delta}`. `actual`/`met` are `null` when the source is not wired yet (see `goal/README.md` map — `keyword.*`, `colors.energy` are not wired).
+- `goals.compare` — mirrors the `goals:` tree; each leaf `{target, actual, met, dir (max|min), delta}`. `actual`/`met` are `null` when the source is not wired yet (see `goal/README.md` map — `emoji prediction.fuzzy keyword.*` and `color generator.energy distance.global` are not wired).
 - `goals.summary` — counts of `met` / `unmet` / `unmeasured` leaves.
 - `emoji.eval.acc_at_k` — `EmojiHead` retrieval, eval short texts, k=1..10.
 - `emoji.eval.fusion_{gate,gain,mix}_acc_at_k` — same via each detached combiner. Shipped variant = `FUSION_EXPORT_VARIANT` in `model/export_onnx.py` (default `gate`). If another variant clearly wins, that is a free win.
@@ -124,7 +134,7 @@ Report: `Diversity`, the three sub-scores, the per-group vocab share, and covere
 4. **Regression gate** — compare the `CLDR keyword Acc@1` row (and `cldr.acc_at_k[4]`, `[9]`) to the previous plan. Any drop = priority-1 finding, called out at the top of the plan.
 5. **Diagnose**, gathering evidence for each action bucket:
    - *Class balance* — `data.records`; most/least frequent kept emojis; `regen`'s summary (`kw` keys + mean nonzero); which in-vocab emojis have high `keywords_flex` rank / low `emoji.eval` contribution → **upsample** candidates.
-   - *Coverage & Diversity* (lowest priority — only if every accuracy goal is green) — `status.coverage` / `status.diversity`: which score is under 0.80, `coverage.top_missing`, `diversity.keyword_coverage` shortfall, weak emojibase groups (`group_shares`), `flags_missing` → **upsample** and/or **regen `--min-count`** candidates. Skip this bucket entirely while any higher goal fails.
+   - *Vocab coverage* (lowest priority — only if every higher goal is green) — `status.vocab_coverage`: which groups are under their `goals.yml` target (`groups.<g>.passed == false`), `top_missing`, the weakest groups from the `status.goals` note → **`bun run upsample --group <name>`** and/or **regen `--min-count`** candidates. Skip this bucket entirely while any higher goal fails.
    - *Config* — best vs exported fusion variant; the lagging head metric from step 2; `INFONCE_TEMP`, `LR`, dropout, `EARLY_STOP_PATIENCE`, batch sizes; early-stop epoch → **config diff** candidates.
    - *Data quality* — pull a sample from a suspect slice (rows tagged `color:*` / `flag:*` / `neg:*`, or the worst `keywords_flex` misses) with `grep`/`jq` on `data/data.jsonl`; look for mislabeled emojis, wrong-set styles, palette drift → **data-quality check** items (what to inspect, the exact command, what "bad" looks like).
    - *Eval set* — is `data/eval.jsonl` representative? emojis/flags/concepts under-represented vs the vocab; whether to raise `regen --n`; whether a failing target needs its own probe slice in `tools/report.py`. CLDR probe rows come from `data/cldr.jsonl`.
@@ -133,18 +143,18 @@ Report: `Diversity`, the three sub-scores, the per-group vocab share, and covere
 
 ### Step 4 — Write the goals file
 
-Write `goal/<YYYY-MM-DD>-<short-sha>.yml` (`date +%F`, `git rev-parse --short HEAD`) following `goal/README.md`. `tools/report.py` reads the **newest** `goal/*.yml`, so a new file supersedes the last one; commit it with the plan.
+Write `goal/<YYYY-MM-DD>-<short-sha>.yml` (`date +%F`, `git rev-parse --short HEAD`) following `goal/README.md` — a **strict subset of `goals.yml`'s nested tree**, same spaced keys, keeping only the branches this loop gates. `tools/report.py` reads the **newest** `goal/*.yml`, so a new file supersedes the last one; commit it with the plan. If a long-term target itself needs to change, edit `goals.yml` (not the per-iteration file) and say why in the plan.
 
-Fill `meta` (`based_on`, `written_after_report: report/<stamp>-<sha>`, one-line `rationale` naming the bottleneck this iteration targets, `deferred: [...]` for domains not gated this loop). Then per goal leaf, from `goals.compare` / `status.goals`:
+Fill `meta` (`based_on`, `written_after_report: report/<stamp>-<sha>`, one-line `rationale` naming the bottleneck this iteration targets, `deferred: [...]` for `goals.yml` paths/branches not gated this loop). Then per goal leaf, from `goals.compare` / `status.goals`:
 
 | Last iteration's result | Next target to write |
 |---|---|
 | `met` | **hold** — keep it at the value it cleared (or step it toward the hard target if there's obvious headroom). Never lower it. |
 | `unmet` but moving | an **achievable next step**: roughly `actual + one loop's expected gain`, capped at the hard target. Don't restate the hard target if it's far — a target the loop can't hit in one step gives no signal. |
 | `unmet` and flat / regressed | keep last target; the plan's job is a diagnostic or a bigger swing, not a number change. |
-| `unmeasured` (source not wired) | keep the intended target **and** make the plan's #1 action "build the probe that measures it" (see the `†` TODO and *Tool catalogue*). |
+| `unmeasured` (source not wired) | keep the intended target **and** make the plan's #1 action "build the probe that measures it" (see the `†`/`‡` notes and *Tool catalogue*). |
 
-Only gate domains you're actually working this loop; omit the rest and list them under `meta.deferred`. Keep Coverage/Diversity out of the file (or far below 0.80) until every accuracy goal is green.
+Only gate branches you're actually working this loop; omit the rest and list them under `meta.deferred`. Keep `vocabulary.coverage` out of the per-iteration file until every higher-priority goal is green.
 
 ### Step 5 — Derive the plan
 
@@ -157,8 +167,8 @@ Only gate domains you're actually working this loop; omit the rest and list them
 
 **Qualifies to implement:**
 - Targeted data upsample for a clearly underperforming in-vocab emoji or keyword cluster: `bun run upsample --emojis "<e1>,<e2>"` / `--keywords "<k1>,<k2>"` / `--rare`, then `bun run regen`. Re-read the regen summary; if vocab size changed, record it (future Acc@k is no longer comparable).
-- **Coverage gap fill** — missing flags: `bun run upsample --flags` (add `--count N` for a partial pass). Missing animal/object/emotion/symbol concept: `bun run upsample --keywords "<concept words>"`. Then `bun run regen`. Note: added rows only pull an emoji into the vocab once it clears `regen`'s `--min-count`; a single upsample pass may not be enough.
-- **Building a probe the goals file needs** — e.g. the CLDR exact-vs-fuzzy split (`report.json.keyword.{exact,fuzzy}.acc_at_k`), or `data/emoji_popularity.json` when Coverage can't be computed. Report-side / committed-data only; touches no model weights.
+- **Coverage gap fill** — a whole under-target Unicode group: `bun run upsample --group <name>` (add `--count N` for a random subset of the group's emoji). Missing flags: `bun run upsample --flags` (add `--count N` for a partial pass). Missing animal/object/emotion/symbol concept: `bun run upsample --keywords "<concept words>"`. Then `bun run regen`. Note: added rows only pull an emoji into the vocab once it clears `regen`'s `--min-count`; a single upsample pass may not be enough.
+- **Building a probe the goals file needs** — e.g. the CLDR fuzzy split (`report.json.keyword.fuzzy.acc_at_k`), or `cards.energy` (OKLab energy distance) for `color generator.energy distance.global`. Report-side / committed-data only; touches no model weights.
 - **A new read-only analysis script** under `tools/analysis/*.py` — loads `pt/*.pt` + `data/*.jsonl`, writes a report/plot or prints a table, **mutates nothing** (no `.pt`, no `data/`, no `web/`). Wiring it into `tools/report.py` as a permanent section is recommend-only (bigger surface, changes the standard report).
 - Switching `FUSION_EXPORT_VARIANT` in `model/export_onnx.py` when the report shows another variant clearly wins, then `uv run python model/export_onnx.py`.
 - Localized scalar nudges in `model/config.py` — one small step per knob, only where TensorBoard clearly points: `LR`, `INFONCE_TEMP`, `DROPOUT_EMOJI`, `DROPOUT_STYLE`, `EARLY_STOP_PATIENCE`, `EPOCHS_TASK`.
@@ -185,7 +195,9 @@ What the loop can reach for at steps 3 and 6. **Have** = exists today; **Should 
 
 | Tool | Command | Gives |
 |---|---|---|
-| Full report | `uv run python tools/report.py --pt pt` | `status.goals` scorecard, `goals.compare`, the 5-way `emoji.eval` Acc@k, `cldr` probe, Cards gold-set, `keywords_flex` vocab diagnostic, `status.coverage`/`status.diversity`. |
+| Full report | `uv run python tools/report.py --pt pt` | `status.goals` scorecard (vs `goals.yml`), `goals.compare` (vs newest `goal/*.yml`), the 5-way `emoji.eval` Acc@k, `cldr` probe, Cards gold-set, `keywords_flex` vocab diagnostic, `status.vocab_coverage`. |
+| Rebuild group map | `bun run build-groups` | committed `data/group.json` (Unicode subgroup → emoji list) — the per-group vocab-coverage input. Re-run after an `emojibase-data` bump. |
+| Upsample a whole group | `bun run upsample --group <name> [--count N] [--dry]` | fresh rows targeting every emoji in Unicode subgroup `<name>` (random `N` with `--count`) — closes a `vocabulary.coverage` gap. Then `bun run regen`. |
 | Inference spot-check | `uv run python model/pred.py --pt pt` | `data/pred.jsonl` — top styles/emoji + `fusion_top_labels` for the first 200 eval rows. Eyeball concrete failures. |
 | Model stats | `uv run python model/config.py` | channel chain, effective kernels, receptive field (15) vs `MAX_TEXT_LEN` (42), param counts. |
 | Regen summary | `bun run regen` | rows read/kept/dropped, vocab size, most/least frequent kept emojis, `kw` key count + mean nonzero. |
@@ -234,17 +246,18 @@ Loop verdict: <step-change | blocked — need diagnostic | marginal-only> — <o
 
 | Goal (priority) | Target | Current | Status | Δ prev | Last goal / met? |
 |---|---|---|---|---|---|
-| CLDR keyword Acc@1 | ≥0.95/0.90 | 0.000 | 🔴 | +0.00 | 0.90 / no |
-| Short-text emoji Acc@1 | ≥0.80 | | | | |
-| Short-text emoji Acc@5 | ≥0.90 | | | | |
-| Short-text emoji Acc@10 | ≥0.95 | | | | |
-| Color palette (pure acc) | high | | ⚪ | | |
-| Style Acc@1 | high | | ⚪ | | |
-| Emoji vocab size | ≥700 | | | | |
-| Vocab Coverage (popularity-wtd) | ≥0.80 | | ⚪ deferred | | |
-| Vocab Diversity | ≥0.80 | | ⚪ deferred | | |
+| Exact keyword Acc@1 (1) | ≥0.95 | 0.000 | 🔴 | +0.00 | 0.95 / no |
+| Full-text emoji Acc@1 (2) | ≥0.80 | | | | |
+| Full-text emoji Acc@5 (2) | ≥0.85 | | | | |
+| Full-text emoji Acc@10 (2) | ≥0.90 | | | | |
+| Fuzzy keyword Acc@1 (3) | ≥0.90 | | ⚪ | | |
+| Colour energy · global (4) | ≤0.01 | | ⚪ | | |
+| Style Acc@1 (5) | ≥0.80 | | ⚪ | | |
+| Max text len (6) | ≥42 | | | | |
+| Emoji vocab size (7) | ≥700 | | | | |
+| Vocab coverage — groups (8) | all ≥ target | | ⚪ deferred | | |
 
-Priority-1 regression gate — CLDR Acc@1/@5/@10 vs prev: <PASS / FAIL + numbers>
+Priority-1 regression gate — exact-keyword Acc@1/@5/@10 vs prev: <PASS / FAIL + numbers>
 
 ## Goals for next iteration  (goal/<YYYY-MM-DD>-<sha>.yml)
 
@@ -259,7 +272,7 @@ Each action: **target goal**, expected effect, CLDR risk, cost (config edit | da
 
 ### Data upsampling — bun run upsample
 - `bun run upsample --keywords "<…>"` — <N rows, which coverage/Acc@k gap>. Then `bun run regen`.
-- `bun run upsample --emojis "<…>"` / `--rare --iter <n>` / `--flags [--count N]` — …
+- `bun run upsample --emojis "<…>"` / `--rare --iter <n>` / `--flags [--count N]` / `--group <name> [--count N]` — …
 
 ### Regen configuration — bun run regen   (recommend-only; user runs it)
 - `--min-count <old→new>` / `--max-count …` / `--n …` — vocab-size / eval-split tradeoff. Run `bun run regen --matrix` first; note that Acc@k stops being comparable across the change.
@@ -287,7 +300,8 @@ Each action: **target goal**, expected effect, CLDR risk, cost (config edit | da
 - Optimizing short-text emoji at the cost of the `cldr` probe — violates priority 1.
 - Treating `fusion_gate`/`fusion_mix` reading equal to `EmojiHead` as a bug — a combiner collapses to the raw model when its learned scalar is ~0; report the gain from the best variant instead.
 - Writing a goals-file target equal to the far-off hard target when the loop can only move a fraction of the way — it gives no per-loop signal. Step it.
-- Lowering a goal that was already `met`, or gating Coverage/Diversity while an accuracy goal is still red.
+- Lowering a goal that was already `met`, or gating `vocabulary.coverage` while a higher-priority goal is still red.
+- Editing a target in a `goal/*.yml` when the *long-term* target changed — that belongs in `goals.yml`.
 - Reading an older `report/` dir than the latest train, or one with non-empty `provenance.issues`.
 - Skipping TensorBoard at step 3 — the report alone can't tell you under- vs over-training or which head's loss is stuck.
 - Recommending architecture changes without quantifying the param-count / wasm-latency cost.
