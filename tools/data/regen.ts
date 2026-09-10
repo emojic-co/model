@@ -3,20 +3,22 @@ import { cac } from "cac"
 import cliProgress from "cli-progress"
 import { readFileSync } from "node:fs"
 
-import { II_JSON } from "../../files.ts"
+import { EMOJI_POPULARITY_JSON, II_JSON } from "../../files.ts"
 import { splitEmojis } from "./emoji.ts"
 import { normalize } from "./normalize.ts"
 import { STYLE_SET } from "./styles.ts"
 import { queryTokens } from "./tokenize.ts"
 
-const MIN_COUNT = 50
-const MAX_COUNT = 2000
-const EVAL_SIZE = 2000
+const MIN_COUNT = 150
+const MAX_COUNT = 400
+const EVAL_SIZE = 4000
 
-const MIN_MAX_RATIO = 10
-const MAX_MAX_RATIO = 30
+const MIN_MAX_RATIO = 1
+const MAX_MAX_RATIO = 10
 const MATRIX_MIN = [50, 75, 100, 125, 150, 200, 250]
-const MATRIX_MAX = [500, 600, 750, 1000, 1250, 1500, 2000, 3000, 4000, 5000]
+const MATRIX_MAX = [300, 400, 500, 600, 750]
+
+const PRIMARY_BONUS = 0.15
 
 export type Palette = { bg: string[]; fg: string }
 export type Row = {
@@ -340,10 +342,25 @@ if (import.meta.main) {
   if (useKw) {
     console.log("computing uFuzzy keyword scores...")
     const emojiIdx = new Map(emojis.map((e, i) => [e, i]))
+    const stripVar = (e: string) =>
+      [...e].filter((c) => c.codePointAt(0) !== 0xfe0f).join("")
+    const rawPop = JSON.parse(readFileSync(EMOJI_POPULARITY_JSON, "utf8")) as Record<
+      string,
+      number
+    >
+    const popMap = new Map<string, number>()
+    for (const [e, s] of Object.entries(rawPop)) {
+      popMap.set(e, Math.max(popMap.get(e) ?? 0, s))
+      popMap.set(stripVar(e), Math.max(popMap.get(stripVar(e)) ?? 0, s))
+    }
+    const popOf = (e: string) => popMap.get(e) ?? popMap.get(stripVar(e)) ?? 0
     const ii = JSON.parse(readFileSync(II_JSON, "utf8")) as Record<string, string[]>
     const proj: Record<string, number[]> = {}
     for (const [k, es] of Object.entries(ii)) {
-      const idxs = es.map((e) => emojiIdx.get(e)).filter((i): i is number => i !== undefined)
+      const idxs = [...new Set(es)]
+        .filter((e) => emojiIdx.has(e))
+        .sort((a, b) => popOf(b) - popOf(a) || (a < b ? -1 : 1))
+        .map((e) => emojiIdx.get(e)!)
       if (idxs.length) proj[k] = idxs
     }
     const keys = Object.keys(proj)
@@ -366,9 +383,11 @@ if (import.meta.main) {
       const acc = new Map<number, number>()
       for (const word of queryTokens(text)) {
         for (const [k, strength] of matches(word)) {
-          const v = strength * weight.get(k)!
-          for (const e of proj[k]) {
-            if (v > (acc.get(e) ?? 0)) acc.set(e, v)
+          const base = strength * weight.get(k)!
+          const pl = proj[k]
+          for (let j = 0; j < pl.length; j++) {
+            const v = base + (j === 0 ? PRIMARY_BONUS : 0)
+            if (v > (acc.get(pl[j]) ?? 0)) acc.set(pl[j], v)
           }
         }
       }

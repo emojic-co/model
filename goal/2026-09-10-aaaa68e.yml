@@ -1,0 +1,25 @@
+meta:
+  based_on: docs/step1-keyword-search.md
+  written_after_report: null
+  rationale: >
+    Iteration 0 — limited-vocab baseline. One linear pipeline: data.jsonl is
+    sliced by `bun run regen --min-count 150 --max-count 400 --n 4000` into a
+    ~400-emoji vocab (data/train.jsonl + data/eval.jsonl + data/labels.json),
+    the small char-CNN (ENCODER_CHANNELS [64, 96], dilation [1, 2],
+    MAX_TEXT_LEN 32) trains emoji + fusion heads. Two gates only: exact-keyword
+    Acc@1 (CLDR probe) and short-text emoji Acc@1 (emoji.eval, best fusion
+    variant). Everything else is deferred until these are green.
+  deferred:
+    - keyword.acc@5
+    - keyword.acc@10
+    - text.acc@5
+    - text.acc@10
+    - colors
+    - coverage
+    - style
+
+goals:
+  keyword:
+    "acc@1": 0.90
+  text:
+    "acc@1": 0.70

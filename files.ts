@@ -16,15 +16,6 @@ export const EMOJI_POPULARITY_JSON = `${DATA_DIR}/emoji_popularity.json`
 export const ENERGY_KEYWORDS_TXT = `${DATA_DIR}/energy_keywords.txt`
 export const PRED_JSONL = `${DATA_DIR}/pred.jsonl`
 
-export const STEP1_DIR = `${DATA_DIR}/step1`
-export const STEP1_LABELS_JSON = `${STEP1_DIR}/labels.json`
-export const STEP1_TRAIN_JSONL = `${STEP1_DIR}/train.jsonl`
-export const STEP1_EVAL_JSONL = `${STEP1_DIR}/eval.jsonl`
-export const STEP1_EXACT_EVAL_JSONL = `${STEP1_DIR}/exact_eval.jsonl`
-export const STEP1_FUZZY_EVAL_JSONL = `${STEP1_DIR}/fuzzy_eval.jsonl`
-export const STEP1_II_JSON = `${STEP1_DIR}/ii.json`
-export const STEP1_KWPROJ_JSON = `${STEP1_DIR}/kwproj.json`
-
 export const WEB_PUBLIC_DIR = "web/public"
 export const WEB_SRC_DIR = "web/src"
 export const KWPROJ_JSON = `${WEB_PUBLIC_DIR}/kwproj.json`

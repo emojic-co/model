@@ -254,8 +254,9 @@ def test_coverage_and_diversity_shapes():
         assert "reason" in d
 
 
-def test_status_coverage_active_when_higher_goals_pass():
-    from tools.report import EMOJI_KS, _section_status
+def test_status_coverage_deferred_while_vocab_floor_open():
+    from tools.report import EMOJI_KS, VOCAB_SIZE_FLOOR, _section_status
+    from tools.report import EMOJIS as _EMOJIS
 
     n = len(EMOJI_KS)
     hi = [0.99] * n
@@ -267,7 +268,12 @@ def test_status_coverage_active_when_higher_goals_pass():
     st = _section_status(report)
     by_goal = {g["goal"]: g for g in st["goals"]}
     cov = by_goal["Vocab Coverage (popularity-wtd)"]
-    if st["coverage"].get("measurable"):
+    if len(_EMOJIS) < VOCAB_SIZE_FLOOR:
+        assert by_goal["Emoji vocab size"]["status"] == "red"
+        if st["coverage"].get("measurable"):
+            assert cov["status"] == "na"
+            assert "deferred" in cov["note"]
+    elif st["coverage"].get("measurable"):
         assert cov["status"] in {"good", "amber", "red"}
         assert "deferred" not in cov["note"]
 
@@ -406,7 +412,7 @@ def main() -> None:
     test_keywords_flex_html()
     test_section_status_orders_and_grades()
     test_coverage_and_diversity_shapes()
-    test_status_coverage_active_when_higher_goals_pass()
+    test_status_coverage_deferred_while_vocab_floor_open()
     test_status_html_colors_rows()
     test_section_goals_compare_shape()
     test_goals_html_renders()

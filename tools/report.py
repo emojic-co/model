@@ -1,6 +1,5 @@
 import html
 import json
-import os
 import random
 import re
 import sys
@@ -28,11 +27,9 @@ from files import (
     FUSION_MIX_PT,
     GOAL_DIR,
     II_JSON,
-    STEP1_EXACT_EVAL_JSONL,
-    STEP1_FUZZY_EVAL_JSONL,
 )
 from model.color import COLOR_SHIFT, rgb_to_oklab
-from model.config import EMOJIS, SEED, STYLES, Z_WEIGHT
+from model.config import EMOJIS, MAX_TEXT_LEN, SEED, STYLES, Z_WEIGHT
 from model.data import EVAL_PATH, TRAIN_PATH, _row_kw, read, text_to_tensor
 from model.data import normalize as norm_text
 from model.export_onnx import CONST_Z
@@ -488,13 +485,9 @@ def _goal_specs() -> dict:
         return lambda r: _dig(r, "cards", "per_color", c, "gt_mean_distance")
 
     return {
-        "keyword.exact.acc@1": ("max", lambda r: _dig(r, "keyword", "exact", "acc_at_k", 0)),
-        "keyword.fuzzy.acc@1": ("max", lambda r: _dig(r, "keyword", "fuzzy", "acc_at_k", 0)),
-        "keyword.fuzzy.acc@5": ("max", lambda r: _dig(r, "keyword", "fuzzy", "acc_at_k", 4)),
-        "keyword.fuzzy.acc@10": (
-            "max",
-            lambda r: _dig(r, "keyword", "fuzzy", "acc_at_k", 9),
-        ),
+        "keyword.acc@1": ("max", lambda r: _dig(r, "cldr", "acc_at_k", 0)),
+        "keyword.acc@5": ("max", lambda r: _dig(r, "cldr", "acc_at_k", 4)),
+        "keyword.acc@10": ("max", lambda r: _dig(r, "cldr", "acc_at_k", 9)),
         "text.acc@1": ("max", text(0)),
         "text.acc@5": ("max", text(4)),
         "text.acc@10": ("max", text(9)),
@@ -709,70 +702,14 @@ def _section_cldr(enc, head):
     return dict(_cldr_probe(enc, head))
 
 
-def _step1_enabled() -> bool:
-    return bool(os.environ.get("EMOJIC_STEP1"))
-
-
-def _step1_curve(path, enc, head) -> dict | None:
-    emb = _emoji_embed()
-    if emb is None or enc is None or head is None:
-        return None
-    vocab = {e: i for i, e in enumerate(EMOJIS)}
-    rows = []
-    for d in _rows(str(path)):
-        text = str(d.get("text", ""))
-        idxs = [vocab[e] for e in str(d.get("emojis", "")).split() if e in vocab]
-        if text and idxs:
-            rows.append((text, idxs, d.get("kw") or []))
-    if not rows:
-        return None
-    texts = torch.stack([text_to_tensor(norm_text(t)) for t, _, _ in rows])
-    tgt = torch.zeros(len(rows), len(EMOJIS))
-    for i, (_, idxs, _) in enumerate(rows):
-        for j in idxs:
-            tgt[i, j] = 1.0
-    kw_dense = torch.stack([_row_kw({"kw": kw}) for _, _, kw in rows])
-    with torch.no_grad():
-        logit_m = emb.score(head(enc(texts)))
-    model = [_acc_at_k(logit_m, tgt, k).mean().item() for k in EMOJI_KS]
-    kw_only = [_acc_at_k(kw_dense, tgt, k).mean().item() for k in EMOJI_KS]
-    fused, variant = model, None
-    with torch.no_grad():
-        for name, h in _fusion_heads().items():
-            curve = [
-                _acc_at_k(h(logit_m.detach(), kw_dense), tgt, k).mean().item()
-                for k in EMOJI_KS
-            ]
-            if variant is None or curve[0] > fused[0]:
-                fused, variant = curve, name
-    return {
-        "n": len(rows),
-        "acc_at_k": fused,
-        "fusion_variant": variant,
-        "kw_acc_at_k": kw_only,
-        "model_acc_at_k": model,
-    }
-
-
-def _section_keyword_step1(enc, head) -> dict:
-    if not _step1_enabled():
-        return {}
-    out = {}
-    for name, path in (
-        ("exact", STEP1_EXACT_EVAL_JSONL),
-        ("fuzzy", STEP1_FUZZY_EVAL_JSONL),
-    ):
-        curve = _step1_curve(path, enc, head)
-        if curve:
-            out[name] = curve
-    return out
-
-
 def _gold_rows():
     rows = [
         r
         for r in _rows(COLORS_JSONL)
-        if isinstance(r.get("bg"), list) and len(r["bg"]) == 2 and r.get("fg")
+        if isinstance(r.get("bg"), list)
+        and len(r["bg"]) == 2
+        and r.get("fg")
+        and 0 < len(norm_text(str(r.get("text", "")))) <= MAX_TEXT_LEN
     ]
     if not rows:
         return []
@@ -875,17 +812,19 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
 
 
 def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
-    want = {s.strip() for s in only.split(",") if s.strip()} or (
-        {"data", "labels", "emoji", "keywords_flex", "keyword"}
-        if _step1_enabled()
-        else {"data", "labels", "emoji", "keywords_flex", "cldr", "cards"}
-    )
+    want = {s.strip() for s in only.split(",") if s.strip()} or {
+        "data",
+        "labels",
+        "emoji",
+        "keywords_flex",
+        "cldr",
+    }
     enc_pt, emoji_pt = pt / "enc.pt", pt / "emoji.pt"
     style_pt, gen_pt = pt / "style.pt", pt / "gen.pt"
     prov = _provenance(pt)
 
     enc = emoji_head = style_head = gen = None
-    need_enc = bool({"emoji", "cldr", "cards", "keywords_flex", "keyword"} & want)
+    need_enc = bool({"emoji", "cldr", "cards", "keywords_flex"} & want)
     if need_enc and enc_pt.exists():
         enc, err = _load(TextEncoder(), enc_pt)
         if err:
@@ -922,8 +861,6 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         report["keywords_flex"] = _section_keywords_flex(enc, emoji_head)
     if "cldr" in want:
         report["cldr"] = _section_cldr(enc, emoji_head)
-    if "keyword" in want:
-        report["keyword"] = _section_keyword_step1(enc, emoji_head)
     if "cards" in want:
         report["cards"] = _section_cards(enc, style_head, emoji_head, gen, gold_rows)
 
@@ -1362,47 +1299,6 @@ def _keywords_flex_html(d) -> str:
     )
 
 
-_STEP1_KEYWORD_TARGETS = {"exact": 0.95, "fuzzy": 0.90}
-
-
-def _keyword_step1_html(d) -> str:
-    if not d:
-        return (
-            "<h2>Keyword search (step 1)</h2>"
-            '<p class="note">enc.pt / emoji.pt / emoji_embed.pt not available.</p>'
-        )
-    rows = []
-    for name in ("exact", "fuzzy"):
-        c = d.get(name)
-        if not c:
-            continue
-        tgt = _STEP1_KEYWORD_TARGETS[name]
-        g = _grade(c["acc_at_k"][0], tgt)
-        rows.append(
-            f'<tr class="sc-{g}"><td>{name} &nbsp;<span class="gnote">'
-            f"n={_fnum(c['n'])}, fused={c.get('fusion_variant') or '-'}</span></td>"
-            f'<td class="n">&ge; {tgt:.2f}</td>'
-            f'<td class="n">{c["acc_at_k"][0]:.3f}</td>'
-            f'<td class="n">{c["kw_acc_at_k"][0]:.3f}</td>'
-            f'<td class="n">{c["model_acc_at_k"][0]:.3f}</td>'
-            f'<td class="n">{c["acc_at_k"][4]:.3f}</td>'
-            f'<td class="n">{c["acc_at_k"][9]:.3f}</td></tr>'
-        )
-    return (
-        "<h2>Keyword search (step 1)</h2>"
-        '<table class="scorecard"><tr><th>Probe</th>'
-        '<th class="n">Target @1</th><th class="n">Fused @1</th>'
-        '<th class="n">kw-only @1</th><th class="n">model @1</th>'
-        '<th class="n">Fused @5</th><th class="n">Fused @10</th></tr>'
-        + "".join(rows)
-        + "</table>"
-        '<p class="note">Fused = best of the detached fusion combiners over '
-        "(model logits, kw vector). Scored over "
-        "<code>data/step1/{exact,fuzzy}_eval.jsonl</code>; hit = top-k emoji in the "
-        "row&rsquo;s target set.</p>"
-    )
-
-
 def _cldr_html(d) -> str:
     if not d:
         return '<h2>CLDR</h2><p class="note">enc.pt / emoji.pt not available.</p>'
@@ -1492,8 +1388,6 @@ def _render_html(report) -> str:
         body.append(_keywords_flex_html(report["keywords_flex"]))
     if "cldr" in report:
         body.append(_cldr_html(report["cldr"]))
-    if "keyword" in report:
-        body.append(_keyword_step1_html(report["keyword"]))
     if "cards" in report:
         body.append(_cards_html(report["cards"]))
     return (
