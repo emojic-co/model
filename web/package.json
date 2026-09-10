@@ -9,7 +9,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "flexsearch": "^0.8.212",
+    "@leeoniya/ufuzzy": "^1.0.19",
     "onnxruntime-web": "1.29.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
