@@ -1,8 +1,8 @@
-import { queryTokens } from "./cldr-baseline.ts"
 import { loadCldrAnnotations } from "../data/cldr.ts"
+import { queryTokens } from "./cldr-baseline.ts"
 
-const MIN_ROWS = [5, 6, 7, 8]
-const MAX_COLS = [8, 9, 10, 11]
+const MIN_ROWS = [4, 5, 6, 7, 8]
+const MAX_COLS = [6, 7, 8, 9, 10, 11]
 
 function dfByKeyword(ann: Map<string, string[]>): Map<string, number> {
   const df = new Map<string, number>()
