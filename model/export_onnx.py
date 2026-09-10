@@ -9,27 +9,29 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import torch
 import typer
 from torch import nn
-from torch.nn.functional import normalize
+from torch.nn.functional import normalize, softplus
 
 from files import (
     EMOJI_EMBED_PT,
     EMOJI_PT,
     ENC_PT,
-    FUSION_PT,
+    FUSION_GAIN_PT,
+    FUSION_GATE_PT,
+    FUSION_MIX_PT,
     GEN_PT,
-    KW_PT,
     LABELS_JSON,
     STYLE_PT,
     WEB_PUBLIC_DIR,
 )
 from model.config import EMOJIS, MAX_TEXT_LEN, SEED, STYLES, TEXT_EMBED_SIZE, Z_WEIGHT
-from model.data import CHARS, FLEX_N, KW_VOCAB, PAD_IDX
+from model.data import CHARS, PAD_IDX
 from model.model import (
     ColorGen,
     EmojiEmbedding,
     EmojiHead,
-    FusionHead,
-    KWHead,
+    FusionHeadGain,
+    FusionHeadGate,
+    FusionHeadMix,
     StyleHead,
     TextEncoder,
 )
@@ -38,6 +40,18 @@ from model.runmeta import load_pt
 WEB_PUBLIC = Path(WEB_PUBLIC_DIR)
 ONNX_OPSET = 18
 COLOR_SAMPLES = 5
+
+FUSION_EXPORT_VARIANT = "gate"
+_FUSION_CLS = {
+    "gate": FusionHeadGate,
+    "gain": FusionHeadGain,
+    "mix": FusionHeadMix,
+}
+_FUSION_PT = {
+    "gate": FUSION_GATE_PT,
+    "gain": FUSION_GAIN_PT,
+    "mix": FUSION_MIX_PT,
+}
 
 CONST_Z = normalize(
     torch.randn(
@@ -72,68 +86,63 @@ class ExportWrapper(nn.Module):
         style: nn.Module,
         emoji_embed: nn.Module,
         emoji: nn.Module,
-        kw: nn.Module,
         gen: nn.Module,
-        fusion: nn.Module,
     ) -> None:
         super().__init__()
         self.enc = enc
         self.style = style
         self.emoji_embed = emoji_embed
         self.emoji = emoji
-        self.kw = kw
         self.gen = gen
-        self.fusion = fusion
         self.register_buffer("z", CONST_Z)
 
     def forward(
-        self,
-        x: torch.Tensor,
-        flex_tf: torch.Tensor,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        self, x: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         emb = self.enc(x)
         style_logits = self.style(emb)
-        q_txt = self.emoji(emb)
-        emoji_logits = self.emoji_embed.score(q_txt)
-        q_kw = self.kw(flex_tf)
-        kw_logits = self.emoji_embed.score(q_kw)
-        a = self.fusion(emb, flex_tf).unsqueeze(-1)
-        fusion_logits = self.emoji_embed.score(a * q_txt + (1 - a) * q_kw)
+        emoji_logits = self.emoji_embed.score(self.emoji(emb))
         seed = (1 - Z_WEIGHT) * normalize(emb) + Z_WEIGHT * self.z
         color = torch.tanh(self.gen.net(seed)) * 127.5 + 127.5
-        return style_logits, emoji_logits, kw_logits, fusion_logits, color
+        return style_logits, emoji_logits, color
 
 
 def export_onnx(wrapper: nn.Module, dst: Path) -> None:
-    dummy = (
-        torch.zeros(1, MAX_TEXT_LEN, dtype=torch.long),
-        torch.zeros(1, FLEX_N, dtype=torch.float32),
-    )
+    dummy = (torch.zeros(1, MAX_TEXT_LEN, dtype=torch.long),)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         torch.onnx.export(
             wrapper,
             dummy,
             str(dst),
-            input_names=["input", "flex_tf"],
+            input_names=["input"],
             output_names=[
                 "style_logits",
                 "emoji_logits",
-                "kw_logits",
-                "fusion_logits",
                 "color",
             ],
             opset_version=ONNX_OPSET,
             dynamo=False,
             dynamic_axes={
                 "input": {0: "batch"},
-                "flex_tf": {0: "batch"},
                 "style_logits": {0: "batch"},
                 "emoji_logits": {0: "batch"},
-                "kw_logits": {0: "batch"},
-                "fusion_logits": {0: "batch"},
             },
         )
+
+
+def _fusion_meta(variant: str, mod: nn.Module) -> dict:
+    if variant == "gate":
+        return {
+            "variant": "gate",
+            "bn_mean": mod.bn.running_mean.tolist(),
+            "bn_var": mod.bn.running_var.tolist(),
+            "w": mod.lin.weight.detach().flatten().tolist(),
+            "b": float(mod.lin.bias.detach()),
+        }
+    if variant == "gain":
+        return {"variant": "gain", "beta": float(softplus(mod.raw_beta.detach()))}
+    return {"variant": "mix", "g": float(torch.sigmoid(mod.raw_g.detach()))}
 
 
 def export_web(wrapper: nn.Module) -> None:
@@ -145,8 +154,7 @@ def export_web(wrapper: nn.Module) -> None:
         "max_text_len": MAX_TEXT_LEN,
         "emojis": EMOJIS,
         "styles": STYLES,
-        "flex_kw": KW_VOCAB,
-        "flex_n": FLEX_N,
+        "fusion": _fusion_meta(FUSION_EXPORT_VARIANT, wrapper.fusion_head),
         "exported_at": datetime.now(UTC).isoformat(timespec="minutes"),
         "model_meta": getattr(wrapper.enc, "_pt_meta", None),
     }
@@ -163,9 +171,10 @@ def export() -> None:
     style = _load(StyleHead(), STYLE_PT)
     emoji_embed = _load(EmojiEmbedding(), EMOJI_EMBED_PT)
     emoji = _load(EmojiHead(), EMOJI_PT)
-    kw = _load(KWHead(), KW_PT)
     gen = _load(ColorGen(), GEN_PT)
-    fusion = _load(FusionHead(), FUSION_PT)
+    fusion_head = _load(
+        _FUSION_CLS[FUSION_EXPORT_VARIANT](), _FUSION_PT[FUSION_EXPORT_VARIANT]
+    )
 
     if style.embed.weight.shape[0] != len(STYLES):
         raise SystemExit(
@@ -180,7 +189,8 @@ def export() -> None:
 
     _strip_spectral_norm(enc)
 
-    wrapper = ExportWrapper(enc, style, emoji_embed, emoji, kw, gen, fusion).eval()
+    wrapper = ExportWrapper(enc, style, emoji_embed, emoji, gen).eval()
+    wrapper.fusion_head = fusion_head
     export_web(wrapper)
     print(f"wrote {WEB_PUBLIC}/model.onnx + meta.json + config.json")
 

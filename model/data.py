@@ -6,12 +6,8 @@ from dataclasses import dataclass, field
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from files import EVAL_JSONL, FLEX_JSON, TRAIN_JSONL
+from files import EVAL_JSONL, TRAIN_JSONL
 from model.config import EMOJIS, MAX_TEXT_LEN, STYLES
-
-with open(FLEX_JSON, encoding="utf-8") as _f:
-    KW_VOCAB: list[str] = json.load(_f)["kw_vocab"]
-FLEX_N = len(KW_VOCAB)
 
 TRAIN_PATH = TRAIN_JSONL
 EVAL_PATH = EVAL_JSONL
@@ -82,7 +78,7 @@ class record:
     emojis: list[str]
     styles: list[str]
     colors: list[str]
-    flex_tf: list = field(default_factory=list)
+    kw: list = field(default_factory=list)
 
 
 def read(path):
@@ -111,12 +107,12 @@ def read(path):
                 if not styles:
                     continue
 
-                yield record(text, emojis, styles, [*bg, fg], d.get("flex_tf") or [])
+                yield record(text, emojis, styles, [*bg, fg], d.get("kw") or [])
 
 
-def _row_tf(row) -> torch.Tensor:
-    pairs = row.get("flex_tf") if isinstance(row, dict) else row.flex_tf
-    out = torch.zeros(FLEX_N, dtype=torch.float32)
+def _row_kw(row) -> torch.Tensor:
+    pairs = row.get("kw") if isinstance(row, dict) else row.kw
+    out = torch.zeros(len(EMOJIS), dtype=torch.float32)
     for i, v in pairs or []:
         out[int(i)] = float(v)
     return out
@@ -183,7 +179,7 @@ class EmojiDataset(Dataset):
         self.emoji = torch.stack([emojis_to_tensor(r.emojis) for r in records])
         self.style = torch.stack([styles_to_tensor(r.styles) for r in records])
         self.colors = torch.stack([colors2tensor(r.colors) for r in records])
-        self.flex_tf = torch.stack([_row_tf(r) for r in records])
+        self.kw = torch.stack([_row_kw(r) for r in records])
 
     def __len__(self):
         return len(self.text)
@@ -194,7 +190,7 @@ class EmojiDataset(Dataset):
             self.emoji[idx],
             self.style[idx],
             self.colors[idx],
-            self.flex_tf[idx],
+            self.kw[idx],
         )
 
 

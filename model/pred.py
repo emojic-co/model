@@ -8,16 +8,13 @@ import torch
 import typer
 from tqdm import tqdm
 
-from files import FLEX_JSON
 from model.config import MAX_TEXT_LEN, SEED
-from model.data import EMOJIS, FLEX_N, STYLES, normalize, text_to_tensor
-from model.flexrank import FlexRanker
+from model.data import EMOJIS, STYLES, _row_kw, normalize, text_to_tensor
 from model.model import (
     ColorGen,
     EmojiEmbedding,
     EmojiHead,
-    FusionHead,
-    KWHead,
+    FusionHeadGate,
     StyleHead,
     TextEncoder,
 )
@@ -58,20 +55,21 @@ def top_labels(
     return [names[i] for i in picked]
 
 
-def read_texts(lines: list[str]) -> list[str]:
-    texts = []
+def read_rows(lines: list[str]) -> list[dict]:
+    rows = []
     for line in lines:
         line = line.strip()
         if not line:
             continue
-        text = normalize(json.loads(line)["text"])[:MAX_TEXT_LEN]
+        d = json.loads(line)
+        text = normalize(d["text"])[:MAX_TEXT_LEN]
         if text:
-            texts.append(text)
-    return texts
+            rows.append({"text": text, "kw": d.get("kw") or []})
+    return rows
 
 
 def predict(
-    texts: list[str],
+    rows: list[dict],
     pt_dir: Path,
 ) -> list[dict]:
     torch.manual_seed(SEED)
@@ -82,24 +80,16 @@ def predict(
     emoji_embed = _load(EmojiEmbedding(), pt_dir / "emoji_embed.pt")
     emoji = _load(EmojiHead(), pt_dir / "emoji.pt")
 
-    fusion = kw = ranker = None
-    if (
-        (pt_dir / "fusion.pt").exists()
-        and (pt_dir / "kw.pt").exists()
-        and Path(FLEX_JSON).exists()
-    ):
-        fusion = _load(FusionHead(), pt_dir / "fusion.pt")
-        kw = _load(KWHead(), pt_dir / "kw.pt")
-        ranker = FlexRanker(FLEX_JSON)
+    gate = None
+    if (pt_dir / "fusion_gate.pt").exists():
+        gate = _load(FusionHeadGate(), pt_dir / "fusion_gate.pt")
     else:
-        print(
-            "kw.pt / fusion.pt / flex.json missing -- skipping fusion_top_labels",
-            file=sys.stderr,
-        )
+        print("fusion_gate.pt missing -- skipping fusion_top_labels", file=sys.stderr)
 
     records = []
     with torch.no_grad():
-        for text in tqdm(texts, desc="predicting"):
+        for row in tqdm(rows, desc="predicting"):
+            text = row["text"]
             text_tensor = text_to_tensor(text).unsqueeze(0)
             emb = enc(text_tensor)
 
@@ -118,15 +108,11 @@ def predict(
                 "bg": hexes[:2],
                 "fg": hexes[2],
             }
-            if fusion is not None:
-                tf = torch.zeros(1, FLEX_N)
-                for i, v in enumerate(ranker.tf_vec(text)):
-                    tf[0, i] = v
-                q_kw = kw(tf)
-                a = fusion(emb, tf).unsqueeze(-1)
-                fusion_logits = emoji_embed.score(a * q_txt + (1 - a) * q_kw)
+            if gate is not None and row["kw"]:
+                kw_vec = _row_kw(row).unsqueeze(0)
+                fused = gate(emoji_logits.detach(), kw_vec)
                 record["fusion_top_labels"] = top_labels(
-                    fusion_logits, EMOJIS, min_k=1, max_k=1
+                    fused, EMOJIS, min_k=1, max_k=1
                 )
             records.append(record)
     return records
@@ -157,7 +143,7 @@ def main(
         lines = file.read_text(encoding="utf-8").splitlines()
     else:
         lines = sys.stdin.read().splitlines()
-    records = predict(read_texts(lines), pt)
+    records = predict(read_rows(lines), pt)
     out_lines = [json.dumps(rec, ensure_ascii=False) for rec in records]
 
     if output:
