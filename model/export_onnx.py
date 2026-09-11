@@ -71,6 +71,7 @@ class ExportWrapper(nn.Module):
         emoji_embed: nn.Module,
         emoji: nn.Module,
         gen: nn.Module,
+        fusion: nn.Module,
     ) -> None:
         super().__init__()
         self.enc = enc
@@ -78,17 +79,19 @@ class ExportWrapper(nn.Module):
         self.emoji_embed = emoji_embed
         self.emoji = emoji
         self.gen = gen
+        self.fusion = fusion
         self.register_buffer("z", CONST_Z)
 
     def forward(
         self, x: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         emb = self.enc(x)
         style_logits = self.style(emb)
         emoji_logits = self.emoji_embed.score(self.emoji(emb))
         seed = (1 - Z_WEIGHT) * normalize(emb) + Z_WEIGHT * self.z
         color = torch.tanh(self.gen.net(seed)) * 127.5 + 127.5
-        return style_logits, emoji_logits, color
+        fusion_gate = self.fusion.gate(emb)
+        return style_logits, emoji_logits, color, fusion_gate
 
 
 def export_onnx(wrapper: nn.Module, dst: Path) -> None:
@@ -104,6 +107,7 @@ def export_onnx(wrapper: nn.Module, dst: Path) -> None:
                 "style_logits",
                 "emoji_logits",
                 "color",
+                "fusion_gate",
             ],
             opset_version=ONNX_OPSET,
             dynamo=False,
@@ -111,16 +115,9 @@ def export_onnx(wrapper: nn.Module, dst: Path) -> None:
                 "input": {0: "batch"},
                 "style_logits": {0: "batch"},
                 "emoji_logits": {0: "batch"},
+                "fusion_gate": {0: "batch"},
             },
         )
-
-
-def _fusion_meta(mod: nn.Module) -> dict:
-    return {
-        "w_dl": mod.w_dl.detach().tolist(),
-        "w_search": mod.w_search.detach().tolist(),
-        "b": mod.b.detach().tolist(),
-    }
 
 
 def export_web(wrapper: nn.Module) -> None:
@@ -132,7 +129,6 @@ def export_web(wrapper: nn.Module) -> None:
         "max_text_len": MAX_TEXT_LEN,
         "emojis": EMOJIS,
         "styles": STYLES,
-        "fusion": _fusion_meta(wrapper.fusion_head),
         "exported_at": datetime.now(UTC).isoformat(timespec="minutes"),
         "model_meta": getattr(wrapper.enc, "_pt_meta", None),
     }
@@ -162,16 +158,9 @@ def export() -> None:
             f"emoji_embed.pt has {emoji_embed.embed.weight.shape[0]} emojis, "
             f"{LABELS_JSON} has {len(EMOJIS)} -- retrain or restore {LABELS_JSON}"
         )
-    if fusion_head.w_dl.shape[0] != len(EMOJIS):
-        raise SystemExit(
-            f"fusion.pt has {fusion_head.w_dl.shape[0]} emojis, "
-            f"{LABELS_JSON} has {len(EMOJIS)} -- retrain or restore {LABELS_JSON}"
-        )
-
     _strip_spectral_norm(enc)
 
-    wrapper = ExportWrapper(enc, style, emoji_embed, emoji, gen).eval()
-    wrapper.fusion_head = fusion_head
+    wrapper = ExportWrapper(enc, style, emoji_embed, emoji, gen, fusion_head).eval()
     export_web(wrapper)
     print(f"wrote {WEB_PUBLIC}/model.onnx + meta.json + config.json")
 

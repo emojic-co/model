@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import * as ort from 'onnxruntime-web/wasm'
 import { encode, decodeColorList, sigmoid } from '../model'
 import { makeKeywordPredictor } from '../keywords'
-import { makeFusion } from '../fusion'
+import { fuse } from '../fusion'
 
 const BASE = import.meta.env.BASE_URL
 
@@ -14,7 +14,6 @@ export function useOnnx() {
   const char2idxRef = useRef(null)
   const metaRef = useRef(null)
   const kwRef = useRef(null)
-  const fusionRef = useRef(null)
 
   useEffect(() => {
     let cancelled = false
@@ -31,7 +30,6 @@ export function useOnnx() {
         metaRef.current = m
         char2idxRef.current = new Map([...m.chars].map((ch, i) => [ch, i]))
         kwRef.current = makeKeywordPredictor(kwproj, m.emojis.length)
-        fusionRef.current = makeFusion(m.fusion)
         ort.env.wasm.numThreads = 1
         const session = await ort.InferenceSession.create(BASE + 'model.onnx')
         if (cancelled) return
@@ -54,13 +52,14 @@ export function useOnnx() {
       input: new ort.Tensor('int64', ids, [1, m.max_text_len]),
     })
     const ms = performance.now() - t0
-    const emojiLogits = out.emoji_logits.data
+    const emojiSigmoid = sigmoid(out.emoji_logits.data)
     const kwArr = kwRef.current.predict(text)
+    const gate = out.fusion_gate.data[0]
     return {
       feeling: sigmoid(out.style_logits.data),
-      emoji: sigmoid(emojiLogits),
+      emoji: emojiSigmoid,
       kw: kwArr,
-      fusion: fusionRef.current.fuse(Float32Array.from(emojiLogits), kwArr),
+      fusion: fuse(gate, emojiSigmoid, kwArr),
       palettes: decodeColorList(out.color.data),
       ms,
     }

@@ -93,9 +93,10 @@ def main(pt: Path = typer.Option(Path("pt"), "--pt"), top: int = 30) -> None:
 
     with torch.no_grad():
         texts = torch.stack([text_to_tensor(norm_text(w)) for w, _ in rows])
-        logit_m = emb.score(emoji_head(enc(texts)))
+        text_emb = enc(texts)
+        logit_m = emb.score(emoji_head(text_emb))
         kw_dense = torch.stack([_kw_exact_dense(w, proj) for w, _ in rows])
-        fused = fusion(logit_m.detach(), kw_dense)
+        fused = fusion(text_emb.detach(), logit_m.detach(), kw_dense)
 
     regressions = []
     improvements = []

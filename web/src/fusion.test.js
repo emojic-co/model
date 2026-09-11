@@ -1,32 +1,29 @@
 import { describe, it, expect } from 'vitest'
-import { makeFusion } from './fusion'
+import { fuse } from './fusion'
 
-const logits = Float32Array.from([2, 0, -1, 1])
+const emojiSigmoid = Float32Array.from([0.9, 0.5, 0.1, 0.7])
 const kw = Float32Array.from([0, 0.8, 0, 0])
 
-describe('makeFusion', () => {
-  it('fused = w_dl * logits + w_search * kw + b (per emoji)', () => {
-    const f = makeFusion({
-      w_dl: [1, 1, 1, 1],
-      w_search: [1, 1, 1, 1],
-      b: [0, 0, 0, 0],
-    })
-    const out = f.fuse(logits, kw)
-    for (let i = 0; i < logits.length; i++) {
-      expect(out[i]).toBeCloseTo(logits[i] + kw[i], 5)
+describe('fuse', () => {
+  it('is a gate-weighted mix of the sigmoided model score and kw', () => {
+    const gate = 0.3
+    const out = fuse(gate, emojiSigmoid, kw)
+    for (let i = 0; i < emojiSigmoid.length; i++) {
+      expect(out[i]).toBeCloseTo(gate * emojiSigmoid[i] + (1 - gate) * kw[i], 5)
     }
   })
 
-  it('honours per-emoji weights and bias', () => {
-    const f = makeFusion({
-      w_dl: [0.5, 2, 1, 0],
-      w_search: [0, 3, 1, 1],
-      b: [0.1, -0.2, 0, 1],
-    })
-    const out = f.fuse(logits, kw)
-    expect(out[0]).toBeCloseTo(0.5 * 2 + 0 * 0 + 0.1, 5)
-    expect(out[1]).toBeCloseTo(2 * 0 + 3 * 0.8 - 0.2, 5)
-    expect(out[2]).toBeCloseTo(1 * -1 + 1 * 0 + 0, 5)
-    expect(out[3]).toBeCloseTo(0 * 1 + 1 * 0 + 1, 5)
+  it('gate=1 returns the model score untouched', () => {
+    const out = fuse(1, emojiSigmoid, kw)
+    for (let i = 0; i < emojiSigmoid.length; i++) {
+      expect(out[i]).toBeCloseTo(emojiSigmoid[i], 5)
+    }
+  })
+
+  it('gate=0 returns kw untouched', () => {
+    const out = fuse(0, emojiSigmoid, kw)
+    for (let i = 0; i < emojiSigmoid.length; i++) {
+      expect(out[i]).toBeCloseTo(kw[i], 5)
+    }
   })
 })
