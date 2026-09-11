@@ -3,7 +3,9 @@ import json
 import math
 import random
 import re
+import subprocess
 import sys
+import tempfile
 from collections import Counter
 from datetime import datetime
 from functools import cache
@@ -44,6 +46,8 @@ from model.model import (
 from model.runmeta import load_pt, run_meta
 
 DATA_PATH = DATA_JSONL
+REPO_ROOT = Path(__file__).resolve().parent.parent
+KW_SEARCH_TIMEOUT = 120
 
 EMOJI_KS = list(range(1, 11))
 ACC_K_INDEX = {"acc@1": 0, "acc@5": 4, "acc@10": 9}
@@ -324,6 +328,33 @@ def _rank_acc(scores, id_lists, total) -> dict:
     }
 
 
+def _kw_search_rows(rows: list) -> dict | None:
+    if not rows:
+        return None
+    lines = [
+        json.dumps({"text": word, "emojis": " ".join(EMOJIS[i] for i in ids)})
+        for word, ids in rows
+    ]
+    tmp = tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False, encoding="utf-8")
+    try:
+        tmp.write("\n".join(lines) + "\n")
+        tmp.close()
+        proc = subprocess.run(
+            ["bun", "run", "tools/analysis/kw-search.ts", tmp.name, "--json"],
+            capture_output=True,
+            text=True,
+            cwd=REPO_ROOT,
+            timeout=KW_SEARCH_TIMEOUT,
+        )
+        if proc.returncode != 0:
+            return None
+        return json.loads(proc.stdout)
+    except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError):
+        return None
+    finally:
+        Path(tmp.name).unlink(missing_ok=True)
+
+
 def _section_keyword(enc, head) -> dict:
     words = _cldr_keywords()
     if not words or not _kw_proj():
@@ -340,14 +371,29 @@ def _section_keyword(enc, head) -> dict:
     id_lists = [ids for _, ids in rows]
     kw_dense = torch.stack([_kw_exact_dense(word) for word, _ in rows])
     out = {"exact": _rank_acc(kw_dense, id_lists, total)}
+
     emb = _emoji_embed()
     fh = _fusion_head()
-    if enc is not None and head is not None and emb is not None and fh is not None:
+    logit_m = None
+    if enc is not None and head is not None and emb is not None:
         with torch.no_grad():
             texts = torch.stack([text_to_tensor(norm_text(w)) for w, _ in rows])
             logit_m = emb.score(head(enc(texts)))
-            fused = fh(logit_m.detach(), kw_dense)
-        out["fusion"] = _rank_acc(fused, id_lists, total)
+        out["model"] = _rank_acc(logit_m, id_lists, total)
+        if fh is not None:
+            with torch.no_grad():
+                fused = fh(logit_m.detach(), kw_dense)
+            out["fusion"] = _rank_acc(fused, id_lists, total)
+
+    search = _kw_search_rows(rows)
+    if search is not None:
+        by_text = {r["text"]: r["kw"] for r in search.get("rows", [])}
+        fuzzy_dense = torch.stack([_row_kw({"kw": by_text.get(w, [])}) for w, _ in rows])
+        out["fuzzy"] = _rank_acc(fuzzy_dense, id_lists, total)
+        if logit_m is not None and fh is not None:
+            with torch.no_grad():
+                fuzzy_fused = fh(logit_m.detach(), fuzzy_dense)
+            out["fuzzy_fusion"] = _rank_acc(fuzzy_fused, id_lists, total)
     return out
 
 
@@ -695,7 +741,7 @@ def _section_status(report) -> dict:
         kw_fuzzy_fusion.get("acc_at_k"),
         "fusion model on fuzzy-matched kw vector"
         if kw_fuzzy_fusion.get("acc_at_k")
-        else "unwired — needs a uFuzzy kw sidecar from regen.ts",
+        else "unmeasured — needs bun + web/public/kwproj.json (tools/analysis/kw-search.ts)",
     )
 
     energy_global = cards.get("energy")
@@ -1515,6 +1561,12 @@ def _keyword_html(d) -> str:
     series = []
     if d.get("fusion"):
         series.append(("Fusion", d["fusion"]["acc_at_k"], "lline2"))
+    if d.get("model"):
+        series.append(("EmojiHead", d["model"]["acc_at_k"], "lline3"))
+    if d.get("fuzzy"):
+        series.append(("Standalone search (fuzzy)", d["fuzzy"]["acc_at_k"], "lline4"))
+    if d.get("fuzzy_fusion"):
+        series.append(("Fusion (fuzzy)", d["fuzzy_fusion"]["acc_at_k"], "lline5"))
     legend = ("Exact kw", *(name for name, _, _ in series)) if series else None
     return (
         "<h2>Keyword predictor — CLDR</h2>"
