@@ -13,7 +13,7 @@ const MIN_COUNT = 150
 const MAX_COUNT = 400
 const EVAL_SIZE = 4000
 
-const MIN_MAX_RATIO = 1
+const MIN_MAX_RATIO = 2
 const MAX_MAX_RATIO = 10
 const MATRIX_MIN = [50, 75, 100, 125, 150, 200, 250]
 const MATRIX_MAX = [300, 400, 500, 600, 750]
@@ -446,8 +446,7 @@ if (import.meta.main) {
   console.log("\n--- regen ---")
   console.log(`master lines read     : ${master.length}`)
   console.log(
-    `cldr lines             : ${
-      useCldr ? `${cldr.length} (not merged; sampled at train time)` : "skipped (--no-cldr)"
+    `cldr lines             : ${useCldr ? `${cldr.length} (not merged; sampled at train time)` : "skipped (--no-cldr)"
     }`,
   )
   console.log(`distinct texts        : ${merged} (collapsed away ${dupKeys})`)

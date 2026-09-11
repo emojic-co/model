@@ -20,8 +20,8 @@ STYLE_COUNT = len(STYLES)
 EMOJI_COUNT = len(EMOJIS)
 
 # DATA
-# Sized for the step-1 keyword-search model (docs/step1-keyword-search.md):
-# small vocab (~170), short inputs, ~1/5 encoder width.
+# Sized for the milestone-1 keyword-search model: small vocab, short inputs,
+# ~1/5 encoder width.
 MAX_TEXT_LEN = 32
 
 # ENCODER

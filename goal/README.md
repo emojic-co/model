@@ -8,48 +8,73 @@ goal/<YYYY-MM-DD>-<short-sha>.yml
 
 Written by the `planning-emojic-improvements` skill at **loop step 4** (after reading the
 report + TensorBoard, before deriving the plan). It states the targets the *next*
-iteration aims to hit and is a **strict subset** of the repo-root `goals.yml` — the
-single long-term goals statement. `tools/report.py` reads the **newest** `goal/*.yml`
-(lexical sort — ISO date prefix keeps it chronological) and writes a target-vs-actual
-comparison into `report.json` under `goals`. (`goals.yml` itself is what
-`report.json.status` grades against.)
+iteration aims to hit against the repo-root `goals.yml` — the single long-term goals
+statement. `tools/report.py` reads the **newest** `goal/*.yml` (lexical sort — ISO date
+prefix keeps it chronological) and merges each leaf's target into `report.json`'s
+priority-ordered `status.goals` (`current target` alongside `goals.yml`'s `global
+target`), and separately writes the full leaf-level comparison into `report.json` under
+`goals`. (`goals.yml` itself is what both tables' `global target` column grades against.)
 
 ## Schema
 
-Mirror the `goals.yml` tree, keeping only the branches this iteration gates. Keys are
-`goals.yml`'s literal spaced strings.
+Every priority-ordered goal (the same rows `status.goals` / `report.html`'s "Goal
+status" table carries — `emoji prediction.*`, `style prediction.*`, `color generator.*`,
+`max text len`, `vocabulary.size`) gets a target **every iteration**, even one this loop
+isn't actively working: find the highest-priority goal that is still unmet, then —
+
+- every goal **at or above** that priority gets a real, stepped target (see the table in
+  `## Workflow → Step 4` of the skill: hold / step / keep flat / build-probe);
+- every goal **below** that priority (lower-priority, i.e. the loop isn't earning its
+  keep there yet) gets an **easy target — hold it at (or just above) its current
+  measured value**, not a stretch target. This is not "omit it" — it's a deliberately
+  unambitious number, so the report's merged table shows it 🟡 amber (on track with the
+  easy ask) rather than 🔴 red, while the real fight stays on the goal(s) that are
+  actually blocking.
+
+`vocabulary.coverage` is the one exception to per-goal-row granularity: it is a single
+row in the priority table (priority 8, "floor gate") backed by ~100 per-Unicode-group
+leaves. Only gate the specific groups this loop is actually working; the report's
+merged table computes an aggregate "N/M groups (this iteration)" figure from whichever
+group leaves are present, and while any higher-priority goal is open the row still
+renders `deferred` (grey) regardless of what's in `coverage`.
+
+Keys are `goals.yml`'s literal spaced strings.
 
 ```yaml
 meta:
   based_on: <doc or plan this derives from, optional>
   written_after_report: <report/<dir> name, or null>
   rationale: <one line - the bottleneck this iteration targets>
-  deferred: [<goals.yml paths / branches intentionally not gated this iteration>]
+  deferred: [<goals.yml paths / branches given an easy hold-current target this iteration>]
 
-goals:                       # every branch optional - omit what you are not gating
+goals:                       # every priority-row goal present; vocabulary.coverage is the exception (gate only the groups this loop targets)
   emoji prediction:
-    exact keyword:
-      "acc@1": 0.95
-      "acc@5": 0.95
-      "acc@10": 0.95
-    fuzzy keyword:
-      "acc@1": 0.90
-    full text:
-      "acc@1": 0.70
-      "acc@5": 0.85
-      "acc@10": 0.90
+    exact keyword:           # priority 1 — the loop's focus this iteration
+      "acc@1": 0.75
+      "acc@5": 0.80
+      "acc@10": 0.85
+    fuzzy keyword:            # unmet, lower priority than the focus above — held easy
+      "acc@1": 0.0
+    full text:                 # unmet, lower priority — held easy at current
+      "acc@1": 0.55
+      "acc@5": 0.65
+      "acc@10": 0.75
   style prediction:
-    full text:
-      "acc@1": 0.80
+    full text:                 # unmeasured (cards off) — held at 0 until wired
+      "acc@1": 0.0
   color generator:
     energy distance:
-      global: 0.03
+      global: 0.05              # unmeasured — held until cards.energy is wired
       red: 0.20
-  max text len: 42
+      green: 0.20
+      blue: 0.20
+      dark: 0.20
+      bright: 0.20
+  max text len: 32               # already met at MAX_TEXT_LEN — held, not stepped past the hard target's headroom
   vocabulary:
-    size: 700
+    size: 400                    # unmet, lower priority — held at current vocab size
     coverage:
-      animal-mammal: 0.45      # per-Unicode-group vocab share
+      animal-mammal: 0.45      # per-Unicode-group vocab share — only if this loop gates coverage
 ```
 
 ## Leaf → report.json source, and comparison direction
@@ -74,4 +99,8 @@ standalone inverted-index keyword search (`report.json.keyword.exact` /
 
 `report.json.goals.compare` mirrors the `goals:` tree; each leaf becomes
 `{target, actual, met, dir, delta}` (`actual`/`met` are `null` when the source is not
-wired). `report.json.goals.summary` counts `met` / `unmet` / `unmeasured`.
+wired). `report.json.goals.summary` counts `met` / `unmet` / `unmeasured`. Rendered in
+`report.html` as "Goals for this iteration — per-leaf detail", right under the merged
+"Goal status" table (which carries the same targets one row per priority goal, next to
+`goals.yml`'s global target and this run's current value — see
+`tools/report.py:_section_status`).

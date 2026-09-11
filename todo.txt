@@ -1,2 +1,3 @@
-I want to replace the MRR metric across the project with a metric that is not affected by the dataset imbalance.
-Will Macro-Averaged MRR be a good choice for this?
+Done:
+
+Also each plan .md file should start with an abstract based on the last report and TB logs.

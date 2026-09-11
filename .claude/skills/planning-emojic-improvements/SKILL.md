@@ -11,15 +11,15 @@ description: Use when a training run has finished (train then tools/report.py) a
 
 | # | Step | Who |
 |---|---|---|
-| 1 | `train` (or `train enc --local --heads …`) | user |
+| 1 | `train` (full pipeline: `LitEncoder` all four heads + `LitColorGAN`, then a `web/public/` export) — the standard command every iteration, so each report measures the **shipped, functional web app** end to end, not a partial-heads checkpoint | user |
 | 2 | `tools/report.py` → `report/<stamp>-<sha>/{report.html,report.json}` | pipeline |
 | **3** | **Analysis** — read the newest report + TensorBoard, diagnose the top failing goal | **this skill** |
 | **4** | **Write `goal/<YYYY-MM-DD>-<short-sha>.yml`** — the targets the *next* iteration aims to hit | **this skill** |
-| **5** | **Derive a concrete plan** → `plans/<stamp>/plan.md` (git-tracked, mirrors `report/`), ending in 2-4 ranked options — then present them and wait | **this skill** |
+| **5** | **Derive a concrete plan** → `plans/<stamp>/plan.md` (git-tracked, mirrors `report/`) — current goals/status/gaps, then proposed actions per aspect (Data, Model Configuration, Model Architecture, Training Configuration, Metric Adjustments, Global Goal Adjustments, Current Goal Adjustments), ending in a menu of ranked options — then present them and wait | **this skill** |
 | **6** | **Implement the plan** — only the option(s) the user picked; data, config, analysis, regen changes (guardrails below); architecture / loss are recommend-only | **this skill, after the user picks** |
 | 7 | back to step 1 | user |
 
-The report already carries a priority-ordered scorecard at `status.goals` (the coloured banner atop `report.html`, targets from `goals.yml`), the per-Unicode-group vocab breakdown at `status.vocab_coverage`, and — once a `goal/*.yml` exists — a target-vs-actual table at `goals.compare`. Steps 3–6 turn that into the next goals file and the next set of moves; they do not re-derive the scorecard.
+The report already carries one merged, priority-ordered scorecard at the top of `report.html` (mirrored as `report.json` `status.goals`) — goal name, `goals.yml`'s global target, the newest `goal/*.yml`'s current-iteration target, this run's current value, and a good/amber/red/grey status — plus the per-Unicode-group vocab breakdown at `status.vocab_coverage`, and the full leaf-level detail (every gated leaf, not just the priority rows) at `goals.compare` just below it. Steps 3–6 turn that into the next goals file and the next set of moves; they do not re-derive the scorecard.
 
 Core principle: **the fusion model's Acc@1 on exact CLDR keywords (`keyword.fusion.acc_at_k[0]`) is priority 1 and must never regress.** Every recommendation states its risk to that number explicitly. A full-text-emoji gain that costs exact-keyword fusion accuracy is not an improvement. (The standalone inverted-index search `keyword.exact` stays a monitored sub-signal — it is not the gate.)
 
@@ -37,7 +37,9 @@ Core principle: **the fusion model's Acc@1 on exact CLDR keywords (`keyword.fusi
 **`goals.yml` (repo root) is the single source of truth for every target below.** It is
 the long-term project-goals statement (`GOALS_YML` in `files.py` / `files.ts`); the
 numbers in this table are just a quick reference and can lag the file. Each
-`goal/<date>-<sha>.yml` is a **strict subset** of its nested tree.
+`goal/<date>-<sha>.yml` covers **every one of the priority-ordered goals below** — see
+*Step 4* for the rule that gives lower-priority goals an easy (hold-current) target
+while a higher-priority one is still open.
 
 Every `emoji prediction` leaf measures **the fusion model** (the shipped system: best of
 the detached combiners over model logits + kw), by input type. The standalone
@@ -58,7 +60,10 @@ diagnostic, not a graded goal.
 † `keyword.fuzzy_fusion.*` is **not wired** — needs a uFuzzy `kw` sidecar from `regen.ts`
 (then fuse it the same way `keyword.fusion` fuses the exact kw vector). ‡ `cards.energy`
 (OKLab energy distance) is not computed yet; the per-colour `gt_mean_distance` legs are
-wired but only when the `cards` section runs (off by default this milestone).
+wired whenever `pt/style.pt` + `pt/gen.pt` exist — `cards` is now a **default**
+`tools/report.py` section (every `train` run trains and ships the GAN, so there's always
+a functional web app to measure end to end); it only comes back empty if those two
+checkpoints are missing.
 
 Priority order (scorecard priority number in parens): **1** fusion model on exact
 keywords Acc@k — no degradation — · **2** fusion model on full text Acc@k · **3** fusion
@@ -105,7 +110,7 @@ are gone.
 |---|---|
 | `report/<newest>-<sha>/report.json` | **Primary** — all Acc@k numbers, the `status` block (per-goal target vs current, priority-ordered), and `goals.compare` (target-vs-actual vs the last goals file). Confirm `provenance.issues == []` first; if not, stop and tell the user the report/`.pt` are inconsistent. |
 | `runs/<CONFIG_NAME>/` (gitignored TensorBoard) | **Required at step 3** — loss curves, `MRR/{e,s,fusion,kw}/val`, per-variant `MRR/fusion_{gate,gain,mix}/val`, `auc/critic/val`, `energy/gan/val`, `gate/a` · `gain/beta` · `mix/g`, early-stop epoch. Read with `uv run tensorboard --logdir runs` or `tensorboard.backend.event_processing.event_accumulator.EventAccumulator`. Note the newest run dir (`ls -t runs`). |
-| `goals.yml` (repo root) | **Long-term targets — source of truth.** Every `status` scorecard target is read from here; the newest `goal/*.yml` is a subset of its tree. |
+| `goals.yml` (repo root) | **Long-term targets — source of truth.** Every `status` scorecard's global-target column is read from here; the newest `goal/*.yml` covers every priority goal in this tree (easy holds on the ones below focus — see *Step 4*). |
 | `goal/<newest>.yml` + `goal/README.md` | The targets this iteration was aiming at, and the schema + leaf→`report.json` source map for the file step 4 writes. |
 | `model/config.py` + `uv run python model/config.py` | Current hyperparameters, param count, receptive field (15) vs `MAX_TEXT_LEN` (42). |
 | `data/labels.json` | Current emoji vocab list + size (dynamic). |
@@ -115,13 +120,13 @@ are gone.
 
 ### report.json field map
 
-- `status.goals` — priority-ordered scorecard: `{goal, priority, target, current, status (good|amber|red|na), note}` per goal, targets from `goals.yml`. **Start here.**
+- `status.goals` — priority-ordered scorecard, one row per goal, rendered as `report.html`'s opening "Goal status" table: `{goal, priority, dir (max|min), target (global, from goals.yml), iter_target (this iteration, from the newest goal/*.yml — "—" if unset), current, status (good|amber|red|na), note}`. `status` is good when `current` clears the global `target`, amber when it clears only `iter_target` (an intentionally easy iteration ask), red otherwise. **Start here.**
 - `status.best_emoji_variant` — which fusion variant the short-text rows used.
 - `status.vocab_coverage` — per-Unicode-group vocab coverage: `groups.<g>.{score,covered,total,target,passed}`, `groups_passed` / `groups_measurable` / `groups_total`, `score`, `passed`, `top_missing`.
 - `status.summary` — counts of good/amber/red/na.
 - `goals.source_file` — path of the goals file this report was graded against (newest `goal/*.yml`).
 - `goals.meta` — that file's `meta` block (`rationale`, `based_on`, `deferred`, …).
-- `goals.compare` — mirrors the `goals:` tree; each leaf `{target, actual, met, dir (max|min), delta}`. `actual`/`met` are `null` when the source is not wired yet (see `goal/README.md` map — `emoji prediction.fuzzy keyword.*` and `color generator.energy distance.global` are not wired).
+- `goals.compare` — the full **leaf-level** detail (every gated leaf, including every individual `vocabulary.coverage.<group>` entry, not just the priority rows in `status.goals`); mirrors the `goals:` tree, each leaf `{target, actual, met, dir (max|min), delta}`. `actual`/`met` are `null` when the source is not wired yet (see `goal/README.md` map — `emoji prediction.fuzzy keyword.*` and `color generator.energy distance.global` are not wired). Rendered in `report.html` right under the merged "Goal status" table, as "Goals for this iteration — per-leaf detail".
 - `goals.summary` — counts of `met` / `unmet` / `unmeasured` leaves.
 - `emoji.eval.acc_at_k` — `EmojiHead` retrieval, eval short texts, k=1..10.
 - `emoji.eval.fusion_{gate,gain,mix}_acc_at_k` — same via each detached combiner. Shipped variant = `FUSION_EXPORT_VARIANT` in `model/export_onnx.py` (default `gate`). If another variant clearly wins, that is a free win.
@@ -153,23 +158,26 @@ are gone.
 
 ### Step 4 — Write the goals file
 
-Write `goal/<YYYY-MM-DD>-<short-sha>.yml` (`date +%F`, `git rev-parse --short HEAD`) following `goal/README.md` — a **strict subset of `goals.yml`'s nested tree**, same spaced keys, keeping only the branches this loop gates. `tools/report.py` reads the **newest** `goal/*.yml`, so a new file supersedes the last one; commit it with the plan. If a long-term target itself needs to change, edit `goals.yml` (not the per-iteration file) and say why in the plan.
+Write `goal/<YYYY-MM-DD>-<short-sha>.yml` (`date +%F`, `git rev-parse --short HEAD`) following `goal/README.md` — same spaced keys as `goals.yml`. `tools/report.py` reads the **newest** `goal/*.yml`, so a new file supersedes the last one; commit it with the plan. If a long-term target itself needs to change, edit `goals.yml` (not the per-iteration file) and say why in the plan.
 
-Fill `meta` (`based_on`, `written_after_report: report/<stamp>-<sha>`, one-line `rationale` naming the bottleneck this iteration targets, `deferred: [...]` for `goals.yml` paths/branches not gated this loop). Then per goal leaf, from `goals.compare` / `status.goals`:
+**Every priority-ordered goal gets a target this iteration — none are omitted.** First find the **focus priority**: the priority number of the highest-priority goal that is still unmet (from `status.goals` / `goals.compare`). Then, per goal leaf:
 
-| Last iteration's result | Next target to write |
-|---|---|
-| `met` | **hold** — keep it at the value it cleared (or step it toward the hard target if there's obvious headroom). Never lower it. |
-| `unmet` but moving | an **achievable next step**: roughly `actual + one loop's expected gain`, capped at the hard target. Don't restate the hard target if it's far — a target the loop can't hit in one step gives no signal. |
-| `unmet` and flat / regressed | keep last target; the plan's job is a diagnostic or a bigger swing, not a number change. |
-| `unmeasured` (source not wired) | keep the intended target **and** make the plan's #1 action "build the probe that measures it" (see the `†`/`‡` notes and *Tool catalogue*). |
+| Goal's priority vs. the focus priority | Last iteration's result | Next target to write |
+|---|---|---|
+| at or above focus (this loop is fighting for it, or already won it) | `met` | **hold** — keep it at the value it cleared (or step it toward the hard target if there's obvious headroom). Never lower it. |
+| at or above focus | `unmet` but moving | an **achievable next step**: roughly `actual + one loop's expected gain`, capped at the hard target. Don't restate the hard target if it's far — a target the loop can't hit in one step gives no signal. |
+| at or above focus | `unmet` and flat / regressed | keep last target; the plan's job is a diagnostic or a bigger swing, not a number change. |
+| at or above focus | `unmeasured` (source not wired) | keep the intended target **and** make the plan's #1 action "build the probe that measures it" (see the `†`/`‡` notes and *Tool catalogue*). |
+| **below** focus (a lower-priority goal the loop isn't earning its keep on yet) | met or unmet | an **easy target — hold at (or just above) the current measured value**, not a stretch. Never below current (that would read as sanctioning a regression). List it in `meta.deferred` with the one-line reason ("lower priority than the priority-`<n>` focus this iteration"). |
 
-Only gate branches you're actually working this loop; omit the rest and list them under `meta.deferred`. Keep `vocabulary.coverage` out of the per-iteration file until every higher-priority goal is green.
+`vocabulary.coverage` (priority 8) follows the same rule but at the aggregate level, not per-group: while it is below focus, either omit the `coverage` branch entirely or hold every currently-gated group at its current score — don't reach for new groups. Only treat it as the focus (start stepping specific group targets) once every higher-priority goal is `good`.
+
+This same per-leaf reasoning (held / stepped / kept flat / unmeasured→probe / easy-hold-below-focus) is restated in the plan's **Current Goal Adjustments** section — the goal file is the machine-read artifact the report grades against, the plan section is the human-read rationale for the same numbers.
 
 ### Step 5 — Derive the plan
 
 6. **Set the loop verdict** (step-change / blocked-need-diagnostic / marginal-only, per the Overview) and **prioritize** — rank actions by (expected gain toward the highest-priority *failing* goal) then (cheapest / least-generative first: diagnostic ≈ config edit ≈ data-quality fix > data-gen upsample > Modal GPU). Respect the priority order. Never propose a change that risks the priority-1 exact-keyword fusion Acc@1 without a risk line and a mitigation. Any upsample option must name the non-generative fix that was considered and ruled out.
-7. **Write** `plans/<report-stamp>/plan.md` from the template below (reuse the report dir's exact `<stamp>`). Reference the goals file written in step 4. *Next actions* is a **menu of 2-4 ranked options**, not a to-do list — each with its expected effect, cost, and priority-1 risk.
+7. **Write** `plans/<report-stamp>/plan.md` from the template below (reuse the report dir's exact `<stamp>`). Reference the goals file written in step 4. Write the *Abstract* **last** (it summarizes everything else) but it renders **first** in the file, immediately after the metadata block — a short synthesis of the newest report + TensorBoard read from Step 3, not new analysis. *Current goals & status* / *Current gaps* come next; *Proposed actions* follows, organized under the seven fixed aspect headings (Data, Model Configuration, Model Architecture, Training Configuration, Metric Adjustments, Global Goal Adjustments, Current Goal Adjustments) — each a **menu of ranked options**, not a to-do list, every option with its expected effect, cost, and priority-1 risk. Keep every heading even when nothing applies this iteration — write "no change proposed" under it instead of deleting it.
 8. **Stop and present the options** — summarize the menu in chat (e.g. via `AskUserQuestion`) and wait for the user to pick one or more before doing anything in Step 6.
 
 ### Step 6 — Implement the plan
@@ -208,7 +216,7 @@ What the loop can reach for at steps 3 and 6. **Have** = exists today; **Should 
 
 | Tool | Command | Gives |
 |---|---|---|
-| Full report | `uv run python tools/report.py --pt pt` | `status.goals` scorecard (vs `goals.yml`), `goals.compare` (vs newest `goal/*.yml`), the 5-way `emoji.eval` Acc@k, `cldr` probe, Cards gold-set, `keywords_flex` vocab diagnostic, `status.vocab_coverage`. |
+| Full report | `uv run python tools/report.py --pt pt` | the merged `status.goals` scorecard (global target + this iteration's target + current value, vs `goals.yml` + newest `goal/*.yml`), `goals.compare` (full per-leaf detail), the 5-way `emoji.eval` Acc@k, `cldr` probe, `status.vocab_coverage`, `keywords_flex` vocab diagnostic, and — as a **default** section now — the Cards end-to-end gold-set (style + colour, over the shipped web-app inference graph). |
 | Rebuild group map | `bun run build-groups` | committed `data/group.json` (Unicode subgroup → emoji list) — the per-group vocab-coverage input. Re-run after an `emojibase-data` bump. |
 | Upsample a whole group | `bun run upsample --group <name> [--count N] [--dry]` | fresh rows targeting every emoji in Unicode subgroup `<name>` (random `N` with `--count`) — closes a `vocabulary.coverage` gap. Then `bun run regen`. |
 | Inference spot-check | `uv run python model/pred.py --pt pt` | `data/pred.jsonl` — top styles/emoji + `fusion_top_labels` for the first 200 eval rows. Eyeball concrete failures. |
@@ -255,53 +263,98 @@ Changed since prev: <one line from git log>
 Best emoji variant: <status.best_emoji_variant>
 Loop verdict: <step-change | blocked — need diagnostic | marginal-only> — <one line: the expected visible move, or the diagnostic being shipped>
 
-## Scorecard  (status.goals + Δ vs prev + goals.compare)
+## Abstract
 
-| Goal (priority) | Target | Current | Status | Δ prev | Last goal / met? |
+3-6 sentences, written last but placed first — the TL;DR of Step 3's analysis, for a reader who won't read past it: what the newest report + TensorBoard actually showed (the headline number and its direction vs prev), what's driving it (which head/metric from TensorBoard — under- vs over-training, a plateau, a lagging loss), the loop verdict and why, and the one thing this plan is proposing to do about it. No new claims — every sentence here must be traceable to a `report.json` field or a TensorBoard curve cited later in the plan.
+
+## Current goals & status  (report.html's opening "Goal status" table + Δ vs prev)
+
+Copy `report.html`'s merged, priority-ordered table verbatim (same as `report.json.status.goals`, sorted priority 1→8 — highest priority first) and add the plan-only Δ column:
+
+| Goal (priority) | Global target (goals.yml) | Current target (this iteration's goal/*.yml) | Current value | Status | Δ vs prev plan |
 |---|---|---|---|---|---|
-| Exact keyword Acc@1 (1) | ≥0.95 | 0.000 | 🔴 | +0.00 | 0.95 / no |
-| Full-text emoji Acc@1 (2) | ≥0.80 | | | | |
-| Full-text emoji Acc@5 (2) | ≥0.85 | | | | |
-| Full-text emoji Acc@10 (2) | ≥0.90 | | | | |
-| Fuzzy keyword Acc@1 (3) | ≥0.90 | | ⚪ | | |
-| Colour energy · global (4) | ≤0.01 | | ⚪ | | |
-| Style Acc@1 (5) | ≥0.80 | | ⚪ | | |
+| Exact keyword acc@1 (1) | ≥0.95 | ≥0.75 | 0.000 | 🔴 | +0.00 |
+| Full-text emoji acc@1 (2) | ≥0.80 | | | | |
+| Full-text emoji acc@5 (2) | ≥0.85 | | | | |
+| Full-text emoji acc@10 (2) | ≥0.90 | | | | |
+| Fuzzy keyword acc@1 (3) | ≥0.90 | | | ⚪ | |
+| Color energy · global (4) | ≤0.01 | | | ⚪ | |
+| Style acc@1 (5) | ≥0.80 | | | ⚪ | |
 | Max text len (6) | ≥42 | | | | |
 | Emoji vocab size (7) | ≥700 | | | | |
-| Vocab coverage — groups (8) | all ≥ target | | ⚪ deferred | | |
+| Vocab coverage (per Unicode group) (8) | all ≥ target | | | ⚪ deferred | |
+
+Status here is 🟢 good (clears the global target) / 🟡 amber (clears only this iteration's easier target) / 🔴 red (misses even that) / ⚪ na (unmeasured, or `deferred` for vocab coverage while a higher goal is open) — see `_grade_merged` in `tools/report.py`.
 
 Priority-1 regression gate — fusion model on exact keywords Acc@1/@5/@10 (`keyword.fusion`) vs prev: <PASS / FAIL + numbers>
 
-## Goals for next iteration  (goal/<YYYY-MM-DD>-<sha>.yml)
+## Current gaps
 
-<the leaves written, one line each, with the rationale: held / stepped from X to Y / kept (flat) / unmeasured→build probe>
+<per-bucket diagnosis from Step 3 (only the buckets with evidence this iteration): class balance / vocab coverage / config / data quality / eval-set representativeness / architecture headroom / diagnostic gap. Each gap names the goal it's blocking, the evidence (report.json field or TensorBoard curve), and whether the report + TensorBoard can already explain it or a new diagnostic is needed.>
 
-## Next actions — options (pick one or more; nothing here runs until you choose)
+## Proposed actions
 
-Each action: **target goal**, expected effect, CLDR risk, cost (config edit | data-gen | Modal GPU), and the exact command/diff. Ordered cheapest / least-generative first. Any upsample option names the non-generative fix that was ruled out first. Omit a bucket if it has nothing this iteration.
+Every action below states its **target goal**, expected effect, priority-1 (exact-keyword fusion) risk, and cost (config edit | data-gen | Modal GPU). Ordered cheapest / least-generative first within each heading. Nothing here runs until the user picks from the menu.
 
-### Analysis / diagnostics to add
-- <which one from *Tool catalogue → Should have*> — what failure it will explain, why the current report can't. New `tools/analysis/<name>.py` (read-only, qualifies to implement this loop) or a `tools/report.py` section (recommend-only).
+### Data
+- **Regen params** (recommend-only — user runs it): `--min-count` / `--max-count` / `--n` proposal, or "no change proposed". Size with `bun run regen --matrix` first; note Acc@k stops being comparable across the change.
+- **Upsampling** (last resort — avoid if possible; name the non-generative option ruled out first): "no upsample proposed" unless a genuine coverage hole was found. Otherwise: ruled-out option, then `bun run upsample --keywords/--emojis/--rare/--flags/--group …`, then `bun run regen`.
+- **`CLDR_WEIGHT`**: current → proposed (or "no change"), because <evidence — `MRR/e/val` vs `MRR/e/train` split, `cldr.acc_at_k` fit-vs-generalization gap>. Priority-1 risk: <…>.
+- **Other data adjustments** — data-quality fixes on existing rows (`bun run upsample --reannotate …` or a tool fix) and eval-set representativeness updates, or "none this iteration".
 
-### Model configuration — model/config.py
-- `<KNOB>`: `<old>` → `<new>` — because <TB metric / report number>. Target: <goal>. CLDR risk: <…>.
+### Model Configuration
 
-### Data-quality checks (fix existing rows, not new ones)
-- Inspect `<slice>` (e.g. `grep '"color": "red"' data/data.jsonl | head -50` / `jq` the worst `keywords_flex` misses) — looking for <mislabeled emojis | wrong-set styles | palette drift | a tool silently misrouting labels>. Action if confirmed: <re-annotate via `bun run upsample --reannotate …` | fix the tool | drop | targeted regen>.
+Full inventory of every current `model/config.py` capacity/regularization knob that is **not** a structural edit (those are Model Architecture) and **not** a training-loop knob (those are Training Configuration): `EMOJI_EMBED_SIZE`, `STYLE_EMBED_SIZE`, `DROPOUT_EMOJI`, `DROPOUT_STYLE`, `DROPOUT_CRITIC`, `RELU_SLOPE`, `Z_WEIGHT`, `GEN_CHANNELS`, `CRITIC_COLOR_CHANNELS`, `CRITIC_TEXT_CHANNELS`. Every row appears every iteration — unchanged knobs get "—" in the last three columns, not omission. `EMOJI_EMBED_SIZE` / `STYLE_EMBED_SIZE` resize only their own head's projection, not the shared `TEXT_EMBED_SIZE` trunk, so they stay configuration rather than architecture.
 
-### Evaluation-set updates
-- <coverage gap in data/eval.jsonl vs vocab | raise `regen --n` | add a probe slice to tools/report.py for goal <…>>.
+| Knob | Current value | Proposed value | Reason for change | Expected impact |
+|---|---|---|---|---|
+| `EMOJI_EMBED_SIZE` | | | | |
+| `STYLE_EMBED_SIZE` | | | | |
+| `DROPOUT_EMOJI` | | | | |
+| `DROPOUT_STYLE` | | | | |
+| `DROPOUT_CRITIC` | | | | |
+| `RELU_SLOPE` | | | | |
+| `Z_WEIGHT` | | | | |
+| `GEN_CHANNELS` | | | | |
+| `CRITIC_COLOR_CHANNELS` | | | | |
+| `CRITIC_TEXT_CHANNELS` | | | | |
 
-### Data upsampling — bun run upsample   (last resort — name the non-generative option ruled out first)
-- Ruled out: <diagnostic / config / data-quality fix considered and why it wasn't enough>.
-- `bun run upsample --keywords "<…>"` — <N rows, which coverage/Acc@k gap>. Then `bun run regen`.
-- `bun run upsample --emojis "<…>"` / `--rare --iter <n>` / `--flags [--count N]` / `--group <name> [--count N]` — …
+Only rows matching the Step 6 whitelist (`DROPOUT_EMOJI`, `DROPOUT_STYLE`) are auto-implementable if picked; every other row is a recommendation for the user to apply by hand.
 
-### Regen configuration — bun run regen   (recommend-only; user runs it)
-- `--min-count <old→new>` / `--max-count …` / `--n …` — vocab-size / eval-split tradeoff. Run `bun run regen --matrix` first; note that Acc@k stops being comparable across the change.
+### Model Architecture  (avoid unless Model Configuration changes are insufficient)
+- <proposed change to `ENCODER_CHANNELS` / `ENCODER_DILATION` / `ENCODER_KERNEL_SIZE` / `CHAR_EMBED_SIZE` / `TEXT_EMBED_SIZE`, `model/model.py` structure, or a loss shape (`lse_infonce`, a fusion combiner, a GAN loss)> — reason: <which Model Configuration knob(s) were tried or would plausibly not be enough, and why>. Expected impact: <…>. Param-count / wasm-latency cost: <quantified, e.g. via `uv run python model/config.py`>. Needs a Modal GPU run to validate. Recommend-only — do not apply. Or "no architecture change proposed".
 
-### Architecture / loss — recommend-only
-- <change> — param-count / wasm-latency cost: <quantified>. Needs a Modal GPU run to validate.
+### Training Configuration
+
+Full inventory of every current `model/config.py` optimization-loop knob: `LR`, `GAN_GEN_LR`, `GAN_CRITIC_LR`, `GAN_GEN_MARGIN`, `GRAD_CLIP_GEN`, `GRAD_CLIP_CRITIC`, `INFONCE_TEMP`, `TASK_BATCH_SIZE`, `GAN_BATCH_SIZE`, `EPOCHS_TASK`, `EPOCHS_GAN`, `VAL_CHECK_INTERVAL`, `EARLY_STOP_PATIENCE`. (`CLDR_WEIGHT` lives in the same file but is proposed under Data, not here — it's a corpus-mix knob, not an optimizer knob.) Every row appears every iteration — unchanged knobs get "—" in the last three columns, not omission.
+
+| Knob | Current value | Proposed value | Reason for change | Expected impact |
+|---|---|---|---|---|
+| `LR` | | | | |
+| `GAN_GEN_LR` | | | | |
+| `GAN_CRITIC_LR` | | | | |
+| `GAN_GEN_MARGIN` | | | | |
+| `GRAD_CLIP_GEN` | | | | |
+| `GRAD_CLIP_CRITIC` | | | | |
+| `INFONCE_TEMP` | | | | |
+| `TASK_BATCH_SIZE` | | | | |
+| `GAN_BATCH_SIZE` | | | | |
+| `EPOCHS_TASK` | | | | |
+| `EPOCHS_GAN` | | | | |
+| `VAL_CHECK_INTERVAL` | | | | |
+| `EARLY_STOP_PATIENCE` | | | | |
+
+Only rows matching the Step 6 whitelist (`LR`, `INFONCE_TEMP`, `EARLY_STOP_PATIENCE`, `EPOCHS_TASK`) are auto-implementable if picked; every other row (GAN optimizer knobs, batch sizes, grad clip, `VAL_CHECK_INTERVAL`) is a recommendation for the user to apply by hand.
+
+### Metric Adjustments
+- **Wrong signal**: <if a current metric grades the wrong thing for the top failing goal, propose the replacement and why it's better — cite the `report.json` field it would change>, or "none this iteration".
+- **Missing signal**: <if a metric is missing that would explain the top *Current gaps* entry, propose it (pull from *Tool catalogue → Should have*) and why it matters>, or "none this iteration".
+
+### Global Goal Adjustments  (goals.yml — the long-term targets)
+- <if a `goals.yml` leaf looks structurally unreachable given everything observed across iterations, or was cleared with room to spare, propose a revised long-term number with the evidence>, or "no change proposed — targets still appropriate".
+
+### Current Goal Adjustments  (goal/<YYYY-MM-DD>-<sha>.yml — this iteration's targets)
+<mirrors the Step 4 table: per gated leaf, held / stepped from X to Y / kept flat (blocked) / unmeasured→build probe, with the one-line reason. Flag explicitly if a leaf looks too ambitious for one loop (soften it here rather than in goal/*.yml directly) or too easy (step it further).>
 
 ## Applied this run
 
@@ -324,6 +377,11 @@ Each action: **target goal**, expected effect, CLDR risk, cost (config edit | da
 - Proposing "add more data" / "train longer" as the action when no analysis shows *which* data or that the model is under-trained. Name the slice or the metric first.
 - Reaching for `bun run upsample` before checking whether a diagnostic, config nudge, or data-quality fix on existing rows could close the gap — upsampling is the last resort, not the first idea.
 - Implementing anything in Step 6 without first stopping at Step 5's option menu and getting the user's pick — a written plan is not standing authorization to run it.
+- Omitting a lower-priority goal from `goal/*.yml` entirely — every priority-ordered goal needs a target this iteration; below the focus priority that target is an easy hold-at-current, not silence.
+- Writing a stretch target on a goal below the focus priority — that spends the plan's effort on the wrong goal and defeats the point of "easy" targets for goals that aren't this loop's fight.
+- Writing the Abstract before Step 3's analysis is done, or letting it assert something no `report.json` field or TensorBoard curve backs up elsewhere in the plan — it's a summary of the analysis, not a place to introduce new claims.
+- Leaving a Model Configuration / Training Configuration table incomplete — it must inventory every current `model/config.py` knob in that bucket, not just the ones being changed; an unchanged knob still gets a row ("—" in the last three columns), never omission.
+- Proposing a Model Architecture change without first showing which Model Configuration knob was tried (or would plausibly not be enough) — architecture is the last resort within model changes, the same way upsampling is the last resort within data changes.
 
 ## When NOT to use
 
