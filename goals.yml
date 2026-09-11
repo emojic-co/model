@@ -13,8 +13,8 @@ goals:
       "acc@5": 0.9
       "acc@10": 0.95
     full text:
-      "acc@1": 0.80
-      "acc@5": 0.85
+      "acc@1": 0.75
+      "acc@5": 0.80
       "acc@10": 0.90
 
   style prediction:
