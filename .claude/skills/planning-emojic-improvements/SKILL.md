@@ -57,8 +57,11 @@ diagnostic, not a graded goal.
 | Vocab size | `vocabulary.size` | `labels.emojis` | ≥ 700 |
 | Per-group vocab coverage | `vocabulary.coverage.<group>` | `status.vocab_coverage.groups.<group>.score` | per-group, see `goals.yml` |
 
-† `keyword.fuzzy_fusion.*` is **not wired** — needs a uFuzzy `kw` sidecar from `regen.ts`
-(then fuse it the same way `keyword.fusion` fuses the exact kw vector). ‡ `cards.energy`
+† `keyword.fuzzy_fusion.*` is wired via `tools/analysis/kw-search.ts` (the standalone
+uFuzzy keyword search — exact + fuzzy matches, `PRIMARY_BONUS`-ranked, same algorithm as
+`regen.ts`/`web/src/keywords.js`), shelled out to by `tools/report.py:_kw_search_rows` and
+fused the same way `keyword.fusion` fuses the exact kw vector; it reads back empty (not
+fatal) if `bun` or `web/public/kwproj.json` are unavailable when the report runs. ‡ `cards.energy`
 (OKLab energy distance) is not computed yet; the per-colour `gt_mean_distance` legs are
 wired whenever `pt/style.pt` + `pt/gen.pt` exist — `cards` is now a **default**
 `tools/report.py` section (every `train` run trains and ships the GAN, so there's always
@@ -126,12 +129,13 @@ are gone.
 - `status.summary` — counts of good/amber/red/na.
 - `goals.source_file` — path of the goals file this report was graded against (newest `goal/*.yml`).
 - `goals.meta` — that file's `meta` block (`rationale`, `based_on`, `deferred`, …).
-- `goals.compare` — the full **leaf-level** detail (every gated leaf, including every individual `vocabulary.coverage.<group>` entry, not just the priority rows in `status.goals`); mirrors the `goals:` tree, each leaf `{target, actual, met, dir (max|min), delta}`. `actual`/`met` are `null` when the source is not wired yet (see `goal/README.md` map — `emoji prediction.fuzzy keyword.*` and `color generator.energy distance.global` are not wired). Rendered in `report.html` right under the merged "Goal status" table, as "Goals for this iteration — per-leaf detail".
+- `goals.compare` — the full **leaf-level** detail (every gated leaf, including every individual `vocabulary.coverage.<group>` entry, not just the priority rows in `status.goals`); mirrors the `goals:` tree, each leaf `{target, actual, met, dir (max|min), delta}`. `actual`/`met` are `null` when the source is not wired yet (see `goal/README.md` map — `color generator.energy distance.global` is not wired; `emoji prediction.fuzzy keyword.*` is wired but reads back `null` on a run where `bun` or `web/public/kwproj.json` weren't available). Rendered in `report.html` right under the merged "Goal status" table, as "Goals for this iteration — per-leaf detail".
 - `goals.summary` — counts of `met` / `unmet` / `unmeasured` leaves.
 - `emoji.eval.acc_at_k` — `EmojiHead` retrieval, eval short texts, k=1..10.
 - `emoji.eval.fusion_{gate,gain,mix}_acc_at_k` — same via each detached combiner. Shipped variant = `FUSION_EXPORT_VARIANT` in `model/export_onnx.py` (default `gate`). If another variant clearly wins, that is a free win.
 - `emoji.eval.keywords_acc_at_k` — non-learned `kw` vector alone.
 - `emoji.eval.baseline.acc_at_k` — `overlap` baseline.
+- `keyword.{exact,model,fusion,fuzzy,fuzzy_fusion}` — CLDR-keyword probe, each `{n, total, acc_at_k[0..9]}`: `exact`/`fuzzy` are the standalone kw search (Python exact-only vs. `tools/analysis/kw-search.ts` exact+uFuzzy, both diagnostics only), `model` is bare `EmojiHead`, `fusion`/`fuzzy_fusion` are the graded fusion-model numbers (priority-1 / priority-3). `model`/`fusion`/`fuzzy_fusion` need `enc.pt`+`emoji.pt` (+`emoji_embed.pt`+`fusion.pt` for the two fusion columns) to load; `fuzzy`/`fuzzy_fusion` additionally need `bun` + `web/public/kwproj.json` at report time.
 - `cldr.acc_at_k`, `cldr.n`, `cldr.total` — `data/cldr.jsonl` keyword probe.
 - `cards.emoji_acc_at_k`, `cards.style_acc_at_k` — shipped-graph end-to-end on the 125-row colours gold set.
 - `cards.per_color.<red|green|blue|dark|bright|all>.{pure_accuracy,pure_mean_distance,gt_accuracy,gt_mean_distance}` — palette accuracy per colour.
@@ -146,7 +150,7 @@ are gone.
 1. **Locate** the newest `report/` dir. Verify its `-<sha>` matches `git rev-parse --short HEAD` and `provenance.issues == []`. If stale or inconsistent, stop and say so (or run `uv run python tools/report.py --pt pt` if the user wants a fresh one).
 2. **Read TensorBoard** — open the newest `runs/<CONFIG_NAME>/` (+ `/gan`). Record: which head's val metric lags (`MRR/e` vs `MRR/s` vs `MRR/fusion` vs `auc/critic` vs `energy/gan`), the early-stop epoch (under- vs over-training), the learned fusion scalars (`gate/a` · `gain/beta` · `mix/g`), and any divergence / plateau shape.
 3. **Scorecard** — copy `status.goals` verbatim; add a **Δ vs previous plan** column per goal (`plans/<prev>/plan.md`). Note `status.best_emoji_variant`. Read `goals.compare` / `goals.summary` — which of last iteration's targets were `met` / `unmet` / `unmeasured`.
-4. **Regression gate** — compare the priority-1 row (fusion model on exact keywords, `keyword.fusion.acc_at_k[0]/[4]/[9]`) to the previous plan; also note `keyword.exact.*` (standalone search) and model-only `cldr.acc_at_k` as sub-signals. Any drop on the fusion row = priority-1 finding, called out at the top of the plan.
+4. **Regression gate** — compare the priority-1 row (fusion model on exact keywords, `keyword.fusion.acc_at_k[0]/[4]/[9]`) and the priority-3 row (fusion on fuzzy keywords, `keyword.fuzzy_fusion.acc_at_k`) to the previous plan; also note `keyword.exact.*` / `keyword.fuzzy.*` (standalone search, exact vs. exact+uFuzzy) and model-only `keyword.model.*` / `cldr.acc_at_k` as sub-signals. Any drop on either fusion row = a priority-1/3 finding, called out at the top of the plan.
 5. **Diagnose**, gathering evidence for each action bucket:
    - *Class balance* — `data.records`; most/least frequent kept emojis; `regen`'s summary (`kw` keys + mean nonzero); which in-vocab emojis have high `keywords_flex` rank / low `emoji.eval` contribution. Check first whether the rows that *should* teach this are already in the corpus but mislabeled, never forced into training, or drowned out (a data-quality or config fix) before treating it as an **upsample** candidate.
    - *Vocab coverage* (lowest priority — only if every higher goal is green) — `status.vocab_coverage`: which groups are under their `goals.yml` target (`groups.<g>.passed == false`), `top_missing`, the weakest groups from the `status.goals` note → **`bun run upsample --group <name>`** and/or **regen `--min-count`** candidates. Skip this bucket entirely while any higher goal fails.
@@ -185,8 +189,8 @@ This same per-leaf reasoning (held / stepped / kept flat / unmeasured→probe / 
 9. **Execute only what the user picked** in step 8, in priority order if they picked more than one. Record each under *Applied this run* with its verification output. Architecture / `model/model.py` structure / loss-function changes stay **recommend-only** — write them in the plan, don't apply them regardless of what's picked.
 
 **Qualifies to implement** (list in the plan cheapest / least-generative first — this order is also the default option ranking for step 8):
-- **A new read-only analysis script** under `tools/analysis/*.py` — loads `pt/*.pt` + `data/*.jsonl`, writes a report/plot or prints a table, **mutates nothing** (no `.pt`, no `data/`, no `web/`). Wiring it into `tools/report.py` as a permanent section is recommend-only (bigger surface, changes the standard report).
-- **Building a probe the goals file needs** — e.g. the CLDR fuzzy split (`report.json.keyword.fuzzy.acc_at_k`), or `cards.energy` (OKLab energy distance) for `color generator.energy distance.global`. Report-side / committed-data only; touches no model weights.
+- **A new read-only analysis script** under `tools/analysis/*.py` (or `*.ts`, e.g. `kw-search.ts`) — loads `pt/*.pt` + `data/*.jsonl` (or `web/public/kwproj.json` + `data/labels.json`), writes a report/plot or prints a table, **mutates nothing** (no `.pt`, no `data/`, no `web/`). Wiring it into `tools/report.py` as a permanent section is recommend-only (bigger surface, changes the standard report) — a `.ts` script gets wired via `subprocess` (see `_kw_search_rows`), same as `kw-search.ts` was.
+- **Building a probe the goals file needs** — e.g. `cards.energy` (OKLab energy distance) for `color generator.energy distance.global`. Report-side / committed-data only; touches no model weights.
 - Switching `FUSION_EXPORT_VARIANT` in `model/export_onnx.py` when the report shows another variant clearly wins, then `uv run python model/export_onnx.py`.
 - Localized scalar nudges in `model/config.py` — one small step per knob, only where TensorBoard clearly points: `LR`, `INFONCE_TEMP`, `DROPOUT_EMOJI`, `DROPOUT_STYLE`, `EARLY_STOP_PATIENCE`, `EPOCHS_TASK`.
 - **Data-quality fix on rows already in the corpus** — e.g. `bun run upsample --reannotate colors|emojis` on a slice a data-quality check flagged, or fixing a tool that was silently mislabeling/misrouting existing generation (as opposed to generating more rows). Prefer this over fresh generation whenever the gap is in how existing data is used or labeled, not in what concepts exist.
@@ -206,7 +210,7 @@ This same per-leaf reasoning (held / stepped / kept flat / unmeasured→probe / 
 - After a data change: `bun run regen`, then re-read its summary.
 - Never run `train` / `train --local` — see `[[dont-run-main-to-test]]`. The retrain is the user's to kick off (loop step 1).
 - No comments or docstrings in any code touched — see `[[no-comments-or-docstrings]]`.
-- Run the python test scripts after touching `tools/report.py` or `model/*`: `uv run python tools/test_report.py` · `model/test_runmeta.py` · `model/test_train_cli.py`.
+- Run the python test scripts after touching `tools/report.py` or `model/*`: `uv run python tools/test_report.py` · `model/test_runmeta.py` · `model/test_train_cli.py`. After touching `tools/analysis/*.ts`: `bun test tools/analysis/`.
 
 ## Tool catalogue
 
@@ -229,11 +233,11 @@ What the loop can reach for at steps 3 and 6. **Have** = exists today; **Should 
 | TensorBoard | `uv run tensorboard --logdir runs` | `MRR/{e,s,fusion,kw}/val`, per-variant fusion MRR, `auc/critic/val`, `energy/gan/val`, `gate/a`·`gain/beta`·`mix/g`, early-stop epoch. |
 | ONNX export | `uv run python model/export_onnx.py` | refresh `web/public/` after a `FUSION_EXPORT_VARIANT` switch (no retrain). |
 | Raw slicing | `grep`/`jq` on `data/data.jsonl` | inspect rows by `color:*` / `flag:*` / `neg:*` / `keyword:*` / `meta.src` tag. |
+| Standalone keyword search | `bun run tools/analysis/kw-search.ts <data.jsonl> [--json]` | the production exact+uFuzzy keyword search (same algorithm as `regen.ts`/`web/src/keywords.js`, `PRIMARY_BONUS`-ranked) run over any `data.jsonl`-schema file's full text, reporting Acc@{1,5,10}. `--json` also emits each scored row's sparse `kw` vector. `tools/report.py:_kw_search_rows` shells out to it (on the CLDR keyword set) to populate `report.json.keyword.fuzzy` / `keyword.fuzzy_fusion`; needs `bun` + `web/public/kwproj.json`. |
 
 ### Should have — build when a failure is unexplained
 
 **Emoji / CLDR**
-- **Fuzzy-fusion probe** — `report.json.keyword.fuzzy_fusion.acc_at_k`: build a uFuzzy `kw` sidecar in `regen.ts`, feed it to the fusion combiners the same way `keyword.fusion` uses the exact kw vector, score on `data/cldr.jsonl`. Wires the `emoji prediction.fuzzy keyword.*` leaves. (`keyword.fuzzy` — the standalone uFuzzy search — is the diagnostic counterpart.)
 - **Per-class Acc@k** — Acc@1/@5 for every emoji in the vocab (and per emojibase group / per `meta.src` tag). Surfaces which classes carry the miss rate vs. a uniform sag.
 - **Confusion pairs** — for eval misses, top-1 predicted emoji vs. the gold set. Ranked → merge candidates, annotation noise, or a real semantic gap.
 - **Never-retrieved set** — target emojis that never reach top-10 for any eval row → coverage / embedding-collapse signal.

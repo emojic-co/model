@@ -82,7 +82,7 @@ goals:                       # every priority-row goal present; vocabulary.cover
 | goal path (flattened) | dir | report.json source | wired? |
 |---|---|---|---|
 | `emoji prediction.exact keyword.acc@{1,5,10}` | ≥ | `keyword.fusion.acc_at_k[{0,4,9}]` — the **fusion model** (best combiner over model logits + kw) scored on CLDR keywords with an **exact**-matched kw vector; **priority-1 gate** | yes |
-| `emoji prediction.fuzzy keyword.acc@{1,5,10}` | ≥ | `keyword.fuzzy_fusion.acc_at_k[...]` — the fusion model on CLDR keywords with a **uFuzzy**-matched kw vector | no — needs a uFuzzy `kw` sidecar from `regen.ts` |
+| `emoji prediction.fuzzy keyword.acc@{1,5,10}` | ≥ | `keyword.fuzzy_fusion.acc_at_k[...]` — the fusion model on CLDR keywords with a **uFuzzy**-matched kw vector | yes — via `tools/analysis/kw-search.ts`, shelled out to by `tools/report.py:_kw_search_rows` (only when `bun` + `web/public/kwproj.json` are available) |
 | `emoji prediction.full text.acc@{1,5,10}` | ≥ | `emoji.eval.<best fusion variant>_acc_at_k[{0,4,9}]` — the fusion model on eval short texts | yes |
 | `style prediction.full text.acc@{1,5,10}` | ≥ | `cards.style_acc_at_k[{0,4,9}]` | yes (only when the `cards` section runs) |
 | `color generator.energy distance.global` | ≤ | `cards.energy` | no — `cards` does not compute OKLab energy yet |

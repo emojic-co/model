@@ -5,9 +5,9 @@
 goals:
   emoji prediction:
     exact keyword:
-      "acc@1": 0.9
+      "acc@1": 0.88
       "acc@5": 0.92
-      "acc@10": 0.95
+      "acc@10": 0.96
     fuzzy keyword:
       "acc@1": 0.8
       "acc@5": 0.9

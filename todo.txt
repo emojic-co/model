@@ -1,3 +1,10 @@
-Done:
+Add a tool `tools/analysis/kw-search.ts <data.jsonl>`:
+The tool uses the standalone keyword search to predict emojis from full text.
+The tool reads the records from the provided <data.jsonl> file and reports acc@k for k in {1, 5, 10}.
 
-Also each plan .md file should start with an abstract based on the last report and TB logs.
+Use this tool in the report:
+Add a section `keyword` to the report and compare:
+acc@k for k in {1, 5, 10} across the EmojiHead, stand alone search, and the FusionHead.
+
+Also inform the .claude/skills/planning-emojic-improvements/SKILL.md skill about this tool.
+
