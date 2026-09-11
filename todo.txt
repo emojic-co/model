@@ -1,0 +1,4 @@
+Done:
+`regen` must drop records with no emojis.
+if a record has no emojis after the `--min-count` filter, it must be dropped.
+`regen` reports numbers of dropped records both due to `--max-count` and due to `--min-count` (no emojis).

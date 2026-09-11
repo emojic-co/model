@@ -9,7 +9,7 @@ import { normalize } from "./normalize.ts"
 import { STYLE_SET } from "./styles.ts"
 import { queryTokens } from "./tokenize.ts"
 
-const MIN_COUNT = 0
+const MIN_COUNT = 125
 const MAX_COUNT = 750
 const EVAL_SIZE = 2000
 
@@ -336,7 +336,19 @@ if (import.meta.main) {
   const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1])
   const belowMin = ranked.length - emojis.length
 
-  const split = shuffle(kept, SEED + 1)
+  const emojiSet = new Set(emojis)
+  const filteredKept: Row[] = []
+  let droppedMinCount = 0
+  for (const r of kept) {
+    const es = splitEmojis(r.emojis).filter((e) => emojiSet.has(e))
+    if (es.length === 0) {
+      droppedMinCount++
+      continue
+    }
+    filteredKept.push({ ...r, emojis: es.join(" ") })
+  }
+
+  const split = shuffle(filteredKept, SEED + 1)
   const held = split.slice(0, n)
   const rest = split.slice(n)
 
@@ -456,6 +468,9 @@ if (import.meta.main) {
   console.log(`min-count / max-count : ${minCount} / ${maxCount}`)
   console.log(`greedy kept           : ${kept.length} rows (dropped ${dropped} over max-count)`)
   console.log(`emoji vocab (>= ${minCount})  : ${emojis.length} (below min-count: ${belowMin})`)
+  console.log(
+    `min-count kept        : ${filteredKept.length} rows (dropped ${droppedMinCount} with no emojis left)`,
+  )
   console.log(`  most frequent       : ${fmt(keptRanked.slice(0, 5))}`)
   console.log(`  least frequent kept : ${fmt(keptRanked.slice(-5))}`)
   console.log(`-> ${EVAL}       : ${held.length}`)
