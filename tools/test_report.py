@@ -216,6 +216,49 @@ def test_keyword_html_renders():
     assert ">Exact kw<" in h and ">Fusion<" in h
 
 
+def test_exact_word_accuracy_html():
+    from tools.report import _exact_word_accuracy_html
+
+    assert "unavailable" in _exact_word_accuracy_html({})
+    report = {
+        "keyword": {
+            "model": {"acc_at_k": [0.1 + 0.01 * i for i in range(10)]},
+            "exact": {"acc_at_k": [0.9 + 0.005 * i for i in range(10)]},
+            "fusion": {"acc_at_k": [0.5 + 0.02 * i for i in range(10)]},
+        }
+    }
+    h = _exact_word_accuracy_html(report)
+    assert "Exact Word Accuracy" in h
+    assert ">EmojiHead<" in h and ">Search<" in h and ">Fusion<" in h
+    assert f"{report['keyword']['model']['acc_at_k'][0]:.3f}" in h
+    assert f"{report['keyword']['exact']['acc_at_k'][4]:.3f}" in h
+    assert f"{report['keyword']['fusion']['acc_at_k'][9]:.3f}" in h
+
+    partial = _exact_word_accuracy_html({"keyword": {"exact": {"acc_at_k": [0.5] * 10}}})
+    assert "—" in partial
+
+
+def test_full_text_accuracy_html():
+    from tools.report import _full_text_accuracy_html
+
+    assert "unavailable" in _full_text_accuracy_html({})
+    report = {
+        "emoji": {
+            "eval": {
+                "acc_at_k": [0.3 + 0.05 * i for i in range(10)],
+                "keywords_acc_at_k": [0.2 + 0.05 * i for i in range(10)],
+                "fusion_acc_at_k": [0.4 + 0.045 * i for i in range(10)],
+            }
+        }
+    }
+    h = _full_text_accuracy_html(report)
+    assert "Full Text Accuracy" in h
+    assert ">EmojiHead<" in h and ">Search<" in h and ">Fusion<" in h
+    assert f"{report['emoji']['eval']['acc_at_k'][0]:.3f}" in h
+    assert f"{report['emoji']['eval']['keywords_acc_at_k'][4]:.3f}" in h
+    assert f"{report['emoji']['eval']['fusion_acc_at_k'][9]:.3f}" in h
+
+
 def test_load_global_goals():
     from tools.report import _load_global_goals
 
@@ -528,6 +571,8 @@ def main() -> None:
     test_keywords_flex_html()
     test_section_keyword_exact_probe()
     test_keyword_html_renders()
+    test_exact_word_accuracy_html()
+    test_full_text_accuracy_html()
     test_load_global_goals()
     test_group_json_shape()
     test_section_status_orders_and_grades()
