@@ -1,3 +1,2 @@
-Fusion model:
-    Keep only one fusion model that does:
-        Per-Emoji Feature Weighting (Diagonal Weights):$$z_{\text{fused}} = W_{\text{DL}} \odot P_{\text{DL}} + W_{\text{Search}} \odot S_{\text{Search}} + b$$Trainable parameters: Vectors $W_{\text{DL}}, W_{\text{Search}}, b \in \mathbb{R}^{len(emojis)}$. This lets the model learn     
+I want to replace the MRR metric across the project with a metric that is not affected by the dataset imbalance.
+Will Macro-Averaged MRR be a good choice for this?
