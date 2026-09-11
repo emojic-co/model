@@ -1,0 +1,38 @@
+meta:
+  based_on: plans/26-09-11-02-48-d577316/plan.md
+  written_after_report: report/26-09-11-02-48-d577316
+  rationale: >
+    Root cause found for both open goals: bun run upsample --keywords never forced
+    the target emoji into its rows (unlike --emojis/--group/--flags), so last
+    iteration's 25-keyword upsample (pet/health/hammer/memo/...) mostly taught the
+    model whatever emoji the annotator picked naturally, not the CLDR/ii.json target
+    the flex-keyword probe grades against - explaining the flat 0.680->0.706 /
+    0.538->0.550 moves. Fixed this loop (upsample.ts: --keywords now accepts
+    keyword=emoji to force the target, same as --emojis) and re-ran 27
+    keyword=emoji pairs from the worst keywords_flex misses (1349 rows, ~40-47/50
+    kept per keyword after regen's cap). Separately, running the standard
+    `bun run regen` (no flags - the documented default) grew the emoji vocab
+    287 -> 400 versus the 26-09-11-02-48 report, most likely because that report's
+    train/eval/labels.json had been left over from a non-default regen invocation;
+    every Acc@k number below the next training run is measured against a
+    substantially different (larger) label space and is NOT comparable to the
+    26-09-11-02-48 report. Targets below are held near their prior values rather
+    than stepped hard, since the vocab jump alone can move them either way
+    independent of the fix's effect.
+  deferred:
+    - "emoji prediction.exact keyword.acc@5"
+    - "emoji prediction.exact keyword.acc@10"
+    - "emoji prediction.fuzzy keyword"
+    - "emoji prediction.full text.acc@5"
+    - "emoji prediction.full text.acc@10"
+    - style prediction
+    - color generator
+    - max text len
+    - vocabulary
+
+goals:
+  emoji prediction:
+    exact keyword:
+      "acc@1": 0.72
+    full text:
+      "acc@1": 0.56

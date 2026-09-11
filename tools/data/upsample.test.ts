@@ -6,6 +6,7 @@ import {
   mergeEmojiAdditions,
   parseFlagLabels,
   parseKeywords,
+  parseKeywordTargets,
   rankWindow,
   rareEmojis,
   reannotateTexts,
@@ -22,6 +23,16 @@ test("parseKeywords trims, drops empties, and dedupes while preserving order", (
   ])
   expect(parseKeywords("  ,, ")).toEqual([])
   expect(parseKeywords("dog walk")).toEqual(["dog walk"])
+})
+
+test("parseKeywordTargets parses an optional =emoji target, trims, dedupes", () => {
+  expect(parseKeywordTargets("hammer=🛠️, memo = 📝 , pet")).toEqual([
+    { keyword: "hammer", target: "🛠️" },
+    { keyword: "memo", target: "📝" },
+    { keyword: "pet" },
+  ])
+  expect(parseKeywordTargets("rain, rain=🌧️")).toEqual([{ keyword: "rain" }])
+  expect(parseKeywordTargets("  ,, ")).toEqual([])
 })
 
 test("parseFlagLabels keeps only 'flag: X' entries, strips the prefix, preserves order", () => {
