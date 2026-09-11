@@ -6,8 +6,8 @@ import { splitEmojis } from "./emoji.ts"
 import { normalize } from "./normalize.ts"
 import { STYLE_SET } from "./styles.ts"
 
-const MIN_COUNT = 125
-const MAX_COUNT = 750
+const MIN_COUNT = 100
+const MAX_COUNT = 1000
 const EVAL_SIZE = 2000
 
 const MIN_MAX_RATIO = 4
