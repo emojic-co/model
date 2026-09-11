@@ -77,13 +77,13 @@ def test_linechart_three_way():
     svg = _linechart(
         [("1", 0.1), ("2", 0.5)],
         series=[
-            ("KWHead", [0.2, 0.4], "lline2"),
-            ("Fusion", [0.3, 0.6], "lline3"),
+            ("SeriesB", [0.2, 0.4], "lline2"),
+            ("SeriesC", [0.3, 0.6], "lline3"),
         ],
-        legend=("EmojiHead", "KWHead", "Fusion"),
+        legend=("EmojiHead", "SeriesB", "SeriesC"),
     )
     assert 'class="lline2"' in svg and 'class="lline3"' in svg
-    assert ">EmojiHead<" in svg and ">KWHead<" in svg and ">Fusion<" in svg
+    assert ">EmojiHead<" in svg and ">SeriesB<" in svg and ">SeriesC<" in svg
 
 
 def test_emoji_html_overlay():

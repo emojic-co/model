@@ -134,21 +134,34 @@ def _cldr_pool():
     )
 
 
-def load_emoji_keywords(path: str) -> tuple[torch.Tensor, torch.Tensor]:
+CLDR_MIN_KEYWORD_LEN = 3
+
+
+def cldr_keyword_pool() -> tuple[torch.Tensor, torch.Tensor] | None:
+    words: dict[str, list[str]] = {}
     try:
-        with open(path, encoding="utf-8") as f:
-            words = json.load(f)
+        with open(CLDR_PATH, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                d = json.loads(line)
+                word = str(d.get("text", ""))
+                if len(word) < CLDR_MIN_KEYWORD_LEN or not re.search(r"[a-zA-Z]", word):
+                    continue
+                targets = words.setdefault(word, [])
+                for e in str(d.get("emojis", "")).split():
+                    if e not in targets:
+                        targets.append(e)
     except FileNotFoundError:
-        words = {}
-
-    if not words:
-        return (
-            torch.empty(0, MAX_TEXT_LEN, dtype=torch.long),
-            torch.empty(0, len(EMOJIS), dtype=torch.float32))
-
-    text = torch.stack([text_to_tensor(normalize(w)) for w in words])
-    target = torch.stack([emojis_to_tensor(exp) for exp in words.values()])
-    return text, target
+        return None
+    rows = [(w, exp) for w, exp in words.items() if any(e in emoji2idx for e in exp)]
+    if not rows:
+        return None
+    return (
+        torch.stack([text_to_tensor(normalize(w)) for w, _ in rows]),
+        torch.stack([emojis_to_tensor(exp) for _, exp in rows]),
+    )
 
 
 class EmojiDataset(Dataset):

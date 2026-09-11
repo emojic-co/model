@@ -168,11 +168,9 @@ class ColorCritic(nn.Module):
             _critic_branch(TEXT_EMBED_SIZE, CRITIC_TEXT_CHANNELS))
         self.proj = nn.Linear(
             CRITIC_TEXT_CHANNELS[-1], CRITIC_COLOR_CHANNELS[-1], bias=False)
-        self.out = nn.Linear(CRITIC_COLOR_CHANNELS[-1], 1, bias=True)
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
         c = self.color_net(colors / COLOR_SHIFT)
         t = self.text_net(normalize(cond))
 
-        # return self.out(c) + (self.proj(t) * c).sum(dim=-1, keepdim=True)
         return (self.proj(t) * c).sum(dim=-1, keepdim=True)

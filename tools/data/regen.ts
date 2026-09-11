@@ -13,7 +13,7 @@ const MIN_COUNT = 125
 const MAX_COUNT = 750
 const EVAL_SIZE = 2000
 
-const MIN_MAX_RATIO = 2
+const MIN_MAX_RATIO = 4
 const MAX_MAX_RATIO = 20
 const MATRIX_MIN = [50, 75, 100, 125, 150, 200, 250]
 const MATRIX_MAX = [300, 400, 500, 600, 750, 1000]
