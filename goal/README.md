@@ -81,9 +81,9 @@ goals:                       # every priority-row goal present; vocabulary.cover
 
 | goal path (flattened) | dir | report.json source | wired? |
 |---|---|---|---|
-| `emoji prediction.exact keyword.acc@{1,5,10}` | ≥ | `keyword.fusion.acc_at_k[{0,4,9}]` — the **fusion model** (best combiner over model logits + kw) scored on CLDR keywords with an **exact**-matched kw vector; **priority-1 gate** | yes |
-| `emoji prediction.fuzzy keyword.acc@{1,5,10}` | ≥ | `keyword.fuzzy_fusion.acc_at_k[...]` — the fusion model on CLDR keywords with a **uFuzzy**-matched kw vector | yes — via `tools/analysis/kw-search.ts`, shelled out to by `tools/report.py:_kw_search_rows` (only when `bun` + `web/public/kwproj.json` are available) |
-| `emoji prediction.full text.acc@{1,5,10}` | ≥ | `emoji.eval.<best fusion variant>_acc_at_k[{0,4,9}]` — the fusion model on eval short texts | yes |
+| `emoji prediction.exact keyword.acc@{1,5,10}` | ≥ | `keyword.exact.acc_at_k[{0,4,9}]` — exact-match inverted-index keyword search scored against CLDR keywords; **priority-1 gate** | yes |
+| `emoji prediction.fuzzy keyword.acc@{1,5,10}` | ≥ | `keyword.fuzzy.acc_at_k[...]` — uFuzzy-matched keyword search scored against CLDR keywords | yes — via `tools/analysis/kw-search.ts`, shelled out to by `tools/report.py:_kw_search_rows` (only when `bun` + `web/public/kwproj.json` are available) |
+| `emoji prediction.full text.acc@{1,5,10}` | ≥ | `emoji.eval.acc_at_k[{0,4,9}]` — the `EmojiHead` classifier on eval short texts | yes |
 | `style prediction.full text.acc@{1,5,10}` | ≥ | `cards.style_acc_at_k[{0,4,9}]` | yes (only when the `cards` section runs) |
 | `color generator.energy distance.global` | ≤ | `cards.energy` | no — `cards` does not compute OKLab energy yet |
 | `color generator.energy distance.{red,green,blue,dark,bright}` | ≤ | `cards.per_color.<c>.gt_mean_distance` | yes (only when the `cards` section runs) |
@@ -91,11 +91,11 @@ goals:                       # every priority-row goal present; vocabulary.cover
 | `vocabulary.size` | ≥ | `labels.emojis` (count) | yes |
 | `vocabulary.coverage.<group>` | ≥ | `status.vocab_coverage.groups.<group>.score` (`|vocab ∩ group| / |group|`) | yes |
 
-Every leaf under `emoji prediction` measures **the fusion model** (the shipped
-emoji-prediction system: best of the detached combiners over model logits + kw),
-differing only by input type (exact-keyword / fuzzy-keyword / full-text). The
-standalone inverted-index keyword search (`report.json.keyword.exact` /
-`keyword.fuzzy`) is a report **diagnostic**, not a graded goal.
+Each leaf under `emoji prediction` measures a different retrieval method for
+the same task (predict emojis from text): the exact- and fuzzy-keyword leaves
+go through the inverted-index keyword search, the full-text leaf goes through
+the `EmojiHead` classifier. `report.json.keyword.model` (the `EmojiHead`
+scored on CLDR keyword text) is a report **diagnostic**, not a graded goal.
 
 `report.json.goals.compare` mirrors the `goals:` tree; each leaf becomes
 `{target, actual, met, dir, delta}` (`actual`/`met` are `null` when the source is not

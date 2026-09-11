@@ -62,6 +62,7 @@ from model.config import (
     VAL_CHECK_INTERVAL,
 )
 from model.data import (
+    cldr_keyword_pool,
     eval_data_loader,
     train_data_loader,
     train_ds,
@@ -104,6 +105,12 @@ def mrr(logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
     rel = target.gather(1, order)
     ranks = torch.arange(1, logits.size(-1) + 1, device=logits.device)
     return (rel / ranks).amax(dim=-1)
+
+
+def acc_at_k(logits: torch.Tensor, target: torch.Tensor, k: int) -> torch.Tensor:
+    order = logits.argsort(dim=-1, descending=True)
+    rel = target.gather(1, order)
+    return rel[:, :k].amax(dim=-1)
 
 
 def harmonic_mean(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
@@ -200,6 +207,7 @@ class LitEncoder(pl.LightningModule):
         if "emoji" in self.heads:
             self.emoji_embed = EmojiEmbedding()
             self.emoji = EmojiHead()
+            self._cldr = cldr_keyword_pool()
         if "critic" in self.heads:
             self.critic = ColorCritic()
 
@@ -323,6 +331,16 @@ class LitEncoder(pl.LightningModule):
                 tgt = torch.cat(e_tgt)
                 emoji_macro, _, _ = macro_average(torch.cat(e_rr), tgt, MACRO_MIN_SUPPORT)
                 self.log(f"MRR/e/{split}", emoji_macro, prog_bar=True)
+
+            if split == "val" and self._cldr is not None:
+                text, target = self._cldr
+                with torch.no_grad():
+                    logits = self.emoji_embed.score(
+                        self.emoji(self.enc(text.to(self.device)))
+                    )
+                    target = target.to(self.device)
+                self.log("cldr/acc@1", acc_at_k(logits, target, 1).mean())
+                self.log("cldr/acc@5", acc_at_k(logits, target, 5).mean())
 
         if "style" in self.heads:
             s_rr, s_tgt = (
