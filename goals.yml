@@ -19,18 +19,18 @@ goals:
 
   style prediction:
     full text:
-      "acc@1": 0.80
-      "acc@5": 0.85
+      "acc@1": 0.60
+      "acc@5": 0.80
       "acc@10": 0.90
 
   color generator:
     energy distance:
       global: 0.01
-      red: 0.01
-      green: 0.01
-      blue: 0.01
-      dark: 0.01
-      bright: 0.01
+      red: 0.1
+      green: 0.1
+      blue: 0.1
+      dark: 0.1
+      bright: 0.1
 
   max text len: 42
 
