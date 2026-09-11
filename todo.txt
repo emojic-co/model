@@ -1,1 +1,12 @@
 Model architecture update.
+
+We update the emoji prediction model.
+This new architecture was already implemented once and we reimplement it again.
+
+In the new architecture we have:
+
+fuzzy search:
+    tokenize the query
+A single shared emoji embedding component `EmojiEmbedding`
+An `EmojiHead` that projects the `TextEncoder` to the emoji embedding space.
+An `SearchHead` that projects keyword search results to the emoji embedding space.
