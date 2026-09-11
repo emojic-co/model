@@ -57,6 +57,7 @@ from model.config import (
     GRAD_CLIP_GEN,
     INFONCE_TEMP,
     LR,
+    MACRO_MIN_SUPPORT,
     SEED,
     TASK_BATCH_SIZE,
     TEXT_EMBED_SIZE,
@@ -68,6 +69,7 @@ from model.data import (
     train_ds,
 )
 from model.export_onnx import export
+from model.metrics import macro_average
 from model.model import (
     ColorCritic,
     ColorGen,
@@ -212,8 +214,21 @@ class LitEncoder(pl.LightningModule):
         self._val_neg: list[torch.Tensor] = []
         self._trn_pos: list[torch.Tensor] = []
         self._trn_neg: list[torch.Tensor] = []
-        self._val_rr: list[torch.Tensor] = []
-        self._trn_rr: list[torch.Tensor] = []
+
+        self._val_e_rr: list[torch.Tensor] = []
+        self._val_e_tgt: list[torch.Tensor] = []
+        self._trn_e_rr: list[torch.Tensor] = []
+        self._trn_e_tgt: list[torch.Tensor] = []
+
+        self._val_f_rr: list[torch.Tensor] = []
+        self._trn_f_rr: list[torch.Tensor] = []
+        self._val_kw_rr: list[torch.Tensor] = []
+        self._trn_kw_rr: list[torch.Tensor] = []
+
+        self._val_s_rr: list[torch.Tensor] = []
+        self._val_s_tgt: list[torch.Tensor] = []
+        self._trn_s_rr: list[torch.Tensor] = []
+        self._trn_s_tgt: list[torch.Tensor] = []
 
     def _log(self, name, val, bs):
         self.log(name, val, on_step=False, on_epoch=True,
@@ -230,7 +245,13 @@ class LitEncoder(pl.LightningModule):
             loss_style = lse_infonce(style_logits, style, INFONCE_TEMP)
             loss = loss + loss_style
             self._log(f"loss/s/{split}", loss_style, bs)
-            self._log(f"MRR/s/{split}", mrr(style_logits, style).mean(), bs)
+            s_rr, s_tgt = (
+                (self._val_s_rr, self._val_s_tgt)
+                if split == "val"
+                else (self._trn_s_rr, self._trn_s_tgt)
+            )
+            s_rr.append(mrr(style_logits, style).detach())
+            s_tgt.append(style.detach())
 
         if "emoji" in self.heads:
             q_txt = self.emoji(enc)
@@ -242,12 +263,13 @@ class LitEncoder(pl.LightningModule):
             n_e = int(has_e.sum())
             if n_e:
                 rr = mrr(emoji_logits[has_e], emoji[has_e])
-                emoji_mrr = rr.mean()
-                buf = self._val_rr if split == "val" else self._trn_rr
-                buf.append(rr.detach())
-            else:
-                emoji_mrr = torch.zeros((), device=emoji.device)
-            self._log(f"MRR/e/{split}", emoji_mrr, max(n_e, 1))
+                e_rr, e_tgt = (
+                    (self._val_e_rr, self._val_e_tgt)
+                    if split == "val"
+                    else (self._trn_e_rr, self._trn_e_tgt)
+                )
+                e_rr.append(rr.detach())
+                e_tgt.append(emoji[has_e].detach())
 
         if "fusion" in self.heads:
             fused = self.fusion(emoji_logits.detach(), kw)
@@ -255,13 +277,10 @@ class LitEncoder(pl.LightningModule):
             loss = loss + loss_fusion
             self._log(f"loss/fusion/{split}", loss_fusion, bs)
             if n_e:
-                frr = mrr(fused[has_e], emoji[has_e]).mean()
-                krr = mrr(kw[has_e], emoji[has_e]).mean()
-            else:
-                frr = torch.zeros((), device=emoji.device)
-                krr = torch.zeros((), device=emoji.device)
-            self._log(f"MRR/fusion/{split}", frr, max(n_e, 1))
-            self._log(f"MRR/kw/{split}", krr, max(n_e, 1))
+                f_buf = self._val_f_rr if split == "val" else self._trn_f_rr
+                kw_buf = self._val_kw_rr if split == "val" else self._trn_kw_rr
+                f_buf.append(mrr(fused[has_e], emoji[has_e]).detach())
+                kw_buf.append(mrr(kw[has_e], emoji[has_e]).detach())
             self._log(f"fusion/w_dl_mean/{split}", self.fusion.w_dl.mean(), bs)
             self._log(f"fusion/w_search_mean/{split}", self.fusion.w_search.mean(), bs)
             self._log(f"fusion/b_mean/{split}", self.fusion.b.mean(), bs)
@@ -289,27 +308,79 @@ class LitEncoder(pl.LightningModule):
     def on_validation_epoch_start(self):
         self._val_pos.clear()
         self._val_neg.clear()
-        self._val_rr.clear()
+        self._val_e_rr.clear()
+        self._val_e_tgt.clear()
+        self._val_f_rr.clear()
+        self._val_kw_rr.clear()
+        self._val_s_rr.clear()
+        self._val_s_tgt.clear()
 
     def on_validation_epoch_end(self):
-        self._epoch_metrics("val", self._val_pos, self._val_neg, self._val_rr)
+        self._epoch_metrics("val")
 
     def on_train_epoch_start(self):
         self._trn_pos.clear()
         self._trn_neg.clear()
-        self._trn_rr.clear()
+        self._trn_e_rr.clear()
+        self._trn_e_tgt.clear()
+        self._trn_f_rr.clear()
+        self._trn_kw_rr.clear()
+        self._trn_s_rr.clear()
+        self._trn_s_tgt.clear()
 
     def on_train_epoch_end(self):
-        self._epoch_metrics("train", self._trn_pos, self._trn_neg, self._trn_rr)
+        self._epoch_metrics("train")
 
-    def _epoch_metrics(self, split, pos_buf, neg_buf, rr_buf):
+    def _epoch_metrics(self, split):
+        pos_buf, neg_buf = (
+            (self._val_pos, self._val_neg)
+            if split == "val"
+            else (self._trn_pos, self._trn_neg)
+        )
         auc = None
         if "critic" in self.heads and pos_buf:
             auc = buffered_auc(pos_buf, neg_buf)
             self.log(f"auc/critic/{split}", auc, prog_bar=True)
-        if auc is not None and rr_buf:
-            emoji_mrr = torch.cat(rr_buf).mean()
-            self.log(f"F1/{split}", harmonic_mean(emoji_mrr, auc), prog_bar=True)
+
+        emoji_macro = None
+        if "emoji" in self.heads:
+            e_rr, e_tgt = (
+                (self._val_e_rr, self._val_e_tgt)
+                if split == "val"
+                else (self._trn_e_rr, self._trn_e_tgt)
+            )
+            if e_rr:
+                tgt = torch.cat(e_tgt)
+                emoji_macro, _, _ = macro_average(torch.cat(e_rr), tgt, MACRO_MIN_SUPPORT)
+                self.log(f"MRR/e/{split}", emoji_macro, prog_bar=True)
+
+                if "fusion" in self.heads:
+                    f_buf = self._val_f_rr if split == "val" else self._trn_f_rr
+                    kw_buf = self._val_kw_rr if split == "val" else self._trn_kw_rr
+                    if f_buf:
+                        fusion_macro, _, _ = macro_average(
+                            torch.cat(f_buf), tgt, MACRO_MIN_SUPPORT
+                        )
+                        kw_macro, _, _ = macro_average(
+                            torch.cat(kw_buf), tgt, MACRO_MIN_SUPPORT
+                        )
+                        self.log(f"MRR/fusion/{split}", fusion_macro, prog_bar=True)
+                        self.log(f"MRR/kw/{split}", kw_macro, prog_bar=True)
+
+        if "style" in self.heads:
+            s_rr, s_tgt = (
+                (self._val_s_rr, self._val_s_tgt)
+                if split == "val"
+                else (self._trn_s_rr, self._trn_s_tgt)
+            )
+            if s_rr:
+                style_macro, _, _ = macro_average(
+                    torch.cat(s_rr), torch.cat(s_tgt), MACRO_MIN_SUPPORT
+                )
+                self.log(f"MRR/s/{split}", style_macro, prog_bar=True)
+
+        if auc is not None and emoji_macro is not None:
+            self.log(f"F1/{split}", harmonic_mean(emoji_macro, auc), prog_bar=True)
 
     def training_step(self, batch, batch_idx):
         return self._step(batch, "train")
