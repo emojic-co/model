@@ -112,13 +112,13 @@ def _fusion_head():
     return mod if err is None else None
 
 
-def _emoji_extra_acc(records, tgt, logit_m):
+def _emoji_extra_acc(records, tgt, logit_m, text_emb):
     kw_dense = torch.stack([_row_kw(r) for r in records])
     out = {"keywords": [_acc_at_k(kw_dense, tgt, k).mean().item() for k in EMOJI_KS]}
     head = _fusion_head()
     if head is not None:
         with torch.no_grad():
-            fused = head(logit_m.detach(), kw_dense)
+            fused = head(text_emb.detach(), logit_m.detach(), kw_dense)
         out["fusion"] = [_acc_at_k(fused, tgt, k).mean().item() for k in EMOJI_KS]
     return out
 
@@ -375,14 +375,16 @@ def _section_keyword(enc, head) -> dict:
     emb = _emoji_embed()
     fh = _fusion_head()
     logit_m = None
+    text_emb = None
     if enc is not None and head is not None and emb is not None:
         with torch.no_grad():
             texts = torch.stack([text_to_tensor(norm_text(w)) for w, _ in rows])
-            logit_m = emb.score(head(enc(texts)))
+            text_emb = enc(texts)
+            logit_m = emb.score(head(text_emb))
         out["model"] = _rank_acc(logit_m, id_lists, total)
         if fh is not None:
             with torch.no_grad():
-                fused = fh(logit_m.detach(), kw_dense)
+                fused = fh(text_emb.detach(), logit_m.detach(), kw_dense)
             out["fusion"] = _rank_acc(fused, id_lists, total)
 
     search = _kw_search_rows(rows)
@@ -392,7 +394,7 @@ def _section_keyword(enc, head) -> dict:
         out["fuzzy"] = _rank_acc(fuzzy_dense, id_lists, total)
         if logit_m is not None and fh is not None:
             with torch.no_grad():
-                fuzzy_fused = fh(logit_m.detach(), fuzzy_dense)
+                fuzzy_fused = fh(text_emb.detach(), logit_m.detach(), fuzzy_dense)
             out["fuzzy_fusion"] = _rank_acc(fuzzy_fused, id_lists, total)
     return out
 
@@ -902,7 +904,7 @@ def _section_emoji(enc, head, eval_records):
             enc_emb = enc(texts)
             q_txt = head(enc_emb)
             logits = emb.score(q_txt)
-        extra = _emoji_extra_acc(rows, tgt, logits)
+        extra = _emoji_extra_acc(rows, tgt, logits, enc_emb)
         d["eval"] = {
             "n": len(rows),
             "acc_at_k": [_acc_at_k(logits, tgt, k).mean().item() for k in EMOJI_KS],

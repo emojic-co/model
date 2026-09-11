@@ -143,7 +143,7 @@ def test_fusion_step_detaches_trunk_and_trains_heads():
     assert m.emoji.net[1].weight.grad is not None
     assert m.emoji_embed.embed.weight.grad is not None
     assert next(m.enc.parameters()).grad is not None
-    assert "fusion/w_search_mean/train" in logged
+    assert "fusion/gate_mean/train" in logged
 
     m.on_train_epoch_end()
     assert "MRR/fusion/train" in logged

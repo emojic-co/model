@@ -272,7 +272,7 @@ class LitEncoder(pl.LightningModule):
                 e_tgt.append(emoji[has_e].detach())
 
         if "fusion" in self.heads:
-            fused = self.fusion(emoji_logits.detach(), kw)
+            fused = self.fusion(enc.detach(), emoji_logits.detach(), kw)
             loss_fusion = lse_infonce(fused, emoji, INFONCE_TEMP)
             loss = loss + loss_fusion
             self._log(f"loss/fusion/{split}", loss_fusion, bs)
@@ -281,9 +281,7 @@ class LitEncoder(pl.LightningModule):
                 kw_buf = self._val_kw_rr if split == "val" else self._trn_kw_rr
                 f_buf.append(mrr(fused[has_e], emoji[has_e]).detach())
                 kw_buf.append(mrr(kw[has_e], emoji[has_e]).detach())
-            self._log(f"fusion/w_dl_mean/{split}", self.fusion.w_dl.mean(), bs)
-            self._log(f"fusion/w_search_mean/{split}", self.fusion.w_search.mean(), bs)
-            self._log(f"fusion/b_mean/{split}", self.fusion.b.mean(), bs)
+            self._log(f"fusion/gate_mean/{split}", self.fusion.gate(enc.detach()).mean(), bs)
 
         if "critic" in self.heads:
             shift = 1 if split == "val" else int(torch.randint(1, bs, (1,)).item())

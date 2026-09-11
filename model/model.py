@@ -111,13 +111,16 @@ class EmojiHead(nn.Module):
 class FusionHead(nn.Module):
     def __init__(self):
         super().__init__()
-        n = len(EMOJIS)
-        self.w_dl = nn.Parameter(torch.ones(n))
-        self.w_search = nn.Parameter(torch.ones(n))
-        self.b = nn.Parameter(torch.zeros(n))
+        self.gate_proj = nn.Linear(TEXT_EMBED_SIZE, 1)
 
-    def forward(self, logit_m: torch.Tensor, kw: torch.Tensor) -> torch.Tensor:
-        return self.w_dl * logit_m + self.w_search * kw + self.b
+    def gate(self, text_embed: torch.Tensor) -> torch.Tensor:
+        return torch.sigmoid(self.gate_proj(text_embed)).squeeze(-1)
+
+    def forward(
+        self, text_embed: torch.Tensor, logit_m: torch.Tensor, kw: torch.Tensor
+    ) -> torch.Tensor:
+        a = self.gate(text_embed).unsqueeze(-1)
+        return a * torch.sigmoid(logit_m) + (1 - a) * kw
 
 
 # GAN

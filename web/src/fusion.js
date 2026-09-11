@@ -1,12 +1,7 @@
-export function makeFusion(mf) {
-  const { w_dl, w_search, b } = mf
-  return {
-    fuse(logits, kw) {
-      const out = new Float32Array(logits.length)
-      for (let i = 0; i < logits.length; i++) {
-        out[i] = w_dl[i] * logits[i] + w_search[i] * kw[i] + b[i]
-      }
-      return out
-    },
+export function fuse(gate, emojiSigmoid, kw) {
+  const out = new Float32Array(emojiSigmoid.length)
+  for (let i = 0; i < emojiSigmoid.length; i++) {
+    out[i] = gate * emojiSigmoid[i] + (1 - gate) * kw[i]
   }
+  return out
 }

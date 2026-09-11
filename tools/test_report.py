@@ -116,6 +116,7 @@ def test_emoji_html_overlay():
 def test_emoji_extra_acc_reads_precomputed_kw():
     import torch
 
+    from model.config import TEXT_EMBED_SIZE
     from model.data import record
     from tools.report import EMOJI_KS, EMOJIS, _emoji_extra_acc
 
@@ -127,7 +128,8 @@ def test_emoji_extra_acc_reads_precomputed_kw():
     tgt = torch.zeros(2, n)
     tgt[0, 0] = 1.0
     logit_m = torch.randn(2, n)
-    out = _emoji_extra_acc(rows, tgt, logit_m)
+    text_emb = torch.randn(2, TEXT_EMBED_SIZE)
+    out = _emoji_extra_acc(rows, tgt, logit_m, text_emb)
     assert len(out["keywords"]) == len(EMOJI_KS)
     assert all(0.0 <= v <= 1.0 for v in out["keywords"])
 

@@ -110,7 +110,7 @@ def predict(
             }
             if fusion is not None and row["kw"]:
                 kw_vec = _row_kw(row).unsqueeze(0)
-                fused = fusion(emoji_logits.detach(), kw_vec)
+                fused = fusion(emb.detach(), emoji_logits.detach(), kw_vec)
                 record["fusion_top_labels"] = top_labels(
                     fused, EMOJIS, min_k=1, max_k=1
                 )
