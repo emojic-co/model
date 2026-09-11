@@ -15,7 +15,6 @@ from files import (
     EMOJI_EMBED_PT,
     EMOJI_PT,
     ENC_PT,
-    FUSION_PT,
     GEN_PT,
     LABELS_JSON,
     STYLE_PT,
@@ -27,7 +26,6 @@ from model.model import (
     ColorGen,
     EmojiEmbedding,
     EmojiHead,
-    FusionHead,
     StyleHead,
     TextEncoder,
 )
@@ -71,7 +69,6 @@ class ExportWrapper(nn.Module):
         emoji_embed: nn.Module,
         emoji: nn.Module,
         gen: nn.Module,
-        fusion: nn.Module,
     ) -> None:
         super().__init__()
         self.enc = enc
@@ -79,19 +76,17 @@ class ExportWrapper(nn.Module):
         self.emoji_embed = emoji_embed
         self.emoji = emoji
         self.gen = gen
-        self.fusion = fusion
         self.register_buffer("z", CONST_Z)
 
     def forward(
         self, x: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         emb = self.enc(x)
         style_logits = self.style(emb)
         emoji_logits = self.emoji_embed.score(self.emoji(emb))
         seed = (1 - Z_WEIGHT) * normalize(emb) + Z_WEIGHT * self.z
         color = torch.tanh(self.gen.net(seed)) * 127.5 + 127.5
-        fusion_gate = self.fusion.gate(emb)
-        return style_logits, emoji_logits, color, fusion_gate
+        return style_logits, emoji_logits, color
 
 
 def export_onnx(wrapper: nn.Module, dst: Path) -> None:
@@ -107,7 +102,6 @@ def export_onnx(wrapper: nn.Module, dst: Path) -> None:
                 "style_logits",
                 "emoji_logits",
                 "color",
-                "fusion_gate",
             ],
             opset_version=ONNX_OPSET,
             dynamo=False,
@@ -115,7 +109,6 @@ def export_onnx(wrapper: nn.Module, dst: Path) -> None:
                 "input": {0: "batch"},
                 "style_logits": {0: "batch"},
                 "emoji_logits": {0: "batch"},
-                "fusion_gate": {0: "batch"},
             },
         )
 
@@ -146,7 +139,6 @@ def export() -> None:
     emoji_embed = _load(EmojiEmbedding(), EMOJI_EMBED_PT)
     emoji = _load(EmojiHead(), EMOJI_PT)
     gen = _load(ColorGen(), GEN_PT)
-    fusion_head = _load(FusionHead(), FUSION_PT)
 
     if style.embed.weight.shape[0] != len(STYLES):
         raise SystemExit(
@@ -160,7 +152,7 @@ def export() -> None:
         )
     _strip_spectral_norm(enc)
 
-    wrapper = ExportWrapper(enc, style, emoji_embed, emoji, gen, fusion_head).eval()
+    wrapper = ExportWrapper(enc, style, emoji_embed, emoji, gen).eval()
     export_web(wrapper)
     print(f"wrote {WEB_PUBLIC}/model.onnx + meta.json + config.json")
 

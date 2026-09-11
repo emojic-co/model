@@ -131,16 +131,7 @@ def _cldr_pool():
         torch.stack([emojis_to_tensor(r.emojis) for r in recs]),
         torch.stack([styles_to_tensor(r.styles) for r in recs]),
         torch.stack([colors2tensor(r.colors) for r in recs]),
-        torch.zeros(len(recs), len(EMOJIS), dtype=torch.float32),
     )
-
-
-def load_energy_keywords(path: str) -> list[str]:
-    try:
-        with open(path, encoding="utf-8") as f:
-            return [w for line in f if (w := line.strip())]
-    except FileNotFoundError:
-        return []
 
 
 def load_emoji_keywords(path: str) -> tuple[torch.Tensor, torch.Tensor]:
@@ -160,43 +151,12 @@ def load_emoji_keywords(path: str) -> tuple[torch.Tensor, torch.Tensor]:
     return text, target
 
 
-def keyword_index(
-    keywords: list[str],
-    *,
-    max_texts: int,
-    min_texts: int,
-    seed: int,
-) -> dict[str, tuple[torch.Tensor, torch.Tensor]]:
-    kws = [k.lower() for k in keywords]
-    hits: dict[str, list[record]] = {k: [] for k in kws}
-    for r in read(TRAIN_PATH):
-        for k in kws:
-            if k in r.text:
-                hits[k].append(r)
-
-    g = torch.Generator().manual_seed(seed)
-    out: dict[str, tuple[torch.Tensor, torch.Tensor]] = {}
-    for k in kws:
-        rows = hits[k]
-        if len(rows) < min_texts:
-            print(f"energy keyword {k!r}: {len(rows)} matches < {min_texts}, skipped")
-            continue
-        if len(rows) > max_texts:
-            idx = torch.randperm(len(rows), generator=g)[:max_texts].tolist()
-            rows = [rows[i] for i in idx]
-        text_ids = torch.stack([text_to_tensor(r.text) for r in rows])
-        palettes = torch.stack([colors2tensor(r.colors) for r in rows])
-        out[k] = (text_ids, palettes)
-    return out
-
-
 class EmojiDataset(Dataset):
     def __init__(self, records: list[record], mix_cldr: bool = False):
         self.text = torch.stack([text_to_tensor(r.text) for r in records])
         self.emoji = torch.stack([emojis_to_tensor(r.emojis) for r in records])
         self.style = torch.stack([styles_to_tensor(r.styles) for r in records])
         self.colors = torch.stack([colors2tensor(r.colors) for r in records])
-        self.kw = torch.stack([_row_kw(r) for r in records])
         self.cldr = _cldr_pool() if mix_cldr and CLDR_WEIGHT > 0 else None
 
     def __len__(self):
@@ -211,7 +171,6 @@ class EmojiDataset(Dataset):
             self.emoji[idx],
             self.style[idx],
             self.colors[idx],
-            self.kw[idx],
         )
 
 

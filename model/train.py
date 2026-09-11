@@ -30,9 +30,7 @@ from files import (
     EMOJI_EMBED_PT,
     EMOJI_PT,
     ENC_PT,
-    ENERGY_KEYWORDS_TXT,
     EVAL_JSONL,
-    FUSION_PT,
     KWPROJ_JSON,
     LABELS_JSON,
     MODEL_DIR,
@@ -75,7 +73,6 @@ from model.model import (
     ColorGen,
     EmojiEmbedding,
     EmojiHead,
-    FusionHead,
     StyleHead,
     TextEncoder,
 )
@@ -145,7 +142,7 @@ def energy_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     return (2 * xy - xx - yy).clamp(min=0.0).sqrt()
 
 
-ALL_HEADS: tuple[str, ...] = ("style", "emoji", "critic", "fusion")
+ALL_HEADS: tuple[str, ...] = ("style", "emoji", "critic")
 _DEFAULT_PT = Path(PT_DIR)
 
 
@@ -164,8 +161,6 @@ def _parse_heads(csv: str | None) -> tuple[str, ...]:
             f"--heads: {', '.join(sorted(bad)) or 'empty'} "
             f"(choose from {', '.join(ALL_HEADS)})"
         )
-    if "fusion" in got and "emoji" not in got:
-        raise typer.BadParameter("--heads: fusion requires emoji")
     return tuple(h for h in ALL_HEADS if h in got)
 
 
@@ -207,8 +202,6 @@ class LitEncoder(pl.LightningModule):
             self.emoji = EmojiHead()
         if "critic" in self.heads:
             self.critic = ColorCritic()
-        if "fusion" in self.heads:
-            self.fusion = FusionHead()
 
         self._val_pos: list[torch.Tensor] = []
         self._val_neg: list[torch.Tensor] = []
@@ -220,11 +213,6 @@ class LitEncoder(pl.LightningModule):
         self._trn_e_rr: list[torch.Tensor] = []
         self._trn_e_tgt: list[torch.Tensor] = []
 
-        self._val_f_rr: list[torch.Tensor] = []
-        self._trn_f_rr: list[torch.Tensor] = []
-        self._val_kw_rr: list[torch.Tensor] = []
-        self._trn_kw_rr: list[torch.Tensor] = []
-
         self._val_s_rr: list[torch.Tensor] = []
         self._val_s_tgt: list[torch.Tensor] = []
         self._trn_s_rr: list[torch.Tensor] = []
@@ -235,7 +223,7 @@ class LitEncoder(pl.LightningModule):
                  prog_bar=True, batch_size=bs)
 
     def _step(self, batch, split):
-        text, emoji, style, colors, kw = batch
+        text, emoji, style, colors = batch
         enc = self.enc(text)
         loss = enc.new_zeros(())
         bs = text.size(0)
@@ -271,18 +259,6 @@ class LitEncoder(pl.LightningModule):
                 e_rr.append(rr.detach())
                 e_tgt.append(emoji[has_e].detach())
 
-        if "fusion" in self.heads:
-            fused = self.fusion(enc.detach(), emoji_logits.detach(), kw)
-            loss_fusion = lse_infonce(fused, emoji, INFONCE_TEMP)
-            loss = loss + loss_fusion
-            self._log(f"loss/fusion/{split}", loss_fusion, bs)
-            if n_e:
-                f_buf = self._val_f_rr if split == "val" else self._trn_f_rr
-                kw_buf = self._val_kw_rr if split == "val" else self._trn_kw_rr
-                f_buf.append(mrr(fused[has_e], emoji[has_e]).detach())
-                kw_buf.append(mrr(kw[has_e], emoji[has_e]).detach())
-            self._log(f"fusion/gate_mean/{split}", self.fusion.gate(enc.detach()).mean(), bs)
-
         if "critic" in self.heads:
             shift = 1 if split == "val" else int(torch.randint(1, bs, (1,)).item())
             neg_colors = colors.roll(shift, dims=0)
@@ -308,8 +284,6 @@ class LitEncoder(pl.LightningModule):
         self._val_neg.clear()
         self._val_e_rr.clear()
         self._val_e_tgt.clear()
-        self._val_f_rr.clear()
-        self._val_kw_rr.clear()
         self._val_s_rr.clear()
         self._val_s_tgt.clear()
 
@@ -321,8 +295,6 @@ class LitEncoder(pl.LightningModule):
         self._trn_neg.clear()
         self._trn_e_rr.clear()
         self._trn_e_tgt.clear()
-        self._trn_f_rr.clear()
-        self._trn_kw_rr.clear()
         self._trn_s_rr.clear()
         self._trn_s_tgt.clear()
 
@@ -351,19 +323,6 @@ class LitEncoder(pl.LightningModule):
                 tgt = torch.cat(e_tgt)
                 emoji_macro, _, _ = macro_average(torch.cat(e_rr), tgt, MACRO_MIN_SUPPORT)
                 self.log(f"MRR/e/{split}", emoji_macro, prog_bar=True)
-
-                if "fusion" in self.heads:
-                    f_buf = self._val_f_rr if split == "val" else self._trn_f_rr
-                    kw_buf = self._val_kw_rr if split == "val" else self._trn_kw_rr
-                    if f_buf:
-                        fusion_macro, _, _ = macro_average(
-                            torch.cat(f_buf), tgt, MACRO_MIN_SUPPORT
-                        )
-                        kw_macro, _, _ = macro_average(
-                            torch.cat(kw_buf), tgt, MACRO_MIN_SUPPORT
-                        )
-                        self.log(f"MRR/fusion/{split}", fusion_macro, prog_bar=True)
-                        self.log(f"MRR/kw/{split}", kw_macro, prog_bar=True)
 
         if "style" in self.heads:
             s_rr, s_tgt = (
@@ -554,9 +513,7 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
     monitor = (
-        "MRR/fusion/val"
-        if "fusion" in heads
-        else "F1/val"
+        "F1/val"
         if {"emoji", "critic"} <= set(heads)
         else "MRR/e/val"
         if "emoji" in heads
@@ -600,11 +557,9 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
             stage="enc",
         )
     for h in ALL_HEADS:
-        if h in heads and h != "fusion":
+        if h in heads:
             save_pt(getattr(mod, h).state_dict(), str(
                 out_dir / f"{h}.pt"), stage="enc")
-    if "fusion" in heads:
-        save_pt(mod.fusion.state_dict(), str(out_dir / "fusion.pt"), stage="enc")
 
     return mod
 
@@ -680,7 +635,6 @@ def _run_local(
                 "style.pt",
                 "emoji.pt",
                 "emoji_embed.pt",
-                "fusion.pt",
             ],
         )
         enc = _load(TextEncoder(), str(pt_dir / "enc.pt"))
@@ -739,7 +693,6 @@ CODE_FILES = [
     f"{MODEL_DIR}/runmeta.py",
     f"{TOOLS_DIR}/report.py",
     LABELS_JSON,
-    ENERGY_KEYWORDS_TXT,
     KWPROJ_JSON,
     DATA_JSONL,
     TRAIN_JSONL,
@@ -810,7 +763,6 @@ def train_remote(
     emoji_bytes: bytes | None = None,
     emoji_embed_bytes: bytes | None = None,
     critic_bytes: bytes | None = None,
-    fusion_bytes: bytes | None = None,
 ) -> dict[str, int]:
     env = _run_env(threads)
     env["EMOJIC_GIT_SHA"] = git_sha
@@ -828,7 +780,6 @@ def train_remote(
         EMOJI_PT: emoji_bytes,
         EMOJI_EMBED_PT: emoji_embed_bytes,
         CRITIC_PT: critic_bytes,
-        FUSION_PT: fusion_bytes,
     }
     if any(v is not None for v in uploads.values()):
         Path(REPO, PT_DIR).mkdir(parents=True, exist_ok=True)
@@ -952,7 +903,6 @@ def _run_remote(
         "emoji_bytes": None,
         "emoji_embed_bytes": None,
         "critic_bytes": None,
-        "fusion_bytes": None,
     }
     if stage == "gan":
         for name in (
@@ -961,7 +911,6 @@ def _run_remote(
             EMOJI_PT,
             EMOJI_EMBED_PT,
             CRITIC_PT,
-            FUSION_PT,
         ):
             if not Path(name).exists():
                 raise typer.BadParameter(
@@ -974,7 +923,6 @@ def _run_remote(
             "emoji_bytes": Path(EMOJI_PT).read_bytes(),
             "emoji_embed_bytes": Path(EMOJI_EMBED_PT).read_bytes(),
             "critic_bytes": Path(CRITIC_PT).read_bytes(),
-            "fusion_bytes": Path(FUSION_PT).read_bytes(),
         }
 
     threads = GPU_CPU if gpu else CPU

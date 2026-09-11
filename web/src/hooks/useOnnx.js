@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import * as ort from 'onnxruntime-web/wasm'
 import { encode, decodeColorList, sigmoid } from '../model'
 import { makeKeywordPredictor } from '../keywords'
-import { fuse } from '../fusion'
 
 const BASE = import.meta.env.BASE_URL
 
@@ -54,12 +53,10 @@ export function useOnnx() {
     const ms = performance.now() - t0
     const emojiSigmoid = sigmoid(out.emoji_logits.data)
     const kwArr = kwRef.current.predict(text)
-    const gate = out.fusion_gate.data[0]
     return {
       feeling: sigmoid(out.style_logits.data),
       emoji: emojiSigmoid,
       kw: kwArr,
-      fusion: fuse(gate, emojiSigmoid, kwArr),
       palettes: decodeColorList(out.color.data),
       ms,
     }

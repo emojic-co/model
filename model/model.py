@@ -108,21 +108,6 @@ class EmojiHead(nn.Module):
         return self.net(text_embedding)
 
 
-class FusionHead(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.gate_proj = nn.Linear(TEXT_EMBED_SIZE, 1)
-
-    def gate(self, text_embed: torch.Tensor) -> torch.Tensor:
-        return torch.sigmoid(self.gate_proj(text_embed)).squeeze(-1)
-
-    def forward(
-        self, text_embed: torch.Tensor, logit_m: torch.Tensor, kw: torch.Tensor
-    ) -> torch.Tensor:
-        a = self.gate(text_embed).unsqueeze(-1)
-        return a * torch.sigmoid(logit_m) + (1 - a) * kw
-
-
 # GAN
 class ColorGen(nn.Module):
     def __init__(self):

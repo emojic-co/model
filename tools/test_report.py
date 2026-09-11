@@ -95,28 +95,24 @@ def test_emoji_html_overlay():
             "n": 100,
             "acc_at_k": [0.3 + 0.05 * i for i in range(n)],
             "keywords_acc_at_k": [0.2 + 0.05 * i for i in range(n)],
-            "fusion_acc_at_k": [0.4 + 0.045 * i for i in range(n)],
             "baseline": {"name": "overlap", "acc_at_k": [0.1 + 0.04 * i for i in range(n)]},
         },
         "keywords": {"n": 50, "acc_at_k": [0.2 + 0.05 * i for i in range(n)]},
     }
     h = _emoji_html(d)
-    assert 'class="lline2"' in h and 'class="lline3"' in h
+    assert 'class="lline2"' in h
     assert ">EmojiHead<" in h and ">Keywords<" in h
-    assert ">Fusion<" in h
     assert 'class="bline"' in h
 
     d["eval"]["keywords_acc_at_k"] = None
-    d["eval"]["fusion_acc_at_k"] = None
     h2 = _emoji_html(d)
-    assert 'class="lline2"' not in h2 and 'class="lline3"' not in h2
+    assert 'class="lline2"' not in h2
     assert "CLDR baseline (overlap)" in h2
 
 
 def test_emoji_extra_acc_reads_precomputed_kw():
     import torch
 
-    from model.config import TEXT_EMBED_SIZE
     from model.data import record
     from tools.report import EMOJI_KS, EMOJIS, _emoji_extra_acc
 
@@ -127,9 +123,7 @@ def test_emoji_extra_acc_reads_precomputed_kw():
     ]
     tgt = torch.zeros(2, n)
     tgt[0, 0] = 1.0
-    logit_m = torch.randn(2, n)
-    text_emb = torch.randn(2, TEXT_EMBED_SIZE)
-    out = _emoji_extra_acc(rows, tgt, logit_m, text_emb)
+    out = _emoji_extra_acc(rows, tgt)
     assert len(out["keywords"]) == len(EMOJI_KS)
     assert all(0.0 <= v <= 1.0 for v in out["keywords"])
 
@@ -210,12 +204,12 @@ def test_keyword_html_renders():
             "total": 4900,
             "acc_at_k": [0.9 + 0.005 * i for i in range(10)],
         },
-        "fusion": {"n": 1500, "acc_at_k": [0.5 + 0.02 * i for i in range(10)]},
+        "model": {"acc_at_k": [0.5 + 0.02 * i for i in range(10)]},
     }
     h = _keyword_html(d)
     assert "Keyword predictor — CLDR" in h
     assert "1500/4900" in h
-    assert ">Exact kw<" in h and ">Fusion<" in h
+    assert ">Exact kw<" in h and ">EmojiHead<" in h
 
 
 def test_exact_word_accuracy_html():
@@ -226,15 +220,13 @@ def test_exact_word_accuracy_html():
         "keyword": {
             "model": {"acc_at_k": [0.1 + 0.01 * i for i in range(10)]},
             "exact": {"acc_at_k": [0.9 + 0.005 * i for i in range(10)]},
-            "fusion": {"acc_at_k": [0.5 + 0.02 * i for i in range(10)]},
         }
     }
     h = _exact_word_accuracy_html(report)
     assert "Exact Word Accuracy" in h
-    assert ">EmojiHead<" in h and ">Search<" in h and ">Fusion<" in h
+    assert ">EmojiHead<" in h and ">Search<" in h
     assert f"{report['keyword']['model']['acc_at_k'][0]:.3f}" in h
     assert f"{report['keyword']['exact']['acc_at_k'][4]:.3f}" in h
-    assert f"{report['keyword']['fusion']['acc_at_k'][9]:.3f}" in h
 
     partial = _exact_word_accuracy_html({"keyword": {"exact": {"acc_at_k": [0.5] * 10}}})
     assert "—" in partial
@@ -249,16 +241,14 @@ def test_full_text_accuracy_html():
             "eval": {
                 "acc_at_k": [0.3 + 0.05 * i for i in range(10)],
                 "keywords_acc_at_k": [0.2 + 0.05 * i for i in range(10)],
-                "fusion_acc_at_k": [0.4 + 0.045 * i for i in range(10)],
             }
         }
     }
     h = _full_text_accuracy_html(report)
     assert "Full Text Accuracy" in h
-    assert ">EmojiHead<" in h and ">Search<" in h and ">Fusion<" in h
+    assert ">EmojiHead<" in h and ">Search<" in h
     assert f"{report['emoji']['eval']['acc_at_k'][0]:.3f}" in h
     assert f"{report['emoji']['eval']['keywords_acc_at_k'][4]:.3f}" in h
-    assert f"{report['emoji']['eval']['fusion_acc_at_k'][9]:.3f}" in h
 
 
 def test_load_global_goals():
@@ -298,7 +288,6 @@ def test_section_status_orders_and_grades():
         "emoji": {
             "eval": {
                 "acc_at_k": [0.5 + 0.03 * i for i in range(n)],
-                "fusion_acc_at_k": [0.6 + 0.03 * i for i in range(n)],
             }
         },
         "keyword": {
@@ -306,11 +295,6 @@ def test_section_status_orders_and_grades():
                 "n": 1500,
                 "total": 4900,
                 "acc_at_k": [0.96 + 0.002 * i for i in range(n)],
-            },
-            "fusion": {
-                "n": 1500,
-                "total": 4900,
-                "acc_at_k": [0.7 + 0.02 * i for i in range(n)],
             },
         },
         "cldr": {"acc_at_k": [0.42 + 0.02 * i for i in range(n)]},
@@ -327,18 +311,18 @@ def test_section_status_orders_and_grades():
         rep._load_goals = orig
     prios = [g["priority"] for g in st["goals"]]
     assert prios == sorted(prios)
-    assert st["best_emoji_variant"] == "Fusion"
+    assert st["best_emoji_variant"] == "EmojiHead"
     by_goal = {g["goal"]: g for g in st["goals"]}
     assert by_goal["Exact keyword acc@1"]["priority"] == 1
     assert by_goal["Exact keyword acc@1"]["iter_target"] == "—"
     assert (
         by_goal["Exact keyword acc@1"]["current"]
-        == report["keyword"]["fusion"]["acc_at_k"][0]
+        == report["keyword"]["exact"]["acc_at_k"][0]
     )
     assert by_goal["Full-text emoji acc@1"]["priority"] == 2
     assert (
         by_goal["Full-text emoji acc@1"]["current"]
-        == report["emoji"]["eval"]["fusion_acc_at_k"][0]
+        == report["emoji"]["eval"]["acc_at_k"][0]
     )
     assert by_goal["Fuzzy keyword acc@1"]["status"] == "na"
     assert by_goal["Color energy · global"]["priority"] == 4
@@ -373,7 +357,7 @@ def test_section_status_iter_target_grading():
     rep._load_goals = lambda: ("goal/x.yml", doc)
     try:
         report = {
-            "keyword": {"fusion": {"acc_at_k": [0.6] + [0.0] * (n - 1)}},
+            "keyword": {"exact": {"acc_at_k": [0.6] + [0.0] * (n - 1)}},
             "data": {"max_text_len": 32},
         }
         st = _section_status(report)
@@ -414,8 +398,8 @@ def test_status_vocab_coverage_gate():
     n = len(EMOJI_KS)
     hi = [0.999] * n
     report = {
-        "emoji": {"eval": {"acc_at_k": hi, "fusion_acc_at_k": hi}},
-        "keyword": {"fusion": {"n": 1, "total": 1, "acc_at_k": hi}},
+        "emoji": {"eval": {"acc_at_k": hi}},
+        "keyword": {"exact": {"n": 1, "total": 1, "acc_at_k": hi}},
         "data": {"max_text_len": 42},
         "labels": {"emojis": 1000},
         "cards": {"style_acc_at_k": hi, "per_color": {}},
@@ -490,7 +474,7 @@ def test_section_goals_compare_shape():
     rep._load_goals = lambda: ("goal/x.yml", doc)
     try:
         report = {
-            "emoji": {"eval": {"acc_at_k": acc, "fusion_acc_at_k": acc}},
+            "emoji": {"eval": {"acc_at_k": acc}},
             "labels": {"emojis": 150},
             "status": {"vocab_coverage": {"groups": {"face-smiling": {"score": 0.5}}}},
         }

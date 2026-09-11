@@ -291,7 +291,7 @@ cli
   )
   .option(
     "--no-kw",
-    "skip the uFuzzy keyword score field (kw) on train/eval rows",
+    "skip the uFuzzy keyword score field (kw) on eval rows",
   )
 cli.help()
 
@@ -418,17 +418,17 @@ if (import.meta.main) {
       },
       cliProgress.Presets.shades_classic,
     )
-    kwBar.start(split.length, 0)
+    kwBar.start(held.length, 0)
     let nzSum = 0
-    for (const r of split) {
+    for (const r of held) {
       r.kw = kwVec(r.text)
       nzSum += r.kw.length
       kwBar.increment()
     }
     kwBar.stop()
     await writeFileAtomic(KWPROJ_JSON, JSON.stringify({ proj }) + "\n")
-    const denom = split.length || 1
-    kwLine = `kw                    : keys=${keys.length}, mean nz ${(nzSum / denom).toFixed(2)}`
+    const denom = held.length || 1
+    kwLine = `kw (eval only)        : keys=${keys.length}, mean nz ${(nzSum / denom).toFixed(2)}`
   }
 
   await writeFileAtomic(EVAL, held.map(toLine).join("\n") + "\n")

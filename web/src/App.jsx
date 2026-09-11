@@ -18,7 +18,7 @@ const DEBOUNCE_MS = 250
 const EMOJI_MODE_KEY = 'emojiMode'
 const CONTRAST_FIX_KEY = 'contrastFix'
 
-export const EMOJI_MODES = ['fusion', 'model', 'keywords']
+export const EMOJI_MODES = ['model', 'keywords']
 
 export function initialEmojiMode() {
   try {
@@ -28,13 +28,12 @@ export function initialEmojiMode() {
     if (legacy === 'cldr') return 'keywords'
     if (legacy === 'model') return 'model'
   } catch {}
-  return 'fusion'
+  return 'model'
 }
 
 export function pickEmojiList(mode, scores, meta, slots) {
   if (!scores || !meta) return []
-  const arr =
-    mode === 'fusion' ? scores.fusion : mode === 'keywords' ? scores.kw : scores.emoji
+  const arr = mode === 'keywords' ? scores.kw : scores.emoji
   if (!arr) return []
   return [...arr.keys()]
     .sort((a, b) => arr[b] - arr[a])
