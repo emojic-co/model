@@ -22,7 +22,7 @@ EMOJI_COUNT = len(EMOJIS)
 # DATA
 # Sized for the milestone-1 keyword-search model: small vocab, short inputs,
 # ~1/5 encoder width.
-MAX_TEXT_LEN = 32
+MAX_TEXT_LEN = 42
 
 # ENCODER
 CHAR_EMBED_SIZE = 16
@@ -31,7 +31,7 @@ ENCODER_KERNEL_SIZE = 3
 assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
-ENCODER_CHANNELS = [96, 112, 128]
+ENCODER_CHANNELS = [100, 120, 200]
 ENCODER_DILATION = [1, 2, 4]
 TEXT_EMBED_SIZE = sum(ENCODER_CHANNELS)
 
@@ -93,7 +93,7 @@ LR = 0.01
 GRAD_CLIP_GEN = 1.0
 GRAD_CLIP_CRITIC = 10.0
 INFONCE_TEMP = 0.7
-CLDR_WEIGHT = 0.2
+CLDR_WEIGHT = 0.15
 
 train_str = " ".join(
     [

@@ -10,7 +10,7 @@ import { STYLE_SET } from "./styles.ts"
 import { queryTokens } from "./tokenize.ts"
 
 const MIN_COUNT = 125
-const MAX_COUNT = 600
+const MAX_COUNT = 750
 const EVAL_SIZE = 2000
 
 const MIN_MAX_RATIO = 2
