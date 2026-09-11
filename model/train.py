@@ -713,6 +713,7 @@ CODE_FILES = [
     f"{MODEL_DIR}/color.py",
     f"{MODEL_DIR}/config.py",
     f"{MODEL_DIR}/data.py",
+    f"{MODEL_DIR}/metrics.py",
     f"{MODEL_DIR}/model.py",
     f"{MODEL_DIR}/train.py",
     f"{MODEL_DIR}/export_onnx.py",
