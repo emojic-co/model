@@ -14,26 +14,12 @@ runner = CliRunner()
 
 
 def test_parse_heads_default():
-    assert T._parse_heads(None) == ("style", "emoji", "critic", "fusion")
+    assert T._parse_heads(None) == ("style", "emoji", "critic")
 
 
 def test_parse_heads_orders_canonically():
     assert T._parse_heads("emoji,style") == ("style", "emoji")
     assert T._parse_heads(" critic , emoji ") == ("emoji", "critic")
-
-
-def test_all_heads_includes_fusion():
-    assert T.ALL_HEADS == ("style", "emoji", "critic", "fusion")
-
-
-def test_heads_fusion_requires_emoji():
-    assert T._parse_heads("emoji,fusion") == ("emoji", "fusion")
-    raised = False
-    try:
-        T._parse_heads("style,fusion")
-    except typer.BadParameter:
-        raised = True
-    assert raised
 
 
 def test_parse_heads_rejects_unknown():
@@ -68,7 +54,6 @@ def test_validate_nondefault_folder_needs_local():
         "style",
         "emoji",
         "critic",
-        "fusion",
     )
 
 
@@ -112,41 +97,6 @@ def test_litencoder_builds_only_selected_heads():
     assert hasattr(m2, "emoji") and hasattr(m2, "critic") and not hasattr(m2, "style")
     opt = m2.configure_optimizers()
     assert isinstance(opt, torch.optim.Adam)
-
-
-def test_fusion_step_detaches_trunk_and_trains_heads():
-    from model.config import MAX_TEXT_LEN
-    from model.data import EMOJIS, STYLES
-
-    torch.manual_seed(0)
-    m = T.LitEncoder(heads=("style", "emoji", "critic", "fusion"))
-    logged = {}
-    m.log = lambda name, val, *a, **k: logged.__setitem__(name, val)
-
-    b = 4
-    text = torch.randint(1, 5, (b, MAX_TEXT_LEN))
-    emoji = torch.zeros(b, len(EMOJIS))
-    emoji[:, 0] = 1.0
-    style = torch.zeros(b, len(STYLES))
-    style[:, 0] = 1.0
-    colors = torch.zeros(b, 9)
-    kw = torch.zeros(b, len(EMOJIS))
-    kw[:, 1] = 0.5
-
-    loss = m._step((text, emoji, style, colors, kw), "train")
-    loss.backward()
-
-    grads = [p.grad for p in m.fusion.parameters()]
-    assert grads and all(g is not None for g in grads)
-    assert any(g.abs().sum() > 0 for g in grads)
-    assert "loss/fusion/train" in logged
-    assert m.emoji.net[1].weight.grad is not None
-    assert m.emoji_embed.embed.weight.grad is not None
-    assert next(m.enc.parameters()).grad is not None
-    assert "fusion/gate_mean/train" in logged
-
-    m.on_train_epoch_end()
-    assert "MRR/fusion/train" in logged
 
 
 def test_colorcritic_forward_shape():
@@ -244,8 +194,6 @@ def main() -> None:
     """Run the train.py CLI assertion checks."""
     test_parse_heads_default()
     test_parse_heads_orders_canonically()
-    test_all_heads_includes_fusion()
-    test_heads_fusion_requires_emoji()
     test_parse_heads_rejects_unknown()
     test_validate_heads_only_with_enc()
     test_validate_nondefault_folder_needs_local()
@@ -254,7 +202,6 @@ def main() -> None:
     test_roc_auc_perfect_and_reversed()
     test_roc_auc_chance_and_empty()
     test_litencoder_builds_only_selected_heads()
-    test_fusion_step_detaches_trunk_and_trains_heads()
     test_colorcritic_forward_shape()
     test_cli_help_ok()
     test_cli_bad_heads_aborts()

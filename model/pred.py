@@ -9,12 +9,11 @@ import typer
 from tqdm import tqdm
 
 from model.config import MAX_TEXT_LEN, SEED
-from model.data import EMOJIS, STYLES, _row_kw, normalize, text_to_tensor
+from model.data import EMOJIS, STYLES, normalize, text_to_tensor
 from model.model import (
     ColorGen,
     EmojiEmbedding,
     EmojiHead,
-    FusionHead,
     StyleHead,
     TextEncoder,
 )
@@ -64,7 +63,7 @@ def read_rows(lines: list[str]) -> list[dict]:
         d = json.loads(line)
         text = normalize(d["text"])[:MAX_TEXT_LEN]
         if text:
-            rows.append({"text": text, "kw": d.get("kw") or []})
+            rows.append({"text": text})
     return rows
 
 
@@ -79,12 +78,6 @@ def predict(
     style = _load(StyleHead(), pt_dir / "style.pt")
     emoji_embed = _load(EmojiEmbedding(), pt_dir / "emoji_embed.pt")
     emoji = _load(EmojiHead(), pt_dir / "emoji.pt")
-
-    fusion = None
-    if (pt_dir / "fusion.pt").exists():
-        fusion = _load(FusionHead(), pt_dir / "fusion.pt")
-    else:
-        print("fusion.pt missing -- skipping fusion_top_labels", file=sys.stderr)
 
     records = []
     with torch.no_grad():
@@ -108,12 +101,6 @@ def predict(
                 "bg": hexes[:2],
                 "fg": hexes[2],
             }
-            if fusion is not None and row["kw"]:
-                kw_vec = _row_kw(row).unsqueeze(0)
-                fused = fusion(emb.detach(), emoji_logits.detach(), kw_vec)
-                record["fusion_top_labels"] = top_labels(
-                    fused, EMOJIS, min_k=1, max_k=1
-                )
             records.append(record)
     return records
 

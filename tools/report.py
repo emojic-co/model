@@ -24,7 +24,6 @@ from files import (
     COLORS_JSONL,
     DATA_JSONL,
     EMOJI_EMBED_PT,
-    FUSION_PT,
     GOAL_DIR,
     GOALS_YML,
     GROUP_JSON,
@@ -102,25 +101,9 @@ def _emoji_embed():
     return None if err else m
 
 
-@cache
-def _fusion_head():
-    from model.model import FusionHead
-
-    if not Path(FUSION_PT).exists():
-        return None
-    mod, err = _load(FusionHead(), FUSION_PT)
-    return mod if err is None else None
-
-
-def _emoji_extra_acc(records, tgt, logit_m, text_emb):
+def _emoji_extra_acc(records, tgt):
     kw_dense = torch.stack([_row_kw(r) for r in records])
-    out = {"keywords": [_acc_at_k(kw_dense, tgt, k).mean().item() for k in EMOJI_KS]}
-    head = _fusion_head()
-    if head is not None:
-        with torch.no_grad():
-            fused = head(text_emb.detach(), logit_m.detach(), kw_dense)
-        out["fusion"] = [_acc_at_k(fused, tgt, k).mean().item() for k in EMOJI_KS]
-    return out
+    return {"keywords": [_acc_at_k(kw_dense, tgt, k).mean().item() for k in EMOJI_KS]}
 
 
 def _provenance(pt: Path):
@@ -373,29 +356,18 @@ def _section_keyword(enc, head) -> dict:
     out = {"exact": _rank_acc(kw_dense, id_lists, total)}
 
     emb = _emoji_embed()
-    fh = _fusion_head()
-    logit_m = None
-    text_emb = None
     if enc is not None and head is not None and emb is not None:
         with torch.no_grad():
             texts = torch.stack([text_to_tensor(norm_text(w)) for w, _ in rows])
             text_emb = enc(texts)
             logit_m = emb.score(head(text_emb))
         out["model"] = _rank_acc(logit_m, id_lists, total)
-        if fh is not None:
-            with torch.no_grad():
-                fused = fh(text_emb.detach(), logit_m.detach(), kw_dense)
-            out["fusion"] = _rank_acc(fused, id_lists, total)
 
     search = _kw_search_rows(rows)
     if search is not None:
         by_text = {r["text"]: r["kw"] for r in search.get("rows", [])}
         fuzzy_dense = torch.stack([_row_kw({"kw": by_text.get(w, [])}) for w, _ in rows])
         out["fuzzy"] = _rank_acc(fuzzy_dense, id_lists, total)
-        if logit_m is not None and fh is not None:
-            with torch.no_grad():
-                fuzzy_fused = fh(text_emb.detach(), logit_m.detach(), fuzzy_dense)
-            out["fuzzy_fusion"] = _rank_acc(fuzzy_fused, id_lists, total)
     return out
 
 
@@ -509,14 +481,8 @@ def _grade_merged(cur, iter_target, global_target, direction) -> str:
 
 
 def _best_emoji_acc(emoji_eval) -> tuple:
-    variants = {
-        "EmojiHead": emoji_eval.get("acc_at_k"),
-        "Fusion": emoji_eval.get("fusion_acc_at_k"),
-    }
-    variants = {k: v for k, v in variants.items() if v}
-    if not variants:
-        return None, None
-    return max(variants.items(), key=lambda kv: kv[1][0])
+    acc = emoji_eval.get("acc_at_k")
+    return ("EmojiHead", acc) if acc else (None, None)
 
 
 def _dig(node, *keys):
@@ -572,10 +538,10 @@ def _goal_specs() -> dict:
         return lambda r: _dig(_best_emoji_acc(_dig(r, "emoji", "eval") or {})[1] or [], i)
 
     def exact_kw(i):
-        return lambda r: _dig(r, "keyword", "fusion", "acc_at_k", i)
+        return lambda r: _dig(r, "keyword", "exact", "acc_at_k", i)
 
     def fuzzy_kw(i):
-        return lambda r: _dig(r, "keyword", "fuzzy_fusion", "acc_at_k", i)
+        return lambda r: _dig(r, "keyword", "fuzzy", "acc_at_k", i)
 
     def style(i):
         return lambda r: _dig(r, "cards", "style_acc_at_k", i)
@@ -706,13 +672,9 @@ def _section_status(report) -> dict:
 
     best_name, best = _best_emoji_acc(emoji_eval)
     kw_exact = keyword.get("exact") or {}
-    kw_fusion = keyword.get("fusion") or {}
-    kw_fuzzy_fusion = keyword.get("fuzzy_fusion") or {}
+    kw_fuzzy = keyword.get("fuzzy") or {}
     goals = []
 
-    exact_note = "fusion model on cldr.jsonl keywords (exact-matched kw vector)"
-    if kw_exact.get("acc_at_k"):
-        exact_note += f" · standalone kw-search Acc@1 {kw_exact['acc_at_k'][0]:.3f}"
     _acc_rows(
         goals,
         1,
@@ -720,8 +682,8 @@ def _section_status(report) -> dict:
         "emoji prediction.exact keyword",
         ep.get("exact keyword"),
         iter_leaves,
-        kw_fusion.get("acc_at_k"),
-        exact_note,
+        kw_exact.get("acc_at_k"),
+        "standalone kw-search on cldr.jsonl keywords (exact-matched kw vector)",
     )
     _acc_rows(
         goals,
@@ -740,9 +702,9 @@ def _section_status(report) -> dict:
         "emoji prediction.fuzzy keyword",
         ep.get("fuzzy keyword"),
         iter_leaves,
-        kw_fuzzy_fusion.get("acc_at_k"),
-        "fusion model on fuzzy-matched kw vector"
-        if kw_fuzzy_fusion.get("acc_at_k")
+        kw_fuzzy.get("acc_at_k"),
+        "standalone kw-search on fuzzy-matched kw vector"
+        if kw_fuzzy.get("acc_at_k")
         else "unmeasured — needs bun + web/public/kwproj.json (tools/analysis/kw-search.ts)",
     )
 
@@ -904,12 +866,11 @@ def _section_emoji(enc, head, eval_records):
             enc_emb = enc(texts)
             q_txt = head(enc_emb)
             logits = emb.score(q_txt)
-        extra = _emoji_extra_acc(rows, tgt, logits, enc_emb)
+        extra = _emoji_extra_acc(rows, tgt)
         d["eval"] = {
             "n": len(rows),
             "acc_at_k": [_acc_at_k(logits, tgt, k).mean().item() for k in EMOJI_KS],
             "keywords_acc_at_k": extra.get("keywords"),
-            "fusion_acc_at_k": extra.get("fusion"),
             "baseline": _cldr_baseline(),
         }
     return d
@@ -1459,8 +1420,8 @@ def _goals_html(goals) -> str:
     )
 
 
-def _word_acc_table_html(title, model_vals, search_vals, fusion_vals, missing_note) -> str:
-    if not (model_vals or search_vals or fusion_vals):
+def _word_acc_table_html(title, model_vals, search_vals, missing_note) -> str:
+    if not (model_vals or search_vals):
         return f'<h2>{_esc(title)}</h2><p class="note">{_esc(missing_note)}</p>'
 
     def cell(vals, idx):
@@ -1469,14 +1430,13 @@ def _word_acc_table_html(title, model_vals, search_vals, fusion_vals, missing_no
     rows = "".join(
         f"<tr><td>{_esc(k)}</td>"
         f'<td class="n">{cell(model_vals, idx)}</td>'
-        f'<td class="n">{cell(search_vals, idx)}</td>'
-        f'<td class="n">{cell(fusion_vals, idx)}</td></tr>'
+        f'<td class="n">{cell(search_vals, idx)}</td></tr>'
         for k, idx in ACC_K_INDEX.items()
     )
     return (
         f"<h2>{_esc(title)}</h2>"
         '<table><tr><th></th><th class="n">EmojiHead</th>'
-        '<th class="n">Search</th><th class="n">Fusion</th></tr>'
+        '<th class="n">Search</th></tr>'
         f"{rows}</table>"
     )
 
@@ -1487,7 +1447,6 @@ def _exact_word_accuracy_html(report) -> str:
         "Exact Word Accuracy",
         (kw.get("model") or {}).get("acc_at_k"),
         (kw.get("exact") or {}).get("acc_at_k"),
-        (kw.get("fusion") or {}).get("acc_at_k"),
         "keyword predictor unavailable — needs enc.pt / emoji.pt / emoji_embed.pt "
         "and web/public/kwproj.json.",
     )
@@ -1499,7 +1458,6 @@ def _full_text_accuracy_html(report) -> str:
         "Full Text Accuracy",
         e.get("acc_at_k"),
         e.get("keywords_acc_at_k"),
-        e.get("fusion_acc_at_k"),
         "emoji eval unavailable — needs enc.pt / emoji.pt / emoji_embed.pt.",
     )
 
@@ -1541,13 +1499,9 @@ def _emoji_html(d) -> str:
         e = d["eval"]
         points = list(zip((str(k) for k in EMOJI_KS), e["acc_at_k"], strict=True))
         bl = e.get("baseline")
-        series = []
-        for key, label, cls in (
-            ("keywords_acc_at_k", "Keywords", "lline2"),
-            ("fusion_acc_at_k", "Fusion", "lline3"),
-        ):
-            if e.get(key):
-                series.append((label, e[key], cls))
+        series = [("Keywords", e["keywords_acc_at_k"], "lline2")] if e.get(
+            "keywords_acc_at_k"
+        ) else []
         if series:
             legend = ("EmojiHead", *(name for name, _, _ in series))
         elif bl:
@@ -1606,14 +1560,10 @@ def _keyword_html(d) -> str:
         return ""
     points = list(zip((str(k) for k in EMOJI_KS), ex["acc_at_k"], strict=True))
     series = []
-    if d.get("fusion"):
-        series.append(("Fusion", d["fusion"]["acc_at_k"], "lline2"))
     if d.get("model"):
         series.append(("EmojiHead", d["model"]["acc_at_k"], "lline3"))
     if d.get("fuzzy"):
         series.append(("Standalone search (fuzzy)", d["fuzzy"]["acc_at_k"], "lline4"))
-    if d.get("fuzzy_fusion"):
-        series.append(("Fusion (fuzzy)", d["fuzzy_fusion"]["acc_at_k"], "lline5"))
     legend = ("Exact kw", *(name for name, _, _ in series)) if series else None
     return (
         "<h2>Keyword predictor — CLDR</h2>"

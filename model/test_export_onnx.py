@@ -10,7 +10,7 @@ import torch
 from model.config import EMOJIS, MAX_TEXT_LEN
 from model.data import FLEX_RAW_DIM, FLEXQ_DIM
 from model.export_onnx import ExportWrapper, _strip_spectral_norm, export_onnx
-from model.model import ColorGen, EmojiHead, FusionHead, StyleHead, TextEncoder
+from model.model import ColorGen, EmojiHead, StyleHead, TextEncoder
 
 V = len(EMOJIS)
 
@@ -24,7 +24,6 @@ def _wrapper():
         StyleHead().eval(),
         EmojiHead().eval(),
         ColorGen().eval(),
-        FusionHead().eval(),
     ).eval()
 
 
@@ -43,7 +42,7 @@ def test_onnx_io_shapes():
         ins = {vi.name: vi for vi in m.graph.input}
         outs = {vi.name for vi in m.graph.output}
         assert set(ins) == {"input", "flex", "flex_q"}, set(ins)
-        assert outs == {"style_logits", "emoji_logits", "fusion_logits", "color"}, outs
+        assert outs == {"style_logits", "emoji_logits", "color"}, outs
 
         assert _dim(ins["input"], 1) == MAX_TEXT_LEN
         assert _dim(ins["flex"], 1) == V
