@@ -15,13 +15,17 @@ description: Use when a training run has finished (train then tools/report.py) a
 | 2 | `tools/report.py` → `report/<stamp>-<sha>/{report.html,report.json}` | pipeline |
 | **3** | **Analysis** — read the newest report + TensorBoard, diagnose the top failing goal | **this skill** |
 | **4** | **Write `goal/<YYYY-MM-DD>-<short-sha>.yml`** — the targets the *next* iteration aims to hit | **this skill** |
-| **5** | **Derive a concrete plan** → `plans/<stamp>/plan.md` (git-tracked, mirrors `report/`) | **this skill** |
-| **6** | **Implement the plan** — data, config, analysis, regen changes (guardrails below); architecture / loss are recommend-only | **this skill** |
+| **5** | **Derive a concrete plan** → `plans/<stamp>/plan.md` (git-tracked, mirrors `report/`), ending in 2-4 ranked options — then present them and wait | **this skill** |
+| **6** | **Implement the plan** — only the option(s) the user picked; data, config, analysis, regen changes (guardrails below); architecture / loss are recommend-only | **this skill, after the user picks** |
 | 7 | back to step 1 | user |
 
 The report already carries a priority-ordered scorecard at `status.goals` (the coloured banner atop `report.html`, targets from `goals.yml`), the per-Unicode-group vocab breakdown at `status.vocab_coverage`, and — once a `goal/*.yml` exists — a target-vs-actual table at `goals.compare`. Steps 3–6 turn that into the next goals file and the next set of moves; they do not re-derive the scorecard.
 
 Core principle: **the fusion model's Acc@1 on exact CLDR keywords (`keyword.fusion.acc_at_k[0]`) is priority 1 and must never regress.** Every recommendation states its risk to that number explicitly. A full-text-emoji gain that costs exact-keyword fusion accuracy is not an improvement. (The standalone inverted-index search `keyword.exact` stays a monitored sub-signal — it is not the gate.)
+
+**Data upsampling is a last resort, not the default move.** The corpus is already large (hundreds of thousands of rows) — the more common bottleneck is *understanding what's already in it*, not a missing concept: a mislabeled slice, an eval set that doesn't probe the failing goal, a config knob, a combiner ignoring a signal it already has. Before a plan proposes `bun run upsample` in any form, it must show why a diagnostic, a data-quality check, or a config nudge could not plausibly close the gap on its own. Upsampling earns its place when the gap is a genuine coverage hole nothing already in the corpus can teach (a whole Unicode group, a keyword→emoji pairing that needs the literal word forced in) — say so explicitly and name the cheaper option that was ruled out and why.
+
+**Always discuss before acting — this skill proposes, it does not decide.** Step 5 ends with 2-4 ranked options, not one locked-in path. Stop there, present them to the user (e.g. via `AskUserQuestion`), and wait for their pick before Step 6 touches anything. Never carry out "every action that qualifies" unattended — a written plan is not standing authorization to execute it.
 
 **Every loop must aim for a *visible* jump on a failing goal — not a marginal gain.** Before writing the plan, decide the loop's verdict:
 - **step-change** — there is a concrete action (or short stack) with a credible path to a visible move (rule of thumb: ≥ +0.02 Acc@1 on the top failing goal, or clearing a category gate). Write it and implement it.
@@ -139,7 +143,7 @@ are gone.
 3. **Scorecard** — copy `status.goals` verbatim; add a **Δ vs previous plan** column per goal (`plans/<prev>/plan.md`). Note `status.best_emoji_variant`. Read `goals.compare` / `goals.summary` — which of last iteration's targets were `met` / `unmet` / `unmeasured`.
 4. **Regression gate** — compare the priority-1 row (fusion model on exact keywords, `keyword.fusion.acc_at_k[0]/[4]/[9]`) to the previous plan; also note `keyword.exact.*` (standalone search) and model-only `cldr.acc_at_k` as sub-signals. Any drop on the fusion row = priority-1 finding, called out at the top of the plan.
 5. **Diagnose**, gathering evidence for each action bucket:
-   - *Class balance* — `data.records`; most/least frequent kept emojis; `regen`'s summary (`kw` keys + mean nonzero); which in-vocab emojis have high `keywords_flex` rank / low `emoji.eval` contribution → **upsample** candidates.
+   - *Class balance* — `data.records`; most/least frequent kept emojis; `regen`'s summary (`kw` keys + mean nonzero); which in-vocab emojis have high `keywords_flex` rank / low `emoji.eval` contribution. Check first whether the rows that *should* teach this are already in the corpus but mislabeled, never forced into training, or drowned out (a data-quality or config fix) before treating it as an **upsample** candidate.
    - *Vocab coverage* (lowest priority — only if every higher goal is green) — `status.vocab_coverage`: which groups are under their `goals.yml` target (`groups.<g>.passed == false`), `top_missing`, the weakest groups from the `status.goals` note → **`bun run upsample --group <name>`** and/or **regen `--min-count`** candidates. Skip this bucket entirely while any higher goal fails.
    - *Config* — best vs exported fusion variant; the lagging head metric from step 2; `INFONCE_TEMP`, `LR`, dropout, `EARLY_STOP_PATIENCE`, batch sizes; early-stop epoch → **config diff** candidates.
    - *Data quality* — pull a sample from a suspect slice (rows tagged `color:*` / `flag:*` / `neg:*`, or the worst `keywords_flex` misses) with `grep`/`jq` on `data/data.jsonl`; look for mislabeled emojis, wrong-set styles, palette drift → **data-quality check** items (what to inspect, the exact command, what "bad" looks like).
@@ -164,20 +168,22 @@ Only gate branches you're actually working this loop; omit the rest and list the
 
 ### Step 5 — Derive the plan
 
-6. **Set the loop verdict** (step-change / blocked-need-diagnostic / marginal-only, per the Overview) and **prioritize** — rank actions by (expected gain toward the highest-priority *failing* goal) then (cheapest first: analysis script ≈ config edit > data-gen > Modal GPU). Respect the priority order. Never propose a change that risks the priority-1 exact-keyword fusion Acc@1 without a risk line and a mitigation.
-7. **Write** `plans/<report-stamp>/plan.md` from the template below (reuse the report dir's exact `<stamp>`). Reference the goals file written in step 4.
+6. **Set the loop verdict** (step-change / blocked-need-diagnostic / marginal-only, per the Overview) and **prioritize** — rank actions by (expected gain toward the highest-priority *failing* goal) then (cheapest / least-generative first: diagnostic ≈ config edit ≈ data-quality fix > data-gen upsample > Modal GPU). Respect the priority order. Never propose a change that risks the priority-1 exact-keyword fusion Acc@1 without a risk line and a mitigation. Any upsample option must name the non-generative fix that was considered and ruled out.
+7. **Write** `plans/<report-stamp>/plan.md` from the template below (reuse the report dir's exact `<stamp>`). Reference the goals file written in step 4. *Next actions* is a **menu of 2-4 ranked options**, not a to-do list — each with its expected effect, cost, and priority-1 risk.
+8. **Stop and present the options** — summarize the menu in chat (e.g. via `AskUserQuestion`) and wait for the user to pick one or more before doing anything in Step 6.
 
 ### Step 6 — Implement the plan
 
-8. **Execute every action that qualifies** (below) — not just one. Data upsample, `regen`, config nudges, a new read-only analysis script, `FUSION_EXPORT_VARIANT`, building an unwired probe: do them all this loop, in priority order. Record each under *Applied this run* with its verification output. Architecture / `model/model.py` structure / loss-function changes stay **recommend-only** — write them in the plan, don't apply them.
+9. **Execute only what the user picked** in step 8, in priority order if they picked more than one. Record each under *Applied this run* with its verification output. Architecture / `model/model.py` structure / loss-function changes stay **recommend-only** — write them in the plan, don't apply them regardless of what's picked.
 
-**Qualifies to implement:**
-- Targeted data upsample for a clearly underperforming in-vocab emoji or keyword cluster: `bun run upsample --emojis "<e1>,<e2>"` / `--keywords "<k1>,<k2>"` / `--rare`, then `bun run regen`. Re-read the regen summary; if vocab size changed, record it (future Acc@k is no longer comparable).
-- **Coverage gap fill** — a whole under-target Unicode group: `bun run upsample --group <name>` (add `--count N` for a random subset of the group's emoji). Missing flags: `bun run upsample --flags` (add `--count N` for a partial pass). Missing animal/object/emotion/symbol concept: `bun run upsample --keywords "<concept words>"`. Then `bun run regen`. Note: added rows only pull an emoji into the vocab once it clears `regen`'s `--min-count`; a single upsample pass may not be enough.
-- **Building a probe the goals file needs** — e.g. the CLDR fuzzy split (`report.json.keyword.fuzzy.acc_at_k`), or `cards.energy` (OKLab energy distance) for `color generator.energy distance.global`. Report-side / committed-data only; touches no model weights.
+**Qualifies to implement** (list in the plan cheapest / least-generative first — this order is also the default option ranking for step 8):
 - **A new read-only analysis script** under `tools/analysis/*.py` — loads `pt/*.pt` + `data/*.jsonl`, writes a report/plot or prints a table, **mutates nothing** (no `.pt`, no `data/`, no `web/`). Wiring it into `tools/report.py` as a permanent section is recommend-only (bigger surface, changes the standard report).
+- **Building a probe the goals file needs** — e.g. the CLDR fuzzy split (`report.json.keyword.fuzzy.acc_at_k`), or `cards.energy` (OKLab energy distance) for `color generator.energy distance.global`. Report-side / committed-data only; touches no model weights.
 - Switching `FUSION_EXPORT_VARIANT` in `model/export_onnx.py` when the report shows another variant clearly wins, then `uv run python model/export_onnx.py`.
 - Localized scalar nudges in `model/config.py` — one small step per knob, only where TensorBoard clearly points: `LR`, `INFONCE_TEMP`, `DROPOUT_EMOJI`, `DROPOUT_STYLE`, `EARLY_STOP_PATIENCE`, `EPOCHS_TASK`.
+- **Data-quality fix on rows already in the corpus** — e.g. `bun run upsample --reannotate colors|emojis` on a slice a data-quality check flagged, or fixing a tool that was silently mislabeling/misrouting existing generation (as opposed to generating more rows). Prefer this over fresh generation whenever the gap is in how existing data is used or labeled, not in what concepts exist.
+- **Targeted data upsample — last resort.** Only once the options above have been considered and ruled out (or already tried and exhausted) for the failing goal: `bun run upsample --emojis "<e1>,<e2>"` / `--keywords "<k1>,<k2>"` / `--rare`, then `bun run regen`. State in the plan which non-generative option was ruled out and why. Re-read the regen summary; if vocab size changed, record it (future Acc@k is no longer comparable).
+- **Coverage gap fill** — the one upsample case that's close to unavoidable, since there's no existing row to recover a missing concept from: a whole under-target Unicode group (`bun run upsample --group <name>`, `--count N` for a random subset), missing flags (`bun run upsample --flags`, `--count N` for a partial pass), or a missing animal/object/emotion/symbol concept (`bun run upsample --keywords "<concept words>"`). Then `bun run regen`. Note: added rows only pull an emoji into the vocab once it clears `regen`'s `--min-count`; a single upsample pass may not be enough.
 
 **Recommend-only (write in the plan, do NOT apply):**
 - Any edit to `ENCODER_CHANNELS` / `ENCODER_DILATION` / `ENCODER_KERNEL_SIZE` / `CHAR_EMBED_SIZE` / `TEXT_EMBED_SIZE`, `model/model.py` structure, or the loss (`lse_infonce`, the fusion combiners, GAN losses).
@@ -186,6 +192,7 @@ Only gate branches you're actually working this loop; omit the rest and list the
 - Multi-knob config sweeps, or anything needing a Modal GPU run to evaluate.
 
 **Guardrails:**
+- **Never execute a Step 6 action before the user has picked from Step 5's options** — write the plan, stop, ask.
 - A background job auto-commits "fix" commits to this branch (see `[[concurrent-training-pipeline-commits]]`): never `git add -A`; scope any commit to the files you touched.
 - After editing a `.py`: `uv run ruff check .` and `uv run ruff format --check .` (leave `model/train.py`'s pre-existing format alone — it fails `--check` independently of your edits).
 - After a data change: `bun run regen`, then re-read its summary.
@@ -269,35 +276,36 @@ Priority-1 regression gate — fusion model on exact keywords Acc@1/@5/@10 (`key
 
 <the leaves written, one line each, with the rationale: held / stepped from X to Y / kept (flat) / unmeasured→build probe>
 
-## Next actions
+## Next actions — options (pick one or more; nothing here runs until you choose)
 
-Each action: **target goal**, expected effect, CLDR risk, cost (config edit | data-gen | Modal GPU), and the exact command/diff. Ordered by priority. Omit a bucket if it has nothing this iteration.
+Each action: **target goal**, expected effect, CLDR risk, cost (config edit | data-gen | Modal GPU), and the exact command/diff. Ordered cheapest / least-generative first. Any upsample option names the non-generative fix that was ruled out first. Omit a bucket if it has nothing this iteration.
+
+### Analysis / diagnostics to add
+- <which one from *Tool catalogue → Should have*> — what failure it will explain, why the current report can't. New `tools/analysis/<name>.py` (read-only, qualifies to implement this loop) or a `tools/report.py` section (recommend-only).
 
 ### Model configuration — model/config.py
 - `<KNOB>`: `<old>` → `<new>` — because <TB metric / report number>. Target: <goal>. CLDR risk: <…>.
 
-### Data upsampling — bun run upsample
+### Data-quality checks (fix existing rows, not new ones)
+- Inspect `<slice>` (e.g. `grep '"color": "red"' data/data.jsonl | head -50` / `jq` the worst `keywords_flex` misses) — looking for <mislabeled emojis | wrong-set styles | palette drift | a tool silently misrouting labels>. Action if confirmed: <re-annotate via `bun run upsample --reannotate …` | fix the tool | drop | targeted regen>.
+
+### Evaluation-set updates
+- <coverage gap in data/eval.jsonl vs vocab | raise `regen --n` | add a probe slice to tools/report.py for goal <…>>.
+
+### Data upsampling — bun run upsample   (last resort — name the non-generative option ruled out first)
+- Ruled out: <diagnostic / config / data-quality fix considered and why it wasn't enough>.
 - `bun run upsample --keywords "<…>"` — <N rows, which coverage/Acc@k gap>. Then `bun run regen`.
 - `bun run upsample --emojis "<…>"` / `--rare --iter <n>` / `--flags [--count N]` / `--group <name> [--count N]` — …
 
 ### Regen configuration — bun run regen   (recommend-only; user runs it)
 - `--min-count <old→new>` / `--max-count …` / `--n …` — vocab-size / eval-split tradeoff. Run `bun run regen --matrix` first; note that Acc@k stops being comparable across the change.
 
-### Data-quality checks
-- Inspect `<slice>` (e.g. `grep '"color": "red"' data/data.jsonl | head -50` / `jq` the worst `keywords_flex` misses) — looking for <mislabeled emojis | wrong-set styles | palette drift>. Action if confirmed: <re-annotate via `bun run upsample --reannotate …` | drop | targeted regen>.
-
-### Evaluation-set updates
-- <coverage gap in data/eval.jsonl vs vocab | raise `regen --n` | add a probe slice to tools/report.py for goal <…>>.
-
-### Analysis / diagnostics to add
-- <which one from *Tool catalogue → Should have*> — what failure it will explain, why the current report can't. New `tools/analysis/<name>.py` (read-only, qualifies to implement this loop) or a `tools/report.py` section (recommend-only).
-
 ### Architecture / loss — recommend-only
 - <change> — param-count / wasm-latency cost: <quantified>. Needs a Modal GPU run to validate.
 
 ## Applied this run
 
-<every action executed, with verification output — ruff, regen summary, test scripts, export — or "none, all actions recommend-only">
+<the option(s) the user picked, with verification output — ruff, regen summary, test scripts, export — or "none yet — awaiting the user's pick from the options above">
 ```
 
 ## Common mistakes
@@ -314,6 +322,8 @@ Each action: **target goal**, expected effect, CLDR risk, cost (config edit | da
 - Running training to "check" a recommendation — leave that to the user (loop step 1).
 - Handing back a plan whose entire content is a marginal nudge because the report didn't obviously point anywhere — that means the missing piece is a diagnostic; build it this loop.
 - Proposing "add more data" / "train longer" as the action when no analysis shows *which* data or that the model is under-trained. Name the slice or the metric first.
+- Reaching for `bun run upsample` before checking whether a diagnostic, config nudge, or data-quality fix on existing rows could close the gap — upsampling is the last resort, not the first idea.
+- Implementing anything in Step 6 without first stopping at Step 5's option menu and getting the user's pick — a written plan is not standing authorization to run it.
 
 ## When NOT to use
 
