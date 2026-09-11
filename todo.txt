@@ -1,15 +1,1 @@
-Update the report, add two sections above the 'Data'
-
-`Exact Word Accuracy` with a single table:
-|       | EmojiHead | Search | Fusion |
-|-------|-----------|--------|--------|
-| acc@1 |           |        |        |
-| acc@5 |           |        |        |
-| acc@10|           |        |        |
-
-`Full Text Accuracy` with a single table:
-|       | EmojiHead | Search | Fusion |
-|-------|-----------|--------|--------|
-| acc@1 |           |        |        |
-| acc@5 |           |        |        |
-| acc@10|           |        |        |
+Model architecture update.
