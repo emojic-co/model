@@ -1,1 +1,12 @@
-Find all unused and leftover data files and code and make a plan to remove them and clean the code.
+Add another keyword source from here:
+https://github.com/muan/emojilib
+
+Tasks:
+    install the package, extract all keywords.
+    create a dataset data/emojilib.jsonl
+    this dataset is the same as the data/cldr.jsonl but with the keywords from emojilib instead of cldr.
+    merge the emojilib keywords into the data/ii.json inverted index.
+    use the EMOJILIB_WEIGHT = 0.15 to sample keywords from emojilib
+    add to TB logs:
+    - emojilib/acc@1
+    - emojilib/acc@5
