@@ -1457,6 +1457,51 @@ def _goals_html(goals) -> str:
     )
 
 
+def _word_acc_table_html(title, model_vals, search_vals, fusion_vals, missing_note) -> str:
+    if not (model_vals or search_vals or fusion_vals):
+        return f'<h2>{_esc(title)}</h2><p class="note">{_esc(missing_note)}</p>'
+
+    def cell(vals, idx):
+        return "—" if not vals else f"{vals[idx]:.3f}"
+
+    rows = "".join(
+        f"<tr><td>{_esc(k)}</td>"
+        f'<td class="n">{cell(model_vals, idx)}</td>'
+        f'<td class="n">{cell(search_vals, idx)}</td>'
+        f'<td class="n">{cell(fusion_vals, idx)}</td></tr>'
+        for k, idx in ACC_K_INDEX.items()
+    )
+    return (
+        f"<h2>{_esc(title)}</h2>"
+        '<table><tr><th></th><th class="n">EmojiHead</th>'
+        '<th class="n">Search</th><th class="n">Fusion</th></tr>'
+        f"{rows}</table>"
+    )
+
+
+def _exact_word_accuracy_html(report) -> str:
+    kw = report.get("keyword") or {}
+    return _word_acc_table_html(
+        "Exact Word Accuracy",
+        (kw.get("model") or {}).get("acc_at_k"),
+        (kw.get("exact") or {}).get("acc_at_k"),
+        (kw.get("fusion") or {}).get("acc_at_k"),
+        "keyword predictor unavailable — needs enc.pt / emoji.pt / emoji_embed.pt "
+        "and web/public/kwproj.json.",
+    )
+
+
+def _full_text_accuracy_html(report) -> str:
+    e = (report.get("emoji") or {}).get("eval") or {}
+    return _word_acc_table_html(
+        "Full Text Accuracy",
+        e.get("acc_at_k"),
+        e.get("keywords_acc_at_k"),
+        e.get("fusion_acc_at_k"),
+        "emoji eval unavailable — needs enc.pt / emoji.pt / emoji_embed.pt.",
+    )
+
+
 def _data_html(d) -> str:
     r = d["records"]
     cells = "".join(
@@ -1644,6 +1689,10 @@ def _render_html(report) -> str:
         body.append(_status_html(report["status"]))
     if "goals" in report:
         body.append(_goals_html(report["goals"]))
+    if "keyword" in report:
+        body.append(_exact_word_accuracy_html(report))
+    if "emoji" in report:
+        body.append(_full_text_accuracy_html(report))
     if "data" in report:
         body.append(_data_html(report["data"]))
     if "labels" in report:
