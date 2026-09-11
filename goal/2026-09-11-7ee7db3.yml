@@ -1,0 +1,56 @@
+meta:
+  based_on: plans/26-09-11-10-48-7ee7db3/plan.md
+  written_after_report: report/26-09-11-10-48-7ee7db3
+  rationale: >
+    Priority 1 (exact-keyword fusion) is amber and close to the hard target: acc@1
+    0.858 vs 0.90 (acc@5/@10 already clear their hard targets). It rose to 0.896
+    right after the keyword-forcing fix (report 06b0cf3, CLDR_WEIGHT=0.1) then
+    drifted down to 0.885 and 0.858 over two unplanned dev iterations that changed
+    CLDR_WEIGHT (0.1->0.08) and the encoder (single block [200]/[1] -> two dilated
+    blocks [100,100]/[1,2]) together, so the drop's cause is confounded. Separately,
+    the standalone kw search alone already hits 0.965 acc@1 on the same CLDR probe -
+    the fusion model (what every emoji-prediction goal actually grades) is giving up
+    ~0.107 of accuracy versus its own kw input. That gap, not raw kw quality, is the
+    most direct lever toward the 0.90 hard target. This iteration proposes a clean,
+    single-variable CLDR_WEIGHT revert to isolate its effect, plus a read-only
+    fusion-vs-kw regression diagnostic to explain the gap. Full-text emoji acc@1 has
+    stayed flat (~0.54-0.57) across every CLDR_WEIGHT/encoder combination tried so
+    far, and the encoder's receptive field (7 of 32 MAX_TEXT_LEN chars) is small
+    relative to full sentences - flagged as architecture headroom, held easy this
+    iteration since it is priority 2, below the priority-1 focus.
+  deferred:
+    - "emoji prediction.fuzzy keyword"
+    - "emoji prediction.full text"
+    - style prediction
+    - color generator
+    - max text len
+    - vocabulary
+
+goals:
+  emoji prediction:
+    exact keyword:           # priority 1 — the loop's focus this iteration
+      "acc@1": 0.87
+      "acc@5": 0.95
+      "acc@10": 0.96
+    fuzzy keyword:            # unwired, lower priority — held at 0 until wired
+      "acc@1": 0.0
+    full text:                # unmet, lower priority than the focus — held easy at current
+      "acc@1": 0.55
+      "acc@5": 0.69
+      "acc@10": 0.74
+  style prediction:
+    full text:                 # unmet, lower priority — held easy at current (cards.style_acc_at_k)
+      "acc@1": 0.49
+      "acc@5": 0.73
+      "acc@10": 0.87
+  color generator:
+    energy distance:
+      global: 0.05              # unmeasured — cards.energy not wired; held as placeholder
+      red: 0.20
+      green: 0.13
+      blue: 0.13
+      dark: 0.35
+      bright: 0.05
+  max text len: 32               # unmet, lower priority — held at current config.MAX_TEXT_LEN
+  vocabulary:
+    size: 400                    # unmet, lower priority — held at current vocab size
