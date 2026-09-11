@@ -94,38 +94,16 @@ def test_emoji_html_overlay():
         "eval": {
             "n": 100,
             "acc_at_k": [0.3 + 0.05 * i for i in range(n)],
-            "keywords_acc_at_k": [0.2 + 0.05 * i for i in range(n)],
             "baseline": {"name": "overlap", "acc_at_k": [0.1 + 0.04 * i for i in range(n)]},
         },
-        "keywords": {"n": 50, "acc_at_k": [0.2 + 0.05 * i for i in range(n)]},
     }
     h = _emoji_html(d)
-    assert 'class="lline2"' in h
-    assert ">EmojiHead<" in h and ">Keywords<" in h
     assert 'class="bline"' in h
+    assert "CLDR baseline (overlap)" in h
 
-    d["eval"]["keywords_acc_at_k"] = None
+    del d["eval"]["baseline"]
     h2 = _emoji_html(d)
-    assert 'class="lline2"' not in h2
-    assert "CLDR baseline (overlap)" in h2
-
-
-def test_emoji_extra_acc_reads_precomputed_kw():
-    import torch
-
-    from model.data import record
-    from tools.report import EMOJI_KS, EMOJIS, _emoji_extra_acc
-
-    n = len(EMOJIS)
-    rows = [
-        record("pizza tonight", ["x"], ["Neutral"], ["#000", "#000", "#fff"], [[0, 0.9]]),
-        record("a quiet walk", [], ["Neutral"], ["#000", "#000", "#fff"], []),
-    ]
-    tgt = torch.zeros(2, n)
-    tgt[0, 0] = 1.0
-    out = _emoji_extra_acc(rows, tgt)
-    assert len(out["keywords"]) == len(EMOJI_KS)
-    assert all(0.0 <= v <= 1.0 for v in out["keywords"])
+    assert 'class="bline"' not in h2
 
 
 def test_flex_keyword_candidates_and_section():
@@ -230,25 +208,6 @@ def test_exact_word_accuracy_html():
 
     partial = _exact_word_accuracy_html({"keyword": {"exact": {"acc_at_k": [0.5] * 10}}})
     assert "—" in partial
-
-
-def test_full_text_accuracy_html():
-    from tools.report import _full_text_accuracy_html
-
-    assert "unavailable" in _full_text_accuracy_html({})
-    report = {
-        "emoji": {
-            "eval": {
-                "acc_at_k": [0.3 + 0.05 * i for i in range(10)],
-                "keywords_acc_at_k": [0.2 + 0.05 * i for i in range(10)],
-            }
-        }
-    }
-    h = _full_text_accuracy_html(report)
-    assert "Full Text Accuracy" in h
-    assert ">EmojiHead<" in h and ">Search<" in h
-    assert f"{report['emoji']['eval']['acc_at_k'][0]:.3f}" in h
-    assert f"{report['emoji']['eval']['keywords_acc_at_k'][4]:.3f}" in h
 
 
 def test_load_global_goals():
@@ -552,13 +511,11 @@ def main() -> None:
     test_linechart_series()
     test_linechart_three_way()
     test_emoji_html_overlay()
-    test_emoji_extra_acc_reads_precomputed_kw()
     test_flex_keyword_candidates_and_section()
     test_keywords_flex_html()
     test_section_keyword_exact_probe()
     test_keyword_html_renders()
     test_exact_word_accuracy_html()
-    test_full_text_accuracy_html()
     test_load_global_goals()
     test_group_json_shape()
     test_section_status_orders_and_grades()

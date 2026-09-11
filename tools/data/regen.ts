@@ -1,13 +1,10 @@
-import uFuzzy from "@leeoniya/ufuzzy"
 import { cac } from "cac"
-import cliProgress from "cli-progress"
 import { readFileSync } from "node:fs"
 
 import { EMOJI_POPULARITY_JSON, II_JSON } from "../../files.ts"
 import { splitEmojis } from "./emoji.ts"
 import { normalize } from "./normalize.ts"
 import { STYLE_SET } from "./styles.ts"
-import { queryTokens } from "./tokenize.ts"
 
 const MIN_COUNT = 125
 const MAX_COUNT = 750
@@ -18,8 +15,6 @@ const MAX_MAX_RATIO = 20
 const MATRIX_MIN = [50, 75, 100, 125, 150, 200, 250]
 const MATRIX_MAX = [300, 400, 500, 600, 750, 1000]
 
-const PRIMARY_BONUS = 0.15
-
 export type Palette = { bg: string[]; fg: string }
 export type Row = {
   text: string
@@ -28,7 +23,6 @@ export type Row = {
   bg?: string[]
   fg?: string
   extra?: Record<string, unknown>
-  kw?: [number, number][]
 }
 
 const BASE_FIELDS = new Set([
@@ -37,7 +31,6 @@ const BASE_FIELDS = new Set([
   "styles",
   "bg",
   "fg",
-  "kw",
 ])
 
 type Acc = {
@@ -171,9 +164,7 @@ export function toLine(r: Row): string {
       ? { text: r.text, emojis: r.emojis, styles: r.styles, bg: r.bg, fg: r.fg }
       : { text: r.text, emojis: r.emojis, styles: r.styles }
   const withExtra = r.extra ? { ...base, ...r.extra } : base
-  return JSON.stringify(
-    r.kw ? { ...withExtra, kw: r.kw } : withExtra,
-  )
+  return JSON.stringify(withExtra)
 }
 
 function printMatrix(records: Row[], useCldr: boolean): void {
@@ -289,10 +280,6 @@ cli
     "--analysis",
     `write ${REGEN_MD} (train-vocab vs CLDR emoji coverage) and nothing else`,
   )
-  .option(
-    "--no-kw",
-    "skip the uFuzzy keyword score field (kw) on eval rows",
-  )
 cli.help()
 
 if (import.meta.main) {
@@ -352,84 +339,30 @@ if (import.meta.main) {
   const held = split.slice(0, n)
   const rest = split.slice(n)
 
-  const useKw = options.kw !== false
-  let kwLine = "kw                    : skipped (--no-kw)"
-  if (useKw) {
-    console.log("computing uFuzzy keyword scores...")
-    const emojiIdx = new Map(emojis.map((e, i) => [e, i]))
-    const stripVar = (e: string) =>
-      [...e].filter((c) => c.codePointAt(0) !== 0xfe0f).join("")
-    const rawPop = JSON.parse(readFileSync(EMOJI_POPULARITY_JSON, "utf8")) as Record<
-      string,
-      number
-    >
-    const popMap = new Map<string, number>()
-    for (const [e, s] of Object.entries(rawPop)) {
-      popMap.set(e, Math.max(popMap.get(e) ?? 0, s))
-      popMap.set(stripVar(e), Math.max(popMap.get(stripVar(e)) ?? 0, s))
-    }
-    const popOf = (e: string) => popMap.get(e) ?? popMap.get(stripVar(e)) ?? 0
-    const ii = JSON.parse(readFileSync(II_JSON, "utf8")) as Record<string, string[]>
-    const proj: Record<string, number[]> = {}
-    for (const [k, es] of Object.entries(ii)) {
-      const idxs = [...new Set(es)]
-        .filter((e) => emojiIdx.has(e))
-        .sort((a, b) => popOf(b) - popOf(a) || (a < b ? -1 : 1))
-        .map((e) => emojiIdx.get(e)!)
-      if (idxs.length) proj[k] = idxs
-    }
-    const keys = Object.keys(proj)
-    const weight = new Map(keys.map((k) => [k, 1 / Math.log2(1 + proj[k].length)]))
-    const uf = new uFuzzy({ intraIns: 1 })
-    const matches = function* (word: string): Generator<[string, number]> {
-      if (proj[word]) yield [word, 1.0]
-      if (word.length < 3) return
-      const idxs = uf.filter(keys, word)
-      if (!idxs || !idxs.length) return
-      const info = uf.info(idxs, keys, word)
-      for (let i = 0; i < info.idx.length; i++) {
-        const k = keys[info.idx[i]]
-        if (k === word) continue
-        const sim = info.chars[i] / k.length
-        if (sim >= 0.5) yield [k, sim]
-      }
-    }
-    const kwVec = (text: string): [number, number][] => {
-      const acc = new Map<number, number>()
-      for (const word of queryTokens(text)) {
-        for (const [k, strength] of matches(word)) {
-          const base = strength * weight.get(k)!
-          const pl = proj[k]
-          for (let j = 0; j < pl.length; j++) {
-            const v = base + (j === 0 ? PRIMARY_BONUS : 0)
-            if (v > (acc.get(pl[j]) ?? 0)) acc.set(pl[j], v)
-          }
-        }
-      }
-      return [...acc.entries()]
-        .map(([i, v]) => [i, Number(v.toFixed(3))] as [number, number])
-        .filter(([, v]) => v > 0)
-        .sort((a, b) => a[0] - b[0])
-    }
-    const kwBar = new cliProgress.SingleBar(
-      {
-        format:
-          "fuzzy scores |{bar}| {percentage}% | {value}/{total} rows | ETA: {eta}s",
-      },
-      cliProgress.Presets.shades_classic,
-    )
-    kwBar.start(held.length, 0)
-    let nzSum = 0
-    for (const r of held) {
-      r.kw = kwVec(r.text)
-      nzSum += r.kw.length
-      kwBar.increment()
-    }
-    kwBar.stop()
-    await writeFileAtomic(KWPROJ_JSON, JSON.stringify({ proj }) + "\n")
-    const denom = held.length || 1
-    kwLine = `kw (eval only)        : keys=${keys.length}, mean nz ${(nzSum / denom).toFixed(2)}`
+  const emojiIdx = new Map(emojis.map((e, i) => [e, i]))
+  const stripVar = (e: string) =>
+    [...e].filter((c) => c.codePointAt(0) !== 0xfe0f).join("")
+  const rawPop = JSON.parse(readFileSync(EMOJI_POPULARITY_JSON, "utf8")) as Record<
+    string,
+    number
+  >
+  const popMap = new Map<string, number>()
+  for (const [e, s] of Object.entries(rawPop)) {
+    popMap.set(e, Math.max(popMap.get(e) ?? 0, s))
+    popMap.set(stripVar(e), Math.max(popMap.get(stripVar(e)) ?? 0, s))
   }
+  const popOf = (e: string) => popMap.get(e) ?? popMap.get(stripVar(e)) ?? 0
+  const ii = JSON.parse(readFileSync(II_JSON, "utf8")) as Record<string, string[]>
+  const proj: Record<string, number[]> = {}
+  for (const [k, es] of Object.entries(ii)) {
+    const idxs = [...new Set(es)]
+      .filter((e) => emojiIdx.has(e))
+      .sort((a, b) => popOf(b) - popOf(a) || (a < b ? -1 : 1))
+      .map((e) => emojiIdx.get(e)!)
+    if (idxs.length) proj[k] = idxs
+  }
+  await writeFileAtomic(KWPROJ_JSON, JSON.stringify({ proj }) + "\n")
+  const kwprojLine = `kwproj                : ${Object.keys(proj).length} keys -> ${KWPROJ_JSON}`
 
   await writeFileAtomic(EVAL, held.map(toLine).join("\n") + "\n")
   await writeFileAtomic(TRAIN, rest.map(toLine).join("\n") + "\n")
@@ -478,7 +411,7 @@ if (import.meta.main) {
   console.log(
     `-> ${LABELS}    : ${labels.styles.length} styles, ${labels.emojis.length} emojis`,
   )
-  console.log(kwLine)
+  console.log(kwprojLine)
   console.log(baselineLine)
   process.exit(0)
 }

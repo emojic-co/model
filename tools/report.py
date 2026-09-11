@@ -101,11 +101,6 @@ def _emoji_embed():
     return None if err else m
 
 
-def _emoji_extra_acc(records, tgt):
-    kw_dense = torch.stack([_row_kw(r) for r in records])
-    return {"keywords": [_acc_at_k(kw_dense, tgt, k).mean().item() for k in EMOJI_KS]}
-
-
 def _provenance(pt: Path):
     enc_pt, emoji_pt = str(pt / "enc.pt"), str(pt / "emoji.pt")
     style_pt, gen_pt = str(pt / "style.pt"), str(pt / "gen.pt")
@@ -866,11 +861,9 @@ def _section_emoji(enc, head, eval_records):
             enc_emb = enc(texts)
             q_txt = head(enc_emb)
             logits = emb.score(q_txt)
-        extra = _emoji_extra_acc(rows, tgt)
         d["eval"] = {
             "n": len(rows),
             "acc_at_k": [_acc_at_k(logits, tgt, k).mean().item() for k in EMOJI_KS],
-            "keywords_acc_at_k": extra.get("keywords"),
             "baseline": _cldr_baseline(),
         }
     return d
@@ -1452,16 +1445,6 @@ def _exact_word_accuracy_html(report) -> str:
     )
 
 
-def _full_text_accuracy_html(report) -> str:
-    e = (report.get("emoji") or {}).get("eval") or {}
-    return _word_acc_table_html(
-        "Full Text Accuracy",
-        e.get("acc_at_k"),
-        e.get("keywords_acc_at_k"),
-        "emoji eval unavailable — needs enc.pt / emoji.pt / emoji_embed.pt.",
-    )
-
-
 def _data_html(d) -> str:
     r = d["records"]
     cells = "".join(
@@ -1499,20 +1482,11 @@ def _emoji_html(d) -> str:
         e = d["eval"]
         points = list(zip((str(k) for k in EMOJI_KS), e["acc_at_k"], strict=True))
         bl = e.get("baseline")
-        series = [("Keywords", e["keywords_acc_at_k"], "lline2")] if e.get(
-            "keywords_acc_at_k"
-        ) else []
-        if series:
-            legend = ("EmojiHead", *(name for name, _, _ in series))
-        elif bl:
-            legend = ("model", f"CLDR baseline ({bl['name']})")
-        else:
-            legend = None
+        legend = ("model", f"CLDR baseline ({bl['name']})") if bl else None
         chart = _linechart(
             points,
             baseline=bl["acc_at_k"] if bl else None,
             legend=legend,
-            series=series or None,
         )
         note = (
             ""
@@ -1643,8 +1617,6 @@ def _render_html(report) -> str:
         body.append(_goals_html(report["goals"]))
     if "keyword" in report:
         body.append(_exact_word_accuracy_html(report))
-    if "emoji" in report:
-        body.append(_full_text_accuracy_html(report))
     if "data" in report:
         body.append(_data_html(report["data"]))
     if "labels" in report:

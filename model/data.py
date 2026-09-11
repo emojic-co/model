@@ -1,7 +1,7 @@
 import json
 import os
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import torch
 from torch.utils.data import DataLoader, Dataset
@@ -79,7 +79,6 @@ class record:
     emojis: list[str]
     styles: list[str]
     colors: list[str]
-    kw: list = field(default_factory=list)
 
 
 def read(path):
@@ -108,11 +107,11 @@ def read(path):
                 if not styles:
                     continue
 
-                yield record(text, emojis, styles, [*bg, fg], d.get("kw") or [])
+                yield record(text, emojis, styles, [*bg, fg])
 
 
-def _row_kw(row) -> torch.Tensor:
-    pairs = row.get("kw") if isinstance(row, dict) else row.kw
+def _row_kw(row: dict) -> torch.Tensor:
+    pairs = row.get("kw")
     out = torch.zeros(len(EMOJIS), dtype=torch.float32)
     for i, v in pairs or []:
         out[int(i)] = float(v)
