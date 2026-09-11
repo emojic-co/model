@@ -511,19 +511,19 @@
     "Sarcastic",
     "Deadpan"
   ],
-  "exported_at": "2026-09-11T15:17+00:00",
+  "exported_at": "2026-09-11T20:16+00:00",
   "model_meta": {
-    "sha": "7d5fa64",
-    "dirty": true,
-    "generated": "2026-09-11T17:55:09",
+    "sha": "f8001ca",
+    "dirty": false,
+    "generated": "2026-09-11T22:31:33",
     "config": [
-      "ENCODER: 16 3 [100, 120, 200] [1, 2, 4]",
+      "ENCODER: 16 3 [120, 160, 200] [1, 2, 4]",
       "EMOJI: 42 0.1",
-      "STYLE: 16 420 0.5",
+      "STYLE: 16 480 0.5",
       "GAN: 0.35 [64, 32] [96] [64] 0.2 0.01 0.02 1.0 5.0",
-      "TRAIN: 42 128 512 0.1 0.01 1.0 10.0 0.7 0.15"
+      "TRAIN: 42 128 512 0.1 0.01 1.0 10.0 0.7 0.25"
     ],
-    "train_sha": "356f044427fa",
+    "train_sha": "38e023bd2a4e",
     "stage": "enc"
   }
 }

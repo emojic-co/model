@@ -8,8 +8,6 @@ from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
 import lightning as pl
 import modal
 import torch
@@ -49,6 +47,7 @@ from model.config import (
     EPOCHS_TASK,
     GAN_BATCH_SIZE,
     GAN_CRITIC_LR,
+    GAN_EARLY_STOP_PATIENCE,
     GAN_GEN_LR,
     GAN_GEN_MARGIN,
     GRAD_CLIP_CRITIC,
@@ -78,6 +77,9 @@ from model.model import (
     TextEncoder,
 )
 from model.runmeta import load_pt, require_clean_tree, save_pt
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 
 _CUDA = torch.cuda.is_available()
 _DETERMINISTIC: bool | str = "warn" if _CUDA else True
@@ -329,7 +331,8 @@ class LitEncoder(pl.LightningModule):
             )
             if e_rr:
                 tgt = torch.cat(e_tgt)
-                emoji_macro, _, _ = macro_average(torch.cat(e_rr), tgt, MACRO_MIN_SUPPORT)
+                emoji_macro, _, _ = macro_average(
+                    torch.cat(e_rr), tgt, MACRO_MIN_SUPPORT)
                 self.log(f"MRR/e/{split}", emoji_macro, prog_bar=True)
 
             if split == "val" and self._cldr is not None:
@@ -596,16 +599,22 @@ def _train_gan(
         devices="auto",
         accelerator="auto",
         logger=TensorBoardLogger(
-            "runs", name=CONFIG_NAME, version="gan", default_hp_metric=False
-        ),
-        deterministic=_DETERMINISTIC,
+            "runs",
+            name=CONFIG_NAME,
+            version="gan",
+            default_hp_metric=False),
+
+        deterministic=_DETERMINISTIC,  # type: ignore
         max_epochs=EPOCHS_GAN,
         enable_progress_bar=not no_bar,
+        val_check_interval=min(VAL_CHECK_INTERVAL, len(ds)),
         callbacks=[
             ckpt,
             EarlyStopping(
-                monitor="energy/gan/val", mode="min", patience=EARLY_STOP_PATIENCE
-            ),
+                monitor="energy/gan/val",
+                mode="min",
+                patience=GAN_EARLY_STOP_PATIENCE),
+
             *bar_cbs,
             ModelSummary(),
         ],
