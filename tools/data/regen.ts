@@ -9,7 +9,7 @@ import { normalize } from "./normalize.ts"
 import { STYLE_SET } from "./styles.ts"
 import { queryTokens } from "./tokenize.ts"
 
-const MIN_COUNT = 50
+const MIN_COUNT = 0
 const MAX_COUNT = 750
 const EVAL_SIZE = 2000
 
