@@ -243,9 +243,12 @@ def test_group_json_shape():
 
 
 def test_section_status_orders_and_grades():
+    import tools.report as rep
     from tools.report import EMOJI_KS, _section_status
 
     n = len(EMOJI_KS)
+    orig = rep._load_goals
+    rep._load_goals = lambda: None
     report = {
         "emoji": {
             "eval": {
@@ -273,12 +276,16 @@ def test_section_status_orders_and_grades():
             "per_color": {"all": {"pure_accuracy": 0.4}},
         },
     }
-    st = _section_status(report)
+    try:
+        st = _section_status(report)
+    finally:
+        rep._load_goals = orig
     prios = [g["priority"] for g in st["goals"]]
     assert prios == sorted(prios)
     assert st["best_emoji_variant"] == "Fusion"
     by_goal = {g["goal"]: g for g in st["goals"]}
     assert by_goal["Exact keyword acc@1"]["priority"] == 1
+    assert by_goal["Exact keyword acc@1"]["iter_target"] == "—"
     assert (
         by_goal["Exact keyword acc@1"]["current"]
         == report["keyword"]["fusion"]["acc_at_k"][0]
@@ -298,11 +305,40 @@ def test_section_status_orders_and_grades():
     assert by_goal["Emoji vocab size"]["status"] == "red"
     cov = by_goal["Vocab coverage (per Unicode group)"]
     assert cov["priority"] == 8
+    assert cov["iter_target"] == "—"
     if st["vocab_coverage"].get("measurable"):
         assert cov["status"] == "na"
         assert "deferred" in cov["note"]
     assert all(g["status"] in {"good", "amber", "red", "na"} for g in st["goals"])
     assert "vocab_coverage" in st
+
+
+def test_section_status_iter_target_grading():
+    import tools.report as rep
+    from tools.report import EMOJI_KS, _section_status
+
+    n = len(EMOJI_KS)
+    doc = {
+        "goals": {
+            "emoji prediction": {"exact keyword": {"acc@1": 0.5}},
+            "max text len": 30,
+        }
+    }
+    orig = rep._load_goals
+    rep._load_goals = lambda: ("goal/x.yml", doc)
+    try:
+        report = {
+            "keyword": {"fusion": {"acc_at_k": [0.6] + [0.0] * (n - 1)}},
+            "data": {"max_text_len": 32},
+        }
+        st = _section_status(report)
+    finally:
+        rep._load_goals = orig
+    by_goal = {g["goal"]: g for g in st["goals"]}
+    assert by_goal["Exact keyword acc@1"]["status"] == "amber"
+    assert by_goal["Exact keyword acc@1"]["iter_target"] == "≥ 0.50"
+    assert by_goal["Max text len"]["status"] == "amber"
+    assert by_goal["Max text len"]["iter_target"] == "≥ 30"
 
 
 def test_vocab_coverage_shape():
