@@ -216,6 +216,22 @@ export function parseKeywords(s: string): string[] {
   return out
 }
 
+export function parseKeywordTargets(
+  s: string,
+): { keyword: string; target?: string }[] {
+  const out: { keyword: string; target?: string }[] = []
+  const seen = new Set<string>()
+  for (const raw of s.split(",")) {
+    const [kwPart, targetPart] = raw.split("=")
+    const keyword = (kwPart ?? "").trim()
+    if (!keyword || seen.has(keyword)) continue
+    seen.add(keyword)
+    const target = targetPart?.trim()
+    out.push(target ? { keyword, target } : { keyword })
+  }
+  return out
+}
+
 export function rankWindow(
   counts: Map<string, number>,
   minRank: number,
@@ -499,7 +515,7 @@ cli
   .option("--min-freq <n>", `with --rare, skip emoji with fewer than this many records (default ${RARE_MIN_FREQ})`)
   .option("--max-count <n>", `with --rare, how many of the rarest emoji to target - a target count, not a freq cap (default ${RARE_MAX_COUNT})`)
   .option("--iter <n>", "with --rare, repeat the whole select/generate/annotate/append cycle this many times, recomputing the rarest set each pass (default 1)")
-  .option("--keywords <list>", "standalone: generate texts using each comma-separated keyword, one keyword at a time (ignores emoji targeting)")
+  .option("--keywords <list>", "standalone: generate texts using each comma-separated keyword, one keyword at a time; optionally force a target emoji into the row with keyword=emoji (ignores --emojis / --min-rank / --max-rank)")
   .option("--per <n>", `texts to generate per target emoji / keyword / batch (default ${TEXTS_PER_EMOJI}, ${KEYWORDS_PER} with --keywords, ${COLOR_PER} per colour with --colors, ${FLAG_PER} per country with --flags, ${TEXTS_PER_EMOJI} with --rare)`)
   .option("--negation", "standalone: generate negation-heavy texts (ignores emoji targeting)")
   .option("--short", "standalone: generate short texts capped at the last report's median length (ignores emoji targeting)")
@@ -540,7 +556,7 @@ if (import.meta.main) {
       ? Math.floor(iterRaw)
       : 1
   const kw = options.keywords != null
-  const kwList = kw ? parseKeywords(String(options.keywords)) : []
+  const kwList = kw ? parseKeywordTargets(String(options.keywords)) : []
   const per = Number(
     options.per
     ?? (kw
@@ -767,7 +783,7 @@ if (import.meta.main) {
       }
       console.log(
         `keywords mode -> ${per} texts each for ${kwList.length} keywords `
-        + `-> ${kwList.join(", ")}`,
+        + `-> ${kwList.map((k) => (k.target ? `${k.keyword}=${k.target}` : k.keyword)).join(", ")}`,
       )
     } else if (rare) {
       const rows = await readJsonl<{ emojis?: string }>(DATA)
@@ -956,10 +972,10 @@ if (import.meta.main) {
       } else if (kw) {
         genBar.start(kwList.length, 0)
         genQ.addAll(
-          kwList.map((keyword) => async () => {
+          kwList.map(({ keyword, target }) => async () => {
             try {
               for (const t of await genKeywordBatch(pickVoice(), keyword, per)) {
-                cands.push({ text: t, keyword })
+                cands.push({ text: t, keyword, target })
               }
             } catch (err) {
               console.warn(`\n  gen (${keyword}) failed: ${err}`)
@@ -1289,7 +1305,7 @@ if (import.meta.main) {
       console.log(`dropped no palette   : ${noPalette}`)
     }
     if (singleEmoji) console.log(`dropped no emoji     : ${noEmoji}`)
-    if (!standalone) {
+    if (!standalone || (kw && kwList.some((k) => k.target))) {
       console.log(
         `target hit / miss    : ${hitTarget} / ${missTarget} `
         + `(target injected either way)`,
