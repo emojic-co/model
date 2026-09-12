@@ -359,7 +359,9 @@ def _section_block_capacity(enc, emoji_head) -> dict:
                         "dilation": d,
                         "w_norm_mean": col_norms.mean().item(),
                         "w_norm_max": col_norms.max().item(),
-                        "act_norm": a_slice.norm(dim=-1).mean().item(),
+                        "act_rms": (a_slice.norm(dim=-1) / (end - start) ** 0.5)
+                        .mean()
+                        .item(),
                         "contrib_norm": contrib_norm.mean().item(),
                         "contrib_pct": (100 * contrib_norm / q_norm).mean().item(),
                     }
@@ -1608,7 +1610,7 @@ def _block_capacity_html(d) -> str:
         f'<td class="n">{r["dilation"]}</td>'
         f'<td class="n">{r["w_norm_mean"]:.3f}</td>'
         f'<td class="n">{r["w_norm_max"]:.3f}</td>'
-        f'<td class="n">{r["act_norm"]:.3f}</td>'
+        f'<td class="n">{r["act_rms"]:.3f}</td>'
         f'<td class="n">{r["contrib_norm"]:.3f}</td>'
         f'<td class="n">{r["contrib_pct"]:.1f}%</td></tr>'
         for r in d["rows"]
@@ -1618,11 +1620,13 @@ def _block_capacity_html(d) -> str:
         '<p class="note">Per-block EmojiHead weight column-norms and each '
         "block's actual contribution to the emoji embedding, averaged over "
         "every sample in keywords/terms/eval — see "
-        "<code>tools/block_capacity.py</code>.</p>"
+        "<code>tools/block_capacity.py</code>. Activation RMS/ch is the "
+        "per-block activation norm divided by sqrt(channel count), so it's "
+        "comparable across blocks with different channel widths.</p>"
         "<table><tr><th>Source</th><th class=\"n\">N</th><th class=\"n\">Block</th>"
         '<th class="n">Channels</th><th class="n">Dilation</th>'
         '<th class="n">W col-norm mean</th><th class="n">W col-norm max</th>'
-        '<th class="n">Activation norm</th><th class="n">Contribution norm</th>'
+        '<th class="n">Activation RMS/ch</th><th class="n">Contribution norm</th>'
         '<th class="n">Contribution %</th></tr>' + trows + "</table>"
     )
 

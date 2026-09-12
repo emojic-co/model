@@ -1,5 +1,0 @@
-The report has a bug in the `Failed keywords — data/keywords.jsonl` section.
-A hit is if the first emoji the model predicts is any of the emojis in the target set.
-So this, for example, is a hit:
-christmas	both	❄️ 🌲 🎁 🔔	🎄 ❄️ 🎆 🤶 😋 🌬️ ☀️ 🌳 🥶 🎉	2
-but the report reports it as a miss.
