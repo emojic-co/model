@@ -4,8 +4,8 @@ import { splitEmojis } from "./emoji.ts"
 import { normalize } from "./normalize.ts"
 import { STYLE_SET } from "./styles.ts"
 
-const MIN_COUNT = 100
-const MAX_COUNT = 1000
+export const MIN_COUNT = 100
+export const MAX_COUNT = 1000
 const EVAL_SIZE = 2000
 
 const MIN_MAX_RATIO = 4
@@ -148,6 +148,7 @@ import {
   DATA_JSONL as DATA,
   EMOJILIB_JSONL as EMOJILIB,
   EVAL_JSONL as EVAL,
+  FLAGS_JSONL,
   KEYWORDS_JSONL,
   LABELS_JSON as LABELS,
   REGEN_MD,
@@ -340,12 +341,15 @@ if (import.meta.main) {
   const held = split.slice(0, n)
   const rest = split.slice(n)
 
-  let kwLine = `-> ${KEYWORDS_JSONL} / ${TERMS_JSONL} : skipped (missing ${CLDR} or ${EMOJILIB})`
+  let kwLine =
+    `-> ${KEYWORDS_JSONL} / ${TERMS_JSONL} / ${FLAGS_JSONL} : `
+    + `skipped (missing ${CLDR} or ${EMOJILIB})`
   if (existsSync(CLDR) && existsSync(EMOJILIB)) {
-    const { keywords, terms } = await writeKeywordsAndTerms(new Set(emojis))
+    const { keywords, terms, flags } = await writeKeywordsAndTerms(new Set(emojis))
     kwLine =
       `-> ${KEYWORDS_JSONL} : ${keywords.length}, `
-      + `-> ${TERMS_JSONL} : ${terms.length}`
+      + `-> ${TERMS_JSONL} : ${terms.length}, `
+      + `-> ${FLAGS_JSONL} : ${flags.length}`
   }
 
   await writeFileAtomic(EVAL, held.map(toLine).join("\n") + "\n")

@@ -6,24 +6,20 @@ from dataclasses import dataclass
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from files import EVAL_JSONL, KEYWORDS_JSONL, TERMS_JSONL, TRAIN_JSONL
+from files import EVAL_JSONL, TRAIN_JSONL
 from model.config import (
     EMOJIS,
-    KEYWORDS_SAMPLING_RATE,
     MAX_EMOJIS_PER_SAMPLE,
     MAX_TEXT_LEN,
+    SAMPLING_BASE_RATE,
+    SAMPLING_SOURCES,
     STYLES,
-    TERM_SAMPLING_RATE,
 )
 
 TRAIN_PATH = TRAIN_JSONL
 EVAL_PATH = EVAL_JSONL
-KEYWORDS_PATH = KEYWORDS_JSONL
-TERMS_PATH = TERMS_JSONL
 
 SRC_FULL = "full"
-SRC_KEYWORD = "keyword"
-SRC_TERM = "term"
 
 PAD = "·"
 PAD_IDX = 0
@@ -168,24 +164,47 @@ def _sample_pool(pool: _Pool, src: str) -> tuple:
     return (text[j], sampled_emojis_to_tensor(emoji_lists[j]), style[j], colors[j], src)
 
 
+class SamplingRates:
+    def __init__(self, names: list[str], base_rate: float):
+        self.base_rate = base_rate
+        self._current = {name: base_rate for name in names}
+
+    def get(self, name: str) -> float:
+        return self._current[name]
+
+    def set(self, name: str, rate: float) -> None:
+        self._current[name] = rate
+
+
 class EmojiDataset(Dataset):
-    def __init__(self, records: list[record], mix_keywords: bool = False):
+    def __init__(self, records: list[record], mix_sources: bool = False):
         self.text = torch.stack([text_to_tensor(r.text) for r in records])
         self.emoji_lists = [r.emojis for r in records]
         self.style = torch.stack([styles_to_tensor(r.styles) for r in records])
         self.colors = torch.stack([colors2tensor(r.colors) for r in records])
-        self.keyword_pool = _load_pool(KEYWORDS_PATH) if mix_keywords else None
-        self.term_pool = _load_pool(TERMS_PATH) if mix_keywords else None
+        self.rates = (
+            SamplingRates(list(SAMPLING_SOURCES), SAMPLING_BASE_RATE)
+            if mix_sources
+            else None
+        )
+        self.pools: dict[str, _Pool] = {}
+        if mix_sources:
+            for name, source in SAMPLING_SOURCES.items():
+                pool = _load_pool(source.path)
+                if pool is not None:
+                    self.pools[name] = pool
 
     def __len__(self):
         return len(self.text)
 
     def __getitem__(self, idx):
         r = torch.rand(1).item()
-        if self.keyword_pool is not None and r < KEYWORDS_SAMPLING_RATE:
-            return _sample_pool(self.keyword_pool, SRC_KEYWORD)
-        if self.term_pool is not None and r < KEYWORDS_SAMPLING_RATE + TERM_SAMPLING_RATE:
-            return _sample_pool(self.term_pool, SRC_TERM)
+        if self.rates is not None:
+            cum = 0.0
+            for name, pool in self.pools.items():
+                cum += self.rates.get(name)
+                if r < cum:
+                    return _sample_pool(pool, name)
         return (
             self.text[idx],
             sampled_emojis_to_tensor(self.emoji_lists[idx]),
@@ -196,7 +215,7 @@ class EmojiDataset(Dataset):
 
 
 def train_ds():
-    return EmojiDataset(list(read(TRAIN_PATH)), mix_keywords=True)
+    return EmojiDataset(list(read(TRAIN_PATH)), mix_sources=True)
 
 
 PIN_MEMORY = torch.cuda.is_available()
@@ -226,7 +245,7 @@ def train_data_loader(
 
 def eval_data_loader():
     return DataLoader(
-        EmojiDataset(list(read(EVAL_PATH)), mix_keywords=True),
+        EmojiDataset(list(read(EVAL_PATH)), mix_sources=True),
         batch_size=2000,
         shuffle=False,
         drop_last=False,

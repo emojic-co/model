@@ -28,6 +28,13 @@ export function isFaceEmoji(emoji: string): boolean {
   return false
 }
 
+const REGIONAL_INDICATOR_FLAG = /^[\u{1F1E6}-\u{1F1FF}]{2}$/u
+const TAG_SEQUENCE_FLAG = /^\u{1F3F4}[\u{E0000}-\u{E007F}]+$/u
+
+export function isFlagEmoji(emoji: string): boolean {
+  return REGIONAL_INDICATOR_FLAG.test(emoji) || TAG_SEQUENCE_FLAG.test(emoji)
+}
+
 import GROUPS from "./emoji-groups.json" with { type: "json" }
 
 const GROUP_MAP = GROUPS as Record<string, string>

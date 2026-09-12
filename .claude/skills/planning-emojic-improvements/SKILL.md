@@ -21,7 +21,7 @@ description: Use when a training run has finished (train then tools/report.py) a
 
 The report already carries one merged, priority-ordered scorecard at the top of `report.html` (mirrored as `report.json` `status.goals`) — goal name, `goals.yml`'s global target, the newest `goal/*.yml`'s current-iteration target, this run's current value, and a good/amber/red/grey status — plus the per-Unicode-group vocab breakdown at `status.vocab_coverage`, and the full leaf-level detail (every gated leaf, not just the priority rows) at `goals.compare` just below it. Steps 3–6 turn that into the next goals file and the next set of moves; they do not re-derive the scorecard.
 
-Core principle: **the fusion model's Acc@1 on exact CLDR keywords (`keyword.fusion.acc_at_k[0]`) is priority 1 and must never regress.** Every recommendation states its risk to that number explicitly. A full-text-emoji gain that costs exact-keyword fusion accuracy is not an improvement. (The standalone inverted-index search `keyword.exact` stays a monitored sub-signal — it is not the gate.)
+Core principle: **`EmojiHead`'s Acc@1 on CLDR keywords (`keyword.acc_at_k[0]`) is priority 1 and must never regress.** Every recommendation states its risk to that number explicitly. A full-text-emoji gain that costs keyword accuracy is not an improvement. (`term.acc_at_k` — the same probe over `data/terms.jsonl` — is priority 2, graded the same way.)
 
 **Data upsampling is a last resort, not the default move.** The corpus is already large (hundreds of thousands of rows) — the more common bottleneck is *understanding what's already in it*, not a missing concept: a mislabeled slice, an eval set that doesn't probe the failing goal, a config knob, a combiner ignoring a signal it already has. Before a plan proposes `bun run upsample` in any form, it must show why a diagnostic, a data-quality check, or a config nudge could not plausibly close the gap on its own. Upsampling earns its place when the gap is a genuine coverage hole nothing already in the corpus can teach (a whole Unicode group, a keyword→emoji pairing that needs the literal word forced in) — say so explicitly and name the cheaper option that was ruled out and why.
 
@@ -41,37 +41,33 @@ numbers in this table are just a quick reference and can lag the file. Each
 *Step 4* for the rule that gives lower-priority goals an easy (hold-current) target
 while a higher-priority one is still open.
 
-Every `emoji prediction` leaf measures **the fusion model** (the shipped system: best of
-the detached combiners over model logits + kw), by input type. The standalone
-inverted-index keyword search (`report.json.keyword.exact` / `keyword.fuzzy`) is a
-diagnostic, not a graded goal.
+Every `emoji prediction` leaf measures the shipped `EmojiHead` retrieval directly — query
+the text encoder, score against `EmojiEmbedding` — by input type. There is no combiner or
+fusion step in the model; CLDR/EmojiLib keyword text is mixed into training as regular
+rows instead (`model/data.py:cldr_keyword_pool`, rate `CLDR_WEIGHT` — see `docs/model.md`).
 
 | Target | goals.yml path | report.json source | Threshold (as of writing) |
 |---|---|---|---|
-| Fusion model — exact keywords Acc@{1,5,10} | `emoji prediction.exact keyword.acc@{1,5,10}` | `keyword.fusion.acc_at_k` (best combiner over model + **exact** kw, on CLDR keywords) | ≥ 0.95 |
-| Fusion model — fuzzy keywords Acc@{1,5,10} | `emoji prediction.fuzzy keyword.acc@{1,5,10}` | `keyword.fuzzy_fusion.acc_at_k` † (best combiner over model + **uFuzzy** kw, on CLDR keywords) | ≥ 0.90 / 0.95 / 0.95 |
-| Fusion model — full text Acc@{1,5,10} | `emoji prediction.full text.acc@{1,5,10}` | `emoji.eval.<best fusion variant>_acc_at_k` | ≥ 0.80 / 0.85 / 0.90 |
-| Style Acc@{1,5,10} | `style prediction.full text.acc@{1,5,10}` | `cards.style_acc_at_k` | ≥ 0.80 / 0.85 / 0.90 |
-| Colour energy distance | `color generator.energy distance.{global,red,green,blue,dark,bright}` | `cards.energy` ‡ / `cards.per_color.<c>.gt_mean_distance` | ≤ 0.01 |
+| Keyword emoji Acc@{1,5,10} | `emoji prediction.keyword.acc@{1,5,10}` | `keyword.acc_at_k` (`EmojiHead` retrieval over `data/keywords.jsonl`) | ≥ 0.90 / 0.95 / 0.99 |
+| Term emoji Acc@{1,5,10} | `emoji prediction.term.acc@{1,5,10}` | `term.acc_at_k` (`EmojiHead` retrieval over `data/terms.jsonl`) | ≥ 0.80 / 0.85 / 0.90 |
+| Full-text emoji Acc@{1,5,10} | `emoji prediction.full text.acc@{1,5,10}` | `emoji.eval.acc_at_k` | ≥ 0.75 / 0.80 / 0.85 |
+| Style Acc@{1,5,10} | `style prediction.full text.acc@{1,5,10}` | `cards.style_acc_at_k` | ≥ 0.60 / 0.80 / 0.90 |
+| Colour energy distance | `color generator.energy distance.{global,red,green,blue,dark,bright}` | `cards.energy` ‡ / `cards.per_color.<c>.gt_mean_distance` | ≤ 0.01 / 0.1 each |
 | Max text len | `max text len` | `data.max_text_len` (= `config.MAX_TEXT_LEN`) | ≥ 42 |
 | Vocab size | `vocabulary.size` | `labels.emojis` | ≥ 700 |
 | Per-group vocab coverage | `vocabulary.coverage.<group>` | `status.vocab_coverage.groups.<group>.score` | per-group, see `goals.yml` |
 
-† `keyword.fuzzy_fusion.*` is wired via `tools/analysis/kw-search.ts` (the standalone
-uFuzzy keyword search — exact + fuzzy matches, `PRIMARY_BONUS`-ranked, same algorithm as
-`regen.ts`/`web/src/keywords.js`), shelled out to by `tools/report.py:_kw_search_rows` and
-fused the same way `keyword.fusion` fuses the exact kw vector; it reads back empty (not
-fatal) if `bun` or `web/public/kwproj.json` are unavailable when the report runs. ‡ `cards.energy`
+‡ `cards.energy`
 (OKLab energy distance) is not computed yet; the per-colour `gt_mean_distance` legs are
 wired whenever `pt/style.pt` + `pt/gen.pt` exist — `cards` is now a **default**
 `tools/report.py` section (every `train` run trains and ships the GAN, so there's always
 a functional web app to measure end to end); it only comes back empty if those two
 checkpoints are missing.
 
-Priority order (scorecard priority number in parens): **1** fusion model on exact
-keywords Acc@k — no degradation — · **2** fusion model on full text Acc@k · **3** fusion
-model on fuzzy keywords Acc@k · **4** colour energy distance · **5** style Acc@k · **6**
-max text len · **7** vocab-size floor · **8** per-group vocab coverage (lowest priority of
+Priority order (scorecard priority number in parens): **1** keyword Acc@k — no
+degradation — · **2** term Acc@k · **3** full-text Acc@k · **4** colour energy distance ·
+**5** style Acc@k · **6** max text len · **7** vocab-size floor · **8** per-group vocab
+coverage (lowest priority of
 all). Vocab coverage is a **floor gate, not
 an optimisation target**: act on a group below its target **only after every
 higher-priority goal is green**. While any higher goal is still failing, the report shows
@@ -112,31 +108,29 @@ are gone.
 | Source | Use |
 |---|---|
 | `report/<newest>-<sha>/report.json` | **Primary** — all Acc@k numbers, the `status` block (per-goal target vs current, priority-ordered), and `goals.compare` (target-vs-actual vs the last goals file). Confirm `provenance.issues == []` first; if not, stop and tell the user the report/`.pt` are inconsistent. |
-| `runs/<CONFIG_NAME>/` (gitignored TensorBoard) | **Required at step 3** — loss curves, `MRR/{e,s,fusion,kw}/val`, per-variant `MRR/fusion_{gate,gain,mix}/val`, `auc/critic/val`, `energy/gan/val`, `gate/a` · `gain/beta` · `mix/g`, early-stop epoch. Read with `uv run tensorboard --logdir runs` or `tensorboard.backend.event_processing.event_accumulator.EventAccumulator`. Note the newest run dir (`ls -t runs`). |
+| `runs/<CONFIG_NAME>/` (gitignored TensorBoard) | **Required at step 3** — loss curves, `MRR/{e,s}/val`, `auc/critic/val`, `energy/gan/val`, early-stop epoch. Read with `uv run tensorboard --logdir runs` or `tensorboard.backend.event_processing.event_accumulator.EventAccumulator`. Note the newest run dir (`ls -t runs`). |
 | `goals.yml` (repo root) | **Long-term targets — source of truth.** Every `status` scorecard's global-target column is read from here; the newest `goal/*.yml` covers every priority goal in this tree (easy holds on the ones below focus — see *Step 4*). |
 | `goal/<newest>.yml` + `goal/README.md` | The targets this iteration was aiming at, and the schema + leaf→`report.json` source map for the file step 4 writes. |
 | `model/config.py` + `uv run python model/config.py` | Current hyperparameters, param count, receptive field (15) vs `MAX_TEXT_LEN` (42). |
 | `data/labels.json` | Current emoji vocab list + size (dynamic). |
-| `data/group.json` (`bun run build-groups`) · `data/ii.json` (keyword→emoji index) | Per-group vocab-coverage input (see *Vocabulary coverage — per Unicode group*). |
+| `data/group.json` (`bun run build-groups`) | Per-group vocab-coverage input (see *Vocabulary coverage — per Unicode group*). |
 | newest previous `plans/*/plan.md` | Regression gate — diff the scorecard. |
 | `git log --oneline -15` | What changed since the last plan (data grow, config edit, arch). |
 
 ### report.json field map
 
 - `status.goals` — priority-ordered scorecard, one row per goal, rendered as `report.html`'s opening "Goal status" table: `{goal, priority, dir (max|min), target (global, from goals.yml), iter_target (this iteration, from the newest goal/*.yml — "—" if unset), current, status (good|amber|red|na), note}`. `status` is good when `current` clears the global `target`, amber when it clears only `iter_target` (an intentionally easy iteration ask), red otherwise. **Start here.**
-- `status.best_emoji_variant` — which fusion variant the short-text rows used.
+- `status.best_emoji_variant` — the emoji-scoring path graded (`EmojiHead`; no combiner/variant selection exists anymore, kept for schema stability).
 - `status.vocab_coverage` — per-Unicode-group vocab coverage: `groups.<g>.{score,covered,total,target,passed}`, `groups_passed` / `groups_measurable` / `groups_total`, `score`, `passed`, `top_missing`.
 - `status.summary` — counts of good/amber/red/na.
 - `goals.source_file` — path of the goals file this report was graded against (newest `goal/*.yml`).
 - `goals.meta` — that file's `meta` block (`rationale`, `based_on`, `deferred`, …).
-- `goals.compare` — the full **leaf-level** detail (every gated leaf, including every individual `vocabulary.coverage.<group>` entry, not just the priority rows in `status.goals`); mirrors the `goals:` tree, each leaf `{target, actual, met, dir (max|min), delta}`. `actual`/`met` are `null` when the source is not wired yet (see `goal/README.md` map — `color generator.energy distance.global` is not wired; `emoji prediction.fuzzy keyword.*` is wired but reads back `null` on a run where `bun` or `web/public/kwproj.json` weren't available). Rendered in `report.html` right under the merged "Goal status" table, as "Goals for this iteration — per-leaf detail".
+- `goals.compare` — the full **leaf-level** detail (every gated leaf, including every individual `vocabulary.coverage.<group>` entry, not just the priority rows in `status.goals`); mirrors the `goals:` tree, each leaf `{target, actual, met, dir (max|min), delta}`. `actual`/`met` are `null` when the source is not wired yet (see `goal/README.md` map — `color generator.energy distance.global` is not wired). Rendered in `report.html` right under the merged "Goal status" table, as "Goals for this iteration — per-leaf detail".
 - `goals.summary` — counts of `met` / `unmet` / `unmeasured` leaves.
 - `emoji.eval.acc_at_k` — `EmojiHead` retrieval, eval short texts, k=1..10.
-- `emoji.eval.fusion_{gate,gain,mix}_acc_at_k` — same via each detached combiner. Shipped variant = `FUSION_EXPORT_VARIANT` in `model/export_onnx.py` (default `gate`). If another variant clearly wins, that is a free win.
-- `emoji.eval.keywords_acc_at_k` — non-learned `kw` vector alone.
-- `emoji.eval.baseline.acc_at_k` — `overlap` baseline.
-- `keyword.{exact,model,fusion,fuzzy,fuzzy_fusion}` — CLDR-keyword probe, each `{n, total, acc_at_k[0..9]}`: `exact`/`fuzzy` are the standalone kw search (Python exact-only vs. `tools/analysis/kw-search.ts` exact+uFuzzy, both diagnostics only), `model` is bare `EmojiHead`, `fusion`/`fuzzy_fusion` are the graded fusion-model numbers (priority-1 / priority-3). `model`/`fusion`/`fuzzy_fusion` need `enc.pt`+`emoji.pt` (+`emoji_embed.pt`+`fusion.pt` for the two fusion columns) to load; `fuzzy`/`fuzzy_fusion` additionally need `bun` + `web/public/kwproj.json` at report time.
-- `cldr.acc_at_k`, `cldr.n`, `cldr.total` — `data/cldr.jsonl` keyword probe.
+- `emoji.eval.baseline.acc_at_k` — `overlap` baseline (`_cldr_baseline`).
+- `keyword.{n,total,acc_at_k}` — `EmojiHead` retrieval probe over `data/keywords.jsonl` (single-word CLDR/EmojiLib keyword rows, priority-1); needs `enc.pt`+`emoji.pt`+`emoji_embed.pt` to load.
+- `term.{n,total,acc_at_k}` — same probe over `data/terms.jsonl` (the multi-word / non-keyword half of the CLDR+EmojiLib split — `tools/data/keywords.ts`, priority-2).
 - `cards.emoji_acc_at_k`, `cards.style_acc_at_k` — shipped-graph end-to-end on the 125-row colours gold set.
 - `cards.per_color.<red|green|blue|dark|bright|all>.{pure_accuracy,pure_mean_distance,gt_accuracy,gt_mean_distance}` — palette accuracy per colour.
 - `keywords_flex.{candidates,missed,ranked}` — single-token keyword-vocab diagnostic; `ranked` = rank>10 misses, worst first.
@@ -148,16 +142,16 @@ are gone.
 ### Step 3 — Analysis
 
 1. **Locate** the newest `report/` dir. Verify its `-<sha>` matches `git rev-parse --short HEAD` and `provenance.issues == []`. If stale or inconsistent, stop and say so (or run `uv run python tools/report.py --pt pt` if the user wants a fresh one).
-2. **Read TensorBoard** — open the newest `runs/<CONFIG_NAME>/` (+ `/gan`). Record: which head's val metric lags (`MRR/e` vs `MRR/s` vs `MRR/fusion` vs `auc/critic` vs `energy/gan`), the early-stop epoch (under- vs over-training), the learned fusion scalars (`gate/a` · `gain/beta` · `mix/g`), and any divergence / plateau shape.
+2. **Read TensorBoard** — open the newest `runs/<CONFIG_NAME>/` (+ `/gan`). Record: which head's val metric lags (`MRR/e` vs `MRR/s` vs `auc/critic` vs `energy/gan`), the early-stop epoch (under- vs over-training), and any divergence / plateau shape.
 3. **Scorecard** — copy `status.goals` verbatim; add a **Δ vs previous plan** column per goal (`plans/<prev>/plan.md`). Note `status.best_emoji_variant`. Read `goals.compare` / `goals.summary` — which of last iteration's targets were `met` / `unmet` / `unmeasured`.
-4. **Regression gate** — compare the priority-1 row (fusion model on exact keywords, `keyword.fusion.acc_at_k[0]/[4]/[9]`) and the priority-3 row (fusion on fuzzy keywords, `keyword.fuzzy_fusion.acc_at_k`) to the previous plan; also note `keyword.exact.*` / `keyword.fuzzy.*` (standalone search, exact vs. exact+uFuzzy) and model-only `keyword.model.*` / `cldr.acc_at_k` as sub-signals. Any drop on either fusion row = a priority-1/3 finding, called out at the top of the plan.
+4. **Regression gate** — compare the priority-1 row (`keyword.acc_at_k[0]/[4]/[9]`) and the priority-2 row (`term.acc_at_k[0]/[4]/[9]`) to the previous plan. Any drop on either row = a priority-1/2 finding, called out at the top of the plan.
 5. **Diagnose**, gathering evidence for each action bucket:
    - *Class balance* — `data.records`; most/least frequent kept emojis; `regen`'s summary (`kw` keys + mean nonzero); which in-vocab emojis have high `keywords_flex` rank / low `emoji.eval` contribution. Check first whether the rows that *should* teach this are already in the corpus but mislabeled, never forced into training, or drowned out (a data-quality or config fix) before treating it as an **upsample** candidate.
    - *Vocab coverage* (lowest priority — only if every higher goal is green) — `status.vocab_coverage`: which groups are under their `goals.yml` target (`groups.<g>.passed == false`), `top_missing`, the weakest groups from the `status.goals` note → **`bun run upsample --group <name>`** and/or **regen `--min-count`** candidates. Skip this bucket entirely while any higher goal fails.
-   - *Config* — best vs exported fusion variant; the lagging head metric from step 2; `INFONCE_TEMP`, `LR`, dropout, `EARLY_STOP_PATIENCE`, batch sizes; early-stop epoch → **config diff** candidates.
+   - *Config* — the lagging head metric from step 2; `INFONCE_TEMP`, `LR`, dropout, `EARLY_STOP_PATIENCE`, batch sizes; early-stop epoch → **config diff** candidates.
    - *Data quality* — pull a sample from a suspect slice (rows tagged `color:*` / `flag:*` / `neg:*`, or the worst `keywords_flex` misses) with `grep`/`jq` on `data/data.jsonl`; look for mislabeled emojis, wrong-set styles, palette drift → **data-quality check** items (what to inspect, the exact command, what "bad" looks like).
    - *Eval set* — is `data/eval.jsonl` representative? emojis/flags/concepts under-represented vs the vocab; whether to raise `regen --n`; whether a failing target needs its own probe slice in `tools/report.py`. CLDR probe rows come from `data/cldr.jsonl`.
-   - *Architecture* (recommend-only) — receptive field 15 vs 42; channel chain / dilation / kernel; fusion combiner shape; **on-device budget**: quantify any param-count / wasm-latency cost.
+   - *Architecture* (recommend-only) — receptive field 15 vs 42; channel chain / dilation / kernel; **on-device budget**: quantify any param-count / wasm-latency cost.
    - *Diagnostic gap* — for the top failing goal, can the current report + TensorBoard actually explain *why* it fails (which inputs, which classes, confident-vs-unsure errors)? If not, the fix this loop is a new analysis — pick from *Tool catalogue → Should have*.
 
 ### Step 4 — Write the goals file
@@ -180,7 +174,7 @@ This same per-leaf reasoning (held / stepped / kept flat / unmeasured→probe / 
 
 ### Step 5 — Derive the plan
 
-6. **Set the loop verdict** (step-change / blocked-need-diagnostic / marginal-only, per the Overview) and **prioritize** — rank actions by (expected gain toward the highest-priority *failing* goal) then (cheapest / least-generative first: diagnostic ≈ config edit ≈ data-quality fix > data-gen upsample > Modal GPU). Respect the priority order. Never propose a change that risks the priority-1 exact-keyword fusion Acc@1 without a risk line and a mitigation. Any upsample option must name the non-generative fix that was considered and ruled out.
+6. **Set the loop verdict** (step-change / blocked-need-diagnostic / marginal-only, per the Overview) and **prioritize** — rank actions by (expected gain toward the highest-priority *failing* goal) then (cheapest / least-generative first: diagnostic ≈ config edit ≈ data-quality fix > data-gen upsample > Modal GPU). Respect the priority order. Never propose a change that risks the priority-1 keyword Acc@1 without a risk line and a mitigation. Any upsample option must name the non-generative fix that was considered and ruled out.
 7. **Write** `plans/<report-stamp>/plan.md` from the template below (reuse the report dir's exact `<stamp>`). Reference the goals file written in step 4. Write the *Abstract* **last** (it summarizes everything else) but it renders **first** in the file, immediately after the metadata block — a short synthesis of the newest report + TensorBoard read from Step 3, not new analysis. *Current goals & status* / *Current gaps* come next; *Proposed actions* follows, organized under the seven fixed aspect headings (Data, Model Configuration, Model Architecture, Training Configuration, Metric Adjustments, Global Goal Adjustments, Current Goal Adjustments) — each a **menu of ranked options**, not a to-do list, every option with its expected effect, cost, and priority-1 risk. Keep every heading even when nothing applies this iteration — write "no change proposed" under it instead of deleting it.
 8. **Stop and present the options** — summarize the menu in chat (e.g. via `AskUserQuestion`) and wait for the user to pick one or more before doing anything in Step 6.
 
@@ -189,16 +183,16 @@ This same per-leaf reasoning (held / stepped / kept flat / unmeasured→probe / 
 9. **Execute only what the user picked** in step 8, in priority order if they picked more than one. Record each under *Applied this run* with its verification output. Architecture / `model/model.py` structure / loss-function changes stay **recommend-only** — write them in the plan, don't apply them regardless of what's picked.
 
 **Qualifies to implement** (list in the plan cheapest / least-generative first — this order is also the default option ranking for step 8):
-- **A new read-only analysis script** under `tools/analysis/*.py` (or `*.ts`, e.g. `kw-search.ts`) — loads `pt/*.pt` + `data/*.jsonl` (or `web/public/kwproj.json` + `data/labels.json`), writes a report/plot or prints a table, **mutates nothing** (no `.pt`, no `data/`, no `web/`). Wiring it into `tools/report.py` as a permanent section is recommend-only (bigger surface, changes the standard report) — a `.ts` script gets wired via `subprocess` (see `_kw_search_rows`), same as `kw-search.ts` was.
+- **A new read-only analysis script** under `tools/analysis/*.py` (or `*.ts`, e.g. `cldr-baseline.ts`) — loads `pt/*.pt` + `data/*.jsonl`, writes a report/plot or prints a table, **mutates nothing** (no `.pt`, no `data/`, no `web/`). Wiring it into `tools/report.py` as a permanent section is recommend-only (bigger surface, changes the standard report).
 - **Building a probe the goals file needs** — e.g. `cards.energy` (OKLab energy distance) for `color generator.energy distance.global`. Report-side / committed-data only; touches no model weights.
-- Switching `FUSION_EXPORT_VARIANT` in `model/export_onnx.py` when the report shows another variant clearly wins, then `uv run python model/export_onnx.py`.
+- `uv run python model/export_onnx.py` to refresh `web/public/` from the current `pt/` checkpoints after a report-only or export-only change (no retrain needed).
 - Localized scalar nudges in `model/config.py` — one small step per knob, only where TensorBoard clearly points: `LR`, `INFONCE_TEMP`, `DROPOUT_EMOJI`, `DROPOUT_STYLE`, `EARLY_STOP_PATIENCE`, `EPOCHS_TASK`.
 - **Data-quality fix on rows already in the corpus** — e.g. `bun run upsample --reannotate colors|emojis` on a slice a data-quality check flagged, or fixing a tool that was silently mislabeling/misrouting existing generation (as opposed to generating more rows). Prefer this over fresh generation whenever the gap is in how existing data is used or labeled, not in what concepts exist.
 - **Targeted data upsample — last resort.** Only once the options above have been considered and ruled out (or already tried and exhausted) for the failing goal: `bun run upsample --emojis "<e1>,<e2>"` / `--keywords "<k1>,<k2>"` / `--rare`, then `bun run regen`. State in the plan which non-generative option was ruled out and why. Re-read the regen summary; if vocab size changed, record it (future Acc@k is no longer comparable).
 - **Coverage gap fill** — the one upsample case that's close to unavoidable, since there's no existing row to recover a missing concept from: a whole under-target Unicode group (`bun run upsample --group <name>`, `--count N` for a random subset), missing flags (`bun run upsample --flags`, `--count N` for a partial pass), or a missing animal/object/emotion/symbol concept (`bun run upsample --keywords "<concept words>"`). Then `bun run regen`. Note: added rows only pull an emoji into the vocab once it clears `regen`'s `--min-count`; a single upsample pass may not be enough.
 
 **Recommend-only (write in the plan, do NOT apply):**
-- Any edit to `ENCODER_CHANNELS` / `ENCODER_DILATION` / `ENCODER_KERNEL_SIZE` / `CHAR_EMBED_SIZE` / `TEXT_EMBED_SIZE`, `model/model.py` structure, or the loss (`lse_infonce`, the fusion combiners, GAN losses).
+- Any edit to `ENCODER_CHANNELS` / `ENCODER_DILATION` / `ENCODER_KERNEL_SIZE` / `CHAR_EMBED_SIZE` / `TEXT_EMBED_SIZE`, `model/model.py` structure, or the loss (`lse_infonce`, GAN losses).
 - Anything touching `normalize` / `CHARS` (invalidates `.pt`, breaks web parity).
 - `regen --min-count` / `--max-count` / `--n` changes (re-partition the eval split — break Acc@k comparability; size them with `bun run regen --matrix` first and let the user run it).
 - Multi-knob config sweeps, or anything needing a Modal GPU run to evaluate.
@@ -230,10 +224,9 @@ What the loop can reach for at steps 3 and 6. **Have** = exists today; **Should 
 | CLDR-vs-train vocab overlap | `bun run regen --analysis` → `docs/regen.md` | which emoji are in `data/cldr.jsonl` only, train only, or both. |
 | Upsample dry-run | `bun run upsample --dry <mode>` | what a mode would target/generate, no writes. |
 | Corpus preview | `bun run preview data/eval.jsonl` / `bun tools/preview.ts <file>` | rendered cards for a slice. |
-| TensorBoard | `uv run tensorboard --logdir runs` | `MRR/{e,s,fusion,kw}/val`, per-variant fusion MRR, `auc/critic/val`, `energy/gan/val`, `gate/a`·`gain/beta`·`mix/g`, early-stop epoch. |
-| ONNX export | `uv run python model/export_onnx.py` | refresh `web/public/` after a `FUSION_EXPORT_VARIANT` switch (no retrain). |
+| TensorBoard | `uv run tensorboard --logdir runs` | `MRR/{e,s}/val`, `auc/critic/val`, `energy/gan/val`, early-stop epoch. |
+| ONNX export | `uv run python model/export_onnx.py` | refresh `web/public/` from the current `pt/` checkpoints, no retrain needed. |
 | Raw slicing | `grep`/`jq` on `data/data.jsonl` | inspect rows by `color:*` / `flag:*` / `neg:*` / `keyword:*` / `meta.src` tag. |
-| Standalone keyword search | `bun run tools/analysis/kw-search.ts <data.jsonl> [--json]` | the production exact+uFuzzy keyword search (same algorithm as `regen.ts`/`web/src/keywords.js`, `PRIMARY_BONUS`-ranked) run over any `data.jsonl`-schema file's full text, reporting Acc@{1,5,10}. `--json` also emits each scored row's sparse `kw` vector. `tools/report.py:_kw_search_rows` shells out to it (on the CLDR keyword set) to populate `report.json.keyword.fuzzy` / `keyword.fuzzy_fusion`; needs `bun` + `web/public/kwproj.json`. |
 
 ### Should have — build when a failure is unexplained
 
@@ -243,7 +236,7 @@ What the loop can reach for at steps 3 and 6. **Have** = exists today; **Should 
 - **Never-retrieved set** — target emojis that never reach top-10 for any eval row → coverage / embedding-collapse signal.
 - **Error taxonomy** — bucket eval misses by text length, negation (`neg` tag), single- vs multi-emoji rows, topic / `src` tag, style → which slice to upsample or re-annotate.
 - **Score-margin / calibration** — histogram of the top-1 logit gap for correct vs wrong rows; are wrong answers confident (needs data/loss) or unsure (needs capacity/temp)?
-- **Fusion gate behaviour** — distribution of the learned gate/gain/mix scalar across eval texts; rows where `kw` would have helped but the gate suppressed it (or vice-versa).
+- **Keyword-vs-full-text disagreement** — rows where the `keyword`/`term` probe gets the right emoji but `emoji.eval` (full text) misses it, or vice versa. Since there's no combiner to blend the two, a gap here points at what the CLDR-mix training (`CLDR_WEIGHT`) isn't transferring from keyword phrasing to open text.
 - **Embedding neighbours** — nearest emojis in `EmojiEmbedding` space for probe words; k-NN purity by group.
 
 **Colour / style**
@@ -277,20 +270,20 @@ Copy `report.html`'s merged, priority-ordered table verbatim (same as `report.js
 
 | Goal (priority) | Global target (goals.yml) | Current target (this iteration's goal/*.yml) | Current value | Status | Δ vs prev plan |
 |---|---|---|---|---|---|
-| Exact keyword acc@1 (1) | ≥0.95 | ≥0.75 | 0.000 | 🔴 | +0.00 |
-| Full-text emoji acc@1 (2) | ≥0.80 | | | | |
-| Full-text emoji acc@5 (2) | ≥0.85 | | | | |
-| Full-text emoji acc@10 (2) | ≥0.90 | | | | |
-| Fuzzy keyword acc@1 (3) | ≥0.90 | | | ⚪ | |
+| Keyword acc@1 (1) | ≥0.90 | ≥0.75 | 0.000 | 🔴 | +0.00 |
+| Term acc@1 (2) | ≥0.80 | | | | |
+| Full-text emoji acc@1 (3) | ≥0.75 | | | | |
+| Full-text emoji acc@5 (3) | ≥0.80 | | | | |
+| Full-text emoji acc@10 (3) | ≥0.85 | | | | |
 | Color energy · global (4) | ≤0.01 | | | ⚪ | |
-| Style acc@1 (5) | ≥0.80 | | | ⚪ | |
+| Style acc@1 (5) | ≥0.60 | | | ⚪ | |
 | Max text len (6) | ≥42 | | | | |
 | Emoji vocab size (7) | ≥700 | | | | |
 | Vocab coverage (per Unicode group) (8) | all ≥ target | | | ⚪ deferred | |
 
 Status here is 🟢 good (clears the global target) / 🟡 amber (clears only this iteration's easier target) / 🔴 red (misses even that) / ⚪ na (unmeasured, or `deferred` for vocab coverage while a higher goal is open) — see `_grade_merged` in `tools/report.py`.
 
-Priority-1 regression gate — fusion model on exact keywords Acc@1/@5/@10 (`keyword.fusion`) vs prev: <PASS / FAIL + numbers>
+Priority-1 regression gate — keyword Acc@1/@5/@10 (`keyword.acc_at_k`) vs prev: <PASS / FAIL + numbers>
 
 ## Current gaps
 
@@ -298,7 +291,7 @@ Priority-1 regression gate — fusion model on exact keywords Acc@1/@5/@10 (`key
 
 ## Proposed actions
 
-Every action below states its **target goal**, expected effect, priority-1 (exact-keyword fusion) risk, and cost (config edit | data-gen | Modal GPU). Ordered cheapest / least-generative first within each heading. Nothing here runs until the user picks from the menu.
+Every action below states its **target goal**, expected effect, priority-1 (keyword) risk, and cost (config edit | data-gen | Modal GPU). Ordered cheapest / least-generative first within each heading. Nothing here runs until the user picks from the menu.
 
 ### Data
 - **Regen params** (recommend-only — user runs it): `--min-count` / `--max-count` / `--n` proposal, or "no change proposed". Size with `bun run regen --matrix` first; note Acc@k stops being comparable across the change.
@@ -326,7 +319,7 @@ Full inventory of every current `model/config.py` capacity/regularization knob t
 Only rows matching the Step 6 whitelist (`DROPOUT_EMOJI`, `DROPOUT_STYLE`) are auto-implementable if picked; every other row is a recommendation for the user to apply by hand.
 
 ### Model Architecture  (avoid unless Model Configuration changes are insufficient)
-- <proposed change to `ENCODER_CHANNELS` / `ENCODER_DILATION` / `ENCODER_KERNEL_SIZE` / `CHAR_EMBED_SIZE` / `TEXT_EMBED_SIZE`, `model/model.py` structure, or a loss shape (`lse_infonce`, a fusion combiner, a GAN loss)> — reason: <which Model Configuration knob(s) were tried or would plausibly not be enough, and why>. Expected impact: <…>. Param-count / wasm-latency cost: <quantified, e.g. via `uv run python model/config.py`>. Needs a Modal GPU run to validate. Recommend-only — do not apply. Or "no architecture change proposed".
+- <proposed change to `ENCODER_CHANNELS` / `ENCODER_DILATION` / `ENCODER_KERNEL_SIZE` / `CHAR_EMBED_SIZE` / `TEXT_EMBED_SIZE`, `model/model.py` structure, or a loss shape (`lse_infonce`, a GAN loss)> — reason: <which Model Configuration knob(s) were tried or would plausibly not be enough, and why>. Expected impact: <…>. Param-count / wasm-latency cost: <quantified, e.g. via `uv run python model/config.py`>. Needs a Modal GPU run to validate. Recommend-only — do not apply. Or "no architecture change proposed".
 
 ### Training Configuration
 
@@ -368,8 +361,7 @@ Only rows matching the Step 6 whitelist (`LR`, `INFONCE_TEMP`, `EARLY_STOP_PATIE
 ## Common mistakes
 
 - Comparing Acc@k across runs where the emoji vocab size changed — the dynamic vocab shifts the eval split; not comparable. Note vocab size in every plan.
-- Optimizing short-text emoji at the cost of the `cldr` probe — violates priority 1.
-- Treating `fusion_gate`/`fusion_mix` reading equal to `EmojiHead` as a bug — a combiner collapses to the raw model when its learned scalar is ~0; report the gain from the best variant instead.
+- Optimizing full-text emoji at the cost of the `keyword` probe — violates priority 1.
 - Writing a goals-file target equal to the far-off hard target when the loop can only move a fraction of the way — it gives no per-loop signal. Step it.
 - Lowering a goal that was already `met`, or gating `vocabulary.coverage` while a higher-priority goal is still red.
 - Editing a target in a `goal/*.yml` when the *long-term* target changed — that belongs in `goals.yml`.

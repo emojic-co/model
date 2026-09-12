@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 
-import { mergeKeywords, splitKeywordsAndTerms, wordCount } from "./keywords.ts"
+import { buildFlags, mergeKeywords, splitKeywordsAndTerms, wordCount } from "./keywords.ts"
 
 const P = (a: string, b: string, f: string): { bg: [string, string]; fg: string } => ({
   bg: [a, b],
@@ -98,4 +98,46 @@ test("splitKeywordsAndTerms normalizes text and drops rows shorter than 3 chars 
   const { keywords, terms } = splitKeywordsAndTerms(merged, new Set(["🔙", "🏪", "😑"]))
   expect(terms.map((r) => r.text)).toEqual(["back arrow"])
   expect(keywords).toEqual([])
+})
+
+test("splitKeywordsAndTerms drops rows that are entirely flag emoji, single- or multi-word", () => {
+  const merged = mergeKeywords(
+    [
+      { text: "Japan", emojis: "🇯🇵", styles: [] },
+      { text: "United States", emojis: "🇺🇸", styles: [] },
+      { text: "cake", emojis: "🍰", styles: [] },
+    ],
+    [],
+  )
+  const { keywords, terms } = splitKeywordsAndTerms(
+    merged,
+    new Set(["🇯🇵", "🇺🇸", "🍰"]),
+  )
+  expect(keywords.map((r) => r.text)).toEqual(["cake"])
+  expect(terms).toEqual([])
+})
+
+test("buildFlags keeps cldr rows whose sole in-vocab emoji is a flag, keyed by normalized text", () => {
+  const cldr = [
+    { text: "Japan", emojis: "🇯🇵", styles: ["Deadpan"], ...P("#fffafa", "#d71920", "#17202a") },
+    { text: "United States", emojis: "🇺🇸", styles: ["Deadpan"], ...P("#173f73", "#b22234", "#ffffff") },
+    { text: "cake", emojis: "🍰", styles: [] },
+    { text: "flag", emojis: "🇯🇵 🇺🇸 🏁", styles: ["Deadpan"], ...P("#111111", "#222222", "#eeeeee") },
+  ]
+  const flags = buildFlags(cldr, new Set(["🇯🇵", "🇺🇸", "🍰"]))
+  expect(flags).toEqual([
+    { text: "Japan", emojis: ["🇯🇵"], styles: ["Deadpan"], bg: ["#fffafa", "#d71920"], fg: "#17202a", src: "cldr" },
+    { text: "United States", emojis: ["🇺🇸"], styles: ["Deadpan"], bg: ["#173f73", "#b22234"], fg: "#ffffff", src: "cldr" },
+  ])
+})
+
+test("buildFlags drops flag emoji not in vocab and rows missing a palette", () => {
+  const cldr = [
+    { text: "Japan", emojis: "🇯🇵", styles: ["Deadpan"], ...P("#fffafa", "#d71920", "#17202a") },
+    { text: "Chad", emojis: "🇹🇩", styles: ["Deadpan"] },
+  ]
+  expect(buildFlags(cldr, new Set(["🇹🇩"]))).toEqual([])
+  expect(buildFlags(cldr, new Set(["🇯🇵"]))).toEqual([
+    { text: "Japan", emojis: ["🇯🇵"], styles: ["Deadpan"], bg: ["#fffafa", "#d71920"], fg: "#17202a", src: "cldr" },
+  ])
 })

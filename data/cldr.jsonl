@@ -5029,3 +5029,5 @@
 {"text": "xoxo", "emojis": "👨‍❤️‍💋‍👨 👩‍❤️‍💋‍👨 👩‍❤️‍💋‍👩 💏 💕 💖 💗 💝 😍 😗 😘 😚", "styles": ["Tender"], "bg": ["#f0b8c4", "#db8fa0"], "fg": "#4a1622", "meta": {"date": "2026-09-10", "cldr": true}}
 {"text": "you", "emojis": "👋 👨‍❤️‍👨 👩‍❤️‍👨 👩‍❤️‍👩 💑 😗 😘 😮 🤟 🥰 🫵 🫶", "styles": ["Tender"], "bg": ["#f3c6cf", "#dfa0ad"], "fg": "#541d2b", "meta": {"date": "2026-09-10", "cldr": true}}
 {"text": "zodiac", "emojis": "♈️ ♉️ ♊️ ♋️ ♌️ ♍️ ♎️ ♏️ ♐️ ♑️ ♒️ ♓️ ⚖️ ⛎️ 🏹 🏺 🐂 🐍 🐏 🐐 🐟️ 👧 🦀 🦁 🦂", "styles": ["Awed"], "bg": ["#c3c0d8", "#9a95bd"], "fg": "#171531", "meta": {"date": "2026-09-10", "cldr": true}}
+{"text":"Japan","emojis":"🇯🇵","styles":["Deadpan"],"bg":["#fffafa","#d71920"],"fg":"#17202a","meta":{"date":"2026-09-12","cldr":true}}
+{"text":"Australia","emojis":"🇦🇺","styles":["Deadpan"],"bg":["#0b2d70","#1556a8"],"fg":"#ffffff","meta":{"date":"2026-09-12","cldr":true}}

@@ -58,14 +58,14 @@ from model.config import (
     INFONCE_TEMP,
     LR,
     MACRO_MIN_SUPPORT,
+    SAMPLING_MIN_RATE,
+    SAMPLING_SOURCES,
     SEED,
     TASK_BATCH_SIZE,
     TEXT_EMBED_SIZE,
     VAL_CHECK_INTERVAL,
 )
 from model.data import (
-    SRC_KEYWORD,
-    SRC_TERM,
     eval_data_loader,
     train_data_loader,
     train_ds,
@@ -226,6 +226,8 @@ class LitEncoder(pl.LightningModule):
         self._trn_s_rr: list[torch.Tensor] = []
         self._trn_s_tgt: list[torch.Tensor] = []
 
+        self.train_dataset = None
+
     def _log(self, name, val, bs):
         self.log(name, val, on_step=False, on_epoch=True,
                  prog_bar=True, batch_size=bs)
@@ -262,37 +264,22 @@ class LitEncoder(pl.LightningModule):
                 e_rr = self._val_e_rr if split == "val" else self._trn_e_rr
                 e_rr.append(rr.detach())
 
-            kw_mask = torch.tensor(
-                [s == SRC_KEYWORD for s in source], device=emoji.device
-            )
-            n_kw = int(kw_mask.sum())
-            if n_kw:
-                self._log(
-                    f"keyword/acc@1/{split}",
-                    acc_at_k(emoji_logits[kw_mask], emoji[kw_mask], 1).mean(),
-                    n_kw,
+            for name in SAMPLING_SOURCES:
+                mask = torch.tensor(
+                    [s == name for s in source], device=emoji.device
                 )
-                self._log(
-                    f"keyword/acc@5/{split}",
-                    acc_at_k(emoji_logits[kw_mask], emoji[kw_mask], 5).mean(),
-                    n_kw,
-                )
-
-            term_mask = torch.tensor(
-                [s == SRC_TERM for s in source], device=emoji.device
-            )
-            n_term = int(term_mask.sum())
-            if n_term:
-                self._log(
-                    f"term/acc@1/{split}",
-                    acc_at_k(emoji_logits[term_mask], emoji[term_mask], 1).mean(),
-                    n_term,
-                )
-                self._log(
-                    f"term/acc@5/{split}",
-                    acc_at_k(emoji_logits[term_mask], emoji[term_mask], 5).mean(),
-                    n_term,
-                )
+                n = int(mask.sum())
+                if n:
+                    self._log(
+                        f"{name}/acc@1/{split}",
+                        acc_at_k(emoji_logits[mask], emoji[mask], 1).mean(),
+                        n,
+                    )
+                    self._log(
+                        f"{name}/acc@5/{split}",
+                        acc_at_k(emoji_logits[mask], emoji[mask], 5).mean(),
+                        n,
+                    )
 
         if "critic" in self.heads:
             shift = 1 if split == "val" else int(torch.randint(1, bs, (1,)).item())
@@ -330,6 +317,19 @@ class LitEncoder(pl.LightningModule):
         self._trn_e_rr.clear()
         self._trn_s_rr.clear()
         self._trn_s_tgt.clear()
+
+        if self.train_dataset is None or self.train_dataset.rates is None:
+            return
+        metrics = self.trainer.callback_metrics
+        base_rate = self.train_dataset.rates.base_rate
+        for name, cfg in SAMPLING_SOURCES.items():
+            key = f"{name}/{cfg.metric}/val"
+            if key not in metrics:
+                continue
+            acc = float(metrics[key])
+            gap = max(0.0, cfg.goal - acc) / cfg.goal
+            rate = max(SAMPLING_MIN_RATE, min(base_rate, base_rate * gap))
+            self.train_dataset.rates.set(name, rate)
 
     def on_train_epoch_end(self):
         self._epoch_metrics("train")
@@ -572,6 +572,7 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
     )
 
     mod = LitEncoder(heads=heads)
+    mod.train_dataset = ds
     trainer.fit(mod, dl, val_dl)
 
     if ckpt.best_model_path:
