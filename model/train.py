@@ -268,12 +268,12 @@ class LitEncoder(pl.LightningModule):
             n_kw = int(kw_mask.sum())
             if n_kw:
                 self._log(
-                    f"keyword_acc@1/{split}",
+                    f"keyword/acc@1/{split}",
                     acc_at_k(emoji_logits[kw_mask], emoji[kw_mask], 1).mean(),
                     n_kw,
                 )
                 self._log(
-                    f"keyword_acc@5/{split}",
+                    f"keyword/acc@5/{split}",
                     acc_at_k(emoji_logits[kw_mask], emoji[kw_mask], 5).mean(),
                     n_kw,
                 )
@@ -284,12 +284,12 @@ class LitEncoder(pl.LightningModule):
             n_term = int(term_mask.sum())
             if n_term:
                 self._log(
-                    f"term_acc@1/{split}",
+                    f"term/acc@1/{split}",
                     acc_at_k(emoji_logits[term_mask], emoji[term_mask], 1).mean(),
                     n_term,
                 )
                 self._log(
-                    f"term_acc@5/{split}",
+                    f"term/acc@5/{split}",
                     acc_at_k(emoji_logits[term_mask], emoji[term_mask], 5).mean(),
                     n_term,
                 )
