@@ -39,7 +39,7 @@ class TextEncoderBlock(nn.Module):
                 dilation=dilation,
                 bias=False  # Norm layer provides affine bias
             ),
-            nn.GroupNorm(num_groups=min(num_groups, o), num_channels=o),
+            nn.GroupNorm(num_groups=1, num_channels=o),
             nn.LeakyReLU(negative_slope=RELU_SLOPE)
         )
 
