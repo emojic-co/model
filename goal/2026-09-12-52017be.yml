@@ -1,0 +1,56 @@
+meta:
+  based_on: plans/26-09-11-10-48-7ee7db3/plan.md
+  written_after_report: report/26-09-12-23-12-52017be
+  rationale: >
+    Priority 1 (keyword) and priority 2 (term) are both maxed out (0.99-1.0 vs
+    0.90/0.80 hard targets) after the fusion-combiner removal and vocab growth
+    287->400->711 across the untracked runs since the last plan. Priority 3
+    (full-text emoji Acc) is now the focus: acc@1 amber (0.615 vs 0.75 hard,
+    clears the old 0.56 iter target), acc@5/@10 red but within 0.005-0.015 of
+    their hard targets (0.795/0.835 vs 0.80/0.85). TensorBoard shows MRR/e/val
+    plateaued and noisy (0.758-0.773) while MRR/e/train keeps climbing to 0.79 -
+    a growing train/val gap, not an undertrained model. The report's own
+    block_capacity section explains the mechanism: the deepest, most-dilated
+    encoder block (dilation 8) contributes 40.1% of the pooled embedding on
+    keyword rows but only 12.9% on full-text eval rows, and RECEPTIVE_FIELD
+    (31 chars, from `uv run python model/config.py`) doesn't cover MAX_TEXT_LEN
+    (42) - a structural/architecture-shaped gap, not a data or LR problem.
+    Targets below hold at current for every priority-4-and-below goal since
+    priority 3 is still open (color energy, style, max text len, vocab size are
+    all below focus despite 4/6 color-energy legs being red).
+  deferred:
+    - "color generator"
+    - "style prediction"
+    - "max text len"
+    - "vocabulary"
+
+goals:
+  emoji prediction:
+    keyword:
+      "acc@1": 0.90
+      "acc@5": 0.95
+      "acc@10": 0.99
+    term:
+      "acc@1": 0.80
+      "acc@5": 0.85
+      "acc@10": 0.90
+    full text:
+      "acc@1": 0.65
+      "acc@5": 0.80
+      "acc@10": 0.85
+  style prediction:
+    full text:
+      "acc@1": 0.60
+      "acc@5": 0.80
+      "acc@10": 0.90
+  color generator:
+    energy distance:
+      global: 0.05
+      red: 0.19
+      green: 0.12
+      blue: 0.15
+      dark: 0.21
+      bright: 0.06
+  max text len: 42
+  vocabulary:
+    size: 700
