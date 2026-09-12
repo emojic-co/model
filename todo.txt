@@ -1,3 +1,5 @@
-Done:
-update regen: normalize all keywords before writing `keywords.jsonl` and drop any normalized keyword that is less than 3 chars. same for the `terms.jsonl`
-report `Model — Encoder block capacity`: use a large batch (every valid sample per source) instead of one input and report the average result; removed the `text` column, added an `N` column.
+The report has a bug in the `Failed keywords — data/keywords.jsonl` section.
+A hit is if the first emoji the model predicts is any of the emojis in the target set.
+So this, for example, is a hit:
+christmas	both	❄️ 🌲 🎁 🔔	🎄 ❄️ 🎆 🤶 😋 🌬️ ☀️ 🌳 🥶 🎉	2
+but the report reports it as a miss.
