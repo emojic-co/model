@@ -95,25 +95,25 @@ def main() -> None:
                     d,
                     col_norms.mean().item(),
                     col_norms.max().item(),
-                    a_slice.norm().item(),
+                    a_slice.norm().item() / (end - start) ** 0.5,
                     contrib_norm,
                     100 * contrib_norm / q_norm if q_norm else 0.0,
                 ))
 
     header = (
         f"{'source':<9} {'text':<24} {'blk':>3} {'range':>9} {'dil':>3} "
-        f"{'w_norm_mean':>11} {'w_norm_max':>10} {'act_norm':>9} "
+        f"{'w_norm_mean':>11} {'w_norm_max':>10} {'act_rms':>9} "
         f"{'contrib_norm':>12} {'contrib_%':>9}"
     )
     print(header)
     print("-" * len(header))
     for (
         source, text, i, rng, d,
-        w_mean, w_max, a_norm, contrib_norm, contrib_pct,
+        w_mean, w_max, a_rms, contrib_norm, contrib_pct,
     ) in rows:
         print(
             f"{source:<9} {text[:24]:<24} {i:>3} {rng:>9} {d:>3} "
-            f"{w_mean:>11.4f} {w_max:>10.4f} {a_norm:>9.4f} "
+            f"{w_mean:>11.4f} {w_max:>10.4f} {a_rms:>9.4f} "
             f"{contrib_norm:>12.4f} {contrib_pct:>8.1f}%"
         )
 
