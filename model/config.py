@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
@@ -45,7 +46,7 @@ enc_str = " ".join([
         ENCODER_DILATION)])
 
 # EMOJI
-EMOJI_EMBED_SIZE = 42
+EMOJI_EMBED_SIZE = 60
 DROPOUT_EMOJI = 0.1
 
 emj_str = " ".join([str(p) for p in (EMOJI_EMBED_SIZE, DROPOUT_EMOJI)])
@@ -93,7 +94,15 @@ GRAD_CLIP_GEN = 1.0
 GRAD_CLIP_CRITIC = 1.0
 INFONCE_TEMP = 0.7
 # KEYWORDS SAMPLING
-KEYWORDS_SAMPLING_RATE = 0.2
+
+MAX_EMOJIS_PER_SAMPLE = 5
+
+
+@dataclass
+class KEYWORDS_SAMPLING_RATE:
+    single = 0.1
+    double = 0.01
+    multi = 0.01
 
 
 train_str = " ".join(

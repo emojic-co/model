@@ -7,7 +7,13 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 
 from files import CLDR_JSONL, EMOJILIB_JSONL, EVAL_JSONL, KEYWORDS_JSONL, TRAIN_JSONL
-from model.config import EMOJIS, KEYWORDS_SAMPLING_RATE, MAX_TEXT_LEN, STYLES
+from model.config import (
+    EMOJIS,
+    KEYWORDS_SAMPLING_RATE,
+    MAX_EMOJIS_PER_SAMPLE,
+    MAX_TEXT_LEN,
+    STYLES,
+)
 
 TRAIN_PATH = TRAIN_JSONL
 EVAL_PATH = EVAL_JSONL
@@ -71,6 +77,13 @@ def emojis_to_tensor(emojis: list[str]) -> torch.Tensor:
     return multi_hot(emojis, emoji2idx, len(EMOJIS))
 
 
+def sampled_emojis_to_tensor(emojis: list[str]) -> torch.Tensor:
+    if len(emojis) > MAX_EMOJIS_PER_SAMPLE:
+        perm = torch.randperm(len(emojis))[:MAX_EMOJIS_PER_SAMPLE].tolist()
+        emojis = [emojis[i] for i in perm]
+    return emojis_to_tensor(emojis)
+
+
 def styles_to_tensor(styles: list[str]) -> torch.Tensor:
     return multi_hot(styles, style2idx, len(STYLES))
 
@@ -129,7 +142,7 @@ def _keywords_pool():
         return None
     return (
         torch.stack([text_to_tensor(r.text) for r in recs]),
-        torch.stack([emojis_to_tensor(r.emojis) for r in recs]),
+        [r.emojis for r in recs],
         torch.stack([styles_to_tensor(r.styles) for r in recs]),
         torch.stack([colors2tensor(r.colors) for r in recs]),
     )
@@ -137,6 +150,7 @@ def _keywords_pool():
 
 CLDR_MIN_KEYWORD_LEN = 3
 EMOJILIB_MIN_KEYWORD_LEN = 3
+KEYWORDS_MIN_KEYWORD_LEN = 3
 
 
 def _keyword_pool(
@@ -176,10 +190,14 @@ def emojilib_keyword_pool() -> tuple[torch.Tensor, torch.Tensor] | None:
     return _keyword_pool(EMOJILIB_PATH, EMOJILIB_MIN_KEYWORD_LEN)
 
 
+def keywords_keyword_pool() -> tuple[torch.Tensor, torch.Tensor] | None:
+    return _keyword_pool(KEYWORDS_PATH, KEYWORDS_MIN_KEYWORD_LEN)
+
+
 class EmojiDataset(Dataset):
     def __init__(self, records: list[record], mix_keywords: bool = False):
         self.text = torch.stack([text_to_tensor(r.text) for r in records])
-        self.emoji = torch.stack([emojis_to_tensor(r.emojis) for r in records])
+        self.emoji_lists = [r.emojis for r in records]
         self.style = torch.stack([styles_to_tensor(r.styles) for r in records])
         self.colors = torch.stack([colors2tensor(r.colors) for r in records])
         self.keywords = (
@@ -191,11 +209,12 @@ class EmojiDataset(Dataset):
 
     def __getitem__(self, idx):
         if self.keywords is not None and torch.rand(1).item() < KEYWORDS_SAMPLING_RATE:
-            j = int(torch.randint(len(self.keywords[0]), (1,)).item())
-            return tuple(col[j] for col in self.keywords)
+            text, emoji_lists, style, colors = self.keywords
+            j = int(torch.randint(len(text), (1,)).item())
+            return text[j], sampled_emojis_to_tensor(emoji_lists[j]), style[j], colors[j]
         return (
             self.text[idx],
-            self.emoji[idx],
+            sampled_emojis_to_tensor(self.emoji_lists[idx]),
             self.style[idx],
             self.colors[idx],
         )
