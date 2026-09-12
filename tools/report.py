@@ -32,6 +32,7 @@ from model.config import (
     EMOJIS,
     ENCODER_CHANNELS,
     ENCODER_DILATION,
+    ENCODER_KERNEL_SIZE,
     MAX_TEXT_LEN,
     SEED,
     STYLES,
@@ -873,6 +874,50 @@ def _section_emoji(enc, head, eval_records):
     return d
 
 
+def _section_length_acc(enc, head, eval_records) -> dict:
+    emb = _emoji_embed()
+    if enc is None or head is None or emb is None:
+        return {}
+    rows = [r for r in eval_records if r.emojis]
+    if not rows:
+        return {}
+    rf = 1 + (ENCODER_KERNEL_SIZE - 1) * sum(ENCODER_DILATION)
+    lo = rf // 2
+
+    def bucket(n):
+        if n <= lo:
+            return f"1-{lo}"
+        if n <= rf:
+            return f"{lo + 1}-{rf}"
+        return f"{rf + 1}-{MAX_TEXT_LEN}"
+
+    vocab = {e: i for i, e in enumerate(EMOJIS)}
+    texts = torch.stack([text_to_tensor(r.text) for r in rows])
+    tgt = torch.zeros(len(rows), len(EMOJIS))
+    for i, r in enumerate(rows):
+        for e in r.emojis:
+            tgt[i, vocab[e]] = 1.0
+    with torch.no_grad():
+        logits = emb.score(head(enc(texts)))
+
+    groups: dict[str, list[int]] = {}
+    for i, r in enumerate(rows):
+        groups.setdefault(bucket(len(r.text)), []).append(i)
+
+    buckets = []
+    for name in sorted(groups, key=lambda b: int(b.split("-")[0])):
+        idx = torch.tensor(groups[name])
+        blog, btgt = logits[idx], tgt[idx]
+        buckets.append(
+            {
+                "bucket": name,
+                "n": len(idx),
+                "acc_at_k": [_acc_at_k(blog, btgt, k).mean().item() for k in EMOJI_KS],
+            }
+        )
+    return {"receptive_field": rf, "max_text_len": MAX_TEXT_LEN, "buckets": buckets}
+
+
 def _gold_rows():
     rows = [
         r
@@ -992,6 +1037,7 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         "keyword",
         "cards",
         "block_capacity",
+        "length_acc",
     }
     enc_pt, emoji_pt = pt / "enc.pt", pt / "emoji.pt"
     style_pt, gen_pt = pt / "style.pt", pt / "gen.pt"
@@ -999,7 +1045,15 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
 
     enc = emoji_head = style_head = gen = None
     need_enc = bool(
-        {"emoji", "keyword", "cards", "keywords_flex", "keyword_fails", "block_capacity"}
+        {
+            "emoji",
+            "keyword",
+            "cards",
+            "keywords_flex",
+            "keyword_fails",
+            "block_capacity",
+            "length_acc",
+        }
         & want
     )
     if need_enc and enc_pt.exists():
@@ -1021,7 +1075,7 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
                 prov["issues"].append(f"{gen_pt} could not load: {err}")
     prov["consistent"] = not prov["issues"]
 
-    eval_records = list(read(EVAL_PATH)) if "emoji" in want else []
+    eval_records = list(read(EVAL_PATH)) if {"emoji", "length_acc"} & want else []
     gold_rows = _gold_rows() if "cards" in want else ()
 
     report = {
@@ -1045,6 +1099,8 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         report["cards"] = _section_cards(enc, style_head, emoji_head, gen, gold_rows)
     if "block_capacity" in want:
         report["block_capacity"] = _section_block_capacity(enc, emoji_head)
+    if "length_acc" in want:
+        report["length_acc"] = _section_length_acc(enc, emoji_head, eval_records)
 
     report["status"] = _section_status(report)
     goals = _section_goals(report)
@@ -1631,12 +1687,43 @@ def _block_capacity_html(d) -> str:
     )
 
 
+def _length_acc_html(d) -> str:
+    if not d or not d.get("buckets"):
+        return (
+            "<h2>Model — Accuracy vs. text length</h2>"
+            '<p class="note">Unavailable — needs enc.pt / emoji.pt / emoji_embed.pt '
+            "and data/eval.jsonl.</p>"
+        )
+    rf, mtl = d["receptive_field"], d["max_text_len"]
+    trows = "".join(
+        f'<tr><td>{_esc(b["bucket"])}</td><td class="n">{b["n"]}</td>'
+        + "".join(
+            f'<td class="n">{a:.3f}</td>'
+            for a in (b["acc_at_k"][0], b["acc_at_k"][4], b["acc_at_k"][9])
+        )
+        + "</tr>"
+        for b in d["buckets"]
+    )
+    return (
+        "<h2>Model — Accuracy vs. text length</h2>"
+        f'<p class="note">EmojiHead Acc@k on data/eval.jsonl, bucketed by char '
+        f"length around the encoder's receptive field ({rf} of {mtl} "
+        "MAX_TEXT_LEN chars) — see "
+        "<code>tools/analysis/length_vs_acc.py</code>.</p>"
+        '<table><tr><th>Length bucket</th><th class="n">N</th>'
+        '<th class="n">Acc@1</th><th class="n">Acc@5</th>'
+        '<th class="n">Acc@10</th></tr>' + trows + "</table>"
+    )
+
+
 def _render_html(report) -> str:
     body = [_header_html(report)]
     if "status" in report:
         body.append(_status_html(report["status"]))
     if "block_capacity" in report:
         body.append(_block_capacity_html(report["block_capacity"]))
+    if "length_acc" in report:
+        body.append(_length_acc_html(report["length_acc"]))
     if "goals" in report:
         body.append(_goals_html(report["goals"]))
     if "data" in report:
