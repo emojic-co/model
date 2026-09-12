@@ -1,0 +1,1591 @@
+{
+  "generated": "2026-09-13T02:04:38",
+  "provenance": {
+    "ts": "26-09-13-02-04",
+    "report_code": "6ac0dda",
+    "report_dirty": false,
+    "model_sha": "52017be",
+    "model_train_sha": "5b3f5358127c",
+    "current_train_sha": "ebb97dea60b4",
+    "models": {
+      "pt/enc.pt": {
+        "sha": "52017be",
+        "dirty": false,
+        "generated": "2026-09-12T19:51:54",
+        "config": [
+          "ENCODER: 16 3 [100, 140, 120, 80] [1, 2, 4, 8]",
+          "EMOJI: 60 0.1",
+          "STYLE: 16 440 0.5",
+          "GAN: 0.35 [64, 32] [96] [64] 0.2 0.005 0.02 1.0 5.0",
+          "TRAIN: 42 512 1024 0.1 0.01 1.0 1.0 0.7 0.2 0.05"
+        ],
+        "train_sha": "5b3f5358127c",
+        "stage": "enc"
+      },
+      "pt/emoji.pt": {
+        "sha": "52017be",
+        "dirty": false,
+        "generated": "2026-09-12T19:51:54",
+        "config": [
+          "ENCODER: 16 3 [100, 140, 120, 80] [1, 2, 4, 8]",
+          "EMOJI: 60 0.1",
+          "STYLE: 16 440 0.5",
+          "GAN: 0.35 [64, 32] [96] [64] 0.2 0.005 0.02 1.0 5.0",
+          "TRAIN: 42 512 1024 0.1 0.01 1.0 1.0 0.7 0.2 0.05"
+        ],
+        "train_sha": "5b3f5358127c",
+        "stage": "enc"
+      },
+      "pt/emoji_embed.pt": {
+        "sha": "52017be",
+        "dirty": false,
+        "generated": "2026-09-12T19:51:54",
+        "config": [
+          "ENCODER: 16 3 [100, 140, 120, 80] [1, 2, 4, 8]",
+          "EMOJI: 60 0.1",
+          "STYLE: 16 440 0.5",
+          "GAN: 0.35 [64, 32] [96] [64] 0.2 0.005 0.02 1.0 5.0",
+          "TRAIN: 42 512 1024 0.1 0.01 1.0 1.0 0.7 0.2 0.05"
+        ],
+        "train_sha": "5b3f5358127c",
+        "stage": "enc"
+      },
+      "pt/style.pt": {
+        "sha": "52017be",
+        "dirty": false,
+        "generated": "2026-09-12T19:51:54",
+        "config": [
+          "ENCODER: 16 3 [100, 140, 120, 80] [1, 2, 4, 8]",
+          "EMOJI: 60 0.1",
+          "STYLE: 16 440 0.5",
+          "GAN: 0.35 [64, 32] [96] [64] 0.2 0.005 0.02 1.0 5.0",
+          "TRAIN: 42 512 1024 0.1 0.01 1.0 1.0 0.7 0.2 0.05"
+        ],
+        "train_sha": "5b3f5358127c",
+        "stage": "enc"
+      },
+      "pt/gen.pt": {
+        "sha": "52017be",
+        "dirty": false,
+        "generated": "2026-09-12T20:04:41",
+        "config": [
+          "ENCODER: 16 3 [100, 140, 120, 80] [1, 2, 4, 8]",
+          "EMOJI: 60 0.1",
+          "STYLE: 16 440 0.5",
+          "GAN: 0.35 [64, 32] [96] [64] 0.2 0.005 0.02 1.0 5.0",
+          "TRAIN: 42 512 1024 0.1 0.01 1.0 1.0 0.7 0.2 0.05"
+        ],
+        "train_sha": "5b3f5358127c",
+        "stage": "gan"
+      }
+    },
+    "consistent": false,
+    "issues": [
+      "model trained on train.jsonl 5b3f5358127c but current is ebb97dea60b4 - retrain before trusting Emojis"
+    ]
+  },
+  "data": {
+    "records": {
+      "data": 262062,
+      "train": 239332,
+      "eval": 2000
+    },
+    "length_distribution": [
+      [
+        47,
+        1
+      ],
+      [
+        46,
+        4
+      ],
+      [
+        45,
+        19
+      ],
+      [
+        44,
+        30
+      ],
+      [
+        43,
+        67
+      ],
+      [
+        42,
+        2191
+      ],
+      [
+        41,
+        2769
+      ],
+      [
+        40,
+        3512
+      ],
+      [
+        39,
+        4404
+      ],
+      [
+        38,
+        5463
+      ],
+      [
+        37,
+        6935
+      ],
+      [
+        36,
+        8319
+      ],
+      [
+        35,
+        10397
+      ],
+      [
+        34,
+        12453
+      ],
+      [
+        33,
+        14819
+      ],
+      [
+        32,
+        16656
+      ],
+      [
+        31,
+        18570
+      ],
+      [
+        30,
+        19500
+      ],
+      [
+        29,
+        19393
+      ],
+      [
+        28,
+        18125
+      ],
+      [
+        27,
+        16374
+      ],
+      [
+        26,
+        14126
+      ],
+      [
+        25,
+        11718
+      ],
+      [
+        24,
+        9223
+      ],
+      [
+        23,
+        7063
+      ],
+      [
+        22,
+        5358
+      ],
+      [
+        21,
+        3801
+      ],
+      [
+        20,
+        2676
+      ],
+      [
+        19,
+        1901
+      ],
+      [
+        18,
+        1282
+      ],
+      [
+        17,
+        780
+      ],
+      [
+        16,
+        514
+      ],
+      [
+        15,
+        302
+      ],
+      [
+        14,
+        191
+      ],
+      [
+        13,
+        133
+      ],
+      [
+        12,
+        69
+      ],
+      [
+        11,
+        55
+      ],
+      [
+        10,
+        39
+      ],
+      [
+        9,
+        16
+      ],
+      [
+        8,
+        19
+      ],
+      [
+        7,
+        10
+      ],
+      [
+        6,
+        5
+      ],
+      [
+        5,
+        14
+      ],
+      [
+        4,
+        25
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        1,
+        1
+      ]
+    ],
+    "max_text_len": 42
+  },
+  "labels": {
+    "styles": 21,
+    "emojis": 980
+  },
+  "emoji": {},
+  "keywords_flex": {},
+  "keyword_fails": {},
+  "keyword": {},
+  "term": {},
+  "cards": {},
+  "block_capacity": {
+    "rows": [
+      {
+        "source": "keywords",
+        "n": 2862,
+        "block": 0,
+        "range": "0:100",
+        "dilation": 1,
+        "w_norm_mean": 1.4341281652450562,
+        "w_norm_max": 2.510791301727295,
+        "act_rms": 0.22557657957077026,
+        "contrib_norm": 2.985945224761963,
+        "contrib_pct": 25.036727905273438
+      },
+      {
+        "source": "keywords",
+        "n": 2862,
+        "block": 1,
+        "range": "100:240",
+        "dilation": 2,
+        "w_norm_mean": 3.4912915229797363,
+        "w_norm_max": 5.624356746673584,
+        "act_rms": 0.1618933379650116,
+        "contrib_norm": 6.735655307769775,
+        "contrib_pct": 54.799835205078125
+      },
+      {
+        "source": "keywords",
+        "n": 2862,
+        "block": 2,
+        "range": "240:360",
+        "dilation": 4,
+        "w_norm_mean": 4.054959774017334,
+        "w_norm_max": 5.8955864906311035,
+        "act_rms": 0.1512758433818817,
+        "contrib_norm": 7.158479690551758,
+        "contrib_pct": 56.28787612915039
+      },
+      {
+        "source": "keywords",
+        "n": 2862,
+        "block": 3,
+        "range": "360:440",
+        "dilation": 8,
+        "w_norm_mean": 3.2666313648223877,
+        "w_norm_max": 5.30205774307251,
+        "act_rms": 0.1660921424627304,
+        "contrib_norm": 5.247058391571045,
+        "contrib_pct": 39.945289611816406
+      },
+      {
+        "source": "terms",
+        "n": 402,
+        "block": 0,
+        "range": "0:100",
+        "dilation": 1,
+        "w_norm_mean": 1.4341281652450562,
+        "w_norm_max": 2.510791301727295,
+        "act_rms": 0.1577979475259781,
+        "contrib_norm": 1.9434614181518555,
+        "contrib_pct": 27.368846893310547
+      },
+      {
+        "source": "terms",
+        "n": 402,
+        "block": 1,
+        "range": "100:240",
+        "dilation": 2,
+        "w_norm_mean": 3.4912915229797363,
+        "w_norm_max": 5.624356746673584,
+        "act_rms": 0.10219240933656693,
+        "contrib_norm": 4.437015533447266,
+        "contrib_pct": 60.23027420043945
+      },
+      {
+        "source": "terms",
+        "n": 402,
+        "block": 2,
+        "range": "240:360",
+        "dilation": 4,
+        "w_norm_mean": 4.054959774017334,
+        "w_norm_max": 5.8955864906311035,
+        "act_rms": 0.08365838974714279,
+        "contrib_norm": 4.021813869476318,
+        "contrib_pct": 51.725929260253906
+      },
+      {
+        "source": "terms",
+        "n": 402,
+        "block": 3,
+        "range": "360:440",
+        "dilation": 8,
+        "w_norm_mean": 3.2666313648223877,
+        "w_norm_max": 5.30205774307251,
+        "act_rms": 0.09066466242074966,
+        "contrib_norm": 2.8418233394622803,
+        "contrib_pct": 34.49199295043945
+      },
+      {
+        "source": "eval",
+        "n": 2000,
+        "block": 0,
+        "range": "0:100",
+        "dilation": 1,
+        "w_norm_mean": 1.4341281652450562,
+        "w_norm_max": 2.510791301727295,
+        "act_rms": 0.1267111450433731,
+        "contrib_norm": 1.4211734533309937,
+        "contrib_pct": 42.32084655761719
+      },
+      {
+        "source": "eval",
+        "n": 2000,
+        "block": 1,
+        "range": "100:240",
+        "dilation": 2,
+        "w_norm_mean": 3.4912915229797363,
+        "w_norm_max": 5.624356746673584,
+        "act_rms": 0.06338906288146973,
+        "contrib_norm": 2.6498918533325195,
+        "contrib_pct": 74.03504180908203
+      },
+      {
+        "source": "eval",
+        "n": 2000,
+        "block": 2,
+        "range": "240:360",
+        "dilation": 4,
+        "w_norm_mean": 4.054959774017334,
+        "w_norm_max": 5.8955864906311035,
+        "act_rms": 0.03504576161503792,
+        "contrib_norm": 1.5520622730255127,
+        "contrib_pct": 41.11183547973633
+      },
+      {
+        "source": "eval",
+        "n": 2000,
+        "block": 3,
+        "range": "360:440",
+        "dilation": 8,
+        "w_norm_mean": 3.2666313648223877,
+        "w_norm_max": 5.30205774307251,
+        "act_rms": 0.018359994515776634,
+        "contrib_norm": 0.46331873536109924,
+        "contrib_pct": 12.99162769317627
+      }
+    ]
+  },
+  "length_acc": {},
+  "status": {
+    "best_emoji_variant": null,
+    "summary": {
+      "na": 18,
+      "good": 2,
+      "red": 1
+    },
+    "goals": [
+      {
+        "goal": "Keyword emoji acc@1",
+        "priority": 1,
+        "dir": "max",
+        "target": "≥ 0.90",
+        "iter_target": "≥ 0.90",
+        "current": null,
+        "status": "na",
+        "note": "unmeasured — needs data/keywords.jsonl and enc.pt/emoji.pt/emoji_embed.pt"
+      },
+      {
+        "goal": "Keyword emoji acc@5",
+        "priority": 1,
+        "dir": "max",
+        "target": "≥ 0.95",
+        "iter_target": "≥ 0.95",
+        "current": null,
+        "status": "na",
+        "note": "unmeasured — needs data/keywords.jsonl and enc.pt/emoji.pt/emoji_embed.pt"
+      },
+      {
+        "goal": "Keyword emoji acc@10",
+        "priority": 1,
+        "dir": "max",
+        "target": "≥ 0.99",
+        "iter_target": "≥ 0.99",
+        "current": null,
+        "status": "na",
+        "note": "unmeasured — needs data/keywords.jsonl and enc.pt/emoji.pt/emoji_embed.pt"
+      },
+      {
+        "goal": "Term emoji acc@1",
+        "priority": 2,
+        "dir": "max",
+        "target": "≥ 0.80",
+        "iter_target": "≥ 0.80",
+        "current": null,
+        "status": "na",
+        "note": "unmeasured — needs data/terms.jsonl and enc.pt/emoji.pt/emoji_embed.pt"
+      },
+      {
+        "goal": "Term emoji acc@5",
+        "priority": 2,
+        "dir": "max",
+        "target": "≥ 0.85",
+        "iter_target": "≥ 0.85",
+        "current": null,
+        "status": "na",
+        "note": "unmeasured — needs data/terms.jsonl and enc.pt/emoji.pt/emoji_embed.pt"
+      },
+      {
+        "goal": "Term emoji acc@10",
+        "priority": 2,
+        "dir": "max",
+        "target": "≥ 0.90",
+        "iter_target": "≥ 0.90",
+        "current": null,
+        "status": "na",
+        "note": "unmeasured — needs data/terms.jsonl and enc.pt/emoji.pt/emoji_embed.pt"
+      },
+      {
+        "goal": "Full-text emoji acc@1",
+        "priority": 3,
+        "dir": "max",
+        "target": "≥ 0.75",
+        "iter_target": "≥ 0.65",
+        "current": null,
+        "status": "na",
+        "note": "emoji.eval not evaluated this run"
+      },
+      {
+        "goal": "Full-text emoji acc@5",
+        "priority": 3,
+        "dir": "max",
+        "target": "≥ 0.80",
+        "iter_target": "≥ 0.80",
+        "current": null,
+        "status": "na",
+        "note": "emoji.eval not evaluated this run"
+      },
+      {
+        "goal": "Full-text emoji acc@10",
+        "priority": 3,
+        "dir": "max",
+        "target": "≥ 0.85",
+        "iter_target": "≥ 0.85",
+        "current": null,
+        "status": "na",
+        "note": "emoji.eval not evaluated this run"
+      },
+      {
+        "goal": "Color energy · global",
+        "priority": 4,
+        "dir": "min",
+        "target": "≤ 0.01",
+        "iter_target": "≤ 0.05",
+        "current": null,
+        "status": "na",
+        "note": "cards.energy — not wired yet"
+      },
+      {
+        "goal": "Color energy · red",
+        "priority": 4,
+        "dir": "min",
+        "target": "≤ 0.10",
+        "iter_target": "≤ 0.19",
+        "current": null,
+        "status": "na",
+        "note": "cards off this run"
+      },
+      {
+        "goal": "Color energy · green",
+        "priority": 4,
+        "dir": "min",
+        "target": "≤ 0.10",
+        "iter_target": "≤ 0.12",
+        "current": null,
+        "status": "na",
+        "note": "cards off this run"
+      },
+      {
+        "goal": "Color energy · blue",
+        "priority": 4,
+        "dir": "min",
+        "target": "≤ 0.10",
+        "iter_target": "≤ 0.15",
+        "current": null,
+        "status": "na",
+        "note": "cards off this run"
+      },
+      {
+        "goal": "Color energy · dark",
+        "priority": 4,
+        "dir": "min",
+        "target": "≤ 0.10",
+        "iter_target": "≤ 0.21",
+        "current": null,
+        "status": "na",
+        "note": "cards off this run"
+      },
+      {
+        "goal": "Color energy · bright",
+        "priority": 4,
+        "dir": "min",
+        "target": "≤ 0.10",
+        "iter_target": "≤ 0.06",
+        "current": null,
+        "status": "na",
+        "note": "cards off this run"
+      },
+      {
+        "goal": "Style acc@1",
+        "priority": 5,
+        "dir": "max",
+        "target": "≥ 0.60",
+        "iter_target": "≥ 0.60",
+        "current": null,
+        "status": "na",
+        "note": "cards off this run"
+      },
+      {
+        "goal": "Style acc@5",
+        "priority": 5,
+        "dir": "max",
+        "target": "≥ 0.80",
+        "iter_target": "≥ 0.80",
+        "current": null,
+        "status": "na",
+        "note": "cards off this run"
+      },
+      {
+        "goal": "Style acc@10",
+        "priority": 5,
+        "dir": "max",
+        "target": "≥ 0.90",
+        "iter_target": "≥ 0.90",
+        "current": null,
+        "status": "na",
+        "note": "cards off this run"
+      },
+      {
+        "goal": "Max text len",
+        "priority": 6,
+        "dir": "max",
+        "target": "≥ 42",
+        "iter_target": "≥ 42",
+        "current": 42,
+        "status": "good",
+        "note": "config.MAX_TEXT_LEN = 42"
+      },
+      {
+        "goal": "Emoji vocab size",
+        "priority": 7,
+        "dir": "max",
+        "target": "≥ 700",
+        "iter_target": "≥ 700",
+        "current": 980,
+        "status": "good",
+        "note": ""
+      },
+      {
+        "goal": "Vocab coverage (per Unicode group)",
+        "priority": 8,
+        "dir": "max",
+        "target": "all groups ≥ target",
+        "iter_target": "—",
+        "current": 62,
+        "status": "red",
+        "note": "62/100 groups meet target · weakest: gender -1.00, flag -0.68, hand-prop -0.67, monkey-face -0.67"
+      }
+    ],
+    "vocab_coverage": {
+      "measurable": true,
+      "groups": {
+        "face-smiling": {
+          "score": 0.35714285714285715,
+          "covered": 5,
+          "total": 14,
+          "target": 0.5,
+          "passed": false
+        },
+        "face-affection": {
+          "score": 0.3333333333333333,
+          "covered": 3,
+          "total": 9,
+          "target": 0.45,
+          "passed": false
+        },
+        "face-tongue": {
+          "score": 0.3333333333333333,
+          "covered": 2,
+          "total": 6,
+          "target": 0.35,
+          "passed": false
+        },
+        "face-hand": {
+          "score": 0.42857142857142855,
+          "covered": 3,
+          "total": 7,
+          "target": 0.35,
+          "passed": true
+        },
+        "face-neutral-skeptical": {
+          "score": 0.625,
+          "covered": 10,
+          "total": 16,
+          "target": 0.4,
+          "passed": true
+        },
+        "face-sleepy": {
+          "score": 0.6666666666666666,
+          "covered": 4,
+          "total": 6,
+          "target": 0.35,
+          "passed": true
+        },
+        "face-unwell": {
+          "score": 0.8333333333333334,
+          "covered": 10,
+          "total": 12,
+          "target": 0.3,
+          "passed": true
+        },
+        "face-hat": {
+          "score": 0.3333333333333333,
+          "covered": 1,
+          "total": 3,
+          "target": 0.33,
+          "passed": true
+        },
+        "face-glasses": {
+          "score": 0.3333333333333333,
+          "covered": 1,
+          "total": 3,
+          "target": 0.33,
+          "passed": true
+        },
+        "face-concerned": {
+          "score": 0.6666666666666666,
+          "covered": 18,
+          "total": 27,
+          "target": 0.4,
+          "passed": true
+        },
+        "face-negative": {
+          "score": 0.375,
+          "covered": 3,
+          "total": 8,
+          "target": 0.4,
+          "passed": false
+        },
+        "face-costume": {
+          "score": 0.5,
+          "covered": 4,
+          "total": 8,
+          "target": 0.35,
+          "passed": true
+        },
+        "cat-face": {
+          "score": 0.0,
+          "covered": 0,
+          "total": 9,
+          "target": 0.2,
+          "passed": false
+        },
+        "monkey-face": {
+          "score": 0.3333333333333333,
+          "covered": 1,
+          "total": 3,
+          "target": 1.0,
+          "passed": false
+        },
+        "heart": {
+          "score": 0.4,
+          "covered": 10,
+          "total": 25,
+          "target": 0.2,
+          "passed": true
+        },
+        "emotion": {
+          "score": 0.6,
+          "covered": 9,
+          "total": 15,
+          "target": 0.45,
+          "passed": true
+        },
+        "hand-fingers-open": {
+          "score": 0.2727272727272727,
+          "covered": 3,
+          "total": 11,
+          "target": 0.2,
+          "passed": true
+        },
+        "hand-fingers-partial": {
+          "score": 0.3333333333333333,
+          "covered": 3,
+          "total": 9,
+          "target": 0.2,
+          "passed": true
+        },
+        "hand-single-finger": {
+          "score": 0.0,
+          "covered": 0,
+          "total": 7,
+          "target": 0.2,
+          "passed": false
+        },
+        "hand-fingers-closed": {
+          "score": 0.16666666666666666,
+          "covered": 1,
+          "total": 6,
+          "target": 0.2,
+          "passed": false
+        },
+        "hands": {
+          "score": 0.7142857142857143,
+          "covered": 5,
+          "total": 7,
+          "target": 1.0,
+          "passed": false
+        },
+        "hand-prop": {
+          "score": 0.3333333333333333,
+          "covered": 1,
+          "total": 3,
+          "target": 1.0,
+          "passed": false
+        },
+        "body-parts": {
+          "score": 0.7222222222222222,
+          "covered": 13,
+          "total": 18,
+          "target": 0.8,
+          "passed": false
+        },
+        "person": {
+          "score": 0.2857142857142857,
+          "covered": 8,
+          "total": 28,
+          "target": 0.2,
+          "passed": true
+        },
+        "person-gesture": {
+          "score": 0.1,
+          "covered": 3,
+          "total": 30,
+          "target": 0.2,
+          "passed": false
+        },
+        "person-role": {
+          "score": 0.10975609756097561,
+          "covered": 9,
+          "total": 82,
+          "target": 0.1,
+          "passed": true
+        },
+        "person-fantasy": {
+          "score": 0.06060606060606061,
+          "covered": 2,
+          "total": 33,
+          "target": 0.3,
+          "passed": false
+        },
+        "person-activity": {
+          "score": 0.1206896551724138,
+          "covered": 7,
+          "total": 58,
+          "target": 0.2,
+          "passed": false
+        },
+        "person-sport": {
+          "score": 0.09302325581395349,
+          "covered": 4,
+          "total": 43,
+          "target": 0.2,
+          "passed": false
+        },
+        "person-resting": {
+          "score": 0.4,
+          "covered": 2,
+          "total": 5,
+          "target": 0.2,
+          "passed": true
+        },
+        "family": {
+          "score": 0.05405405405405406,
+          "covered": 2,
+          "total": 37,
+          "target": 0.05,
+          "passed": true
+        },
+        "person-symbol": {
+          "score": 0.45454545454545453,
+          "covered": 5,
+          "total": 11,
+          "target": 0.15,
+          "passed": true
+        },
+        "skin-tone": {
+          "score": 0.0,
+          "covered": 0,
+          "total": 5,
+          "target": 0.0,
+          "passed": true
+        },
+        "hair-style": {
+          "score": 0.0,
+          "covered": 0,
+          "total": 4,
+          "target": 0.1,
+          "passed": false
+        },
+        "animal-mammal": {
+          "score": 0.4090909090909091,
+          "covered": 27,
+          "total": 66,
+          "target": 0.5,
+          "passed": false
+        },
+        "animal-bird": {
+          "score": 0.4090909090909091,
+          "covered": 9,
+          "total": 22,
+          "target": 0.5,
+          "passed": false
+        },
+        "animal-amphibian": {
+          "score": 1.0,
+          "covered": 1,
+          "total": 1,
+          "target": 1.0,
+          "passed": true
+        },
+        "animal-reptile": {
+          "score": 0.625,
+          "covered": 5,
+          "total": 8,
+          "target": 0.8,
+          "passed": false
+        },
+        "animal-marine": {
+          "score": 0.5555555555555556,
+          "covered": 10,
+          "total": 18,
+          "target": 0.8,
+          "passed": false
+        },
+        "animal-bug": {
+          "score": 0.4375,
+          "covered": 7,
+          "total": 16,
+          "target": 0.8,
+          "passed": false
+        },
+        "plant-flower": {
+          "score": 0.5833333333333334,
+          "covered": 7,
+          "total": 12,
+          "target": 0.2,
+          "passed": true
+        },
+        "plant-other": {
+          "score": 0.8235294117647058,
+          "covered": 14,
+          "total": 17,
+          "target": 0.4,
+          "passed": true
+        },
+        "food-fruit": {
+          "score": 0.9,
+          "covered": 18,
+          "total": 20,
+          "target": 1.0,
+          "passed": false
+        },
+        "food-vegetable": {
+          "score": 0.631578947368421,
+          "covered": 12,
+          "total": 19,
+          "target": 1.0,
+          "passed": false
+        },
+        "food-prepared": {
+          "score": 0.7647058823529411,
+          "covered": 26,
+          "total": 34,
+          "target": 0.8,
+          "passed": false
+        },
+        "food-asian": {
+          "score": 0.7058823529411765,
+          "covered": 12,
+          "total": 17,
+          "target": 0.6,
+          "passed": true
+        },
+        "food-marine": {
+          "score": null,
+          "covered": 0,
+          "total": 0,
+          "target": 0.6,
+          "passed": null
+        },
+        "food-sweet": {
+          "score": 1.0,
+          "covered": 14,
+          "total": 14,
+          "target": 0.6,
+          "passed": true
+        },
+        "drink": {
+          "score": 0.75,
+          "covered": 15,
+          "total": 20,
+          "target": 0.5,
+          "passed": true
+        },
+        "dishware": {
+          "score": 0.8571428571428571,
+          "covered": 6,
+          "total": 7,
+          "target": 1.0,
+          "passed": false
+        },
+        "place-map": {
+          "score": 0.8571428571428571,
+          "covered": 6,
+          "total": 7,
+          "target": 0.35,
+          "passed": true
+        },
+        "place-geographic": {
+          "score": 0.8,
+          "covered": 8,
+          "total": 10,
+          "target": 0.45,
+          "passed": true
+        },
+        "place-building": {
+          "score": 0.7777777777777778,
+          "covered": 21,
+          "total": 27,
+          "target": 0.4,
+          "passed": true
+        },
+        "place-religious": {
+          "score": 0.5,
+          "covered": 3,
+          "total": 6,
+          "target": 1.0,
+          "passed": false
+        },
+        "place-other": {
+          "score": 0.7058823529411765,
+          "covered": 12,
+          "total": 17,
+          "target": 0.35,
+          "passed": true
+        },
+        "transport-ground": {
+          "score": 0.48,
+          "covered": 24,
+          "total": 50,
+          "target": 0.5,
+          "passed": false
+        },
+        "transport-water": {
+          "score": 0.8888888888888888,
+          "covered": 8,
+          "total": 9,
+          "target": 0.4,
+          "passed": true
+        },
+        "transport-air": {
+          "score": 0.38461538461538464,
+          "covered": 5,
+          "total": 13,
+          "target": 0.45,
+          "passed": false
+        },
+        "hotel": {
+          "score": 1.0,
+          "covered": 2,
+          "total": 2,
+          "target": 0.5,
+          "passed": true
+        },
+        "time": {
+          "score": 0.4838709677419355,
+          "covered": 15,
+          "total": 31,
+          "target": 0.05,
+          "passed": true
+        },
+        "sky-weather": {
+          "score": 0.6382978723404256,
+          "covered": 30,
+          "total": 47,
+          "target": 0.3,
+          "passed": true
+        },
+        "event": {
+          "score": 0.38095238095238093,
+          "covered": 8,
+          "total": 21,
+          "target": 0.45,
+          "passed": false
+        },
+        "award-medal": {
+          "score": 0.5,
+          "covered": 3,
+          "total": 6,
+          "target": 0.1,
+          "passed": true
+        },
+        "sport": {
+          "score": 0.37037037037037035,
+          "covered": 10,
+          "total": 27,
+          "target": 0.4,
+          "passed": false
+        },
+        "game": {
+          "score": 0.25,
+          "covered": 6,
+          "total": 24,
+          "target": 0.4,
+          "passed": false
+        },
+        "arts-crafts": {
+          "score": 1.0,
+          "covered": 7,
+          "total": 7,
+          "target": 0.45,
+          "passed": true
+        },
+        "clothing": {
+          "score": 0.6170212765957447,
+          "covered": 29,
+          "total": 47,
+          "target": 0.35,
+          "passed": true
+        },
+        "sound": {
+          "score": 0.5555555555555556,
+          "covered": 5,
+          "total": 9,
+          "target": 0.4,
+          "passed": true
+        },
+        "music": {
+          "score": 0.6666666666666666,
+          "covered": 6,
+          "total": 9,
+          "target": 0.45,
+          "passed": true
+        },
+        "musical-instrument": {
+          "score": 0.23076923076923078,
+          "covered": 3,
+          "total": 13,
+          "target": 0.45,
+          "passed": false
+        },
+        "phone": {
+          "score": 0.5,
+          "covered": 3,
+          "total": 6,
+          "target": 0.6,
+          "passed": false
+        },
+        "computer": {
+          "score": 0.6428571428571429,
+          "covered": 9,
+          "total": 14,
+          "target": 0.5,
+          "passed": true
+        },
+        "light-video": {
+          "score": 0.75,
+          "covered": 12,
+          "total": 16,
+          "target": 0.4,
+          "passed": true
+        },
+        "book-paper": {
+          "score": 0.4117647058823529,
+          "covered": 7,
+          "total": 17,
+          "target": 0.45,
+          "passed": false
+        },
+        "money": {
+          "score": 0.5454545454545454,
+          "covered": 6,
+          "total": 11,
+          "target": 0.4,
+          "passed": true
+        },
+        "mail": {
+          "score": 0.6923076923076923,
+          "covered": 9,
+          "total": 13,
+          "target": 0.35,
+          "passed": true
+        },
+        "writing": {
+          "score": 0.8571428571428571,
+          "covered": 6,
+          "total": 7,
+          "target": 0.5,
+          "passed": true
+        },
+        "office": {
+          "score": 0.7391304347826086,
+          "covered": 17,
+          "total": 23,
+          "target": 0.4,
+          "passed": true
+        },
+        "lock": {
+          "score": 0.5,
+          "covered": 3,
+          "total": 6,
+          "target": 0.4,
+          "passed": true
+        },
+        "tool": {
+          "score": 0.5555555555555556,
+          "covered": 15,
+          "total": 27,
+          "target": 0.35,
+          "passed": true
+        },
+        "science": {
+          "score": 0.42857142857142855,
+          "covered": 3,
+          "total": 7,
+          "target": 0.4,
+          "passed": true
+        },
+        "medical": {
+          "score": 0.7142857142857143,
+          "covered": 5,
+          "total": 7,
+          "target": 0.4,
+          "passed": true
+        },
+        "household": {
+          "score": 0.76,
+          "covered": 19,
+          "total": 25,
+          "target": 0.35,
+          "passed": true
+        },
+        "other-object": {
+          "score": 0.3333333333333333,
+          "covered": 3,
+          "total": 9,
+          "target": 0.3,
+          "passed": true
+        },
+        "transport-sign": {
+          "score": 0.3076923076923077,
+          "covered": 4,
+          "total": 13,
+          "target": 0.1,
+          "passed": true
+        },
+        "warning": {
+          "score": 0.23076923076923078,
+          "covered": 3,
+          "total": 13,
+          "target": 0.1,
+          "passed": true
+        },
+        "arrow": {
+          "score": 0.19047619047619047,
+          "covered": 4,
+          "total": 21,
+          "target": 0.1,
+          "passed": true
+        },
+        "religion": {
+          "score": 0.38461538461538464,
+          "covered": 5,
+          "total": 13,
+          "target": 0.0,
+          "passed": true
+        },
+        "zodiac": {
+          "score": 0.5384615384615384,
+          "covered": 7,
+          "total": 13,
+          "target": 1.0,
+          "passed": false
+        },
+        "av-symbol": {
+          "score": 0.16,
+          "covered": 4,
+          "total": 25,
+          "target": 0.1,
+          "passed": true
+        },
+        "gender": {
+          "score": 0.0,
+          "covered": 0,
+          "total": 3,
+          "target": 1.0,
+          "passed": false
+        },
+        "math": {
+          "score": 0.3333333333333333,
+          "covered": 2,
+          "total": 6,
+          "target": 0.0,
+          "passed": true
+        },
+        "punctuation": {
+          "score": 0.14285714285714285,
+          "covered": 1,
+          "total": 7,
+          "target": 0.1,
+          "passed": true
+        },
+        "currency": {
+          "score": 0.0,
+          "covered": 0,
+          "total": 2,
+          "target": 0.5,
+          "passed": false
+        },
+        "other-symbol": {
+          "score": 0.13636363636363635,
+          "covered": 3,
+          "total": 22,
+          "target": 0.1,
+          "passed": true
+        },
+        "keycap": {
+          "score": 0.46153846153846156,
+          "covered": 6,
+          "total": 13,
+          "target": 0.0,
+          "passed": true
+        },
+        "alphanum": {
+          "score": 0.15384615384615385,
+          "covered": 6,
+          "total": 39,
+          "target": 0.0,
+          "passed": true
+        },
+        "geometric": {
+          "score": 0.2647058823529412,
+          "covered": 9,
+          "total": 34,
+          "target": 0.1,
+          "passed": true
+        },
+        "flag": {
+          "score": 0.125,
+          "covered": 1,
+          "total": 8,
+          "target": 0.8,
+          "passed": false
+        },
+        "country-flag": {
+          "score": 1.0,
+          "covered": 259,
+          "total": 259,
+          "target": 1.0,
+          "passed": true
+        },
+        "subdivision-flag": {
+          "score": 1.0,
+          "covered": 3,
+          "total": 3,
+          "target": 1.0,
+          "passed": true
+        }
+      },
+      "groups_total": 101,
+      "groups_measurable": 100,
+      "groups_passed": 62,
+      "score": 0.62,
+      "passed": false,
+      "top_missing": [
+        "😀",
+        "😃",
+        "😁",
+        "😆",
+        "🤣",
+        "🙃",
+        "🫠",
+        "😉",
+        "😇",
+        "😘",
+        "😗",
+        "☺️",
+        "😚",
+        "😙",
+        "🥲",
+        "😛",
+        "😜",
+        "😝",
+        "🤑",
+        "🤭",
+        "🫢",
+        "🫣",
+        "🫡",
+        "😐️",
+        "😶",
+        "😶‍🌫️",
+        "😏",
+        "🙂‍↔️",
+        "🙂‍↕️",
+        "😪"
+      ]
+    }
+  },
+  "goals": {
+    "source_file": "goal/2026-09-12-52017be.yml",
+    "meta": {
+      "based_on": "plans/26-09-11-10-48-7ee7db3/plan.md",
+      "written_after_report": "report/26-09-12-23-12-52017be",
+      "rationale": "Priority 1 (keyword) and priority 2 (term) are both maxed out (0.99-1.0 vs 0.90/0.80 hard targets) after the fusion-combiner removal and vocab growth 287->400->711 across the untracked runs since the last plan. Priority 3 (full-text emoji Acc) is now the focus: acc@1 amber (0.615 vs 0.75 hard, clears the old 0.56 iter target), acc@5/@10 red but within 0.005-0.015 of their hard targets (0.795/0.835 vs 0.80/0.85). TensorBoard shows MRR/e/val plateaued and noisy (0.758-0.773) while MRR/e/train keeps climbing to 0.79 - a growing train/val gap, not an undertrained model. The report's own block_capacity section explains the mechanism: the deepest, most-dilated encoder block (dilation 8) contributes 40.1% of the pooled embedding on keyword rows but only 12.9% on full-text eval rows, and RECEPTIVE_FIELD (31 chars, from `uv run python model/config.py`) doesn't cover MAX_TEXT_LEN (42) - a structural/architecture-shaped gap, not a data or LR problem. Targets below hold at current for every priority-4-and-below goal since priority 3 is still open (color energy, style, max text len, vocab size are all below focus despite 4/6 color-energy legs being red).\n",
+      "deferred": [
+        "color generator",
+        "style prediction",
+        "max text len",
+        "vocabulary"
+      ]
+    },
+    "compare": {
+      "emoji prediction": {
+        "keyword": {
+          "acc@1": {
+            "target": 0.9,
+            "actual": null,
+            "met": null,
+            "dir": "max",
+            "delta": null
+          },
+          "acc@5": {
+            "target": 0.95,
+            "actual": null,
+            "met": null,
+            "dir": "max",
+            "delta": null
+          },
+          "acc@10": {
+            "target": 0.99,
+            "actual": null,
+            "met": null,
+            "dir": "max",
+            "delta": null
+          }
+        },
+        "term": {
+          "acc@1": {
+            "target": 0.8,
+            "actual": null,
+            "met": null,
+            "dir": "max",
+            "delta": null
+          },
+          "acc@5": {
+            "target": 0.85,
+            "actual": null,
+            "met": null,
+            "dir": "max",
+            "delta": null
+          },
+          "acc@10": {
+            "target": 0.9,
+            "actual": null,
+            "met": null,
+            "dir": "max",
+            "delta": null
+          }
+        },
+        "full text": {
+          "acc@1": {
+            "target": 0.65,
+            "actual": null,
+            "met": null,
+            "dir": "max",
+            "delta": null
+          },
+          "acc@5": {
+            "target": 0.8,
+            "actual": null,
+            "met": null,
+            "dir": "max",
+            "delta": null
+          },
+          "acc@10": {
+            "target": 0.85,
+            "actual": null,
+            "met": null,
+            "dir": "max",
+            "delta": null
+          }
+        }
+      },
+      "style prediction": {
+        "full text": {
+          "acc@1": {
+            "target": 0.6,
+            "actual": null,
+            "met": null,
+            "dir": "max",
+            "delta": null
+          },
+          "acc@5": {
+            "target": 0.8,
+            "actual": null,
+            "met": null,
+            "dir": "max",
+            "delta": null
+          },
+          "acc@10": {
+            "target": 0.9,
+            "actual": null,
+            "met": null,
+            "dir": "max",
+            "delta": null
+          }
+        }
+      },
+      "color generator": {
+        "energy distance": {
+          "global": {
+            "target": 0.05,
+            "actual": null,
+            "met": null,
+            "dir": "min",
+            "delta": null
+          },
+          "red": {
+            "target": 0.19,
+            "actual": null,
+            "met": null,
+            "dir": "min",
+            "delta": null
+          },
+          "green": {
+            "target": 0.12,
+            "actual": null,
+            "met": null,
+            "dir": "min",
+            "delta": null
+          },
+          "blue": {
+            "target": 0.15,
+            "actual": null,
+            "met": null,
+            "dir": "min",
+            "delta": null
+          },
+          "dark": {
+            "target": 0.21,
+            "actual": null,
+            "met": null,
+            "dir": "min",
+            "delta": null
+          },
+          "bright": {
+            "target": 0.06,
+            "actual": null,
+            "met": null,
+            "dir": "min",
+            "delta": null
+          }
+        }
+      },
+      "max text len": {
+        "target": 42,
+        "actual": 42,
+        "met": true,
+        "dir": "max",
+        "delta": 0
+      },
+      "vocabulary": {
+        "size": {
+          "target": 700,
+          "actual": 980,
+          "met": true,
+          "dir": "max",
+          "delta": 280
+        }
+      }
+    },
+    "summary": {
+      "unmeasured": 18,
+      "met": 2
+    }
+  }
+}
