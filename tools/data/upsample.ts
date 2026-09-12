@@ -13,7 +13,6 @@ import {
   PREVIEW_DIR,
   REPORT_DIR,
 } from "../../files.ts"
-import type { Label, PaletteResult } from "./annotate.ts"
 import {
   MODEL,
   annotate,
@@ -1094,38 +1093,6 @@ if (import.meta.main) {
       cliProgress.Presets.shades_classic,
     )
     annBar.start(annotateBatchCount(cands.length), 0)
-    const labels = new Map<number, Label>()
-    const paletteLabels = new Map<number, PaletteResult>()
-    const addedLabels = new Map<number, string[]>()
-    if (reannotEmojis) {
-      for (const [i, add] of await expandEmojis(
-        cands.map((c) => c.text),
-        cands.map((c) => c.orig?.emojis ?? ""),
-        { onBatchDone: () => annBar.increment() },
-      )) {
-        addedLabels.set(i, add)
-      }
-    } else if (reannot) {
-      for (const [i, p] of await annotateColors(cands.map((c) => c.text), {
-        onBatchDone: () => annBar.increment(),
-      })) {
-        paletteLabels.set(i, p)
-      }
-    } else {
-      for (const [i, l] of await annotate(cands.map((c) => c.text), {
-        colors: true,
-        fillPalette: true,
-        paletteHints: flags
-          ? cands.map((c) =>
-              c.flag ? `the national flag colours of ${c.flag}` : undefined,
-            )
-          : undefined,
-        onBatchDone: () => annBar.increment(),
-      })) {
-        labels.set(i, l)
-      }
-    }
-    annBar.stop()
 
     const today = new Date().toISOString().slice(0, 10)
     const lines: string[] = []
@@ -1143,104 +1110,142 @@ if (import.meta.main) {
     let noAdd = 0
     let hitTarget = 0
     let missTarget = 0
-    for (let i = 0; i < cands.length; i++) {
-      if (reannotEmojis) {
-        const add = addedLabels.get(i)
-        if (!add) {
-          noLabel++
-          continue
-        }
-        const o = cands[i].orig!
-        const remojis = mergeEmojiAdditions(o.emojis, add)
-        if (!remojis.length) noAdd++
-        emojiPairs.push({ text: o.text, old: o.emojis, added: remojis })
-        const emojis = [...splitEmojis(o.emojis), ...remojis].join(" ")
-        lines.push(
-          JSON.stringify({
-            text: cands[i].text,
-            emojis,
-            styles: o.styles,
-            bg: o.bg,
-            fg: o.fg,
-            remojis,
-            meta: { date: today, src: "reannotate" },
-          }),
-        )
-        continue
-      }
-      if (reannot) {
-        const p = paletteLabels.get(i)
-        if (!p) {
-          noLabel++
-          continue
-        }
-        const o = cands[i].orig!
-        pairs.push({
-          text: o.text,
-          oldBg: o.bg,
-          oldFg: o.fg,
-          newBg: [p.bg[0], p.bg[1]],
-          newFg: p.fg,
-        })
-        lines.push(
-          JSON.stringify({
-            text: cands[i].text,
-            emojis: o.emojis,
-            styles: o.styles,
-            bg: p.bg,
-            fg: p.fg,
-            reannotated: "colors",
-            meta: { date: today, src: "reannotate" },
-          }),
-        )
-        continue
-      }
-      const label = labels.get(i)
-      if (!label) {
-        noLabel++
-        continue
-      }
-      if (!label.bg || !label.fg) {
-        noPalette++
-        continue
-      }
-      if (singleEmoji && !label.emojis.length) {
-        noEmoji++
-        continue
-      }
-      const target = cands[i].target
-      let emojis: string
-      if (target) {
-        if (label.emojis.includes(target)) hitTarget++
-        else missTarget++
-        emojis = [target, ...label.emojis.filter((e) => e !== target)].join(" ")
-      } else {
-        emojis = label.emojis.join(" ")
-      }
-      const meta: Record<string, unknown> = { date: today }
-      if (singleEmoji) meta["single-emoji"] = true
-      if (short) meta.src = "short"
-      if (colors) meta.src = "colors"
-      if (kw) meta.src = "keywords"
-      if (rare) meta.src = "rare"
-      if (flags) meta.src = "flags"
-      if (group) meta.src = "group"
-      const row: Record<string, unknown> = {
-        text: cands[i].text,
-        emojis,
-        styles: label.styles,
-        bg: label.bg,
-        fg: label.fg,
-      }
-      if (negation) row.neg = "true"
-      if (colors) row.color = cands[i].color
-      if (kw) row.keyword = cands[i].keyword
-      if (flags) row.flag = cands[i].flag
-      if (group) row.group = groupName
-      row.meta = meta
-      lines.push(JSON.stringify(row))
+
+    if (reannotEmojis) {
+      await expandEmojis(
+        cands.map((c) => c.text),
+        cands.map((c) => c.orig?.emojis ?? ""),
+        {
+          onBatchDone: () => annBar.increment(),
+          onBatch: async (batch, got) => {
+            const batchLines: string[] = []
+            for (const { id } of batch) {
+              const add = got.get(id)
+              if (!add) {
+                noLabel++
+                continue
+              }
+              const o = cands[id].orig!
+              const remojis = mergeEmojiAdditions(o.emojis, add)
+              if (!remojis.length) noAdd++
+              emojiPairs.push({ text: o.text, old: o.emojis, added: remojis })
+              const emojis = [...splitEmojis(o.emojis), ...remojis].join(" ")
+              batchLines.push(
+                JSON.stringify({
+                  text: cands[id].text,
+                  emojis,
+                  styles: o.styles,
+                  bg: o.bg,
+                  fg: o.fg,
+                  remojis,
+                  meta: { date: today, src: "reannotate" },
+                }),
+              )
+            }
+            lines.push(...batchLines)
+            if (batchLines.length) await appendJsonl(DATA, batchLines)
+          },
+        },
+      )
+    } else if (reannot) {
+      await annotateColors(cands.map((c) => c.text), {
+        onBatchDone: () => annBar.increment(),
+        onBatch: async (batch, got) => {
+          const batchLines: string[] = []
+          for (const { id } of batch) {
+            const p = got.get(id)
+            if (!p) {
+              noLabel++
+              continue
+            }
+            const o = cands[id].orig!
+            pairs.push({
+              text: o.text,
+              oldBg: o.bg,
+              oldFg: o.fg,
+              newBg: [p.bg[0], p.bg[1]],
+              newFg: p.fg,
+            })
+            batchLines.push(
+              JSON.stringify({
+                text: cands[id].text,
+                emojis: o.emojis,
+                styles: o.styles,
+                bg: p.bg,
+                fg: p.fg,
+                reannotated: "colors",
+                meta: { date: today, src: "reannotate" },
+              }),
+            )
+          }
+          lines.push(...batchLines)
+          if (batchLines.length) await appendJsonl(DATA, batchLines)
+        },
+      })
+    } else {
+      await annotate(cands.map((c) => c.text), {
+        colors: true,
+        fillPalette: true,
+        paletteHints: flags
+          ? cands.map((c) =>
+              c.flag ? `the national flag colours of ${c.flag}` : undefined,
+            )
+          : undefined,
+        onBatchDone: () => annBar.increment(),
+        onBatch: async (batch, got) => {
+          const batchLines: string[] = []
+          for (const { id } of batch) {
+            const label = got.get(id)
+            if (!label) {
+              noLabel++
+              continue
+            }
+            if (!label.bg || !label.fg) {
+              noPalette++
+              continue
+            }
+            if (singleEmoji && !label.emojis.length) {
+              noEmoji++
+              continue
+            }
+            const target = cands[id].target
+            let emojis: string
+            if (target) {
+              if (label.emojis.includes(target)) hitTarget++
+              else missTarget++
+              emojis = [target, ...label.emojis.filter((e) => e !== target)].join(" ")
+            } else {
+              emojis = label.emojis.join(" ")
+            }
+            const meta: Record<string, unknown> = { date: today }
+            if (singleEmoji) meta["single-emoji"] = true
+            if (short) meta.src = "short"
+            if (colors) meta.src = "colors"
+            if (kw) meta.src = "keywords"
+            if (rare) meta.src = "rare"
+            if (flags) meta.src = "flags"
+            if (group) meta.src = "group"
+            const row: Record<string, unknown> = {
+              text: cands[id].text,
+              emojis,
+              styles: label.styles,
+              bg: label.bg,
+              fg: label.fg,
+            }
+            if (negation) row.neg = "true"
+            if (colors) row.color = cands[id].color
+            if (kw) row.keyword = cands[id].keyword
+            if (flags) row.flag = cands[id].flag
+            if (group) row.group = groupName
+            row.meta = meta
+            batchLines.push(JSON.stringify(row))
+          }
+          lines.push(...batchLines)
+          if (batchLines.length) await appendJsonl(DATA, batchLines)
+        },
+      })
     }
-    await appendJsonl(DATA, lines)
+    annBar.stop()
 
     if (reannotEmojis && emojiPairs.length) {
       const stamp = new Date()

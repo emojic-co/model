@@ -31,6 +31,10 @@ export type AnnotateOpts = {
   fillPalette?: boolean
   paletteHints?: (string | undefined)[]
   onBatchDone?: () => void
+  onBatch?: (
+    batch: { id: number; text: string; palette_hint?: string }[],
+    got: Map<number, Label>,
+  ) => void | Promise<void>
 }
 
 export type Usage = {
@@ -489,6 +493,7 @@ export async function annotate(
         lastFills,
       )
       for (const [id, label] of got) result.set(id, label)
+      await opts.onBatch?.(batch, got)
       opts.onBatchDone?.()
     }),
   )
@@ -573,7 +578,13 @@ async function annotatePaletteBatch(
 
 export async function annotateColors(
   texts: string[],
-  opts: { onBatchDone?: () => void } = {},
+  opts: {
+    onBatchDone?: () => void
+    onBatch?: (
+      batch: { id: number; text: string }[],
+      got: Map<number, PaletteResult>,
+    ) => void | Promise<void>
+  } = {},
 ): Promise<Map<number, PaletteResult>> {
   const items = texts.map((text, id) => ({ id, text }))
   const result = new Map<number, PaletteResult>()
@@ -590,6 +601,7 @@ export async function annotateColors(
     chunk(items, ANNOTATE_BATCH_SIZE).map((batch) => async () => {
       const got = await annotatePaletteBatch(batch, lastUsage, lastDrops)
       for (const [id, p] of got) result.set(id, p)
+      await opts.onBatch?.(batch, got)
       opts.onBatchDone?.()
     }),
   )
@@ -657,7 +669,13 @@ async function expandEmojiBatch(
 export async function expandEmojis(
   texts: string[],
   existing: string[],
-  opts: { onBatchDone?: () => void } = {},
+  opts: {
+    onBatchDone?: () => void
+    onBatch?: (
+      batch: { id: number; text: string; emojis: string }[],
+      got: Map<number, string[]>,
+    ) => void | Promise<void>
+  } = {},
 ): Promise<Map<number, string[]>> {
   const items = texts.map((text, id) => ({
     id,
@@ -677,6 +695,7 @@ export async function expandEmojis(
     chunk(items, ANNOTATE_BATCH_SIZE).map((batch) => async () => {
       const got = await expandEmojiBatch(batch, lastUsage, lastDrops)
       for (const [id, add] of got) result.set(id, add)
+      await opts.onBatch?.(batch, got)
       opts.onBatchDone?.()
     }),
   )
