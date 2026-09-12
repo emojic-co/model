@@ -265,22 +265,23 @@ class LitEncoder(pl.LightningModule):
                 e_rr = self._val_e_rr if split == "val" else self._trn_e_rr
                 e_rr.append(rr.detach())
 
-            for name in SAMPLING_SOURCES:
-                mask = torch.tensor(
-                    [s == name for s in source], device=emoji.device
-                )
-                n = int(mask.sum())
-                if n:
-                    self._log(
-                        f"{name}/acc@1/{split}",
-                        acc_at_k(emoji_logits[mask], emoji[mask], 1).mean(),
-                        n,
+            if split == "val":
+                for name in SAMPLING_SOURCES:
+                    mask = torch.tensor(
+                        [s == name for s in source], device=emoji.device
                     )
-                    self._log(
-                        f"{name}/acc@5/{split}",
-                        acc_at_k(emoji_logits[mask], emoji[mask], 5).mean(),
-                        n,
-                    )
+                    n = int(mask.sum())
+                    if n:
+                        self._log(
+                            f"{name}/acc@1",
+                            acc_at_k(emoji_logits[mask], emoji[mask], 1).mean(),
+                            n,
+                        )
+                        self._log(
+                            f"{name}/acc@5",
+                            acc_at_k(emoji_logits[mask], emoji[mask], 5).mean(),
+                            n,
+                        )
 
         if "critic" in self.heads:
             shift = 1 if split == "val" else int(torch.randint(1, bs, (1,)).item())
@@ -324,13 +325,13 @@ class LitEncoder(pl.LightningModule):
         metrics = self.trainer.callback_metrics
         base_rate = self.train_dataset.rates.base_rate
         for name, cfg in SAMPLING_SOURCES.items():
-            key = f"{name}/{cfg.metric}/val"
-            if key not in metrics:
-                continue
-            acc = float(metrics[key])
-            gap = max(0.0, cfg.goal - acc) / cfg.goal
-            rate = max(SAMPLING_MIN_RATE, min(base_rate, base_rate * gap))
-            self.train_dataset.rates.set(name, rate)
+            key = f"{name}/{cfg.metric}"
+            if key in metrics:
+                acc = float(metrics[key])
+                gap = max(0.0, cfg.goal - acc) / cfg.goal
+                rate = max(SAMPLING_MIN_RATE, base_rate * gap)
+                self.train_dataset.rates.set(name, rate)
+            self.log(f"{name}/rate", self.train_dataset.rates.get(name))
 
     def on_train_epoch_end(self):
         self._epoch_metrics("train")
