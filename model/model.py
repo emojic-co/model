@@ -29,19 +29,21 @@ from model.data import COLOR_DIM, EMOJIS, PAD_IDX, STYLES, VOCAB_SIZE
 
 
 class TextEncoderBlock(nn.Module):
-    def __init__(self, i: int, o: int, dilation: int):
+    def __init__(self, i: int, o: int, dilation: int, num_groups: int = 8):
         super().__init__()
         self.net = nn.Sequential(
-            sn(nn.Conv1d(
+            nn.Conv1d(
                 i, o,
                 kernel_size=ENCODER_KERNEL_SIZE,
                 padding=dilation * (ENCODER_KERNEL_SIZE // 2),
                 dilation=dilation,
-                bias=True)),
+                bias=False  # Norm layer provides affine bias
+            ),
+            nn.GroupNorm(num_groups=min(num_groups, o), num_channels=o),
+            nn.LeakyReLU(negative_slope=RELU_SLOPE)
+        )
 
-            nn.LeakyReLU(negative_slope=RELU_SLOPE))
-
-    def forward(self, x: torch.Tensor):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.net(x)
 
 
