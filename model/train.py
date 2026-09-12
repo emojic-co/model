@@ -31,6 +31,7 @@ from files import (
     EMOJI_PT,
     ENC_PT,
     EVAL_JSONL,
+    FLAGS_JSONL,
     KEYWORDS_JSONL,
     LABELS_JSON,
     MODEL_DIR,
@@ -734,6 +735,7 @@ CODE_FILES = [
     EVAL_JSONL,
     KEYWORDS_JSONL,
     TERMS_JSONL,
+    FLAGS_JSONL,
 ]
 COLLECT_TREES = [PT_DIR, "runs", "web/public", "report"]
 
