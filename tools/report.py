@@ -253,20 +253,14 @@ def _section_keywords_flex(enc, emoji_head) -> dict:
 
 def _keywords_rows() -> tuple:
     vocab = set(EMOJIS)
-    merged: dict[str, tuple[list[str], list[str]]] = {}
+    out = []
     for d in _rows(str(KEYWORDS_JSONL)):
         word = str(d.get("text", ""))
         emojis = [e for e in str(d.get("emojis", "")).split() if e in vocab]
         if not word or not emojis or word_count(word) != 1:
             continue
-        tgt, srcs = merged.setdefault(word, ([], []))
-        for e in emojis:
-            if e not in tgt:
-                tgt.append(e)
-        src = str(d.get("src", ""))
-        if src not in srcs:
-            srcs.append(src)
-    return tuple((w, tgt, "+".join(srcs)) for w, (tgt, srcs) in merged.items())
+        out.append((word, emojis, str(d.get("src", ""))))
+    return tuple(out)
 
 
 def _section_keyword_fails(enc, emoji_head) -> dict:

@@ -28,6 +28,19 @@ test("mergeKeywords unions emojis/styles and tags src by which source(s) had the
   ])
 })
 
+test("mergeKeywords merges rows that only differ pre-normalization", () => {
+  const cldr = [{ text: "Christmas", emojis: "🎄 🤶", styles: ["Joyful"] }]
+  const emojilib = [{ text: "christmas", emojis: "❄️ 🌲", styles: ["Excited"] }]
+  expect(mergeKeywords(cldr, emojilib)).toEqual([
+    {
+      text: "christmas",
+      emojis: ["❄️", "🌲", "🎄", "🤶"],
+      styles: ["Joyful", "Excited"],
+      src: "both",
+    },
+  ])
+})
+
 test("mergeKeywords picks a random palette from among the source(s) that had one", () => {
   const cldr = [{ text: "sun", emojis: "☀️", styles: [], ...P("#111111", "#222222", "#eeeeee") }]
   const emojilib = [{ text: "sun", emojis: "☀️", styles: [], ...P("#333333", "#444444", "#dddddd") }]

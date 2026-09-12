@@ -44,8 +44,9 @@ export function mergeKeywords(
   const byText = new Map<string, Acc>()
   const add = (rows: SourceRow[], src: "cldr" | "emojilib") => {
     for (const r of rows) {
-      let a = byText.get(r.text)
-      if (!a) byText.set(r.text, (a = { emojis: new Set(), styles: new Set(), palettes: [], srcs: new Set() }))
+      const key = normalize(r.text)
+      let a = byText.get(key)
+      if (!a) byText.set(key, (a = { emojis: new Set(), styles: new Set(), palettes: [], srcs: new Set() }))
       for (const e of r.emojis.split(" ").filter(Boolean)) a.emojis.add(e)
       for (const s of r.styles) a.styles.add(s)
       if (r.bg && r.fg) a.palettes.push({ bg: r.bg, fg: r.fg })
@@ -84,9 +85,8 @@ export function splitKeywordsAndTerms(
   for (const r of merged) {
     const emojis = r.emojis.filter((e) => vocab.has(e))
     if (!emojis.length) continue
-    const text = normalize(r.text)
-    if (text.length < 3) continue
-    const rec = { ...r, text, emojis }
+    if (r.text.length < 3) continue
+    const rec = { ...r, emojis }
     ;(wordCount(r.text) === 1 ? keywords : terms).push(rec)
   }
   return { keywords, terms }
