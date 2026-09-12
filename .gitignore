@@ -33,12 +33,19 @@ data/eval.jsonl
 data/labels.json
 data/cldr-baseline.json
 
+# Merged from data/cldr.jsonl + data/emojilib.jsonl by `bun run regen`, filtered to
+# the emoji vocab in labels.json.
+data/keywords.jsonl
+data/terms.jsonl
+
 # regen writes these via writeFileAtomic (path.tmp then rename); a crash leaves them.
 data/train.jsonl.tmp
 data/eval.jsonl.tmp
 data/labels.json.tmp
 data/cldr.jsonl.tmp
 data/cldr-baseline.json.tmp
+data/keywords.jsonl.tmp
+data/terms.jsonl.tmp
 
 pt/*.pt
 exp/

@@ -31,11 +31,12 @@ from files import (
     EMOJI_PT,
     ENC_PT,
     EVAL_JSONL,
-    KWPROJ_JSON,
+    KEYWORDS_JSONL,
     LABELS_JSON,
     MODEL_DIR,
     PT_DIR,
     STYLE_PT,
+    TERMS_JSONL,
     TOOLS_DIR,
     TRAIN_JSONL,
 )
@@ -63,10 +64,9 @@ from model.config import (
     VAL_CHECK_INTERVAL,
 )
 from model.data import (
-    cldr_keyword_pool,
-    emojilib_keyword_pool,
+    SRC_KEYWORD,
+    SRC_TERM,
     eval_data_loader,
-    keywords_keyword_pool,
     train_data_loader,
     train_ds,
 )
@@ -210,9 +210,6 @@ class LitEncoder(pl.LightningModule):
         if "emoji" in self.heads:
             self.emoji_embed = EmojiEmbedding()
             self.emoji = EmojiHead()
-            self._cldr = cldr_keyword_pool()
-            self._emojilib = emojilib_keyword_pool()
-            self._keywords = keywords_keyword_pool()
         if "critic" in self.heads:
             self.critic = ColorCritic()
 
@@ -222,9 +219,7 @@ class LitEncoder(pl.LightningModule):
         self._trn_neg: list[torch.Tensor] = []
 
         self._val_e_rr: list[torch.Tensor] = []
-        self._val_e_tgt: list[torch.Tensor] = []
         self._trn_e_rr: list[torch.Tensor] = []
-        self._trn_e_tgt: list[torch.Tensor] = []
 
         self._val_s_rr: list[torch.Tensor] = []
         self._val_s_tgt: list[torch.Tensor] = []
@@ -236,7 +231,7 @@ class LitEncoder(pl.LightningModule):
                  prog_bar=True, batch_size=bs)
 
     def _step(self, batch, split):
-        text, emoji, style, colors = batch
+        text, emoji, style, colors, source = batch
         enc = self.enc(text)
         loss = enc.new_zeros(())
         bs = text.size(0)
@@ -264,13 +259,40 @@ class LitEncoder(pl.LightningModule):
             n_e = int(has_e.sum())
             if n_e:
                 rr = mrr(emoji_logits[has_e], emoji[has_e])
-                e_rr, e_tgt = (
-                    (self._val_e_rr, self._val_e_tgt)
-                    if split == "val"
-                    else (self._trn_e_rr, self._trn_e_tgt)
-                )
+                e_rr = self._val_e_rr if split == "val" else self._trn_e_rr
                 e_rr.append(rr.detach())
-                e_tgt.append(emoji[has_e].detach())
+
+            kw_mask = torch.tensor(
+                [s == SRC_KEYWORD for s in source], device=emoji.device
+            )
+            n_kw = int(kw_mask.sum())
+            if n_kw:
+                self._log(
+                    f"keyword_acc@1/{split}",
+                    acc_at_k(emoji_logits[kw_mask], emoji[kw_mask], 1).mean(),
+                    n_kw,
+                )
+                self._log(
+                    f"keyword_acc@5/{split}",
+                    acc_at_k(emoji_logits[kw_mask], emoji[kw_mask], 5).mean(),
+                    n_kw,
+                )
+
+            term_mask = torch.tensor(
+                [s == SRC_TERM for s in source], device=emoji.device
+            )
+            n_term = int(term_mask.sum())
+            if n_term:
+                self._log(
+                    f"term_acc@1/{split}",
+                    acc_at_k(emoji_logits[term_mask], emoji[term_mask], 1).mean(),
+                    n_term,
+                )
+                self._log(
+                    f"term_acc@5/{split}",
+                    acc_at_k(emoji_logits[term_mask], emoji[term_mask], 5).mean(),
+                    n_term,
+                )
 
         if "critic" in self.heads:
             shift = 1 if split == "val" else int(torch.randint(1, bs, (1,)).item())
@@ -296,7 +318,6 @@ class LitEncoder(pl.LightningModule):
         self._val_pos.clear()
         self._val_neg.clear()
         self._val_e_rr.clear()
-        self._val_e_tgt.clear()
         self._val_s_rr.clear()
         self._val_s_tgt.clear()
 
@@ -307,7 +328,6 @@ class LitEncoder(pl.LightningModule):
         self._trn_pos.clear()
         self._trn_neg.clear()
         self._trn_e_rr.clear()
-        self._trn_e_tgt.clear()
         self._trn_s_rr.clear()
         self._trn_s_tgt.clear()
 
@@ -325,48 +345,12 @@ class LitEncoder(pl.LightningModule):
             auc = buffered_auc(pos_buf, neg_buf)
             self.log(f"auc/critic/{split}", auc, prog_bar=True)
 
-        emoji_macro = None
+        emoji_mrr = None
         if "emoji" in self.heads:
-            e_rr, e_tgt = (
-                (self._val_e_rr, self._val_e_tgt)
-                if split == "val"
-                else (self._trn_e_rr, self._trn_e_tgt)
-            )
+            e_rr = self._val_e_rr if split == "val" else self._trn_e_rr
             if e_rr:
-                tgt = torch.cat(e_tgt)
-                emoji_macro, _, _ = macro_average(
-                    torch.cat(e_rr), tgt, MACRO_MIN_SUPPORT)
-                self.log(f"MRR/e/{split}", emoji_macro, prog_bar=True)
-
-            if split == "val" and self._cldr is not None:
-                text, target = self._cldr
-                with torch.no_grad():
-                    logits = self.emoji_embed.score(
-                        self.emoji(self.enc(text.to(self.device)))
-                    )
-                    target = target.to(self.device)
-                self.log("cldr/acc@1", acc_at_k(logits, target, 1).mean())
-                self.log("cldr/acc@5", acc_at_k(logits, target, 5).mean())
-
-            if split == "val" and self._emojilib is not None:
-                text, target = self._emojilib
-                with torch.no_grad():
-                    logits = self.emoji_embed.score(
-                        self.emoji(self.enc(text.to(self.device)))
-                    )
-                    target = target.to(self.device)
-                self.log("emojilib/acc@1", acc_at_k(logits, target, 1).mean())
-                self.log("emojilib/acc@5", acc_at_k(logits, target, 5).mean())
-
-            if split == "val" and self._keywords is not None:
-                text, target = self._keywords
-                with torch.no_grad():
-                    logits = self.emoji_embed.score(
-                        self.emoji(self.enc(text.to(self.device)))
-                    )
-                    target = target.to(self.device)
-                self.log("keywords/acc@1", acc_at_k(logits, target, 1).mean())
-                self.log("keywords/acc@5", acc_at_k(logits, target, 5).mean())
+                emoji_mrr = torch.cat(e_rr).mean()
+                self.log(f"MRR/e/{split}", emoji_mrr, prog_bar=True)
 
         if "style" in self.heads:
             s_rr, s_tgt = (
@@ -380,8 +364,8 @@ class LitEncoder(pl.LightningModule):
                 )
                 self.log(f"MRR/s/{split}", style_macro, prog_bar=True)
 
-        if auc is not None and emoji_macro is not None:
-            self.log(f"F1/{split}", harmonic_mean(emoji_macro, auc), prog_bar=True)
+        if auc is not None and emoji_mrr is not None:
+            self.log(f"F1/{split}", harmonic_mean(emoji_mrr, auc), prog_bar=True)
 
     def training_step(self, batch, batch_idx):
         return self._step(batch, "train")
@@ -744,10 +728,11 @@ CODE_FILES = [
     f"{MODEL_DIR}/runmeta.py",
     f"{TOOLS_DIR}/report.py",
     LABELS_JSON,
-    KWPROJ_JSON,
     DATA_JSONL,
     TRAIN_JSONL,
     EVAL_JSONL,
+    KEYWORDS_JSONL,
+    TERMS_JSONL,
 ]
 COLLECT_TREES = [PT_DIR, "runs", "web/public", "report"]
 

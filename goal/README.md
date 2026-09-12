@@ -49,11 +49,11 @@ meta:
 
 goals:                       # every priority-row goal present; vocabulary.coverage is the exception (gate only the groups this loop targets)
   emoji prediction:
-    exact keyword:           # priority 1 — the loop's focus this iteration
+    keyword:                 # priority 1 — the loop's focus this iteration
       "acc@1": 0.75
       "acc@5": 0.80
       "acc@10": 0.85
-    fuzzy keyword:            # unmet, lower priority than the focus above — held easy
+    term:                    # unmet, lower priority than the focus above — held easy
       "acc@1": 0.0
     full text:                 # unmet, lower priority — held easy at current
       "acc@1": 0.55
@@ -81,8 +81,8 @@ goals:                       # every priority-row goal present; vocabulary.cover
 
 | goal path (flattened) | dir | report.json source | wired? |
 |---|---|---|---|
-| `emoji prediction.exact keyword.acc@{1,5,10}` | ≥ | `keyword.exact.acc_at_k[{0,4,9}]` — exact-match inverted-index keyword search scored against CLDR keywords; **priority-1 gate** | yes |
-| `emoji prediction.fuzzy keyword.acc@{1,5,10}` | ≥ | `keyword.fuzzy.acc_at_k[...]` — uFuzzy-matched keyword search scored against CLDR keywords | yes — via `tools/analysis/kw-search.ts`, shelled out to by `tools/report.py:_kw_search_rows` (only when `bun` + `web/public/kwproj.json` are available) |
+| `emoji prediction.keyword.acc@{1,5,10}` | ≥ | `keyword.acc_at_k[{0,4,9}]` — `EmojiHead` probe over `data/keywords.jsonl` (single-word CLDR+EmojiLib records); **priority-1 gate** | yes |
+| `emoji prediction.term.acc@{1,5,10}` | ≥ | `term.acc_at_k[{0,4,9}]` — `EmojiHead` probe over `data/terms.jsonl` (multi-word CLDR+EmojiLib records) | yes |
 | `emoji prediction.full text.acc@{1,5,10}` | ≥ | `emoji.eval.acc_at_k[{0,4,9}]` — the `EmojiHead` classifier on eval short texts | yes |
 | `style prediction.full text.acc@{1,5,10}` | ≥ | `cards.style_acc_at_k[{0,4,9}]` | yes (only when the `cards` section runs) |
 | `color generator.energy distance.global` | ≤ | `cards.energy` | no — `cards` does not compute OKLab energy yet |
@@ -91,11 +91,13 @@ goals:                       # every priority-row goal present; vocabulary.cover
 | `vocabulary.size` | ≥ | `labels.emojis` (count) | yes |
 | `vocabulary.coverage.<group>` | ≥ | `status.vocab_coverage.groups.<group>.score` (`|vocab ∩ group| / |group|`) | yes |
 
-Each leaf under `emoji prediction` measures a different retrieval method for
-the same task (predict emojis from text): the exact- and fuzzy-keyword leaves
-go through the inverted-index keyword search, the full-text leaf goes through
-the `EmojiHead` classifier. `report.json.keyword.model` (the `EmojiHead`
-scored on CLDR keyword text) is a report **diagnostic**, not a graded goal.
+Each leaf under `emoji prediction` measures the same `EmojiHead` classifier
+over a different slice of text: the keyword and term leaves each probe their
+respective `data/*.jsonl` file (the same keyword/term data mixed into
+training batches — see `model/data.py`), the full-text leaf probes
+`data/eval.jsonl`. There is no separate keyword-search method any more —
+`tools/analysis/kw-search.ts` / `web/public/kwproj.json` / uFuzzy were
+removed project-wide.
 
 `report.json.goals.compare` mirrors the `goals:` tree; each leaf becomes
 `{target, actual, met, dir, delta}` (`actual`/`met` are `null` when the source is not

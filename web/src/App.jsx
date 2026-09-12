@@ -15,25 +15,11 @@ import { useMediaQuery } from './hooks/useMediaQuery'
 
 const MIN_CHARS = 3
 const DEBOUNCE_MS = 250
-const EMOJI_MODE_KEY = 'emojiMode'
 const CONTRAST_FIX_KEY = 'contrastFix'
 
-export const EMOJI_MODES = ['model', 'keywords']
-
-export function initialEmojiMode() {
-  try {
-    const m = localStorage.getItem(EMOJI_MODE_KEY)
-    if (EMOJI_MODES.includes(m)) return m
-    const legacy = localStorage.getItem('emojiSource')
-    if (legacy === 'cldr') return 'keywords'
-    if (legacy === 'model') return 'model'
-  } catch {}
-  return 'model'
-}
-
-export function pickEmojiList(mode, scores, meta, slots) {
+export function pickEmojiList(scores, meta, slots) {
   if (!scores || !meta) return []
-  const arr = mode === 'keywords' ? scores.kw : scores.emoji
+  const arr = scores.emoji
   if (!arr) return []
   return [...arr.keys()]
     .sort((a, b) => arr[b] - arr[a])
@@ -78,7 +64,6 @@ export function App() {
   const [text, setText] = useState('')
   const [scores, setScores] = useState(null)
   const [override, setOverride] = useState({ emoji: null, feeling: null, color: 0 })
-  const [emojiMode, setEmojiMode] = useState(initialEmojiMode)
   const [contrastFix, setContrastFix] = useState(initialContrastFix)
   const [toast, setToast] = useState({ msg: '', n: 0 })
   const showToast = useCallback((msg) => setToast((s) => ({ msg, n: s.n + 1 })), [])
@@ -89,12 +74,6 @@ export function App() {
     () => (meta ? new Map([...meta.chars].map((c, i) => [c, i])) : null),
     [meta],
   )
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(EMOJI_MODE_KEY, emojiMode)
-    } catch {}
-  }, [emojiMode])
 
   useEffect(() => {
     try {
@@ -121,8 +100,8 @@ export function App() {
   }, [text, ready, char2idx, predict])
 
   const emojiTop = useMemo(
-    () => pickEmojiList(emojiMode, scores, meta, emojiSlots),
-    [emojiMode, scores, meta, emojiSlots],
+    () => pickEmojiList(scores, meta, emojiSlots),
+    [scores, meta, emojiSlots],
   )
   const predictedEmoji = emojiTop[0]?.emoji ?? null
   const predictedFeeling = scores ? meta.styles[argmax(scores.feeling)] : null
@@ -209,22 +188,6 @@ export function App() {
                 emojify<span className="tld">.ing</span>
               </h1>
             </header>
-            <div className="emoji-source" role="group" aria-label="emoji ranking mode">
-              {EMOJI_MODES.map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  className={emojiMode === mode ? 'active' : undefined}
-                  aria-pressed={emojiMode === mode}
-                  onClick={() => {
-                    setEmojiMode(mode)
-                    setOverride((o) => ({ ...o, emoji: null }))
-                  }}
-                >
-                  {mode}
-                </button>
-              ))}
-            </div>
           </div>
           <input
             className="input"

@@ -6,21 +6,24 @@ from dataclasses import dataclass
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from files import CLDR_JSONL, EMOJILIB_JSONL, EVAL_JSONL, KEYWORDS_JSONL, TRAIN_JSONL
+from files import EVAL_JSONL, KEYWORDS_JSONL, TERMS_JSONL, TRAIN_JSONL
 from model.config import (
     EMOJIS,
     KEYWORDS_SAMPLING_RATE,
     MAX_EMOJIS_PER_SAMPLE,
     MAX_TEXT_LEN,
     STYLES,
+    TERM_SAMPLING_RATE,
 )
-from model.kwtokens import KEYWORD_CATEGORIES, keyword_category, word_count
 
 TRAIN_PATH = TRAIN_JSONL
 EVAL_PATH = EVAL_JSONL
-CLDR_PATH = CLDR_JSONL
-EMOJILIB_PATH = EMOJILIB_JSONL
 KEYWORDS_PATH = KEYWORDS_JSONL
+TERMS_PATH = TERMS_JSONL
+
+SRC_FULL = "full"
+SRC_KEYWORD = "keyword"
+SRC_TERM = "term"
 
 PAD = "·"
 PAD_IDX = 0
@@ -133,92 +136,36 @@ def read(path):
             yield r
 
 
-def _row_kw(row: dict) -> torch.Tensor:
-    pairs = row.get("kw")
-    out = torch.zeros(len(EMOJIS), dtype=torch.float32)
-    for i, v in pairs or []:
-        out[int(i)] = float(v)
-    return out
+_Pool = tuple[torch.Tensor, list[list[str]], torch.Tensor, torch.Tensor]
 
 
-_KeywordPool = tuple[torch.Tensor, list[list[str]], torch.Tensor, torch.Tensor]
-
-
-def _keywords_pools() -> dict[str, _KeywordPool]:
-    by_cat: dict[str, list[record]] = {c: [] for c in KEYWORD_CATEGORIES}
-    try:
-        with open(KEYWORDS_PATH, encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                d = json.loads(line)
-                r = _parse_record(d)
-                if r is None or not r.emojis:
-                    continue
-                wc = int(d.get("word_count") or word_count(str(d.get("text", ""))))
-                by_cat[keyword_category(wc)].append(r)
-    except FileNotFoundError:
-        return {}
-    pools = {}
-    for cat, recs in by_cat.items():
-        if not recs:
-            continue
-        pools[cat] = (
-            torch.stack([text_to_tensor(r.text) for r in recs]),
-            [r.emojis for r in recs],
-            torch.stack([styles_to_tensor(r.styles) for r in recs]),
-            torch.stack([colors2tensor(r.colors) for r in recs]),
-        )
-    return pools
-
-
-CLDR_MIN_KEYWORD_LEN = 3
-EMOJILIB_MIN_KEYWORD_LEN = 3
-KEYWORDS_MIN_KEYWORD_LEN = 3
-
-
-def _keyword_pool(
-    path: str, min_keyword_len: int, *, only_single: bool = False
-) -> tuple[torch.Tensor, torch.Tensor] | None:
-    words: dict[str, list[str]] = {}
+def _load_pool(path: str) -> _Pool | None:
+    recs: list[record] = []
     try:
         with open(path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line:
                     continue
-                d = json.loads(line)
-                word = str(d.get("text", ""))
-                if len(word) < min_keyword_len or not re.search(r"[a-zA-Z]", word):
-                    continue
-                if only_single and word_count(word) != 1:
-                    continue
-                targets = words.setdefault(word, [])
-                for e in str(d.get("emojis", "")).split():
-                    if e not in targets:
-                        targets.append(e)
+                r = _parse_record(json.loads(line))
+                if r is not None and r.emojis:
+                    recs.append(r)
     except FileNotFoundError:
         return None
-    rows = [(w, exp) for w, exp in words.items() if any(e in emoji2idx for e in exp)]
-    if not rows:
+    if not recs:
         return None
     return (
-        torch.stack([text_to_tensor(normalize(w)) for w, _ in rows]),
-        torch.stack([emojis_to_tensor(exp) for _, exp in rows]),
+        torch.stack([text_to_tensor(r.text) for r in recs]),
+        [r.emojis for r in recs],
+        torch.stack([styles_to_tensor(r.styles) for r in recs]),
+        torch.stack([colors2tensor(r.colors) for r in recs]),
     )
 
 
-def cldr_keyword_pool() -> tuple[torch.Tensor, torch.Tensor] | None:
-    return _keyword_pool(CLDR_PATH, CLDR_MIN_KEYWORD_LEN)
-
-
-def emojilib_keyword_pool() -> tuple[torch.Tensor, torch.Tensor] | None:
-    return _keyword_pool(EMOJILIB_PATH, EMOJILIB_MIN_KEYWORD_LEN)
-
-
-def keywords_keyword_pool() -> tuple[torch.Tensor, torch.Tensor] | None:
-    return _keyword_pool(KEYWORDS_PATH, KEYWORDS_MIN_KEYWORD_LEN, only_single=True)
+def _sample_pool(pool: _Pool, src: str) -> tuple:
+    text, emoji_lists, style, colors = pool
+    j = int(torch.randint(len(text), (1,)).item())
+    return (text[j], sampled_emojis_to_tensor(emoji_lists[j]), style[j], colors[j], src)
 
 
 class EmojiDataset(Dataset):
@@ -227,34 +174,24 @@ class EmojiDataset(Dataset):
         self.emoji_lists = [r.emojis for r in records]
         self.style = torch.stack([styles_to_tensor(r.styles) for r in records])
         self.colors = torch.stack([colors2tensor(r.colors) for r in records])
-        self.keyword_pools = _keywords_pools() if mix_keywords else {}
+        self.keyword_pool = _load_pool(KEYWORDS_PATH) if mix_keywords else None
+        self.term_pool = _load_pool(TERMS_PATH) if mix_keywords else None
 
     def __len__(self):
         return len(self.text)
 
     def __getitem__(self, idx):
-        if self.keyword_pools:
-            r = torch.rand(1).item()
-            for cat in KEYWORD_CATEGORIES:
-                pool = self.keyword_pools.get(cat)
-                rate = getattr(KEYWORDS_SAMPLING_RATE, cat)
-                if pool is None or rate <= 0:
-                    continue
-                if r < rate:
-                    text, emoji_lists, style, colors = pool
-                    j = int(torch.randint(len(text), (1,)).item())
-                    return (
-                        text[j],
-                        sampled_emojis_to_tensor(emoji_lists[j]),
-                        style[j],
-                        colors[j],
-                    )
-                r -= rate
+        r = torch.rand(1).item()
+        if self.keyword_pool is not None and r < KEYWORDS_SAMPLING_RATE:
+            return _sample_pool(self.keyword_pool, SRC_KEYWORD)
+        if self.term_pool is not None and r < KEYWORDS_SAMPLING_RATE + TERM_SAMPLING_RATE:
+            return _sample_pool(self.term_pool, SRC_TERM)
         return (
             self.text[idx],
             sampled_emojis_to_tensor(self.emoji_lists[idx]),
             self.style[idx],
             self.colors[idx],
+            SRC_FULL,
         )
 
 
