@@ -1,50 +1,7 @@
 Done:
-
-CLDR + EMOJILIB
-We update the usage of CLDR and EmojiLib and the way we set goals and reports.
-We define new concepts:
-    1. keyword: a single word origin from CLDR or EmojiLib, e.g. "car", "jazz", "jars"
-    2. term: anything else the origin from CLDR or EmojiLib that is not a single word, e.g. "car with horn", "jazz hands", "jars of jam"
-    3. full text: any text that is origin from data/data.jsonl
-
-Tools:
-    Update the `regen` script to process both `data/cldr.jsonl` and `data/emojilib.jsonl` and output `data/keywords.jsonl` and `data/terms.jsonl` files.
-    `data/keywords.jsonl` contains all the keywords from both CLDR and EmojiLib.
-    `data/terms.jsonl` contains all the terms from both CLDR and EmojiLib.
-    records are merged by union the emojis and styles and picking a random color palette from the two sources.
-    both `data/keywords.jsonl` and `data/terms.jsonl` are git ignored and contain only records with emojis in the vocabulary (labels.json).
-
-Data:
-    During training we use the data/train.jsonl files to sample full text records.
-    We use the data/keywords.jsonl and data/terms.jsonl files to sample keyword and term records.
-    keywords and terms sampling rate is done according to the config.py constants:
-    KEYWORDS_SAMPLING_RATE
-    TERM_SAMPLING_RATE
-
-    So for example when setting
-    KEYWORDS_SAMPLING_RATE = 0.2
-    TERM_SAMPLING_RATE = 0.1
-
-    A batch on average should have 20% of the records sampled from keywords.jsonl, 10% of the records sampled from terms.jsonl and 70% of the records sampled from train.jsonl.
-
-
-Logging:
-    During training log:
-    MRR - Mean Reciprocal Rank on the complete batch (note, currently it is being normalized, revert it and just log plain MRR).
-    keyword_acc@k - Accuracy on the keyword records in the batch.
-    term_acc@k - Accuracy on the term records in the batch.
-    for k in [1, 5]
-
-Report:
-    Report acc@k for full text, keyword, and term records separately for k in [1, 5, 10].
-    Full text accuracy is measured on the eval set.
-    Keyword and term accuracy is measured on the data/keywords.jsonl and data/terms.jsonl files respectively (i.e. the same data the model was trained on, this is fine.).
-
-    Remove from the report the "Exact Word Accuracy" section.
-
-    Update the report "Failed keywords" section to include only single word, i.e. data/keywords.jsonl.
-    Update the table so the target columns include all target emojis and the predicted column the model top 10.
-
-Note:
-    Drop, project wise, anything related to "fuzzy search" including the "fuzzy search" in the web app. i.e. the project should drop dependency on uFuzzy.
-    The `goals.yml` file was updated to set goals for keyword, term and full text accuracy separately. The "fuzzy keyword" goal was removed.
+TB
+update log keys to
+    keyword/acc@1
+    keyword/acc@5
+    term/acc@1
+    term/acc@5
