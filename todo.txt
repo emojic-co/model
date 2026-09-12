@@ -1,3 +1,20 @@
+TODO:
+
+
+Done:
+
+Merge cldr and emojilib into data/keywords.jsonl
+Each record is the union of the two and and a random color palette.
+add {src} field to each record, indicating the source of the keyword (cldr or emojilib or both)
+
+Update the `data.py` to read `data/keywords.jsonl` and sample keywords from it according to the `KEYWORDS_SAMPLING_RATE`.
+
+
+Add to the `report` a table with the failed keywords:
+| keyword | src | target | predicted | rank |
+
+where rank is the rank of the target in the predicted logits.
+
 Add another keyword source from here:
 https://github.com/muan/emojilib
 

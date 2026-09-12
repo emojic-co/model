@@ -6,12 +6,14 @@ from dataclasses import dataclass
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from files import CLDR_JSONL, EVAL_JSONL, TRAIN_JSONL
-from model.config import CLDR_WEIGHT, EMOJIS, MAX_TEXT_LEN, STYLES
+from files import CLDR_JSONL, EMOJILIB_JSONL, EVAL_JSONL, KEYWORDS_JSONL, TRAIN_JSONL
+from model.config import EMOJIS, KEYWORDS_SAMPLING_RATE, MAX_TEXT_LEN, STYLES
 
 TRAIN_PATH = TRAIN_JSONL
 EVAL_PATH = EVAL_JSONL
 CLDR_PATH = CLDR_JSONL
+EMOJILIB_PATH = EMOJILIB_JSONL
+KEYWORDS_PATH = KEYWORDS_JSONL
 
 PAD = "·"
 PAD_IDX = 0
@@ -118,9 +120,9 @@ def _row_kw(row: dict) -> torch.Tensor:
     return out
 
 
-def _cldr_pool():
+def _keywords_pool():
     try:
-        recs = [r for r in read(CLDR_PATH) if r.emojis]
+        recs = [r for r in read(KEYWORDS_PATH) if r.emojis]
     except FileNotFoundError:
         return None
     if not recs:
@@ -134,19 +136,22 @@ def _cldr_pool():
 
 
 CLDR_MIN_KEYWORD_LEN = 3
+EMOJILIB_MIN_KEYWORD_LEN = 3
 
 
-def cldr_keyword_pool() -> tuple[torch.Tensor, torch.Tensor] | None:
+def _keyword_pool(
+    path: str, min_keyword_len: int
+) -> tuple[torch.Tensor, torch.Tensor] | None:
     words: dict[str, list[str]] = {}
     try:
-        with open(CLDR_PATH, encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line:
                     continue
                 d = json.loads(line)
                 word = str(d.get("text", ""))
-                if len(word) < CLDR_MIN_KEYWORD_LEN or not re.search(r"[a-zA-Z]", word):
+                if len(word) < min_keyword_len or not re.search(r"[a-zA-Z]", word):
                     continue
                 targets = words.setdefault(word, [])
                 for e in str(d.get("emojis", "")).split():
@@ -163,21 +168,31 @@ def cldr_keyword_pool() -> tuple[torch.Tensor, torch.Tensor] | None:
     )
 
 
+def cldr_keyword_pool() -> tuple[torch.Tensor, torch.Tensor] | None:
+    return _keyword_pool(CLDR_PATH, CLDR_MIN_KEYWORD_LEN)
+
+
+def emojilib_keyword_pool() -> tuple[torch.Tensor, torch.Tensor] | None:
+    return _keyword_pool(EMOJILIB_PATH, EMOJILIB_MIN_KEYWORD_LEN)
+
+
 class EmojiDataset(Dataset):
-    def __init__(self, records: list[record], mix_cldr: bool = False):
+    def __init__(self, records: list[record], mix_keywords: bool = False):
         self.text = torch.stack([text_to_tensor(r.text) for r in records])
         self.emoji = torch.stack([emojis_to_tensor(r.emojis) for r in records])
         self.style = torch.stack([styles_to_tensor(r.styles) for r in records])
         self.colors = torch.stack([colors2tensor(r.colors) for r in records])
-        self.cldr = _cldr_pool() if mix_cldr and CLDR_WEIGHT > 0 else None
+        self.keywords = (
+            _keywords_pool() if mix_keywords and KEYWORDS_SAMPLING_RATE > 0 else None
+        )
 
     def __len__(self):
         return len(self.text)
 
     def __getitem__(self, idx):
-        if self.cldr is not None and torch.rand(1).item() < CLDR_WEIGHT:
-            j = int(torch.randint(len(self.cldr[0]), (1,)).item())
-            return tuple(col[j] for col in self.cldr)
+        if self.keywords is not None and torch.rand(1).item() < KEYWORDS_SAMPLING_RATE:
+            j = int(torch.randint(len(self.keywords[0]), (1,)).item())
+            return tuple(col[j] for col in self.keywords)
         return (
             self.text[idx],
             self.emoji[idx],
@@ -187,7 +202,7 @@ class EmojiDataset(Dataset):
 
 
 def train_ds():
-    return EmojiDataset(list(read(TRAIN_PATH)), mix_cldr=True)
+    return EmojiDataset(list(read(TRAIN_PATH)), mix_keywords=True)
 
 
 PIN_MEMORY = torch.cuda.is_available()
@@ -217,7 +232,7 @@ def train_data_loader(
 
 def eval_data_loader():
     return DataLoader(
-        EmojiDataset(list(read(EVAL_PATH)), mix_cldr=True),
+        EmojiDataset(list(read(EVAL_PATH)), mix_keywords=True),
         batch_size=2000,
         shuffle=False,
         drop_last=False,

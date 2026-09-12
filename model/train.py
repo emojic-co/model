@@ -62,6 +62,7 @@ from model.config import (
 )
 from model.data import (
     cldr_keyword_pool,
+    emojilib_keyword_pool,
     eval_data_loader,
     train_data_loader,
     train_ds,
@@ -210,6 +211,7 @@ class LitEncoder(pl.LightningModule):
             self.emoji_embed = EmojiEmbedding()
             self.emoji = EmojiHead()
             self._cldr = cldr_keyword_pool()
+            self._emojilib = emojilib_keyword_pool()
         if "critic" in self.heads:
             self.critic = ColorCritic()
 
@@ -344,6 +346,16 @@ class LitEncoder(pl.LightningModule):
                     target = target.to(self.device)
                 self.log("cldr/acc@1", acc_at_k(logits, target, 1).mean())
                 self.log("cldr/acc@5", acc_at_k(logits, target, 5).mean())
+
+            if split == "val" and self._emojilib is not None:
+                text, target = self._emojilib
+                with torch.no_grad():
+                    logits = self.emoji_embed.score(
+                        self.emoji(self.enc(text.to(self.device)))
+                    )
+                    target = target.to(self.device)
+                self.log("emojilib/acc@1", acc_at_k(logits, target, 1).mean())
+                self.log("emojilib/acc@5", acc_at_k(logits, target, 5).mean())
 
         if "style" in self.heads:
             s_rr, s_tgt = (
