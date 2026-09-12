@@ -14,3 +14,18 @@ _WS = re.compile(r"\s+")
 def query_tokens(text: str) -> list[str]:
     t = _NON.sub(" ", text.lower())
     return [w for w in _WS.split(t) if len(w) >= 2 and w not in STOPWORDS]
+
+
+KEYWORD_CATEGORIES = ("single", "double", "multi")
+
+
+def word_count(text: str) -> int:
+    return len(text.split())
+
+
+def keyword_category(count: int) -> str:
+    if count <= 1:
+        return "single"
+    if count == 2:
+        return "double"
+    return "multi"

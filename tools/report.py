@@ -36,6 +36,7 @@ from model.config import EMOJIS, MAX_TEXT_LEN, SEED, STYLES, Z_WEIGHT
 from model.data import EVAL_PATH, TRAIN_PATH, _row_kw, read, text_to_tensor
 from model.data import normalize as norm_text
 from model.export_onnx import CONST_Z
+from model.kwtokens import KEYWORD_CATEGORIES, keyword_category, word_count
 from model.model import (
     ColorGen,
     EmojiEmbedding,
@@ -376,6 +377,13 @@ def _kw_search_rows(rows: list) -> dict | None:
         Path(tmp.name).unlink(missing_ok=True)
 
 
+def _category_groups(rows: list) -> dict[str, list[int]]:
+    groups: dict[str, list[int]] = {c: [] for c in KEYWORD_CATEGORIES}
+    for i, (word, _ids) in enumerate(rows):
+        groups[keyword_category(word_count(word))].append(i)
+    return groups
+
+
 def _section_keyword(enc, head) -> dict:
     words = _cldr_keywords()
     if not words or not _kw_proj():
@@ -388,10 +396,22 @@ def _section_keyword(enc, head) -> dict:
             rows.append((word, ids))
     if not rows:
         return {}
-    total = len(words)
+    groups = _category_groups(rows)
+    word_totals = Counter(keyword_category(word_count(w)) for w in words)
     id_lists = [ids for _, ids in rows]
+
+    def by_category(scores: torch.Tensor) -> dict:
+        out = {}
+        for cat, idxs in groups.items():
+            if not idxs:
+                continue
+            out[cat] = _rank_acc(
+                scores[idxs], [id_lists[i] for i in idxs], word_totals.get(cat, 0)
+            )
+        return out
+
     kw_dense = torch.stack([_kw_exact_dense(word) for word, _ in rows])
-    out = {"exact": _rank_acc(kw_dense, id_lists, total)}
+    out = {"exact": by_category(kw_dense)}
 
     emb = _emoji_embed()
     if enc is not None and head is not None and emb is not None:
@@ -399,13 +419,13 @@ def _section_keyword(enc, head) -> dict:
             texts = torch.stack([text_to_tensor(norm_text(w)) for w, _ in rows])
             text_emb = enc(texts)
             logit_m = emb.score(head(text_emb))
-        out["model"] = _rank_acc(logit_m, id_lists, total)
+        out["model"] = by_category(logit_m)
 
     search = _kw_search_rows(rows)
     if search is not None:
         by_text = {r["text"]: r["kw"] for r in search.get("rows", [])}
         fuzzy_dense = torch.stack([_row_kw({"kw": by_text.get(w, [])}) for w, _ in rows])
-        out["fuzzy"] = _rank_acc(fuzzy_dense, id_lists, total)
+        out["fuzzy"] = by_category(fuzzy_dense)
     return out
 
 
@@ -575,11 +595,11 @@ def _goal_specs() -> dict:
     def full_text(i):
         return lambda r: _dig(_best_emoji_acc(_dig(r, "emoji", "eval") or {})[1] or [], i)
 
-    def exact_kw(i):
-        return lambda r: _dig(r, "keyword", "exact", "acc_at_k", i)
+    def exact_kw(cat, i):
+        return lambda r: _dig(r, "keyword", "exact", cat, "acc_at_k", i)
 
-    def fuzzy_kw(i):
-        return lambda r: _dig(r, "keyword", "fuzzy", "acc_at_k", i)
+    def fuzzy_kw(cat, i):
+        return lambda r: _dig(r, "keyword", "fuzzy", cat, "acc_at_k", i)
 
     def style(i):
         return lambda r: _dig(r, "cards", "style_acc_at_k", i)
@@ -596,8 +616,11 @@ def _goal_specs() -> dict:
         ),
     }
     for name, idx in ACC_K_INDEX.items():
-        specs[f"emoji prediction.exact keyword.{name}"] = ("max", exact_kw(idx))
-        specs[f"emoji prediction.fuzzy keyword.{name}"] = ("max", fuzzy_kw(idx))
+        for cat in KEYWORD_CATEGORIES:
+            specs[f"emoji prediction.exact keyword.{cat}.{name}"] = (
+                "max", exact_kw(cat, idx))
+            specs[f"emoji prediction.fuzzy keyword.{cat}.{name}"] = (
+                "max", fuzzy_kw(cat, idx))
         specs[f"emoji prediction.full text.{name}"] = ("max", full_text(idx))
         specs[f"style prediction.full text.{name}"] = ("max", style(idx))
     for c in CARD_COLORS:
@@ -696,6 +719,29 @@ def _acc_rows(
         )
 
 
+def _acc_rows_by_category(
+    goals,
+    priority,
+    label,
+    dotted_prefix,
+    targets_by_cat,
+    iter_leaves,
+    values_by_cat,
+    note,
+):
+    for cat in KEYWORD_CATEGORIES:
+        _acc_rows(
+            goals,
+            priority,
+            f"{label} ({cat})",
+            f"{dotted_prefix}.{cat}",
+            (targets_by_cat or {}).get(cat),
+            iter_leaves,
+            (values_by_cat.get(cat) or {}).get("acc_at_k"),
+            note,
+        )
+
+
 def _section_status(report) -> dict:
     emoji_eval = (report.get("emoji") or {}).get("eval") or {}
     keyword = report.get("keyword") or {}
@@ -713,14 +759,14 @@ def _section_status(report) -> dict:
     kw_fuzzy = keyword.get("fuzzy") or {}
     goals = []
 
-    _acc_rows(
+    _acc_rows_by_category(
         goals,
         1,
         "Exact keyword",
         "emoji prediction.exact keyword",
         ep.get("exact keyword"),
         iter_leaves,
-        kw_exact.get("acc_at_k"),
+        kw_exact,
         "standalone kw-search on cldr.jsonl keywords (exact-matched kw vector)",
     )
     _acc_rows(
@@ -733,16 +779,16 @@ def _section_status(report) -> dict:
         best or [],
         f"best variant: {best_name}" if best_name else "emoji.eval not evaluated this run",
     )
-    _acc_rows(
+    _acc_rows_by_category(
         goals,
         3,
         "Fuzzy keyword",
         "emoji prediction.fuzzy keyword",
         ep.get("fuzzy keyword"),
         iter_leaves,
-        kw_fuzzy.get("acc_at_k"),
+        kw_fuzzy,
         "standalone kw-search on fuzzy-matched kw vector"
-        if kw_fuzzy.get("acc_at_k")
+        if kw_fuzzy
         else "unmeasured — needs bun + web/public/kwproj.json (tools/analysis/kw-search.ts)",
     )
 
@@ -1482,12 +1528,22 @@ def _word_acc_table_html(title, model_vals, search_vals, missing_note) -> str:
 
 def _exact_word_accuracy_html(report) -> str:
     kw = report.get("keyword") or {}
-    return _word_acc_table_html(
-        "Exact Word Accuracy",
-        (kw.get("model") or {}).get("acc_at_k"),
-        (kw.get("exact") or {}).get("acc_at_k"),
-        "keyword predictor unavailable — needs enc.pt / emoji.pt / emoji_embed.pt "
-        "and web/public/kwproj.json.",
+    model, exact = kw.get("model") or {}, kw.get("exact") or {}
+    if not (model or exact):
+        return (
+            "<h2>Exact Word Accuracy</h2>"
+            '<p class="note">keyword predictor unavailable — needs enc.pt / '
+            "emoji.pt / emoji_embed.pt and web/public/kwproj.json.</p>"
+        )
+    return "".join(
+        _word_acc_table_html(
+            f"Exact Word Accuracy — {cat}",
+            (model.get(cat) or {}).get("acc_at_k"),
+            (exact.get(cat) or {}).get("acc_at_k"),
+            "",
+        )
+        for cat in KEYWORD_CATEGORIES
+        if (model.get(cat) or {}).get("acc_at_k") or (exact.get(cat) or {}).get("acc_at_k")
     )
 
 
@@ -1603,22 +1659,30 @@ def _cldr_html(d) -> str:
 
 
 def _keyword_html(d) -> str:
-    ex = (d or {}).get("exact")
-    if not ex:
+    exact = (d or {}).get("exact") or {}
+    if not exact:
         return ""
-    points = list(zip((str(k) for k in EMOJI_KS), ex["acc_at_k"], strict=True))
-    series = []
-    if d.get("model"):
-        series.append(("EmojiHead", d["model"]["acc_at_k"], "lline3"))
-    if d.get("fuzzy"):
-        series.append(("Standalone search (fuzzy)", d["fuzzy"]["acc_at_k"], "lline4"))
-    legend = ("Exact kw", *(name for name, _, _ in series)) if series else None
-    return (
-        "<h2>Keyword predictor — CLDR</h2>"
-        f"<h3>Non-learned kw predictor on cldr.jsonl "
-        f"({ex['n']}/{ex['total']} in-vocab keywords)</h3>"
-        f"{_linechart(points, legend=legend, series=series or None)}"
-    )
+    model, fuzzy = d.get("model") or {}, d.get("fuzzy") or {}
+    out = []
+    for cat in KEYWORD_CATEGORIES:
+        ex = exact.get(cat)
+        if not ex:
+            continue
+        points = list(zip((str(k) for k in EMOJI_KS), ex["acc_at_k"], strict=True))
+        series = []
+        if model.get(cat):
+            series.append(("EmojiHead", model[cat]["acc_at_k"], "lline3"))
+        if fuzzy.get(cat):
+            series.append(("Standalone search (fuzzy)", fuzzy[cat]["acc_at_k"], "lline4"))
+        legend = ("Exact kw", *(name for name, _, _ in series)) if series else None
+        out.append(
+            f"<h3>{_esc(cat)} — non-learned kw predictor on cldr.jsonl "
+            f"({ex['n']}/{ex['total']} in-vocab keywords)</h3>"
+            f"{_linechart(points, legend=legend, series=series or None)}"
+        )
+    if not out:
+        return ""
+    return "<h2>Keyword predictor — CLDR</h2>" + "".join(out)
 
 
 def _cards_html(d) -> str:

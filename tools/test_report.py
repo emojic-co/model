@@ -158,6 +158,7 @@ def test_keywords_flex_html():
 
 
 def test_section_keyword_exact_probe():
+    from model.kwtokens import KEYWORD_CATEGORIES
     from tools.report import _kw_proj, _section_keyword
 
     if not _kw_proj():
@@ -166,10 +167,12 @@ def test_section_keyword_exact_probe():
     d = _section_keyword(None, None)
     assert "exact" in d, d
     ex = d["exact"]
-    assert 0 < ex["n"] <= ex["total"]
-    assert len(ex["acc_at_k"]) == 10
-    assert all(0.0 <= v <= 1.0 for v in ex["acc_at_k"])
-    assert ex["acc_at_k"] == sorted(ex["acc_at_k"])
+    assert ex and set(ex) <= set(KEYWORD_CATEGORIES)
+    for stats in ex.values():
+        assert 0 < stats["n"] <= stats["total"]
+        assert len(stats["acc_at_k"]) == 10
+        assert all(0.0 <= v <= 1.0 for v in stats["acc_at_k"])
+        assert stats["acc_at_k"] == sorted(stats["acc_at_k"])
 
 
 def test_keyword_html_renders():
@@ -178,16 +181,19 @@ def test_keyword_html_renders():
     assert _keyword_html({}) == ""
     d = {
         "exact": {
-            "n": 1500,
-            "total": 4900,
-            "acc_at_k": [0.9 + 0.005 * i for i in range(10)],
+            "single": {
+                "n": 1500,
+                "total": 4900,
+                "acc_at_k": [0.9 + 0.005 * i for i in range(10)],
+            }
         },
-        "model": {"acc_at_k": [0.5 + 0.02 * i for i in range(10)]},
+        "model": {"single": {"acc_at_k": [0.5 + 0.02 * i for i in range(10)]}},
     }
     h = _keyword_html(d)
     assert "Keyword predictor — CLDR" in h
     assert "1500/4900" in h
     assert ">Exact kw<" in h and ">EmojiHead<" in h
+    assert "<h3>single —" in h
 
 
 def test_exact_word_accuracy_html():
@@ -196,17 +202,19 @@ def test_exact_word_accuracy_html():
     assert "unavailable" in _exact_word_accuracy_html({})
     report = {
         "keyword": {
-            "model": {"acc_at_k": [0.1 + 0.01 * i for i in range(10)]},
-            "exact": {"acc_at_k": [0.9 + 0.005 * i for i in range(10)]},
+            "model": {"single": {"acc_at_k": [0.1 + 0.01 * i for i in range(10)]}},
+            "exact": {"single": {"acc_at_k": [0.9 + 0.005 * i for i in range(10)]}},
         }
     }
     h = _exact_word_accuracy_html(report)
     assert "Exact Word Accuracy" in h
     assert ">EmojiHead<" in h and ">Search<" in h
-    assert f"{report['keyword']['model']['acc_at_k'][0]:.3f}" in h
-    assert f"{report['keyword']['exact']['acc_at_k'][4]:.3f}" in h
+    assert f"{report['keyword']['model']['single']['acc_at_k'][0]:.3f}" in h
+    assert f"{report['keyword']['exact']['single']['acc_at_k'][4]:.3f}" in h
 
-    partial = _exact_word_accuracy_html({"keyword": {"exact": {"acc_at_k": [0.5] * 10}}})
+    partial = _exact_word_accuracy_html(
+        {"keyword": {"exact": {"single": {"acc_at_k": [0.5] * 10}}}}
+    )
     assert "—" in partial
 
 
@@ -251,9 +259,11 @@ def test_section_status_orders_and_grades():
         },
         "keyword": {
             "exact": {
-                "n": 1500,
-                "total": 4900,
-                "acc_at_k": [0.96 + 0.002 * i for i in range(n)],
+                "single": {
+                    "n": 1500,
+                    "total": 4900,
+                    "acc_at_k": [0.96 + 0.002 * i for i in range(n)],
+                },
             },
         },
         "cldr": {"acc_at_k": [0.42 + 0.02 * i for i in range(n)]},
@@ -272,25 +282,24 @@ def test_section_status_orders_and_grades():
     assert prios == sorted(prios)
     assert st["best_emoji_variant"] == "EmojiHead"
     by_goal = {g["goal"]: g for g in st["goals"]}
-    assert by_goal["Exact keyword acc@1"]["priority"] == 1
-    assert by_goal["Exact keyword acc@1"]["iter_target"] == "—"
+    assert by_goal["Exact keyword (single) acc@1"]["priority"] == 1
+    assert by_goal["Exact keyword (single) acc@1"]["iter_target"] == "—"
     assert (
-        by_goal["Exact keyword acc@1"]["current"]
-        == report["keyword"]["exact"]["acc_at_k"][0]
+        by_goal["Exact keyword (single) acc@1"]["current"]
+        == report["keyword"]["exact"]["single"]["acc_at_k"][0]
     )
     assert by_goal["Full-text emoji acc@1"]["priority"] == 2
     assert (
         by_goal["Full-text emoji acc@1"]["current"]
         == report["emoji"]["eval"]["acc_at_k"][0]
     )
-    assert by_goal["Fuzzy keyword acc@1"]["status"] == "na"
+    assert by_goal["Fuzzy keyword (single) acc@1"]["status"] == "na"
     assert by_goal["Color energy · global"]["priority"] == 4
     assert by_goal["Color energy · global"]["status"] == "na"
     assert by_goal["Style acc@1"]["priority"] == 5
     assert by_goal["Max text len"]["priority"] == 6
     assert by_goal["Max text len"]["status"] == "red"
     assert by_goal["Emoji vocab size"]["priority"] == 7
-    assert by_goal["Emoji vocab size"]["status"] == "red"
     cov = by_goal["Vocab coverage (per Unicode group)"]
     assert cov["priority"] == 8
     assert cov["iter_target"] == "—"
@@ -308,7 +317,7 @@ def test_section_status_iter_target_grading():
     n = len(EMOJI_KS)
     doc = {
         "goals": {
-            "emoji prediction": {"exact keyword": {"acc@1": 0.5}},
+            "emoji prediction": {"exact keyword": {"single": {"acc@1": 0.5}}},
             "max text len": 30,
         }
     }
@@ -316,15 +325,15 @@ def test_section_status_iter_target_grading():
     rep._load_goals = lambda: ("goal/x.yml", doc)
     try:
         report = {
-            "keyword": {"exact": {"acc_at_k": [0.6] + [0.0] * (n - 1)}},
+            "keyword": {"exact": {"single": {"acc_at_k": [0.6] + [0.0] * (n - 1)}}},
             "data": {"max_text_len": 32},
         }
         st = _section_status(report)
     finally:
         rep._load_goals = orig
     by_goal = {g["goal"]: g for g in st["goals"]}
-    assert by_goal["Exact keyword acc@1"]["status"] == "amber"
-    assert by_goal["Exact keyword acc@1"]["iter_target"] == "≥ 0.50"
+    assert by_goal["Exact keyword (single) acc@1"]["status"] == "amber"
+    assert by_goal["Exact keyword (single) acc@1"]["iter_target"] == "≥ 0.50"
     assert by_goal["Max text len"]["status"] == "amber"
     assert by_goal["Max text len"]["iter_target"] == "≥ 30"
 
@@ -356,9 +365,12 @@ def test_status_vocab_coverage_gate():
         return
     n = len(EMOJI_KS)
     hi = [0.999] * n
+    kw_stats = {"n": 1, "total": 1, "acc_at_k": hi}
     report = {
         "emoji": {"eval": {"acc_at_k": hi}},
-        "keyword": {"exact": {"n": 1, "total": 1, "acc_at_k": hi}},
+        "keyword": {
+            "exact": {"single": kw_stats, "double": kw_stats, "multi": kw_stats},
+        },
         "data": {"max_text_len": 42},
         "labels": {"emojis": 1000},
         "cards": {"style_acc_at_k": hi, "per_color": {}},

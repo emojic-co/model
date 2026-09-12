@@ -12,6 +12,10 @@ function byCodePoint(a: string, b: string): number {
   return (a.codePointAt(0) ?? 0) - (b.codePointAt(0) ?? 0) || (a < b ? -1 : a > b ? 1 : 0)
 }
 
+export function wordCount(text: string): number {
+  return text.trim().split(/\s+/).filter(Boolean).length
+}
+
 export function randomPalette(
   rand: () => number = Math.random,
 ): { bg: [string, string]; fg: string } {
@@ -66,6 +70,7 @@ if (import.meta.main) {
       bg,
       fg,
       src: r.src,
+      word_count: wordCount(r.text),
     })
   })
   await writeFileAtomic(KEYWORDS_JSONL, lines.join("\n") + "\n")

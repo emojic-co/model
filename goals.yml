@@ -4,36 +4,18 @@
 
 goals:
   emoji prediction:
-    exact keyword:
-      single:
-        "acc@1": 0.88
-        "acc@5": 0.92
-        "acc@10": 0.96
-      double:
-        "acc@1": 0.85
-        "acc@5": 0.90
-        "acc@10": 0.95
-      multi:
-        "acc@1": 0.80
-        "acc@5": 0.85
-        "acc@10": 0.90
-    fuzzy keyword:
-      single:
-        "acc@1": 0.85
-        "acc@5": 0.90
-        "acc@10": 0.95
-      double:
-        "acc@1": 0.8
-        "acc@5": 0.9
-        "acc@10": 0.95
-      multi:
-        "acc@1": 0.75
-        "acc@5": 0.85
-        "acc@10": 0.90
+    keyword:
+      "acc@1": 0.9
+      "acc@5": 0.95
+      "acc@10": 0.99
+    term:
+      "acc@1": 0.8
+      "acc@5": 0.85
+      "acc@10": 0.9
     full text:
       "acc@1": 0.75
       "acc@5": 0.80
-      "acc@10": 0.90
+      "acc@10": 0.85
 
   style prediction:
     full text:

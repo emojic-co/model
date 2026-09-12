@@ -1,7 +1,6 @@
 import json
 import os
 import sys
-from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
@@ -98,11 +97,8 @@ INFONCE_TEMP = 0.7
 MAX_EMOJIS_PER_SAMPLE = 5
 
 
-@dataclass
-class KEYWORDS_SAMPLING_RATE:
-    single = 0.1
-    double = 0.01
-    multi = 0.01
+KEYWORDS_SAMPLING_RATE = 0.2
+TERM_SAMPLING_RATE = 0.1
 
 
 train_str = " ".join(
