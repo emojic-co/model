@@ -338,30 +338,30 @@ def _section_block_capacity(enc, emoji_head) -> dict:
     rows = []
     with torch.no_grad():
         for source, path in _BLOCK_CAPACITY_SOURCES:
-            rec = next(iter(read(path)), None)
-            if rec is None:
+            texts = [r.text for r in read(path)]
+            if not texts:
                 continue
-            emb = enc(text_to_tensor(rec.text).unsqueeze(0)).squeeze(0)
-            q_norm = (weight @ emb).norm().item()
+            emb = enc(torch.stack([text_to_tensor(t) for t in texts]))
+            q_norm = (emb @ weight.t()).norm(dim=-1).clamp_min(1e-12)
             for i, ((start, end), d) in enumerate(
                 zip(bounds, ENCODER_DILATION, strict=True)
             ):
                 w_slice = weight[:, start:end]
-                a_slice = emb[start:end]
+                a_slice = emb[:, start:end]
                 col_norms = w_slice.norm(dim=0)
-                contrib_norm = (w_slice @ a_slice).norm().item()
+                contrib_norm = (a_slice @ w_slice.t()).norm(dim=-1)
                 rows.append(
                     {
                         "source": source,
-                        "text": rec.text,
+                        "n": len(texts),
                         "block": i,
                         "range": f"{start}:{end}",
                         "dilation": d,
                         "w_norm_mean": col_norms.mean().item(),
                         "w_norm_max": col_norms.max().item(),
-                        "act_norm": a_slice.norm().item(),
-                        "contrib_norm": contrib_norm,
-                        "contrib_pct": 100 * contrib_norm / q_norm if q_norm else 0.0,
+                        "act_norm": a_slice.norm(dim=-1).mean().item(),
+                        "contrib_norm": contrib_norm.mean().item(),
+                        "contrib_pct": (100 * contrib_norm / q_norm).mean().item(),
                     }
                 )
     return {"rows": rows}
@@ -1599,11 +1599,11 @@ def _block_capacity_html(d) -> str:
     if not d or not d.get("rows"):
         return (
             "<h2>Model — Encoder block capacity</h2>"
-            '<p class="note">Unavailable — needs enc.pt / emoji.pt and one sample '
-            "each from data/keywords.jsonl, data/terms.jsonl, data/eval.jsonl.</p>"
+            '<p class="note">Unavailable — needs enc.pt / emoji.pt and data from '
+            "data/keywords.jsonl, data/terms.jsonl, data/eval.jsonl.</p>"
         )
     trows = "".join(
-        f"<tr><td>{_esc(r['source'])}</td><td>{_esc(r['text'])}</td>"
+        f"<tr><td>{_esc(r['source'])}</td><td class=\"n\">{r['n']}</td>"
         f'<td class="n">{r["block"]}</td><td class="n">{_esc(r["range"])}</td>'
         f'<td class="n">{r["dilation"]}</td>'
         f'<td class="n">{r["w_norm_mean"]:.3f}</td>'
@@ -1616,9 +1616,10 @@ def _block_capacity_html(d) -> str:
     return (
         "<h2>Model — Encoder block capacity</h2>"
         '<p class="note">Per-block EmojiHead weight column-norms and each '
-        "block's actual contribution to the emoji embedding, for one sample "
-        "each from keywords/terms/eval — see <code>tools/block_capacity.py</code>.</p>"
-        "<table><tr><th>Source</th><th>Text</th><th class=\"n\">Block</th>"
+        "block's actual contribution to the emoji embedding, averaged over "
+        "every sample in keywords/terms/eval — see "
+        "<code>tools/block_capacity.py</code>.</p>"
+        "<table><tr><th>Source</th><th class=\"n\">N</th><th class=\"n\">Block</th>"
         '<th class="n">Channels</th><th class="n">Dilation</th>'
         '<th class="n">W col-norm mean</th><th class="n">W col-norm max</th>'
         '<th class="n">Activation norm</th><th class="n">Contribution norm</th>'

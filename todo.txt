@@ -1,9 +1,3 @@
 Done:
-
-Per-block downstream weight norm:
-Write a script that run a batch of samples through TextEncoder ->  EmojiHead
-Slice those Linear weight matrices by each block's channel range and print column-norms for each block.
-Do it for 3 batches and print all the results in a table.:
-- a sample from data/keywords.jsonl
-- a sample from data/terms.jsonl
-- a sample from data/eval.jsonl
+update regen: normalize all keywords before writing `keywords.jsonl` and drop any normalized keyword that is less than 3 chars. same for the `terms.jsonl`
+report `Model — Encoder block capacity`: use a large batch (every valid sample per source) instead of one input and report the average result; removed the `text` column, added an `N` column.

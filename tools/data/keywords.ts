@@ -2,6 +2,7 @@ import { cac } from "cac"
 
 import { CLDR_JSONL, EMOJILIB_JSONL, KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL } from "../../files.ts"
 import { readJsonl, writeFileAtomic } from "./io.ts"
+import { normalize } from "./normalize.ts"
 
 export type SourceRow = {
   text: string
@@ -83,7 +84,9 @@ export function splitKeywordsAndTerms(
   for (const r of merged) {
     const emojis = r.emojis.filter((e) => vocab.has(e))
     if (!emojis.length) continue
-    const rec = { ...r, emojis }
+    const text = normalize(r.text)
+    if (text.length < 3) continue
+    const rec = { ...r, text, emojis }
     ;(wordCount(r.text) === 1 ? keywords : terms).push(rec)
   }
   return { keywords, terms }
