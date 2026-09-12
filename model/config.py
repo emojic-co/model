@@ -114,6 +114,7 @@ train_str = " ".join(
             GRAD_CLIP_CRITIC,
             INFONCE_TEMP,
             KEYWORDS_SAMPLING_RATE,
+            TERM_SAMPLING_RATE,
         )
     ]
 )

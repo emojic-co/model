@@ -20,7 +20,6 @@
     "web:test": "cd web && bun install && bun run test"
   },
   "dependencies": {
-    "@leeoniya/ufuzzy": "^1.0.19",
     "ai": "^7.0.83",
     "cac": "^7.0.0",
     "cli-progress": "^3.12.0",

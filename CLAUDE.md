@@ -13,7 +13,7 @@ Goals/status/plan (source of truth, not summarized here):
 - `report/<newest>/report.html` — current measured state, written by `tools/report.py`.
 - `plans/<newest>/plan.md` — derived plan, written by `planning-emojic-improvements`.
 
-Architecture (read the code, not this file): `model/model.py` (encoder + heads + GAN), `model/train.py` (training/loss), `tools/data/regen.ts` (corpus → vocab/split), `web/src/keywords.js` (browser-side keyword matcher, mirrors `data/ii.json`).
+Architecture (read the code, not this file): `model/model.py` (encoder + heads + GAN), `model/train.py` (training/loss), `tools/data/regen.ts` (corpus → vocab/split), `tools/data/keywords.ts` (CLDR+EmojiLib merge → `data/keywords.jsonl`/`data/terms.jsonl` split).
 
 ## Project structure
 

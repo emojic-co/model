@@ -1,3 +1,5 @@
+Done:
+
 CLDR + EMOJILIB
 We update the usage of CLDR and EmojiLib and the way we set goals and reports.
 We define new concepts:
@@ -34,7 +36,7 @@ Logging:
     for k in [1, 5]
 
 Report:
-    Report acc@k for full text, keyword, and term records separately for k in [1, 5, 10].    
+    Report acc@k for full text, keyword, and term records separately for k in [1, 5, 10].
     Full text accuracy is measured on the eval set.
     Keyword and term accuracy is measured on the data/keywords.jsonl and data/terms.jsonl files respectively (i.e. the same data the model was trained on, this is fine.).
 

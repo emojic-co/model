@@ -1,7 +1,5 @@
 import { cac } from "cac"
-import { readFileSync } from "node:fs"
 
-import { EMOJI_POPULARITY_JSON, II_JSON } from "../../files.ts"
 import { splitEmojis } from "./emoji.ts"
 import { normalize } from "./normalize.ts"
 import { STYLE_SET } from "./styles.ts"
@@ -148,15 +146,18 @@ import {
   CLDR_BASELINE_JSON as BASELINE,
   CLDR_JSONL as CLDR,
   DATA_JSONL as DATA,
+  EMOJILIB_JSONL as EMOJILIB,
   EVAL_JSONL as EVAL,
-  KWPROJ_JSON,
+  KEYWORDS_JSONL,
   LABELS_JSON as LABELS,
   REGEN_MD,
+  TERMS_JSONL,
   TRAIN_JSONL as TRAIN,
 } from "../../files.ts"
 import { runBaseline } from "../analysis/cldr-baseline.ts"
 import { SEED, STYLES } from "./config"
 import { readJsonl, writeFileAtomic } from "./io.ts"
+import { writeKeywordsAndTerms } from "./keywords.ts"
 
 export function toLine(r: Row): string {
   const base =
@@ -339,30 +340,13 @@ if (import.meta.main) {
   const held = split.slice(0, n)
   const rest = split.slice(n)
 
-  const emojiIdx = new Map(emojis.map((e, i) => [e, i]))
-  const stripVar = (e: string) =>
-    [...e].filter((c) => c.codePointAt(0) !== 0xfe0f).join("")
-  const rawPop = JSON.parse(readFileSync(EMOJI_POPULARITY_JSON, "utf8")) as Record<
-    string,
-    number
-  >
-  const popMap = new Map<string, number>()
-  for (const [e, s] of Object.entries(rawPop)) {
-    popMap.set(e, Math.max(popMap.get(e) ?? 0, s))
-    popMap.set(stripVar(e), Math.max(popMap.get(stripVar(e)) ?? 0, s))
+  let kwLine = `-> ${KEYWORDS_JSONL} / ${TERMS_JSONL} : skipped (missing ${CLDR} or ${EMOJILIB})`
+  if (existsSync(CLDR) && existsSync(EMOJILIB)) {
+    const { keywords, terms } = await writeKeywordsAndTerms(new Set(emojis))
+    kwLine =
+      `-> ${KEYWORDS_JSONL} : ${keywords.length}, `
+      + `-> ${TERMS_JSONL} : ${terms.length}`
   }
-  const popOf = (e: string) => popMap.get(e) ?? popMap.get(stripVar(e)) ?? 0
-  const ii = JSON.parse(readFileSync(II_JSON, "utf8")) as Record<string, string[]>
-  const proj: Record<string, number[]> = {}
-  for (const [k, es] of Object.entries(ii)) {
-    const idxs = [...new Set(es)]
-      .filter((e) => emojiIdx.has(e))
-      .sort((a, b) => popOf(b) - popOf(a) || (a < b ? -1 : 1))
-      .map((e) => emojiIdx.get(e)!)
-    if (idxs.length) proj[k] = idxs
-  }
-  await writeFileAtomic(KWPROJ_JSON, JSON.stringify({ proj }) + "\n")
-  const kwprojLine = `kwproj                : ${Object.keys(proj).length} keys -> ${KWPROJ_JSON}`
 
   await writeFileAtomic(EVAL, held.map(toLine).join("\n") + "\n")
   await writeFileAtomic(TRAIN, rest.map(toLine).join("\n") + "\n")
@@ -411,7 +395,7 @@ if (import.meta.main) {
   console.log(
     `-> ${LABELS}    : ${labels.styles.length} styles, ${labels.emojis.length} emojis`,
   )
-  console.log(kwprojLine)
+  console.log(kwLine)
   console.log(baselineLine)
   process.exit(0)
 }
