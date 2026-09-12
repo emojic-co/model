@@ -72,3 +72,17 @@ test("splitKeywordsAndTerms drops rows with no in-vocab emoji", () => {
   expect(keywords).toEqual([])
   expect(terms).toEqual([])
 })
+
+test("splitKeywordsAndTerms normalizes text and drops rows shorter than 3 chars once normalized", () => {
+  const merged = mergeKeywords(
+    [
+      { text: "BACK Arrow", emojis: "🔙", styles: [] },
+      { text: "24", emojis: "🏪", styles: [] },
+      { text: "- -", emojis: "😑", styles: [] },
+    ],
+    [],
+  )
+  const { keywords, terms } = splitKeywordsAndTerms(merged, new Set(["🔙", "🏪", "😑"]))
+  expect(terms.map((r) => r.text)).toEqual(["back arrow"])
+  expect(keywords).toEqual([])
+})
