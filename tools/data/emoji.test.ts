@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 
-import { coarseEmojiGroup, isFaceEmoji, splitEmojis } from "./emoji.ts"
+import { coarseEmojiGroup, isFaceEmoji, isFlagEmoji, splitEmojis } from "./emoji.ts"
 
 test("splitEmojis splits on whitespace and keeps ZWJ / VS16 sequences intact", () => {
   expect(splitEmojis("🥰 🐶")).toEqual(["🥰", "🐶"])
@@ -25,6 +25,15 @@ test("isFaceEmoji flags smileys, not objects or animals", () => {
   }
   for (const e of ["🚌", "🐶", "☕", "📦", "🌧️", "🎉"]) {
     expect(isFaceEmoji(e)).toBe(false)
+  }
+})
+
+test("isFlagEmoji flags country regional-indicator pairs and sub-nation tag sequences", () => {
+  for (const e of ["🇺🇸", "🇯🇵", "🇦🇺", "🏴󠁧󠁢󠁥󠁮󠁧󠁿"]) {
+    expect(isFlagEmoji(e)).toBe(true)
+  }
+  for (const e of ["🏁", "🚩", "🎌", "🏴", "🏳️", "🏳️‍🌈", "😤", "🐶"]) {
+    expect(isFlagEmoji(e)).toBe(false)
   }
 })
 

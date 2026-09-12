@@ -28,6 +28,7 @@ import { splitEmojis } from "./emoji.ts"
 import { appendJsonl, readJsonl } from "./io.ts"
 import { normalize } from "./normalize.ts"
 import { chroma, meanBgOklab } from "./oklab.ts"
+import { collapse, greedyCap, MAX_COUNT, MIN_COUNT, shuffle } from "./regen.ts"
 
 const MIN_RANK = 600
 const MAX_RANK = 800
@@ -516,7 +517,11 @@ cli
   .option("--max-count <n>", `with --rare, how many of the rarest emoji to target - a target count, not a freq cap (default ${RARE_MAX_COUNT})`)
   .option("--iter <n>", "with --rare, repeat the whole select/generate/annotate/append cycle this many times, recomputing the rarest set each pass (default 1)")
   .option("--keywords <list>", "standalone: generate texts using each comma-separated keyword, one keyword at a time; optionally force a target emoji into the row with keyword=emoji (ignores --emojis / --min-rank / --max-rank)")
-  .option("--per <n>", `texts to generate per target emoji / keyword / batch (default ${TEXTS_PER_EMOJI}, ${KEYWORDS_PER} with --keywords, ${COLOR_PER} per colour with --colors, ${FLAG_PER} per country with --flags, ${TEXTS_PER_EMOJI} with --rare)`)
+  .option("--per <n>", `texts to generate per target emoji / keyword / batch (default ${TEXTS_PER_EMOJI}, ${KEYWORDS_PER} with --keywords, ${COLOR_PER} per colour with --colors, ${FLAG_PER} per country with --flags, ${TEXTS_PER_EMOJI} with --rare; ignored by --flags when --target is set)`)
+  .option(
+    "--target [n]",
+    `with --flags: instead of a flat --per, scan ${DATA} and top up each country's flag emoji to n kept records (same greedy-cap accounting as \`bun run regen\`, cap ${MAX_COUNT}); countries already at/above n are skipped (bare --target defaults to ${MIN_COUNT}, matching regen's --min-count); mutually exclusive with --per`,
+  )
   .option("--negation", "standalone: generate negation-heavy texts (ignores emoji targeting)")
   .option("--short", "standalone: generate short texts capped at the last report's median length (ignores emoji targeting)")
   .option("--single-emoji", "standalone: re-annotate corpus rows that carry at most one emoji (ignores emoji targeting)")
@@ -583,6 +588,25 @@ if (import.meta.main) {
     flags && options.count != null ? Number(options.count) : Infinity
   const groupCap =
     group && options.count != null ? Number(options.count) : Infinity
+  const target =
+    options.target != null
+      ? options.target === true
+        ? MIN_COUNT
+        : Number(options.target)
+      : undefined
+
+  if (options.target != null && !flags) {
+    console.error("--target only applies with --flags")
+    process.exit(1)
+  }
+  if (options.target != null && options.per != null) {
+    console.error("--target and --per are mutually exclusive")
+    process.exit(1)
+  }
+  if (target != null && !(target >= 1)) {
+    console.error(`--target must be >= 1, got ${JSON.stringify(options.target)}`)
+    process.exit(1)
+  }
 
   if (reannot && !reannotColors && !reannotEmojis) {
     console.error(`--reannotate only supports "colors" or "emojis", got ${JSON.stringify(options.reannotate)}`)
@@ -761,20 +785,45 @@ if (import.meta.main) {
     } else if (flags) {
       targets = []
       const all = await loadFlags()
-      flagList = Number.isFinite(flagCap) ? all.slice(0, flagCap) : all
-      if (!flagList.length) {
+      const list = Number.isFinite(flagCap) ? all.slice(0, flagCap) : all
+      if (!list.length) {
         console.error(`no "flag: <country>" emoji found in ${EMOJIBASE_DATA}`)
         process.exit(1)
       }
-      flagPlan = colorBatchPlan(
-        flagList.map((f) => f.country),
-        per,
-        COLOR_BATCH,
-      )
-      console.log(
-        `flags mode -> ${per} texts per country for ${flagList.length} flag emoji `
-        + `-> ${flagList.length * per} texts in ${flagPlan.length} batches of up to ${COLOR_BATCH}`,
-      )
+      if (target != null) {
+        const counts = greedyCap(
+          shuffle(collapse(await readJsonl<unknown>(DATA))),
+          MAX_COUNT,
+        ).counts
+        const withDeficit = list
+          .map((f) => ({ ...f, deficit: Math.max(0, target - (counts.get(f.emoji) ?? 0)) }))
+          .filter((f) => f.deficit > 0)
+        const skipped = list.length - withDeficit.length
+        flagList = withDeficit.map(({ emoji, country }) => ({ emoji, country }))
+        flagPlan = withDeficit.flatMap((f) =>
+          batchSizes(f.deficit, COLOR_BATCH).map((n) => ({ color: f.country, n })),
+        )
+        console.log(
+          `flags mode (--target ${target}) -> ${withDeficit.length} countries below target `
+          + `(${skipped} already >= ${target}) -> `
+          + `${flagPlan.reduce((s, b) => s + b.n, 0)} texts in ${flagPlan.length} batches of up to ${COLOR_BATCH}`,
+        )
+        if (!flagList.length) {
+          console.log(`nothing to do; every country is already >= --target ${target}`)
+          process.exit(0)
+        }
+      } else {
+        flagList = list
+        flagPlan = colorBatchPlan(
+          flagList.map((f) => f.country),
+          per,
+          COLOR_BATCH,
+        )
+        console.log(
+          `flags mode -> ${per} texts per country for ${flagList.length} flag emoji `
+          + `-> ${flagList.length * per} texts in ${flagPlan.length} batches of up to ${COLOR_BATCH}`,
+        )
+      }
     } else if (kw) {
       targets = []
       if (!kwList.length) {

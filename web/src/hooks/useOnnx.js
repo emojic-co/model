@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import * as ort from 'onnxruntime-web/wasm'
-import { encode, decodeColorList, sigmoid } from '../model'
+import { encode, decodeColorList } from '../model'
 
 const BASE = import.meta.env.BASE_URL
 
@@ -48,8 +48,8 @@ export function useOnnx() {
     })
     const ms = performance.now() - t0
     return {
-      feeling: sigmoid(out.style_logits.data),
-      emoji: sigmoid(out.emoji_logits.data),
+      feeling: out.style_logits.data,
+      emoji: out.emoji_logits.data,
       palettes: decodeColorList(out.color.data),
       ms,
     }

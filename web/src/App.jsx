@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOnnx } from './hooks/useOnnx'
-import { argmax, normalize, fixContrast } from './model'
+import { argmax, normalize, fixContrast, sigmoid } from './model'
 import { topFeelings, DEFAULT_COLORS } from './feelings'
 import { cycle } from './nav'
 import GitHubButton from 'react-github-btn'
@@ -24,7 +24,7 @@ export function pickEmojiList(scores, meta, slots) {
   return [...arr.keys()]
     .sort((a, b) => arr[b] - arr[a])
     .slice(0, slots)
-    .map((idx) => ({ emoji: meta.emojis[idx], p: arr[idx] }))
+    .map((idx) => ({ emoji: meta.emojis[idx], p: sigmoid([arr[idx]])[0] }))
 }
 
 function initialContrastFix() {

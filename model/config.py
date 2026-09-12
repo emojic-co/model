@@ -1,10 +1,11 @@
 import json
 import os
 import sys
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from files import LABELS_JSON
+from files import FLAGS_JSONL, KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -97,8 +98,21 @@ INFONCE_TEMP = 0.7
 MAX_EMOJIS_PER_SAMPLE = 5
 
 
-KEYWORDS_SAMPLING_RATE = 0.2
-TERM_SAMPLING_RATE = 0.05
+@dataclass(frozen=True)
+class SamplingSource:
+    path: str
+    metric: str
+    goal: float
+
+
+SAMPLING_SOURCES: dict[str, SamplingSource] = {
+    "keyword": SamplingSource(KEYWORDS_JSONL, "acc@1", 0.90),
+    "term": SamplingSource(TERMS_JSONL, "acc@1", 0.80),
+    "flags": SamplingSource(FLAGS_JSONL, "acc@1", 0.95),
+}
+
+SAMPLING_BASE_RATE = 0.2
+SAMPLING_MIN_RATE = 0.01
 
 
 train_str = " ".join(
@@ -113,8 +127,9 @@ train_str = " ".join(
             GRAD_CLIP_GEN,
             GRAD_CLIP_CRITIC,
             INFONCE_TEMP,
-            KEYWORDS_SAMPLING_RATE,
-            TERM_SAMPLING_RATE,
+            *SAMPLING_SOURCES.values(),
+            SAMPLING_BASE_RATE,
+            SAMPLING_MIN_RATE,
         )
     ]
 )

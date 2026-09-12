@@ -9,6 +9,7 @@ export const CLDR_JSONL = `${DATA_DIR}/cldr.jsonl`
 export const EMOJILIB_JSONL = `${DATA_DIR}/emojilib.jsonl`
 export const KEYWORDS_JSONL = `${DATA_DIR}/keywords.jsonl`
 export const TERMS_JSONL = `${DATA_DIR}/terms.jsonl`
+export const FLAGS_JSONL = `${DATA_DIR}/flags.jsonl`
 export const COLORS_JSONL = `${DATA_DIR}/colors.jsonl`
 export const TRAIN_JSONL = `${DATA_DIR}/train.jsonl`
 export const EVAL_JSONL = `${DATA_DIR}/eval.jsonl`

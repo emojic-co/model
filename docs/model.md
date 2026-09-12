@@ -43,12 +43,16 @@ minus `logsumexp` over the row's positive logits, scaled by
 `INFONCE_TEMP`, averaged over rows with ≥1 positive (emoji rows carrying
 no in-vocab emoji drop out). Both losses backprop into the encoder.
 
-CLDR keywords are mixed directly into `emoji`/`style` training as regular
-text rows (`model/data.py:cldr_keyword_pool`, `EmojiDataset(mix_cldr=True)`,
-rate `CLDR_WEIGHT`) rather than through a separate lexical head — there is
-no `KWHead`/`FusionHead`/gate in the model; keyword search in the web app
-(`web/src/keywords.js` against `web/public/kwproj.json`) is a fully
-separate, non-learned lookup that never touches `EmojiHead`.
+CLDR/EmojiLib keywords and terms (`data/keywords.jsonl`, `data/terms.jsonl`
+— see `tools/data/keywords.ts`) are mixed directly into `emoji`/`style`
+training as regular text rows (`model/data.py:EmojiDataset(mix_sources=True)`),
+each source (`SAMPLING_SOURCES` in `model/config.py` — file, TB metric, and
+metric goal per source) sampled at a shared base rate that decays toward a
+shared floor as that source's own metric approaches its goal (updated in
+`LitEncoder.on_train_epoch_start` — see `docs/search.md`) rather than through
+a separate lexical head — there is no `KWHead`/`FusionHead`/gate in the
+model, and no keyword lookup or fusion step in the web app; `EmojiHead` is
+queried directly on whatever text the user typed.
 
 ### ColorCritic (`model/model.py`)
 

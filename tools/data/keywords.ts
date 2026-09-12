@@ -1,6 +1,7 @@
 import { cac } from "cac"
 
-import { CLDR_JSONL, EMOJILIB_JSONL, KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL } from "../../files.ts"
+import { CLDR_JSONL, EMOJILIB_JSONL, FLAGS_JSONL, KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL } from "../../files.ts"
+import { isFlagEmoji, splitEmojis } from "./emoji.ts"
 import { readJsonl, writeFileAtomic } from "./io.ts"
 import { normalize } from "./normalize.ts"
 
@@ -86,10 +87,34 @@ export function splitKeywordsAndTerms(
     const emojis = r.emojis.filter((e) => vocab.has(e))
     if (!emojis.length) continue
     if (r.text.length < 3) continue
+    if (emojis.every(isFlagEmoji)) continue
     const rec = { ...r, emojis }
     ;(wordCount(r.text) === 1 ? keywords : terms).push(rec)
   }
   return { keywords, terms }
+}
+
+export function buildFlags(cldr: SourceRow[], vocab: Set<string>): MergedRow[] {
+  const seen = new Set<string>()
+  const out: MergedRow[] = []
+  for (const r of cldr) {
+    const emojis = splitEmojis(r.emojis)
+    if (emojis.length !== 1 || !isFlagEmoji(emojis[0])) continue
+    if (!vocab.has(emojis[0])) continue
+    if (!r.bg || !r.fg) continue
+    const key = normalize(r.text)
+    if (!key || seen.has(key)) continue
+    seen.add(key)
+    out.push({
+      text: r.text,
+      emojis,
+      styles: r.styles,
+      bg: r.bg,
+      fg: r.fg,
+      src: "cldr",
+    })
+  }
+  return out.sort((a, b) => (a.text < b.text ? -1 : a.text > b.text ? 1 : 0))
 }
 
 function toLine(r: MergedRow): string {
@@ -106,20 +131,25 @@ function toLine(r: MergedRow): string {
   return JSON.stringify(base)
 }
 
-export async function buildKeywordsAndTerms(vocab: Set<string>): Promise<KeywordsAndTerms> {
+export type KeywordsTermsAndFlags = KeywordsAndTerms & { flags: MergedRow[] }
+
+export async function buildKeywordsAndTerms(vocab: Set<string>): Promise<KeywordsTermsAndFlags> {
   const [cldr, emojilib] = await Promise.all([
     readJsonl<SourceRow>(CLDR_JSONL),
     readJsonl<SourceRow>(EMOJILIB_JSONL),
   ])
   const merged = mergeKeywords(cldr, emojilib)
-  return splitKeywordsAndTerms(merged, vocab)
+  const { keywords, terms } = splitKeywordsAndTerms(merged, vocab)
+  const flags = buildFlags(cldr, vocab)
+  return { keywords, terms, flags }
 }
 
-export async function writeKeywordsAndTerms(vocab: Set<string>): Promise<KeywordsAndTerms> {
-  const { keywords, terms } = await buildKeywordsAndTerms(vocab)
+export async function writeKeywordsAndTerms(vocab: Set<string>): Promise<KeywordsTermsAndFlags> {
+  const { keywords, terms, flags } = await buildKeywordsAndTerms(vocab)
   await writeFileAtomic(KEYWORDS_JSONL, keywords.map(toLine).join("\n") + "\n")
   await writeFileAtomic(TERMS_JSONL, terms.map(toLine).join("\n") + "\n")
-  return { keywords, terms }
+  await writeFileAtomic(FLAGS_JSONL, flags.map(toLine).join("\n") + "\n")
+  return { keywords, terms, flags }
 }
 
 if (import.meta.main) {
@@ -129,7 +159,7 @@ if (import.meta.main) {
   cli.parse(process.argv, { run: false })
 
   const { emojis } = JSON.parse(await Bun.file(LABELS_JSON).text()) as { emojis: string[] }
-  const { keywords, terms } = await writeKeywordsAndTerms(new Set(emojis))
+  const { keywords, terms, flags } = await writeKeywordsAndTerms(new Set(emojis))
 
   const counts = (rows: MergedRow[]) => {
     const c = { cldr: 0, emojilib: 0, both: 0 }
@@ -144,5 +174,6 @@ if (import.meta.main) {
   console.log(
     `-> ${TERMS_JSONL} : ${terms.length} (cldr ${tc.cldr}, emojilib ${tc.emojilib}, both ${tc.both})`,
   )
+  console.log(`-> ${FLAGS_JSONL} : ${flags.length}`)
   process.exit(0)
 }

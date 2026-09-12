@@ -37,6 +37,7 @@ data/cldr-baseline.json
 # the emoji vocab in labels.json.
 data/keywords.jsonl
 data/terms.jsonl
+data/flags.jsonl
 
 # regen writes these via writeFileAtomic (path.tmp then rename); a crash leaves them.
 data/train.jsonl.tmp
@@ -46,6 +47,7 @@ data/cldr.jsonl.tmp
 data/cldr-baseline.json.tmp
 data/keywords.jsonl.tmp
 data/terms.jsonl.tmp
+data/flags.jsonl.tmp
 
 pt/*.pt
 exp/
