@@ -93,8 +93,7 @@ GRAD_CLIP_GEN = 1.0
 GRAD_CLIP_CRITIC = 1.0
 INFONCE_TEMP = 0.7
 # KEYWORDS SAMPLING
-CLDR_WEIGHT = 0.15
-EMOJILIB_WEIGHT = 0.15
+KEYWORDS_SAMPLING_RATE = 0.2
 
 
 train_str = " ".join(
@@ -109,7 +108,7 @@ train_str = " ".join(
             GRAD_CLIP_GEN,
             GRAD_CLIP_CRITIC,
             INFONCE_TEMP,
-            CLDR_WEIGHT,
+            KEYWORDS_SAMPLING_RATE,
         )
     ]
 )

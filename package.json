@@ -8,6 +8,8 @@
     "build-groups": "bun run tools/data/build-groups.ts",
     "minimize": "bun run tools/data/minimize.ts",
     "build-cldr": "bun run tools/data/cldr.ts",
+    "build-emojilib": "bun run tools/data/emojilib.ts",
+    "merge-keywords": "bun run tools/data/keywords.ts",
     "upsample": "bun run tools/data/upsample.ts",
     "extract-colors": "bun run tools/data/extract-colors.ts",
     "preview": "bun run tools/preview.ts",
@@ -22,6 +24,7 @@
     "ai": "^7.0.83",
     "cac": "^7.0.0",
     "cli-progress": "^3.12.0",
+    "emojilib": "^4.0.3",
     "onnxruntime-web": "^1.29.0",
     "p-queue": "^9.3.3",
     "zod": "^4.4.3"

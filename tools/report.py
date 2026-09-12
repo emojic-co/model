@@ -28,6 +28,7 @@ from files import (
     GOALS_YML,
     GROUP_JSON,
     II_JSON,
+    KEYWORDS_JSONL,
     KWPROJ_JSON,
 )
 from model.color import COLOR_SHIFT, rgb_to_oklab
@@ -57,6 +58,7 @@ CARD_PURE_THRESHOLD_L = 0.6
 CARD_COLORS = ("red", "green", "blue", "dark", "bright")
 GOLD_PER_COLOR = 25
 KW_PRIMARY_BONUS = 0.15
+KEYWORD_FAILS_MAX_ROWS = 100
 
 
 def _ts() -> str:
@@ -245,6 +247,47 @@ def _section_keywords_flex(enc, emoji_head) -> dict:
         "missed": sum(1 for r in ranked if r["rank"] > 10),
         "ranked": ranked,
     }
+
+
+def _keywords_rows() -> tuple:
+    vocab = set(EMOJIS)
+    out = []
+    for d in _rows(str(KEYWORDS_JSONL)):
+        word = str(d.get("text", ""))
+        emojis = [e for e in str(d.get("emojis", "")).split() if e in vocab]
+        if not word or not emojis:
+            continue
+        out.append((word, emojis, str(d.get("src", ""))))
+    return tuple(out)
+
+
+def _section_keyword_fails(enc, emoji_head) -> dict:
+    emb = _emoji_embed()
+    rows = _keywords_rows()
+    if enc is None or emoji_head is None or emb is None or not rows:
+        return {}
+    idx = {e: i for i, e in enumerate(EMOJIS)}
+    with torch.no_grad():
+        texts = torch.stack([text_to_tensor(norm_text(w)) for w, _, _ in rows])
+        order = emb.score(emoji_head(enc(texts))).argsort(dim=-1, descending=True)
+    fails = []
+    for row, (word, exp, src) in enumerate(rows):
+        pos = order[row].tolist()
+        ids = [idx[e] for e in exp]
+        rank = min(pos.index(i) + 1 for i in ids)
+        if rank == 1:
+            continue
+        fails.append(
+            {
+                "kw": word,
+                "src": src,
+                "target": " ".join(exp),
+                "predicted": EMOJIS[pos[0]],
+                "rank": rank,
+            }
+        )
+    fails.sort(key=lambda r: r["rank"], reverse=True)
+    return {"n": len(rows), "failed": len(fails), "rows": fails}
 
 
 def _cldr_keywords() -> dict:
@@ -991,6 +1034,7 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         "labels",
         "emoji",
         "keywords_flex",
+        "keyword_fails",
         "cldr",
         "cards",
     }
@@ -999,7 +1043,7 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
     prov = _provenance(pt)
 
     enc = emoji_head = style_head = gen = None
-    need_enc = bool({"emoji", "cldr", "cards", "keywords_flex"} & want)
+    need_enc = bool({"emoji", "cldr", "cards", "keywords_flex", "keyword_fails"} & want)
     if need_enc and enc_pt.exists():
         enc, err = _load(TextEncoder(), enc_pt)
         if err:
@@ -1034,6 +1078,8 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         report["emoji"] = _section_emoji(enc, emoji_head, eval_records)
     if "keywords_flex" in want:
         report["keywords_flex"] = _section_keywords_flex(enc, emoji_head)
+    if "keyword_fails" in want:
+        report["keyword_fails"] = _section_keyword_fails(enc, emoji_head)
     if "cldr" in want:
         report["cldr"] = _section_cldr(enc, emoji_head)
         report["keyword"] = _section_keyword(enc, emoji_head)
@@ -1517,6 +1563,34 @@ def _keywords_flex_html(d) -> str:
     )
 
 
+def _keyword_fails_html(d) -> str:
+    if not d:
+        return (
+            "<h2>Failed keywords — data/keywords.jsonl</h2>"
+            '<p class="note">enc.pt / emoji.pt / emoji_embed.pt not available, or '
+            "data/keywords.jsonl is missing/empty.</p>"
+        )
+    rows = d["rows"][:KEYWORD_FAILS_MAX_ROWS]
+    trows = "".join(
+        f"<tr><td>{_esc(r['kw'])}</td><td>{_esc(r['src'])}</td>"
+        f"<td>{_esc(r['target'])}</td><td>{_esc(r['predicted'])}</td>"
+        f'<td class="n">{r["rank"]}</td></tr>'
+        for r in rows
+    )
+    note = (
+        f"Showing worst {len(rows)} of {d['failed']}."
+        if d["failed"] > len(rows)
+        else ""
+    )
+    return (
+        "<h2>Failed keywords — data/keywords.jsonl</h2>"
+        f'<p class="note">{d["failed"]}/{d["n"]} keywords where the model\'s top-1 '
+        f"prediction misses the target. {note}</p>"
+        "<table><tr><th>Keyword</th><th>Src</th><th>Target</th>"
+        '<th>Predicted</th><th class="n">Rank</th></tr>' + trows + "</table>"
+    )
+
+
 def _cldr_html(d) -> str:
     if not d:
         return '<h2>CLDR</h2><p class="note">enc.pt / emoji.pt not available.</p>'
@@ -1625,6 +1699,8 @@ def _render_html(report) -> str:
         body.append(_emoji_html(report["emoji"]))
     if "keywords_flex" in report:
         body.append(_keywords_flex_html(report["keywords_flex"]))
+    if "keyword_fails" in report:
+        body.append(_keyword_fails_html(report["keyword_fails"]))
     if "keyword" in report:
         body.append(_keyword_html(report["keyword"]))
     if "cldr" in report:
