@@ -31,7 +31,7 @@ assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
 ENCODER_CHANNELS = [140, 180, 220, 260]
-ENCODER_DILATION = [1, 2, 4]
+ENCODER_DILATION = [1, 2, 4, 8]
 TEXT_EMBED_SIZE = sum(ENCODER_CHANNELS)
 
 assert len(ENCODER_CHANNELS) == len(ENCODER_DILATION), \
