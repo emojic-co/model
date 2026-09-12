@@ -27,7 +27,7 @@ import { splitEmojis } from "./emoji.ts"
 import { appendJsonl, readJsonl } from "./io.ts"
 import { normalize } from "./normalize.ts"
 import { chroma, meanBgOklab } from "./oklab.ts"
-import { collapse, greedyCap, MAX_COUNT, MIN_COUNT, shuffle } from "./regen.ts"
+import { collapse, greedyCap, MAX_COUNT, MIN_COUNT } from "./regen.ts"
 
 const MIN_RANK = 600
 const MAX_RANK = 800
@@ -127,6 +127,25 @@ function seededShuffle<T>(arr: T[], seed: number): T[] {
       ;[out[i], out[j]] = [out[j], out[i]]
   }
   return out
+}
+
+function fnv1a(s: string): number {
+  let h = 0x811c9dc5
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i)
+    h = Math.imul(h, 0x01000193)
+  }
+  return h >>> 0
+}
+
+function stableRowOrder<T extends { text: string }>(
+  arr: T[],
+  seed: number,
+): T[] {
+  return arr
+    .map((r) => ({ r, k: fnv1a(`${seed}|${r.text}`) }))
+    .sort((a, b) => a.k - b.k)
+    .map((x) => x.r)
 }
 
 export type ReannotRow = {
@@ -390,6 +409,8 @@ function genFlagPrompt(voice: string, country: string, per: number): string {
     `person there might mention.`,
     `Do not write about flags or nationality in the abstract, and do not just`,
     `name "${country}" with nothing else around it.`,
+    `Write every message in English, even if it mentions a non-English word,`,
+    `place, or dish.`,
     `Do not put any emoji in the output.`,
     `Vary sender, tone, and intent: updates, questions, complaints, plans,`,
     `reactions, reminders, small talk. Sound real and specific.`,
@@ -791,7 +812,7 @@ if (import.meta.main) {
       }
       if (target != null) {
         const counts = greedyCap(
-          shuffle(collapse(await readJsonl<unknown>(DATA))),
+          stableRowOrder(collapse(await readJsonl<unknown>(DATA)), SEED),
           MAX_COUNT,
         ).counts
         const withDeficit = list
