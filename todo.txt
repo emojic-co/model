@@ -1,7 +1,9 @@
 Done:
-TB
-update log keys to
-    keyword/acc@1
-    keyword/acc@5
-    term/acc@1
-    term/acc@5
+
+Per-block downstream weight norm:
+Write a script that run a batch of samples through TextEncoder ->  EmojiHead
+Slice those Linear weight matrices by each block's channel range and print column-norms for each block.
+Do it for 3 batches and print all the results in a table.:
+- a sample from data/keywords.jsonl
+- a sample from data/terms.jsonl
+- a sample from data/eval.jsonl

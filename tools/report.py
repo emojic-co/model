@@ -5,6 +5,7 @@ import sys
 from collections import Counter
 from datetime import datetime
 from functools import cache
+from itertools import accumulate
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -27,7 +28,15 @@ from files import (
     TERMS_JSONL,
 )
 from model.color import COLOR_SHIFT, rgb_to_oklab
-from model.config import EMOJIS, MAX_TEXT_LEN, SEED, STYLES, Z_WEIGHT
+from model.config import (
+    EMOJIS,
+    ENCODER_CHANNELS,
+    ENCODER_DILATION,
+    MAX_TEXT_LEN,
+    SEED,
+    STYLES,
+    Z_WEIGHT,
+)
 from model.data import EVAL_PATH, TRAIN_PATH, read, text_to_tensor
 from model.data import normalize as norm_text
 from model.export_onnx import CONST_Z
@@ -311,6 +320,51 @@ def _section_term_probe(enc, head) -> dict:
     if enc is None or head is None or emb is None or not words:
         return {}
     return dict(_probe(words, enc, head))
+
+
+_BLOCK_CAPACITY_SOURCES = [
+    ("keywords", KEYWORDS_JSONL),
+    ("terms", TERMS_JSONL),
+    ("eval", EVAL_PATH),
+]
+
+
+def _section_block_capacity(enc, emoji_head) -> dict:
+    if enc is None or emoji_head is None:
+        return {}
+    weight = emoji_head.net[1].weight
+    ends = list(accumulate(ENCODER_CHANNELS))
+    bounds = list(zip([0, *ends[:-1]], ends, strict=True))
+    rows = []
+    with torch.no_grad():
+        for source, path in _BLOCK_CAPACITY_SOURCES:
+            rec = next(iter(read(path)), None)
+            if rec is None:
+                continue
+            emb = enc(text_to_tensor(rec.text).unsqueeze(0)).squeeze(0)
+            q_norm = (weight @ emb).norm().item()
+            for i, ((start, end), d) in enumerate(
+                zip(bounds, ENCODER_DILATION, strict=True)
+            ):
+                w_slice = weight[:, start:end]
+                a_slice = emb[start:end]
+                col_norms = w_slice.norm(dim=0)
+                contrib_norm = (w_slice @ a_slice).norm().item()
+                rows.append(
+                    {
+                        "source": source,
+                        "text": rec.text,
+                        "block": i,
+                        "range": f"{start}:{end}",
+                        "dilation": d,
+                        "w_norm_mean": col_norms.mean().item(),
+                        "w_norm_max": col_norms.max().item(),
+                        "act_norm": a_slice.norm().item(),
+                        "contrib_norm": contrib_norm,
+                        "contrib_pct": 100 * contrib_norm / q_norm if q_norm else 0.0,
+                    }
+                )
+    return {"rows": rows}
 
 
 @cache
@@ -935,13 +989,17 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         "keyword_fails",
         "keyword",
         "cards",
+        "block_capacity",
     }
     enc_pt, emoji_pt = pt / "enc.pt", pt / "emoji.pt"
     style_pt, gen_pt = pt / "style.pt", pt / "gen.pt"
     prov = _provenance(pt)
 
     enc = emoji_head = style_head = gen = None
-    need_enc = bool({"emoji", "keyword", "cards", "keywords_flex", "keyword_fails"} & want)
+    need_enc = bool(
+        {"emoji", "keyword", "cards", "keywords_flex", "keyword_fails", "block_capacity"}
+        & want
+    )
     if need_enc and enc_pt.exists():
         enc, err = _load(TextEncoder(), enc_pt)
         if err:
@@ -983,6 +1041,8 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         report["term"] = _section_term_probe(enc, emoji_head)
     if "cards" in want:
         report["cards"] = _section_cards(enc, style_head, emoji_head, gen, gold_rows)
+    if "block_capacity" in want:
+        report["block_capacity"] = _section_block_capacity(enc, emoji_head)
 
     report["status"] = _section_status(report)
     goals = _section_goals(report)
@@ -1535,10 +1595,43 @@ def _cards_html(d) -> str:
     return "".join(out)
 
 
+def _block_capacity_html(d) -> str:
+    if not d or not d.get("rows"):
+        return (
+            "<h2>Model — Encoder block capacity</h2>"
+            '<p class="note">Unavailable — needs enc.pt / emoji.pt and one sample '
+            "each from data/keywords.jsonl, data/terms.jsonl, data/eval.jsonl.</p>"
+        )
+    trows = "".join(
+        f"<tr><td>{_esc(r['source'])}</td><td>{_esc(r['text'])}</td>"
+        f'<td class="n">{r["block"]}</td><td class="n">{_esc(r["range"])}</td>'
+        f'<td class="n">{r["dilation"]}</td>'
+        f'<td class="n">{r["w_norm_mean"]:.3f}</td>'
+        f'<td class="n">{r["w_norm_max"]:.3f}</td>'
+        f'<td class="n">{r["act_norm"]:.3f}</td>'
+        f'<td class="n">{r["contrib_norm"]:.3f}</td>'
+        f'<td class="n">{r["contrib_pct"]:.1f}%</td></tr>'
+        for r in d["rows"]
+    )
+    return (
+        "<h2>Model — Encoder block capacity</h2>"
+        '<p class="note">Per-block EmojiHead weight column-norms and each '
+        "block's actual contribution to the emoji embedding, for one sample "
+        "each from keywords/terms/eval — see <code>tools/block_capacity.py</code>.</p>"
+        "<table><tr><th>Source</th><th>Text</th><th class=\"n\">Block</th>"
+        '<th class="n">Channels</th><th class="n">Dilation</th>'
+        '<th class="n">W col-norm mean</th><th class="n">W col-norm max</th>'
+        '<th class="n">Activation norm</th><th class="n">Contribution norm</th>'
+        '<th class="n">Contribution %</th></tr>' + trows + "</table>"
+    )
+
+
 def _render_html(report) -> str:
     body = [_header_html(report)]
     if "status" in report:
         body.append(_status_html(report["status"]))
+    if "block_capacity" in report:
+        body.append(_block_capacity_html(report["block_capacity"]))
     if "goals" in report:
         body.append(_goals_html(report["goals"]))
     if "data" in report:
