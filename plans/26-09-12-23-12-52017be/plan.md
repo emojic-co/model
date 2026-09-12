@@ -108,4 +108,26 @@ No Training Configuration change proposed this iteration beyond the Model Config
 
 ## Applied this run
 
-none yet — awaiting the user's pick from the options above
+User picked both options.
+
+**1. `tools/analysis/length_vs_acc.py`** (read-only diagnostic, `uv run python tools/analysis/length_vs_acc.py --pt pt`):
+
+```
+RECEPTIVE_FIELD=31  MAX_TEXT_LEN=42  eval rows=1999
+bucket         n acc@1   acc@5   acc@10
+1-15           6 0.8333 0.8333 0.8333
+16-31       1283 0.6290 0.7911 0.8340
+32-42        710 0.5873 0.8014 0.8380
+```
+
+**Finding — the receptive-field hypothesis from *Current gaps* is not well supported.** Acc@1 declines only mildly past the 31-char receptive field (0.629 → 0.587, the two buckets with meaningful n), and Acc@5/@10 are essentially flat or *higher* past 31 chars (0.7911→0.8014, 0.8340→0.8380) — there is no cliff at the receptive-field boundary the way the `block_capacity` evidence suggested. This reframes the Model Architecture recommendation above: the block-capacity collapse at the deepest dilated block is real, but it does not appear to be the dominant bottleneck for full-text Acc — longer eval rows are only modestly harder, roughly consistent with "more words/more ambiguity" rather than "the network can't see enough characters." **Recommendation: do not spend a Modal GPU run on widening the receptive field based on the current evidence** — the 1-15 bucket (n=6) is too small to read anything into, but nothing here argues for prioritizing that architecture change next loop. A better next diagnostic would bucket by something semantic (row ambiguity / number of gold emoji / `neg` tag) rather than length.
+
+**2. `model/config.py`**: `DROPOUT_EMOJI` 0.1 → 0.15.
+
+```
+$ uv run ruff check model/config.py tools/analysis/length_vs_acc.py
+All checks passed!
+```
+(`ruff format --check model/config.py` reports pre-existing unformatted lines unrelated to this one-line change — same as the documented `model/train.py` exception; left alone rather than reformatting the whole file.)
+
+Not yet evaluated — needs the next `train --local` (the user's to run, loop step 1) before its effect on the `MRR/e/val` plateau / train-val gap can be measured.
