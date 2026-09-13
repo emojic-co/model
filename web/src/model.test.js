@@ -14,12 +14,12 @@ import {
   CONTRAST_MIN,
 } from './model'
 
-const CHARS = '·abcdefghijklmnopqrstuvwxyz0123456789!?:()@$%&* '
+const CHARS = '·abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?:()@$%&* '
 const idx = new Map([...CHARS].map((c, i) => [c, i]))
 
 describe('normalize', () => {
-  it('lowercases and collapses whitespace', () => {
-    expect(normalize('Hello   WORLD', idx)).toBe('hello world')
+  it('preserves case and collapses whitespace', () => {
+    expect(normalize('Hello   WORLD', idx)).toBe('Hello WORLD')
   })
   it('collapses 3+ char repeats to 2', () => {
     expect(normalize('soooo good', idx)).toBe('soo good')
