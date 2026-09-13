@@ -1,0 +1,13 @@
+It seems that the overall emoji prediction perform well (see the goals updates for full text prediction).
+Currently, however there are still 2 noticeable issues:
+1. Flags are now over sampled and over predicted.
+2. Colors looks good in general, but lack the conditional distribution of colors given the text. 
+
+Lets start by adding capital letters to the 
+`CHARS = PAD + "abcdefghijklmnopqrstuvwxyz0123456789!?:()@$%&* "`
+and stop lowercasing when normalizing the text across the project. 
+This might help with the over prediction of flags.
+
+In addition:
+Do a quality check to the data pipeline and the way we train and evaluate that GAN, 
+suggest how to adjust the GAN training to improve the conditional distribution of colors given the text.
