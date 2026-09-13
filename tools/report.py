@@ -1,6 +1,7 @@
 import html
 import json
 import random
+import subprocess
 import sys
 from collections import Counter
 from datetime import datetime
@@ -49,6 +50,7 @@ from model.model import (
     StyleHead,
     TextEncoder,
 )
+from model.pred import predict as _predict
 from model.runmeta import load_pt, run_meta
 
 DATA_PATH = DATA_JSONL
@@ -62,6 +64,8 @@ CARD_PURE_THRESHOLD_L = 0.6
 CARD_COLORS = ("red", "green", "blue", "dark", "bright")
 GOLD_PER_COLOR = 25
 KEYWORD_FAILS_MAX_ROWS = 100
+EVAL_SAMPLE_N = 40
+EVAL_SAMPLE_PT_FILES = ("enc.pt", "style.pt", "emoji.pt", "emoji_embed.pt", "gen.pt")
 
 
 def _ts() -> str:
@@ -1060,6 +1064,36 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
     }
 
 
+def _section_eval_samples(pt: Path, eval_records) -> dict:
+    pool = [r for r in eval_records if r.emojis]
+    if not pool or not all((pt / n).exists() for n in EVAL_SAMPLE_PT_FILES):
+        return {}
+    rng = random.Random(SEED)
+    rows = rng.sample(pool, min(EVAL_SAMPLE_N, len(pool)))
+    try:
+        preds = _predict([{"text": r.text} for r in rows], pt)
+    except RuntimeError:
+        return {}
+    out_rows = []
+    for r, p in zip(rows, preds, strict=True):
+        out_rows.append(
+            {
+                "text": r.text,
+                "gt_emoji": r.emojis[0],
+                "gt_feeling": r.styles[0],
+                "gt_bg1": r.colors[0],
+                "gt_bg2": r.colors[1],
+                "gt_text_color": r.colors[2],
+                "emoji": p["emojis"].split()[0],
+                "feeling": p["styles"][0],
+                "bg1": p["bg"][0],
+                "bg2": p["bg"][1],
+                "text_color": p["fg"],
+            }
+        )
+    return {"n": len(out_rows), "rows": out_rows}
+
+
 def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
     want = {s.strip() for s in only.split(",") if s.strip()} or {
         "data",
@@ -1071,6 +1105,7 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         "cards",
         "block_capacity",
         "length_acc",
+        "eval_samples",
     }
     enc_pt, emoji_pt = pt / "enc.pt", pt / "emoji.pt"
     style_pt, gen_pt = pt / "style.pt", pt / "gen.pt"
@@ -1108,7 +1143,9 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
                 prov["issues"].append(f"{gen_pt} could not load: {err}")
     prov["consistent"] = not prov["issues"]
 
-    eval_records = list(read(EVAL_PATH)) if {"emoji", "length_acc"} & want else []
+    eval_records = (
+        list(read(EVAL_PATH)) if {"emoji", "length_acc", "eval_samples"} & want else []
+    )
     gold_rows = _gold_rows() if "cards" in want else ()
 
     report = {
@@ -1134,6 +1171,8 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         report["block_capacity"] = _section_block_capacity(enc, emoji_head)
     if "length_acc" in want:
         report["length_acc"] = _section_length_acc(enc, emoji_head, eval_records)
+    if "eval_samples" in want:
+        report["eval_samples"] = _section_eval_samples(pt, eval_records)
 
     report["status"] = _section_status(report)
     goals = _section_goals(report)
@@ -1215,6 +1254,8 @@ th{font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:.03em
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 tr:last-child td{border-bottom:none}
 .cards-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:18px 0 0}
+.sample-cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0 0}
+.sample-card{width:100%;aspect-ratio:1/1;border:1px solid var(--line);border-radius:12px}
 .mini{aspect-ratio:1/1;border-radius:12px;padding:12px 10px;display:flex;
 flex-direction:column;justify-content:center;align-items:center;text-align:center;
 overflow:hidden}
@@ -1765,12 +1806,74 @@ def _length_acc_html(d) -> str:
     )
 
 
+def _render_cards(cards: list[dict]) -> list[str]:
+    proc = subprocess.run(
+        ["bun", "run", "tools/data/report-cards.ts"],
+        input=json.dumps(cards),
+        capture_output=True,
+        text=True,
+        cwd=REPO_ROOT,
+        check=True,
+    )
+    return json.loads(proc.stdout)
+
+
+def _eval_samples_html(d) -> str:
+    if not d or not d.get("rows"):
+        return (
+            "<h2>Model — Sample cards (eval.jsonl)</h2>"
+            '<p class="note">Unavailable — needs enc.pt / style.pt / emoji.pt / '
+            "emoji_embed.pt / gen.pt and data/eval.jsonl.</p>"
+        )
+    rows = d["rows"]
+    gt_cards = [
+        {
+            "text": r["text"],
+            "emoji": r["gt_emoji"],
+            "feeling": r["gt_feeling"],
+            "colors": {
+                "bg1": r["gt_bg1"],
+                "bg2": r["gt_bg2"],
+                "text_color": r["gt_text_color"],
+            },
+        }
+        for r in rows
+    ]
+    mo_cards = [
+        {
+            "text": r["text"],
+            "emoji": r["emoji"],
+            "feeling": r["feeling"],
+            "colors": {"bg1": r["bg1"], "bg2": r["bg2"], "text_color": r["text_color"]},
+        }
+        for r in rows
+    ]
+    docs = _render_cards(gt_cards + mo_cards)
+    gt_docs, mo_docs = docs[: len(rows)], docs[len(rows) :]
+    cells = []
+    for i in range(0, len(rows) - 1, 2):
+        cells += [gt_docs[i], gt_docs[i + 1], mo_docs[i], mo_docs[i + 1]]
+    grid = "".join(
+        f'<iframe class="sample-card" loading="lazy" srcdoc="{_esc(doc)}"></iframe>'
+        for doc in cells
+    )
+    return (
+        "<h2>Model — Sample cards (eval.jsonl)</h2>"
+        f'<p class="note">{d["n"]} random records from data/eval.jsonl (seeded), '
+        "rendered with the webapp's own card markup/CSS — ground truth (left pair) "
+        "vs. live model output (right pair) per row.</p>"
+        f'<div class="sample-cards-grid">{grid}</div>'
+    )
+
+
 def _render_html(report) -> str:
     body = [_header_html(report)]
     if "status" in report:
         body.append(_status_html(report["status"]))
     if "block_capacity" in report:
         body.append(_block_capacity_html(report["block_capacity"]))
+    if "eval_samples" in report:
+        body.append(_eval_samples_html(report["eval_samples"]))
     if "length_acc" in report:
         body.append(_length_acc_html(report["length_acc"]))
     if "goals" in report:

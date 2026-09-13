@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useFitText } from '../hooks/useFitText'
 import { resolveFeeling } from '../feelings'
-import { contrastRatio, mixColors, patternTint } from '../model'
+import { contrastRatio, patternTint } from '../model'
 import { patternLayers } from '../patterns'
 
 function watermarkInk(bg) {
@@ -57,11 +57,7 @@ export function Card({ text, emoji, feeling, feelingScores, styles, colors, onCo
       <div className="card-text-box" ref={textRef}>
         <p
           className={'card-text' + (placeholder ? ' card-text-placeholder' : '')}
-          style={
-            colors
-              ? { ...r?.style, textShadow: [halo, halo, halo].map((c) => `0 0 6px ${c}`).join(', ') }
-              : r?.style
-          }
+          style={r?.style}
         >
           {displayText}
         </p>
