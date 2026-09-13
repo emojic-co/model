@@ -11,3 +11,9 @@ Done:
         .
         .
         | GT39 | GT40 | MO39 | MO40 |
+Discussion:
+    During the encoder training the critic learns to distinguish between real colors paired with wrong text,
+    So it must learn p(colors | text)
+    During the GAN training the critic needs to tell whether the colors the generator produced given the text are real or fake.
+    It seems that this is easier than the encoder training, still the critic fails to do that.
+    What could be the reason for this?

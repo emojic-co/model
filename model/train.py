@@ -1,3 +1,62 @@
+from model.runmeta import load_pt, require_clean_tree, save_pt
+from model.model import (
+    ColorCritic,
+    ColorGen,
+    EmojiEmbedding,
+    EmojiHead,
+    StyleHead,
+    TextEncoder,
+)
+from model.metrics import macro_average
+from model.export_onnx import export
+from model.data import (
+    eval_data_loader,
+    train_data_loader,
+    train_ds,
+)
+from model.config import (
+    CONFIG_NAME,
+    ENCODER_EARLY_STOP_PATIENCE,
+    ENERGY_WEIGHT,
+    ENERGY_Z_SAMPLES,
+    EPOCHS_GAN,
+    EPOCHS_TASK,
+    GAN_BATCH_SIZE,
+    GAN_CRITIC_LR,
+    GAN_EARLY_STOP_PATIENCE,
+    GAN_GEN_LR,
+    GAN_GEN_MARGIN,
+    GAN_MISMATCH_WEIGHT,
+    GRAD_CLIP_CRITIC,
+    GRAD_CLIP_GEN,
+    INFONCE_TEMP,
+    LR,
+    MACRO_MIN_SUPPORT,
+    SAMPLING_MIN_RATE,
+    SAMPLING_SOURCES,
+    SEED,
+    TASK_BATCH_SIZE,
+    TEXT_EMBED_SIZE,
+    VAL_CHECK_INTERVAL,
+)
+from model.color import energy_distance, rgb_to_oklab
+from files import (
+    CRITIC_PT,
+    DATA_JSONL,
+    EMOJI_EMBED_PT,
+    EMOJI_PT,
+    ENC_PT,
+    EVAL_JSONL,
+    FLAGS_JSONL,
+    KEYWORDS_JSONL,
+    LABELS_JSON,
+    MODEL_DIR,
+    PT_DIR,
+    STYLE_PT,
+    TERMS_JSONL,
+    TOOLS_DIR,
+    TRAIN_JSONL,
+)
 import hashlib
 import os
 import shutil
@@ -24,65 +83,6 @@ from torch.nn.functional import binary_cross_entropy_with_logits, normalize
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from files import (
-    CRITIC_PT,
-    DATA_JSONL,
-    EMOJI_EMBED_PT,
-    EMOJI_PT,
-    ENC_PT,
-    EVAL_JSONL,
-    FLAGS_JSONL,
-    KEYWORDS_JSONL,
-    LABELS_JSON,
-    MODEL_DIR,
-    PT_DIR,
-    STYLE_PT,
-    TERMS_JSONL,
-    TOOLS_DIR,
-    TRAIN_JSONL,
-)
-from model.color import energy_distance, rgb_to_oklab
-from model.config import (
-    CONFIG_NAME,
-    EARLY_STOP_PATIENCE,
-    ENERGY_WEIGHT,
-    ENERGY_Z_SAMPLES,
-    EPOCHS_GAN,
-    EPOCHS_TASK,
-    GAN_BATCH_SIZE,
-    GAN_CRITIC_LR,
-    GAN_EARLY_STOP_PATIENCE,
-    GAN_GEN_LR,
-    GAN_GEN_MARGIN,
-    GAN_MISMATCH_WEIGHT,
-    GRAD_CLIP_CRITIC,
-    GRAD_CLIP_GEN,
-    INFONCE_TEMP,
-    LR,
-    MACRO_MIN_SUPPORT,
-    SAMPLING_MIN_RATE,
-    SAMPLING_SOURCES,
-    SEED,
-    TASK_BATCH_SIZE,
-    TEXT_EMBED_SIZE,
-    VAL_CHECK_INTERVAL,
-)
-from model.data import (
-    eval_data_loader,
-    train_data_loader,
-    train_ds,
-)
-from model.export_onnx import export
-from model.metrics import macro_average
-from model.model import (
-    ColorCritic,
-    ColorGen,
-    EmojiEmbedding,
-    EmojiHead,
-    StyleHead,
-    TextEncoder,
-)
-from model.runmeta import load_pt, require_clean_tree, save_pt
 
 _CUDA = torch.cuda.is_available()
 _DETERMINISTIC: bool | str = "warn" if _CUDA else True
@@ -576,7 +576,7 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
         callbacks=[
             ckpt,
             EarlyStopping(monitor=monitor, mode="max",
-                          patience=EARLY_STOP_PATIENCE),
+                          patience=ENCODER_EARLY_STOP_PATIENCE),
             *bar_cbs,
             ModelSummary(),
         ],
