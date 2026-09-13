@@ -816,6 +816,7 @@ h1 .tld {
   cursor: pointer;
   opacity: 0.8;
   background: var(--feeling-swatch-bg);
+  background-size: 36px 36px;
   color: var(--feeling-swatch-ink);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
   transition: opacity 160ms ease, transform 160ms ease, box-shadow 160ms ease;
