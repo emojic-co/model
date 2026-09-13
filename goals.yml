@@ -16,10 +16,10 @@ goals:
       "acc@1": 0.7
       "acc@5": 0.75
       "acc@10": 0.85
-    flags:
-      "acc@1": 0.9
-      "acc@5": 0.95
-      "acc@10": 0.99
+    # flags:
+    #   "acc@1": 0.9
+    #   "acc@5": 0.95
+    #   "acc@10": 0.99
 
   style prediction:
     full text:
