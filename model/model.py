@@ -1,7 +1,6 @@
 
-import torch.nn as nn
 import torch
-from torch import nn
+import torch.nn as nn
 from torch.nn.functional import (
     normalize,
     tanh,
@@ -111,8 +110,6 @@ class EmojiHead(nn.Module):
 
 
 # GAN
-
-
 class ColorGen(nn.Module):
     def __init__(self):
         super().__init__()
@@ -120,7 +117,7 @@ class ColorGen(nn.Module):
         io = zip(GEN_CHANNELS[:-1], GEN_CHANNELS[1:], strict=True)
         self.net = nn.Sequential(
             nn.Linear(TEXT_EMBED_SIZE, GEN_CHANNELS[0], bias=False),
-            nn.LayerNorm(GEN_CHANNELS[0]),  # Added norm after first projection
+            nn.LayerNorm(GEN_CHANNELS[0]),
             nn.LeakyReLU(negative_slope=RELU_SLOPE),
             *[
                 nn.Sequential(
@@ -144,7 +141,6 @@ class ColorGen(nn.Module):
         z = normalize(z, dim=-1)
         cond_norm = normalize(cond, dim=-1)
 
-        # Convex combination re-normalized to unit sphere
         seed = normalize((1 - Z_WEIGHT) * cond_norm + Z_WEIGHT * z, dim=-1)
 
         colors = self.net(seed)
