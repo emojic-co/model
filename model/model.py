@@ -141,7 +141,7 @@ class ColorGen(nn.Module):
         z = normalize(z, dim=-1)
         cond_norm = normalize(cond, dim=-1)
 
-        seed = normalize((1 - Z_WEIGHT) * cond_norm + Z_WEIGHT * z, dim=-1)
+        seed = (1 - Z_WEIGHT) * cond_norm + Z_WEIGHT * z
 
         colors = self.net(seed)
         return tanh(colors) * COLOR_SHIFT
@@ -172,12 +172,12 @@ class ColorCritic(nn.Module):
             nn.Dropout(p=DROPOUT_CRITIC),
             _critic_branch(TEXT_EMBED_SIZE, CRITIC_TEXT_CHANNELS),
             nn.Linear(
-                CRITIC_TEXT_CHANNELS[-1], CRITIC_COLOR_CHANNELS[-1], bias=False
-            )
-        )
+                CRITIC_TEXT_CHANNELS[-1],
+                CRITIC_COLOR_CHANNELS[-1],
+                bias=False))
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
-        c = self.color_net(colors / COLOR_SHIFT)
+        c = self.color_net(colors)
         t = self.text_net(cond)
 
         return (t * c).sum(dim=-1, keepdim=True)
