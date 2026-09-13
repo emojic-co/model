@@ -1,7 +1,8 @@
 import { useCallback } from 'react'
 import { fitCanvasFont, wrapLines } from '../fit'
 import { resolveFeeling } from '../feelings'
-import { contrastRatio } from '../model'
+import { contrastRatio, patternTint } from '../model'
+import { patternLayers } from '../patterns'
 
 const S = 512
 const WATERMARK = 'emojify.ing'
@@ -35,7 +36,20 @@ async function ensureFonts(stack, emoji) {
   } catch {}
 }
 
-async function render({ text, emoji, feeling, colors }) {
+function patternUrl(cssValue) {
+  return cssValue.match(/^url\((['"]?)(.*)\1\)$/)[2]
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = reject
+    img.src = src
+  })
+}
+
+async function render({ text, emoji, feeling, feelingScores, styles, colors }) {
   const stack = resolveFeeling(feeling).font
   const st = resolveFeeling(feeling).style
   const fw = st.fontWeight ?? 600
@@ -55,6 +69,13 @@ async function render({ text, emoji, feeling, colors }) {
   grad.addColorStop(1, colors.bg2)
   ctx.fillStyle = grad
   ctx.fillRect(0, 0, S, S)
+
+  const layers = patternLayers(feeling, feelingScores, styles, patternTint(colors.bg1, colors.bg2))
+  for (const layer of layers) {
+    const img = await loadImage(patternUrl(layer))
+    ctx.fillStyle = ctx.createPattern(img, 'repeat')
+    ctx.fillRect(0, 0, S, S)
+  }
 
   ctx.fillStyle = colors.text_color
   ctx.textAlign = 'center'
