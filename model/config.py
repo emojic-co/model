@@ -68,8 +68,7 @@ DROPOUT_CRITIC = 0.2
 GAN_GEN_LR = 0.005
 GAN_CRITIC_LR = 0.02
 GAN_GEN_MARGIN = 1.0
-ENERGY_WEIGHT = 1.0
-GAN_MISMATCH_WEIGHT = 1.0
+ENERGY_WEIGHT = .5
 
 gan_str = " ".join([
     str(p)
@@ -82,8 +81,7 @@ gan_str = " ".join([
         GAN_GEN_LR,
         GAN_CRITIC_LR,
         GAN_GEN_MARGIN,
-        ENERGY_WEIGHT,
-        GAN_MISMATCH_WEIGHT)])
+        ENERGY_WEIGHT)])
 
 
 # TRAINING

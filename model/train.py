@@ -26,7 +26,6 @@ from model.config import (
     GAN_EARLY_STOP_PATIENCE,
     GAN_GEN_LR,
     GAN_GEN_MARGIN,
-    GAN_MISMATCH_WEIGHT,
     GRAD_CLIP_CRITIC,
     GRAD_CLIP_GEN,
     INFONCE_TEMP,
@@ -454,15 +453,12 @@ class LitColorGAN(pl.LightningModule):
         opt_gen, opt_tst = self.optimizers()  # type: ignore
 
         cond = self._cond(text)
-        bs = text.size(0)
 
         fake = self.gen(cond)
-        shift = int(torch.randint(1, bs, (1,)).item())
-        mismatched = colors.roll(shift, dims=0)
 
-        triple = torch.cat([colors, fake.detach(), mismatched], dim=0)
-        tst_real, tst_fake, tst_mismatch = self.tst(
-            torch.cat([cond, cond, cond], dim=0), triple).chunk(3, dim=0)
+        pair = torch.cat([colors, fake.detach()], dim=0)
+        tst_real, tst_fake = self.tst(
+            torch.cat([cond, cond], dim=0), pair).chunk(2, dim=0)
 
         loss_tst_real = binary_cross_entropy_with_logits(
             tst_real, torch.ones_like(tst_real))
@@ -471,15 +467,7 @@ class LitColorGAN(pl.LightningModule):
             tst_fake, torch.zeros_like(tst_fake)
         )
 
-        loss_tst_mismatch = binary_cross_entropy_with_logits(
-            tst_mismatch, torch.zeros_like(tst_mismatch)
-        )
-
-        loss_tst = (
-            loss_tst_real
-            + loss_tst_fake
-            + GAN_MISMATCH_WEIGHT * loss_tst_mismatch
-        )
+        loss_tst = loss_tst_real + loss_tst_fake
 
         opt_tst.zero_grad()
         self.manual_backward(loss_tst)
@@ -514,11 +502,6 @@ class LitColorGAN(pl.LightningModule):
         self.log("loss/gan/tst", loss_tst, prog_bar=True)
         self.log("loss/gan/gen", loss_gen, prog_bar=True)
         self.log("energy/gan/train", energy, prog_bar=True)
-        self.log(
-            "critic/mismatch_reject_rate",
-            (tst_mismatch < 0).float().mean(),
-            prog_bar=False,
-        )
 
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=GAN_GEN_LR)
