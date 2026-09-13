@@ -5,7 +5,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from files import FLAGS_JSONL, KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
+from files import KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
+
+# from files import FLAGS_JSONL
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -65,7 +67,7 @@ GEN_CHANNELS = [64, 32]
 CRITIC_COLOR_CHANNELS = [96]
 CRITIC_TEXT_CHANNELS = [96]
 DROPOUT_CRITIC = 0.2
-GAN_GEN_LR = 0.1
+GAN_GEN_LR = 0.15
 GAN_CRITIC_LR = 0.05
 ENERGY_WEIGHT = 1
 
@@ -106,7 +108,7 @@ class SamplingSource:
 SAMPLING_SOURCES: dict[str, SamplingSource] = {
     "keyword": SamplingSource(KEYWORDS_JSONL, "acc@1", 0.95),
     "term": SamplingSource(TERMS_JSONL, "acc@1", 0.9),
-    "flags": SamplingSource(FLAGS_JSONL, "acc@1", 0.9),
+    # "flags": SamplingSource(FLAGS_JSONL, "acc@1", 0.9),
 }
 
 SAMPLING_BASE_RATE = 0.2
