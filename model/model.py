@@ -1,4 +1,5 @@
 
+import torch.nn as nn
 import torch
 from torch import nn
 from torch.nn.functional import (
@@ -110,6 +111,8 @@ class EmojiHead(nn.Module):
 
 
 # GAN
+
+
 class ColorGen(nn.Module):
     def __init__(self):
         super().__init__()
@@ -117,6 +120,7 @@ class ColorGen(nn.Module):
         io = zip(GEN_CHANNELS[:-1], GEN_CHANNELS[1:], strict=True)
         self.net = nn.Sequential(
             nn.Linear(TEXT_EMBED_SIZE, GEN_CHANNELS[0], bias=False),
+            nn.LayerNorm(GEN_CHANNELS[0]),  # Added norm after first projection
             nn.LeakyReLU(negative_slope=RELU_SLOPE),
             *[
                 nn.Sequential(
@@ -136,12 +140,15 @@ class ColorGen(nn.Module):
     ) -> torch.Tensor:
         if z is None:
             z = torch.randn_like(cond)
-        z = normalize(z, dim=-1)
-        seed = (1 - Z_WEIGHT) * normalize(cond) + Z_WEIGHT * z
-        colors = self.net(seed)
-        colors = tanh(colors) * COLOR_SHIFT
 
-        return colors
+        z = normalize(z, dim=-1)
+        cond_norm = normalize(cond, dim=-1)
+
+        # Convex combination re-normalized to unit sphere
+        seed = normalize((1 - Z_WEIGHT) * cond_norm + Z_WEIGHT * z, dim=-1)
+
+        colors = self.net(seed)
+        return tanh(colors) * COLOR_SHIFT
 
 
 def _critic_branch(in_dim: int, channels: list[int]) -> nn.Sequential:
@@ -169,7 +176,8 @@ class ColorCritic(nn.Module):
             nn.Dropout(p=DROPOUT_CRITIC),
             _critic_branch(TEXT_EMBED_SIZE, CRITIC_TEXT_CHANNELS),
             nn.Linear(
-                CRITIC_TEXT_CHANNELS[-1], CRITIC_COLOR_CHANNELS[-1], bias=False)
+                CRITIC_TEXT_CHANNELS[-1], CRITIC_COLOR_CHANNELS[-1], bias=False
+            )
         )
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
