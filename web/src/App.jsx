@@ -122,7 +122,14 @@ export function App() {
 
   const cardData =
     shownEmoji && shownFeeling
-      ? { text, emoji: shownEmoji, feeling: shownFeeling, colors }
+      ? {
+          text,
+          emoji: shownEmoji,
+          feeling: shownFeeling,
+          feelingScores: scores?.feeling,
+          styles: meta?.styles,
+          colors,
+        }
       : null
   const copyCard = useCardImage(cardData, showToast)
 

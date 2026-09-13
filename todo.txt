@@ -1,2 +1,2 @@
-Explain to me:
-    When training the TextEncoder the critic shows auc-roc close to 1, doesn't that means that there is a strong relationship between the input text and the colors?
+Done:
+web app when generating the image to copy make sure to include the background pattern as well.
