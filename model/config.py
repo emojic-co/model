@@ -112,7 +112,7 @@ SAMPLING_SOURCES: dict[str, SamplingSource] = {
 }
 
 SAMPLING_BASE_RATE = 0.2
-SAMPLING_MIN_RATE = 0.01
+SAMPLING_MIN_RATE = 0.005
 
 
 train_str = " ".join(
