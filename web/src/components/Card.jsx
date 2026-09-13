@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useFitText } from '../hooks/useFitText'
 import { resolveFeeling } from '../feelings'
-import { contrastRatio } from '../model'
+import { contrastRatio, mixColors, patternTint } from '../model'
+import { patternLayers } from '../patterns'
 
 function watermarkInk(bg) {
   return contrastRatio('#000000', bg) >= contrastRatio('#ffffff', bg) ? '#000000' : '#ffffff'
@@ -9,7 +10,7 @@ function watermarkInk(bg) {
 
 const FADE_MS = 150
 
-export function Card({ text, emoji, feeling, colors, onCopy }) {
+export function Card({ text, emoji, feeling, feelingScores, styles, colors, onCopy }) {
   const [shown, setShown] = useState({ emoji, feeling })
   const [phase, setPhase] = useState('in')
   const prev = useRef({ emoji, feeling })
@@ -32,7 +33,10 @@ export function Card({ text, emoji, feeling, colors, onCopy }) {
   const style =
     colors && r
       ? {
-          backgroundImage: `linear-gradient(135deg, ${colors.bg1}, ${colors.bg2})`,
+          backgroundImage: [
+            ...patternLayers(shown.feeling, feelingScores, styles, patternTint(colors.bg1, colors.bg2)),
+            `linear-gradient(135deg, ${colors.bg1}, ${colors.bg2})`,
+          ].join(', '),
           color: colors.text_color,
           fontFamily: r.font,
           ...r.vars,
@@ -53,7 +57,11 @@ export function Card({ text, emoji, feeling, colors, onCopy }) {
       <div className="card-text-box" ref={textRef}>
         <p
           className={'card-text' + (placeholder ? ' card-text-placeholder' : '')}
-          style={r?.style}
+          style={
+            colors
+              ? { ...r?.style, textShadow: [halo, halo, halo].map((c) => `0 0 6px ${c}`).join(', ') }
+              : r?.style
+          }
         >
           {displayText}
         </p>

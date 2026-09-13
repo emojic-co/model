@@ -27,7 +27,7 @@ from files import (
     KEYWORDS_JSONL,
     TERMS_JSONL,
 )
-from model.color import COLOR_SHIFT, rgb_to_oklab
+from model.color import COLOR_SHIFT, energy_distance, rgb_to_oklab
 from model.config import (
     EMOJIS,
     ENCODER_CHANNELS,
@@ -918,8 +918,8 @@ def _section_length_acc(enc, head, eval_records) -> dict:
     return {"receptive_field": rf, "max_text_len": MAX_TEXT_LEN, "buckets": buckets}
 
 
-def _gold_rows():
-    rows = [
+def _valid_color_rows() -> list[dict]:
+    return [
         r
         for r in _rows(COLORS_JSONL)
         if isinstance(r.get("bg"), list)
@@ -927,6 +927,10 @@ def _gold_rows():
         and r.get("fg")
         and 0 < len(norm_text(str(r.get("text", "")))) <= MAX_TEXT_LEN
     ]
+
+
+def _gold_rows():
+    rows = _valid_color_rows()
     if not rows:
         return []
     rng = random.Random(SEED)
@@ -939,6 +943,25 @@ def _gold_rows():
         for r in rng.sample(pool, min(GOLD_PER_COLOR, len(pool))):
             out.append({**r, "color": color})
     return out
+
+
+def _intrinsic_floor(rows: list[dict]) -> float | None:
+    if len(rows) < 4:
+        return None
+    vecs = torch.tensor(
+        [
+            _hex_to_offsets(r["bg"][0])
+            + _hex_to_offsets(r["bg"][1])
+            + _hex_to_offsets(r["fg"])
+            for r in rows
+        ],
+        dtype=torch.float32,
+    )
+    pts = rgb_to_oklab(vecs)
+    n = pts.size(0)
+    half = n // 2
+    perm = torch.randperm(n, generator=torch.Generator().manual_seed(SEED))
+    return energy_distance(pts[perm[:half]], pts[perm[half : 2 * half]]).item()
 
 
 def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
@@ -1004,17 +1027,27 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
             }
         )
 
-    def _stats(rs):
+    def _stats(rs, floor):
         n = len(rs) or 1
+        gt_mean_distance = sum(x["dF"] for x in rs) / n
         return {
             "pure_accuracy": sum(x["hit_pure"] for x in rs) / n,
             "pure_mean_distance": sum(x["dP"] for x in rs) / n,
             "gt_accuracy": sum(x["dF"] < CARD_DIST_THRESHOLD for x in rs) / n,
-            "gt_mean_distance": sum(x["dF"] for x in rs) / n,
+            "gt_mean_distance": gt_mean_distance,
+            "intrinsic_floor": floor,
+            "shortfall_ratio": gt_mean_distance / floor if floor else None,
         }
 
-    per_color = {c: _stats([x for x in out_rows if x["color"] == c]) for c in CARD_COLORS}
-    per_color["all"] = _stats(out_rows)
+    color_pool = _valid_color_rows()
+    per_color = {
+        c: _stats(
+            [x for x in out_rows if x["color"] == c],
+            _intrinsic_floor([r for r in color_pool if r.get("color") == c]),
+        )
+        for c in CARD_COLORS
+    }
+    per_color["all"] = _stats(out_rows, _intrinsic_floor(color_pool))
     return {
         "n": len(rows),
         "threshold": CARD_DIST_THRESHOLD,
@@ -1612,22 +1645,38 @@ def _cards_html(d) -> str:
     )
     out.append(f"<h3>Emoji &amp; style acc@k — gold set</h3>{chart}")
     pc = d["per_color"]
+
+    def _f3(v) -> str:
+        return f"{v:.3f}" if v is not None else "–"
+
+    def _fx(v) -> str:
+        return f"{v:.1f}&times;" if v is not None else "–"
+
     trows = "".join(
         f"<tr><td>{_esc(c)}</td>"
         f'<td class="n">{pc[c]["pure_mean_distance"]:.3f}</td>'
         f'<td class="n">{pc[c]["pure_accuracy"]:.2f}</td>'
         f'<td class="n">{pc[c]["gt_mean_distance"]:.3f}</td>'
-        f'<td class="n">{pc[c]["gt_accuracy"]:.2f}</td></tr>'
+        f'<td class="n">{pc[c]["gt_accuracy"]:.2f}</td>'
+        f'<td class="n">{_f3(pc[c]["intrinsic_floor"])}</td>'
+        f'<td class="n">{_fx(pc[c]["shortfall_ratio"])}</td></tr>'
         for c in (*CARD_COLORS, "all")
     )
     out.append(
         "<h3>Colour distance — d(model, pure) then d(model, GT)</h3>"
         '<p class="note">Pure acc: dP &lt; '
         f"{d['pure_threshold_rgb']:.3f} (r/g/b), &lt; {d['pure_threshold_l']:.2f} "
-        f"(|&Delta;L|, dark/bright). GT acc: dF &lt; {d['threshold']:.2f}.</p>"
+        f"(|&Delta;L|, dark/bright). GT acc: dF &lt; {d['threshold']:.2f}. "
+        "Floor: intrinsic self-energy distance within this colour's own gold-adjacent "
+        "data (data/colors.jsonl, split-half) — the best any generator could do "
+        "against this ground truth. GT/Floor: how many multiples of that floor the "
+        "model's best-of-k GT distance actually is; a high multiple with a low floor "
+        "means the model is underperforming an easy category, not that the category "
+        "is inherently hard.</p>"
         "<table><tr><th>Color</th>"
         '<th class="n">Pure dist</th><th class="n">Pure acc</th>'
-        '<th class="n">GT dist</th><th class="n">GT acc</th></tr>'
+        '<th class="n">GT dist</th><th class="n">GT acc</th>'
+        '<th class="n">Floor</th><th class="n">GT/Floor</th></tr>'
         f"{trows}</table>"
     )
     by_color = {}

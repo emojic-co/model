@@ -25,3 +25,11 @@ def rgb_to_oklab(rgb: torch.Tensor) -> torch.Tensor:
     lms = _srgb_to_linear(c) @ _LIN_TO_LMS.to(c).t()
     lms_ = lms.sign() * lms.abs().clamp(min=1e-12) ** (1 / 3)
     return (lms_ @ _LMS_TO_LAB.to(c).t()).reshape(shape)
+
+
+def energy_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    mode = "donot_use_mm_for_euclid_dist"
+    xy = torch.cdist(x, y, compute_mode=mode).mean()
+    xx = torch.cdist(x, x, compute_mode=mode).mean()
+    yy = torch.cdist(y, y, compute_mode=mode).mean()
+    return (2 * xy - xx - yy).clamp(min=0.0).sqrt()
