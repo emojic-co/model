@@ -249,6 +249,8 @@ export function App() {
             active={shownFeeling}
             count={feelingCount}
             ready={!tooShort && !!shownFeeling}
+            feelingScores={scores?.feeling}
+            styles={meta?.styles}
             onPick={(f) => setOverride((o) => ({ ...o, feeling: f }))}
           />
           <footer className="footer">
