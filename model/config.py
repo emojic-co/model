@@ -25,13 +25,13 @@ EMOJI_COUNT = len(EMOJIS)
 MAX_TEXT_LEN = 42
 
 # ENCODER
-CHAR_EMBED_SIZE = 16
+CHAR_EMBED_SIZE = 24
 ENCODER_KERNEL_SIZE = 3
 
 assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
-ENCODER_CHANNELS = [110, 170, 140, 90]
+ENCODER_CHANNELS = [120, 180, 140, 90]
 ENCODER_DILATION = [1, 2, 4, 8]
 TEXT_EMBED_SIZE = sum(ENCODER_CHANNELS)
 
@@ -69,6 +69,7 @@ GAN_GEN_LR = 0.005
 GAN_CRITIC_LR = 0.02
 GAN_GEN_MARGIN = 1.0
 ENERGY_WEIGHT = 1.0
+GAN_MISMATCH_WEIGHT = 1.0
 
 gan_str = " ".join([
     str(p)
@@ -81,7 +82,8 @@ gan_str = " ".join([
         GAN_GEN_LR,
         GAN_CRITIC_LR,
         GAN_GEN_MARGIN,
-        ENERGY_WEIGHT)])
+        ENERGY_WEIGHT,
+        GAN_MISMATCH_WEIGHT)])
 
 
 # TRAINING
@@ -106,9 +108,9 @@ class SamplingSource:
 
 
 SAMPLING_SOURCES: dict[str, SamplingSource] = {
-    "keyword": SamplingSource(KEYWORDS_JSONL, "acc@1", 0.90),
+    "keyword": SamplingSource(KEYWORDS_JSONL, "acc@1", 0.95),
     "term": SamplingSource(TERMS_JSONL, "acc@1", 0.80),
-    "flags": SamplingSource(FLAGS_JSONL, "acc@1", 0.95),
+    "flags": SamplingSource(FLAGS_JSONL, "acc@1", 0.9),
 }
 
 SAMPLING_BASE_RATE = 0.2

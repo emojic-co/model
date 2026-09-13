@@ -223,6 +223,8 @@ export function App() {
           text={text}
           emoji={displayEmoji}
           feeling={displayFeeling}
+          feelingScores={scores?.feeling}
+          styles={meta?.styles}
           colors={colors}
           onCopy={copyCard}
         />
@@ -264,6 +266,12 @@ export function App() {
                 rel="noopener noreferrer"
               >
                 about this model
+              </a>
+            </span>
+            <span>
+              background patterns by{' '}
+              <a href="https://heropatterns.com/" target="_blank" rel="noopener noreferrer">
+                Hero Patterns
               </a>
             </span>
             <span className="gh">

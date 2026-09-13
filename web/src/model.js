@@ -130,6 +130,17 @@ export function fixContrast(palette, minContrast = CONTRAST_MIN) {
   return { bg1, bg2, text_color: best }
 }
 
+export function mixColors(hexA, hexB, t = 0.5) {
+  const [L1, a1, b1] = srgbToOklab(hexToRgb(hexA))
+  const [L2, a2, b2] = srgbToOklab(hexToRgb(hexB))
+  return rgbToHex(oklabToSrgb([L1 + (L2 - L1) * t, a1 + (a2 - a1) * t, b1 + (b2 - b1) * t]))
+}
+
+export function patternTint(bg1, bg2) {
+  const [L, a, b] = srgbToOklab(hexToRgb(mixColors(bg1, bg2)))
+  return rgbToHex(oklabToSrgb([Math.max(0.94, L), a, b]))
+}
+
 export function argmax(arr) {
   let best = 0
   for (let i = 1; i < arr.length; i++) if (arr[i] > arr[best]) best = i

@@ -59,6 +59,24 @@ def test_dark_ignores_chroma():
     assert d_dark > 0, d_dark
 
 
+def test_intrinsic_floor_deterministic():
+    from tools.report import _intrinsic_floor
+
+    rows = [
+        {"bg": ["#ff0000", "#e00000"], "fg": "#ffffff"},
+        {"bg": ["#f01010", "#d00000"], "fg": "#fff0f0"},
+        {"bg": ["#ff2020", "#e01010"], "fg": "#ffffff"},
+        {"bg": ["#f00000", "#e01010"], "fg": "#fffafa"},
+        {"bg": ["#ff0505", "#df0000"], "fg": "#fff5f5"},
+        {"bg": ["#f00808", "#e00505"], "fg": "#fffefe"},
+    ]
+    a = _intrinsic_floor(rows)
+    b = _intrinsic_floor(rows)
+    assert a == b, (a, b)
+    assert a is not None and a >= 0, a
+    assert _intrinsic_floor(rows[:2]) is None
+
+
 def test_linechart_series():
     from tools.report import _linechart
 
@@ -477,6 +495,7 @@ def main() -> None:
     test_gold_rows_derived()
     test_card_distance()
     test_dark_ignores_chroma()
+    test_intrinsic_floor_deterministic()
     test_linechart_series()
     test_linechart_three_way()
     test_emoji_html_overlay()
