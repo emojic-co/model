@@ -1,4 +1,20 @@
-I updated the ColorCritic to output f(colors), <e(colors), e(text)>
-Use the first output for the color loss and the second output for the conditional (on text) loss.
-When training the generator, ignore the first output.
-Make sense?
+It seems like there is junk in our data, e.g.:
+
+🇲🇳
+how do you say hello again?
+
+🇦🇷
+tengo reunin a las tres hora art
+
+🇵🇫
+je regarde les pirogues larrive
+
+🛍️
+dukaanka ayaan ka imid
+
+🗣️
+japprends quelques mots soussou
+
+
+These are 5 out of a random sample of size 40, i.e. 12.5% of the sample.
+What can we do about it?
