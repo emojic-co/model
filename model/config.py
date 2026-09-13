@@ -68,7 +68,7 @@ DROPOUT_CRITIC = 0.2
 GAN_GEN_LR = 0.05
 GAN_CRITIC_LR = 0.02
 GAN_GEN_MARGIN = 1.0
-ENERGY_WEIGHT = 10
+ENERGY_WEIGHT = 5
 
 gan_str = " ".join([
     str(p)
@@ -127,7 +127,7 @@ train_str = " ".join(
             GRAD_CLIP_GEN,
             GRAD_CLIP_CRITIC,
             INFONCE_TEMP,
-            *SAMPLING_SOURCES.values(),
+            # *SAMPLING_SOURCES.values(),
             SAMPLING_BASE_RATE,
             SAMPLING_MIN_RATE,
         )
