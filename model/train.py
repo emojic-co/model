@@ -736,12 +736,12 @@ COLLECT_TREES = [PT_DIR, "runs", "web/public", "report"]
 modal_image = modal.Image.debian_slim(python_version="3.13").pip_install("uv")
 for _name in DEP_FILES:
     modal_image = modal_image.add_local_file(_name, f"{REPO}/{_name}", copy=True)
+for _name in CODE_FILES:
+    modal_image = modal_image.add_local_file(_name, f"{REPO}/{_name}", copy=True)
 modal_image = modal_image.run_commands(
     f"cd {REPO} && UV_PROJECT_ENVIRONMENT=/usr/local "
     "uv sync --frozen --no-default-groups --group dev --group gpu"
 )
-for _name in CODE_FILES:
-    modal_image = modal_image.add_local_file(_name, f"{REPO}/{_name}", copy=True)
 modal_image = modal_image.workdir(REPO)
 
 modal_app = modal.App(f"emojic-train-{WORKTREE_TAG}", image=modal_image)
@@ -842,7 +842,7 @@ def train_remote(
         try:
             with modal.forward(TB_PORT) as tunnel:
                 print(f"TensorBoard: {tunnel.url}", flush=True)
-                cmd = [VENV_PY, f"{MODEL_DIR}/train.py"]
+                cmd = [VENV_PY, "-m", f"{MODEL_DIR}.train"]
                 if stage:
                     cmd.append(stage)
                 if stage == "enc" and heads:
