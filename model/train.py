@@ -51,7 +51,6 @@ from model.config import (
     GAN_BATCH_SIZE,
     GAN_CRITIC_LR,
     GAN_GEN_LR,
-    GAN_GEN_MARGIN,
     GRAD_CLIP_CRITIC,
     GRAD_CLIP_GEN,
     INFONCE_TEMP,
@@ -458,17 +457,14 @@ class LitColorGAN(pl.LightningModule):
         fake = self.gen(cond)
 
         pair = torch.cat([colors, fake.detach()], dim=0)
-        tst_real, tst_fake = self.tst(
-            torch.cat([cond, cond], dim=0), pair).chunk(2, dim=0)
+        cond_pair = torch.cat([cond, cond], dim=0)
+        color_score, cond_score = self.tst(cond_pair, pair)
+        color_real, color_fake = color_score.chunk(2, dim=0)
+        cond_real, cond_fake = cond_score.chunk(2, dim=0)
 
-        loss_tst_real = binary_cross_entropy_with_logits(
-            tst_real, torch.ones_like(tst_real))
-
-        loss_tst_fake = binary_cross_entropy_with_logits(
-            tst_fake, torch.zeros_like(tst_fake)
-        )
-
-        loss_tst = loss_tst_real + loss_tst_fake
+        loss_tst_color = color_fake.mean() - color_real.mean()
+        loss_tst_cond = cond_fake.mean() - cond_real.mean()
+        loss_tst = loss_tst_color + loss_tst_cond
 
         opt_tst.zero_grad()
         self.manual_backward(loss_tst)
@@ -480,15 +476,12 @@ class LitColorGAN(pl.LightningModule):
 
         opt_tst.step()
 
-        gen_real, gen_fake = self.tst(
-            torch.cat([cond, cond], dim=0),
-            torch.cat([colors, fake], dim=0),
-        ).chunk(2, dim=0)
-        hinge = torch.relu(
-            gen_real.detach() - gen_fake + GAN_GEN_MARGIN
-        ).mean()
+        gen_color_fake, gen_cond_fake = self.tst(cond, fake)
         energy = energy_distance(rgb_to_oklab(fake), rgb_to_oklab(colors))
-        loss_gen = hinge + ENERGY_WEIGHT * energy
+        loss_gen = (
+            -(gen_color_fake.mean() + gen_cond_fake.mean())
+            + ENERGY_WEIGHT * energy
+        )
 
         opt_gen.zero_grad()
         self.manual_backward(loss_gen)
@@ -501,7 +494,11 @@ class LitColorGAN(pl.LightningModule):
         opt_gen.step()
 
         self.log("loss/gan/tst", loss_tst, prog_bar=True)
+        self.log("loss/gan/tst_color", loss_tst_color, prog_bar=False)
+        self.log("loss/gan/tst_cond", loss_tst_cond, prog_bar=False)
         self.log("loss/gan/gen", loss_gen, prog_bar=True)
+        self.log("dist/gan/wasserstein_color", -loss_tst_color, prog_bar=False)
+        self.log("dist/gan/wasserstein_cond", -loss_tst_cond, prog_bar=True)
         self.log("energy/gan/train", energy, prog_bar=True)
 
     def configure_optimizers(self):
@@ -553,7 +550,7 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
         logger=TensorBoardLogger(
             "runs", name=CONFIG_NAME, version="enc", default_hp_metric=False
         ),
-        deterministic=_DETERMINISTIC,
+        deterministic=_DETERMINISTIC,  # type: ignore
         max_epochs=EPOCHS_TASK,
         val_check_interval=min(VAL_CHECK_INTERVAL, len(dl)),
         enable_progress_bar=not no_bar,

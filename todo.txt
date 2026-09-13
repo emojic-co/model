@@ -1,2 +1,4 @@
-Done:
-web app when generating the image to copy make sure to include the background pattern as well.
+I updated the ColorCritic to output f(colors), <e(colors), e(text)>
+Use the first output for the color loss and the second output for the conditional (on text) loss.
+When training the generator, ignore the first output.
+Make sense?
