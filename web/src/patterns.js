@@ -1,7 +1,7 @@
 import {
   jigsaw,
   fallingTriangles,
-  bathroomFloor,
+  graphPaper,
   happyIntersection,
   randomShapes,
   brickWall,
@@ -37,11 +37,11 @@ export const PATTERN_FNS = {
   Disgusted: randomShapes,
   Startled: fallingTriangles,
   Sarcastic: jigsaw,
-  Deadpan: bathroomFloor,
-  Neutral: bathroomFloor,
+  Deadpan: graphPaper,
+  Neutral: graphPaper,
 }
 
-const MAX_OPACITY = 0.08
+const MAX_OPACITY = 0.25
 const BLEND_THRESHOLD = 0.6
 
 export function patternLayers(feeling, feelingLogits, styles, fill) {
