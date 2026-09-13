@@ -1,4 +1,7 @@
 import { resolveFeeling } from '../feelings'
+import { patternLayers } from '../patterns'
+
+const SWATCH_PATTERN_TINT = '#33312e'
 
 function FeelingButton({ feeling, active, style, onPick }) {
   return (
@@ -20,6 +23,8 @@ export function FeelingBar({
   ready = true,
   hidden = false,
   count = 5,
+  feelingScores,
+  styles,
 }) {
   const items = ready && feelings.length ? feelings : null
   return (
@@ -31,7 +36,16 @@ export function FeelingBar({
         {items
           ? items.map((f) => {
             const r = resolveFeeling(f)
-            const style = { fontFamily: r.font, ...r.style }
+            const style = {
+              fontFamily: r.font,
+              ...r.style,
+              backgroundImage: patternLayers(
+                f,
+                feelingScores,
+                styles,
+                SWATCH_PATTERN_TINT,
+              ).join(', '),
+            }
             return (
               <FeelingButton
                 key={f}
