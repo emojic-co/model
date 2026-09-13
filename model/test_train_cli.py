@@ -102,8 +102,11 @@ def test_litencoder_builds_only_selected_heads():
 def test_colorcritic_forward_shape():
     from model.model import ColorCritic
 
-    out = ColorCritic()(torch.zeros(5, TEXT_EMBED_SIZE), torch.zeros(5, 9))
-    assert out.shape == (5, 1)
+    color_score, cond_score = ColorCritic()(
+        torch.zeros(5, TEXT_EMBED_SIZE), torch.zeros(5, 9)
+    )
+    assert color_score.shape == (5, 1)
+    assert cond_score.shape == (5, 1)
 
 
 def _stub_runners():

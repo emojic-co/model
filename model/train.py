@@ -278,8 +278,8 @@ class LitEncoder(pl.LightningModule):
         if "critic" in self.heads:
             shift = 1 if split == "val" else int(torch.randint(1, bs, (1,)).item())
             neg_colors = colors.roll(shift, dims=0)
-            pos = self.critic(enc, colors)
-            neg = self.critic(enc, neg_colors)
+            _, pos = self.critic(enc, colors)
+            _, neg = self.critic(enc, neg_colors)
             loss_critic = binary_cross_entropy_with_logits(
                 pos, torch.ones_like(pos)
             ) + binary_cross_entropy_with_logits(neg, torch.zeros_like(neg))
