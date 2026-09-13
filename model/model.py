@@ -5,6 +5,7 @@ from torch.nn.functional import (
     normalize,
     tanh,
 )
+from torch.nn.utils.parametrizations import spectral_norm as sn
 
 from model.color import COLOR_SHIFT
 from model.config import (
@@ -153,7 +154,7 @@ def _critic_branch(in_dim: int, channels: list[int]) -> nn.Sequential:
     return nn.Sequential(
         *[
             nn.Sequential(
-                nn.Linear(i, o, bias=False),
+                sn(nn.Linear(i, o, bias=False)),
                 nn.LayerNorm(o),
                 nn.LeakyReLU(negative_slope=RELU_SLOPE)
             )
@@ -166,18 +167,28 @@ class ColorCritic(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.color_net = _critic_branch(COLOR_DIM, CRITIC_COLOR_CHANNELS)
+        self.color_critic = nn.Sequential(
+            nn.Dropout(p=DROPOUT_CRITIC),
+            _critic_branch(COLOR_DIM, CRITIC_COLOR_CHANNELS),
+            sn(nn.Linear(
+                CRITIC_COLOR_CHANNELS[-1], 1,
+                bias=False)))
 
-        self.text_net = nn.Sequential(
+        self.color_embedding = _critic_branch(COLOR_DIM, CRITIC_COLOR_CHANNELS)
+        self.text_embedding = nn.Sequential(
             nn.Dropout(p=DROPOUT_CRITIC),
             _critic_branch(TEXT_EMBED_SIZE, CRITIC_TEXT_CHANNELS),
-            nn.Linear(
+            sn(nn.Linear(
                 CRITIC_TEXT_CHANNELS[-1],
                 CRITIC_COLOR_CHANNELS[-1],
-                bias=False))
+                bias=False)))
 
-    def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
-        c = self.color_net(colors)
-        t = self.text_net(cond)
+    def forward(
+        self, cond: torch.Tensor, colors: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        c = self.color_embedding(colors)
+        t = self.text_embedding(cond)
 
-        return (t * c).sum(dim=-1, keepdim=True)
+        return (
+            self.color_critic(colors),
+            (t * c).sum(dim=-1, keepdim=True))

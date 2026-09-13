@@ -1,5 +1,6 @@
 export function normalize(text, char2idx) {
   const t = text
+    .toLowerCase()
     .replace(/\s+/g, ' ')
     .trim()
     .replace(/(.)\1{2,}/g, '$1$1')

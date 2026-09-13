@@ -23,7 +23,7 @@ SRC_FULL = "full"
 
 PAD = "·"
 PAD_IDX = 0
-CHARS = PAD + "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?:()@$%&* "
+CHARS = PAD + "abcdefghijklmnopqrstuvwxyz0123456789!?:()@$%&* "
 VOCAB_SIZE = len(CHARS)
 
 
@@ -52,7 +52,7 @@ def rnd_color_tensor() -> torch.Tensor:
 
 
 def normalize(text: str) -> str:
-    text = re.sub(r"\s+", " ", text).strip()
+    text = re.sub(r"\s+", " ", text.lower()).strip()
     text = re.sub(r'(.)\1{2,}', r'\1\1', text)
     return "".join(c for c in text if c in char2idx)
 
