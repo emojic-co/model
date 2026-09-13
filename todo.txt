@@ -1,21 +1,2 @@
-Done:
-    Report:
-        Add, below the "Model — Encoder block capacity" section.
-        A random sample of 40 records from the eval.jsonl
-        Use a 2 column grid where the left column is the ground truth and the right column is the model output.
-        Use the webapp rendering to display the final result of the ground truth vs the model output.
-        Draw two ground truth cards and two model cards on each row, so it should be like that:
-        | GT1 | GT2 | MO1 | MO2 |
-        | GT3 | GT4 | MO3 | MO4 |
-        .
-        .
-        .
-        | GT39 | GT40 | MO39 | MO40 |
-    Discussion:
-        During the encoder training the critic learns to distinguish between real colors paired with wrong text,
-        So it must learn p(colors | text)
-        During the GAN training the critic needs to tell whether the colors the generator produced given the text are real or fake.
-        It seems that this is easier than the encoder training, still the critic fails to do that.
-        What could be the reason for this?
-
-        During the GAN training I want the critic to only distinguish between (text + real colors) and (text + generated colors)
+Explain to me:
+    When training the TextEncoder the critic shows auc-roc close to 1, doesn't that means that there is a strong relationship between the input text and the colors?

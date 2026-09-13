@@ -1003,16 +1003,16 @@
     "Sarcastic",
     "Deadpan"
   ],
-  "exported_at": "2026-09-13T06:03+00:00",
+  "exported_at": "2026-09-13T12:49+00:00",
   "model_meta": {
-    "sha": "6a23045",
+    "sha": "9311602",
     "dirty": false,
-    "generated": "2026-09-13T05:55:28",
+    "generated": "2026-09-13T12:47:37",
     "config": [
       "ENCODER: 30 3 [120, 180, 140, 90] [1, 2, 4, 8]",
       "EMOJI: 60 0.15",
       "STYLE: 16 530 0.5",
-      "GAN: 0.35 [64, 32] [96] [96] 0.2 0.005 0.02 1.0 1.0 1.0",
+      "GAN: 0.3 [64, 32] [96] [96] 0.2 0.005 0.02 1.0 0.5",
       "TRAIN: 42 512 1024 0.1 0.01 1.0 1.0 0.7 SamplingSource(path='data/keywords.jsonl', metric='acc@1', goal=0.95) SamplingSource(path='data/terms.jsonl', metric='acc@1', goal=0.8) SamplingSource(path='data/flags.jsonl', metric='acc@1', goal=0.9) 0.2 0.005"
     ],
     "train_sha": "09035a350ab2",
