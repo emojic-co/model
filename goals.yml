@@ -5,8 +5,8 @@
 goals:
   emoji prediction:
     keyword:
-      "acc@1": 0.9
-      "acc@5": 0.95
+      "acc@1": 0.95
+      "acc@5": 0.99
       "acc@10": 0.99
     term:
       "acc@1": 0.8

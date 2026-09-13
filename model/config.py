@@ -107,7 +107,7 @@ class SamplingSource:
 
 SAMPLING_SOURCES: dict[str, SamplingSource] = {
     "keyword": SamplingSource(KEYWORDS_JSONL, "acc@1", 0.95),
-    "term": SamplingSource(TERMS_JSONL, "acc@1", 0.80),
+    "term": SamplingSource(TERMS_JSONL, "acc@1", 0.9),
     "flags": SamplingSource(FLAGS_JSONL, "acc@1", 0.9),
 }
 
