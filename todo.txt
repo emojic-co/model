@@ -1,6 +1,2 @@
-Done:
-
-Add another sub command
-upsample balance
-
-with this command the tool reads the the data/train.jsonl file and upsample the 10% of emojis with the lowest frequency in train.jsonl
+update the preview tool:
+when running `preview styles` it should randomly pick 2 samples for each predefined style (see labels.json) from data.jsonl and generate a preview of the results.

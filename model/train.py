@@ -49,12 +49,12 @@ from model.config import (
     EPOCHS_GAN,
     EPOCHS_TASK,
     GAN_BATCH_SIZE,
-    GAN_CRITIC_LR,
-    GAN_GEN_LR,
     GRAD_CLIP_CRITIC,
     GRAD_CLIP_GEN,
     INFONCE_TEMP,
     LR,
+    LR_GAN_CRITIC,
+    LR_GAN_GEN,
     MACRO_MIN_SUPPORT,
     SAMPLING_MIN_RATE,
     SAMPLING_SOURCES,
@@ -502,8 +502,8 @@ class LitColorGAN(pl.LightningModule):
         self.log("energy/gan/train", energy, prog_bar=True)
 
     def configure_optimizers(self):
-        opt_gen = optim.SGD(self.gen.parameters(), lr=GAN_GEN_LR)
-        opt_tst = optim.SGD(self.tst.parameters(), lr=GAN_CRITIC_LR)
+        opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
+        opt_tst = optim.SGD(self.tst.parameters(), lr=LR_GAN_CRITIC)
 
         return [opt_gen, opt_tst]
 
