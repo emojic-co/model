@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOnnx } from './hooks/useOnnx'
 import { argmax, normalize, fixContrast, sigmoid } from './model'
 import { topFeelings, DEFAULT_COLORS } from './feelings'
-import { cycle } from './nav'
+import { cycle, textToPath, pathToText } from './nav'
 import GitHubButton from 'react-github-btn'
 import { Card } from './components/Card'
 import { FeelingBar } from './components/FeelingBar'
@@ -61,7 +61,7 @@ export function App() {
   const emojiSlots = mobile ? 9 : 10
   const feelingCount = mobile ? 4 : 5
   const colorCount = mobile ? 4 : 5
-  const [text, setText] = useState('')
+  const [text, setText] = useState(() => pathToText(window.location.pathname))
   const [scores, setScores] = useState(null)
   const [override, setOverride] = useState({ emoji: null, feeling: null, color: 0 })
   const [contrastFix, setContrastFix] = useState(initialContrastFix)
@@ -80,6 +80,13 @@ export function App() {
       localStorage.setItem(CONTRAST_FIX_KEY, contrastFix ? 'on' : 'off')
     } catch {}
   }, [contrastFix])
+
+  useEffect(() => {
+    const path = textToPath(text)
+    if (window.location.pathname !== path) {
+      window.history.replaceState(null, '', path)
+    }
+  }, [text])
 
   useEffect(() => {
     if (!ready || !char2idx) return
@@ -132,6 +139,25 @@ export function App() {
         }
       : null
   const copyCard = useCardImage(cardData, showToast)
+
+  const shareUrl = useCallback(async () => {
+    const url = window.location.href
+    if (navigator.share) {
+      try {
+        await navigator.share({ url })
+        return
+      } catch (err) {
+        if (err?.name === 'AbortError') return
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url)
+      showToast('link copied ✓')
+    } catch (err) {
+      console.error(err)
+      showToast('copy failed')
+    }
+  }, [showToast])
 
   useEffect(() => {
     const onKey = (e) => {
@@ -234,6 +260,7 @@ export function App() {
           styles={meta?.styles}
           colors={colors}
           onCopy={copyCard}
+          onShare={shareUrl}
         />
         <KeyHints />
         <div className="feelings-col">

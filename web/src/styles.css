@@ -709,10 +709,10 @@ h1 .tld {
   animation: none !important;
 }
 
-.copy-btn {
+.copy-btn,
+.share-btn {
   position: absolute;
   top: 1em;
-  right: 1em;
   padding: 0.375em 0.75em;
   font: inherit;
   font-size: 0.75em;
@@ -729,8 +729,18 @@ h1 .tld {
   backdrop-filter: blur(4px);
 }
 
+.copy-btn {
+  right: 1em;
+}
+
+.share-btn {
+  left: 1em;
+}
+
 .copy-btn:hover,
-.copy-btn:focus-visible {
+.copy-btn:focus-visible,
+.share-btn:hover,
+.share-btn:focus-visible {
   opacity: 1;
   outline: none;
 }

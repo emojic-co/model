@@ -1,16 +1,13 @@
-import json
-import sys
-import warnings
-from datetime import UTC, datetime
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-import torch
-import typer
-from torch import nn
-from torch.nn.functional import normalize
-
+from model.runmeta import load_pt
+from model.model import (
+    ColorGen,
+    EmojiEmbedding,
+    EmojiHead,
+    StyleHead,
+    TextEncoder,
+)
+from model.data import CHARS, PAD_IDX
+from model.config import EMBED_SIZE_TEXT, EMOJIS, MAX_TEXT_LEN, SEED, STYLES, Z_WEIGHT
 from files import (
     EMOJI_EMBED_PT,
     EMOJI_PT,
@@ -20,16 +17,18 @@ from files import (
     STYLE_PT,
     WEB_PUBLIC_DIR,
 )
-from model.config import EMOJIS, MAX_TEXT_LEN, SEED, STYLES, TEXT_EMBED_SIZE, Z_WEIGHT
-from model.data import CHARS, PAD_IDX
-from model.model import (
-    ColorGen,
-    EmojiEmbedding,
-    EmojiHead,
-    StyleHead,
-    TextEncoder,
-)
-from model.runmeta import load_pt
+from torch.nn.functional import normalize
+from torch import nn
+import typer
+import torch
+import json
+import sys
+import warnings
+from datetime import UTC, datetime
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 
 WEB_PUBLIC = Path(WEB_PUBLIC_DIR)
 ONNX_OPSET = 18
@@ -38,7 +37,7 @@ COLOR_SAMPLES = 5
 CONST_Z = normalize(
     torch.randn(
         COLOR_SAMPLES,
-        TEXT_EMBED_SIZE,
+        EMBED_SIZE_TEXT,
         generator=torch.Generator().manual_seed(SEED),
     ),
     dim=-1,

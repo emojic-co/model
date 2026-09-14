@@ -8,8 +8,7 @@ Guidance for Claude Code in this repo. **Keep this file compact.** It is an inde
 
 Goals/status/plan (source of truth, not summarized here):
 
-- `goals.yml` — long-term goals.
-- `goal/<newest>.yml` — current iteration's targets (`goal/README.md` for schema; written by `planning-emojic-improvements`).
+- `goals.yml` — targets, long-term and current alike (single source, no per-iteration target file).
 - `report/<newest>/report.html` — current measured state, written by `tools/report.py`.
 - `plans/<newest>/plan.md` — derived plan, written by `planning-emojic-improvements`.
 

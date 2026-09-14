@@ -44,6 +44,7 @@ from model.config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE_ENCODER,
     EARLY_STOP_PATIENCE_GAN,
+    EMBED_SIZE_TEXT,
     ENERGY_WEIGHT,
     ENERGY_Z_SAMPLES,
     EPOCHS_GAN,
@@ -51,7 +52,8 @@ from model.config import (
     GAN_BATCH_SIZE,
     GRAD_CLIP_CRITIC,
     GRAD_CLIP_GEN,
-    INFONCE_TEMP,
+    INFONCE_TEMP_EMOJI,
+    INFONCE_TEMP_STYLE,
     LR,
     LR_GAN_CRITIC,
     LR_GAN_GEN,
@@ -60,7 +62,6 @@ from model.config import (
     SAMPLING_SOURCES,
     SEED,
     TASK_BATCH_SIZE,
-    TEXT_EMBED_SIZE,
     VAL_CHECK_INTERVAL,
 )
 from model.data import (
@@ -233,7 +234,7 @@ class LitEncoder(pl.LightningModule):
 
         if "style" in self.heads:
             style_logits = self.style(enc)
-            loss_style = lse_infonce(style_logits, style, INFONCE_TEMP)
+            loss_style = lse_infonce(style_logits, style, INFONCE_TEMP_STYLE)
             loss = loss + loss_style
             self._log(f"loss/s/{split}", loss_style, bs)
             s_rr, s_tgt = (
@@ -247,7 +248,7 @@ class LitEncoder(pl.LightningModule):
         if "emoji" in self.heads:
             q_txt = self.emoji(enc)
             emoji_logits = self.emoji_embed.score(q_txt)
-            loss_emoji = lse_infonce(emoji_logits, emoji, INFONCE_TEMP)
+            loss_emoji = lse_infonce(emoji_logits, emoji, INFONCE_TEMP_EMOJI)
             loss = loss + loss_emoji
             self._log(f"loss/e/{split}", loss_emoji, bs)
             has_e = emoji.sum(dim=-1) > 0
@@ -346,6 +347,7 @@ class LitEncoder(pl.LightningModule):
                 emoji_mrr = torch.cat(e_rr).mean()
                 self.log(f"MRR/e/{split}", emoji_mrr, prog_bar=True)
 
+        style_macro = None
         if "style" in self.heads:
             s_rr, s_tgt = (
                 (self._val_s_rr, self._val_s_tgt)
@@ -358,8 +360,8 @@ class LitEncoder(pl.LightningModule):
                 )
                 self.log(f"MRR/s/{split}", style_macro, prog_bar=True)
 
-        if auc is not None and emoji_mrr is not None:
-            self.log(f"F1/{split}", harmonic_mean(emoji_mrr, auc), prog_bar=True)
+        if emoji_mrr is not None and style_macro is not None:
+            self.log(f"F1/{split}", harmonic_mean(emoji_mrr, style_macro), prog_bar=True)
 
     def training_step(self, batch, batch_idx):
         return self._step(batch, "train")
@@ -390,7 +392,7 @@ class LitColorGAN(pl.LightningModule):
             normalize(
                 torch.randn(
                     ENERGY_Z_SAMPLES,
-                    TEXT_EMBED_SIZE,
+                    EMBED_SIZE_TEXT,
                     generator=torch.Generator().manual_seed(SEED),
                 ),
                 dim=-1,
@@ -534,7 +536,7 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
 
     monitor = (
         "F1/val"
-        if {"emoji", "critic"} <= set(heads)
+        if {"emoji", "style"} <= set(heads)
         else "MRR/e/val"
         if "emoji" in heads
         else "MRR/s/val"
@@ -1050,9 +1052,10 @@ def cli(
       pt/ only with --local. A dirty git tree always aborts.
 
     Heads (stage 1 eval / checkpoint monitor)
-      emoji+critic -> F1/val (harmonic mean of MRR/e/val and auc/critic/val),
+      emoji+style -> F1/val (harmonic mean of MRR/e/val and MRR/s/val),
       else emoji -> MRR/e/val, style -> MRR/s/val, critic -> auc/critic/val;
       the first match in that order is the checkpoint + early-stop metric.
+      auc/critic/val is otherwise logging-only, never an early-stop signal.
     """
     resolved = _validate(stage, local, heads, pt, out, gpu, cpu)
     if local:

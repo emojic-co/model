@@ -1,14 +1,13 @@
+from model.config import EMBED_SIZE_TEXT
+import model.train as T
+from typer.testing import CliRunner
+import typer
+import torch
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-import torch
-import typer
-from typer.testing import CliRunner
-
-import model.train as T
-from model.config import TEXT_EMBED_SIZE
 
 runner = CliRunner()
 
@@ -49,7 +48,8 @@ def test_validate_nondefault_folder_needs_local():
     except typer.BadParameter:
         raised = True
     assert raised
-    assert T._validate(None, True, None, Path("other"), Path("pt"), "", False) is None
+    assert T._validate(None, True, None, Path(
+        "other"), Path("pt"), "", False) is None
     assert T._validate(T.Stage.enc, True, None, Path("pt"), Path("pt"), "", False) == (
         "style",
         "emoji",
@@ -64,7 +64,8 @@ def test_validate_gpu_rejects_local():
     except typer.BadParameter:
         raised = True
     assert raised
-    assert T._validate(None, False, None, Path("pt"), Path("pt"), "T4", False) is None
+    assert T._validate(None, False, None, Path(
+        "pt"), Path("pt"), "T4", False) is None
 
 
 def test_validate_gpu_and_cpu_mutually_exclusive():
@@ -92,9 +93,11 @@ def test_roc_auc_chance_and_empty():
 
 def test_litencoder_builds_only_selected_heads():
     m = T.LitEncoder(heads=("style",))
-    assert hasattr(m, "style") and not hasattr(m, "emoji") and not hasattr(m, "critic")
+    assert hasattr(m, "style") and not hasattr(
+        m, "emoji") and not hasattr(m, "critic")
     m2 = T.LitEncoder(heads=("emoji", "critic"))
-    assert hasattr(m2, "emoji") and hasattr(m2, "critic") and not hasattr(m2, "style")
+    assert hasattr(m2, "emoji") and hasattr(
+        m2, "critic") and not hasattr(m2, "style")
     opt = m2.configure_optimizers()
     assert isinstance(opt, torch.optim.Adam)
 
@@ -103,7 +106,7 @@ def test_colorcritic_forward_shape():
     from model.model import ColorCritic
 
     color_score, cond_score = ColorCritic()(
-        torch.zeros(5, TEXT_EMBED_SIZE), torch.zeros(5, 9)
+        torch.zeros(5, EMBED_SIZE_TEXT), torch.zeros(5, 9)
     )
     assert color_score.shape == (5, 1)
     assert cond_score.shape == (5, 1)

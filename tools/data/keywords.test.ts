@@ -16,27 +16,35 @@ test("mergeKeywords unions emojis/styles and tags src by which source(s) had the
     { text: "shared", emojis: "🧀 🍰", styles: ["Excited"] },
     { text: "rocket", emojis: "🚀", styles: ["Excited"] },
   ]
-  expect(mergeKeywords(cldr, emojilib)).toEqual([
+  expect(mergeKeywords({ cldr, emojilib })).toEqual([
     { text: "cake", emojis: ["🍰"], styles: ["Joyful"], src: "cldr" },
     { text: "rocket", emojis: ["🚀"], styles: ["Excited"], src: "emojilib" },
     {
       text: "shared",
       emojis: ["🍕", "🍰", "🧀"],
       styles: ["Deadpan", "Excited"],
-      src: "both",
+      src: "cldr+emojilib",
     },
   ])
+})
+
+test("mergeKeywords tags src with every contributing source, sorted", () => {
+  const cldr = [{ text: "shared", emojis: "🍰", styles: [] }]
+  const emojilib = [{ text: "shared", emojis: "🧀", styles: [] }]
+  const wa = [{ text: "shared", emojis: "🚀", styles: [] }]
+  const [row] = mergeKeywords({ wa, emojilib, cldr })
+  expect(row.src).toBe("cldr+emojilib+wa")
 })
 
 test("mergeKeywords merges rows that only differ pre-normalization", () => {
   const cldr = [{ text: "Christmas", emojis: "🎄 🤶", styles: ["Joyful"] }]
   const emojilib = [{ text: "christmas", emojis: "❄️ 🌲", styles: ["Excited"] }]
-  expect(mergeKeywords(cldr, emojilib)).toEqual([
+  expect(mergeKeywords({ cldr, emojilib })).toEqual([
     {
       text: "christmas",
       emojis: ["❄️", "🌲", "🎄", "🤶"],
       styles: ["Joyful", "Excited"],
-      src: "both",
+      src: "cldr+emojilib",
     },
   ])
 })
@@ -44,16 +52,16 @@ test("mergeKeywords merges rows that only differ pre-normalization", () => {
 test("mergeKeywords picks a random palette from among the source(s) that had one", () => {
   const cldr = [{ text: "sun", emojis: "☀️", styles: [], ...P("#111111", "#222222", "#eeeeee") }]
   const emojilib = [{ text: "sun", emojis: "☀️", styles: [], ...P("#333333", "#444444", "#dddddd") }]
-  const first = mergeKeywords(cldr, emojilib, () => 0)[0]
+  const first = mergeKeywords({ cldr, emojilib }, () => 0)[0]
   expect(first.bg).toEqual(["#111111", "#222222"])
   expect(first.fg).toBe("#eeeeee")
-  const second = mergeKeywords(cldr, emojilib, () => 0.999)[0]
+  const second = mergeKeywords({ cldr, emojilib }, () => 0.999)[0]
   expect(second.bg).toEqual(["#333333", "#444444"])
   expect(second.fg).toBe("#dddddd")
 })
 
 test("mergeKeywords omits bg/fg when neither source had a palette", () => {
-  const out = mergeKeywords([{ text: "cake", emojis: "🍰", styles: [] }], [])
+  const out = mergeKeywords({ cldr: [{ text: "cake", emojis: "🍰", styles: [] }] })
   expect("bg" in out[0]).toBe(false)
   expect("fg" in out[0]).toBe(false)
 })
@@ -66,13 +74,12 @@ test("wordCount counts whitespace-separated words", () => {
 })
 
 test("splitKeywordsAndTerms routes single-word rows to keywords, everything else to terms", () => {
-  const merged = mergeKeywords(
-    [
+  const merged = mergeKeywords({
+    cldr: [
       { text: "cake", emojis: "🍰 🎂", styles: [] },
       { text: "jazz hands", emojis: "🙌", styles: [] },
     ],
-    [],
-  )
+  })
   const { keywords, terms } = splitKeywordsAndTerms(merged, new Set(["🍰", "🙌"]))
   expect(keywords.map((r) => r.text)).toEqual(["cake"])
   expect(keywords[0].emojis).toEqual(["🍰"])
@@ -80,35 +87,33 @@ test("splitKeywordsAndTerms routes single-word rows to keywords, everything else
 })
 
 test("splitKeywordsAndTerms drops rows with no in-vocab emoji", () => {
-  const merged = mergeKeywords([{ text: "cake", emojis: "🍰", styles: [] }], [])
+  const merged = mergeKeywords({ cldr: [{ text: "cake", emojis: "🍰", styles: [] }] })
   const { keywords, terms } = splitKeywordsAndTerms(merged, new Set(["🚀"]))
   expect(keywords).toEqual([])
   expect(terms).toEqual([])
 })
 
 test("splitKeywordsAndTerms normalizes text and drops rows shorter than 3 chars once normalized", () => {
-  const merged = mergeKeywords(
-    [
+  const merged = mergeKeywords({
+    cldr: [
       { text: "BACK Arrow", emojis: "🔙", styles: [] },
       { text: "24", emojis: "🏪", styles: [] },
       { text: "- -", emojis: "😑", styles: [] },
     ],
-    [],
-  )
+  })
   const { keywords, terms } = splitKeywordsAndTerms(merged, new Set(["🔙", "🏪", "😑"]))
   expect(terms.map((r) => r.text)).toEqual(["back arrow"])
   expect(keywords).toEqual([])
 })
 
 test("splitKeywordsAndTerms drops rows that are entirely flag emoji, single- or multi-word", () => {
-  const merged = mergeKeywords(
-    [
+  const merged = mergeKeywords({
+    cldr: [
       { text: "Japan", emojis: "🇯🇵", styles: [] },
       { text: "United States", emojis: "🇺🇸", styles: [] },
       { text: "cake", emojis: "🍰", styles: [] },
     ],
-    [],
-  )
+  })
   const { keywords, terms } = splitKeywordsAndTerms(
     merged,
     new Set(["🇯🇵", "🇺🇸", "🍰"]),

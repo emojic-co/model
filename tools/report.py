@@ -155,9 +155,9 @@ def _provenance(pt: Path):
     }
 
 
-def _length_distribution():
+def _length_distribution(path):
     lens = Counter()
-    for d in _rows(TRAIN_PATH):
+    for d in _rows(path):
         lens[len(norm_text(str(d.get("text", ""))))] += 1
     return sorted(lens.items(), key=lambda kv: kv[0], reverse=True)
 
@@ -169,7 +169,9 @@ def _section_data():
             "train": len(_rows(TRAIN_PATH)),
             "eval": len(_rows(EVAL_PATH)),
         },
-        "length_distribution": _length_distribution(),
+        "length_distribution": _length_distribution(TRAIN_PATH),
+        "keywords_length_distribution": _length_distribution(str(KEYWORDS_JSONL)),
+        "terms_length_distribution": _length_distribution(str(TERMS_JSONL)),
         "max_text_len": MAX_TEXT_LEN,
     }
 
@@ -1606,12 +1608,26 @@ def _data_html(d) -> str:
     dist = d["length_distribution"]
     maxv = max((v for _, v in dist), default=1)
     bars = _bars([[str(length), count] for length, count in dist], maxv, rotated=True)
+    kw_dist = d["keywords_length_distribution"]
+    kw_maxv = max((v for _, v in kw_dist), default=1)
+    kw_bars = _bars(
+        [[str(length), count] for length, count in kw_dist], kw_maxv, rotated=True
+    )
+    terms_dist = d["terms_length_distribution"]
+    terms_maxv = max((v for _, v in terms_dist), default=1)
+    terms_bars = _bars(
+        [[str(length), count] for length, count in terms_dist], terms_maxv, rotated=True
+    )
     mtl = d.get("max_text_len")
     mtl_html = f'<p class="note">MAX_TEXT_LEN = {mtl}</p>' if mtl is not None else ""
     return (
         f'<h2>Data</h2><div class="counts">{cells}</div>{mtl_html}'
         "<h3>Text length distribution — train.jsonl (normalized, longest first)</h3>"
         f"{bars}"
+        "<h3>Text length distribution — keywords.jsonl (normalized, longest first)</h3>"
+        f"{kw_bars}"
+        "<h3>Text length distribution — terms.jsonl (normalized, longest first)</h3>"
+        f"{terms_bars}"
     )
 
 
