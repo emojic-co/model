@@ -86,6 +86,16 @@ test("splitKeywordsAndTerms routes single-word rows to keywords, everything else
   expect(terms.map((r) => r.text)).toEqual(["jazz hands"])
 })
 
+test("splitKeywordsAndTerms always emits an empty styles list and no colors, even when merged rows carry them", () => {
+  const merged = mergeKeywords({
+    cldr: [{ text: "cake", emojis: "🍰", styles: ["Joyful"], ...P("#111111", "#222222", "#eeeeee") }],
+    emojilib: [{ text: "jazz hands", emojis: "🙌", styles: ["Excited"] }],
+  })
+  const { keywords, terms } = splitKeywordsAndTerms(merged, new Set(["🍰", "🙌"]))
+  expect(keywords).toEqual([{ text: "cake", emojis: ["🍰"], styles: [], src: "cldr" }])
+  expect(terms).toEqual([{ text: "jazz hands", emojis: ["🙌"], styles: [], src: "emojilib" }])
+})
+
 test("splitKeywordsAndTerms drops rows with no in-vocab emoji", () => {
   const merged = mergeKeywords({ cldr: [{ text: "cake", emojis: "🍰", styles: [] }] })
   const { keywords, terms } = splitKeywordsAndTerms(merged, new Set(["🚀"]))

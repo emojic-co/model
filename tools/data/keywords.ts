@@ -87,7 +87,7 @@ export function splitKeywordsAndTerms(
     if (!emojis.length) continue
     if (r.text.length < 3) continue
     if (emojis.every(isFlagEmoji)) continue
-    const rec = { ...r, emojis }
+    const rec: MergedRow = { text: r.text, emojis, styles: [], src: r.src }
     ;(wordCount(r.text) === 1 ? keywords : terms).push(rec)
   }
   return { keywords, terms }
