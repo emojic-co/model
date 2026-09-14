@@ -85,18 +85,12 @@ class record:
     text: str
     emojis: list[str]
     styles: list[str]
-    colors: list[str]
+    colors: list[str] | None
 
 
 def _parse_record(d: dict) -> record | None:
     match d:
-        case {
-            "text": text,
-            "emojis": emojis,
-            "styles": styles,
-            'bg': bg,
-            'fg': fg
-        }:
+        case {"text": text, "emojis": emojis, "styles": styles}:
             text = normalize(text)
 
             if not text or len(text) > MAX_TEXT_LEN:
@@ -105,10 +99,11 @@ def _parse_record(d: dict) -> record | None:
             emojis = [e for e in emojis.split() if e in emoji2idx]
             styles = [s for s in styles if s in style2idx]
 
-            if not styles:
-                return None
+            bg = d.get("bg")
+            fg = d.get("fg")
+            colors = [*bg, fg] if bg and fg else None
 
-            return record(text, emojis, styles, [*bg, fg])
+            return record(text, emojis, styles, colors)
     return None
 
 
@@ -146,7 +141,7 @@ def _load_pool(path: str) -> _Pool | None:
         torch.stack([text_to_tensor(r.text) for r in recs]),
         [r.emojis for r in recs],
         torch.stack([styles_to_tensor(r.styles) for r in recs]),
-        torch.stack([colors2tensor(r.colors) for r in recs]),
+        torch.zeros(len(recs), COLOR_DIM),
     )
 
 
@@ -173,7 +168,9 @@ class EmojiDataset(Dataset):
         self.text = torch.stack([text_to_tensor(r.text) for r in records])
         self.emoji_lists = [r.emojis for r in records]
         self.style = torch.stack([styles_to_tensor(r.styles) for r in records])
-        self.colors = torch.stack([colors2tensor(r.colors) for r in records])
+        self.colors = torch.stack([
+            colors2tensor(r.colors) for r in records])  # type: ignore
+
         self.rates = (
             SamplingRates(list(SAMPLING_SOURCES), SAMPLING_BASE_RATE)
             if mix_sources
@@ -206,8 +203,8 @@ class EmojiDataset(Dataset):
         )
 
 
-def train_ds():
-    return EmojiDataset(list(read(TRAIN_PATH)), mix_sources=True)
+def train_ds(mix_sources: bool = True):
+    return EmojiDataset(list(read(TRAIN_PATH)), mix_sources=mix_sources)
 
 
 PIN_MEMORY = torch.cuda.is_available()
@@ -235,9 +232,9 @@ def train_data_loader(
     )
 
 
-def eval_data_loader():
+def eval_data_loader(mix_sources: bool = True):
     return DataLoader(
-        EmojiDataset(list(read(EVAL_PATH)), mix_sources=True),
+        EmojiDataset(list(read(EVAL_PATH)), mix_sources=mix_sources),
         batch_size=2000,
         shuffle=False,
         drop_last=False,

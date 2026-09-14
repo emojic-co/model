@@ -277,22 +277,29 @@ class LitEncoder(pl.LightningModule):
                         )
 
         if "critic" in self.heads:
-            shift = 1 if split == "val" else int(torch.randint(1, bs, (1,)).item())
-            neg_colors = colors.roll(shift, dims=0)
-            _, pos = self.critic(enc, colors)
-            _, neg = self.critic(enc, neg_colors)
-            loss_critic = binary_cross_entropy_with_logits(
-                pos, torch.ones_like(pos)
-            ) + binary_cross_entropy_with_logits(neg, torch.zeros_like(neg))
-            loss = loss + loss_critic
-            self._log(f"loss/critic/{split}", loss_critic, bs)
-            pos_buf, neg_buf = (
-                (self._val_pos, self._val_neg)
-                if split == "val"
-                else (self._trn_pos, self._trn_neg)
+            has_color = torch.tensor(
+                [s not in SAMPLING_SOURCES for s in source], device=enc.device
             )
-            pos_buf.append(pos.detach().flatten())
-            neg_buf.append(neg.detach().flatten())
+            n_color = int(has_color.sum())
+            if n_color > 1:
+                c_enc = enc[has_color]
+                c_colors = colors[has_color]
+                shift = 1 if split == "val" else int(torch.randint(1, n_color, (1,)).item())
+                neg_colors = c_colors.roll(shift, dims=0)
+                _, pos = self.critic(c_enc, c_colors)
+                _, neg = self.critic(c_enc, neg_colors)
+                loss_critic = binary_cross_entropy_with_logits(
+                    pos, torch.ones_like(pos)
+                ) + binary_cross_entropy_with_logits(neg, torch.zeros_like(neg))
+                loss = loss + loss_critic
+                self._log(f"loss/critic/{split}", loss_critic, n_color)
+                pos_buf, neg_buf = (
+                    (self._val_pos, self._val_neg)
+                    if split == "val"
+                    else (self._trn_pos, self._trn_neg)
+                )
+                pos_buf.append(pos.detach().flatten())
+                neg_buf.append(neg.detach().flatten())
 
         return loss
 
@@ -590,7 +597,7 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
 def _train_gan(
     enc: TextEncoder, critic: ColorCritic, ds, out_dir: Path
 ) -> LitColorGAN:
-    val_dl = eval_data_loader()
+    val_dl = eval_data_loader(mix_sources=False)
     no_bar = _no_progress_bar()
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
@@ -668,7 +675,7 @@ def _run_local(
         )
         enc = _load(TextEncoder(), str(pt_dir / "enc.pt"))
         critic = _load(ColorCritic(), str(pt_dir / "critic.pt"))
-        _train_gan(enc, critic, train_ds(), out_dir)  # type: ignore
+        _train_gan(enc, critic, train_ds(mix_sources=False), out_dir)  # type: ignore
         if out_dir == _DEFAULT_PT:
             export()
         if not skip_report:
@@ -685,7 +692,7 @@ def _run_local(
         return
 
     critic = _load(ColorCritic(), str(out_dir / "critic.pt"))
-    _train_gan(mod.enc, critic, ds, out_dir)  # type: ignore
+    _train_gan(mod.enc, critic, train_ds(mix_sources=False), out_dir)  # type: ignore
     if out_dir == _DEFAULT_PT:
         export()
     if not skip_report:
