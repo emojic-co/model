@@ -3,61 +3,9 @@ import { expect, test } from "bun:test"
 import {
   colorBatchPlan,
   countEmojis,
-  mergeEmojiAdditions,
-  parseFlagLabels,
-  parseKeywords,
-  parseKeywordTargets,
-  rankWindow,
-  rareEmojis,
-  reannotateTexts,
-  reannotatedKeys,
-  singleEmojiTexts,
-  weightedMedian,
+  groupDeficits,
+  rankMissingByFreq,
 } from "./upsample.ts"
-
-test("parseKeywords trims, drops empties, and dedupes while preserving order", () => {
-  expect(parseKeywords("rain, snow ,  , sunshine, rain")).toEqual([
-    "rain",
-    "snow",
-    "sunshine",
-  ])
-  expect(parseKeywords("  ,, ")).toEqual([])
-  expect(parseKeywords("dog walk")).toEqual(["dog walk"])
-})
-
-test("parseKeywordTargets parses an optional =emoji target, trims, dedupes", () => {
-  expect(parseKeywordTargets("hammer=🛠️, memo = 📝 , pet")).toEqual([
-    { keyword: "hammer", target: "🛠️" },
-    { keyword: "memo", target: "📝" },
-    { keyword: "pet" },
-  ])
-  expect(parseKeywordTargets("rain, rain=🌧️")).toEqual([{ keyword: "rain" }])
-  expect(parseKeywordTargets("  ,, ")).toEqual([])
-})
-
-test("parseFlagLabels keeps only 'flag: X' entries, strips the prefix, preserves order", () => {
-  const entries = [
-    { emoji: "🏁", label: "chequered flag" },
-    { emoji: "🇦🇪", label: "flag: United Arab Emirates" },
-    { emoji: "🏳️‍🌈", label: "rainbow flag" },
-    { emoji: "🇯🇵", label: "flag: Japan" },
-    { emoji: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", label: "flag: Wales" },
-  ]
-  expect(parseFlagLabels(entries)).toEqual([
-    { emoji: "🇦🇪", country: "United Arab Emirates" },
-    { emoji: "🇯🇵", country: "Japan" },
-    { emoji: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", country: "Wales" },
-  ])
-})
-
-test("parseFlagLabels drops entries with an empty country or a missing emoji", () => {
-  const entries = [
-    { emoji: "🇯🇵", label: "flag: Japan" },
-    { emoji: "🇽🇽", label: "flag:   " },
-    { emoji: "", label: "flag: Nowhere" },
-  ]
-  expect(parseFlagLabels(entries)).toEqual([{ emoji: "🇯🇵", country: "Japan" }])
-})
 
 test("colorBatchPlan splits each colour's per-colour total into batches of at most batchSize", () => {
   const plan = colorBatchPlan(["red", "blue"], 100, 40)
@@ -97,159 +45,59 @@ test("countEmojis counts distinct emojis per row over all of data, not just a vo
   expect(counts.has("🎂")).toBe(false)
 })
 
-test("rankWindow returns keys ranked [minRank, maxRank] by count desc, ties broken by first-seen order", () => {
+test("groupDeficits skips groups without a goals.yml target or already at/above it", () => {
+  const groups = { a: ["1", "2", "3", "4"], b: ["5", "6"] }
+  const vocab = ["1", "2", "5", "6"]
+  const targets = { a: 0.5, c: 1 }
+  expect(groupDeficits(groups, vocab, targets)).toEqual([])
+})
+
+test("groupDeficits reports the missing count needed to reach the goal fraction", () => {
+  const groups = { a: ["1", "2", "3", "4"] }
+  const vocab = ["1"]
+  const targets = { a: 0.75 }
+  // covered=1/4=0.25, need >=0.75 -> ceil(0.75*4 - 1) = 2 more
+  expect(groupDeficits(groups, vocab, targets)).toEqual([
+    { name: "a", needed: 2, missing: ["2", "3", "4"] },
+  ])
+})
+
+test("groupDeficits caps needed at the number of missing candidates", () => {
+  const groups = { a: ["1", "2"] }
+  const vocab: string[] = []
+  const targets = { a: 1 }
+  expect(groupDeficits(groups, vocab, targets)).toEqual([
+    { name: "a", needed: 2, missing: ["1", "2"] },
+  ])
+})
+
+test("groupDeficits matches vocab and members ignoring variation selectors", () => {
+  const groups = { a: ["😐️", "😑"] }
+  const vocab = ["😐"]
+  const targets = { a: 1 }
+  expect(groupDeficits(groups, vocab, targets)).toEqual([
+    { name: "a", needed: 1, missing: ["😑"] },
+  ])
+})
+
+test("rankMissingByFreq ranks by frequency desc, ties broken deterministically by seed", () => {
   const counts = new Map([
-    ["a", 5],
-    ["b", 0],
-    ["c", 2],
-    ["d", 0],
-    ["e", 10],
+    ["🍎", 5],
+    ["🍌", 20],
   ])
-  expect(rankWindow(counts, 1, 1)).toEqual(["e"])
-  expect(rankWindow(counts, 2, 4)).toEqual(["a", "c", "b"])
-  expect(rankWindow(counts, 4, 5)).toEqual(["b", "d"])
+  expect(rankMissingByFreq(["🍎", "🍌", "🍇"], counts)).toEqual(["🍌", "🍎", "🍇"])
 })
 
-test("rareEmojis returns the rarest first, drops emoji below minFreq, ties by first-seen, capped at maxCount", () => {
-  const counts = new Map([
-    ["a", 5],
-    ["b", 100],
-    ["c", 20],
-    ["d", 20],
-    ["e", 3],
-  ])
-  expect(rareEmojis(counts, 10, 10)).toEqual(["c", "d", "b"])
-  expect(rareEmojis(counts, 10, 2)).toEqual(["c", "d"])
-  expect(rareEmojis(counts, 0, 3)).toEqual(["e", "a", "c"])
-  expect(rareEmojis(counts, 200, 10)).toEqual([])
+test("rankMissingByFreq treats emoji absent from counts as freq 0", () => {
+  const counts = new Map([["🍎", 5]])
+  const ranked = rankMissingByFreq(["🍇", "🍎", "🥝"], counts)
+  expect(ranked[0]).toBe("🍎")
+  expect(new Set(ranked.slice(1))).toEqual(new Set(["🍇", "🥝"]))
 })
 
-test("weightedMedian returns the lower median length of a [length, count] distribution", () => {
-  expect(weightedMedian([[10, 1], [20, 1], [30, 1]])).toBe(20)
-  expect(weightedMedian([[10, 2], [20, 2]])).toBe(10)
-  expect(weightedMedian([[5, 3], [9, 1]])).toBe(5)
-  expect(weightedMedian([[42, 7]])).toBe(42)
-  expect(weightedMedian([[30, 5], [20, 5], [40, 1]])).toBe(30)
-})
-
-test("weightedMedian throws on an empty or zero-count distribution", () => {
-  expect(() => weightedMedian([])).toThrow()
-  expect(() => weightedMedian([[10, 0]])).toThrow()
-})
-
-test("singleEmojiTexts keeps rows with a unique normalized text and at most one emoji", () => {
-  const rows = [
-    { text: "walking the dog", emojis: "🐕" },
-    { text: "  Walking  the DOG  ", emojis: "🚶" },
-    { text: "made pizza tonight", emojis: "🍕" },
-    { text: "no emoji here", emojis: "" },
-    { text: "two of them", emojis: "🍕 🚗" },
-    { text: "same one twice", emojis: "😀 😀" },
-    { text: "made pizza tonight", emojis: "🔥" },
-  ]
-  expect(singleEmojiTexts(rows, 100)).toEqual(["no emoji here", "same one twice"])
-})
-
-test("singleEmojiTexts: zero-emoji rows still need a unique normalized text", () => {
-  const rows = [
-    { text: "solo blank", emojis: "" },
-    { text: "dup blank", emojis: "" },
-    { text: "Dup  Blank", emojis: "🍕" },
-  ]
-  expect(singleEmojiTexts(rows, 100)).toEqual(["solo blank"])
-})
-
-test("singleEmojiTexts: collisions drop every colliding row, count caps in file order", () => {
-  const rows = [
-    { text: "alpha", emojis: "🍎" },
-    { text: "beta", emojis: "🍌" },
-    { text: "gamma", emojis: "🍇" },
-    { text: "beta", emojis: "🐝 🐝 🍯" },
-    { text: "delta", emojis: "🥝" },
-  ]
-  expect(singleEmojiTexts(rows, 2)).toEqual(["alpha", "gamma"])
-  expect(singleEmojiTexts(rows, 100)).toEqual(["alpha", "gamma", "delta"])
-})
-
-test("singleEmojiTexts ignores rows with missing or non-string fields", () => {
-  const rows = [
-    { text: "keep me", emojis: "✅" },
-    { emojis: "❌" },
-    { text: "no emojis key" },
-    { text: 5 as unknown as string, emojis: "🔢" },
-    { text: "   ", emojis: "🌫️" },
-  ]
-  expect(singleEmojiTexts(rows, 100)).toEqual(["keep me"])
-})
-
-test("reannotateTexts samples rows with a palette, skips dups, palette-less, and already-done keys", () => {
-  const rows = [
-    { text: "alpha one", emojis: "🅰️", styles: ["Serene"], bg: ["#111111", "#222222"], fg: "#eeeeee" },
-    { text: "beta two", emojis: "🅱️", styles: ["Tense"], bg: ["#333333", "#444444"], fg: "#dddddd" },
-    { text: "  Alpha  One ", emojis: "🔤", styles: [], bg: ["#555555", "#666666"], fg: "#cccccc" },
-    { text: "gamma three", emojis: "", styles: ["Deadpan"], bg: ["#777777", "#888888"], fg: "#bbbbbb", reannotated: "colors" },
-    { text: "gamma three", emojis: "", styles: ["Deadpan"], bg: ["#777777", "#888888"], fg: "#bbbbbb" },
-    { text: "delta four", emojis: "🔺", styles: ["Playful"] },
-    { text: "epsilon five", emojis: "5️⃣", styles: ["Wry"], bg: ["#999999", "#aaaaaa"], fg: "#000000" },
-  ]
-  const out = reannotateTexts(rows, 10)
-  expect(out.map((r) => r.text).sort()).toEqual(["alpha one", "beta two", "epsilon five"])
-  const alpha = out.find((r) => r.text === "alpha one")!
-  expect(alpha.emojis).toBe("🅰️")
-  expect(alpha.styles).toEqual(["Serene"])
-  expect(alpha.bg).toEqual(["#111111", "#222222"])
-  expect(alpha.fg).toBe("#eeeeee")
-})
-
-test("reannotatedKeys collects normalized keys for rows carrying the named marker field", () => {
-  const rows = [
-    { text: "Alpha  One", reannotated: "colors" },
-    { text: "beta two", remojis: ["🎉"] },
-    { text: "gamma three" },
-    { text: "delta four", remojis: [] },
-    { text: 7 as unknown as string, reannotated: "colors" },
-  ]
-  expect([...reannotatedKeys(rows, "reannotated")].sort()).toEqual(["alpha one"])
-  expect([...reannotatedKeys(rows, "remojis")].sort()).toEqual([
-    "beta two",
-    "delta four",
-  ])
-})
-
-test("reannotateTexts with the remojis marker skips only remojis rows, not colors ones", () => {
-  const rows = [
-    { text: "alpha one", emojis: "🅰️", styles: ["Serene"], bg: ["#111111", "#222222"], fg: "#eeeeee", reannotated: "colors" },
-    { text: "beta two", emojis: "🅱️", styles: ["Tense"], bg: ["#333333", "#444444"], fg: "#dddddd", remojis: ["📞"] },
-    { text: "beta two", emojis: "🅱️", styles: ["Tense"], bg: ["#333333", "#444444"], fg: "#dddddd" },
-  ]
-  expect(reannotateTexts(rows, 10, "remojis").map((r) => r.text)).toEqual([
-    "alpha one",
-  ])
-  expect(reannotateTexts(rows, 10, "reannotated").map((r) => r.text)).toEqual([
-    "beta two",
-  ])
-})
-
-test("mergeEmojiAdditions drops already-present, unrecognized, and duplicate emojis, keeping order", () => {
-  expect(mergeEmojiAdditions("🅰️ 🎉", ["🎉", "🍰", "hello", "🍰", "🚗"])).toEqual([
-    "🍰",
-    "🚗",
-  ])
-  expect(mergeEmojiAdditions("", [])).toEqual([])
-  expect(mergeEmojiAdditions("🍰", ["🍰"])).toEqual([])
-})
-
-test("reannotateTexts caps at count after a deterministic seeded shuffle", () => {
-  const rows = Array.from({ length: 20 }, (_, i) => ({
-    text: `row number ${i}`,
-    emojis: "",
-    styles: ["Serene"],
-    bg: ["#111111", "#222222"],
-    fg: "#eeeeee",
-  }))
-  const a = reannotateTexts(rows, 5)
-  const b = reannotateTexts(rows, 5)
+test("rankMissingByFreq is stable for a fixed seed", () => {
+  const counts = new Map<string, number>()
+  const a = rankMissingByFreq(["🍇", "🥝", "🍉"], counts, 1)
+  const b = rankMissingByFreq(["🍇", "🥝", "🍉"], counts, 1)
   expect(a).toEqual(b)
-  expect(a).toHaveLength(5)
-  expect(new Set(a.map((r) => r.text)).size).toBe(5)
 })
