@@ -14,6 +14,7 @@
     "extract-colors": "bun run tools/data/extract-colors.ts",
     "preview": "bun run tools/preview.ts",
     "show-labels": "bun run tools/data/show-labels.ts",
+    "emoji-coverage": "bun run tools/analysis/emoji-coverage.ts",
     "serve": "live-server docs --port=8000",
     "web": "cd web && bun install && bun run dev",
     "web:build": "cd web && bun install && bun run build",
@@ -26,6 +27,7 @@
     "emojilib": "^4.0.3",
     "onnxruntime-web": "^1.29.0",
     "p-queue": "^9.3.3",
+    "yaml": "^2.9.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {

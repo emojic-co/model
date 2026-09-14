@@ -1,20 +1,6 @@
-It seems like there is junk in our data, e.g.:
+Done:
 
-🇲🇳
-how do you say hello again?
+create a tool tools/analysis/emoji-coverage.ts
 
-🇦🇷
-tengo reunin a las tres hora art
-
-🇵🇫
-je regarde les pirogues larrive
-
-🛍️
-dukaanka ayaan ka imid
-
-🗣️
-japprends quelques mots soussou
-
-
-These are 5 out of a random sample of size 40, i.e. 12.5% of the sample.
-What can we do about it?
+The tool reads the `goals.yml`, `data/groups.json` and the data/labels.json files and generates a file `emoji-coverage.html`
+That list all the emojis by groups and their current coverage.
