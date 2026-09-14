@@ -49,6 +49,14 @@ function loadImage(src) {
   })
 }
 
+function scaledTile(img, w, h) {
+  const tile = document.createElement('canvas')
+  tile.width = Math.max(1, Math.round(w))
+  tile.height = Math.max(1, Math.round(h))
+  tile.getContext('2d').drawImage(img, 0, 0, tile.width, tile.height)
+  return tile
+}
+
 async function render({ text, emoji, feeling, feelingScores, styles, colors }) {
   const stack = resolveFeeling(feeling).font
   const st = resolveFeeling(feeling).style
@@ -72,8 +80,9 @@ async function render({ text, emoji, feeling, feelingScores, styles, colors }) {
 
   const layers = patternLayers(feeling, feelingScores, styles, patternTint(colors.bg1, colors.bg2))
   for (const layer of layers) {
-    const img = await loadImage(patternUrl(layer))
-    ctx.fillStyle = ctx.createPattern(img, 'repeat')
+    const img = await loadImage(patternUrl(layer.image))
+    const tile = scaledTile(img, layer.w * S, layer.h * S)
+    ctx.fillStyle = ctx.createPattern(tile, 'repeat')
     ctx.fillRect(0, 0, S, S)
   }
 

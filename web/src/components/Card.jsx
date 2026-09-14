@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useFitText } from '../hooks/useFitText'
 import { resolveFeeling } from '../feelings'
 import { contrastRatio, patternTint } from '../model'
-import { patternLayers } from '../patterns'
+import { patternLayers, patternSizeCss } from '../patterns'
 
 function watermarkInk(bg) {
   return contrastRatio('#000000', bg) >= contrastRatio('#ffffff', bg) ? '#000000' : '#ffffff'
@@ -32,15 +32,19 @@ export function Card({ text, emoji, feeling, feelingScores, styles, colors, onCo
   const r = shown.feeling ? resolveFeeling(shown.feeling) : null
   const style =
     colors && r
-      ? {
-          backgroundImage: [
-            ...patternLayers(shown.feeling, feelingScores, styles, patternTint(colors.bg1, colors.bg2)),
-            `linear-gradient(135deg, ${colors.bg1}, ${colors.bg2})`,
-          ].join(', '),
-          color: colors.text_color,
-          fontFamily: r.font,
-          ...r.vars,
-        }
+      ? (() => {
+          const layers = patternLayers(shown.feeling, feelingScores, styles, patternTint(colors.bg1, colors.bg2))
+          return {
+            backgroundImage: [
+              ...layers.map((l) => l.image),
+              `linear-gradient(135deg, ${colors.bg1}, ${colors.bg2})`,
+            ].join(', '),
+            backgroundSize: [...patternSizeCss(layers), 'auto'].join(', '),
+            color: colors.text_color,
+            fontFamily: r.font,
+            ...r.vars,
+          }
+        })()
       : undefined
 
   return (
