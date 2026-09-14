@@ -334,44 +334,68 @@ _BLOCK_CAPACITY_SOURCES = [
 ]
 
 
-def _section_block_capacity(enc, emoji_head) -> dict:
-    if enc is None or emoji_head is None:
+def _section_style_dist(enc, style_head, eval_records) -> dict:
+    rows = [r for r in eval_records if r.styles]
+    if enc is None or style_head is None or not rows:
         return {}
-    weight = emoji_head.net[1].weight
+    texts = torch.stack([text_to_tensor(r.text) for r in rows])
+    with torch.no_grad():
+        logits = style_head(enc(texts))
+    pred_counts = Counter(STYLES[i] for i in logits.argmax(dim=-1).tolist())
+    gt_counts = Counter(s for r in rows for s in r.styles)
+    n = len(rows)
+    dist = [
+        {"style": s, "gt": gt_counts.get(s, 0) / n, "pred": pred_counts.get(s, 0) / n}
+        for s in STYLES
+    ]
+    dist.sort(key=lambda d: d["gt"], reverse=True)
+    return {"n": n, "dist": dist}
+
+
+def _section_block_capacity(enc, heads: dict) -> dict:
+    if enc is None:
+        return {}
     ends = list(accumulate(ENCODER_CHANNELS))
     bounds = list(zip([0, *ends[:-1]], ends, strict=True))
-    rows = []
+    out = {}
     with torch.no_grad():
-        for source, path in _BLOCK_CAPACITY_SOURCES:
-            texts = [r.text for r in read(path)]
-            if not texts:
+        for head_name, head in heads.items():
+            if head is None:
                 continue
-            emb = enc(torch.stack([text_to_tensor(t) for t in texts]))
-            q_norm = (emb @ weight.t()).norm(dim=-1).clamp_min(1e-12)
-            for i, ((start, end), d) in enumerate(
-                zip(bounds, ENCODER_DILATION, strict=True)
-            ):
-                w_slice = weight[:, start:end]
-                a_slice = emb[:, start:end]
-                col_norms = w_slice.norm(dim=0)
-                contrib_norm = (a_slice @ w_slice.t()).norm(dim=-1)
-                rows.append(
-                    {
-                        "source": source,
-                        "n": len(texts),
-                        "block": i,
-                        "range": f"{start}:{end}",
-                        "dilation": d,
-                        "w_norm_mean": col_norms.mean().item(),
-                        "w_norm_max": col_norms.max().item(),
-                        "act_rms": (a_slice.norm(dim=-1) / (end - start) ** 0.5)
-                        .mean()
-                        .item(),
-                        "contrib_norm": contrib_norm.mean().item(),
-                        "contrib_pct": (100 * contrib_norm / q_norm).mean().item(),
-                    }
-                )
-    return {"rows": rows}
+            weight = head.net[1].weight
+            rows = []
+            for source, path in _BLOCK_CAPACITY_SOURCES:
+                texts = [r.text for r in read(path)]
+                if not texts:
+                    continue
+                emb = enc(torch.stack([text_to_tensor(t) for t in texts]))
+                q_norm = (emb @ weight.t()).norm(dim=-1).clamp_min(1e-12)
+                for i, ((start, end), d) in enumerate(
+                    zip(bounds, ENCODER_DILATION, strict=True)
+                ):
+                    w_slice = weight[:, start:end]
+                    a_slice = emb[:, start:end]
+                    col_norms = w_slice.norm(dim=0)
+                    contrib_norm = (a_slice @ w_slice.t()).norm(dim=-1)
+                    rows.append(
+                        {
+                            "source": source,
+                            "n": len(texts),
+                            "block": i,
+                            "range": f"{start}:{end}",
+                            "dilation": d,
+                            "w_norm_mean": col_norms.mean().item(),
+                            "w_norm_max": col_norms.max().item(),
+                            "act_rms": (a_slice.norm(dim=-1) / (end - start) ** 0.5)
+                            .mean()
+                            .item(),
+                            "contrib_norm": contrib_norm.mean().item(),
+                            "contrib_pct": (100 * contrib_norm / q_norm).mean().item(),
+                        }
+                    )
+            if rows:
+                out[head_name] = {"rows": rows}
+    return out
 
 
 @cache
@@ -1103,6 +1127,7 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         "keyword_fails",
         "keyword",
         "cards",
+        "style_dist",
         "block_capacity",
         "length_acc",
         "eval_samples",
@@ -1119,6 +1144,7 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
             "cards",
             "keywords_flex",
             "keyword_fails",
+            "style_dist",
             "block_capacity",
             "length_acc",
         }
@@ -1132,19 +1158,21 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         emoji_head, err = _load(EmojiHead(), emoji_pt)
         if err:
             prov["issues"].append(f"{emoji_pt} could not load: {err}")
-    if "cards" in want and enc is not None:
+    if enc is not None and {"cards", "style_dist", "block_capacity"} & want:
         if style_pt.exists():
             style_head, err = _load(StyleHead(), style_pt)
             if err:
                 prov["issues"].append(f"{style_pt} could not load: {err}")
-        if gen_pt.exists():
-            gen, err = _load(ColorGen(), gen_pt)
-            if err:
-                prov["issues"].append(f"{gen_pt} could not load: {err}")
+    if "cards" in want and enc is not None and gen_pt.exists():
+        gen, err = _load(ColorGen(), gen_pt)
+        if err:
+            prov["issues"].append(f"{gen_pt} could not load: {err}")
     prov["consistent"] = not prov["issues"]
 
     eval_records = (
-        list(read(EVAL_PATH)) if {"emoji", "length_acc", "eval_samples"} & want else []
+        list(read(EVAL_PATH))
+        if {"emoji", "style_dist", "length_acc", "eval_samples"} & want
+        else []
     )
     gold_rows = _gold_rows() if "cards" in want else ()
 
@@ -1167,8 +1195,12 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         report["term"] = _section_term_probe(enc, emoji_head)
     if "cards" in want:
         report["cards"] = _section_cards(enc, style_head, emoji_head, gen, gold_rows)
+    if "style_dist" in want:
+        report["style_dist"] = _section_style_dist(enc, style_head, eval_records)
     if "block_capacity" in want:
-        report["block_capacity"] = _section_block_capacity(enc, emoji_head)
+        report["block_capacity"] = _section_block_capacity(
+            enc, {"EmojiHead": emoji_head, "StyleHead": style_head}
+        )
     if "length_acc" in want:
         report["length_acc"] = _section_length_acc(enc, emoji_head, eval_records)
     if "eval_samples" in want:
@@ -1743,13 +1775,35 @@ def _cards_html(d) -> str:
     return "".join(out)
 
 
-def _block_capacity_html(d) -> str:
-    if not d or not d.get("rows"):
+def _style_dist_html(d) -> str:
+    if not d or not d.get("dist"):
         return (
-            "<h2>Model — Encoder block capacity</h2>"
-            '<p class="note">Unavailable — needs enc.pt / emoji.pt and data from '
-            "data/keywords.jsonl, data/terms.jsonl, data/eval.jsonl.</p>"
+            "<h2>Model — Style prediction distribution</h2>"
+            '<p class="note">Unavailable — needs enc.pt / style.pt and a '
+            "non-empty data/eval.jsonl.</p>"
         )
+    trows = "".join(
+        f"<tr><td>{_esc(r['style'])}</td>"
+        f'<td class="n">{r["gt"]:.1%}</td>'
+        f'<td class="n">{r["pred"]:.1%}</td>'
+        f'<td class="n">{r["pred"] - r["gt"]:+.1%}</td></tr>'
+        for r in d["dist"]
+    )
+    return (
+        "<h2>Model — Style prediction distribution</h2>"
+        f'<p class="note">Top-1 StyleHead prediction distribution vs. ground '
+        f"truth style label distribution across {d['n']} rows of "
+        "data/eval.jsonl. GT is multi-label per row so its column can sum "
+        "above 100%; predicted is single-label (argmax) and always sums to "
+        "100%.</p>"
+        '<table><tr><th>Style</th><th class="n">GT %</th>'
+        '<th class="n">Predicted %</th><th class="n">&Delta;</th></tr>'
+        + trows
+        + "</table>"
+    )
+
+
+def _block_capacity_table(rows) -> str:
     trows = "".join(
         f"<tr><td>{_esc(r['source'])}</td><td class=\"n\">{r['n']}</td>"
         f'<td class="n">{r["block"]}</td><td class="n">{_esc(r["range"])}</td>'
@@ -1759,22 +1813,43 @@ def _block_capacity_html(d) -> str:
         f'<td class="n">{r["act_rms"]:.3f}</td>'
         f'<td class="n">{r["contrib_norm"]:.3f}</td>'
         f'<td class="n">{r["contrib_pct"]:.1f}%</td></tr>'
-        for r in d["rows"]
+        for r in rows
     )
     return (
-        "<h2>Model — Encoder block capacity</h2>"
-        '<p class="note">Per-block EmojiHead weight column-norms and each '
-        "block's actual contribution to the emoji embedding, averaged over "
-        "every sample in keywords/terms/eval — see "
-        "<code>tools/block_capacity.py</code>. Activation RMS/ch is the "
-        "per-block activation norm divided by sqrt(channel count), so it's "
-        "comparable across blocks with different channel widths.</p>"
         "<table><tr><th>Source</th><th class=\"n\">N</th><th class=\"n\">Block</th>"
         '<th class="n">Channels</th><th class="n">Dilation</th>'
         '<th class="n">W col-norm mean</th><th class="n">W col-norm max</th>'
         '<th class="n">Activation RMS/ch</th><th class="n">Contribution norm</th>'
         '<th class="n">Contribution %</th></tr>' + trows + "</table>"
     )
+
+
+def _block_capacity_html(d) -> str:
+    if not d or not any(v.get("rows") for v in d.values()):
+        return (
+            "<h2>Model — Encoder block capacity</h2>"
+            '<p class="note">Unavailable — needs enc.pt / emoji.pt / style.pt '
+            "and data from data/keywords.jsonl, data/terms.jsonl, "
+            "data/eval.jsonl.</p>"
+        )
+    out = [
+        "<h2>Model — Encoder block capacity</h2>",
+        '<p class="note">Per-block head weight column-norms and each '
+        "block's actual contribution to that head's output embedding, "
+        "averaged over every sample in keywords/terms/eval — see "
+        "<code>tools/block_capacity.py</code>. Activation RMS/ch is the "
+        "per-block activation norm divided by sqrt(channel count), so it's "
+        "comparable across blocks with different channel widths.</p>",
+    ]
+    for head_name in ("EmojiHead", "StyleHead"):
+        rows = (d.get(head_name) or {}).get("rows")
+        out.append(f"<h3>{_esc(head_name)}</h3>")
+        out.append(
+            _block_capacity_table(rows)
+            if rows
+            else '<p class="note">Unavailable for this head.</p>'
+        )
+    return "".join(out)
 
 
 def _length_acc_html(d) -> str:
@@ -1870,6 +1945,8 @@ def _render_html(report) -> str:
     body = [_header_html(report)]
     if "status" in report:
         body.append(_status_html(report["status"]))
+    if "style_dist" in report:
+        body.append(_style_dist_html(report["style_dist"]))
     if "block_capacity" in report:
         body.append(_block_capacity_html(report["block_capacity"]))
     if "eval_samples" in report:
