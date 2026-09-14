@@ -304,7 +304,7 @@ def _words_from(path) -> dict[str, list[str]]:
     words: dict[str, list[str]] = {}
     for d in _rows(str(path)):
         text = str(d.get("text", ""))
-        if not text:
+        if not text or len(norm_text(text)) > MAX_TEXT_LEN:
             continue
         targets = words.setdefault(text, [])
         for e in str(d.get("emojis", "")).split():
