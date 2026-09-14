@@ -27,39 +27,40 @@ EMOJI_COUNT = len(EMOJIS)
 MAX_TEXT_LEN = 42
 
 # ENCODER
-CHAR_EMBED_SIZE = 20
 ENCODER_KERNEL_SIZE = 3
+
 
 assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
 ENCODER_CHANNELS = [120, 180, 140, 90]
 ENCODER_DILATION = [1, 2, 4, 8]
-TEXT_EMBED_SIZE = sum(ENCODER_CHANNELS)
+
+# EMBEDDING
+EMBED_SIZE_CHAR = 20
+EMBED_SIZE_TEXT = sum(ENCODER_CHANNELS)
+EMBED_SIZE_EMOJI = 60
+EMBED_SIZE_STYLE = 20
+
+# DROPOUT
+DROPOUT_EMOJI = 0.15
+DROPOUT_STYLE = 0.4
 
 assert len(ENCODER_CHANNELS) == len(ENCODER_DILATION), \
     "encoder channels and dilation must have the same length"
 
 enc_str = " ".join([
     str(p) for p in (
-        CHAR_EMBED_SIZE,
+        EMBED_SIZE_CHAR,
         ENCODER_KERNEL_SIZE,
         ENCODER_CHANNELS,
         ENCODER_DILATION)])
 
-# EMOJI
-EMOJI_EMBED_SIZE = 60
-DROPOUT_EMOJI = 0.15
 
-emj_str = " ".join([str(p) for p in (EMOJI_EMBED_SIZE, DROPOUT_EMOJI)])
-
-# STYLE
-STYLE_EMBED_SIZE = 16
-DROPOUT_STYLE = 0.5
-
+emj_str = " ".join([str(p) for p in (EMBED_SIZE_EMOJI, DROPOUT_EMOJI)])
 style_str = " ".join([
     str(p)
-    for p in (STYLE_EMBED_SIZE, TEXT_EMBED_SIZE, DROPOUT_STYLE)])
+    for p in (EMBED_SIZE_STYLE, EMBED_SIZE_TEXT, DROPOUT_STYLE)])
 
 # GAN
 Z_WEIGHT = 0.3
@@ -79,10 +80,8 @@ LR_GAN_GEN = 0.08
 LR_GAN_CRITIC = 0.04
 GRAD_CLIP_GEN = 1.0
 GRAD_CLIP_CRITIC = 1.0
-INFONCE_TEMP = 0.7
-# KEYWORDS SAMPLING
-
-MAX_EMOJIS_PER_SAMPLE = 5
+INFONCE_TEMP_EMOJI = 0.7
+INFONCE_TEMP_STYLE = 0.5
 
 gan_str = " ".join([
     str(p)
@@ -125,7 +124,7 @@ train_str = " ".join(
             LR,
             GRAD_CLIP_GEN,
             GRAD_CLIP_CRITIC,
-            INFONCE_TEMP,
+            INFONCE_TEMP_EMOJI,
             # *SAMPLING_SOURCES.values(),
             SAMPLING_BASE_RATE,
             SAMPLING_MIN_RATE,
@@ -173,7 +172,7 @@ def _effective_kernels() -> list[int]:
 
 def _encoder_conv_params() -> int:
     total = 0
-    in_ch = CHAR_EMBED_SIZE
+    in_ch = EMBED_SIZE_CHAR
     for out_ch in ENCODER_CHANNELS:
         total += in_ch * out_ch * ENCODER_KERNEL_SIZE + out_ch
         in_ch = out_ch
@@ -181,16 +180,16 @@ def _encoder_conv_params() -> int:
 
 
 def _head_params(embed_size: int, n_labels: int) -> int:
-    return TEXT_EMBED_SIZE * embed_size + n_labels * (embed_size + 1)
+    return EMBED_SIZE_TEXT * embed_size + n_labels * (embed_size + 1)
 
 
 def _stats() -> list[tuple[str, object]]:
     rf = _receptive_field()
     cover = "covers full input" if rf >= MAX_TEXT_LEN else "partial coverage"
     enc = _encoder_conv_params()
-    emoji_head = _head_params(EMOJI_EMBED_SIZE, len(EMOJIS))
-    style_head = _head_params(STYLE_EMBED_SIZE, len(STYLES))
-    chain = " -> ".join(str(c) for c in (CHAR_EMBED_SIZE, *ENCODER_CHANNELS))
+    emoji_head = _head_params(EMBED_SIZE_EMOJI, len(EMOJIS))
+    style_head = _head_params(EMBED_SIZE_STYLE, len(STYLES))
+    chain = " -> ".join(str(c) for c in (EMBED_SIZE_CHAR, *ENCODER_CHANNELS))
     return [
         ("NUM_LAYERS", len(ENCODER_CHANNELS)),
         ("channel chain", chain),
@@ -199,12 +198,12 @@ def _stats() -> list[tuple[str, object]]:
         ("effective kernel / layer", _effective_kernels()),
         ("RECEPTIVE_FIELD", rf),
         ("RF vs MAX_TEXT_LEN", f"{rf} / {MAX_TEXT_LEN}  ({cover})"),
-        ("TEXT_EMBED_SIZE", TEXT_EMBED_SIZE),
+        ("TEXT_EMBED_SIZE", EMBED_SIZE_TEXT),
         ("MAX_TEXT_LEN", MAX_TEXT_LEN),
         ("# styles", len(STYLES)),
         ("# emojis", len(EMOJIS)),
-        ("STYLE_EMBED_SIZE", STYLE_EMBED_SIZE),
-        ("EMOJI_EMBED_SIZE", EMOJI_EMBED_SIZE),
+        ("STYLE_EMBED_SIZE", EMBED_SIZE_STYLE),
+        ("EMOJI_EMBED_SIZE", EMBED_SIZE_EMOJI),
         ("encoder conv params", f"{enc:,}"),
         ("style head params", f"{style_head:,}"),
         ("emoji head params", f"{emoji_head:,}"),

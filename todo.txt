@@ -1,8 +1,0 @@
-Done:
-Report:
-add a section to the report above the "Model — Encoder block capacity"
-That shows the model style prediction distribution (using eval.jsonl) vs the GT distribution.
-
-
-Under the "Model — Encoder block capacity" section, add another similar table but use the StyleHead instead the EmojiHead.
-So the "Model — Encoder block capacity" should display 2 tables, one for the EmojiHead and one for the StyleHead.

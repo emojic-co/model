@@ -10,7 +10,7 @@ function watermarkInk(bg) {
 
 const FADE_MS = 150
 
-export function Card({ text, emoji, feeling, feelingScores, styles, colors, onCopy }) {
+export function Card({ text, emoji, feeling, feelingScores, styles, colors, onCopy, onShare }) {
   const [shown, setShown] = useState({ emoji, feeling })
   const [phase, setPhase] = useState('in')
   const prev = useRef({ emoji, feeling })
@@ -62,6 +62,9 @@ export function Card({ text, emoji, feeling, feelingScores, styles, colors, onCo
           {displayText}
         </p>
       </div>
+      <button className="share-btn" type="button" aria-label="Share link" onClick={onShare}>
+        share
+      </button>
       <button className="copy-btn" type="button" aria-label="Copy card as image" onClick={onCopy}>
         copy
       </button>

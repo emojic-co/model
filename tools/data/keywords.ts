@@ -4,6 +4,7 @@ import { CLDR_JSONL, EMOJILIB_JSONL, FLAGS_JSONL, KEYWORDS_JSONL, LABELS_JSON, T
 import { isFlagEmoji, splitEmojis } from "./emoji.ts"
 import { readJsonl, writeFileAtomic } from "./io.ts"
 import { normalize } from "./normalize.ts"
+import { loadWaKeywords } from "./wa-keywords.ts"
 
 export type SourceRow = {
   text: string
@@ -12,7 +13,7 @@ export type SourceRow = {
   bg?: [string, string]
   fg?: string
 }
-export type Src = "cldr" | "emojilib" | "both"
+export type Src = string
 export type MergedRow = {
   text: string
   emojis: string[]
@@ -31,8 +32,7 @@ export function wordCount(text: string): number {
 }
 
 export function mergeKeywords(
-  cldr: SourceRow[],
-  emojilib: SourceRow[],
+  sources: Record<string, SourceRow[]>,
   rand: () => number = Math.random,
 ): MergedRow[] {
   type Palette = { bg: [string, string]; fg: string }
@@ -40,10 +40,10 @@ export function mergeKeywords(
     emojis: Set<string>
     styles: Set<string>
     palettes: Palette[]
-    srcs: Set<"cldr" | "emojilib">
+    srcs: Set<string>
   }
   const byText = new Map<string, Acc>()
-  const add = (rows: SourceRow[], src: "cldr" | "emojilib") => {
+  const add = (rows: SourceRow[], src: string) => {
     for (const r of rows) {
       const key = normalize(r.text)
       let a = byText.get(key)
@@ -54,8 +54,7 @@ export function mergeKeywords(
       a.srcs.add(src)
     }
   }
-  add(cldr, "cldr")
-  add(emojilib, "emojilib")
+  for (const [name, rows] of Object.entries(sources)) add(rows, name)
 
   const out: MergedRow[] = []
   for (const [text, a] of byText) {
@@ -63,7 +62,7 @@ export function mergeKeywords(
       text,
       emojis: [...a.emojis].sort(byCodePoint),
       styles: [...a.styles],
-      src: a.srcs.size === 2 ? "both" : [...a.srcs][0],
+      src: [...a.srcs].sort().join("+"),
     }
     if (a.palettes.length) {
       const p = a.palettes[Math.floor(rand() * a.palettes.length)]
@@ -134,11 +133,12 @@ function toLine(r: MergedRow): string {
 export type KeywordsTermsAndFlags = KeywordsAndTerms & { flags: MergedRow[] }
 
 export async function buildKeywordsAndTerms(vocab: Set<string>): Promise<KeywordsTermsAndFlags> {
-  const [cldr, emojilib] = await Promise.all([
+  const [cldr, emojilib, wa] = await Promise.all([
     readJsonl<SourceRow>(CLDR_JSONL),
     readJsonl<SourceRow>(EMOJILIB_JSONL),
+    loadWaKeywords(),
   ])
-  const merged = mergeKeywords(cldr, emojilib)
+  const merged = mergeKeywords({ cldr, emojilib, wa })
   const { keywords, terms } = splitKeywordsAndTerms(merged, vocab)
   const flags = buildFlags(cldr, vocab)
   return { keywords, terms, flags }
@@ -162,18 +162,14 @@ if (import.meta.main) {
   const { keywords, terms, flags } = await writeKeywordsAndTerms(new Set(emojis))
 
   const counts = (rows: MergedRow[]) => {
-    const c = { cldr: 0, emojilib: 0, both: 0 }
-    for (const r of rows) c[r.src]++
+    const c = new Map<string, number>()
+    for (const r of rows) c.set(r.src, (c.get(r.src) ?? 0) + 1)
     return c
   }
-  const kc = counts(keywords)
-  const tc = counts(terms)
-  console.log(
-    `-> ${KEYWORDS_JSONL} : ${keywords.length} (cldr ${kc.cldr}, emojilib ${kc.emojilib}, both ${kc.both})`,
-  )
-  console.log(
-    `-> ${TERMS_JSONL} : ${terms.length} (cldr ${tc.cldr}, emojilib ${tc.emojilib}, both ${tc.both})`,
-  )
+  const fmtCounts = (c: Map<string, number>) =>
+    [...c.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([k, n]) => `${k} ${n}`).join(", ")
+  console.log(`-> ${KEYWORDS_JSONL} : ${keywords.length} (${fmtCounts(counts(keywords))})`)
+  console.log(`-> ${TERMS_JSONL} : ${terms.length} (${fmtCounts(counts(terms))})`)
   console.log(`-> ${FLAGS_JSONL} : ${flags.length}`)
   process.exit(0)
 }

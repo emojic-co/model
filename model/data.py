@@ -9,7 +9,6 @@ from torch.utils.data import DataLoader, Dataset
 from files import EVAL_JSONL, TRAIN_JSONL
 from model.config import (
     EMOJIS,
-    MAX_EMOJIS_PER_SAMPLE,
     MAX_TEXT_LEN,
     SAMPLING_BASE_RATE,
     SAMPLING_SOURCES,
@@ -75,13 +74,6 @@ def multi_hot(items: list[str], index: dict[str, int], size: int) -> torch.Tenso
 
 def emojis_to_tensor(emojis: list[str]) -> torch.Tensor:
     return multi_hot(emojis, emoji2idx, len(EMOJIS))
-
-
-def sampled_emojis_to_tensor(emojis: list[str]) -> torch.Tensor:
-    if len(emojis) > MAX_EMOJIS_PER_SAMPLE:
-        perm = torch.randperm(len(emojis))[:MAX_EMOJIS_PER_SAMPLE].tolist()
-        emojis = [emojis[i] for i in perm]
-    return emojis_to_tensor(emojis)
 
 
 def styles_to_tensor(styles: list[str]) -> torch.Tensor:
@@ -161,7 +153,7 @@ def _load_pool(path: str) -> _Pool | None:
 def _sample_pool(pool: _Pool, src: str) -> tuple:
     text, emoji_lists, style, colors = pool
     j = int(torch.randint(len(text), (1,)).item())
-    return (text[j], sampled_emojis_to_tensor(emoji_lists[j]), style[j], colors[j], src)
+    return (text[j], emojis_to_tensor(emoji_lists[j]), style[j], colors[j], src)
 
 
 class SamplingRates:
@@ -207,7 +199,7 @@ class EmojiDataset(Dataset):
                     return _sample_pool(pool, name)
         return (
             self.text[idx],
-            sampled_emojis_to_tensor(self.emoji_lists[idx]),
+            emojis_to_tensor(self.emoji_lists[idx]),
             self.style[idx],
             self.colors[idx],
             SRC_FULL,

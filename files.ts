@@ -7,6 +7,7 @@ export const ARCHIVE_DIR = "archive"
 export const DATA_JSONL = `${DATA_DIR}/data.jsonl`
 export const CLDR_JSONL = `${DATA_DIR}/cldr.jsonl`
 export const EMOJILIB_JSONL = `${DATA_DIR}/emojilib.jsonl`
+export const WA_KEYWORDS_JSON = `${DATA_DIR}/wa-keywords.json`
 export const KEYWORDS_JSONL = `${DATA_DIR}/keywords.jsonl`
 export const TERMS_JSONL = `${DATA_DIR}/terms.jsonl`
 export const FLAGS_JSONL = `${DATA_DIR}/flags.jsonl`
