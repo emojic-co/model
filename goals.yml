@@ -48,39 +48,39 @@ goals:
 
       # Smileys & Emotion
       face-smiling: 0.50
-      face-affection: 0.45
+      face-affection: 0.4
       face-tongue: 0.35
-      face-hand: 0.35
-      face-neutral-skeptical: 0.40
-      face-sleepy: 0.35
-      face-unwell: 0.30
-      face-hat: 0.33
-      face-glasses: 0.33
-      face-concerned: 0.40
-      face-negative: 0.40
-      face-costume: 0.35
+      face-hand: 0.4
+      face-neutral-skeptical: 0.3
+      face-sleepy: 0.3
+      face-unwell: 0.3
+      face-hat: 0.3
+      face-glasses: 0.3
+      face-concerned: 0.2
+      face-negative: 0.4
+      face-costume: 0.4
       cat-face: 0.20
       monkey-face: 1.0
       heart: 0.2
       emotion: 0.45
 
       # People & Body  (hands used heavily; person-* long tail kept low)
-      hand-fingers-open: 0.20
-      hand-fingers-partial: 0.20
-      hand-single-finger: 0.20
+      hand-fingers-open: 0.2
+      hand-fingers-partial: 0.5
+      hand-single-finger: 0.2
       hand-fingers-closed: 0.2
       hands: 1.0
-      hand-prop: 1.0
+      hand-prop: 0.3
       body-parts: 0.8
       person: 0.20
       person-gesture: 0.20
       person-role: 0.1
-      person-fantasy: 0.3
-      person-activity: 0.2
-      person-sport: 0.2
-      person-resting: 0.20
-      family: 0.05
-      person-symbol: 0.15
+      person-fantasy: 0.1
+      person-activity: 0.1
+      person-sport: 0.1
+      person-resting: 0.1
+      family: 0.1
+      person-symbol: 0.1
 
       # Component
       skin-tone: 0.0
@@ -90,61 +90,61 @@ goals:
       animal-mammal: 0.5
       animal-bird: 0.5
       animal-amphibian: 1.0
-      animal-reptile: 0.8
-      animal-marine: 0.8
-      animal-bug: 0.8
+      animal-reptile: 0.5
+      animal-marine: 0.5
+      animal-bug: 0.5
       plant-flower: 0.2
-      plant-other: 0.4
+      plant-other: 0.2
 
       # Food & Drink
-      food-fruit: 1.0
-      food-vegetable: 1.0
-      food-prepared: 0.8
-      food-asian: 0.6
-      food-marine: 0.6
-      food-sweet: 0.6
+      food-fruit: 0.5
+      food-vegetable: 0.5
+      food-prepared: 0.5
+      food-asian: 0.5
+      food-marine: 0
+      food-sweet: 0.5
       drink: 0.5
-      dishware: 1.0
+      dishware: 0.5
 
       # Travel & Places
-      place-map: 0.35
-      place-geographic: 0.45
-      place-building: 0.40
-      place-religious: 1.0
-      place-other: 0.35
-      transport-ground: 0.5
-      transport-water: 0.40
-      transport-air: 0.45
-      hotel: 0.50
-      time: 0.05
-      sky-weather: 0.30
+      place-map: 0.1
+      place-geographic: 0.5
+      place-building: 0.5
+      place-religious: 0.5
+      place-other: 0.1
+      transport-ground: 0.3
+      transport-water: 0.5
+      transport-air: 0.5
+      hotel: 0.5
+      time: 0.1
+      sky-weather: 0.5
 
       # Activities
-      event: 0.45
-      award-medal: 0.10
-      sport: 0.40
-      game: 0.40
-      arts-crafts: 0.45
+      event: 0.5
+      award-medal: 0.5
+      sport: 0.1
+      game: 0.1
+      arts-crafts: 0.1
 
       # Objects
-      clothing: 0.35
-      sound: 0.40
-      music: 0.45
-      musical-instrument: 0.45
-      phone: 0.60
-      computer: 0.50
-      light-video: 0.40
-      book-paper: 0.45
-      money: 0.40
-      mail: 0.35
-      writing: 0.50
-      office: 0.40
-      lock: 0.40
-      tool: 0.35
-      science: 0.40
-      medical: 0.40
-      household: 0.35
-      other-object: 0.30
+      clothing: 0.1
+      sound: 0.5
+      music: 0.5
+      musical-instrument: 0.5
+      phone: 0.5
+      computer: 0.5
+      light-video: 0.5
+      book-paper: 0.5
+      money: 0.4
+      mail: 0.2
+      writing: 0.1
+      office: 0.4
+      lock: 0.1
+      tool: 0.2
+      science: 0.5
+      medical: 0.5
+      household: 0.5
+      other-object: 0.2
 
       # Symbols
       transport-sign: 0.1
@@ -152,17 +152,17 @@ goals:
       arrow: 0.1
       religion: 0.0
       zodiac: 1.0
-      av-symbol: 0.1
+      av-symbol: 0
       gender: 1.0
       math: 0.0
-      punctuation: 0.1
-      currency: 0.50
+      punctuation: 0.5
+      currency: 0
       other-symbol: 0.1
       keycap: 0.0
       alphanum: 0.0
-      geometric: 0.1
+      geometric: 0
 
       # Flags
-      flag: 0.80
-      country-flag: 1.0
-      subdivision-flag: 1.0
+      flag: 0.1
+      country-flag: 0
+      subdivision-flag: 0
