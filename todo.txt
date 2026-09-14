@@ -1,18 +1,6 @@
 Done:
 
-update the upsample tool keep only these sub commands and flags:
-upsample emojis <list> - upsample exactly the emojis in the list (space ot comma separated)
-upsample colors - same as today --colors
-upsample groups - upsample under-covered emoji groups (see details below)
+Add another sub command
+upsample balance
 
-all commands support the flags:
---per (samples per target, default 50)
---dry (don't run just tell)
---help
-
-When upsampling groups the tool reads data/data.jsonl to count the frequency of each emoji in the data.jsonl file.
-Then it reads the goals.yml, data/group.json, data/labels.json files and:
-Find groups that are under-covered (i.e. below the stated goal) for each such group it will sample the missing number of emojis to reach the goal.
-The emojis to sample are selected greedily by frequency in data/data.jsonl (i.e. for each group upsample emojis that are not in labels.json but have the highest frequency in data.jsonl break tie randomly) note that missing emojis that are also not in data.jsonl have freq=0 and are upsampled as a last resort.
-
-Make sure to clean up any code in the upsample.ts that is not needed anymore.
+with this command the tool reads the the data/train.jsonl file and upsample the 10% of emojis with the lowest frequency in train.jsonl

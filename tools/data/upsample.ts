@@ -6,7 +6,13 @@ import cliProgress from "cli-progress"
 import PQueue from "p-queue"
 import { parse as parseYaml } from "yaml"
 
-import { DATA_JSONL as DATA, GOALS_YML, GROUP_JSON, LABELS_JSON } from "../../files.ts"
+import {
+  DATA_JSONL as DATA,
+  GOALS_YML,
+  GROUP_JSON,
+  LABELS_JSON,
+  TRAIN_JSONL,
+} from "../../files.ts"
 import { MODEL, annotate, annotateBatchCount, lastFills } from "./annotate.ts"
 import { SEED } from "./config"
 import { splitEmojis } from "./emoji.ts"
@@ -14,6 +20,7 @@ import { appendJsonl, readJsonl } from "./io.ts"
 
 const TEXTS_PER_EMOJI = 50
 const COLOR_BATCH = 50
+const BALANCE_FRACTION = 0.1
 const MIN_LEN = 4
 const MAX_LEN = 42
 const GEN_CONCURRENCY = 30
@@ -130,6 +137,18 @@ export function rankMissingByFreq(
     .map((e, i) => ({ e, i, f: freq(e) }))
     .sort((a, b) => b.f - a.f || a.i - b.i)
     .map((x) => x.e)
+}
+
+export function lowestFreqEmojis(
+  counts: Map<string, number>,
+  fraction: number,
+): string[] {
+  const n = Math.max(1, Math.round(counts.size * fraction))
+  return [...counts.keys()]
+    .map((k, i) => ({ k, i, c: counts.get(k) ?? 0 }))
+    .sort((a, b) => a.c - b.c || a.i - b.i)
+    .slice(0, n)
+    .map((x) => x.k)
 }
 
 function genPrompt(voice: string, emoji: string, per: number): string {
@@ -454,6 +473,38 @@ cli
     const cands = await generateForEmojis(targets, per)
     for (const c of cands) if (c.target) c.group = groupOf.get(c.target)
     await annotateAndAppend(cands, "group")
+  })
+
+cli
+  .command(
+    "balance",
+    `upsample the lowest ${BALANCE_FRACTION * 100}% of emoji by frequency in ${TRAIN_JSONL}`,
+  )
+  .option("--per <n>", `texts to generate per emoji (default ${TEXTS_PER_EMOJI})`)
+  .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
+  .action(async (options) => {
+    const per = parsePer(options.per)
+    const rows = await readJsonl<{ emojis?: string }>(TRAIN_JSONL)
+    const counts = countEmojis(rows)
+    if (!counts.size) {
+      console.error(`no emoji found in ${TRAIN_JSONL}`)
+      process.exit(1)
+    }
+    const targets = lowestFreqEmojis(counts, BALANCE_FRACTION)
+    console.log(
+      `${counts.size} distinct emoji in ${TRAIN_JSONL} -> targeting lowest `
+      + `${BALANCE_FRACTION * 100}% (${targets.length}) `
+      + `(${counts.get(targets[0])}..${counts.get(targets.at(-1) ?? "")} rows each)`,
+    )
+    console.log(targets.join(" "))
+    if (options.dry) {
+      console.log("\n--- dry run: nothing generated, annotated, or appended ---")
+      console.log(`mode                 : balance`)
+      console.log(`would generate       : ~${targets.length * per} texts (${per}/emoji)`)
+      return
+    }
+    const cands = await generateForEmojis(targets, per)
+    await annotateAndAppend(cands, "balance")
   })
 
 cli.help()
