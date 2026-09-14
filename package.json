@@ -13,6 +13,7 @@
     "upsample": "bun run tools/data/upsample.ts",
     "extract-colors": "bun run tools/data/extract-colors.ts",
     "preview": "bun run tools/preview.ts",
+    "imgs": "bun run tools/cli/imgs.ts",
     "show-labels": "bun run tools/data/show-labels.ts",
     "emoji-coverage": "bun run tools/analysis/emoji-coverage.ts",
     "serve": "live-server docs --port=8000",
