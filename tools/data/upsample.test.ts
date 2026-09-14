@@ -4,6 +4,7 @@ import {
   colorBatchPlan,
   countEmojis,
   groupDeficits,
+  lowestFreqEmojis,
   rankMissingByFreq,
 } from "./upsample.ts"
 
@@ -100,4 +101,28 @@ test("rankMissingByFreq is stable for a fixed seed", () => {
   const a = rankMissingByFreq(["🍇", "🥝", "🍉"], counts, 1)
   const b = rankMissingByFreq(["🍇", "🥝", "🍉"], counts, 1)
   expect(a).toEqual(b)
+})
+
+test("lowestFreqEmojis returns the lowest fraction by count, rounded and ties by first-seen", () => {
+  const counts = new Map([
+    ["a", 5],
+    ["b", 0],
+    ["c", 2],
+    ["d", 0],
+    ["e", 10],
+    ["f", 3],
+    ["g", 1],
+    ["h", 4],
+    ["i", 8],
+    ["j", 9],
+  ])
+  // 10 emoji * 0.1 = 1 -> lowest one, ties broken by first-seen
+  expect(lowestFreqEmojis(counts, 0.1)).toEqual(["b"])
+  // 10 emoji * 0.3 = 3 -> lowest three
+  expect(lowestFreqEmojis(counts, 0.3)).toEqual(["b", "d", "g"])
+})
+
+test("lowestFreqEmojis always selects at least one emoji", () => {
+  const counts = new Map([["a", 5], ["b", 1]])
+  expect(lowestFreqEmojis(counts, 0.1)).toEqual(["b"])
 })
