@@ -4,13 +4,13 @@ import {
   bubbles,
   circuitBoard,
   diagonalStripes,
+  dominos,
   endlessClouds,
   fallingTriangles,
   floatingCogs,
   fourPointStars,
   glamorous,
   graphPaper,
-  happyIntersection,
   hideout,
   overlappingCircles,
   skulls,
@@ -18,7 +18,8 @@ import {
   ticTacToe,
   topography,
   volcanoLamp,
-  wiggle
+  wiggle,
+  zigZag
 } from 'hero-patterns'
 import { softmax } from './model'
 
@@ -33,7 +34,7 @@ export const PATTERN_FNS = {
   Furious: volcanoLamp,
   Hopeful: endlessClouds,
   Irritated: skulls,
-  Joyful: happyIntersection,
+  Joyful: dominos,
   Melancholy: fallingTriangles,
   Neutral: graphPaper,
   Playful: ticTacToe,
