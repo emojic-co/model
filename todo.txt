@@ -1,4 +1,2 @@
-So both keywords.jsonl and terms.jsonl should not have the colors field. 
-When training the model, these records should only be used to train the EmojiHead.
-Make sure the StyleHead and ColorCritic do not see these records. (StyleHead can technically see these records with an empty style list if it makes the code simpler)
-Does it make sense?
+I added a web/patterns.json file that maps style to patterns.
+Please use it on the web app and in the `preview styles` command
