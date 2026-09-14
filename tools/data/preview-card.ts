@@ -1,5 +1,7 @@
 import { readFile } from "node:fs/promises"
 import { resolveFeeling } from "../../web/src/feelings.js"
+import { patternTint } from "../../web/src/model.js"
+import { patternLayers } from "../../web/src/patterns.js"
 
 export type Colors = { bg1: string; bg2: string; text_color: string }
 export type CardData = { text: string; emoji: string; feeling: string; colors: Colors }
@@ -26,8 +28,12 @@ export function cardHtml({ text, emoji, feeling, colors }: CardData): string {
   const r = resolveFeeling(feeling)
   const placeholder = !text.trim()
   const displayText = placeholder ? "What's on your mind?" : text
+  const backgroundImage = [
+    ...patternLayers(feeling, undefined, undefined, patternTint(colors.bg1, colors.bg2)),
+    `linear-gradient(135deg, ${colors.bg1}, ${colors.bg2})`,
+  ].join(", ")
   const cardStyle = styleToCss({
-    backgroundImage: `linear-gradient(135deg, ${colors.bg1}, ${colors.bg2})`,
+    backgroundImage,
     color: colors.text_color,
     fontFamily: r.font,
     ...r.vars,
