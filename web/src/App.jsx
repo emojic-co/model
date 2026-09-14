@@ -63,6 +63,7 @@ export function App() {
   const colorCount = mobile ? 4 : 5
   const [text, setText] = useState(() => pathToText(window.location.pathname))
   const [scores, setScores] = useState(null)
+  const [pending, setPending] = useState(false)
   const [override, setOverride] = useState({ emoji: null, feeling: null, color: 0 })
   const [contrastFix, setContrastFix] = useState(initialContrastFix)
   const [toast, setToast] = useState({ msg: '', n: 0 })
@@ -92,16 +93,19 @@ export function App() {
     if (!ready || !char2idx) return
     if (normalize(text, char2idx).length < MIN_CHARS) {
       seq.current++
+      setPending(false)
       setScores(null)
       setOverride({ emoji: null, feeling: null, color: 0 })
       return
     }
     const mine = ++seq.current
     const timer = setTimeout(async () => {
+      setPending(true)
       const logits = await predict(text)
       if (mine !== seq.current) return
       setScores(logits)
       setOverride({ emoji: null, feeling: null, color: 0 })
+      setPending(false)
     }, DEBOUNCE_MS)
     return () => clearTimeout(timer)
   }, [text, ready, char2idx, predict])
@@ -259,6 +263,7 @@ export function App() {
           feelingScores={scores?.feeling}
           styles={meta?.styles}
           colors={colors}
+          loading={pending}
           onCopy={copyCard}
           onShare={shareUrl}
         />
