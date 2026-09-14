@@ -226,7 +226,7 @@ h1 .tld {
   overflow: hidden;
   background: linear-gradient(135deg, #dedede, #bebebe);
   color: #161616;
-  transition: background 220ms ease, color 220ms ease;
+  transition: color 220ms ease;
 }
 
 @keyframes drift {
