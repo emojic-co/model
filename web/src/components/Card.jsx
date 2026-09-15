@@ -10,40 +10,40 @@ function watermarkInk(bg) {
 
 const FADE_MS = 150
 
-export function Card({ text, emoji, feeling, colors, loading, onCopy, onShare }) {
-  const [shown, setShown] = useState({ emoji, feeling })
+export function Card({ text, emoji, feeling, lang, colors, loading, onCopy, onShare, ref }) {
+  const [shown, setShown] = useState({ emoji, feeling, lang })
   const [phase, setPhase] = useState('in')
-  const prev = useRef({ emoji, feeling })
+  const prev = useRef({ emoji, feeling, lang })
   const wasLoading = useRef(loading)
 
   useEffect(() => {
     if (loading) {
       wasLoading.current = true
-      prev.current = { emoji, feeling }
+      prev.current = { emoji, feeling, lang }
       setPhase('out')
       return
     }
     if (wasLoading.current) {
       wasLoading.current = false
-      prev.current = { emoji, feeling }
-      setShown({ emoji, feeling })
+      prev.current = { emoji, feeling, lang }
+      setShown({ emoji, feeling, lang })
       setPhase('in')
       return
     }
-    if (prev.current.emoji === emoji && prev.current.feeling === feeling) return
-    prev.current = { emoji, feeling }
+    if (prev.current.emoji === emoji && prev.current.feeling === feeling && prev.current.lang === lang) return
+    prev.current = { emoji, feeling, lang }
     setPhase('out')
     const t = setTimeout(() => {
-      setShown({ emoji, feeling })
+      setShown({ emoji, feeling, lang })
       setPhase('in')
     }, FADE_MS)
     return () => clearTimeout(t)
-  }, [emoji, feeling, loading])
+  }, [emoji, feeling, lang, loading])
 
   const placeholder = !text.trim()
   const displayText = placeholder ? "What's on your mind?" : text
   const textRef = useFitText(displayText, { min: 5, max: 13, key: shown.feeling })
-  const r = shown.feeling ? resolveFeeling(shown.feeling) : null
+  const r = shown.feeling ? resolveFeeling(shown.feeling, shown.lang) : null
   const style =
     !loading && colors && r
       ? (() => {
@@ -63,6 +63,7 @@ export function Card({ text, emoji, feeling, colors, loading, onCopy, onShare })
 
   return (
     <div
+      ref={ref}
       className="card"
       data-feeling={shown.feeling || undefined}
       data-cluster={r?.cluster || undefined}

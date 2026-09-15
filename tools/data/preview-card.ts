@@ -4,7 +4,7 @@ import { patternTint } from "../../web/src/model.js"
 import { patternLayers, patternSizeCss } from "../../web/src/patterns.js"
 
 export type Colors = { bg1: string; bg2: string; text_color: string }
-export type CardData = { text: string; emoji: string; feeling: string; colors: Colors }
+export type CardData = { text: string; emoji: string; feeling: string; colors: Colors; lang?: string }
 
 export function esc(s: string): string {
   return s
@@ -24,8 +24,8 @@ export function styleToCss(obj: Record<string, string | number> | undefined): st
     .join("; ")
 }
 
-export function cardHtml({ text, emoji, feeling, colors }: CardData): string {
-  const r = resolveFeeling(feeling)
+export function cardHtml({ text, emoji, feeling, colors, lang }: CardData): string {
+  const r = resolveFeeling(feeling, lang)
   const placeholder = !text.trim()
   const displayText = placeholder ? "What's on your mind?" : text
   const layers = patternLayers(feeling, undefined, undefined, patternTint(colors.bg1, colors.bg2))
@@ -105,6 +105,7 @@ export async function page(opts: {
   title: string
   extraCss: string
   body: string
+  extraHead?: string
 }): Promise<string> {
   const stylesCss = await readFile("web/src/styles.css", "utf8")
   const indexHtml = await readFile("web/index.html", "utf8")
@@ -119,6 +120,7 @@ export async function page(opts: {
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 ${fontsLink}
+${opts.extraHead ?? ""}
 <style>
 ${stylesCss}
 ${opts.extraCss}

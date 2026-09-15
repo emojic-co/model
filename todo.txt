@@ -1,1 +1,8 @@
-add a subcommand to the `upsample` tool to generate inspirational/encouraging/motivational messages, use the --count flag (default 1000) to specify how many messages to generate.
+Done:
+Update the web app to support multiple languages.
+Note that the model only supports English.
+Use the built in browser translation features:
+1. Detect which languages the browser supports and list the supported languages under the keyboard shortcut panel.
+2. When the user type something, auto detect the input language, translate it to English and run the model on the translated text.
+3. Note that we need to map now (style, language) -> font family, please discuss with me what are the options.
+4. If translation services are not available, inform the user that only English is supported.

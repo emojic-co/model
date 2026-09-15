@@ -3,6 +3,7 @@ import { fitCanvasFont, wrapLines } from '../fit'
 import { resolveFeeling } from '../feelings'
 import { contrastRatio, patternTint } from '../model'
 import { patternLayers } from '../patterns'
+import { ensureScriptFontsLoaded, scriptForLang } from '../scriptFonts'
 
 const S = 512
 const WATERMARK = 'emojify.ing'
@@ -57,9 +58,10 @@ function scaledTile(img, w, h) {
   return tile
 }
 
-async function render({ text, emoji, feeling, colors }) {
-  const stack = resolveFeeling(feeling).font
-  const st = resolveFeeling(feeling).style
+async function render({ text, emoji, feeling, lang, colors }) {
+  ensureScriptFontsLoaded(scriptForLang(lang))
+  const stack = resolveFeeling(feeling, lang).font
+  const st = resolveFeeling(feeling, lang).style
   const fw = st.fontWeight ?? 600
   const fitalic = st.fontStyle === 'italic' ? 'italic ' : ''
   const headline = st.textTransform === 'uppercase' ? text.toUpperCase() : text

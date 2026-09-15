@@ -60,6 +60,19 @@ describe('feelings coverage', () => {
     const families = labels.map((f) => resolveFeeling(f).font.match(/^"([^"]+)"/)[1])
     expect(new Set(families).size).toBe(labels.length)
   })
+
+  it('a non-latin language swaps the font but not the cluster or motifs', () => {
+    const en = resolveFeeling('Joyful', 'en')
+    const ja = resolveFeeling('Joyful', 'ja')
+    expect(ja.font).not.toBe(en.font)
+    expect(ja.cluster).toBe(en.cluster)
+    expect(ja.entrance).toBe(en.entrance)
+    expect(ja.emoji).toBe(en.emoji)
+  })
+
+  it('lang defaults to english when omitted', () => {
+    expect(resolveFeeling('Joyful')).toEqual(resolveFeeling('Joyful', 'en'))
+  })
 })
 
 describe('topFeelings', () => {

@@ -1,6 +1,8 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { cac } from "cac"
 import { DATA_JSONL, LABELS_JSON } from "../files.ts"
+import { CLUSTERS, DEFAULT_COLORS, FEELINGS } from "../web/src/feelings.js"
+import { SCRIPT_FONT_QUERY } from "../web/src/scriptFonts.js"
 import { parseJsonlText, readJsonl } from "./data/io.ts"
 import { cardHtml, esc, firstEmoji, page, sample, stamp } from "./data/preview-card.ts"
 
@@ -9,7 +11,7 @@ const COLS = 5
 const STYLE_SAMPLES = 2
 
 const cli = cac("preview")
-cli.usage("[file|styles] [options]")
+cli.usage("[file|styles|languages] [options]")
 cli.option("--all", "render every emoji per card, not just the first")
 cli.help()
 
@@ -100,6 +102,102 @@ async function renderStyles(all: boolean): Promise<string> {
   })
 }
 
+const SAMPLE_LANGS: Record<string, string> = {
+  latin: "en",
+  cyrillic: "ru",
+  greek: "el",
+  arabic: "ar",
+  hebrew: "he",
+  devanagari: "hi",
+  thai: "th",
+  japanese: "ja",
+  korean: "ko",
+  chinese: "zh",
+}
+
+const SAMPLE_TEXT: Record<string, string> = {
+  en: "this makes me so happy",
+  ru: "мне так грустно сегодня",
+  el: "είμαι πολύ χαρούμενος",
+  ar: "أنا سعيد جدا اليوم",
+  he: "אני כל כך שמח היום",
+  hi: "मुझे आज बहुत खुशी है",
+  th: "วันนี้ฉันมีความสุขมาก",
+  ja: "今日はとても嬉しいです",
+  ko: "오늘 정말 행복해요",
+  zh: "我今天很开心",
+}
+
+const CLUSTER_EMOJI: Record<string, string> = {
+  anger: "😠",
+  joy: "😊",
+  play: "🤪",
+  calm: "😌",
+  sad: "😢",
+  anxiety: "😰",
+  tender: "🥰",
+  drive: "💪",
+  reflective: "😑",
+}
+
+const LANG_EXTRA_CSS = `
+.lang-grid {
+  display: grid;
+  grid-template-columns: 8em repeat(${Object.keys(SAMPLE_LANGS).length}, 1fr);
+  gap: 0.75em;
+  width: 100%;
+}
+.lang-grid .lang-col-label {
+  font: 600 0.85rem system-ui, sans-serif;
+  color: #555;
+  align-self: center;
+}
+.lang-grid .card { max-width: none; aspect-ratio: 1; }
+`
+
+async function renderLanguages(): Promise<string> {
+  const clusterStyle = new Map<string, string>()
+  for (const cluster of Object.keys(CLUSTERS)) {
+    const style = Object.entries(FEELINGS).find(([, def]) => def.cluster === cluster)?.[0]
+    if (style) clusterStyle.set(cluster, style)
+  }
+
+  const scripts = Object.keys(SAMPLE_LANGS)
+  const header =
+    `<div class="lang-col-label"></div>` +
+    scripts.map((s) => `<div class="lang-col-label">${esc(s)}</div>`).join("\n")
+  const rows = [...clusterStyle.entries()]
+    .map(([cluster, style]) => {
+      const cards = scripts
+        .map((script) => {
+          const lang = SAMPLE_LANGS[script]!
+          const text = SAMPLE_TEXT[lang] ?? ""
+          return cardHtml({
+            text,
+            emoji: CLUSTER_EMOJI[cluster] ?? "🙂",
+            feeling: style,
+            lang,
+            colors: DEFAULT_COLORS,
+          })
+        })
+        .join("\n")
+      return `<div class="lang-col-label">${esc(cluster)}<br/>(${esc(style)})</div>\n${cards}`
+    })
+    .join("\n")
+  const body = `<div class="lang-grid">\n${header}\n${rows}\n</div>`
+
+  const extraHead = Object.values(SCRIPT_FONT_QUERY)
+    .map((q) => `<link href="https://fonts.googleapis.com/css2?${q}&display=swap" rel="stylesheet" />`)
+    .join("\n")
+
+  return page({
+    title: `preview — languages — ${Object.keys(CLUSTERS).length} clusters × ${scripts.length} scripts`,
+    extraCss: LANG_EXTRA_CSS,
+    body,
+    extraHead,
+  })
+}
+
 async function renderFile(src: string | undefined, all: boolean): Promise<{ html: string; count: number }> {
   const rows = src
     ? await readJsonl<Row>(src)
@@ -120,7 +218,12 @@ if (import.meta.main) {
   const SRC = parsed.args[0]
   const ALL = Boolean(parsed.options.all)
 
-  const html = SRC === "styles" ? await renderStyles(ALL) : (await renderFile(SRC, ALL)).html
+  const html =
+    SRC === "styles"
+      ? await renderStyles(ALL)
+      : SRC === "languages"
+        ? await renderLanguages()
+        : (await renderFile(SRC, ALL)).html
   await mkdir(OUT_DIR, { recursive: true })
   const dest = `${OUT_DIR}/${stamp()}.html`
   await writeFile(dest, html)
