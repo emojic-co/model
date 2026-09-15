@@ -38,6 +38,7 @@ data/cldr-baseline.json
 data/keywords.jsonl
 data/terms.jsonl
 data/flags.jsonl
+data/linkedin.jsonl
 
 # regen writes these via writeFileAtomic (path.tmp then rename); a crash leaves them.
 data/train.jsonl.tmp
