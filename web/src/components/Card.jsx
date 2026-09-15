@@ -10,7 +10,7 @@ function watermarkInk(bg) {
 
 const FADE_MS = 150
 
-export function Card({ text, emoji, feeling, feelingScores, styles, colors, loading, onCopy, onShare }) {
+export function Card({ text, emoji, feeling, colors, loading, onCopy, onShare }) {
   const [shown, setShown] = useState({ emoji, feeling })
   const [phase, setPhase] = useState('in')
   const prev = useRef({ emoji, feeling })
@@ -47,7 +47,7 @@ export function Card({ text, emoji, feeling, feelingScores, styles, colors, load
   const style =
     !loading && colors && r
       ? (() => {
-          const layers = patternLayers(shown.feeling, feelingScores, styles, patternTint(colors.bg1, colors.bg2))
+          const layers = patternLayers(shown.feeling, patternTint(colors.bg1, colors.bg2))
           return {
             backgroundImage: [
               ...layers.map((l) => l.image),

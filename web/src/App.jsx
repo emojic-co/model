@@ -137,8 +137,6 @@ export function App() {
           text,
           emoji: shownEmoji,
           feeling: shownFeeling,
-          feelingScores: scores?.feeling,
-          styles: meta?.styles,
           colors,
         }
       : null
@@ -260,8 +258,6 @@ export function App() {
           text={text}
           emoji={displayEmoji}
           feeling={displayFeeling}
-          feelingScores={scores?.feeling}
-          styles={meta?.styles}
           colors={colors}
           loading={pending}
           onCopy={copyCard}
@@ -281,8 +277,6 @@ export function App() {
             active={shownFeeling}
             count={feelingCount}
             ready={!tooShort && !!shownFeeling}
-            feelingScores={scores?.feeling}
-            styles={meta?.styles}
             onPick={(f) => setOverride((o) => ({ ...o, feeling: f }))}
           />
           <footer className="footer">

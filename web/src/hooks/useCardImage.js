@@ -57,7 +57,7 @@ function scaledTile(img, w, h) {
   return tile
 }
 
-async function render({ text, emoji, feeling, feelingScores, styles, colors }) {
+async function render({ text, emoji, feeling, colors }) {
   const stack = resolveFeeling(feeling).font
   const st = resolveFeeling(feeling).style
   const fw = st.fontWeight ?? 600
@@ -78,7 +78,7 @@ async function render({ text, emoji, feeling, feelingScores, styles, colors }) {
   ctx.fillStyle = grad
   ctx.fillRect(0, 0, S, S)
 
-  const layers = patternLayers(feeling, feelingScores, styles, patternTint(colors.bg1, colors.bg2))
+  const layers = patternLayers(feeling, patternTint(colors.bg1, colors.bg2))
   for (const layer of layers) {
     const img = await loadImage(patternUrl(layer.image))
     const tile = scaledTile(img, layer.w * S, layer.h * S)
