@@ -9,6 +9,7 @@
   --emoji-w: 15em;
   --col-gap: 1.75em;
   --row-gap: 1.25em;
+  --card-h: none;
 }
 
 * {
@@ -130,11 +131,18 @@ h1 .tld {
 .stage>.emoji-list {
   grid-area: emoji;
   align-self: stretch;
+  max-height: var(--card-h);
+  overflow: hidden;
 }
 
 .stage>.keys {
   grid-area: keys;
-  align-self: start;
+  align-self: stretch;
+  max-height: var(--card-h);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .stage>.feelings-col {
@@ -1018,6 +1026,61 @@ h1 .tld {
 
 .keys dd {
   margin: 0;
+}
+
+.langs {
+  margin: 0.9em 0 0;
+  padding-top: 0.75em;
+  border-top: 1px solid var(--line);
+  line-height: 1.5;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.lang-caption {
+  margin: 0 0 0.5em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.9em;
+}
+
+.lang-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 6em;
+  overflow-y: auto;
+}
+
+.lang-list button {
+  display: block;
+  width: 100%;
+  padding: 0.3em 0.4em;
+  text-align: left;
+  font: inherit;
+  font-size: 0.95em;
+  letter-spacing: inherit;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-radius: 0.35em;
+  cursor: pointer;
+}
+
+.lang-list button:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--ink);
+}
+
+.lang-list button.active {
+  background: #fff;
+  color: var(--ink);
+  border: 1px solid var(--line);
 }
 
 .toast {

@@ -1,3 +1,5 @@
+import { scriptForLang, fontForScript, LATIN } from './scriptFonts'
+
 export const DEFAULT_COLORS = { bg1: '#a8e2f4', bg2: '#78c9f4', text_color: '#282e36' }
 
 const SANS = 'system-ui, sans-serif'
@@ -45,12 +47,13 @@ export const FEELINGS = {
   Neutral: { cluster: 'reflective', font: `"Work Sans", ${SANS}`, style: { fontWeight: 600 }, dur: { entrance: 650, emoji: 3200 } },
 }
 
-export function resolveFeeling(feeling) {
+export function resolveFeeling(feeling, lang = 'en') {
   const f = FEELINGS[feeling] ?? FEELINGS.Neutral
   const c = CLUSTERS[f.cluster]
+  const script = scriptForLang(lang)
   return {
     cluster: f.cluster,
-    font: f.font,
+    font: script === LATIN ? f.font : fontForScript(script, f.cluster),
     entrance: f.entrance ?? c.entrance,
     emoji: f.emoji ?? c.emoji,
     style: f.style ?? {},

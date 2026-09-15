@@ -3,6 +3,8 @@ import { useOnnx } from './hooks/useOnnx'
 import { argmax, normalize, fixContrast, sigmoid } from './model'
 import { topFeelings, DEFAULT_COLORS } from './feelings'
 import { cycle, textToPath, pathToText } from './nav'
+import { detectAndTranslate, languageName, warmupDetector } from './translate'
+import { ensureScriptFontsLoaded, scriptForLang } from './scriptFonts'
 import GitHubButton from 'react-github-btn'
 import { Card } from './components/Card'
 import { FeelingBar } from './components/FeelingBar'
@@ -62,6 +64,10 @@ export function App() {
   const feelingCount = mobile ? 4 : 5
   const colorCount = mobile ? 4 : 5
   const [text, setText] = useState(() => pathToText(window.location.pathname))
+  const [modelText, setModelText] = useState('')
+  const [lang, setLang] = useState('en')
+  const [detectedLang, setDetectedLang] = useState(null)
+  const [langOverride, setLangOverride] = useState(null)
   const [scores, setScores] = useState(null)
   const [pending, setPending] = useState(false)
   const [override, setOverride] = useState({ emoji: null, feeling: null, color: 0 })
@@ -70,6 +76,9 @@ export function App() {
   const showToast = useCallback((msg) => setToast((s) => ({ msg, n: s.n + 1 })), [])
   const seq = useRef(0)
   const inputRef = useRef(null)
+  const cardRef = useRef(null)
+  const notifiedUnsupported = useRef(false)
+  const notifiedLang = useRef(null)
 
   const char2idx = useMemo(
     () => (meta ? new Map([...meta.chars].map((c, i) => [c, i])) : null),
@@ -83,6 +92,20 @@ export function App() {
   }, [contrastFix])
 
   useEffect(() => {
+    warmupDetector()
+  }, [])
+
+  useEffect(() => {
+    const el = cardRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => {
+      document.documentElement.style.setProperty('--card-h', `${el.getBoundingClientRect().height}px`)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  useEffect(() => {
     const path = textToPath(text)
     if (window.location.pathname !== path) {
       window.history.replaceState(null, '', path)
@@ -91,24 +114,53 @@ export function App() {
 
   useEffect(() => {
     if (!ready || !char2idx) return
-    if (normalize(text, char2idx).length < MIN_CHARS) {
+    if (text.trim().length < MIN_CHARS) {
       seq.current++
       setPending(false)
       setScores(null)
+      setModelText('')
+      setLang('en')
+      setDetectedLang(null)
       setOverride({ emoji: null, feeling: null, color: 0 })
       return
     }
     const mine = ++seq.current
     const timer = setTimeout(async () => {
       setPending(true)
-      const logits = await predict(text)
+      const result = await detectAndTranslate(text, langOverride)
+      if (mine !== seq.current) return
+      setLang(result.lang)
+      setDetectedLang(result.detectedLang)
+      ensureScriptFontsLoaded(scriptForLang(result.lang))
+      if (result.unsupported) {
+        if (!notifiedUnsupported.current) {
+          notifiedUnsupported.current = true
+          showToast('translation not supported in this browser — English only')
+        }
+      } else if (result.lang !== 'en' && !result.translated) {
+        if (notifiedLang.current !== result.lang) {
+          notifiedLang.current = result.lang
+          showToast(`couldn't translate ${languageName(result.lang)} yet — trying as-is`)
+        }
+      } else {
+        notifiedLang.current = null
+      }
+      console.debug('emojic: sent to model:', result.text)
+      setModelText(result.text)
+      if (normalize(result.text, char2idx).length < MIN_CHARS) {
+        setScores(null)
+        setOverride({ emoji: null, feeling: null, color: 0 })
+        setPending(false)
+        return
+      }
+      const logits = await predict(result.text)
       if (mine !== seq.current) return
       setScores(logits)
       setOverride({ emoji: null, feeling: null, color: 0 })
       setPending(false)
     }, DEBOUNCE_MS)
     return () => clearTimeout(timer)
-  }, [text, ready, char2idx, predict])
+  }, [text, ready, char2idx, predict, showToast, langOverride])
 
   const emojiTop = useMemo(
     () => pickEmojiList(scores, meta, emojiSlots),
@@ -137,6 +189,7 @@ export function App() {
           text,
           emoji: shownEmoji,
           feeling: shownFeeling,
+          lang,
           colors,
         }
       : null
@@ -209,7 +262,7 @@ export function App() {
 
   const maxLen = config?.max_text_len ?? 0
   const tooShort =
-    ready && char2idx ? normalize(text, char2idx).length < MIN_CHARS : false
+    ready && char2idx ? normalize(modelText, char2idx).length < MIN_CHARS : false
   const displayEmoji = shownEmoji ?? '🙂'
   const displayFeeling = shownFeeling ?? 'Neutral'
 
@@ -255,15 +308,21 @@ export function App() {
           onPick={(e) => setOverride((o) => ({ ...o, emoji: e }))}
         />
         <Card
+          ref={cardRef}
           text={text}
           emoji={displayEmoji}
           feeling={displayFeeling}
+          lang={lang}
           colors={colors}
           loading={pending}
           onCopy={copyCard}
           onShare={shareUrl}
         />
-        <KeyHints />
+        <KeyHints
+          detectedLang={detectedLang}
+          langOverride={langOverride}
+          onSelectLang={setLangOverride}
+        />
         <div className="feelings-col">
           <ColorBar
             palettes={palettes}
