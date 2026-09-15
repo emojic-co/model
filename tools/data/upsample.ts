@@ -22,6 +22,8 @@ const TEXTS_PER_EMOJI = 50
 const COLOR_BATCH = 50
 const MOTIVATIONAL_BATCH = 50
 const MOTIVATIONAL_COUNT = 1000
+const LINKEDIN_BATCH = 50
+const LINKEDIN_COUNT = 1000
 const BALANCE_FRACTION = 0.1
 const MIN_LEN = 4
 const MAX_LEN = 42
@@ -198,6 +200,20 @@ function genMotivationalPrompt(voice: string, per: number): string {
   ].join("\n")
 }
 
+function genLinkedinPrompt(voice: string, per: number): string {
+  return [
+    `Write ${per} short, funny, relatable workplace or day-in-the-life`,
+    `messages as if sent by ${voice}, one per line.`,
+    `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
+    `Capture a specific everyday work moment - meetings, commute, coffee,`,
+    `deadlines, standups, a good or bad day at the job - with dry wit or`,
+    `light complaint. Never generic motivational quotes, slogans, or hashtags.`,
+    `Sound like something a real person would actually say, not an ad.`,
+    `Do not put any emoji in the output.`,
+    `No numbering, no bullets, no quotes, no commentary.`,
+  ].join("\n")
+}
+
 function cleanLines(text: string): string[] {
   return text
     .split("\n")
@@ -238,6 +254,14 @@ async function genMotivationalBatch(voice: string, per: number): Promise<string[
   const { text } = await generateText({
     model: MODEL,
     prompt: genMotivationalPrompt(voice, per),
+  })
+  return cleanLines(text)
+}
+
+async function genLinkedinBatch(voice: string, per: number): Promise<string[]> {
+  const { text } = await generateText({
+    model: MODEL,
+    prompt: genLinkedinPrompt(voice, per),
   })
   return cleanLines(text)
 }
@@ -355,6 +379,37 @@ async function generateForMotivational(count: number): Promise<Cand[]> {
   return cands
 }
 
+async function generateForLinkedin(count: number): Promise<Cand[]> {
+  const sizes = batchSizes(count, LINKEDIN_BATCH)
+  console.log(
+    `linkedin mode -> ${count} texts in ${sizes.length} batches of up to ${LINKEDIN_BATCH}`,
+  )
+  const cands: Cand[] = []
+  const genBar = new cliProgress.SingleBar(
+    {
+      format: "generating |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
+    },
+    cliProgress.Presets.shades_classic,
+  )
+  genBar.start(sizes.length, 0)
+  const genQ = new PQueue({ concurrency: GEN_CONCURRENCY })
+  genQ.addAll(
+    sizes.map((n) => async () => {
+      try {
+        for (const t of await genLinkedinBatch(pickVoice(), n)) {
+          cands.push({ text: t })
+        }
+      } catch (err) {
+        console.warn(`\n  gen (linkedin) failed: ${err}`)
+      }
+      genBar.increment()
+    }),
+  )
+  await genQ.onIdle()
+  genBar.stop()
+  return cands
+}
+
 async function annotateAndAppend(cands: Cand[], src: string): Promise<void> {
   console.log(`\n${cands.length} texts generated, annotating`)
   const annBar = new cliProgress.SingleBar(
@@ -438,8 +493,8 @@ function parsePer(raw: unknown): number {
   return per
 }
 
-function parseCount(raw: unknown): number {
-  const count = Number(raw ?? MOTIVATIONAL_COUNT)
+function parseCount(raw: unknown, def: number): number {
+  const count = Number(raw ?? def)
   if (!(count >= 1)) {
     console.error(`--count must be >= 1, got ${JSON.stringify(raw)}`)
     process.exit(1)
@@ -502,7 +557,7 @@ cli
   .option("--count <n>", `messages to generate (default ${MOTIVATIONAL_COUNT})`)
   .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
   .action(async (options) => {
-    const count = parseCount(options.count)
+    const count = parseCount(options.count, MOTIVATIONAL_COUNT)
     if (options.dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : motivational`)
@@ -511,6 +566,25 @@ cli
     }
     const cands = await generateForMotivational(count)
     await annotateAndAppend(cands, "motivational")
+  })
+
+cli
+  .command(
+    "linkedin",
+    "generate funny/relatable workplace content for LinkedIn share cards",
+  )
+  .option("--count <n>", `messages to generate (default ${LINKEDIN_COUNT})`)
+  .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
+  .action(async (options) => {
+    const count = parseCount(options.count, LINKEDIN_COUNT)
+    if (options.dry) {
+      console.log("\n--- dry run: nothing generated, annotated, or appended ---")
+      console.log(`mode                 : linkedin`)
+      console.log(`would generate       : ${count} texts`)
+      return
+    }
+    const cands = await generateForLinkedin(count)
+    await annotateAndAppend(cands, "linkedin")
   })
 
 cli
