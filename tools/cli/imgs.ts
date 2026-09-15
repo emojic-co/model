@@ -4,62 +4,30 @@ import { cac } from "cac"
 import cliProgress from "cli-progress"
 import PQueue from "p-queue"
 
-import { cardHtml, firstEmoji, page } from "../data/preview-card.ts"
 import { parseJsonlText, readJsonl } from "../data/io.ts"
+import { ensureFonts, FONTS_XDG_DATA_HOME, type FontCache } from "./fonts.ts"
+import { cardSvg, type Row } from "./svg-card.ts"
 
 const DEFAULT_RESOLUTION = 512
 const DEFAULT_CONCURRENCY = 8
 
-type Row = {
-  text: string
-  emojis: string
-  styles: string[]
-  bg: [string, string]
-  fg: string
-}
-
-function cardCss(resolution: number): string {
-  return `
-html, body { margin: 0; padding: 0; width: ${resolution}px; height: ${resolution}px; }
-.card { width: ${resolution}px; height: ${resolution}px; max-width: none; border-radius: 0; }
-`
-}
-
-function rowHtml(r: Row, resolution: number): Promise<string> {
-  return page({
-    title: "card",
-    extraCss: cardCss(resolution),
-    body: cardHtml({
-      text: r.text,
-      emoji: firstEmoji(r.emojis),
-      feeling: r.styles[0] ?? "Neutral",
-      colors: { bg1: r.bg[0], bg2: r.bg[1], text_color: r.fg },
-    }),
+async function renderCard(row: Row, resolution: number, fonts: FontCache, dest: string): Promise<void> {
+  const svg = cardSvg(row, resolution, fonts)
+  const proc = Bun.spawn(["rsvg-convert", "-f", "png", "-"], {
+    stdin: "pipe",
+    stdout: "pipe",
+    stderr: "pipe",
+    env: { ...process.env, XDG_DATA_HOME: FONTS_XDG_DATA_HOME },
   })
-}
-
-async function browserChromeOffset(): Promise<number> {
-  const probeHeight = 600
-  const view = new Bun.WebView({ width: 512, height: probeHeight, backend: "chrome" })
-  try {
-    await view.navigate("data:text/html,<html><body></body></html>")
-    const innerHeight = await view.evaluate<number>("window.innerHeight")
-    return probeHeight - innerHeight
-  } finally {
-    view.close()
+  proc.stdin.write(svg)
+  proc.stdin.end()
+  const [png, code] = await Promise.all([new Response(proc.stdout).arrayBuffer(), proc.exited])
+  if (code !== 0) {
+    const err = await new Response(proc.stderr).text()
+    throw new Error(`rsvg-convert exited ${code}: ${err}`)
   }
-}
-
-async function renderCard(html: string, offset: number, resolution: number, dest: string): Promise<void> {
-  const view = new Bun.WebView({ width: resolution, height: resolution + offset, backend: "chrome" })
-  try {
-    await view.navigate(`data:text/html,${encodeURIComponent(html)}`)
-    await view.evaluate("document.fonts.ready.then(() => true)")
-    const blob = await view.screenshot({ format: "jpeg", quality: 90 })
-    await Bun.write(dest, blob)
-  } finally {
-    view.close()
-  }
+  const jpeg = await new Bun.Image(png).jpeg({ quality: 90 }).bytes()
+  await Bun.write(dest, jpeg)
 }
 
 const cli = cac("imgs")
@@ -90,7 +58,9 @@ if (import.meta.main) {
 
   await mkdir(outDir, { recursive: true })
   const width = Math.max(4, String(rows.length - 1).length)
-  const offset = await browserChromeOffset()
+
+  process.stdout.write("imgs: fetching fonts...\n")
+  const fonts = await ensureFonts()
 
   const bar = new cliProgress.SingleBar(
     { format: "imgs |{bar}| {percentage}% | {value}/{total} | ETA: {eta}s" },
@@ -103,9 +73,8 @@ if (import.meta.main) {
   await queue.addAll(
     rows.map((r, i) => async () => {
       try {
-        const html = await rowHtml(r, resolution)
         const dest = `${outDir}/${String(i).padStart(width, "0")}.jpg`
-        await renderCard(html, offset, resolution, dest)
+        await renderCard(r, resolution, fonts, dest)
       } catch (err) {
         failed++
         console.error(`\nimgs: row ${i} failed: ${err}`)

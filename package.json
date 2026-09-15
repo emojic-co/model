@@ -22,10 +22,13 @@
     "web:test": "cd web && bun install && bun run test"
   },
   "dependencies": {
+    "@iconify-json/circle-flags": "^1.2.11",
+    "@iconify-json/noto": "^1.2.7",
     "ai": "^7.0.83",
     "cac": "^7.0.0",
     "cli-progress": "^3.12.0",
     "emojilib": "^4.0.3",
+    "fontkit": "^2.0.4",
     "onnxruntime-web": "^1.29.0",
     "p-queue": "^9.3.3",
     "yaml": "^2.9.1",
