@@ -1,7 +1,1 @@
-Write a tool tools/cli/imgs.ts
-The tool can be run like this:
-`imgs [-p <concurrency = 8>] <data.jsonl> <output_dir>`
-The tool reads the data.jsonl file and for each record it generates a .jpg image like in the web app and save it to <output_dir>/000{i}.jpg where i is the index of the record.
-Make sure to show a progress bar during the generation.
--p is an optional flag that controls the concurrency of the image generation. The default is 8 (use PQueue).
-You can use bun (1.4) builtin image generation capabilities to generate the images no need for external dependencies.
+add a subcommand to the `upsample` tool to generate inspirational/encouraging/motivational messages, use the --count flag (default 1000) to specify how many messages to generate.
