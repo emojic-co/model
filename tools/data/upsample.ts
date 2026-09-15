@@ -20,6 +20,8 @@ import { appendJsonl, readJsonl } from "./io.ts"
 
 const TEXTS_PER_EMOJI = 50
 const COLOR_BATCH = 50
+const MOTIVATIONAL_BATCH = 50
+const MOTIVATIONAL_COUNT = 1000
 const BALANCE_FRACTION = 0.1
 const MIN_LEN = 4
 const MAX_LEN = 42
@@ -183,6 +185,19 @@ function genColorPrompt(voice: string, color: string, per: number): string {
   ].join("\n")
 }
 
+function genMotivationalPrompt(voice: string, per: number): string {
+  return [
+    `Write ${per} short inspirational, encouraging, or motivational messages,`,
+    `one per line, as if sent by ${voice} to encourage someone else.`,
+    `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
+    `Vary tone and occasion: cheering someone on, comfort after a setback,`,
+    `a pep talk before something hard, praise for effort, a reminder to keep going.`,
+    `Sound warm and specific, not generic greeting-card fluff.`,
+    `Do not put any emoji in the output.`,
+    `No numbering, no bullets, no quotes, no commentary.`,
+  ].join("\n")
+}
+
 function cleanLines(text: string): string[] {
   return text
     .split("\n")
@@ -215,6 +230,14 @@ async function genColorBatch(
   const { text } = await generateText({
     model: MODEL,
     prompt: genColorPrompt(voice, color, per),
+  })
+  return cleanLines(text)
+}
+
+async function genMotivationalBatch(voice: string, per: number): Promise<string[]> {
+  const { text } = await generateText({
+    model: MODEL,
+    prompt: genMotivationalPrompt(voice, per),
   })
   return cleanLines(text)
 }
@@ -292,6 +315,37 @@ async function generateForColors(per: number): Promise<Cand[]> {
         }
       } catch (err) {
         console.warn(`\n  gen (${color}) failed: ${err}`)
+      }
+      genBar.increment()
+    }),
+  )
+  await genQ.onIdle()
+  genBar.stop()
+  return cands
+}
+
+async function generateForMotivational(count: number): Promise<Cand[]> {
+  const sizes = batchSizes(count, MOTIVATIONAL_BATCH)
+  console.log(
+    `motivational mode -> ${count} texts in ${sizes.length} batches of up to ${MOTIVATIONAL_BATCH}`,
+  )
+  const cands: Cand[] = []
+  const genBar = new cliProgress.SingleBar(
+    {
+      format: "generating |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
+    },
+    cliProgress.Presets.shades_classic,
+  )
+  genBar.start(sizes.length, 0)
+  const genQ = new PQueue({ concurrency: GEN_CONCURRENCY })
+  genQ.addAll(
+    sizes.map((n) => async () => {
+      try {
+        for (const t of await genMotivationalBatch(pickVoice(), n)) {
+          cands.push({ text: t })
+        }
+      } catch (err) {
+        console.warn(`\n  gen (motivational) failed: ${err}`)
       }
       genBar.increment()
     }),
@@ -384,6 +438,15 @@ function parsePer(raw: unknown): number {
   return per
 }
 
+function parseCount(raw: unknown): number {
+  const count = Number(raw ?? MOTIVATIONAL_COUNT)
+  if (!(count >= 1)) {
+    console.error(`--count must be >= 1, got ${JSON.stringify(raw)}`)
+    process.exit(1)
+  }
+  return count
+}
+
 const cli = cac("upsample")
 
 cli
@@ -429,6 +492,25 @@ cli
     }
     const cands = await generateForColors(per)
     await annotateAndAppend(cands, "colors")
+  })
+
+cli
+  .command(
+    "motivational",
+    "generate inspirational/encouraging/motivational messages",
+  )
+  .option("--count <n>", `messages to generate (default ${MOTIVATIONAL_COUNT})`)
+  .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
+  .action(async (options) => {
+    const count = parseCount(options.count)
+    if (options.dry) {
+      console.log("\n--- dry run: nothing generated, annotated, or appended ---")
+      console.log(`mode                 : motivational`)
+      console.log(`would generate       : ${count} texts`)
+      return
+    }
+    const cands = await generateForMotivational(count)
+    await annotateAndAppend(cands, "motivational")
   })
 
 cli
