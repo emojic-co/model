@@ -23,8 +23,6 @@ export function FeelingBar({
   ready = true,
   hidden = false,
   count = 5,
-  feelingScores,
-  styles,
 }) {
   const items = ready && feelings.length ? feelings : null
   return (
@@ -36,7 +34,7 @@ export function FeelingBar({
         {items
           ? items.map((f) => {
             const r = resolveFeeling(f)
-            const layers = patternLayers(f, feelingScores, styles, SWATCH_PATTERN_TINT)
+            const layers = patternLayers(f, SWATCH_PATTERN_TINT)
             const style = {
               fontFamily: r.font,
               ...r.style,
