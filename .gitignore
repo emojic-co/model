@@ -19,6 +19,11 @@ wheels/
 # TensorBoard logs
 runs/
 
+# MZQ
+frames
+mzq.json
+output.mp4
+
 # Node / Bun (gen_data.ts)
 node_modules/
 
