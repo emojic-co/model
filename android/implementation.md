@@ -1971,13 +1971,13 @@ git commit -m "android: add share and copy-as-image"
 - Create: `android/app/src/main/java/ing/emojify/app/Prefs.kt`
 - Modify: `android/app/src/main/java/ing/emojify/app/ui/MainScreen.kt`
 
-- [ ] **Step 1: Add dependency**
+- [x] **Step 1: Add dependency**
 
 ```kotlin
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 ```
 
-- [ ] **Step 2: Implement `Prefs.kt`** (mirrors `localStorage`'s `contrastFix` key in `App.jsx`)
+- [x] **Step 2: Implement `Prefs.kt`** (mirrors `localStorage`'s `contrastFix` key in `App.jsx`)
 
 ```kotlin
 package ing.emojify.app
@@ -2000,9 +2000,9 @@ class Prefs(private val context: Context) {
 }
 ```
 
-- [ ] **Step 3: Replace `MainScreen`'s local `contrastFix` state** with `Prefs(context).contrastFix.collectAsState(initial = true)` for reads, and call `prefs.setContrastFix(it)` in a `rememberCoroutineScope()` launch on toggle.
+- [x] **Step 3: Replace `MainScreen`'s local `contrastFix` state** with `Prefs(context).contrastFix.collectAsState(initial = true)` for reads, and call `prefs.setContrastFix(it)` in a `rememberCoroutineScope()` launch on toggle. Deviation: no UI ever toggled `contrastFix` before this task (it was a local var read-only in practice); added the `Checkbox` + "fix low-contrast palettes" `Text` row below `FeelingBar`, matching `web/src/App.jsx`'s `.contrast-toggle` checkbox, so there's something to persist.
 
-- [ ] **Step 4: Install, toggle contrast-fix off, kill and relaunch the app, verify the setting persisted. Commit.**
+- [ ] **Step 4: Install, toggle contrast-fix off, kill and relaunch the app, verify the setting persisted. Commit.** — build/install succeeded (compiles clean, unit tests pass, `installDebug` succeeded on the Pixel 7a); the interactive persistence check (toggle off, kill, relaunch, confirm it stayed off) is pending your own check on the phone, not yet confirmed. App was not launched or sent simulated input.
 
 ```bash
 git add android/app/build.gradle.kts android/app/src/main/java/ing/emojify/app/Prefs.kt android/app/src/main/java/ing/emojify/app/ui/MainScreen.kt
