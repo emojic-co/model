@@ -2,9 +2,12 @@ package ing.emojify.app.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -14,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
@@ -29,6 +33,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.googlefonts.Font
 import androidx.compose.ui.text.googlefonts.GoogleFont
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
@@ -69,6 +74,7 @@ fun Card(
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .aspectRatio(1f)
             .clip(RoundedCornerShape(16.dp))
             .drawWithContent {
                 graphicsLayer.record { this@drawWithContent.drawContent() }
@@ -91,13 +97,14 @@ fun Card(
         PatternBackground(cluster = style.cluster, tint = tint, modifier = Modifier.matchParentSize())
         Box(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .background(Brush.linearGradient(listOf(bg1.copy(alpha = 0.85f), bg2.copy(alpha = 0.85f))))
                 .padding(32.dp),
+            contentAlignment = Alignment.Center,
         ) {
             val emojiBounce = rememberEmojiBounce(style.emojiMotif, style.emojiMs)
             val entranceScale = rememberEntranceScale(style.entranceMotif, style.entranceMs, key = text)
-            Column {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                 Text(
                     text = emoji,
                     style = MaterialTheme.typography.displayLarge,
@@ -107,6 +114,7 @@ fun Card(
                 Text(
                     text = displayText.ifBlank { "What's on your mind?" },
                     color = textColor,
+                    textAlign = TextAlign.Center,
                     fontFamily = fontFamily,
                     fontWeight = if (style.bold) FontWeight.Bold else FontWeight.Normal,
                     fontStyle = if (style.italic) FontStyle.Italic else FontStyle.Normal,
