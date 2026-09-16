@@ -1,2 +1,4 @@
+Done:
+
 update the model to support Hebrew.
 I think it should already support Hebrew, but make sure I'm right.
