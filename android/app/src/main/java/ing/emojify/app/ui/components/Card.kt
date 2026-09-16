@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
@@ -21,6 +22,7 @@ import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.offset
 import ing.emojify.app.R
 import ing.emojify.app.model.Palette
 import ing.emojify.app.model.patternTint
@@ -53,8 +55,15 @@ fun Card(text: String, emoji: String, feeling: String?, colors: Palette, onCopy:
                 .background(Brush.linearGradient(listOf(bg1.copy(alpha = 0.85f), bg2.copy(alpha = 0.85f))))
                 .padding(32.dp),
         ) {
+            val emojiBounce = rememberEmojiBounce(style.emojiMotif, style.emojiMs)
+            val entranceScale = rememberEntranceScale(style.entranceMotif, style.entranceMs, key = text)
             Column {
-                Text(text = emoji, style = MaterialTheme.typography.displayLarge, color = textColor)
+                Text(
+                    text = emoji,
+                    style = MaterialTheme.typography.displayLarge,
+                    color = textColor,
+                    modifier = Modifier.offset(y = emojiBounce.value.dp),
+                )
                 Text(
                     text = displayText.ifBlank { "What's on your mind?" },
                     color = textColor,
@@ -62,6 +71,7 @@ fun Card(text: String, emoji: String, feeling: String?, colors: Palette, onCopy:
                     fontWeight = if (style.bold) FontWeight.Bold else FontWeight.Normal,
                     fontStyle = if (style.italic) FontStyle.Italic else FontStyle.Normal,
                     letterSpacing = style.letterSpacingEm?.let { TextUnit(it, TextUnitType.Em) } ?: TextUnit.Unspecified,
+                    modifier = Modifier.scale(entranceScale.value),
                 )
             }
         }

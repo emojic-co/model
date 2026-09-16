@@ -1793,7 +1793,7 @@ git commit -m "android: tile background patterns behind the card gradient"
 - Consumes: `FeelingStyle.entranceMs`/`emojiMs`, cluster's motif name (ported from `ENTRANCE_MOTIFS`/`EMOJI_MOTIFS` in `feelings.js`).
 - Produces: `rememberEntranceOffset(motif: String, durationMs: Int, key: Any?): State<Float>` and `rememberEmojiTransform(motif: String, durationMs: Int): InfiniteTransition` used by `Card.kt`.
 
-- [ ] **Step 1: Implement `Motion.kt`** — a curated Compose equivalent per motif name from `web/src/feelings.js`'s `ENTRANCE_MOTIFS`/`EMOJI_MOTIFS` constants (scale/offset/rotation approximations, not literal CSS keyframe replicas):
+- [x] **Step 1: Implement `Motion.kt`** — a curated Compose equivalent per motif name from `web/src/feelings.js`'s `ENTRANCE_MOTIFS`/`EMOJI_MOTIFS` constants (scale/offset/rotation approximations, not literal CSS keyframe replicas). `Animatable<Float, ...>.asState(): State<Float>` compiled as-is, no fix needed:
 
 ```kotlin
 package ing.emojify.app.ui.components
@@ -1835,16 +1835,13 @@ fun rememberEmojiBounce(motif: String, durationMs: Int): State<Float> {
 }
 ```
 
-- [ ] **Step 2: Apply in `Card.kt`**
+- [x] **Step 2: Apply in `Card.kt`**
 
-Wrap the emoji `Text` in a `Modifier.offset(y = rememberEmojiBounce(style.emojiMotif, style.emojiMs).value.dp)` and the card text in `Modifier.scale(rememberEntranceScale(style.entranceMotif, style.entranceMs, key = text).value)`, where `style.emojiMotif`/`entranceMotif` are two new `FeelingStyle` fields added in this task's `Feelings.kt` edit (default per-cluster motif, same fallback logic as `resolveFeeling` in `feelings.js`: explicit per-feeling motif overrides the cluster default).
+Wrapped the emoji `Text` in a `Modifier.offset(y = rememberEmojiBounce(style.emojiMotif, style.emojiMs).value.dp)` and the card text in `Modifier.scale(rememberEntranceScale(style.entranceMotif, style.entranceMs, key = text).value)`. `entranceMotif`/`emojiMotif` were added as two new non-nullable `String` fields directly on `FeelingStyle` (rather than a separate `CLUSTERS` lookup table plus nullable per-feeling override, as `feelings.js` does) — every one of the 22 `FEELINGS` entries got its resolved motif value transcribed straight from `feelings.js`'s `CLUSTERS[cluster].entrance`/`.emoji`, with `Startled` and `Deadpan` getting their explicit per-feeling overrides (`shrinkBack`/`shrinkBack` and `droop`/`droop`) instead of their cluster's default. Simpler than a two-table fallback since `resolveFeeling` already fully resolves a `FeelingStyle` per feeling name.
 
-- [ ] **Step 3: Install and manually verify**
+- [ ] **Step 3: Install and manually verify** — build/install succeeded (compiles clean, unit tests pass, `installDebug` succeeded on the Pixel 7a); the interactive part (watching the emoji bounce/shake and the card text scale in per feeling) is pending your own check on the phone, not yet confirmed. App was not launched or sent simulated input.
 
-Run: `cd android && ./gradlew installDebug`
-Expected: the emoji visibly bounces/shakes per feeling, and the card text scales in when the prediction changes.
-
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add android/app/src/main/java/ing/emojify/app/ui/components/Motion.kt android/app/src/main/java/ing/emojify/app/ui/components/Card.kt android/app/src/main/java/ing/emojify/app/model/Feelings.kt
