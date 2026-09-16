@@ -340,45 +340,56 @@ export function App() {
             onPick={(f) => setOverride((o) => ({ ...o, feeling: f }))}
           />
           <footer className="footer">
-            <span>
-              model updated <span>{formatDate(meta?.exported_at)}</span>
-            </span>
-            <span className="contrast-toggle">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={contrastFix}
-                  onChange={(e) => setContrastFix(e.target.checked)}
-                />
-                fix low-contrast palettes
-              </label>
-            </span>
-            <span>made with ❤️ by Gilad</span>
-            <span>
-              <a
-                href="https://github.com/emojic-co/model/blob/main/ABOUT.md"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                about this model
-              </a>
-            </span>
-            <span>
-              background patterns by{' '}
-              <a href="https://heropatterns.com/" target="_blank" rel="noopener noreferrer">
-                Hero Patterns
-              </a>
-            </span>
-            <span className="gh">
-              <GitHubButton
-                href="https://github.com/emojic-co/model"
-                data-icon="octicon-star"
-                data-show-count="true"
-                aria-label="Star emojic-co/model on GitHub"
-              >
-                Star
-              </GitHubButton>
-            </span>
+            <div className="footer-col">
+              <span>
+                model updated <span>{formatDate(meta?.exported_at)}</span>
+              </span>
+              <span>
+                <a
+                  href="https://github.com/emojic-co/model/blob/main/ABOUT.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  about this model
+                </a>
+              </span>
+              <span>
+                <a href="/emoji-coverage.html" target="_blank" rel="noopener noreferrer">
+                  emoji coverage
+                </a>
+              </span>
+            </div>
+            <div className="footer-col">
+              <span className="contrast-toggle">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={contrastFix}
+                    onChange={(e) => setContrastFix(e.target.checked)}
+                  />
+                  fix low-contrast palettes
+                </label>
+              </span>
+            </div>
+            <div className="footer-col">
+              <span>made with ❤️ by Gilad</span>
+              <span>
+                background patterns by{' '}
+                <a href="https://heropatterns.com/" target="_blank" rel="noopener noreferrer">
+                  Hero Patterns
+                </a>
+              </span>
+              <span className="gh">
+                <GitHubButton
+                  href="https://github.com/emojic-co/model"
+                  data-icon="octicon-star"
+                  data-show-count="true"
+                  aria-label="Star emojic-co/model on GitHub"
+                >
+                  Star
+                </GitHubButton>
+              </span>
+            </div>
           </footer>
         </div>
       </div>
