@@ -593,7 +593,7 @@ git commit -m "android: add Meta/Config data classes"
 - Consumes: `Meta`, `Meta.charToIndex()` (Task 1.2).
 - Produces: `normalize(text, charSet)`, `encode(text, meta, char2idx): LongArray`, `Palette(bg1, bg2, textColor)`, `decodeColors(FloatArray): Palette`, `decodeColorList(FloatArray): List<Palette>`, `contrastRatio`, `fixContrast`, `mixColors`, `patternTint`, `argmax`, `softmax`, `sigmoid`. Every later task touching color/text-normalization/logits uses these exact names.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```kotlin
 package ing.emojify.app.model
@@ -667,12 +667,12 @@ class ModelIoTest {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd android && ./gradlew test --tests "ing.emojify.app.model.ModelIoTest"`
 Expected: FAIL — nothing in `ModelIo.kt` exists yet.
 
-- [ ] **Step 3: Implement `ModelIo.kt`** (ported from `web/src/model.js`)
+- [x] **Step 3: Implement `ModelIo.kt`** (ported from `web/src/model.js`)
 
 ```kotlin
 package ing.emojify.app.model
@@ -829,12 +829,12 @@ fun softmax(arr: FloatArray): FloatArray {
 fun sigmoid(arr: FloatArray): FloatArray = arr.map { (1.0 / (1.0 + Math.exp(-it.toDouble()))).toFloat() }.toFloatArray()
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd android && ./gradlew test --tests "ing.emojify.app.model.ModelIoTest"`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add android/app/src/main/java/ing/emojify/app/model/ModelIo.kt android/app/src/test/java/ing/emojify/app/model/ModelIoTest.kt
