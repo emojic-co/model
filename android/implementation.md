@@ -2034,7 +2034,7 @@ git commit -m "android: add footer with model date and about link"
 **Interfaces:**
 - Produces: `cycle(list: List<T>, current: T?, dir: Int): T?` (port of `cycle()` in `web/src/nav.js`).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```kotlin
 package ing.emojify.app.model
@@ -2066,7 +2066,7 @@ class NavTest {
 }
 ```
 
-- [ ] **Step 2: Run to verify it fails, then implement**
+- [x] **Step 2: Run to verify it fails, then implement**
 
 ```kotlin
 package ing.emojify.app.model
@@ -2079,11 +2079,11 @@ fun <T> cycle(list: List<T>, current: T?, dir: Int): T? {
 }
 ```
 
-- [ ] **Step 3: Run to verify it passes**
+- [x] **Step 3: Run to verify it passes**
 
-Run: `cd android && ./gradlew test --tests "ing.emojify.app.model.NavTest"`
+Run: `cd android && ./gradlew testDebugUnitTest --tests "ing.emojify.app.model.NavTest"` (the plan's literal `test --tests` fails on Android app modules — `test` is a lifecycle task, not a `Test` task; `testDebugUnitTest` is the correct variant task, per Task 1.x's earlier deviation note).
 
-- [ ] **Step 4: Wire swipe gestures in `Card.kt`**, cycling the emoji list horizontally and the feeling list vertically:
+- [x] **Step 4: Wire swipe gestures in `Card.kt`**, cycling the emoji list horizontally and the feeling list vertically:
 
 ```kotlin
     modifier = Modifier.pointerInput(emojiList, feelingOptions) {
@@ -2103,12 +2103,9 @@ Run: `cd android && ./gradlew test --tests "ing.emojify.app.model.NavTest"`
 
 Pass `onEmojiCycle: (Int) -> Unit` / `onFeelingCycle: (Int) -> Unit` from `MainScreen`, implemented as `override = override.copy(emoji = cycle(emojiTop.map { it.emoji }, shownEmoji, dir))` (and the feeling equivalent using `feelingOptions`).
 
-- [ ] **Step 5: Install and manually verify**
+- [ ] **Step 5: Install and manually verify** — build/install succeeded (compiles clean, unit tests pass, `installDebug` succeeded on the Pixel 7a); the interactive part (horizontal swipe cycling the emoji, vertical swipe cycling the feeling) is pending your own check on the phone, not yet confirmed. App was not launched or sent simulated input.
 
-Run: `cd android && ./gradlew installDebug`
-Expected: horizontal swipe on the card cycles the predicted emoji; vertical swipe cycles the feeling.
-
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add android/app/src/main/java/ing/emojify/app/model/Nav.kt android/app/src/test/java/ing/emojify/app/model/NavTest.kt android/app/src/main/java/ing/emojify/app/ui/components/Card.kt android/app/src/main/java/ing/emojify/app/ui/MainScreen.kt

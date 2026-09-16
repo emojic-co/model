@@ -37,6 +37,7 @@ import ing.emojify.app.model.EmojiScore
 import ing.emojify.app.model.Meta
 import ing.emojify.app.model.OnnxPredictor
 import ing.emojify.app.model.Palette
+import ing.emojify.app.model.cycle
 import ing.emojify.app.model.fixContrast
 import ing.emojify.app.model.pickEmojiList
 import ing.emojify.app.model.topFeelings
@@ -125,6 +126,8 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor) {
             colors = colors,
             onCopy = { scope.launch { capture?.invoke()?.let { copyCardToClipboard(context, it) } } },
             onShare = { scope.launch { capture?.invoke()?.let { shareCard(context, it) } } },
+            onEmojiCycle = { dir -> override = override.copy(emoji = cycle(emojiTop.map { it.emoji }, shownEmoji, dir)) },
+            onFeelingCycle = { dir -> override = override.copy(feeling = cycle(feelingOptions, shownFeeling, dir)) },
             onCaptureReady = { capture = it },
         )
         Spacer(modifier = Modifier.height(16.dp))
