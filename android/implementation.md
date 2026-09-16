@@ -1165,7 +1165,7 @@ git commit -m "android: add tappable EmojiList and FeelingBar composables"
 
 Compose's `LaunchedEffect(key)` already cancels its previous coroutine when `key` changes, which replaces `App.jsx`'s manual `seq`/ref-based staleness guard — no extra bookkeeping needed.
 
-- [ ] **Step 1: Rewrite `MainScreen.kt`**
+- [x] **Step 1: Rewrite `MainScreen.kt`**
 
 ```kotlin
 package ing.emojify.app.ui
@@ -1261,7 +1261,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor) {
 }
 ```
 
-- [ ] **Step 2: Update `MainActivity.kt`** to load `Meta`/build `OnnxPredictor` once and pass them to `MainScreen`
+- [x] **Step 2: Update `MainActivity.kt`** to load `Meta`/build `OnnxPredictor` once and pass them to `MainScreen`
 
 ```kotlin
 package ing.emojify.app
@@ -1295,12 +1295,12 @@ class MainActivity : ComponentActivity() {
 }
 ```
 
-- [ ] **Step 3: Install and manually verify**
+- [ ] **Step 3: Install and manually verify** — build/install succeeded; the interactive part (type text, watch prediction/tap-override) is pending your own check on the phone, not yet confirmed.
 
 Run: `cd android && ./gradlew installDebug`
 Expected: typing ≥3 characters shows a predicted emoji, an emoji list you can tap to override, and a feeling bar you can tap to override — values matching the web app for the same input.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add android/app/src/main/java/ing/emojify/app/ui/MainScreen.kt android/app/src/main/java/ing/emojify/app/MainActivity.kt

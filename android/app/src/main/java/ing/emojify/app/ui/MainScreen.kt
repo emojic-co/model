@@ -1,5 +1,6 @@
 package ing.emojify.app.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,16 +12,58 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import ing.emojify.app.model.EmojiScore
+import ing.emojify.app.model.Meta
+import ing.emojify.app.model.OnnxPredictor
+import ing.emojify.app.model.pickEmojiList
+import ing.emojify.app.model.topFeelings
+import ing.emojify.app.ui.components.EmojiList
+import ing.emojify.app.ui.components.FeelingBar
+import kotlinx.coroutines.delay
+
+private const val MIN_CHARS = 3
+private const val DEBOUNCE_MS = 250L
+private const val EMOJI_SLOTS = 9
+private const val FEELING_COUNT = 4
+
+private data class Override(val emoji: String? = null, val feeling: String? = null)
 
 @Composable
-fun MainScreen() {
+fun MainScreen(meta: Meta, predictor: OnnxPredictor) {
     var text by remember { mutableStateOf("") }
+    var emojiTop by remember { mutableStateOf<List<EmojiScore>>(emptyList()) }
+    var predictedFeeling by remember { mutableStateOf<String?>(null) }
+    var feelingScores by remember { mutableStateOf<FloatArray?>(null) }
+    var override by remember { mutableStateOf(Override()) }
+
+    LaunchedEffect(text) {
+        if (text.trim().length < MIN_CHARS) {
+            emojiTop = emptyList()
+            predictedFeeling = null
+            feelingScores = null
+            override = Override()
+            return@LaunchedEffect
+        }
+        delay(DEBOUNCE_MS)
+        val result = predictor.predict(text, meta)
+        emojiTop = pickEmojiList(result.emojiLogits, meta.emojis, EMOJI_SLOTS)
+        val feelingIdx = ing.emojify.app.model.argmax(result.styleLogits)
+        predictedFeeling = meta.styles[feelingIdx]
+        feelingScores = result.styleLogits
+        override = Override()
+    }
+
+    val shownEmoji = override.emoji ?: emojiTop.firstOrNull()?.emoji
+    val shownFeeling = override.feeling ?: predictedFeeling
+    val feelingOptions = topFeelings(feelingScores, meta.styles, shownFeeling, FEELING_COUNT)
+
     Column(modifier = Modifier.fillMaxSize().safeDrawingPadding().padding(16.dp)) {
         TextField(
             value = text,
@@ -28,8 +71,23 @@ fun MainScreen() {
             placeholder = { Text("type at least 3 characters…") },
             modifier = Modifier.fillMaxWidth(),
         )
-        Spacer(modifier = Modifier.height(24.dp))
-        Text(text = "🙂", style = MaterialTheme.typography.displayLarge)
-        Text(text = "What's on your mind?")
+        Spacer(modifier = Modifier.height(16.dp))
+        EmojiList(items = emojiTop.ifEmpty { null }, active = shownEmoji) { picked ->
+            override = override.copy(emoji = picked)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .padding(32.dp),
+        ) {
+            Text(text = shownEmoji ?: "🙂", style = MaterialTheme.typography.displayLarge)
+            Text(text = text.ifBlank { "What's on your mind?" })
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        FeelingBar(feelings = feelingOptions, active = shownFeeling) { picked ->
+            override = override.copy(feeling = picked)
+        }
     }
 }
