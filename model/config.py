@@ -77,7 +77,7 @@ SEED = 42
 TASK_BATCH_SIZE = int(os.environ.get("EMOJIC_TASK_BATCH_SIZE", "128"))
 GAN_BATCH_SIZE = int(os.environ.get("EMOJIC_GAN_BATCH_SIZE", "512"))
 RELU_SLOPE = 0.1
-LR = 0.01
+LR_ENCODER = 0.01
 LR_GAN_GEN = 0.04
 LR_GAN_CRITIC = 0.02
 GRAD_CLIP_GEN = 1.0
@@ -123,7 +123,7 @@ train_str = " ".join(
             TASK_BATCH_SIZE,
             GAN_BATCH_SIZE,
             RELU_SLOPE,
-            LR,
+            LR_ENCODER,
             GRAD_CLIP_GEN,
             GRAD_CLIP_CRITIC,
             INFONCE_TEMP_EMOJI,

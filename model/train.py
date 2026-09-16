@@ -58,7 +58,7 @@ from model.config import (
     GRAD_CLIP_GEN,
     INFONCE_TEMP_EMOJI,
     INFONCE_TEMP_STYLE,
-    LR,
+    LR_ENCODER,
     LR_GAN_CRITIC,
     LR_GAN_GEN,
     MACRO_MIN_SUPPORT,
@@ -294,7 +294,8 @@ class LitEncoder(pl.LightningModule):
             if n_color > 1:
                 c_enc = enc[has_color]
                 c_colors = colors[has_color]
-                shift = 1 if split == "val" else int(torch.randint(1, n_color, (1,)).item())
+                shift = 1 if split == "val" else int(
+                    torch.randint(1, n_color, (1,)).item())
                 neg_colors = c_colors.roll(shift, dims=0)
                 _, pos = self.critic(c_enc, c_colors)
                 _, neg = self.critic(c_enc, neg_colors)
@@ -389,12 +390,14 @@ class LitEncoder(pl.LightningModule):
                 self.log(f"MRR/s/{split}", style_macro, prog_bar=True)
 
         if emoji_mrr is not None and style_macro is not None:
-            self.log(f"F1/{split}", harmonic_mean(emoji_mrr, style_macro), prog_bar=True)
+            self.log(f"F1/{split}", harmonic_mean(emoji_mrr,
+                     style_macro), prog_bar=True)
 
         if "lang" in self.heads:
             lang_acc = self._val_lang_acc if split == "val" else self._trn_lang_acc
             if lang_acc:
-                self.log(f"acc/lang/{split}", torch.cat(lang_acc).mean(), prog_bar=True)
+                self.log(f"acc/lang/{split}",
+                         torch.cat(lang_acc).mean(), prog_bar=True)
 
     def training_step(self, batch, batch_idx):
         return self._step(batch, "train")
@@ -408,7 +411,7 @@ class LitEncoder(pl.LightningModule):
             params += list(self.emoji_embed.parameters())
         for h in self.heads:
             params += list(getattr(self, h).parameters())
-        return optim.Adam(params, lr=LR)
+        return optim.Adam(params, lr=LR_ENCODER)
 
 
 class LitColorGAN(pl.LightningModule):
@@ -703,7 +706,8 @@ def _run_local(
         )
         enc = _load(TextEncoder(), str(pt_dir / "enc.pt"))
         critic = _load(ColorCritic(), str(pt_dir / "critic.pt"))
-        _train_gan(enc, critic, train_ds(mix_sources=False), out_dir)  # type: ignore
+        _train_gan(enc, critic, train_ds(
+            mix_sources=False), out_dir)  # type: ignore
         if out_dir == _DEFAULT_PT:
             export()
         if not skip_report:
@@ -720,7 +724,8 @@ def _run_local(
         return
 
     critic = _load(ColorCritic(), str(out_dir / "critic.pt"))
-    _train_gan(mod.enc, critic, train_ds(mix_sources=False), out_dir)  # type: ignore
+    _train_gan(mod.enc, critic, train_ds(
+        mix_sources=False), out_dir)  # type: ignore
     if out_dir == _DEFAULT_PT:
         export()
     if not skip_report:
