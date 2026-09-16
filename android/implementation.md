@@ -1587,7 +1587,7 @@ git commit -m "android: port full FEELINGS table and resolveFeeling"
 - Modify: `android/app/src/main/java/ing/emojify/app/ui/components/Card.kt`
 - Modify: `android/app/src/main/java/ing/emojify/app/ui/MainScreen.kt`
 
-- [ ] **Step 1: Update `Card`'s signature and text styling**
+- [x] **Step 1: Update `Card`'s signature and text styling**
 
 Change `Card`'s `feeling: String?` usage: replace the plain `Text(text = ..., color = textColor)` for the card text with a `FeelingStyle`-driven style:
 
@@ -1615,12 +1615,9 @@ Change `Card`'s `feeling: String?` usage: replace the plain `Text(text = ..., co
     )
 ```
 
-- [ ] **Step 2: Install and manually verify**
+- [ ] **Step 2: Install and manually verify** — build/install succeeded (compiles clean, `installDebug` succeeded on the Pixel 7a); the interactive part (typing text and watching the card's font/weight/case change per predicted feeling) is pending your own check on the phone, not yet confirmed. App was not launched or sent simulated input.
 
-Run: `cd android && ./gradlew installDebug` on a device with Google Play Services (required for the Downloadable Fonts provider).
-Expected: card text changes font/weight/case per predicted feeling, matching the web app's typography choices for the same inputs. (First render of a new font may take a moment to download — expected, matches the provider's async fetch.)
-
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add android/app/src/main/java/ing/emojify/app/ui/components/Card.kt
