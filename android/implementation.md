@@ -2014,9 +2014,9 @@ git commit -m "android: persist contrast-fix preference via DataStore"
 **Files:**
 - Modify: `android/app/src/main/java/ing/emojify/app/ui/MainScreen.kt`
 
-- [ ] **Step 1: Add a footer `Row`/`Column`** below the `ColorBar`/`FeelingBar`, showing `meta.exported_at` formatted via `java.time.OffsetDateTime.parse(...)`/`DateTimeFormatter`, a "made with ❤️ by Gilad" `Text`, and an "about this model" `Text` wrapped in `Modifier.clickable { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/emoji-co/model/blob/main/ABOUT.md"))) }` (same URL as `App.jsx`'s footer link).
+- [x] **Step 1: Add a footer `Row`/`Column`** below the `ColorBar`/`FeelingBar`/contrast toggle, showing `meta.exported_at` formatted via `java.time.OffsetDateTime.parse(...)`/`DateTimeFormatter` ("MMM d, yyyy" pattern; minSdk 26 has `java.time` natively, no desugaring needed), a "made with ❤️ by Gilad" `Text`, and an "about this model" `Text` wrapped in `Modifier.clickable { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(...))) }`. Deviation: the plan's URL had a typo (`emoji-co/model`) — used the actual URL verbatim from `web/src/App.jsx`'s footer link, `https://github.com/emojic-co/model/blob/main/ABOUT.md` (`emojic-co`, matching this repo's real org).
 
-- [ ] **Step 2: Install, verify the footer renders and the about link opens a browser. Commit.**
+- [ ] **Step 2: Install, verify the footer renders and the about link opens a browser. Commit.** — build/install succeeded (compiles clean, unit tests pass, `installDebug` succeeded on the Pixel 7a); the interactive part (footer renders correctly, tapping the link opens a browser to the right URL) is pending your own check on the phone, not yet confirmed. App was not launched or sent simulated input.
 
 ```bash
 git add android/app/src/main/java/ing/emojify/app/ui/MainScreen.kt

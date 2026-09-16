@@ -1,6 +1,7 @@
 package ing.emojify.app.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,7 +25,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import android.content.Intent
+import android.net.Uri
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 import ing.emojify.app.Prefs
 import ing.emojify.app.copyCardToClipboard
 import ing.emojify.app.model.EmojiScore
@@ -50,6 +56,13 @@ private const val FEELING_COUNT = 4
 private val DEFAULT_PALETTE = Palette(bg1 = "#a8e2f4", bg2 = "#78c9f4", textColor = "#282e36")
 
 private data class Override(val emoji: String? = null, val feeling: String? = null)
+
+private val MODEL_DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM d, yyyy")
+
+private fun formatDate(iso: String?): String {
+    if (iso == null) return "—"
+    return runCatching { OffsetDateTime.parse(iso).format(MODEL_DATE_FORMAT) }.getOrDefault(iso)
+}
 
 @Composable
 fun MainScreen(meta: Meta, predictor: OnnxPredictor) {
@@ -127,6 +140,23 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor) {
                 onCheckedChange = { checked -> scope.launch { prefs.setContrastFix(checked) } },
             )
             Text("fix low-contrast palettes")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Column {
+            Text("model updated ${formatDate(meta.exported_at)}")
+            Text(
+                "about this model",
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier.clickable {
+                    context.startActivity(
+                        Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse("https://github.com/emojic-co/model/blob/main/ABOUT.md"),
+                        ),
+                    )
+                },
+            )
+            Text("made with ❤️ by Gilad")
         }
     }
 }
