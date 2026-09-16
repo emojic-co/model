@@ -451,7 +451,7 @@ git commit -m "android: scaffold minimal Compose screen"
 - Create: `android/app/src/main/assets/meta.json` (copy)
 - Create: `android/app/src/main/assets/config.json` (copy)
 
-- [ ] **Step 1: Add dependencies**
+- [x] **Step 1: Add dependencies**
 
 In `android/app/build.gradle.kts`, inside `dependencies { ... }`, add:
 
@@ -460,19 +460,19 @@ In `android/app/build.gradle.kts`, inside `dependencies { ... }`, add:
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 ```
 
-- [ ] **Step 2: Copy the model assets from the web app**
+- [x] **Step 2: Copy the model assets from the web app**
 
 ```bash
 mkdir -p android/app/src/main/assets
 cp web/public/model.onnx web/public/meta.json web/public/config.json android/app/src/main/assets/
 ```
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run: `ls -la android/app/src/main/assets/`
 Expected: `model.onnx`, `meta.json`, `config.json` present, sizes matching `web/public/`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add android/app/build.gradle.kts android/app/src/main/assets
