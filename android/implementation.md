@@ -1380,7 +1380,7 @@ git commit -m "android: add ColorBar composable"
 - Consumes: `Palette`, `fixContrast()` (Task 1.3), `ColorBar` (Task 3.1).
 - Produces: `Card(text, emoji, feeling, colors: Palette, onCopy: () -> Unit, onShare: () -> Unit)` — `onCopy`/`onShare` are real no-op lambdas until Phase 7 wires them.
 
-- [ ] **Step 1: Implement `Card.kt`** (structure ported from `web/src/components/Card.jsx`; fonts/patterns/animation come in Phases 4–6)
+- [x] **Step 1: Implement `Card.kt`** (structure ported from `web/src/components/Card.jsx`; fonts/patterns/animation come in Phases 4–6)
 
 ```kotlin
 package ing.emojify.app.ui.components
@@ -1419,7 +1419,7 @@ fun Card(text: String, emoji: String, feeling: String?, colors: Palette, onCopy:
 }
 ```
 
-- [ ] **Step 2: Wire GAN palettes + contrast fix + `Card`/`ColorBar` into `MainScreen.kt`**
+- [x] **Step 2: Wire GAN palettes + contrast fix + `Card`/`ColorBar` into `MainScreen.kt`**
 
 In `MainScreen.kt`: add `var palettes by remember { mutableStateOf<List<ing.emojify.app.model.Palette>>(emptyList()) }`, `var colorOverride by remember { mutableStateOf(0) }`, and `var contrastFix by remember { mutableStateOf(true) }` (persistence lands in Phase 8). Inside the `LaunchedEffect(text)` success branch, set `palettes = result.palettes.ifEmpty { listOf(DEFAULT_PALETTE) }` where:
 
@@ -1444,12 +1444,12 @@ Replace the inline placeholder `Column` in `MainScreen`'s layout with:
 
 Reset `colorOverride = 0` alongside the other overrides at the top of `LaunchedEffect(text)` when clearing state for short input.
 
-- [ ] **Step 3: Install and manually verify**
+- [ ] **Step 3: Install and manually verify** — build/install succeeded; the visual part (gradient look, legibility, swatch tapping) is pending your own check on the phone.
 
 Run: `cd android && ./gradlew installDebug`
 Expected: card background is a real gradient from the model's predicted palette (not the placeholder gray), text stays legible (contrast fix active by default), and tapping color swatches switches palettes when the model returns more than one.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add android/app/src/main/java/ing/emojify/app/ui/components/Card.kt android/app/src/main/java/ing/emojify/app/ui/MainScreen.kt
