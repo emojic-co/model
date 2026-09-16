@@ -5,3 +5,6 @@ build/
 *.aab
 .cxx/
 captures/
+*.jks
+*.keystore
+keystore.properties

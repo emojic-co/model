@@ -12,9 +12,12 @@ how each piece maps to Android, not a redefinition of the product.
 ## Architecture
 
 - Single Gradle module, `android/app/`, Jetpack Compose UI.
-- Package: `ing.emojify.app` (reverse-DNS of the product domain; the git repo
-  name and product name are already intentionally different, see project
-  memory).
+- Package: `ing.emojify` (reverse-DNS of the product domain `emojify.ing`; the
+  git repo name and product name are already intentionally different, see
+  project memory). Renamed from the scaffold-era `ing.emojify.app` ahead of
+  Play Store publishing (2026-09-16) — the code snippets in the phase log
+  below predate the rename and still show the old package name; treat the
+  current source tree, not those snippets, as authoritative.
 - No backend. Everything runs on-device, same as the web app.
 - minSdk 26 (Android 8.0), target/compile SDK = latest stable at time of
   scaffolding.
@@ -144,7 +147,7 @@ approved or explicitly modified.
 ## Global Constraints
 
 - minSdk 26, compileSdk/targetSdk 35, Java/Kotlin target 17.
-- Package `ing.emojify.app`.
+- Package `ing.emojify`.
 - Model assets (`model.onnx`, `meta.json`, `config.json`) are copied verbatim from `web/public/` — never hand-edited in `android/`.
 - All math/logic in `model/` is a literal, behavior-preserving port of the named `web/src/*.js` file — no independent reinterpretation.
 - Every phase ends with `./gradlew installDebug` to a physical phone; do not start the next phase's tasks until the current phase is reviewed and approved (or explicit modifications are requested).
