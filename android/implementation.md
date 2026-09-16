@@ -57,12 +57,10 @@ how each piece maps to Android, not a redefinition of the product.
 
 ## Where Android diverges from the web app (deliberate)
 
-- **Translation/language detection** — deferred to a later, explicitly
-  optional phase (Phase 9). Chrome's on-device `Translator`/`LanguageDetector`
-  APIs (`web/src/translate.js`) have no built-in Android equivalent; the
-  eventual replacement is Google ML Kit's on-device Translation +
-  Language ID. Until Phase 9, all input text is sent to the model as-is
-  (matches the model's English-tuned training).
+- **No translation** — the model only supports English and Hebrew, so
+  there's nothing to translate. `langForText` (`ScriptFonts.kt`) does a
+  cheap Hebrew-script check on the raw input to pick script/font, and the
+  raw text is sent to the model as-is (matches `App.jsx`).
 - **Keyboard-modifier cycling** (`Ctrl+↑/↓`, `Alt+↑/↓` in `App.jsx`) doesn't
   apply to a touchscreen. Direct taps on emoji/feeling/color list items
   (already how `onPick` works in the web components) are the primary
@@ -128,9 +126,6 @@ approved or explicitly modified.
 8. **Persistence & polish** — contrast-fix toggle persisted (DataStore),
    footer (model-updated date, about link), app icon/branding, swipe-to-cycle
    gesture on the card.
-9. *(stretch, deferred)* **ML Kit translation** — on-device language
-   detection + translation, language-override picker (equivalent of
-   `KeyHints`' language menu).
 
 ---
 
@@ -138,11 +133,11 @@ approved or explicitly modified.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. Tasks are numbered `<phase>.<task>` to match the phase list above; complete every task in a phase, install, and get phone review before starting the next phase's first task.
 
-**Goal:** Build the Android clone of emojify.ing incrementally — each phase produces an installable, phone-reviewable increment, starting from an empty scaffold and ending with feature parity (minus the deferred translation phase).
+**Goal:** Build the Android clone of emojify.ing incrementally — each phase produces an installable, phone-reviewable increment, starting from an empty scaffold and ending with feature parity with the web app.
 
 **Architecture:** Single-module Jetpack Compose app (`android/app/`). A plain-Kotlin domain layer (`model/` package: `ModelIo.kt`, `Feelings.kt`, `Nav.kt`, `OnnxPredictor.kt`, `Meta.kt`) ported line-for-line from `web/src/model.js`, `web/src/feelings.js`, `web/src/nav.js`, `web/src/hooks/useOnnx.js`. A Compose UI layer (`ui/` package) mirroring `web/src/App.jsx` and `web/src/components/*.jsx`.
 
-**Tech Stack:** Kotlin 2.0.21, Jetpack Compose (BOM 2024.12.01), AGP 8.7.3, ONNX Runtime Mobile (`onnxruntime-android`), kotlinx.serialization, AndroidX DataStore (Phase 8), Coil + SVG decoder (Phase 5), ML Kit Translate/Language-ID (Phase 9 only).
+**Tech Stack:** Kotlin 2.0.21, Jetpack Compose (BOM 2024.12.01), AGP 8.7.3, ONNX Runtime Mobile (`onnxruntime-android`), kotlinx.serialization, AndroidX DataStore (Phase 8), Coil + SVG decoder (Phase 5).
 
 **Spec:** The sections above in this same file ("Purpose" through "Phased plan").
 
@@ -2112,80 +2107,12 @@ git add android/app/src/main/java/ing/emojify/app/model/Nav.kt android/app/src/t
 git commit -m "android: add swipe-to-cycle gesture for emoji and feeling"
 ```
 
-**Phase 8 checkpoint — stop here for phone review. This completes parity-minus-translation with the web app.**
-
----
-
-## Phase 9 (stretch, deferred) — ML Kit translation
-
-Only start this phase if explicitly requested after Phase 8 review — it's the one feature intentionally deferred per the design's translation decision.
-
-### Task 9.1: On-device language ID + translation service
-
-**Files:**
-- Modify: `android/app/build.gradle.kts` (add `com.google.mlkit:language-id`, `com.google.mlkit:translate`)
-- Create: `android/app/src/main/java/ing/emojify/app/model/Translate.kt`
-- Modify: `android/app/src/main/java/ing/emojify/app/ui/MainScreen.kt`
-
-- [ ] **Step 1: Add dependencies**
-
-```kotlin
-    implementation("com.google.mlkit:language-id:17.0.6")
-    implementation("com.google.mlkit:translate:17.0.3")
-```
-
-- [ ] **Step 2: Implement `Translate.kt`**, mirroring `detectAndTranslate()`'s contract in `web/src/translate.js` (detect language, translate to English if a translator is available and download succeeds, otherwise fall back to the original text — never block or crash the predict pipeline on translation failure):
-
-```kotlin
-package ing.emojify.app.model
-
-import com.google.mlkit.nl.languageid.LanguageIdentification
-import com.google.mlkit.nl.translate.TranslateLanguage
-import com.google.mlkit.nl.translate.Translation
-import com.google.mlkit.nl.translate.TranslatorOptions
-import kotlinx.coroutines.tasks.await
-
-data class TranslationResult(val text: String, val lang: String, val detectedLang: String?, val translated: Boolean)
-
-suspend fun detectAndTranslate(text: String, forcedLang: String? = null): TranslationResult {
-    val identifier = LanguageIdentification.getClient()
-    val detected = runCatching { identifier.identifyLanguage(text).await() }.getOrNull()
-    val detectedLang = detected?.takeIf { it != "und" }
-    val lang = forcedLang ?: detectedLang ?: "en"
-    if (lang == "en") return TranslationResult(text, "en", detectedLang, translated = false)
-
-    val sourceCode = TranslateLanguage.fromLanguageTag(lang) ?: return TranslationResult(text, lang, detectedLang, translated = false)
-    val options = TranslatorOptions.Builder().setSourceLanguage(sourceCode).setTargetLanguage(TranslateLanguage.ENGLISH).build()
-    val translator = Translation.getClient(options)
-    return try {
-        translator.downloadModelIfNeeded().await()
-        val translated = translator.translate(text).await()
-        TranslationResult(translated, lang, detectedLang, translated = true)
-    } catch (e: Exception) {
-        TranslationResult(text, lang, detectedLang, translated = false)
-    } finally {
-        translator.close()
-    }
-}
-```
-
-- [ ] **Step 3: Wire into `MainScreen.kt`'s `LaunchedEffect(text)`** — call `detectAndTranslate(text)` before `predictor.predict(...)`, feeding its `.text` into the predictor instead of the raw input (same ordering as `App.jsx`).
-
-- [ ] **Step 4: Add a minimal language-override UI** (a `DropdownMenu` listing detected/forced language, equivalent to `KeyHints`' language picker in the web app) that sets a `forcedLang` state variable passed into `detectAndTranslate`.
-
-- [ ] **Step 5: Install and manually verify** with non-English input (e.g. Spanish), confirming the predicted emoji/feeling reflect the translated meaning, not the raw non-English text.
-
-- [ ] **Step 6: Commit**
-
-```bash
-git add android/app/build.gradle.kts android/app/src/main/java/ing/emojify/app/model/Translate.kt android/app/src/main/java/ing/emojify/app/ui/MainScreen.kt
-git commit -m "android: add ML Kit on-device translation"
-```
+**Phase 8 checkpoint — stop here for phone review. This completes feature parity with the web app.**
 
 ---
 
 ## Self-Review Notes
 
-- **Spec coverage:** every architecture element (domain layer, UI layer), every listed divergence (translation, keyboard→touch, copy-as-image, patterns, fonts, URL routing), the testing section, and all ten phases each map to at least one task above.
+- **Spec coverage:** every architecture element (domain layer, UI layer), every listed divergence (keyboard→touch, copy-as-image, patterns, fonts, URL routing), the testing section, and all phases each map to at least one task above. (Translation was never a divergence to bridge — see "No translation" above: the model only supports English/Hebrew, so there's nothing to translate.)
 - **Type consistency checked:** `Palette(bg1, bg2, textColor)`, `EmojiScore(emoji, p)`, `OnnxPredictor.Prediction(emojiLogits, styleLogits, palettes, ms)`, `FeelingStyle(...)`, and `cycle<T>(list, current, dir)` are defined once (Tasks 1.3/1.4/2.1/4.2/8.3) and referenced with the same names/shapes in every later task that consumes them.
 - **No placeholders:** every step above either ships real, compilable-as-written Kotlin/XML/Gradle/shell content, or — where a value must not be hand-typed (the Google Fonts provider certificate array) — points to the exact external source to copy verbatim rather than inventing one.
