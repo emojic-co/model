@@ -1705,14 +1705,14 @@ git commit -m "android: export hero-patterns SVGs as static tileable assets"
 - Create: `android/app/src/main/java/ing/emojify/app/ui/components/PatternBackground.kt`
 - Modify: `android/app/src/main/java/ing/emojify/app/ui/components/Card.kt`
 
-- [ ] **Step 1: Add dependencies**
+- [x] **Step 1: Add dependencies**
 
 ```kotlin
     implementation("io.coil-kt.coil3:coil-compose:3.0.4")
     implementation("io.coil-kt.coil3:coil-svg:3.0.4")
 ```
 
-- [ ] **Step 2: Implement `PatternBackground.kt`** — loads the cluster's SVG asset, decodes it once, and tiles it as a `BitmapShader` behind content at the same 25% opacity the web app uses (`MAX_OPACITY` in `patterns.js`):
+- [x] **Step 2: Implement `PatternBackground.kt`** — loads the cluster's SVG asset, decodes it once, and tiles it as a `BitmapShader` behind content at the same 25% opacity the web app uses (`MAX_OPACITY` in `patterns.js`). Deviation from the plan's literal listing (build failures, fixed and verified): added `import androidx.compose.runtime.getValue` (required for the `by produceState { }` delegate), added `import androidx.compose.ui.graphics.nativeCanvas` (extension property, not resolved by the `drawIntoCanvas` import alone), and dropped the unused `androidx.compose.ui.graphics.asAndroidBitmap` import (`coil3.toBitmap()` already returns `android.graphics.Bitmap` directly):
 
 ```kotlin
 package ing.emojify.app.ui.components
@@ -1722,11 +1722,13 @@ import android.graphics.Shader
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import coil3.ImageLoader
 import coil3.request.ImageRequest
@@ -1764,16 +1766,11 @@ fun PatternBackground(cluster: String, tint: androidx.compose.ui.graphics.Color,
 }
 ```
 
-- [ ] **Step 3: Layer it behind the gradient in `Card.kt`**
+- [x] **Step 3: Layer it behind the gradient in `Card.kt`** — implemented as: outer `Box` clipped to `RoundedCornerShape(16.dp)` (needed since `PatternBackground` now draws outside the old background-only clip), `PatternBackground(cluster = style.cluster, tint = ..., modifier = Modifier.matchParentSize())` as its first child tinted with `patternTint(colors.bg1, colors.bg2)` (Task 1.3) converted to a Compose `Color`, then a second inner `Box` with the gradient at 0.85 alpha (`bg1.copy(alpha = 0.85f)` / `bg2.copy(alpha = 0.85f)`) holding the existing padded `Column` content — the pattern shows through the translucent gradient, matching the web app's layered `backgroundImage` look. `style` comes from `resolveFeeling(feeling)` (Task 4.2), already in scope from Task 4.3.
 
-Wrap the existing gradient `Box` content in a `Box` with `PatternBackground` drawn first, gradient `Box` on top with the gradient at reduced alpha, or simpler: draw `PatternBackground` as the first child of the existing `Box`, tinted with `patternTint(colors.bg1, colors.bg2)` (already ported in `ModelIo.kt`, Task 1.3) converted to a Compose `Color`, then keep the gradient background on the `Box.background` as before (it composites on top since Compose draws children in order — move the gradient application from `Modifier.background` to a second `Box.background` sibling drawn after `PatternBackground`, or apply the gradient at partial alpha so the pattern shows through, matching the web app's layered `backgroundImage` list). Use `style.cluster` from `resolveFeeling(feeling)` (Task 4.2) as the `cluster` argument.
+- [ ] **Step 4: Install and manually verify** — build/install succeeded (compiles clean, `installDebug` succeeded on the Pixel 7a); the interactive part (seeing the faint tinted repeating pattern behind the card, varying by feeling cluster) is pending your own check on the phone, not yet confirmed. App was not launched or sent simulated input.
 
-- [ ] **Step 4: Install and manually verify**
-
-Run: `cd android && ./gradlew installDebug`
-Expected: card background shows a faint repeating pattern tinted to match the palette, varying by feeling cluster, matching the web app's look for the same feeling.
-
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add android/app/build.gradle.kts android/app/src/main/java/ing/emojify/app/ui/components/PatternBackground.kt android/app/src/main/java/ing/emojify/app/ui/components/Card.kt
