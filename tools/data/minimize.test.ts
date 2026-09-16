@@ -23,7 +23,7 @@ test("minimize collapses by normalized text, unions emojis/styles, last palette 
   expect(rec.min).toBe("abc1234")
 })
 
-test("minimize strips every non-base extra field, keeping only text/emojis/styles/bg/fg/min", () => {
+test("minimize strips every non-base extra field except lang, keeping text/emojis/styles/bg/fg/lang/min", () => {
   const out = minimize(
     [
       {
@@ -36,12 +36,14 @@ test("minimize strips every non-base extra field, keeping only text/emojis/style
         neg: "true",
         remojis: ["x"],
         keyword: "dusk",
+        lang: "he",
       },
     ],
     "deadbee",
   )
   const rec = JSON.parse(out.trim())
-  expect(Object.keys(rec).sort()).toEqual(["bg", "emojis", "fg", "min", "styles", "text"])
+  expect(Object.keys(rec).sort()).toEqual(["bg", "emojis", "fg", "lang", "min", "styles", "text"])
+  expect(rec.lang).toBe("he")
   expect(rec.min).toBe("deadbee")
 })
 
@@ -69,6 +71,25 @@ test("minimalLine marks one collapsed record with the short sha and drops its ex
     styles: ["Wistful"],
     bg: ["#111111", "#222222"],
     fg: "#eeeeee",
+    min: "1234abc",
+  })
+})
+
+test("minimalLine keeps lang from extra alongside the base fields", () => {
+  const line = minimalLine(
+    {
+      text: "שלום עולם",
+      emojis: "😀",
+      styles: ["Joyful"],
+      extra: { lang: "he", meta: { src: "top" } },
+    },
+    "1234abc",
+  )
+  expect(JSON.parse(line)).toEqual({
+    text: "שלום עולם",
+    emojis: "😀",
+    styles: ["Joyful"],
+    lang: "he",
     min: "1234abc",
   })
 })
