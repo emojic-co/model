@@ -851,7 +851,7 @@ git commit -m "android: port model.js math/color logic to ModelIo.kt"
 - Consumes: `Meta`, `Meta.charToIndex()`, `encode()`, `decodeColorList()` (Tasks 1.2–1.3).
 - Produces: `OnnxPredictor(assets, meta)` with `predict(text, meta): OnnxPredictor.Prediction` where `Prediction(emojiLogits: FloatArray, styleLogits: FloatArray, palettes: List<Palette>, ms: Double)`. Phase 2's UI wiring consumes this type directly.
 
-- [ ] **Step 1: Implement `OnnxPredictor.kt`**
+- [x] **Step 1: Implement `OnnxPredictor.kt`**
 
 ```kotlin
 package ing.emojify.app.model
@@ -900,7 +900,7 @@ class OnnxPredictor(assets: AssetManager, meta: Meta) : AutoCloseable {
 }
 ```
 
-- [ ] **Step 2: Wire a hardcoded smoke test into `MainActivity.kt`**
+- [x] **Step 2: Wire a hardcoded smoke test into `MainActivity.kt`**
 
 Add to `MainActivity.kt`, inside `onCreate` before `setContent`:
 
@@ -918,17 +918,17 @@ Add to `MainActivity.kt`, inside `onCreate` before `setContent`:
         predictor.close()
 ```
 
-- [ ] **Step 3: Install and check Logcat**
+- [x] **Step 3: Install and check Logcat**
 
 Run: `cd android && ./gradlew installDebug`
 Then: `adb logcat -s emojify-smoke`, launch the app.
 Expected: one log line with a non-empty top emoji, a top feeling name from `meta.styles`, `palettes=1` (or more), and a millisecond timing.
 
-- [ ] **Step 4: Cross-check against the web app**
+- [x] **Step 4: Cross-check against the web app**
 
 Run `cd web && npm install && npm run dev`, open the site, type the same text ("I love sunny mornings"), and compare the top emoji/feeling shown there against the Logcat line. They should match (same model, same weights) — if they don't, stop and debug the port before continuing to Phase 2.
 
-- [ ] **Step 5: Remove the temporary smoke-test code from `MainActivity.kt`** (Phase 2 replaces it with real UI wiring) and commit.
+- [x] **Step 5: Remove the temporary smoke-test code from `MainActivity.kt`** (Phase 2 replaces it with real UI wiring) and commit.
 
 ```bash
 git add android/app/src/main/java/ing/emojify/app/model/OnnxPredictor.kt android/app/src/main/java/ing/emojify/app/MainActivity.kt
