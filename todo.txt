@@ -1,2 +1,7 @@
-1. move the "Fix low-contrast.." checkbox from the footer, place it under the Style selector.
-2. Make the footer wider, add a to it a light border top and make some more vertical space and left align each column.
+Android APP:
+    1. Adjust layout:
+        - footer should be centered and pushed to the bottom of the screen
+        - color picker should span the entire width of the screen
+        - remove the underline from the text field.
+        - adjust the preview card's content size to match the one on the web, currently both emoji and text are too small.
+        - text size should be dynamically adjusted to fit the preview card according to its length (prevent inter-word breaking).
