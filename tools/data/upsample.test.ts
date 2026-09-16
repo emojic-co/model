@@ -6,11 +6,13 @@ import {
   countEmojis,
   groupDeficits,
   langLine,
+  langsSuffix,
   langSuffix,
   languageName,
   lowestFreqEmojis,
   parseLang,
   rankMissingByFreq,
+  resolveLangs,
 } from "./upsample.ts"
 
 test("colorBatchPlan splits each colour's per-colour total into batches of at most batchSize", () => {
@@ -151,6 +153,16 @@ test("parseLang trims/lowercases a code and treats blank/undefined as English", 
   expect(parseLang(undefined)).toBeUndefined()
   expect(parseLang("")).toBeUndefined()
   expect(parseLang("  HE ")).toBe("he")
+})
+
+test("resolveLangs returns every known language when none is given, or just the one given", () => {
+  expect(resolveLangs(undefined)).toEqual(["en", "he"])
+  expect(resolveLangs("he")).toEqual(["he"])
+})
+
+test("langsSuffix shows every language when more than one, otherwise falls back to langSuffix", () => {
+  expect(langsSuffix(["en", "he"])).toBe(" (langs: en, he)")
+  expect(langsSuffix(["he"])).toBe(" (lang: he)")
 })
 
 test("Batcher emits a batch only once it reaches the configured size", () => {
