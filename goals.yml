@@ -103,7 +103,7 @@ goals:
       food-asian: 0.5
       food-marine: 0
       food-sweet: 0.5
-      drink: 0.5
+      drink: 1
       dishware: 0.5
 
       # Travel & Places

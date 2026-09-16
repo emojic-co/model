@@ -1,4 +1,4 @@
-So each run generates a subfolder under the `pt` folder with <timestamp>-<git short commit hash> as the name. The subfolder contains all .pt files.
-in the `pt` folder just use a simple version.txt file the points to the actual model subfolder.
-
-1. What happens if the logic around the model changes?
+Web APP: 
+    1. Arrange the footer in columns.
+    2. Add an up-to-date emoji-coverage.html page to the web folder.
+    3. Link to this page from the footer.
