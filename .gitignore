@@ -71,3 +71,7 @@ cards
 
 # Downloaded Google Fonts, cached for tools/cli/imgs.ts's rsvg-convert pipeline.
 tools/cli/.cache/
+
+# Play Developer API service account key, if/when one is set up.
+play/*service-account*.json
+play/*-key.json

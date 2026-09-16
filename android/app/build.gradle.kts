@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "ing.emojify.app"
+    namespace = "ing.emojify"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "ing.emojify.app"
+        applicationId = "ing.emojify"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
