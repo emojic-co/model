@@ -77,6 +77,7 @@ export function Card({ text, emoji, feeling, lang, colors, loading, onCopy, onSh
         <p
           className={'card-text' + (placeholder ? ' card-text-placeholder' : '')}
           style={r?.style}
+          dir="auto"
         >
           {displayText}
         </p>

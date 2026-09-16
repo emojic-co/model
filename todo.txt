@@ -3,3 +3,6 @@ Make a detailed implementation plan to implement in small steps, write it to and
 We will then implement, push to my phone for review, approved/modify and go to next step.
 Start with a minimal implementation and improve/add features incrementally.
 Android app should be under the android folder and written in Kotlin. 
+
+
+web app, card should be RTL when using Hebrew

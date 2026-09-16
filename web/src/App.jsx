@@ -280,6 +280,7 @@ export function App() {
           <input
             className="input"
             type="text"
+            dir="auto"
             autoComplete="off"
             autoFocus
             ref={inputRef}
