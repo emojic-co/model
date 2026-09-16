@@ -488,7 +488,7 @@ git commit -m "android: bundle model assets, add ONNX Runtime + serialization de
 **Interfaces:**
 - Produces: `Meta(chars, pad_idx, max_text_len, emojis, styles, exported_at?, model_meta?)`, `Config(max_text_len)`, `Meta.charToIndex(): Map<Char, Int>`. Every later task that parses `meta.json`/`config.json` uses these types.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```kotlin
 package ing.emojify.app.model
@@ -529,12 +529,12 @@ class MetaTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd android && ./gradlew test --tests "ing.emojify.app.model.MetaTest"`
 Expected: FAIL — `Meta` is unresolved.
 
-- [ ] **Step 3: Implement `Meta.kt`**
+- [x] **Step 3: Implement `Meta.kt`**
 
 ```kotlin
 package ing.emojify.app.model
@@ -571,12 +571,12 @@ fun Meta.charToIndex(): Map<Char, Int> =
     chars.withIndex().associate { (i, c) -> c to i }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `cd android && ./gradlew test --tests "ing.emojify.app.model.MetaTest"`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add android/app/src/main/java/ing/emojify/app/model/Meta.kt android/app/src/test/java/ing/emojify/app/model/MetaTest.kt
