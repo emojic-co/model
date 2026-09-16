@@ -1,10 +1,2 @@
-Remove the translation step from both web and android apps.
-Model will now natively support Hebrew and English. We will add additional languages in the future.
-
-
 Done:
-
-Add to `labels.json` a `langs` field that contains a list of supported languages.
-For now, it will contain `["en", "he"]` and it should be at the top of the file.
-
-Add to the model a language prediction head, log its performance to TB.
+Add the cldr Hebrew version to the keywords file.

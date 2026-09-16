@@ -8,10 +8,9 @@ import { CLDR_JSONL } from "../../files.ts"
 import { annotate, annotateBatchCount } from "./annotate.ts"
 import { appendJsonl, readJsonl, writeFileAtomic } from "./io.ts"
 
-const CLDR_ANNOTATIONS =
-  "node_modules/cldr-annotations-full/annotations/en/annotations.json"
-const CLDR_ANNOTATIONS_DERIVED =
-  "node_modules/cldr-annotations-derived-full/annotationsDerived/en/annotations.json"
+const CLDR_ANNOTATIONS_DIR = "node_modules/cldr-annotations-full/annotations"
+const CLDR_ANNOTATIONS_DERIVED_DIR =
+  "node_modules/cldr-annotations-derived-full/annotationsDerived"
 const EMOJIBASE_DATA = "node_modules/emojibase-data/en/data.json"
 
 const MAX_EMOJIS_PER_KEYWORD = 10
@@ -37,14 +36,17 @@ function byCodePoint(a: string, b: string): number {
   return (a.codePointAt(0) ?? 0) - (b.codePointAt(0) ?? 0) || (a < b ? -1 : a > b ? 1 : 0)
 }
 
-export async function loadCldrAnnotations(): Promise<Map<string, string[]>> {
+export async function loadCldrAnnotations(
+  locale = "en",
+): Promise<Map<string, string[]>> {
   const [cldr, cldrDerived, emojibase] = await Promise.all([
-    readFile(CLDR_ANNOTATIONS, "utf8").then(
+    readFile(`${CLDR_ANNOTATIONS_DIR}/${locale}/annotations.json`, "utf8").then(
       (s) => JSON.parse(s) as CldrAnnotations,
     ),
-    readFile(CLDR_ANNOTATIONS_DERIVED, "utf8").then(
-      (s) => JSON.parse(s) as CldrAnnotationsDerived,
-    ),
+    readFile(
+      `${CLDR_ANNOTATIONS_DERIVED_DIR}/${locale}/annotations.json`,
+      "utf8",
+    ).then((s) => JSON.parse(s) as CldrAnnotationsDerived),
     readFile(EMOJIBASE_DATA, "utf8").then((s) => JSON.parse(s) as EmojibaseEntry[]),
   ])
   const canonicalById = new Map(
@@ -105,6 +107,11 @@ cli
     "--max-emojis <n>",
     `drop keywords mapping to more than n emoji (default ${MAX_EMOJIS_PER_KEYWORD})`,
   )
+  .option("-l, --locale <code>", "CLDR annotations locale (default en)")
+  .option(
+    "--no-annotate",
+    "skip the LLM styler; write text/emojis only (styles: [], no palette)",
+  )
   .option("--dry-run", "build and summarize the index only; no annotator, no write")
 cli.help()
 
@@ -115,11 +122,13 @@ if (import.meta.main) {
   const force = Boolean(options.force)
   const missing = Boolean(options.missing)
   const dryRun = Boolean(options.dryRun)
+  const doAnnotate = options.annotate !== false
   const maxEmojis = Number(options.maxEmojis ?? MAX_EMOJIS_PER_KEYWORD)
   if (!(maxEmojis >= 1)) {
     console.error(`--max-emojis must be >= 1, got ${JSON.stringify(options.maxEmojis)}`)
     process.exit(1)
   }
+  const locale = String(options.locale ?? "en")
 
   if (!dryRun && !missing && !force && existsSync(CLDR_JSONL)) {
     console.error(`${CLDR_JSONL} already exists; pass -f / --force to overwrite`)
@@ -130,11 +139,11 @@ if (import.meta.main) {
     process.exit(1)
   }
 
-  const annotations = await loadCldrAnnotations()
+  const annotations = await loadCldrAnnotations(locale)
   const records = invertedIndex(annotations, maxEmojis)
   const emojiTotal = records.reduce((n, r) => n + r.emojis.length, 0)
   console.log(
-    `${annotations.size} CLDR emoji -> ${records.length} keyword records `
+    `[${locale}] ${annotations.size} CLDR emoji -> ${records.length} keyword records `
     + `(<= ${maxEmojis} emoji each, ${(emojiTotal / (records.length || 1)).toFixed(1)} avg)`,
   )
 
@@ -161,44 +170,58 @@ if (import.meta.main) {
     process.exit(0)
   }
 
-  const annBar = new cliProgress.SingleBar(
-    {
-      format:
-        "annotating |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
-    },
-    cliProgress.Presets.shades_classic,
-  )
-  annBar.start(annotateBatchCount(targets.length), 0)
-  const labels = await annotate(
-    targets.map((r) => r.text),
-    { colors: true, onBatchDone: () => annBar.increment() },
-  )
-  annBar.stop()
-
   const today = new Date().toISOString().slice(0, 10)
   const lines: string[] = []
   let noLabel = 0
   let noPalette = 0
-  for (let i = 0; i < targets.length; i++) {
-    const label = labels.get(i)
-    if (!label) {
-      noLabel++
-      continue
+
+  if (!doAnnotate) {
+    for (const r of targets) {
+      lines.push(
+        JSON.stringify({
+          text: r.text,
+          emojis: r.emojis.join(" "),
+          styles: [],
+          meta: { date: today, cldr: true, locale },
+        }),
+      )
     }
-    if (!label.bg || !label.fg) {
-      noPalette++
-      continue
-    }
-    lines.push(
-      JSON.stringify({
-        text: targets[i].text,
-        emojis: targets[i].emojis.join(" "),
-        styles: label.styles,
-        bg: label.bg,
-        fg: label.fg,
-        meta: { date: today, cldr: true },
-      }),
+  } else {
+    const annBar = new cliProgress.SingleBar(
+      {
+        format:
+          "annotating |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
+      },
+      cliProgress.Presets.shades_classic,
     )
+    annBar.start(annotateBatchCount(targets.length), 0)
+    const labels = await annotate(
+      targets.map((r) => r.text),
+      { colors: true, onBatchDone: () => annBar.increment() },
+    )
+    annBar.stop()
+
+    for (let i = 0; i < targets.length; i++) {
+      const label = labels.get(i)
+      if (!label) {
+        noLabel++
+        continue
+      }
+      if (!label.bg || !label.fg) {
+        noPalette++
+        continue
+      }
+      lines.push(
+        JSON.stringify({
+          text: targets[i].text,
+          emojis: targets[i].emojis.join(" "),
+          styles: label.styles,
+          bg: label.bg,
+          fg: label.fg,
+          meta: { date: today, cldr: true, locale },
+        }),
+      )
+    }
   }
   if (missing) await appendJsonl(CLDR_JSONL, lines)
   else await writeFileAtomic(CLDR_JSONL, lines.join("\n") + "\n")
@@ -206,7 +229,9 @@ if (import.meta.main) {
   console.log("\n--- summary ---")
   console.log(`keyword records      : ${targets.length}`)
   console.log(`${missing ? "appended" : "written "} -> cldr     : ${lines.length}`)
-  console.log(`dropped no label     : ${noLabel}`)
-  console.log(`dropped no palette   : ${noPalette}`)
+  if (doAnnotate) {
+    console.log(`dropped no label     : ${noLabel}`)
+    console.log(`dropped no palette   : ${noPalette}`)
+  }
   process.exit(0)
 }
