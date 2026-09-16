@@ -25,3 +25,7 @@ test("keeps digits", () => {
 test("keeps the punctuation the vocab allows", () => {
   expect(normalize("really?! (yes) @me & you")).toBe("really?! (yes) @me & you")
 })
+
+test("keeps Hebrew letters, including finals", () => {
+  expect(normalize("בוקר טוב, השארתי לך עוגה")).toBe("בוקר טוב השארתי לך עוגה")
+})

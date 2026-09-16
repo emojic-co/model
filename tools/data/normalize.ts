@@ -1,4 +1,8 @@
-const KEEP = new Set("abcdefghijklmnopqrstuvwxyz0123456789!?:()@$%&* ")
+const KEEP = new Set(
+  "abcdefghijklmnopqrstuvwxyz" +
+  "אבגדהוזחטיכלמנסעפצקרשתךםןףץ" +
+  "0123456789!?:()@$%&* "
+)
 
 export function normalize(text: string): string {
   let t = text.toLowerCase().replace(/\s+/g, " ").trim()
