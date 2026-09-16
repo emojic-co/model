@@ -32,7 +32,13 @@ class OnnxPredictor(assets: AssetManager, meta: Meta) : AutoCloseable {
                 @Suppress("UNCHECKED_CAST")
                 val styleLogits = (result.get("style_logits").get().value as Array<FloatArray>)[0]
                 @Suppress("UNCHECKED_CAST")
-                val colorFlat = (result.get("color").get().value as Array<FloatArray>)[0]
+                val colorRows = result.get("color").get().value as Array<FloatArray>
+                val colorFlat = FloatArray(colorRows.sumOf { it.size })
+                var offset = 0
+                for (row in colorRows) {
+                    row.copyInto(colorFlat, offset)
+                    offset += row.size
+                }
                 return Prediction(emojiLogits, styleLogits, decodeColorList(colorFlat), ms)
             }
         }
