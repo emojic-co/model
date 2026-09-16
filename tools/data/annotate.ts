@@ -209,12 +209,21 @@ const PALETTE_HINT_RULE = [
   "   before you sacrifice readability.",
 ]
 
-function instructions(colors: boolean, paletteHint: boolean): string {
+const STYLE_HINT_RULE = [
+  "   When an item carries a \"style_hint\" of \"sarcastic\", it was written to",
+  "   be read sarcastically or ironically, not at face value: pick",
+  "   \"Sarcastic\" or \"Deadpan\" as one of its styles, and among the emojis",
+  "   include one that signals the irony itself (eye-roll, upside-down face,",
+  "   smirk, slow clap, deadpan skull) alongside any literal-content emoji.",
+]
+
+function instructions(colors: boolean, paletteHint: boolean, styleHint: boolean): string {
   const parts = [
     "You are an annotator. For each message below choose"
     + (colors ? " three things:" : " two things:"),
     ...EMOJI_RULES,
     ...STYLE_RULES,
+    ...(styleHint ? STYLE_HINT_RULE : []),
     ...(colors ? COLOR_RULES : []),
     ...(colors && paletteHint ? PALETTE_HINT_RULE : []),
     "",
@@ -395,7 +404,7 @@ function cleanLabel(
 }
 
 export async function annotateBatch(
-  batch: { id: number; text: string; palette_hint?: string }[],
+  batch: { id: number; text: string; palette_hint?: string; style_hint?: string }[],
   colors: boolean,
   fillPalette: boolean,
   usage: Usage,
@@ -419,7 +428,11 @@ export async function annotateBatch(
           schema: z.object({ annotations: z.array(Annotation) }),
         }),
         prompt: [
-          instructions(colors, batch.some((b) => b.palette_hint != null)),
+          instructions(
+            colors,
+            batch.some((b) => b.palette_hint != null),
+            batch.some((b) => b.style_hint != null),
+          ),
           "",
           "Messages:",
           JSON.stringify(batch),
