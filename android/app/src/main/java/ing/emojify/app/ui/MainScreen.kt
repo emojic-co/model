@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -20,7 +21,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun MainScreen() {
     var text by remember { mutableStateOf("") }
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    Column(modifier = Modifier.fillMaxSize().safeDrawingPadding().padding(16.dp)) {
         TextField(
             value = text,
             onValueChange = { text = it },
