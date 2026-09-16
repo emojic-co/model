@@ -1,8 +1,5 @@
-Done:
-Update the web app to support multiple languages.
-Note that the model only supports English.
-Use the built in browser translation features:
-1. Detect which languages the browser supports and list the supported languages under the keyboard shortcut panel.
-2. When the user type something, auto detect the input language, translate it to English and run the model on the translated text.
-3. Note that we need to map now (style, language) -> font family, please discuss with me what are the options.
-4. If translation services are not available, inform the user that only English is supported.
+Build a native android app (kotlin) that clones the functionality of the web app (see the web folder).
+Make a detailed implementation plan to implement in small steps, write it to android/implementation.md.
+We will then implement, push to my phone for review, approved/modify and go to next step.
+Start with a minimal implementation and improve/add features incrementally.
+Android app should be under the android folder and written in Kotlin. 
