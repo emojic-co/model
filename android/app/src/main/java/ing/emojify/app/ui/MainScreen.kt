@@ -45,6 +45,7 @@ import ing.emojify.app.ui.components.SWATCH_MIN_SIZE
 import ing.emojify.app.model.OnnxPredictor
 import ing.emojify.app.model.Palette
 import ing.emojify.app.model.cycle
+import ing.emojify.app.model.detectAndTranslate
 import ing.emojify.app.model.fixContrast
 import ing.emojify.app.model.pickEmojiList
 import ing.emojify.app.model.topFeelings
@@ -78,6 +79,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
     var palettes by remember { mutableStateOf<List<Palette>>(emptyList()) }
     var override by remember { mutableStateOf(Override()) }
     var colorOverride by remember { mutableStateOf(0) }
+    var lang by remember { mutableStateOf("en") }
     var capture by remember { mutableStateOf<(suspend () -> android.graphics.Bitmap)?>(null) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -90,10 +92,13 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
             palettes = emptyList()
             override = Override()
             colorOverride = 0
+            lang = "en"
             return@LaunchedEffect
         }
         delay(DEBOUNCE_MS)
-        val result = predictor.predict(text, meta)
+        val translation = detectAndTranslate(text)
+        lang = translation.lang
+        val result = predictor.predict(translation.text, meta)
         emojiTop = pickEmojiList(result.emojiLogits, meta.emojis, EMOJI_SLOTS)
         val feelingIdx = ing.emojify.app.model.argmax(result.styleLogits)
         predictedFeeling = meta.styles[feelingIdx]
@@ -138,6 +143,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                 text = text,
                 emoji = shownEmoji ?: "🙂",
                 feeling = shownFeeling,
+                lang = lang,
                 colors = colors,
                 onCopy = { scope.launch { capture?.invoke()?.let { copyCardToClipboard(context, it) } } },
                 onShare = { scope.launch { capture?.invoke()?.let { shareCard(context, it) } } },
