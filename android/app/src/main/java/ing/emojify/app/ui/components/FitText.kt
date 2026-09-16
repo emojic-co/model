@@ -11,11 +11,6 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 
-/**
- * Binary-searches the largest font size in [minSp, maxSp] whose word-wrapped
- * layout still fits [maxWidthPx]x[maxHeightPx], mirroring web's useFitText
- * (container-query binary search) instead of letting words break mid-word.
- */
 @Composable
 fun rememberFitFontSizeSp(
     text: String,
@@ -27,9 +22,10 @@ fun rememberFitFontSizeSp(
     maxHeightPx: Int,
     minSp: Float,
     maxSp: Float,
+    lineHeightMultiplier: Float = 1.2f,
 ): Float {
     val textMeasurer = rememberTextMeasurer()
-    return remember(text, fontFamily, fontWeight, fontStyle, letterSpacing, maxWidthPx, maxHeightPx, minSp, maxSp) {
+    return remember(text, fontFamily, fontWeight, fontStyle, letterSpacing, maxWidthPx, maxHeightPx, minSp, maxSp, lineHeightMultiplier) {
         if (maxWidthPx <= 0 || maxHeightPx <= 0 || text.isEmpty() || minSp >= maxSp) return@remember minSp.coerceAtLeast(1f)
 
         fun fits(sizeSp: Float): Boolean {
@@ -37,6 +33,7 @@ fun rememberFitFontSizeSp(
                 text = text,
                 style = TextStyle(
                     fontSize = sizeSp.sp,
+                    lineHeight = (sizeSp * lineHeightMultiplier).sp,
                     fontFamily = fontFamily,
                     fontWeight = fontWeight,
                     fontStyle = fontStyle,

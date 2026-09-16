@@ -151,6 +151,7 @@ fun Card(
                                 textAlign = TextAlign.Center,
                                 fontFamily = fontFamily,
                                 fontSize = fitSp.sp,
+                                lineHeight = (fitSp * 1.2f).sp,
                                 fontWeight = if (style.bold) FontWeight.Bold else FontWeight.Normal,
                                 fontStyle = if (style.italic) FontStyle.Italic else FontStyle.Normal,
                                 letterSpacing = style.letterSpacingEm?.let { TextUnit(it, TextUnitType.Em) } ?: TextUnit.Unspecified,

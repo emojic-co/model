@@ -79,6 +79,7 @@ private fun FeelingSwatch(feeling: String, isActive: Boolean, onPick: (String) -
             color = SWATCH_INK,
             fontFamily = fontFamily,
             fontSize = fitSp.sp,
+            lineHeight = (fitSp * 1.2f).sp,
             textAlign = TextAlign.Center,
             fontWeight = if (style.bold) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal,
             fontStyle = if (style.italic) androidx.compose.ui.text.font.FontStyle.Italic else androidx.compose.ui.text.font.FontStyle.Normal,
