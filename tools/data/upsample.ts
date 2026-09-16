@@ -25,6 +25,7 @@ import type { Drops, Fills, Usage } from "./annotate.ts"
 import { SEED } from "./config"
 import { splitEmojis } from "./emoji.ts"
 import { appendJsonl, readJsonl } from "./io.ts"
+import { LANGS } from "./langs.ts"
 
 const TEXTS_PER_EMOJI = 50
 const COLOR_BATCH = 50
@@ -32,6 +33,8 @@ const MOTIVATIONAL_BATCH = 50
 const MOTIVATIONAL_COUNT = 1000
 const LINKEDIN_BATCH = 50
 const LINKEDIN_COUNT = 1000
+const SARCASM_BATCH = 50
+const SARCASM_COUNT = 1000
 const TOP_BATCH = 50
 const TOP_COUNT = 100
 const BALANCE_FRACTION = 0.1
@@ -91,6 +94,14 @@ export function parseLang(raw: unknown): string | undefined {
   if (raw === undefined) return undefined
   const code = String(raw).trim().toLowerCase()
   return code || undefined
+}
+
+export function resolveLangs(lang?: string): string[] {
+  return lang ? [lang] : [...LANGS]
+}
+
+export function langsSuffix(langs: string[]): string {
+  return langs.length > 1 ? ` (langs: ${langs.join(", ")})` : langSuffix(langs[0])
 }
 
 export function countEmojis(rows: { emojis?: string }[]): Map<string, number> {
@@ -255,6 +266,21 @@ function genLinkedinPrompt(voice: string, per: number, lang?: string): string {
   ].join("\n")
 }
 
+function genSarcasmPrompt(voice: string, per: number, lang?: string): string {
+  return [
+    `Write ${per} short sarcastic text messages as if sent by ${voice}, one per line.`,
+    `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
+    ...langLine(lang),
+    `Each message must be dripping with sarcasm or irony - saying the opposite`,
+    `of what is meant, mock enthusiasm, deadpan exaggeration, or a backhanded`,
+    `remark - about everyday annoyances: work, chores, weather, traffic, plans`,
+    `falling through, technology, waiting around.`,
+    `Sound like something a real person would actually text, not a meme caption.`,
+    `Do not put any emoji in the output.`,
+    `No numbering, no bullets, no quotes, no commentary.`,
+  ].join("\n")
+}
+
 function genTopPrompt(voice: string, per: number, lang?: string): string {
   return [
     `Write ${per} short text messages as if sent by ${voice}, one per line.`,
@@ -328,6 +354,18 @@ async function genLinkedinBatch(
   const { text } = await generateText({
     model: MODEL,
     prompt: genLinkedinPrompt(voice, per, lang),
+  })
+  return cleanLines(text)
+}
+
+async function genSarcasmBatch(
+  voice: string,
+  per: number,
+  lang?: string,
+): Promise<string[]> {
+  const { text } = await generateText({
+    model: MODEL,
+    prompt: genSarcasmPrompt(voice, per, lang),
   })
   return cleanLines(text)
 }
@@ -617,6 +655,36 @@ async function generateForLinkedin(
   genBar.stop()
 }
 
+async function generateForSarcasm(
+  count: number,
+  sink: Sink,
+  multibar: cliProgress.MultiBar,
+  lang?: string,
+): Promise<void> {
+  const sizes = batchSizes(count, SARCASM_BATCH)
+  console.log(
+    `sarcasm mode -> ${count} texts in ${sizes.length} batches of up to ${SARCASM_BATCH}${langSuffix(lang)}`,
+  )
+  const genBar = multibar.create(sizes.length, 0, {}, {
+    format: "generating  |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
+  })
+  const genQ = new PQueue({ concurrency: GEN_CONCURRENCY })
+  genQ.addAll(
+    sizes.map((n) => async () => {
+      try {
+        for (const t of await genSarcasmBatch(pickVoice(), n, lang)) {
+          sink.push({ text: t, lang })
+        }
+      } catch (err) {
+        console.warn(`\n  gen (sarcasm) failed: ${err}`)
+      }
+      genBar.increment()
+    }),
+  )
+  await genQ.onIdle()
+  genBar.stop()
+}
+
 async function generateForTop(
   count: number,
   sink: Sink,
@@ -669,7 +737,8 @@ const cli = cac("upsample")
 
 cli.option(
   "--lang <code>",
-  "generate text in this language (ISO 639-1 code, e.g. 'he' for Hebrew); omit for English",
+  `generate text in this language (ISO 639-1 code, e.g. 'he' for Hebrew); `
+  + `omit to upsample in every language (${LANGS.join(", ")})`,
 )
 
 cli
@@ -681,19 +750,19 @@ cli
   .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
   .action(async (options) => {
     const count = parseCount(options.count, TOP_COUNT)
-    const lang = parseLang(options.lang)
+    const langs = resolveLangs(parseLang(options.lang))
     if (options.dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : top`)
-      console.log(`would generate       : ${count} texts${langSuffix(lang)}`)
+      console.log(`would generate       : ${count} texts x ${langs.length} lang(s)${langsSuffix(langs)}`)
       return
     }
     const multibar = new cliProgress.MultiBar(
       { clearOnComplete: false, hideCursor: true },
       cliProgress.Presets.shades_classic,
     )
-    const sink = new StreamingAnnotator("top", multibar, count)
-    await generateForTop(count, sink, multibar, lang)
+    const sink = new StreamingAnnotator("top", multibar, count * langs.length)
+    for (const lang of langs) await generateForTop(count, sink, multibar, lang)
     await sink.finish()
     multibar.stop()
   })
@@ -713,20 +782,23 @@ cli
       process.exit(1)
     }
     const per = parsePer(options.per)
-    const lang = parseLang(options.lang)
+    const langs = resolveLangs(parseLang(options.lang))
     console.log(`targeting ${targets.length} emoji -> ${targets.join(" ")}`)
     if (options.dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : emojis`)
-      console.log(`would generate       : ~${targets.length * per} texts (${per}/emoji)${langSuffix(lang)}`)
+      console.log(
+        `would generate       : ~${targets.length * per * langs.length} texts `
+        + `(${per}/emoji x ${langs.length} lang(s))${langsSuffix(langs)}`,
+      )
       return
     }
     const multibar = new cliProgress.MultiBar(
       { clearOnComplete: false, hideCursor: true },
       cliProgress.Presets.shades_classic,
     )
-    const sink = new StreamingAnnotator("emoji-target", multibar, targets.length * per)
-    await generateForEmojis(targets, per, sink, multibar, lang)
+    const sink = new StreamingAnnotator("emoji-target", multibar, targets.length * per * langs.length)
+    for (const lang of langs) await generateForEmojis(targets, per, sink, multibar, lang)
     await sink.finish()
     multibar.stop()
   })
@@ -737,13 +809,14 @@ cli
   .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
   .action(async (options) => {
     const per = parsePer(options.per)
-    const lang = parseLang(options.lang)
+    const langs = resolveLangs(parseLang(options.lang))
     if (options.dry) {
       const colorPlan = colorBatchPlan(COLORS, per, COLOR_BATCH)
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : colors`)
       console.log(
-        `would generate       : ${colorPlan.reduce((s, b) => s + b.n, 0)} texts over ${COLORS.length} colours${langSuffix(lang)}`,
+        `would generate       : ${colorPlan.reduce((s, b) => s + b.n, 0) * langs.length} texts `
+        + `over ${COLORS.length} colours x ${langs.length} lang(s)${langsSuffix(langs)}`,
       )
       return
     }
@@ -751,8 +824,8 @@ cli
       { clearOnComplete: false, hideCursor: true },
       cliProgress.Presets.shades_classic,
     )
-    const sink = new StreamingAnnotator("colors", multibar, COLORS.length * per)
-    await generateForColors(per, sink, multibar, lang)
+    const sink = new StreamingAnnotator("colors", multibar, COLORS.length * per * langs.length)
+    for (const lang of langs) await generateForColors(per, sink, multibar, lang)
     await sink.finish()
     multibar.stop()
   })
@@ -766,19 +839,19 @@ cli
   .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
   .action(async (options) => {
     const count = parseCount(options.count, MOTIVATIONAL_COUNT)
-    const lang = parseLang(options.lang)
+    const langs = resolveLangs(parseLang(options.lang))
     if (options.dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : motivational`)
-      console.log(`would generate       : ${count} texts${langSuffix(lang)}`)
+      console.log(`would generate       : ${count} texts x ${langs.length} lang(s)${langsSuffix(langs)}`)
       return
     }
     const multibar = new cliProgress.MultiBar(
       { clearOnComplete: false, hideCursor: true },
       cliProgress.Presets.shades_classic,
     )
-    const sink = new StreamingAnnotator("motivational", multibar, count)
-    await generateForMotivational(count, sink, multibar, lang)
+    const sink = new StreamingAnnotator("motivational", multibar, count * langs.length)
+    for (const lang of langs) await generateForMotivational(count, sink, multibar, lang)
     await sink.finish()
     multibar.stop()
   })
@@ -792,19 +865,45 @@ cli
   .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
   .action(async (options) => {
     const count = parseCount(options.count, LINKEDIN_COUNT)
-    const lang = parseLang(options.lang)
+    const langs = resolveLangs(parseLang(options.lang))
     if (options.dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : linkedin`)
-      console.log(`would generate       : ${count} texts${langSuffix(lang)}`)
+      console.log(`would generate       : ${count} texts x ${langs.length} lang(s)${langsSuffix(langs)}`)
       return
     }
     const multibar = new cliProgress.MultiBar(
       { clearOnComplete: false, hideCursor: true },
       cliProgress.Presets.shades_classic,
     )
-    const sink = new StreamingAnnotator("linkedin", multibar, count)
-    await generateForLinkedin(count, sink, multibar, lang)
+    const sink = new StreamingAnnotator("linkedin", multibar, count * langs.length)
+    for (const lang of langs) await generateForLinkedin(count, sink, multibar, lang)
+    await sink.finish()
+    multibar.stop()
+  })
+
+cli
+  .command(
+    "sarcasm",
+    "generate sarcastic/ironic messages",
+  )
+  .option("--count <n>", `messages to generate (default ${SARCASM_COUNT})`)
+  .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
+  .action(async (options) => {
+    const count = parseCount(options.count, SARCASM_COUNT)
+    const langs = resolveLangs(parseLang(options.lang))
+    if (options.dry) {
+      console.log("\n--- dry run: nothing generated, annotated, or appended ---")
+      console.log(`mode                 : sarcasm`)
+      console.log(`would generate       : ${count} texts x ${langs.length} lang(s)${langsSuffix(langs)}`)
+      return
+    }
+    const multibar = new cliProgress.MultiBar(
+      { clearOnComplete: false, hideCursor: true },
+      cliProgress.Presets.shades_classic,
+    )
+    const sink = new StreamingAnnotator("sarcasm", multibar, count * langs.length)
+    for (const lang of langs) await generateForSarcasm(count, sink, multibar, lang)
     await sink.finish()
     multibar.stop()
   })
@@ -818,7 +917,7 @@ cli
   .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
   .action(async (options) => {
     const per = parsePer(options.per)
-    const lang = parseLang(options.lang)
+    const langs = resolveLangs(parseLang(options.lang))
     const [rows, groups, labels, coverage] = await Promise.all([
       readJsonl<{ emojis?: string }>(DATA),
       loadGroups(),
@@ -846,18 +945,21 @@ cli
     if (options.dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : groups`)
-      console.log(`would generate       : ~${targets.length * per} texts (${per}/emoji)${langSuffix(lang)}`)
+      console.log(
+        `would generate       : ~${targets.length * per * langs.length} texts `
+        + `(${per}/emoji x ${langs.length} lang(s))${langsSuffix(langs)}`,
+      )
       return
     }
     const multibar = new cliProgress.MultiBar(
       { clearOnComplete: false, hideCursor: true },
       cliProgress.Presets.shades_classic,
     )
-    const sink = new StreamingAnnotator("group", multibar, targets.length * per)
+    const sink = new StreamingAnnotator("group", multibar, targets.length * per * langs.length)
     const groupedSink: Sink = {
       push: (c) => sink.push(c.target ? { ...c, group: groupOf.get(c.target) } : c),
     }
-    await generateForEmojis(targets, per, groupedSink, multibar, lang)
+    for (const lang of langs) await generateForEmojis(targets, per, groupedSink, multibar, lang)
     await sink.finish()
     multibar.stop()
   })
@@ -871,7 +973,7 @@ cli
   .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
   .action(async (options) => {
     const per = parsePer(options.per)
-    const lang = parseLang(options.lang)
+    const langs = resolveLangs(parseLang(options.lang))
     const rows = await readJsonl<{ emojis?: string }>(TRAIN_JSONL)
     const counts = countEmojis(rows)
     if (!counts.size) {
@@ -888,15 +990,18 @@ cli
     if (options.dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : balance`)
-      console.log(`would generate       : ~${targets.length * per} texts (${per}/emoji)${langSuffix(lang)}`)
+      console.log(
+        `would generate       : ~${targets.length * per * langs.length} texts `
+        + `(${per}/emoji x ${langs.length} lang(s))${langsSuffix(langs)}`,
+      )
       return
     }
     const multibar = new cliProgress.MultiBar(
       { clearOnComplete: false, hideCursor: true },
       cliProgress.Presets.shades_classic,
     )
-    const sink = new StreamingAnnotator("balance", multibar, targets.length * per)
-    await generateForEmojis(targets, per, sink, multibar, lang)
+    const sink = new StreamingAnnotator("balance", multibar, targets.length * per * langs.length)
+    for (const lang of langs) await generateForEmojis(targets, per, sink, multibar, lang)
     await sink.finish()
     multibar.stop()
   })
