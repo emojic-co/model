@@ -916,7 +916,7 @@ h1 .tld {
 
 .emoji-list {
   margin: 0;
-  padding: 0;
+  padding: 0.125em;
   list-style: none;
   display: grid;
   grid-template-columns: 1fr 1fr;
