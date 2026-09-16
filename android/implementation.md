@@ -953,7 +953,7 @@ git commit -m "android: add OnnxPredictor and verify inference against the web a
 - Consumes: `sigmoid()` (Task 1.3).
 - Produces: `EmojiScore(emoji, p)`, `pickEmojiList(emojiLogits, emojis, slots): List<EmojiScore>` (port of `pickEmojiList` in `App.jsx`), `topFeelings(feelingScores, feelings, selected, count): List<String>` (port of `topFeelings` in `feelings.js`).
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```kotlin
 // PredictionsTest.kt
@@ -1006,12 +1006,12 @@ class FeelingsTest {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd android && ./gradlew test --tests "ing.emojify.app.model.PredictionsTest" --tests "ing.emojify.app.model.FeelingsTest"`
 Expected: FAIL — types unresolved.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```kotlin
 // Predictions.kt
@@ -1045,12 +1045,12 @@ fun topFeelings(
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd android && ./gradlew test --tests "ing.emojify.app.model.PredictionsTest" --tests "ing.emojify.app.model.FeelingsTest"`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add android/app/src/main/java/ing/emojify/app/model/Predictions.kt android/app/src/main/java/ing/emojify/app/model/Feelings.kt android/app/src/test/java/ing/emojify/app/model/PredictionsTest.kt android/app/src/test/java/ing/emojify/app/model/FeelingsTest.kt
