@@ -295,7 +295,7 @@ git commit -m "android: add Gradle project skeleton"
 - Consumes: nothing (first UI code).
 - Produces: `MainScreen()` composable — later phases add parameters/state to this same function rather than creating a second entry point.
 
-- [ ] **Step 1: Create `AndroidManifest.xml`**
+- [x] **Step 1: Create `AndroidManifest.xml`**
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -318,7 +318,7 @@ git commit -m "android: add Gradle project skeleton"
 </manifest>
 ```
 
-- [ ] **Step 2: Create `res/values/strings.xml`**
+- [x] **Step 2: Create `res/values/strings.xml`**
 
 ```xml
 <resources>
@@ -326,7 +326,7 @@ git commit -m "android: add Gradle project skeleton"
 </resources>
 ```
 
-- [ ] **Step 3: Create the launcher icon (pure XML, no binary assets)**
+- [x] **Step 3: Create the launcher icon (pure XML, no binary assets)**
 
 `res/mipmap-anydpi-v26/ic_launcher.xml`:
 
@@ -358,7 +358,7 @@ git commit -m "android: add Gradle project skeleton"
 </vector>
 ```
 
-- [ ] **Step 4: Create `MainActivity.kt`**
+- [x] **Step 4: Create `MainActivity.kt`**
 
 ```kotlin
 package ing.emojify.app
@@ -386,7 +386,7 @@ class MainActivity : ComponentActivity() {
 }
 ```
 
-- [ ] **Step 5: Create `ui/MainScreen.kt` (placeholder card, no model yet)**
+- [x] **Step 5: Create `ui/MainScreen.kt` (placeholder card, no model yet)**
 
 ```kotlin
 package ing.emojify.app.ui

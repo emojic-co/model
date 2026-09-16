@@ -51,10 +51,14 @@ h1 .tld {
 
 .footer {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, max-content));
-  justify-content: center;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  justify-content: space-between;
   align-items: start;
-  gap: 0.25em 2.5em;
+  width: 100%;
+  gap: 0.4em 2.5em;
+  margin-top: 0.5em;
+  padding-top: 1.5em;
+  border-top: 1px solid var(--line);
   font-size: 0.75em;
   letter-spacing: 0.08em;
   color: var(--muted);
@@ -63,8 +67,9 @@ h1 .tld {
 .footer-col {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.25em;
+  align-items: flex-start;
+  text-align: left;
+  gap: 0.4em;
 }
 
 .footer .gh {
@@ -78,7 +83,13 @@ h1 .tld {
   text-underline-offset: 0.2em;
 }
 
-.footer .contrast-toggle label {
+.contrast-toggle {
+  font-size: 0.75em;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.contrast-toggle label {
   display: inline-flex;
   align-items: center;
   gap: 0.45em;
@@ -86,7 +97,7 @@ h1 .tld {
   letter-spacing: 0.08em;
 }
 
-.footer .contrast-toggle input {
+.contrast-toggle input {
   accent-color: var(--ink);
   cursor: pointer;
   margin: 0;

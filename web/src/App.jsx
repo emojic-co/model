@@ -339,6 +339,16 @@ export function App() {
             ready={!tooShort && !!shownFeeling}
             onPick={(f) => setOverride((o) => ({ ...o, feeling: f }))}
           />
+          <div className="contrast-toggle">
+            <label>
+              <input
+                type="checkbox"
+                checked={contrastFix}
+                onChange={(e) => setContrastFix(e.target.checked)}
+              />
+              fix low-contrast palettes
+            </label>
+          </div>
           <footer className="footer">
             <div className="footer-col">
               <span>
@@ -357,18 +367,6 @@ export function App() {
                 <a href="/emoji-coverage.html" target="_blank" rel="noopener noreferrer">
                   emoji coverage
                 </a>
-              </span>
-            </div>
-            <div className="footer-col">
-              <span className="contrast-toggle">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={contrastFix}
-                    onChange={(e) => setContrastFix(e.target.checked)}
-                  />
-                  fix low-contrast palettes
-                </label>
               </span>
             </div>
             <div className="footer-col">
