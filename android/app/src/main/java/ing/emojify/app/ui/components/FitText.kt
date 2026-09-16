@@ -7,6 +7,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
@@ -38,6 +39,7 @@ fun rememberFitFontSizeSp(
                     fontWeight = fontWeight,
                     fontStyle = fontStyle,
                     letterSpacing = letterSpacing,
+                    textDirection = TextDirection.Content,
                 ),
                 constraints = Constraints(maxWidth = maxWidthPx, maxHeight = maxHeightPx),
                 softWrap = true,
