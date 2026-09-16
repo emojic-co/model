@@ -1,4 +1,9 @@
 Done:
 
-update the model to support Hebrew.
-I think it should already support Hebrew, but make sure I'm right.
+update the `upsample` tool:
+The upsample tool usually acts in 2 steps:
+1. generates some text
+2. run annotation on the generated text
+You should update the tool to run annotations as soon as there is some text available.
+The goal is to minimize the loss of generated texts in case the tool is interrupted.
+So it should act as a producer-consumer model, where the producer generates text and the consumer runs annotations on the generated text as soon as it is available.
