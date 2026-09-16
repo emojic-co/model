@@ -32,7 +32,8 @@ import ing.emojify.app.model.resolveFeeling
 
 private val SWATCH_BG = Color(0xFFE7E4DF)
 private val SWATCH_INK = Color(0xFF33312E)
-private val SWATCH_SIZE = 84.dp
+val SWATCH_MIN_SIZE = 84.dp
+val SWATCH_MAX_SIZE = 160.dp
 private val SWATCH_PADDING = 10.dp
 
 private val feelingFontProvider = GoogleFont.Provider(
@@ -42,12 +43,12 @@ private val feelingFontProvider = GoogleFont.Provider(
 )
 
 @Composable
-private fun FeelingSwatch(feeling: String, isActive: Boolean, onPick: (String) -> Unit) {
+private fun FeelingSwatch(feeling: String, isActive: Boolean, swatchSize: androidx.compose.ui.unit.Dp, onPick: (String) -> Unit) {
     val style = resolveFeeling(feeling)
     val fontFamily = FontFamily(Font(googleFont = GoogleFont(style.fontName), fontProvider = feelingFontProvider))
     val displayText = if (style.uppercase) feeling.uppercase() else feeling
     val density = LocalDensity.current
-    val innerPx = with(density) { (SWATCH_SIZE - SWATCH_PADDING * 2).toPx() }.toInt()
+    val innerPx = with(density) { (swatchSize - SWATCH_PADDING * 2).toPx() }.toInt()
     val fitSp = rememberFitFontSizeSp(
         text = displayText,
         fontFamily = fontFamily,
@@ -62,7 +63,7 @@ private fun FeelingSwatch(feeling: String, isActive: Boolean, onPick: (String) -
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .size(SWATCH_SIZE)
+            .size(swatchSize)
             .aspectRatio(1f)
             .clip(RoundedCornerShape(14.dp))
             .background(SWATCH_BG)
@@ -90,11 +91,16 @@ private fun FeelingSwatch(feeling: String, isActive: Boolean, onPick: (String) -
 }
 
 @Composable
-fun FeelingBar(feelings: List<String>, active: String?, onPick: (String) -> Unit) {
+fun FeelingBar(
+    feelings: List<String>,
+    active: String?,
+    swatchSize: androidx.compose.ui.unit.Dp = SWATCH_MIN_SIZE,
+    onPick: (String) -> Unit,
+) {
     if (feelings.isEmpty()) return
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(feelings, key = { it }) { feeling ->
-            FeelingSwatch(feeling = feeling, isActive = feeling == active, onPick = onPick)
+            FeelingSwatch(feeling = feeling, isActive = feeling == active, swatchSize = swatchSize, onPick = onPick)
         }
     }
 }

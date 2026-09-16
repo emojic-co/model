@@ -1,6 +1,7 @@
 package ing.emojify.app.ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -23,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
@@ -34,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import ing.emojify.app.copyCardToClipboard
 import ing.emojify.app.model.EmojiScore
 import ing.emojify.app.model.Meta
+import ing.emojify.app.ui.components.SWATCH_MAX_SIZE
+import ing.emojify.app.ui.components.SWATCH_MIN_SIZE
 import ing.emojify.app.model.OnnxPredictor
 import ing.emojify.app.model.Palette
 import ing.emojify.app.model.cycle
@@ -51,8 +55,8 @@ import kotlinx.coroutines.launch
 
 private const val MIN_CHARS = 3
 private const val DEBOUNCE_MS = 250L
-private const val EMOJI_SLOTS = 9
-private const val FEELING_COUNT = 4
+private const val EMOJI_SLOTS = 10
+private const val FEELING_COUNT = 5
 
 private val DEFAULT_PALETTE = Palette(bg1 = "#a8e2f4", bg2 = "#78c9f4", textColor = "#282e36")
 
@@ -158,15 +162,22 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor) {
             Spacer(modifier = Modifier.height(16.dp))
             ColorBar(palettes = displayPalettes, active = colorOverride) { colorOverride = it }
             Spacer(modifier = Modifier.height(16.dp))
-            FeelingBar(feelings = feelingOptions, active = shownFeeling) { picked ->
-                override = override.copy(feeling = picked)
+            Column(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                BoxWithConstraints(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    val swatchSize = (maxHeight - 8.dp).coerceIn(SWATCH_MIN_SIZE, SWATCH_MAX_SIZE)
+                    FeelingBar(feelings = feelingOptions, active = shownFeeling, swatchSize = swatchSize) { picked ->
+                        override = override.copy(feeling = picked)
+                    }
+                }
+                Text(
+                    "made with ❤️ by Gilad",
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                "made with ❤️ by Gilad",
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-            )
         }
     }
 }

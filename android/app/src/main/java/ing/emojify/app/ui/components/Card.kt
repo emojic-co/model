@@ -55,6 +55,7 @@ private const val EMOJI_SIZE_RATIO = 0.32f
 private const val CARD_PADDING_RATIO = 0.07f
 private const val TEXT_MIN_SIZE_RATIO = 0.05f
 private const val TEXT_MAX_SIZE_RATIO = 0.13f
+private const val PATTERN_TILE_RATIO = 0.28f
 
 @Composable
 fun Card(
@@ -86,6 +87,8 @@ fun Card(
         val cardPadding = cardWidthDp * CARD_PADDING_RATIO
         val textMinSp = cardWidthDp.value * TEXT_MIN_SIZE_RATIO
         val textMaxSp = cardWidthDp.value * TEXT_MAX_SIZE_RATIO
+        val density = LocalDensity.current
+        val patternTilePx = with(density) { (cardWidthDp * PATTERN_TILE_RATIO).toPx() }.toInt().coerceAtLeast(1)
 
         Box(
             modifier = Modifier
@@ -110,11 +113,20 @@ fun Card(
                     )
                 },
         ) {
-            PatternBackground(cluster = style.cluster, tint = tint, modifier = Modifier.matchParentSize())
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Brush.linearGradient(listOf(bg1.copy(alpha = 0.85f), bg2.copy(alpha = 0.85f))))
+                    .background(Brush.linearGradient(listOf(bg1, bg2))),
+            )
+            PatternBackground(
+                cluster = style.cluster,
+                tint = tint,
+                modifier = Modifier.matchParentSize(),
+                tilePx = patternTilePx,
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
                     .padding(cardPadding),
             ) {
                 val emojiBounce = rememberEmojiBounce(style.emojiMotif, style.emojiMs)
