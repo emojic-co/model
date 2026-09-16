@@ -8,39 +8,39 @@ Package: **`ing.emojify`** (renamed from the scaffold-era `ing.emojify.app`
 to match the product domain `emojify.ing`, same convention as the reverse-DNS
 note in `android/implementation.md`).
 
-## 0. Before you start: about the "use appy.fyi's Play API key" ask
+## 0. Play Developer API access
 
-Checked `/home/gilad/Work/appy.fyi/` — it does **not** have Google Play
-Developer API (`androidpublisher`) credentials. It has two Google-adjacent
-things, neither of which is that:
+`/home/gilad/Work/appy.fyi/` turned out not to have `androidpublisher`
+credentials (it has a Google Search Console key and an unauthenticated
+scraper dependency — different API, no Play Console access), so that wasn't
+reusable. A real one was created instead:
 
-- `gsc-key.json` — a **Google Search Console** service account (project
-  `sage-collector-504503-i1`). Different API, different purpose (search
-  performance data for the appy.fyi website), no Play Console access.
-- The `google-play-scraper` npm dependency — an unofficial library that
-  scrapes public Play Store listing *pages* (used for appy.fyi's own
-  app-directory content). It needs no credentials and can't publish or
-  manage anything — read-only, public data only.
+- `play/service-account.json` — service account
+  `play-console@sage-collector-504503-i1.iam.gserviceaccount.com`, scoped for
+  `androidpublisher`. Gitignored (`play/*service-account*.json` in the repo
+  `.gitignore`) — never commit it.
+- Verified 2026-09-16: it authenticates against Google's OAuth endpoint and
+  the Play Developer API correctly recognizes it (a call against package
+  `ing.emojify` returns `404 Package not found`, not an auth/permission
+  error — the credential itself is good).
 
-So nothing was copied into this repo; copying `gsc-key.json` in as a "Play
-API key" would just be wrong and wouldn't work. If you want Claude to be able
-to query/manage this app's Play Console listing later (uploads, release
-notes, review responses) via the real API, that needs a **new** service
-account with `androidpublisher` scope:
+**What it can't do:** create the app listing itself. The Play Developer API
+has no "create a new app" call — `ing.emojify` has to be created once through
+the Play Console UI (app name + default language, accept the Developer
+Distribution Agreement for this title) before any API call against it will
+work. Do that first:
 
-1. Play Console → **Setup → API access** → link (or create) a Google Cloud
-   project.
-2. In that GCP project, **APIs & Services → Credentials**, create a service
-   account, then a JSON key for it.
-3. Back in Play Console API access, grant that service account the
-   permissions you want (e.g. "Release to testing tracks", "View app
-   information").
-4. Save the key as `play/service-account.json` (already gitignored via the
-   `play/*service-account*.json` rule added to the repo `.gitignore`) — never
-   commit it.
+1. Play Console → **Create app** → name it, set default language, declare
+   free/paid, accept the agreement.
+2. Confirm the service account has API access granted to it: Play Console →
+   **Setup → API access** → the `play-console@...` account should be listed;
+   if not, link/invite it there and grant permissions (e.g. "Release to
+   testing tracks", "View app information", "Edit store listing").
 
-This is a one-time human step in two consoles; it can't be done by copying a
-file from an unrelated project.
+Once that shell exists, the API can drive everything else from this repo —
+upload the AAB, set store listing text/graphics from `play/assets/`, create
+tracks, add testers — without touching the Console UI again for routine
+releases.
 
 ## 1. Developer account
 
