@@ -3,8 +3,7 @@ import { useOnnx } from './hooks/useOnnx'
 import { argmax, normalize, fixContrast, sigmoid } from './model'
 import { topFeelings, DEFAULT_COLORS } from './feelings'
 import { cycle, textToPath, pathToText } from './nav'
-import { detectAndTranslate, languageName, warmupDetector } from './translate'
-import { ensureScriptFontsLoaded, scriptForLang } from './scriptFonts'
+import { ensureScriptFontsLoaded, scriptForLang, langForText } from './scriptFonts'
 import GitHubButton from 'react-github-btn'
 import { Card } from './components/Card'
 import { FeelingBar } from './components/FeelingBar'
@@ -66,8 +65,6 @@ export function App() {
   const [text, setText] = useState(() => pathToText(window.location.pathname))
   const [modelText, setModelText] = useState('')
   const [lang, setLang] = useState('en')
-  const [detectedLang, setDetectedLang] = useState(null)
-  const [langOverride, setLangOverride] = useState(null)
   const [scores, setScores] = useState(null)
   const [pending, setPending] = useState(false)
   const [override, setOverride] = useState({ emoji: null, feeling: null, color: 0 })
@@ -77,8 +74,6 @@ export function App() {
   const seq = useRef(0)
   const inputRef = useRef(null)
   const cardRef = useRef(null)
-  const notifiedUnsupported = useRef(false)
-  const notifiedLang = useRef(null)
 
   const char2idx = useMemo(
     () => (meta ? new Map([...meta.chars].map((c, i) => [c, i])) : null),
@@ -90,10 +85,6 @@ export function App() {
       localStorage.setItem(CONTRAST_FIX_KEY, contrastFix ? 'on' : 'off')
     } catch {}
   }, [contrastFix])
-
-  useEffect(() => {
-    warmupDetector()
-  }, [])
 
   useEffect(() => {
     const el = cardRef.current
@@ -120,47 +111,30 @@ export function App() {
       setScores(null)
       setModelText('')
       setLang('en')
-      setDetectedLang(null)
       setOverride({ emoji: null, feeling: null, color: 0 })
       return
     }
     const mine = ++seq.current
     const timer = setTimeout(async () => {
       setPending(true)
-      const result = await detectAndTranslate(text, langOverride)
-      if (mine !== seq.current) return
-      setLang(result.lang)
-      setDetectedLang(result.detectedLang)
-      ensureScriptFontsLoaded(scriptForLang(result.lang))
-      if (result.unsupported) {
-        if (!notifiedUnsupported.current) {
-          notifiedUnsupported.current = true
-          showToast('translation not supported in this browser — English only')
-        }
-      } else if (result.lang !== 'en' && !result.translated) {
-        if (notifiedLang.current !== result.lang) {
-          notifiedLang.current = result.lang
-          showToast(`couldn't translate ${languageName(result.lang)} yet — trying as-is`)
-        }
-      } else {
-        notifiedLang.current = null
-      }
-      console.debug('emojic: sent to model:', result.text)
-      setModelText(result.text)
-      if (normalize(result.text, char2idx).length < MIN_CHARS) {
+      const detected = langForText(text)
+      setLang(detected)
+      ensureScriptFontsLoaded(scriptForLang(detected))
+      setModelText(text)
+      if (normalize(text, char2idx).length < MIN_CHARS) {
         setScores(null)
         setOverride({ emoji: null, feeling: null, color: 0 })
         setPending(false)
         return
       }
-      const logits = await predict(result.text)
+      const logits = await predict(text)
       if (mine !== seq.current) return
       setScores(logits)
       setOverride({ emoji: null, feeling: null, color: 0 })
       setPending(false)
     }, DEBOUNCE_MS)
     return () => clearTimeout(timer)
-  }, [text, ready, char2idx, predict, showToast, langOverride])
+  }, [text, ready, char2idx, predict])
 
   const emojiTop = useMemo(
     () => pickEmojiList(scores, meta, emojiSlots),
@@ -319,11 +293,7 @@ export function App() {
           onCopy={copyCard}
           onShare={shareUrl}
         />
-        <KeyHints
-          detectedLang={detectedLang}
-          langOverride={langOverride}
-          onSelectLang={setLangOverride}
-        />
+        <KeyHints />
         <div className="feelings-col">
           <ColorBar
             palettes={palettes}

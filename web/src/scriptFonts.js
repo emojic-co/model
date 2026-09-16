@@ -20,6 +20,12 @@ export function scriptForLang(lang) {
   return LANG_SCRIPT[lang] ?? LATIN
 }
 
+const HEBREW_RE = /[֐-׿]/
+
+export function langForText(text) {
+  return HEBREW_RE.test(text) ? 'he' : 'en'
+}
+
 const SCRIPT_FONTS = {
   cyrillic: {
     anger: '"Russo One", sans-serif',

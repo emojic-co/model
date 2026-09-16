@@ -19,6 +19,10 @@ private val LANG_SCRIPT = mapOf(
 
 fun scriptForLang(lang: String?): String = LANG_SCRIPT[lang] ?: LATIN
 
+private val HEBREW_RE = Regex("[\\u0590-\\u05FF]")
+
+fun langForText(text: String): String = if (HEBREW_RE.containsMatchIn(text)) "he" else "en"
+
 private val SCRIPT_FONTS: Map<String, Map<String, String>> = mapOf(
     "cyrillic" to mapOf(
         "anger" to "Russo One", "joy" to "M PLUS Rounded 1c", "play" to "Pacifico",

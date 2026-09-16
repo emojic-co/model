@@ -1,6 +1,4 @@
 Done:
 
-add `upsample sarcasm` options.
-It should generate texts with sarcasm.
-Note:
-    upsample, unless explicitly given the `--lang` flag, should always upsample in every language (English, Hebrew for now).
+Remove translation from both web and android apps.
+Currently the model supports English and Hebrew and does not need translation for them.

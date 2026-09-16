@@ -47,8 +47,8 @@ import ing.emojify.app.ui.components.SWATCH_MIN_SIZE
 import ing.emojify.app.model.OnnxPredictor
 import ing.emojify.app.model.Palette
 import ing.emojify.app.model.cycle
-import ing.emojify.app.model.detectAndTranslate
 import ing.emojify.app.model.fixContrast
+import ing.emojify.app.model.langForText
 import ing.emojify.app.model.pickEmojiList
 import ing.emojify.app.model.topFeelings
 import ing.emojify.app.shareCard
@@ -98,9 +98,8 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
             return@LaunchedEffect
         }
         delay(DEBOUNCE_MS)
-        val translation = detectAndTranslate(text)
-        lang = translation.lang
-        val result = predictor.predict(translation.text, meta)
+        lang = langForText(text)
+        val result = predictor.predict(text, meta)
         emojiTop = pickEmojiList(result.emojiLogits, meta.emojis, EMOJI_SLOTS)
         val feelingIdx = ing.emojify.app.model.argmax(result.styleLogits)
         predictedFeeling = meta.styles[feelingIdx]
