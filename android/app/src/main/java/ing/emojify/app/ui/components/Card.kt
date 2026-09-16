@@ -1,6 +1,7 @@
 package ing.emojify.app.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -49,6 +51,8 @@ fun Card(
     colors: Palette,
     onCopy: () -> Unit,
     onShare: () -> Unit,
+    onEmojiCycle: (Int) -> Unit,
+    onFeelingCycle: (Int) -> Unit,
     onCaptureReady: ((suspend () -> android.graphics.Bitmap) -> Unit)? = null,
 ) {
     val bg1 = Color(android.graphics.Color.parseColor(colors.bg1))
@@ -69,6 +73,19 @@ fun Card(
             .drawWithContent {
                 graphicsLayer.record { this@drawWithContent.drawContent() }
                 drawLayer(graphicsLayer)
+            }
+            .pointerInput(onEmojiCycle, onFeelingCycle) {
+                detectDragGestures(
+                    onDragEnd = {},
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        if (kotlin.math.abs(dragAmount.x) > kotlin.math.abs(dragAmount.y)) {
+                            if (kotlin.math.abs(dragAmount.x) > 24) onEmojiCycle(if (dragAmount.x > 0) -1 else 1)
+                        } else {
+                            if (kotlin.math.abs(dragAmount.y) > 24) onFeelingCycle(if (dragAmount.y > 0) -1 else 1)
+                        }
+                    },
+                )
             },
     ) {
         PatternBackground(cluster = style.cluster, tint = tint, modifier = Modifier.matchParentSize())
