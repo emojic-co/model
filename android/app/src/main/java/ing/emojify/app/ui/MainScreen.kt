@@ -22,8 +22,12 @@ import androidx.compose.ui.unit.dp
 import ing.emojify.app.model.EmojiScore
 import ing.emojify.app.model.Meta
 import ing.emojify.app.model.OnnxPredictor
+import ing.emojify.app.model.Palette
+import ing.emojify.app.model.fixContrast
 import ing.emojify.app.model.pickEmojiList
 import ing.emojify.app.model.topFeelings
+import ing.emojify.app.ui.components.Card
+import ing.emojify.app.ui.components.ColorBar
 import ing.emojify.app.ui.components.EmojiList
 import ing.emojify.app.ui.components.FeelingBar
 import kotlinx.coroutines.delay
@@ -33,6 +37,8 @@ private const val DEBOUNCE_MS = 250L
 private const val EMOJI_SLOTS = 9
 private const val FEELING_COUNT = 4
 
+private val DEFAULT_PALETTE = Palette(bg1 = "#a8e2f4", bg2 = "#78c9f4", textColor = "#282e36")
+
 private data class Override(val emoji: String? = null, val feeling: String? = null)
 
 @Composable
@@ -41,14 +47,19 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor) {
     var emojiTop by remember { mutableStateOf<List<EmojiScore>>(emptyList()) }
     var predictedFeeling by remember { mutableStateOf<String?>(null) }
     var feelingScores by remember { mutableStateOf<FloatArray?>(null) }
+    var palettes by remember { mutableStateOf<List<Palette>>(emptyList()) }
     var override by remember { mutableStateOf(Override()) }
+    var colorOverride by remember { mutableStateOf(0) }
+    var contrastFix by remember { mutableStateOf(true) }
 
     LaunchedEffect(text) {
         if (text.trim().length < MIN_CHARS) {
             emojiTop = emptyList()
             predictedFeeling = null
             feelingScores = null
+            palettes = emptyList()
             override = Override()
+            colorOverride = 0
             return@LaunchedEffect
         }
         delay(DEBOUNCE_MS)
@@ -57,12 +68,16 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor) {
         val feelingIdx = ing.emojify.app.model.argmax(result.styleLogits)
         predictedFeeling = meta.styles[feelingIdx]
         feelingScores = result.styleLogits
+        palettes = result.palettes.ifEmpty { listOf(DEFAULT_PALETTE) }
         override = Override()
+        colorOverride = 0
     }
 
     val shownEmoji = override.emoji ?: emojiTop.firstOrNull()?.emoji
     val shownFeeling = override.feeling ?: predictedFeeling
     val feelingOptions = topFeelings(feelingScores, meta.styles, shownFeeling, FEELING_COUNT)
+    val displayPalettes = if (contrastFix) palettes.map { fixContrast(it) } else palettes
+    val colors = displayPalettes.getOrElse(colorOverride) { DEFAULT_PALETTE }
 
     Column(modifier = Modifier.fillMaxSize().safeDrawingPadding().padding(16.dp)) {
         TextField(
@@ -76,15 +91,9 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor) {
             override = override.copy(emoji = picked)
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(32.dp),
-        ) {
-            Text(text = shownEmoji ?: "🙂", style = MaterialTheme.typography.displayLarge)
-            Text(text = text.ifBlank { "What's on your mind?" })
-        }
+        Card(text = text, emoji = shownEmoji ?: "🙂", feeling = shownFeeling, colors = colors, onCopy = {}, onShare = {})
+        Spacer(modifier = Modifier.height(16.dp))
+        ColorBar(palettes = displayPalettes, active = colorOverride) { colorOverride = it }
         Spacer(modifier = Modifier.height(16.dp))
         FeelingBar(feelings = feelingOptions, active = shownFeeling) { picked ->
             override = override.copy(feeling = picked)
