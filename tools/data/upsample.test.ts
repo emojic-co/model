@@ -4,7 +4,11 @@ import {
   colorBatchPlan,
   countEmojis,
   groupDeficits,
+  langLine,
+  langSuffix,
+  languageName,
   lowestFreqEmojis,
+  parseLang,
   rankMissingByFreq,
 } from "./upsample.ts"
 
@@ -125,4 +129,25 @@ test("lowestFreqEmojis returns the lowest fraction by count, rounded and ties by
 test("lowestFreqEmojis always selects at least one emoji", () => {
   const counts = new Map([["a", 5], ["b", 1]])
   expect(lowestFreqEmojis(counts, 0.1)).toEqual(["b"])
+})
+
+test("languageName resolves a known ISO code and falls back to the code otherwise", () => {
+  expect(languageName("he")).toBe("Hebrew")
+  expect(languageName("not-a-real-code")).toBe("not-a-real-code")
+})
+
+test("langLine is empty for no language and names the language otherwise", () => {
+  expect(langLine(undefined)).toEqual([])
+  expect(langLine("he").join(" ")).toContain("Hebrew")
+})
+
+test("langSuffix is empty for no language and shows the code otherwise", () => {
+  expect(langSuffix(undefined)).toBe("")
+  expect(langSuffix("he")).toBe(" (lang: he)")
+})
+
+test("parseLang trims/lowercases a code and treats blank/undefined as English", () => {
+  expect(parseLang(undefined)).toBeUndefined()
+  expect(parseLang("")).toBeUndefined()
+  expect(parseLang("  HE ")).toBe("he")
 })

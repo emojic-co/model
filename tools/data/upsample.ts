@@ -24,6 +24,8 @@ const MOTIVATIONAL_BATCH = 50
 const MOTIVATIONAL_COUNT = 1000
 const LINKEDIN_BATCH = 50
 const LINKEDIN_COUNT = 1000
+const TOP_BATCH = 50
+const TOP_COUNT = 100
 const BALANCE_FRACTION = 0.1
 const MIN_LEN = 4
 const MAX_LEN = 42
@@ -54,6 +56,33 @@ const VOICES = [
 
 function pickVoice(): string {
   return VOICES[Math.floor(Math.random() * VOICES.length)]
+}
+
+export function languageName(code: string): string {
+  try {
+    return new Intl.DisplayNames(["en"], { type: "language" }).of(code) ?? code
+  } catch {
+    return code
+  }
+}
+
+export function langLine(lang?: string): string[] {
+  return lang
+    ? [
+      `Write every message in ${languageName(lang)}, using natural, native`,
+      `wording and phrasing - not a translation from English.`,
+    ]
+    : []
+}
+
+export function langSuffix(lang?: string): string {
+  return lang ? ` (lang: ${lang})` : ""
+}
+
+export function parseLang(raw: unknown): string | undefined {
+  if (raw === undefined) return undefined
+  const code = String(raw).trim().toLowerCase()
+  return code || undefined
 }
 
 export function countEmojis(rows: { emojis?: string }[]): Map<string, number> {
@@ -155,10 +184,11 @@ export function lowestFreqEmojis(
     .map((x) => x.k)
 }
 
-function genPrompt(voice: string, emoji: string, per: number): string {
+function genPrompt(voice: string, emoji: string, per: number, lang?: string): string {
   return [
     `Write ${per} short text messages as if sent by ${voice}, one per line.`,
     `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
+    ...langLine(lang),
     `Every message must read naturally as one a person would send together with`,
     `the emoji ${emoji} - its subject, activity, place, or mood fits that emoji.`,
     `Do not put any emoji in the output, and never name or describe the emoji.`,
@@ -168,10 +198,11 @@ function genPrompt(voice: string, emoji: string, per: number): string {
   ].join("\n")
 }
 
-function genColorPrompt(voice: string, color: string, per: number): string {
+function genColorPrompt(voice: string, color: string, per: number, lang?: string): string {
   return [
     `Write ${per} short text messages as if sent by ${voice}, one per line.`,
     `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
+    ...langLine(lang),
     `Every message must evoke the colour "${color}" - its light and mood, or`,
     `concrete things that are almost always that colour.`,
     `Most messages must NOT contain the word "${color}": name objects, places,`,
@@ -187,11 +218,12 @@ function genColorPrompt(voice: string, color: string, per: number): string {
   ].join("\n")
 }
 
-function genMotivationalPrompt(voice: string, per: number): string {
+function genMotivationalPrompt(voice: string, per: number, lang?: string): string {
   return [
     `Write ${per} short inspirational, encouraging, or motivational messages,`,
     `one per line, as if sent by ${voice} to encourage someone else.`,
     `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
+    ...langLine(lang),
     `Vary tone and occasion: cheering someone on, comfort after a setback,`,
     `a pep talk before something hard, praise for effort, a reminder to keep going.`,
     `Sound warm and specific, not generic greeting-card fluff.`,
@@ -200,16 +232,32 @@ function genMotivationalPrompt(voice: string, per: number): string {
   ].join("\n")
 }
 
-function genLinkedinPrompt(voice: string, per: number): string {
+function genLinkedinPrompt(voice: string, per: number, lang?: string): string {
   return [
     `Write ${per} short, funny, relatable workplace or day-in-the-life`,
     `messages as if sent by ${voice}, one per line.`,
     `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
+    ...langLine(lang),
     `Capture a specific everyday work moment - meetings, commute, coffee,`,
     `deadlines, standups, a good or bad day at the job - with dry wit or`,
     `light complaint. Never generic motivational quotes, slogans, or hashtags.`,
     `Sound like something a real person would actually say, not an ad.`,
     `Do not put any emoji in the output.`,
+    `No numbering, no bullets, no quotes, no commentary.`,
+  ].join("\n")
+}
+
+function genTopPrompt(voice: string, per: number, lang?: string): string {
+  return [
+    `Write ${per} short text messages as if sent by ${voice}, one per line.`,
+    `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
+    ...langLine(lang),
+    `Cover everyday life broadly - plans, feelings, food, weather, work,`,
+    `family, friends, hobbies, travel, complaints, celebrations, small talk -`,
+    `varying subject and mood from message to message.`,
+    `Do not put any emoji in the output.`,
+    `Vary sender, tone, and intent: updates, questions, complaints, plans,`,
+    `reactions, reminders, small talk. Sound real and specific.`,
     `No numbering, no bullets, no quotes, no commentary.`,
   ].join("\n")
 }
@@ -230,10 +278,11 @@ async function genBatch(
   voice: string,
   emoji: string,
   per: number,
+  lang?: string,
 ): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
-    prompt: genPrompt(voice, emoji, per),
+    prompt: genPrompt(voice, emoji, per, lang),
   })
   return cleanLines(text)
 }
@@ -242,26 +291,47 @@ async function genColorBatch(
   voice: string,
   color: string,
   per: number,
+  lang?: string,
 ): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
-    prompt: genColorPrompt(voice, color, per),
+    prompt: genColorPrompt(voice, color, per, lang),
   })
   return cleanLines(text)
 }
 
-async function genMotivationalBatch(voice: string, per: number): Promise<string[]> {
+async function genMotivationalBatch(
+  voice: string,
+  per: number,
+  lang?: string,
+): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
-    prompt: genMotivationalPrompt(voice, per),
+    prompt: genMotivationalPrompt(voice, per, lang),
   })
   return cleanLines(text)
 }
 
-async function genLinkedinBatch(voice: string, per: number): Promise<string[]> {
+async function genLinkedinBatch(
+  voice: string,
+  per: number,
+  lang?: string,
+): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
-    prompt: genLinkedinPrompt(voice, per),
+    prompt: genLinkedinPrompt(voice, per, lang),
+  })
+  return cleanLines(text)
+}
+
+async function genTopBatch(
+  voice: string,
+  per: number,
+  lang?: string,
+): Promise<string[]> {
+  const { text } = await generateText({
+    model: MODEL,
+    prompt: genTopPrompt(voice, per, lang),
   })
   return cleanLines(text)
 }
@@ -284,11 +354,18 @@ async function loadGoalCoverage(): Promise<Record<string, number>> {
   return doc?.goals?.vocabulary?.coverage ?? {}
 }
 
-type Cand = { text: string; target?: string; color?: string; group?: string }
+type Cand = {
+  text: string
+  target?: string
+  color?: string
+  group?: string
+  lang?: string
+}
 
 async function generateForEmojis(
   targets: string[],
   per: number,
+  lang?: string,
 ): Promise<Cand[]> {
   const cands: Cand[] = []
   const genBar = new cliProgress.SingleBar(
@@ -302,8 +379,8 @@ async function generateForEmojis(
   genQ.addAll(
     targets.map((emoji) => async () => {
       try {
-        for (const t of await genBatch(pickVoice(), emoji, per)) {
-          cands.push({ text: t, target: emoji })
+        for (const t of await genBatch(pickVoice(), emoji, per, lang)) {
+          cands.push({ text: t, target: emoji, lang })
         }
       } catch (err) {
         console.warn(`\n  gen (${emoji}) failed: ${err}`)
@@ -316,11 +393,11 @@ async function generateForEmojis(
   return cands
 }
 
-async function generateForColors(per: number): Promise<Cand[]> {
+async function generateForColors(per: number, lang?: string): Promise<Cand[]> {
   const colorPlan = colorBatchPlan(COLORS, per, COLOR_BATCH)
   console.log(
     `colors mode -> ${per} texts per colour for ${COLORS.join(", ")} `
-    + `-> ${COLORS.length * per} texts in ${colorPlan.length} batches of up to ${COLOR_BATCH}`,
+    + `-> ${COLORS.length * per} texts in ${colorPlan.length} batches of up to ${COLOR_BATCH}${langSuffix(lang)}`,
   )
   const cands: Cand[] = []
   const genBar = new cliProgress.SingleBar(
@@ -334,8 +411,8 @@ async function generateForColors(per: number): Promise<Cand[]> {
   genQ.addAll(
     colorPlan.map(({ color, n }) => async () => {
       try {
-        for (const t of await genColorBatch(pickVoice(), color, n)) {
-          cands.push({ text: t, color })
+        for (const t of await genColorBatch(pickVoice(), color, n, lang)) {
+          cands.push({ text: t, color, lang })
         }
       } catch (err) {
         console.warn(`\n  gen (${color}) failed: ${err}`)
@@ -348,10 +425,10 @@ async function generateForColors(per: number): Promise<Cand[]> {
   return cands
 }
 
-async function generateForMotivational(count: number): Promise<Cand[]> {
+async function generateForMotivational(count: number, lang?: string): Promise<Cand[]> {
   const sizes = batchSizes(count, MOTIVATIONAL_BATCH)
   console.log(
-    `motivational mode -> ${count} texts in ${sizes.length} batches of up to ${MOTIVATIONAL_BATCH}`,
+    `motivational mode -> ${count} texts in ${sizes.length} batches of up to ${MOTIVATIONAL_BATCH}${langSuffix(lang)}`,
   )
   const cands: Cand[] = []
   const genBar = new cliProgress.SingleBar(
@@ -365,8 +442,8 @@ async function generateForMotivational(count: number): Promise<Cand[]> {
   genQ.addAll(
     sizes.map((n) => async () => {
       try {
-        for (const t of await genMotivationalBatch(pickVoice(), n)) {
-          cands.push({ text: t })
+        for (const t of await genMotivationalBatch(pickVoice(), n, lang)) {
+          cands.push({ text: t, lang })
         }
       } catch (err) {
         console.warn(`\n  gen (motivational) failed: ${err}`)
@@ -379,10 +456,10 @@ async function generateForMotivational(count: number): Promise<Cand[]> {
   return cands
 }
 
-async function generateForLinkedin(count: number): Promise<Cand[]> {
+async function generateForLinkedin(count: number, lang?: string): Promise<Cand[]> {
   const sizes = batchSizes(count, LINKEDIN_BATCH)
   console.log(
-    `linkedin mode -> ${count} texts in ${sizes.length} batches of up to ${LINKEDIN_BATCH}`,
+    `linkedin mode -> ${count} texts in ${sizes.length} batches of up to ${LINKEDIN_BATCH}${langSuffix(lang)}`,
   )
   const cands: Cand[] = []
   const genBar = new cliProgress.SingleBar(
@@ -396,11 +473,42 @@ async function generateForLinkedin(count: number): Promise<Cand[]> {
   genQ.addAll(
     sizes.map((n) => async () => {
       try {
-        for (const t of await genLinkedinBatch(pickVoice(), n)) {
-          cands.push({ text: t })
+        for (const t of await genLinkedinBatch(pickVoice(), n, lang)) {
+          cands.push({ text: t, lang })
         }
       } catch (err) {
         console.warn(`\n  gen (linkedin) failed: ${err}`)
+      }
+      genBar.increment()
+    }),
+  )
+  await genQ.onIdle()
+  genBar.stop()
+  return cands
+}
+
+async function generateForTop(count: number, lang?: string): Promise<Cand[]> {
+  const sizes = batchSizes(count, TOP_BATCH)
+  console.log(
+    `top mode -> ${count} texts in ${sizes.length} batches of up to ${TOP_BATCH}${langSuffix(lang)}`,
+  )
+  const cands: Cand[] = []
+  const genBar = new cliProgress.SingleBar(
+    {
+      format: "generating |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
+    },
+    cliProgress.Presets.shades_classic,
+  )
+  genBar.start(sizes.length, 0)
+  const genQ = new PQueue({ concurrency: GEN_CONCURRENCY })
+  genQ.addAll(
+    sizes.map((n) => async () => {
+      try {
+        for (const t of await genTopBatch(pickVoice(), n, lang)) {
+          cands.push({ text: t, lang })
+        }
+      } catch (err) {
+        console.warn(`\n  gen (top) failed: ${err}`)
       }
       genBar.increment()
     }),
@@ -460,6 +568,7 @@ async function annotateAndAppend(cands: Cand[], src: string): Promise<void> {
           bg: label.bg,
           fg: label.fg,
         }
+        if (cands[id].lang) row.lang = cands[id].lang
         if (cands[id].color) row.color = cands[id].color
         if (cands[id].group) row.group = cands[id].group
         row.meta = { date: today, src }
@@ -504,6 +613,31 @@ function parseCount(raw: unknown, def: number): number {
 
 const cli = cac("upsample")
 
+cli.option(
+  "--lang <code>",
+  "generate text in this language (ISO 639-1 code, e.g. 'he' for Hebrew); omit for English",
+)
+
+cli
+  .command(
+    "",
+    `generate generic texts across everyday topics and annotate them (default mode, ${TOP_COUNT} texts unless --count is given)`,
+  )
+  .option("--count <n>", `messages to generate (default ${TOP_COUNT})`)
+  .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
+  .action(async (options) => {
+    const count = parseCount(options.count, TOP_COUNT)
+    const lang = parseLang(options.lang)
+    if (options.dry) {
+      console.log("\n--- dry run: nothing generated, annotated, or appended ---")
+      console.log(`mode                 : top`)
+      console.log(`would generate       : ${count} texts${langSuffix(lang)}`)
+      return
+    }
+    const cands = await generateForTop(count, lang)
+    await annotateAndAppend(cands, "top")
+  })
+
 cli
   .command(
     "emojis <...list>",
@@ -519,14 +653,15 @@ cli
       process.exit(1)
     }
     const per = parsePer(options.per)
+    const lang = parseLang(options.lang)
     console.log(`targeting ${targets.length} emoji -> ${targets.join(" ")}`)
     if (options.dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : emojis`)
-      console.log(`would generate       : ~${targets.length * per} texts (${per}/emoji)`)
+      console.log(`would generate       : ~${targets.length * per} texts (${per}/emoji)${langSuffix(lang)}`)
       return
     }
-    const cands = await generateForEmojis(targets, per)
+    const cands = await generateForEmojis(targets, per, lang)
     await annotateAndAppend(cands, "emoji-target")
   })
 
@@ -536,16 +671,17 @@ cli
   .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
   .action(async (options) => {
     const per = parsePer(options.per)
+    const lang = parseLang(options.lang)
     if (options.dry) {
       const colorPlan = colorBatchPlan(COLORS, per, COLOR_BATCH)
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : colors`)
       console.log(
-        `would generate       : ${colorPlan.reduce((s, b) => s + b.n, 0)} texts over ${COLORS.length} colours`,
+        `would generate       : ${colorPlan.reduce((s, b) => s + b.n, 0)} texts over ${COLORS.length} colours${langSuffix(lang)}`,
       )
       return
     }
-    const cands = await generateForColors(per)
+    const cands = await generateForColors(per, lang)
     await annotateAndAppend(cands, "colors")
   })
 
@@ -558,13 +694,14 @@ cli
   .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
   .action(async (options) => {
     const count = parseCount(options.count, MOTIVATIONAL_COUNT)
+    const lang = parseLang(options.lang)
     if (options.dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : motivational`)
-      console.log(`would generate       : ${count} texts`)
+      console.log(`would generate       : ${count} texts${langSuffix(lang)}`)
       return
     }
-    const cands = await generateForMotivational(count)
+    const cands = await generateForMotivational(count, lang)
     await annotateAndAppend(cands, "motivational")
   })
 
@@ -577,13 +714,14 @@ cli
   .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
   .action(async (options) => {
     const count = parseCount(options.count, LINKEDIN_COUNT)
+    const lang = parseLang(options.lang)
     if (options.dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : linkedin`)
-      console.log(`would generate       : ${count} texts`)
+      console.log(`would generate       : ${count} texts${langSuffix(lang)}`)
       return
     }
-    const cands = await generateForLinkedin(count)
+    const cands = await generateForLinkedin(count, lang)
     await annotateAndAppend(cands, "linkedin")
   })
 
@@ -596,6 +734,7 @@ cli
   .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
   .action(async (options) => {
     const per = parsePer(options.per)
+    const lang = parseLang(options.lang)
     const [rows, groups, labels, coverage] = await Promise.all([
       readJsonl<{ emojis?: string }>(DATA),
       loadGroups(),
@@ -623,10 +762,10 @@ cli
     if (options.dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : groups`)
-      console.log(`would generate       : ~${targets.length * per} texts (${per}/emoji)`)
+      console.log(`would generate       : ~${targets.length * per} texts (${per}/emoji)${langSuffix(lang)}`)
       return
     }
-    const cands = await generateForEmojis(targets, per)
+    const cands = await generateForEmojis(targets, per, lang)
     for (const c of cands) if (c.target) c.group = groupOf.get(c.target)
     await annotateAndAppend(cands, "group")
   })
@@ -640,6 +779,7 @@ cli
   .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
   .action(async (options) => {
     const per = parsePer(options.per)
+    const lang = parseLang(options.lang)
     const rows = await readJsonl<{ emojis?: string }>(TRAIN_JSONL)
     const counts = countEmojis(rows)
     if (!counts.size) {
@@ -656,10 +796,10 @@ cli
     if (options.dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : balance`)
-      console.log(`would generate       : ~${targets.length * per} texts (${per}/emoji)`)
+      console.log(`would generate       : ~${targets.length * per} texts (${per}/emoji)${langSuffix(lang)}`)
       return
     }
-    const cands = await generateForEmojis(targets, per)
+    const cands = await generateForEmojis(targets, per, lang)
     await annotateAndAppend(cands, "balance")
   })
 
