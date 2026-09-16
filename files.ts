@@ -29,4 +29,4 @@ export const PREVIEW_DIR = "preview"
 export const DOCS_DIR = "docs"
 export const REGEN_MD = `${DOCS_DIR}/regen.md`
 export const GOALS_YML = "goals.yml"
-export const EMOJI_COVERAGE_HTML = "emoji-coverage.html"
+export const EMOJI_COVERAGE_HTML = `${WEB_PUBLIC_DIR}/emoji-coverage.html`

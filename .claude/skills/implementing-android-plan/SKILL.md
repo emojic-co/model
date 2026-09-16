@@ -25,7 +25,8 @@ A **task** (`### Task N.M: ...`), not a single micro-step, is the unit of work p
 3. If a step's command needs a tool this machine doesn't have (system `gradle` for the wrapper, a connected/emulated device for `installDebug`, an Android SDK install), don't skip the step silently or fabricate a result — stop and tell the user exactly what's missing and which step is blocked on it.
 4. Step text repeats verbatim across tasks (e.g. "Run test to verify it fails" appears in several tasks) — anchor each Edit on the full step heading line plus enough surrounding content (or the task's unique file paths) that the replacement can't land in the wrong task's checkbox.
 5. A step that requires looking at the running app on the phone (an `installDebug` + an "Expected: ..." visual description) is not something you can verify yourself. Build and install it, then stop and ask the user to confirm what they actually see before checking that step off — a successful build alone is not enough to check it off.
-6. The task's final step is always a commit — run it exactly as written (its own `git add` file list, its own message) once every preceding step in the task is checked off. Don't fold multiple tasks into one commit, and don't push.
+6. The task's final step is always a commit — run it exactly as written (its own `git add` file list, its own message) once every preceding step in the task is checked off. Don't fold multiple tasks into one commit, and don't `git push`.
+7. Push to the phone after every task, not only tasks whose own steps already call for `installDebug`. After the commit, run `cd android && ./gradlew installDebug` (check `adb devices` first — if nothing's attached, say so instead of silently skipping). This is in addition to the plan's own steps, not a replacement for a task's own build/verify step.
 
 ## After finishing a task
 
