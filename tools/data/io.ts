@@ -1,26 +1,11 @@
 import { existsSync } from "node:fs"
 import { copyFile, open, readFile, rename, writeFile } from "node:fs/promises"
 
-async function ensureTrailingNewline(path: string): Promise<void> {
-  if (!existsSync(path)) return
-  const fh = await open(path, "r+")
-  try {
-    const { size } = await fh.stat()
-    if (size === 0) return
-    const buf = Buffer.alloc(1)
-    await fh.read(buf, 0, 1, size - 1)
-    if (buf[0] !== 0x0a) await fh.write("\n", size)
-  } finally {
-    await fh.close()
-  }
-}
-
 export async function appendJsonl(path: string, rows: string[]): Promise<void> {
   if (!rows.length) return
-  await ensureTrailingNewline(path)
   const fh = await open(path, "a")
   try {
-    await fh.write(rows.join("\n") + "\n")
+    await fh.write(`\n${rows.join("\n")}\n`)
     await fh.sync()
   } finally {
     await fh.close()

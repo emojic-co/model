@@ -13,7 +13,15 @@ import {
   LABELS_JSON,
   TRAIN_JSONL,
 } from "../../files.ts"
-import { MODEL, annotate, annotateBatchCount, lastFills } from "./annotate.ts"
+import {
+  ANNOTATE_BATCH_SIZE,
+  ANNOTATE_CONCURRENCY,
+  MODEL,
+  annotateBatch,
+  formatDrops,
+  formatUsage,
+} from "./annotate.ts"
+import type { Drops, Fills, Usage } from "./annotate.ts"
 import { SEED } from "./config"
 import { splitEmojis } from "./emoji.ts"
 import { appendJsonl, readJsonl } from "./io.ts"
@@ -362,25 +370,151 @@ type Cand = {
   lang?: string
 }
 
+export type Sink = { push(cand: Cand): void }
+
+export class Batcher<T> {
+  private buf: T[] = []
+  constructor(private size: number) {}
+
+  push(item: T): T[] | null {
+    this.buf.push(item)
+    if (this.buf.length < this.size) return null
+    const out = this.buf
+    this.buf = []
+    return out
+  }
+
+  flush(): T[] | null {
+    if (!this.buf.length) return null
+    const out = this.buf
+    this.buf = []
+    return out
+  }
+}
+
+export class StreamingAnnotator {
+  private batcher = new Batcher<Cand>(ANNOTATE_BATCH_SIZE)
+  private queue = new PQueue({ concurrency: ANNOTATE_CONCURRENCY })
+  private usage: Usage = { calls: 0, input: 0, output: 0, total: 0 }
+  private drops: Drops = { batch: 0, missingId: 0, noStyle: 0, noPalette: 0 }
+  private fills: Fills = { palette: 0 }
+  private today = new Date().toISOString().slice(0, 10)
+  private bar: cliProgress.SingleBar
+  generated = 0
+  appended = 0
+  noLabel = 0
+  noPalette = 0
+  hitTarget = 0
+  missTarget = 0
+
+  constructor(
+    private src: string,
+    multibar: cliProgress.MultiBar,
+    totalHint: number,
+  ) {
+    this.bar = multibar.create(
+      Math.max(1, Math.ceil(totalHint / ANNOTATE_BATCH_SIZE)),
+      0,
+      {},
+      {
+        format:
+          "annotating  |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
+      },
+    )
+  }
+
+  push(cand: Cand): void {
+    this.generated++
+    this.bar.setTotal(
+      Math.max(this.bar.getTotal(), Math.ceil(this.generated / ANNOTATE_BATCH_SIZE)),
+    )
+    const batch = this.batcher.push(cand)
+    if (batch) this.dispatch(batch)
+  }
+
+  private dispatch(batch: Cand[]): void {
+    this.queue.add(() => this.annotateChunk(batch))
+  }
+
+  private async annotateChunk(batch: Cand[]): Promise<void> {
+    const items = batch.map((c, id) => ({ id, text: c.text }))
+    const got = await annotateBatch(items, true, true, this.usage, this.drops, this.fills)
+    const lines: string[] = []
+    for (const { id } of items) {
+      const label = got.get(id)
+      if (!label) {
+        this.noLabel++
+        continue
+      }
+      if (!label.bg || !label.fg) {
+        this.noPalette++
+        continue
+      }
+      const cand = batch[id]
+      let emojis: string
+      if (cand.target) {
+        if (label.emojis.includes(cand.target)) this.hitTarget++
+        else this.missTarget++
+        emojis = [cand.target, ...label.emojis.filter((e) => e !== cand.target)].join(" ")
+      } else {
+        emojis = label.emojis.join(" ")
+      }
+      const row: Record<string, unknown> = {
+        text: cand.text,
+        emojis,
+        styles: label.styles,
+        bg: label.bg,
+        fg: label.fg,
+      }
+      if (cand.lang) row.lang = cand.lang
+      if (cand.color) row.color = cand.color
+      if (cand.group) row.group = cand.group
+      row.meta = { date: this.today, src: this.src }
+      lines.push(JSON.stringify(row))
+    }
+    if (lines.length) await appendJsonl(DATA, lines)
+    this.appended += lines.length
+    this.bar.increment()
+  }
+
+  async finish(): Promise<void> {
+    const last = this.batcher.flush()
+    if (last) this.dispatch(last)
+    await this.queue.onIdle()
+    this.bar.stop()
+
+    console.log("\n--- summary ---")
+    console.log(`generated            : ${this.generated}`)
+    console.log(`appended -> data     : ${this.appended}`)
+    console.log(`dropped no label     : ${this.noLabel}`)
+    console.log(`filled palette       : ${this.fills.palette}`)
+    console.log(`dropped no palette   : ${this.noPalette}`)
+    if (this.hitTarget + this.missTarget > 0) {
+      console.log(
+        `target hit / miss    : ${this.hitTarget} / ${this.missTarget} (target injected either way)`,
+      )
+    }
+    console.log(`\n${formatUsage(this.usage)}`)
+    console.log(formatDrops(this.drops))
+  }
+}
+
 async function generateForEmojis(
   targets: string[],
   per: number,
+  sink: Sink,
+  multibar: cliProgress.MultiBar,
   lang?: string,
-): Promise<Cand[]> {
-  const cands: Cand[] = []
-  const genBar = new cliProgress.SingleBar(
-    {
-      format: "generating |{bar}| {percentage}% | {value}/{total} emojis | ETA: {eta}s",
-    },
-    cliProgress.Presets.shades_classic,
-  )
-  genBar.start(targets.length, 0)
+): Promise<void> {
+  const genBar = multibar.create(targets.length, 0, {}, {
+    format: "generating  |{bar}| {percentage}% | {value}/{total} emojis | ETA: {eta}s",
+  })
   const genQ = new PQueue({ concurrency: GEN_CONCURRENCY })
   genQ.addAll(
     targets.map((emoji) => async () => {
       try {
         for (const t of await genBatch(pickVoice(), emoji, per, lang)) {
-          cands.push({ text: t, target: emoji, lang })
+          sink.push({ text: t, target: emoji, lang })
         }
       } catch (err) {
         console.warn(`\n  gen (${emoji}) failed: ${err}`)
@@ -390,29 +524,28 @@ async function generateForEmojis(
   )
   await genQ.onIdle()
   genBar.stop()
-  return cands
 }
 
-async function generateForColors(per: number, lang?: string): Promise<Cand[]> {
+async function generateForColors(
+  per: number,
+  sink: Sink,
+  multibar: cliProgress.MultiBar,
+  lang?: string,
+): Promise<void> {
   const colorPlan = colorBatchPlan(COLORS, per, COLOR_BATCH)
   console.log(
     `colors mode -> ${per} texts per colour for ${COLORS.join(", ")} `
     + `-> ${COLORS.length * per} texts in ${colorPlan.length} batches of up to ${COLOR_BATCH}${langSuffix(lang)}`,
   )
-  const cands: Cand[] = []
-  const genBar = new cliProgress.SingleBar(
-    {
-      format: "generating |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
-    },
-    cliProgress.Presets.shades_classic,
-  )
-  genBar.start(colorPlan.length, 0)
+  const genBar = multibar.create(colorPlan.length, 0, {}, {
+    format: "generating  |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
+  })
   const genQ = new PQueue({ concurrency: GEN_CONCURRENCY })
   genQ.addAll(
     colorPlan.map(({ color, n }) => async () => {
       try {
         for (const t of await genColorBatch(pickVoice(), color, n, lang)) {
-          cands.push({ text: t, color, lang })
+          sink.push({ text: t, color, lang })
         }
       } catch (err) {
         console.warn(`\n  gen (${color}) failed: ${err}`)
@@ -422,28 +555,27 @@ async function generateForColors(per: number, lang?: string): Promise<Cand[]> {
   )
   await genQ.onIdle()
   genBar.stop()
-  return cands
 }
 
-async function generateForMotivational(count: number, lang?: string): Promise<Cand[]> {
+async function generateForMotivational(
+  count: number,
+  sink: Sink,
+  multibar: cliProgress.MultiBar,
+  lang?: string,
+): Promise<void> {
   const sizes = batchSizes(count, MOTIVATIONAL_BATCH)
   console.log(
     `motivational mode -> ${count} texts in ${sizes.length} batches of up to ${MOTIVATIONAL_BATCH}${langSuffix(lang)}`,
   )
-  const cands: Cand[] = []
-  const genBar = new cliProgress.SingleBar(
-    {
-      format: "generating |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
-    },
-    cliProgress.Presets.shades_classic,
-  )
-  genBar.start(sizes.length, 0)
+  const genBar = multibar.create(sizes.length, 0, {}, {
+    format: "generating  |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
+  })
   const genQ = new PQueue({ concurrency: GEN_CONCURRENCY })
   genQ.addAll(
     sizes.map((n) => async () => {
       try {
         for (const t of await genMotivationalBatch(pickVoice(), n, lang)) {
-          cands.push({ text: t, lang })
+          sink.push({ text: t, lang })
         }
       } catch (err) {
         console.warn(`\n  gen (motivational) failed: ${err}`)
@@ -453,28 +585,27 @@ async function generateForMotivational(count: number, lang?: string): Promise<Ca
   )
   await genQ.onIdle()
   genBar.stop()
-  return cands
 }
 
-async function generateForLinkedin(count: number, lang?: string): Promise<Cand[]> {
+async function generateForLinkedin(
+  count: number,
+  sink: Sink,
+  multibar: cliProgress.MultiBar,
+  lang?: string,
+): Promise<void> {
   const sizes = batchSizes(count, LINKEDIN_BATCH)
   console.log(
     `linkedin mode -> ${count} texts in ${sizes.length} batches of up to ${LINKEDIN_BATCH}${langSuffix(lang)}`,
   )
-  const cands: Cand[] = []
-  const genBar = new cliProgress.SingleBar(
-    {
-      format: "generating |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
-    },
-    cliProgress.Presets.shades_classic,
-  )
-  genBar.start(sizes.length, 0)
+  const genBar = multibar.create(sizes.length, 0, {}, {
+    format: "generating  |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
+  })
   const genQ = new PQueue({ concurrency: GEN_CONCURRENCY })
   genQ.addAll(
     sizes.map((n) => async () => {
       try {
         for (const t of await genLinkedinBatch(pickVoice(), n, lang)) {
-          cands.push({ text: t, lang })
+          sink.push({ text: t, lang })
         }
       } catch (err) {
         console.warn(`\n  gen (linkedin) failed: ${err}`)
@@ -484,28 +615,27 @@ async function generateForLinkedin(count: number, lang?: string): Promise<Cand[]
   )
   await genQ.onIdle()
   genBar.stop()
-  return cands
 }
 
-async function generateForTop(count: number, lang?: string): Promise<Cand[]> {
+async function generateForTop(
+  count: number,
+  sink: Sink,
+  multibar: cliProgress.MultiBar,
+  lang?: string,
+): Promise<void> {
   const sizes = batchSizes(count, TOP_BATCH)
   console.log(
     `top mode -> ${count} texts in ${sizes.length} batches of up to ${TOP_BATCH}${langSuffix(lang)}`,
   )
-  const cands: Cand[] = []
-  const genBar = new cliProgress.SingleBar(
-    {
-      format: "generating |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
-    },
-    cliProgress.Presets.shades_classic,
-  )
-  genBar.start(sizes.length, 0)
+  const genBar = multibar.create(sizes.length, 0, {}, {
+    format: "generating  |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
+  })
   const genQ = new PQueue({ concurrency: GEN_CONCURRENCY })
   genQ.addAll(
     sizes.map((n) => async () => {
       try {
         for (const t of await genTopBatch(pickVoice(), n, lang)) {
-          cands.push({ text: t, lang })
+          sink.push({ text: t, lang })
         }
       } catch (err) {
         console.warn(`\n  gen (top) failed: ${err}`)
@@ -515,82 +645,6 @@ async function generateForTop(count: number, lang?: string): Promise<Cand[]> {
   )
   await genQ.onIdle()
   genBar.stop()
-  return cands
-}
-
-async function annotateAndAppend(cands: Cand[], src: string): Promise<void> {
-  console.log(`\n${cands.length} texts generated, annotating`)
-  const annBar = new cliProgress.SingleBar(
-    {
-      format:
-        "annotating |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
-    },
-    cliProgress.Presets.shades_classic,
-  )
-  annBar.start(annotateBatchCount(cands.length), 0)
-
-  const today = new Date().toISOString().slice(0, 10)
-  const lines: string[] = []
-  let noLabel = 0
-  let noPalette = 0
-  let hitTarget = 0
-  let missTarget = 0
-
-  await annotate(cands.map((c) => c.text), {
-    colors: true,
-    fillPalette: true,
-    onBatchDone: () => annBar.increment(),
-    onBatch: async (batch, got) => {
-      const batchLines: string[] = []
-      for (const { id } of batch) {
-        const label = got.get(id)
-        if (!label) {
-          noLabel++
-          continue
-        }
-        if (!label.bg || !label.fg) {
-          noPalette++
-          continue
-        }
-        const target = cands[id].target
-        let emojis: string
-        if (target) {
-          if (label.emojis.includes(target)) hitTarget++
-          else missTarget++
-          emojis = [target, ...label.emojis.filter((e) => e !== target)].join(" ")
-        } else {
-          emojis = label.emojis.join(" ")
-        }
-        const row: Record<string, unknown> = {
-          text: cands[id].text,
-          emojis,
-          styles: label.styles,
-          bg: label.bg,
-          fg: label.fg,
-        }
-        if (cands[id].lang) row.lang = cands[id].lang
-        if (cands[id].color) row.color = cands[id].color
-        if (cands[id].group) row.group = cands[id].group
-        row.meta = { date: today, src }
-        batchLines.push(JSON.stringify(row))
-      }
-      lines.push(...batchLines)
-      if (batchLines.length) await appendJsonl(DATA, batchLines)
-    },
-  })
-  annBar.stop()
-
-  console.log("\n--- summary ---")
-  console.log(`generated            : ${cands.length}`)
-  console.log(`appended -> data     : ${lines.length}`)
-  console.log(`dropped no label     : ${noLabel}`)
-  console.log(`filled palette       : ${lastFills.palette}`)
-  console.log(`dropped no palette   : ${noPalette}`)
-  if (cands.some((c) => c.target)) {
-    console.log(
-      `target hit / miss    : ${hitTarget} / ${missTarget} (target injected either way)`,
-    )
-  }
 }
 
 function parsePer(raw: unknown): number {
@@ -634,8 +688,14 @@ cli
       console.log(`would generate       : ${count} texts${langSuffix(lang)}`)
       return
     }
-    const cands = await generateForTop(count, lang)
-    await annotateAndAppend(cands, "top")
+    const multibar = new cliProgress.MultiBar(
+      { clearOnComplete: false, hideCursor: true },
+      cliProgress.Presets.shades_classic,
+    )
+    const sink = new StreamingAnnotator("top", multibar, count)
+    await generateForTop(count, sink, multibar, lang)
+    await sink.finish()
+    multibar.stop()
   })
 
 cli
@@ -661,8 +721,14 @@ cli
       console.log(`would generate       : ~${targets.length * per} texts (${per}/emoji)${langSuffix(lang)}`)
       return
     }
-    const cands = await generateForEmojis(targets, per, lang)
-    await annotateAndAppend(cands, "emoji-target")
+    const multibar = new cliProgress.MultiBar(
+      { clearOnComplete: false, hideCursor: true },
+      cliProgress.Presets.shades_classic,
+    )
+    const sink = new StreamingAnnotator("emoji-target", multibar, targets.length * per)
+    await generateForEmojis(targets, per, sink, multibar, lang)
+    await sink.finish()
+    multibar.stop()
   })
 
 cli
@@ -681,8 +747,14 @@ cli
       )
       return
     }
-    const cands = await generateForColors(per, lang)
-    await annotateAndAppend(cands, "colors")
+    const multibar = new cliProgress.MultiBar(
+      { clearOnComplete: false, hideCursor: true },
+      cliProgress.Presets.shades_classic,
+    )
+    const sink = new StreamingAnnotator("colors", multibar, COLORS.length * per)
+    await generateForColors(per, sink, multibar, lang)
+    await sink.finish()
+    multibar.stop()
   })
 
 cli
@@ -701,8 +773,14 @@ cli
       console.log(`would generate       : ${count} texts${langSuffix(lang)}`)
       return
     }
-    const cands = await generateForMotivational(count, lang)
-    await annotateAndAppend(cands, "motivational")
+    const multibar = new cliProgress.MultiBar(
+      { clearOnComplete: false, hideCursor: true },
+      cliProgress.Presets.shades_classic,
+    )
+    const sink = new StreamingAnnotator("motivational", multibar, count)
+    await generateForMotivational(count, sink, multibar, lang)
+    await sink.finish()
+    multibar.stop()
   })
 
 cli
@@ -721,8 +799,14 @@ cli
       console.log(`would generate       : ${count} texts${langSuffix(lang)}`)
       return
     }
-    const cands = await generateForLinkedin(count, lang)
-    await annotateAndAppend(cands, "linkedin")
+    const multibar = new cliProgress.MultiBar(
+      { clearOnComplete: false, hideCursor: true },
+      cliProgress.Presets.shades_classic,
+    )
+    const sink = new StreamingAnnotator("linkedin", multibar, count)
+    await generateForLinkedin(count, sink, multibar, lang)
+    await sink.finish()
+    multibar.stop()
   })
 
 cli
@@ -765,9 +849,17 @@ cli
       console.log(`would generate       : ~${targets.length * per} texts (${per}/emoji)${langSuffix(lang)}`)
       return
     }
-    const cands = await generateForEmojis(targets, per, lang)
-    for (const c of cands) if (c.target) c.group = groupOf.get(c.target)
-    await annotateAndAppend(cands, "group")
+    const multibar = new cliProgress.MultiBar(
+      { clearOnComplete: false, hideCursor: true },
+      cliProgress.Presets.shades_classic,
+    )
+    const sink = new StreamingAnnotator("group", multibar, targets.length * per)
+    const groupedSink: Sink = {
+      push: (c) => sink.push(c.target ? { ...c, group: groupOf.get(c.target) } : c),
+    }
+    await generateForEmojis(targets, per, groupedSink, multibar, lang)
+    await sink.finish()
+    multibar.stop()
   })
 
 cli
@@ -799,8 +891,14 @@ cli
       console.log(`would generate       : ~${targets.length * per} texts (${per}/emoji)${langSuffix(lang)}`)
       return
     }
-    const cands = await generateForEmojis(targets, per, lang)
-    await annotateAndAppend(cands, "balance")
+    const multibar = new cliProgress.MultiBar(
+      { clearOnComplete: false, hideCursor: true },
+      cliProgress.Presets.shades_classic,
+    )
+    const sink = new StreamingAnnotator("balance", multibar, targets.length * per)
+    await generateForEmojis(targets, per, sink, multibar, lang)
+    await sink.finish()
+    multibar.stop()
   })
 
 cli.help()

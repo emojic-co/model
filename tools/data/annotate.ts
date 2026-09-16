@@ -394,7 +394,7 @@ function cleanLabel(
   return { emojis, styles, ...palette }
 }
 
-async function annotateBatch(
+export async function annotateBatch(
   batch: { id: number; text: string; palette_hint?: string }[],
   colors: boolean,
   fillPalette: boolean,

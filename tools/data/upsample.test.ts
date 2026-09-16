@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test"
 
 import {
+  Batcher,
   colorBatchPlan,
   countEmojis,
   groupDeficits,
@@ -150,4 +151,28 @@ test("parseLang trims/lowercases a code and treats blank/undefined as English", 
   expect(parseLang(undefined)).toBeUndefined()
   expect(parseLang("")).toBeUndefined()
   expect(parseLang("  HE ")).toBe("he")
+})
+
+test("Batcher emits a batch only once it reaches the configured size", () => {
+  const b = new Batcher<number>(3)
+  expect(b.push(1)).toBeNull()
+  expect(b.push(2)).toBeNull()
+  expect(b.push(3)).toEqual([1, 2, 3])
+  expect(b.push(4)).toBeNull()
+})
+
+test("Batcher.flush returns the partial batch, or null when empty", () => {
+  const b = new Batcher<number>(3)
+  expect(b.flush()).toBeNull()
+  b.push(1)
+  expect(b.flush()).toEqual([1])
+  expect(b.flush()).toBeNull()
+})
+
+test("Batcher starts a fresh buffer after each emitted batch", () => {
+  const b = new Batcher<number>(2)
+  expect(b.push(1)).toBeNull()
+  expect(b.push(2)).toEqual([1, 2])
+  expect(b.push(3)).toBeNull()
+  expect(b.push(4)).toEqual([3, 4])
 })
