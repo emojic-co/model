@@ -23,6 +23,7 @@ const CLUSTER_PATTERNS = {
   tender: bubbles,
   drive: anchorsAway,
   reflective: hideout,
+  background: wiggle,
 }
 
 const outDir = path.join(repoRoot, 'android', 'app', 'src', 'main', 'assets', 'patterns')
