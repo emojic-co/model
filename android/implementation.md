@@ -171,7 +171,7 @@ approved or explicitly modified.
 **Interfaces:**
 - Produces: a Gradle project buildable with `./gradlew help` from `android/`, and an `:app` module later tasks add sources to.
 
-- [ ] **Step 1: Create `android/settings.gradle.kts`**
+- [x] **Step 1: Create `android/settings.gradle.kts`**
 
 ```kotlin
 pluginManagement {
@@ -192,7 +192,7 @@ rootProject.name = "emojify"
 include(":app")
 ```
 
-- [ ] **Step 2: Create `android/build.gradle.kts`**
+- [x] **Step 2: Create `android/build.gradle.kts`**
 
 ```kotlin
 plugins {
@@ -203,7 +203,7 @@ plugins {
 }
 ```
 
-- [ ] **Step 3: Create `android/gradle.properties`**
+- [x] **Step 3: Create `android/gradle.properties`**
 
 ```properties
 org.gradle.jvmargs=-Xmx2048m
@@ -211,7 +211,7 @@ android.useAndroidX=true
 kotlin.code.style=official
 ```
 
-- [ ] **Step 4: Create `android/app/build.gradle.kts`**
+- [x] **Step 4: Create `android/app/build.gradle.kts`**
 
 ```kotlin
 plugins {
@@ -258,7 +258,7 @@ dependencies {
 }
 ```
 
-- [ ] **Step 5: Generate the Gradle wrapper**
+- [x] **Step 5: Generate the Gradle wrapper**
 
 Run from `android/` (requires a system-installed Gradle, one-time):
 
@@ -268,12 +268,12 @@ gradle wrapper --gradle-version 8.9 --distribution-type bin
 
 This creates `gradlew`, `gradlew.bat`, and `gradle/wrapper/`. All later commands use `./gradlew`.
 
-- [ ] **Step 6: Verify the project loads**
+- [x] **Step 6: Verify the project loads**
 
 Run: `cd android && ./gradlew help`
 Expected: Gradle prints the task list with no errors (no source files or `:app` Android sources exist yet, but the module configuration itself must be valid — this will still fail until Task 0.2 adds a manifest; if it fails only on "manifest not found", that's expected and resolves in Task 0.2).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add android/settings.gradle.kts android/build.gradle.kts android/gradle.properties android/app/build.gradle.kts android/gradlew android/gradlew.bat android/gradle/wrapper
