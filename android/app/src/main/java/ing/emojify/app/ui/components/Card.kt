@@ -62,6 +62,7 @@ fun Card(
     text: String,
     emoji: String,
     feeling: String?,
+    lang: String?,
     colors: Palette,
     onCopy: () -> Unit,
     onShare: () -> Unit,
@@ -72,7 +73,7 @@ fun Card(
     val bg1 = Color(android.graphics.Color.parseColor(colors.bg1))
     val bg2 = Color(android.graphics.Color.parseColor(colors.bg2))
     val textColor = Color(android.graphics.Color.parseColor(colors.textColor))
-    val style = resolveFeeling(feeling)
+    val style = resolveFeeling(feeling, lang)
     val tint = Color(android.graphics.Color.parseColor(patternTint(colors.bg1, colors.bg2)))
     val fontFamily = FontFamily(Font(googleFont = GoogleFont(style.fontName), fontProvider = fontProvider))
     val displayText = if (style.uppercase) text.uppercase() else text

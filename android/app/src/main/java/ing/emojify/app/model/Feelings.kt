@@ -50,4 +50,8 @@ val FEELINGS: Map<String, FeelingStyle> = mapOf(
     "Neutral" to FeelingStyle("reflective", "Work Sans", bold = true, entranceMs = 650, emojiMs = 3200, entranceMotif = "fadeTilt", emojiMotif = "tilt"),
 )
 
-fun resolveFeeling(feeling: String?): FeelingStyle = FEELINGS[feeling] ?: FEELINGS.getValue("Neutral")
+fun resolveFeeling(feeling: String?, lang: String? = "en"): FeelingStyle {
+    val base = FEELINGS[feeling] ?: FEELINGS.getValue("Neutral")
+    val script = scriptForLang(lang)
+    return if (script == LATIN) base else base.copy(fontName = fontForScript(script, base.cluster))
+}
