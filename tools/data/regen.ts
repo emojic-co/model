@@ -5,14 +5,14 @@ import { LANGS } from "./langs.ts"
 import { normalize } from "./normalize.ts"
 import { STYLE_SET } from "./styles.ts"
 
-export const MIN_COUNT = 100
-export const MAX_COUNT = 3500
+export const MIN_COUNT = 90
+export const MAX_COUNT = 2000
 const EVAL_SIZE = 2000
 
 const MIN_MAX_RATIO = 10
-const MAX_MAX_RATIO = 35
-const MATRIX_MIN = [50, 100, 125, 150, 200, 250]
-const MATRIX_MAX = [500, 600, 750, 1000, 1500, 2000, 3000, 3500]
+const MAX_MAX_RATIO = 40
+const MATRIX_MIN = [80, 90, 100, 125, 150]
+const MATRIX_MAX = [1500, 2000, 3000, 3500]
 
 export type Palette = { bg: string[]; fg: string }
 export type Row = {
