@@ -7,20 +7,25 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import ing.emojify.app.Prefs
 import ing.emojify.app.copyCardToClipboard
 import ing.emojify.app.model.EmojiScore
 import ing.emojify.app.model.Meta
@@ -55,10 +60,11 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor) {
     var palettes by remember { mutableStateOf<List<Palette>>(emptyList()) }
     var override by remember { mutableStateOf(Override()) }
     var colorOverride by remember { mutableStateOf(0) }
-    var contrastFix by remember { mutableStateOf(true) }
     var capture by remember { mutableStateOf<(suspend () -> android.graphics.Bitmap)?>(null) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val prefs = remember { Prefs(context) }
+    val contrastFix by prefs.contrastFix.collectAsState(initial = true)
 
     LaunchedEffect(text) {
         if (text.trim().length < MIN_CHARS) {
@@ -113,6 +119,14 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor) {
         Spacer(modifier = Modifier.height(16.dp))
         FeelingBar(feelings = feelingOptions, active = shownFeeling) { picked ->
             override = override.copy(feeling = picked)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(
+                checked = contrastFix,
+                onCheckedChange = { checked -> scope.launch { prefs.setContrastFix(checked) } },
+            )
+            Text("fix low-contrast palettes")
         }
     }
 }
