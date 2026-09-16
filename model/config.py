@@ -35,7 +35,7 @@ ENCODER_KERNEL_SIZE = 3
 assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
-ENCODER_CHANNELS = [200, 200, 200, 100]
+ENCODER_CHANNELS = [200, 200, 200, 200]
 ENCODER_DILATION = [1, 2, 4, 8]
 
 # EMBEDDING
@@ -216,7 +216,8 @@ def _stats() -> list[tuple[str, object]]:
         ("lang head params", f"{lang_head:,}"),
         ("style head params", f"{style_head:,}"),
         ("emoji head params", f"{emoji_head:,}"),
-        ("PARAM_COUNT (enc + heads)", f"{enc + lang_head + style_head + emoji_head:,}"),
+        ("PARAM_COUNT (enc + heads)",
+         f"{enc + lang_head + style_head + emoji_head:,}"),
         ("TASK_BATCH_SIZE / GAN_BATCH_SIZE",
          f"{TASK_BATCH_SIZE} / {GAN_BATCH_SIZE}"),
         ("EPOCHS_TASK / EPOCHS_GAN", f"{EPOCHS_TASK} / {EPOCHS_GAN}"),

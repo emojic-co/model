@@ -406,6 +406,7 @@ type Cand = {
   color?: string
   group?: string
   lang?: string
+  sarcastic?: boolean
 }
 
 export type Sink = { push(cand: Cand): void }
@@ -475,7 +476,11 @@ export class StreamingAnnotator {
   }
 
   private async annotateChunk(batch: Cand[]): Promise<void> {
-    const items = batch.map((c, id) => ({ id, text: c.text }))
+    const items = batch.map((c, id) => ({
+      id,
+      text: c.text,
+      ...(c.sarcastic ? { style_hint: "sarcastic" } : {}),
+    }))
     const got = await annotateBatch(items, true, true, this.usage, this.drops, this.fills)
     const lines: string[] = []
     for (const { id } of items) {
@@ -673,7 +678,7 @@ async function generateForSarcasm(
     sizes.map((n) => async () => {
       try {
         for (const t of await genSarcasmBatch(pickVoice(), n, lang)) {
-          sink.push({ text: t, lang })
+          sink.push({ text: t, lang, sarcastic: true })
         }
       } catch (err) {
         console.warn(`\n  gen (sarcasm) failed: ${err}`)
