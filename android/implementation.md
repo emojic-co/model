@@ -425,12 +425,12 @@ fun MainScreen() {
 }
 ```
 
-- [ ] **Step 6: Build and install on the phone**
+- [x] **Step 6: Build and install on the phone**
 
 Run: `cd android && ./gradlew installDebug`
 Expected: build succeeds, app installs. Launch it manually — a text field and a static 🙂 placeholder should appear.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add android/app/src/main/AndroidManifest.xml android/app/src/main/res android/app/src/main/java
