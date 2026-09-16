@@ -1859,7 +1859,7 @@ git commit -m "android: add entrance/emoji motion per feeling"
 **Files:**
 - Modify: `android/app/src/main/java/ing/emojify/app/ui/components/Card.kt`
 
-- [ ] **Step 1: Use Compose's `GraphicsLayer` capture API**
+- [x] **Step 1: Use Compose's `GraphicsLayer` capture API**. Deviation: the plan's own Task 2.x listings for `Card.kt` never actually rendered the `onCopy`/`onShare` params as visible buttons (they existed as unused parameters); added a `Row` with `share`/`copy` `TextButton`s at the bottom of the card, matching `web/src/components/Card.jsx`'s `share-btn`/`copy-btn` buttons, so there's something on screen to invoke these callbacks from.
 
 ```kotlin
     val graphicsLayer = androidx.compose.ui.graphics.layer.rememberGraphicsLayer()
@@ -1884,7 +1884,7 @@ Expose a `suspend fun captureBitmap(): android.graphics.Bitmap = graphicsLayer.t
 - Modify: `android/app/src/main/AndroidManifest.xml`
 - Modify: `android/app/src/main/java/ing/emojify/app/ui/MainScreen.kt`
 
-- [ ] **Step 1: Add a `FileProvider`**
+- [x] **Step 1: Add a `FileProvider`**
 
 `res/xml/file_paths.xml`:
 
@@ -1909,7 +1909,7 @@ In `AndroidManifest.xml`, inside `<application>`:
         </provider>
 ```
 
-- [ ] **Step 2: Implement `ShareActions.kt`**
+- [x] **Step 2: Implement `ShareActions.kt`**
 
 ```kotlin
 package ing.emojify.app
@@ -1947,16 +1947,11 @@ fun copyCardToClipboard(context: Context, bitmap: Bitmap) {
 }
 ```
 
-- [ ] **Step 3: Wire into `MainScreen.kt`**
+- [x] **Step 3: Wire into `MainScreen.kt`** — implemented as a `var capture by remember { mutableStateOf<(suspend () -> android.graphics.Bitmap)?>(null) }` set via `onCaptureReady = { capture = it }`, with `onCopy`/`onShare` each doing `scope.launch { capture?.invoke()?.let { ... } }` (nullable until `Card`'s first composition fires the callback).
 
-Add a `LocalContext.current` reference and pass `onCopy = { scope.launch { copyCardToClipboard(context, capture()) } }` / `onShare = { scope.launch { shareCard(context, capture()) } }` to `Card`, using the `captureBitmap()` callback from Task 7.1 and a `rememberCoroutineScope()`.
+- [ ] **Step 4: Install and manually verify** — build/install succeeded (compiles clean, unit tests pass, `installDebug` succeeded on the Pixel 7a); the interactive part (tapping "share" to open the Android share sheet, tapping "copy" and pasting the card image into another app) is pending your own check on the phone, not yet confirmed. App was not launched or sent simulated input.
 
-- [ ] **Step 4: Install and manually verify**
-
-Run: `cd android && ./gradlew installDebug`
-Expected: tapping "share" opens the Android share sheet with the rendered card image; tapping "copy" lets you paste the card image into another app (e.g. Messages).
-
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add android/app/src/main/java/ing/emojify/app/ShareActions.kt android/app/src/main/res/xml/file_paths.xml android/app/src/main/AndroidManifest.xml android/app/src/main/java/ing/emojify/app/ui/MainScreen.kt android/app/src/main/java/ing/emojify/app/ui/components/Card.kt

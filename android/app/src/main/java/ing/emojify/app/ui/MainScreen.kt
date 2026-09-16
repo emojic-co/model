@@ -16,9 +16,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import ing.emojify.app.copyCardToClipboard
 import ing.emojify.app.model.EmojiScore
 import ing.emojify.app.model.Meta
 import ing.emojify.app.model.OnnxPredictor
@@ -26,11 +29,13 @@ import ing.emojify.app.model.Palette
 import ing.emojify.app.model.fixContrast
 import ing.emojify.app.model.pickEmojiList
 import ing.emojify.app.model.topFeelings
+import ing.emojify.app.shareCard
 import ing.emojify.app.ui.components.Card
 import ing.emojify.app.ui.components.ColorBar
 import ing.emojify.app.ui.components.EmojiList
 import ing.emojify.app.ui.components.FeelingBar
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private const val MIN_CHARS = 3
 private const val DEBOUNCE_MS = 250L
@@ -51,6 +56,9 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor) {
     var override by remember { mutableStateOf(Override()) }
     var colorOverride by remember { mutableStateOf(0) }
     var contrastFix by remember { mutableStateOf(true) }
+    var capture by remember { mutableStateOf<(suspend () -> android.graphics.Bitmap)?>(null) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(text) {
         if (text.trim().length < MIN_CHARS) {
@@ -91,7 +99,15 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor) {
             override = override.copy(emoji = picked)
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Card(text = text, emoji = shownEmoji ?: "🙂", feeling = shownFeeling, colors = colors, onCopy = {}, onShare = {})
+        Card(
+            text = text,
+            emoji = shownEmoji ?: "🙂",
+            feeling = shownFeeling,
+            colors = colors,
+            onCopy = { scope.launch { capture?.invoke()?.let { copyCardToClipboard(context, it) } } },
+            onShare = { scope.launch { capture?.invoke()?.let { shareCard(context, it) } } },
+            onCaptureReady = { capture = it },
+        )
         Spacer(modifier = Modifier.height(16.dp))
         ColorBar(palettes = displayPalettes, active = colorOverride) { colorOverride = it }
         Spacer(modifier = Modifier.height(16.dp))
