@@ -1,13 +1,2 @@
-Done:
-
-upsample:
-    add an option
-    upsample --lang=he
-    top upsample records in Hebrew text.
-    final record should be of the form {text: '', emojis:'', styles:[], bg:[], fg:'', lang:'he'}
-    if the lang field is missing it means the record is in English.
-    lang field should never stripped from the record by any tool including the `tools/data/minimize.ts` one.
-
-    Note
-        When running `upsample` without any argument it just generate text and annotate them.
-        it generates --count=100 records by default.
+update the model to support Hebrew.
+I think it should already support Hebrew, but make sure I'm right.

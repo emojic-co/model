@@ -22,7 +22,14 @@ SRC_FULL = "full"
 
 PAD = "·"
 PAD_IDX = 0
-CHARS = PAD + "abcdefghijklmnopqrstuvwxyz0123456789!?:()@$%&* "
+CHARS = ''.join([
+    PAD,
+    "abcdefghijklmnopqrstuvwxyz",
+    "אבגדהוזחטיכלמנסעפצקרשתךםןףץ",
+    "0123456789",
+    "!?:()@$%&*",
+    " ",])
+
 VOCAB_SIZE = len(CHARS)
 
 
