@@ -1,37 +1,31 @@
 package ing.emojify.app.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material3.Checkbox
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import android.content.Intent
-import android.net.Uri
-import java.time.OffsetDateTime
-import java.time.format.DateTimeFormatter
-import ing.emojify.app.Prefs
 import ing.emojify.app.copyCardToClipboard
 import ing.emojify.app.model.EmojiScore
 import ing.emojify.app.model.Meta
@@ -56,14 +50,9 @@ private const val FEELING_COUNT = 4
 
 private val DEFAULT_PALETTE = Palette(bg1 = "#a8e2f4", bg2 = "#78c9f4", textColor = "#282e36")
 
+private val BACKGROUND_GRADIENT = Brush.verticalGradient(listOf(Color(0xFFFDF8F0), Color(0xFFEAF2FB)))
+
 private data class Override(val emoji: String? = null, val feeling: String? = null)
-
-private val MODEL_DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM d, yyyy")
-
-private fun formatDate(iso: String?): String {
-    if (iso == null) return "—"
-    return runCatching { OffsetDateTime.parse(iso).format(MODEL_DATE_FORMAT) }.getOrDefault(iso)
-}
 
 @Composable
 fun MainScreen(meta: Meta, predictor: OnnxPredictor) {
@@ -77,8 +66,6 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor) {
     var capture by remember { mutableStateOf<(suspend () -> android.graphics.Bitmap)?>(null) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val prefs = remember { Prefs(context) }
-    val contrastFix by prefs.contrastFix.collectAsState(initial = true)
 
     LaunchedEffect(text) {
         if (text.trim().length < MIN_CHARS) {
@@ -104,61 +91,45 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor) {
     val shownEmoji = override.emoji ?: emojiTop.firstOrNull()?.emoji
     val shownFeeling = override.feeling ?: predictedFeeling
     val feelingOptions = topFeelings(feelingScores, meta.styles, shownFeeling, FEELING_COUNT)
-    val displayPalettes = if (contrastFix) palettes.map { fixContrast(it) } else palettes
+    val displayPalettes = palettes.map { fixContrast(it) }
     val colors = displayPalettes.getOrElse(colorOverride) { DEFAULT_PALETTE }
 
-    Column(modifier = Modifier.fillMaxSize().safeDrawingPadding().padding(16.dp)) {
-        TextField(
-            value = text,
-            onValueChange = { text = it },
-            placeholder = { Text("type at least 3 characters…") },
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        EmojiList(items = emojiTop.ifEmpty { null }, active = shownEmoji) { picked ->
-            override = override.copy(emoji = picked)
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Card(
-            text = text,
-            emoji = shownEmoji ?: "🙂",
-            feeling = shownFeeling,
-            colors = colors,
-            onCopy = { scope.launch { capture?.invoke()?.let { copyCardToClipboard(context, it) } } },
-            onShare = { scope.launch { capture?.invoke()?.let { shareCard(context, it) } } },
-            onEmojiCycle = { dir -> override = override.copy(emoji = cycle(emojiTop.map { it.emoji }, shownEmoji, dir)) },
-            onFeelingCycle = { dir -> override = override.copy(feeling = cycle(feelingOptions, shownFeeling, dir)) },
-            onCaptureReady = { capture = it },
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        ColorBar(palettes = displayPalettes, active = colorOverride) { colorOverride = it }
-        Spacer(modifier = Modifier.height(16.dp))
-        FeelingBar(feelings = feelingOptions, active = shownFeeling) { picked ->
-            override = override.copy(feeling = picked)
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(
-                checked = contrastFix,
-                onCheckedChange = { checked -> scope.launch { prefs.setContrastFix(checked) } },
+    Box(modifier = Modifier.fillMaxSize().background(BACKGROUND_GRADIENT)) {
+        Column(modifier = Modifier.fillMaxSize().safeDrawingPadding().padding(16.dp)) {
+            Card(
+                text = text,
+                emoji = shownEmoji ?: "🙂",
+                feeling = shownFeeling,
+                colors = colors,
+                onCopy = { scope.launch { capture?.invoke()?.let { copyCardToClipboard(context, it) } } },
+                onShare = { scope.launch { capture?.invoke()?.let { shareCard(context, it) } } },
+                onEmojiCycle = { dir -> override = override.copy(emoji = cycle(emojiTop.map { it.emoji }, shownEmoji, dir)) },
+                onFeelingCycle = { dir -> override = override.copy(feeling = cycle(feelingOptions, shownFeeling, dir)) },
+                onCaptureReady = { capture = it },
             )
-            Text("fix low-contrast palettes")
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Column {
-            Text("model updated ${formatDate(meta.exported_at)}")
-            Text(
-                "about this model",
-                textDecoration = TextDecoration.Underline,
-                modifier = Modifier.clickable {
-                    context.startActivity(
-                        Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse("https://github.com/emojic-co/model/blob/main/ABOUT.md"),
-                        ),
-                    )
-                },
+            Spacer(modifier = Modifier.height(16.dp))
+            TextField(
+                value = text,
+                onValueChange = { text = it },
+                placeholder = { Text("type at least 3 characters…") },
+                shape = RoundedCornerShape(16.dp),
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.White.copy(alpha = 0.6f),
+                    focusedContainerColor = Color.White.copy(alpha = 0.8f),
+                ),
+                modifier = Modifier.fillMaxWidth(),
             )
+            Spacer(modifier = Modifier.height(16.dp))
+            EmojiList(items = emojiTop.ifEmpty { null }, active = shownEmoji) { picked ->
+                override = override.copy(emoji = picked)
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            ColorBar(palettes = displayPalettes, active = colorOverride) { colorOverride = it }
+            Spacer(modifier = Modifier.height(16.dp))
+            FeelingBar(feelings = feelingOptions, active = shownFeeling) { picked ->
+                override = override.copy(feeling = picked)
+            }
+            Spacer(modifier = Modifier.height(16.dp))
             Text("made with ❤️ by Gilad")
         }
     }
