@@ -1,13 +1,11 @@
-Android APP:
-    1. Adjust layout:
-        - footer should be centered and pushed to the bottom of the screen
-        - color picker should span the entire width of the screen
-        - remove the underline from the text field.
-        - adjust the preview card's content size to match the one on the web, currently both emoji and text are too small.
-        - text size should be dynamically adjusted to fit the preview card according to its length (prevent inter-word breaking).
+upsample:
+    add an option
+    upsample --lang=he
+    top upsample records in Hebrew text.
+    final record should be of the form {text: '', emojis:'', styles:[], bg:[], fg:'', lang:'he'}
+    if the lang field is missing it means the record is in English.
+    lang field should never stripped from the record by any tool including the `tools/data/minimize.ts` one.
 
-    2. Style still seems pale and not engadine, use a better background gradient, add a background soft doodle (if you can't find a doodle yourself please let me know)
-
-
-Filling picker should be horizontally scrollable, and it should match the visual of the web version (square mini cards with the bg pattern and centered text with the target font family)
-The app icon itself appears as black circle on a gradient background.
+    Note 
+        When running `upsample` without any argument it just generate text and annotate them.
+        it generates --count=100 records by default.
