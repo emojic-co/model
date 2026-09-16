@@ -121,7 +121,7 @@ ${rows}
 async function main(): Promise<void> {
   const groups = await loadCoverage()
   await writeFile(EMOJI_COVERAGE_HTML, render(groups), "utf8")
-  console.log(`${EMOJI_COVERAGE_HTML}: ${groups.length} groups`)
+  console.log(EMOJI_COVERAGE_HTML)
 }
 
 main()
