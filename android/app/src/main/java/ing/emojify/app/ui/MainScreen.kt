@@ -14,6 +14,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -66,7 +70,7 @@ private val BACKGROUND_GRADIENT_COLORS = listOf(Color(0xFFFFE8D6), Color(0xFFFFD
 private data class Override(val emoji: String? = null, val feeling: String? = null)
 
 @Composable
-fun MainScreen(meta: Meta, predictor: OnnxPredictor) {
+fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit) {
     var text by remember { mutableStateOf("") }
     var emojiTop by remember { mutableStateOf<List<EmojiScore>>(emptyList()) }
     var predictedFeeling by remember { mutableStateOf<String?>(null) }
@@ -178,6 +182,14 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor) {
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
+        }
+        IconButton(
+            onClick = onSettingsClick,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .windowInsetsPadding(WindowInsets.safeDrawing.exclude(WindowInsets.ime)),
+        ) {
+            Icon(Icons.Default.Settings, contentDescription = "Settings")
         }
     }
 }
