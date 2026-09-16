@@ -33,7 +33,7 @@ ENCODER_KERNEL_SIZE = 3
 assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
-ENCODER_CHANNELS = [120, 180, 140, 90]
+ENCODER_CHANNELS = [200, 200, 200, 100]
 ENCODER_DILATION = [1, 2, 4, 8]
 
 # EMBEDDING
