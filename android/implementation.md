@@ -1322,7 +1322,7 @@ git commit -m "android: wire debounced prediction into MainScreen"
 - Consumes: `Palette` (Task 1.3).
 - Produces: `ColorBar(palettes: List<Palette>, active: Int, onPick: (Int) -> Unit)`.
 
-- [ ] **Step 1: Implement**
+- [x] **Step 1: Implement**
 
 ```kotlin
 package ing.emojify.app.ui.components
@@ -1363,7 +1363,7 @@ fun ColorBar(palettes: List<Palette>, active: Int, onPick: (Int) -> Unit) {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add android/app/src/main/java/ing/emojify/app/ui/components/ColorBar.kt
