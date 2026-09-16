@@ -1,8 +1,4 @@
-Build a native android app (kotlin) that clones the functionality of the web app (see the web folder).
-Make a detailed implementation plan to implement in small steps, write it to android/implementation.md.
-We will then implement, push to my phone for review, approved/modify and go to next step.
-Start with a minimal implementation and improve/add features incrementally.
-Android app should be under the android folder and written in Kotlin. 
+So each run generates a subfolder under the `pt` folder with <timestamp>-<git short commit hash> as the name. The subfolder contains all .pt files.
+in the `pt` folder just use a simple version.txt file the points to the actual model subfolder.
 
-
-web app, card should be RTL when using Hebrew
+1. What happens if the logic around the model changes?
