@@ -1067,7 +1067,7 @@ git commit -m "android: port pickEmojiList and topFeelings"
 - Consumes: `EmojiScore` (Task 2.1).
 - Produces: `EmojiList(items: List<EmojiScore>?, active: String?, onPick: (String) -> Unit)`, `FeelingBar(feelings: List<String>, active: String?, onPick: (String) -> Unit)`. `MainScreen` (Task 2.3) is the sole caller.
 
-- [ ] **Step 1: Implement `EmojiList.kt`** (port of `web/src/components/EmojiList.jsx`'s data flow: ranked items, active highlight, tap to override)
+- [x] **Step 1: Implement `EmojiList.kt`** (port of `web/src/components/EmojiList.jsx`'s data flow: ranked items, active highlight, tap to override)
 
 ```kotlin
 package ing.emojify.app.ui.components
@@ -1108,7 +1108,7 @@ fun EmojiList(items: List<EmojiScore>?, active: String?, onPick: (String) -> Uni
 }
 ```
 
-- [ ] **Step 2: Implement `FeelingBar.kt`** (port of `web/src/components/FeelingBar.jsx`'s data flow)
+- [x] **Step 2: Implement `FeelingBar.kt`** (port of `web/src/components/FeelingBar.jsx`'s data flow)
 
 ```kotlin
 package ing.emojify.app.ui.components
@@ -1146,7 +1146,7 @@ fun FeelingBar(feelings: List<String>, active: String?, onPick: (String) -> Unit
 }
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add android/app/src/main/java/ing/emojify/app/ui/components/EmojiList.kt android/app/src/main/java/ing/emojify/app/ui/components/FeelingBar.kt
