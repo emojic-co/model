@@ -24,6 +24,7 @@ COLORS_JSONL = f"{DATA_DIR}/colors.jsonl"
 PRED_JSONL = f"{DATA_DIR}/pred.jsonl"
 
 ENC_PT = f"{PT_DIR}/enc.pt"
+LANG_PT = f"{PT_DIR}/lang.pt"
 STYLE_PT = f"{PT_DIR}/style.pt"
 EMOJI_PT = f"{PT_DIR}/emoji.pt"
 EMOJI_EMBED_PT = f"{PT_DIR}/emoji_embed.pt"

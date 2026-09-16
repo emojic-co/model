@@ -20,7 +20,11 @@ from lightning.pytorch.callbacks import (
 )
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
-from torch.nn.functional import binary_cross_entropy_with_logits, normalize
+from torch.nn.functional import (
+    binary_cross_entropy_with_logits,
+    cross_entropy,
+    normalize,
+)
 
 from files import (
     CRITIC_PT,
@@ -76,6 +80,7 @@ from model.model import (
     ColorGen,
     EmojiEmbedding,
     EmojiHead,
+    LangHead,
     StyleHead,
     TextEncoder,
 )
@@ -146,7 +151,7 @@ def buffered_auc(pos: list[torch.Tensor], neg: list[torch.Tensor]) -> torch.Tens
     return roc_auc(_cap(torch.cat(pos)), _cap(torch.cat(neg)))
 
 
-ALL_HEADS: tuple[str, ...] = ("style", "emoji", "critic")
+ALL_HEADS: tuple[str, ...] = ("style", "emoji", "critic", "lang")
 _DEFAULT_PT = Path(PT_DIR)
 
 
@@ -206,6 +211,8 @@ class LitEncoder(pl.LightningModule):
             self.emoji = EmojiHead()
         if "critic" in self.heads:
             self.critic = ColorCritic()
+        if "lang" in self.heads:
+            self.lang = LangHead()
 
         self._val_pos: list[torch.Tensor] = []
         self._val_neg: list[torch.Tensor] = []
@@ -220,6 +227,9 @@ class LitEncoder(pl.LightningModule):
         self._trn_s_rr: list[torch.Tensor] = []
         self._trn_s_tgt: list[torch.Tensor] = []
 
+        self._val_lang_acc: list[torch.Tensor] = []
+        self._trn_lang_acc: list[torch.Tensor] = []
+
         self.train_dataset = None
 
     def _log(self, name, val, bs):
@@ -227,7 +237,7 @@ class LitEncoder(pl.LightningModule):
                  prog_bar=True, batch_size=bs)
 
     def _step(self, batch, split):
-        text, emoji, style, colors, source = batch
+        text, emoji, style, colors, lang, source = batch
         enc = self.enc(text)
         loss = enc.new_zeros(())
         bs = text.size(0)
@@ -301,6 +311,15 @@ class LitEncoder(pl.LightningModule):
                 pos_buf.append(pos.detach().flatten())
                 neg_buf.append(neg.detach().flatten())
 
+        if "lang" in self.heads:
+            lang_logits = self.lang(enc)
+            loss_lang = cross_entropy(lang_logits, lang)
+            loss = loss + loss_lang
+            self._log(f"loss/lang/{split}", loss_lang, bs)
+            acc = (lang_logits.argmax(dim=-1) == lang).float()
+            lang_acc = self._val_lang_acc if split == "val" else self._trn_lang_acc
+            lang_acc.append(acc.detach())
+
         return loss
 
     def on_validation_epoch_start(self):
@@ -309,6 +328,7 @@ class LitEncoder(pl.LightningModule):
         self._val_e_rr.clear()
         self._val_s_rr.clear()
         self._val_s_tgt.clear()
+        self._val_lang_acc.clear()
 
     def on_validation_epoch_end(self):
         self._epoch_metrics("val")
@@ -319,6 +339,7 @@ class LitEncoder(pl.LightningModule):
         self._trn_e_rr.clear()
         self._trn_s_rr.clear()
         self._trn_s_tgt.clear()
+        self._trn_lang_acc.clear()
 
         if self.train_dataset is None or self.train_dataset.rates is None:
             return
@@ -369,6 +390,11 @@ class LitEncoder(pl.LightningModule):
 
         if emoji_mrr is not None and style_macro is not None:
             self.log(f"F1/{split}", harmonic_mean(emoji_mrr, style_macro), prog_bar=True)
+
+        if "lang" in self.heads:
+            lang_acc = self._val_lang_acc if split == "val" else self._trn_lang_acc
+            if lang_acc:
+                self.log(f"acc/lang/{split}", torch.cat(lang_acc).mean(), prog_bar=True)
 
     def training_step(self, batch, batch_idx):
         return self._step(batch, "train")
@@ -548,6 +574,8 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
         if "emoji" in heads
         else "MRR/s/val"
         if "style" in heads
+        else "acc/lang/val"
+        if "lang" in heads
         else "auc/critic/val"
     )
     ckpt = ModelCheckpoint(
@@ -1018,8 +1046,8 @@ def cli(
     heads: str | None = typer.Option(
         None,
         "--heads",
-        help="Comma list from {style,emoji,critic}; only with 'enc'. "
-        "Default: all three.",
+        help="Comma list from {style,emoji,critic,lang}; only with 'enc'. "
+        "Default: all four.",
     ),
     pt: Path = typer.Option(
         _DEFAULT_PT, "--pt", help="Folder to read warm-start .pt from (default pt/)."
@@ -1060,9 +1088,10 @@ def cli(
 
     Heads (stage 1 eval / checkpoint monitor)
       emoji+style -> F1/val (harmonic mean of MRR/e/val and MRR/s/val),
-      else emoji -> MRR/e/val, style -> MRR/s/val, critic -> auc/critic/val;
-      the first match in that order is the checkpoint + early-stop metric.
-      auc/critic/val is otherwise logging-only, never an early-stop signal.
+      else emoji -> MRR/e/val, style -> MRR/s/val, lang -> acc/lang/val,
+      critic -> auc/critic/val; the first match in that order is the
+      checkpoint + early-stop metric. auc/critic/val is otherwise
+      logging-only, never an early-stop signal.
     """
     resolved = _validate(stage, local, heads, pt, out, gpu, cpu)
     if local:

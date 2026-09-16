@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader, Dataset
 from files import EVAL_JSONL, TRAIN_JSONL
 from model.config import (
     EMOJIS,
+    LANGS,
     MAX_TEXT_LEN,
     SAMPLING_BASE_RATE,
     SAMPLING_SOURCES,
@@ -22,10 +23,11 @@ SRC_FULL = "full"
 
 PAD = "·"
 PAD_IDX = 0
+HEBREW = "אבגדהוזחטיכלמנסעפצקרשתךםןףץ"
 CHARS = ''.join([
     PAD,
     "abcdefghijklmnopqrstuvwxyz",
-    "אבגדהוזחטיכלמנסעפצקרשתךםןףץ",
+    HEBREW,
     "0123456789",
     "!?:()@$%&*",
     " ",])
@@ -34,8 +36,15 @@ VOCAB_SIZE = len(CHARS)
 
 
 char2idx = {char: i for i, char in enumerate(CHARS)}
+lang2idx = {la: i for i, la in enumerate(LANGS)}
 style2idx = {s: i for i, s in enumerate(STYLES)}
 emoji2idx = {e: i for i, e in enumerate(EMOJIS)}
+
+HEBREW_CHARS = set(HEBREW)
+
+
+def detect_lang(text: str) -> str:
+    return "he" if any(c in HEBREW_CHARS for c in text) else "en"
 
 COLOR_DIM = 9
 
@@ -93,6 +102,7 @@ class record:
     emojis: list[str]
     styles: list[str]
     colors: list[str] | None
+    lang: int
 
 
 def _parse_record(d: dict) -> record | None:
@@ -105,12 +115,13 @@ def _parse_record(d: dict) -> record | None:
 
             emojis = [e for e in emojis.split() if e in emoji2idx]
             styles = [s for s in styles if s in style2idx]
+            lang = lang2idx[detect_lang(text)]
 
             bg = d.get("bg")
             fg = d.get("fg")
             colors = [*bg, fg] if bg and fg else None
 
-            return record(text, emojis, styles, colors)
+            return record(text, emojis, styles, colors, lang)
     return None
 
 
@@ -126,7 +137,9 @@ def read(path):
             yield r
 
 
-_Pool = tuple[torch.Tensor, list[list[str]], torch.Tensor, torch.Tensor]
+_Pool = tuple[
+    torch.Tensor, list[list[str]], torch.Tensor, torch.Tensor, torch.Tensor
+]
 
 
 def _load_pool(path: str) -> _Pool | None:
@@ -149,13 +162,17 @@ def _load_pool(path: str) -> _Pool | None:
         [r.emojis for r in recs],
         torch.stack([styles_to_tensor(r.styles) for r in recs]),
         torch.zeros(len(recs), COLOR_DIM),
+        torch.tensor([r.lang for r in recs], dtype=torch.long),
     )
 
 
 def _sample_pool(pool: _Pool, src: str) -> tuple:
-    text, emoji_lists, style, colors = pool
+    text, emoji_lists, style, colors, lang = pool
     j = int(torch.randint(len(text), (1,)).item())
-    return (text[j], emojis_to_tensor(emoji_lists[j]), style[j], colors[j], src)
+    return (
+        text[j], emojis_to_tensor(emoji_lists[j]), style[j], colors[j],
+        lang[j], src,
+    )
 
 
 class SamplingRates:
@@ -177,6 +194,7 @@ class EmojiDataset(Dataset):
         self.style = torch.stack([styles_to_tensor(r.styles) for r in records])
         self.colors = torch.stack([
             colors2tensor(r.colors) for r in records])  # type: ignore
+        self.lang = torch.tensor([r.lang for r in records], dtype=torch.long)
 
         self.rates = (
             SamplingRates(list(SAMPLING_SOURCES), SAMPLING_BASE_RATE)
@@ -206,6 +224,7 @@ class EmojiDataset(Dataset):
             emojis_to_tensor(self.emoji_lists[idx]),
             self.style[idx],
             self.colors[idx],
+            self.lang[idx],
             SRC_FULL,
         )
 

@@ -16,9 +16,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 with open(LABELS_JSON, encoding="utf-8") as f:
     LABELS = json.load(f)
 
+LANGS = LABELS["langs"]
 STYLES = LABELS["styles"]
 EMOJIS = LABELS["emojis"]
 
+LANG_COUNT = len(LANGS)
 STYLE_COUNT = len(STYLES)
 EMOJI_COUNT = len(EMOJIS)
 
@@ -183,12 +185,17 @@ def _head_params(embed_size: int, n_labels: int) -> int:
     return EMBED_SIZE_TEXT * embed_size + n_labels * (embed_size + 1)
 
 
+def _lang_head_params(n_labels: int) -> int:
+    return EMBED_SIZE_TEXT * n_labels + n_labels
+
+
 def _stats() -> list[tuple[str, object]]:
     rf = _receptive_field()
     cover = "covers full input" if rf >= MAX_TEXT_LEN else "partial coverage"
     enc = _encoder_conv_params()
     emoji_head = _head_params(EMBED_SIZE_EMOJI, len(EMOJIS))
     style_head = _head_params(EMBED_SIZE_STYLE, len(STYLES))
+    lang_head = _lang_head_params(len(LANGS))
     chain = " -> ".join(str(c) for c in (EMBED_SIZE_CHAR, *ENCODER_CHANNELS))
     return [
         ("NUM_LAYERS", len(ENCODER_CHANNELS)),
@@ -200,14 +207,16 @@ def _stats() -> list[tuple[str, object]]:
         ("RF vs MAX_TEXT_LEN", f"{rf} / {MAX_TEXT_LEN}  ({cover})"),
         ("TEXT_EMBED_SIZE", EMBED_SIZE_TEXT),
         ("MAX_TEXT_LEN", MAX_TEXT_LEN),
+        ("# langs", len(LANGS)),
         ("# styles", len(STYLES)),
         ("# emojis", len(EMOJIS)),
         ("STYLE_EMBED_SIZE", EMBED_SIZE_STYLE),
         ("EMOJI_EMBED_SIZE", EMBED_SIZE_EMOJI),
         ("encoder conv params", f"{enc:,}"),
+        ("lang head params", f"{lang_head:,}"),
         ("style head params", f"{style_head:,}"),
         ("emoji head params", f"{emoji_head:,}"),
-        ("PARAM_COUNT (enc + heads)", f"{enc + style_head + emoji_head:,}"),
+        ("PARAM_COUNT (enc + heads)", f"{enc + lang_head + style_head + emoji_head:,}"),
         ("TASK_BATCH_SIZE / GAN_BATCH_SIZE",
          f"{TASK_BATCH_SIZE} / {GAN_BATCH_SIZE}"),
         ("EPOCHS_TASK / EPOCHS_GAN", f"{EPOCHS_TASK} / {EPOCHS_GAN}"),

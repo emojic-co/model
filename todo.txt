@@ -1,9 +1,10 @@
+Remove the translation step from both web and android apps.
+Model will now natively support Hebrew and English. We will add additional languages in the future.
+
+
 Done:
 
-update the `upsample` tool:
-The upsample tool usually acts in 2 steps:
-1. generates some text
-2. run annotation on the generated text
-You should update the tool to run annotations as soon as there is some text available.
-The goal is to minimize the loss of generated texts in case the tool is interrupted.
-So it should act as a producer-consumer model, where the producer generates text and the consumer runs annotations on the generated text as soon as it is available.
+Add to `labels.json` a `langs` field that contains a list of supported languages.
+For now, it will contain `["en", "he"]` and it should be at the top of the file.
+
+Add to the model a language prediction head, log its performance to TB.
