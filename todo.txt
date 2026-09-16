@@ -5,3 +5,9 @@ Android APP:
         - remove the underline from the text field.
         - adjust the preview card's content size to match the one on the web, currently both emoji and text are too small.
         - text size should be dynamically adjusted to fit the preview card according to its length (prevent inter-word breaking).
+
+    2. Style still seems pale and not engadine, use a better background gradient, add a background soft doodle (if you can't find a doodle yourself please let me know)
+
+
+Filling picker should be horizontally scrollable, and it should match the visual of the web version (square mini cards with the bg pattern and centered text with the target font family)
+The app icon itself appears as black circle on a gradient background.
