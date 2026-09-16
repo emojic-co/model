@@ -1462,37 +1462,36 @@ git commit -m "android: wire GAN color palettes, contrast fix, and ColorBar"
 
 ## Phase 4 — Per-feeling fonts
 
-Uses Android's [Downloadable Fonts](https://developer.android.com/develop/ui/views/text-and-emoji/downloadable-fonts) API (Google Fonts provider) instead of bundling raw `.ttf` binaries — this mirrors how the web app pulls fonts by name from Google Fonts, and keeps `res/font/` to small XML resources rather than binary assets.
+Uses Compose's dedicated `androidx.compose.ui:ui-text-google-fonts` API (`GoogleFont`/`GoogleFont.Provider`) instead of bundling raw `.ttf` binaries or per-font XML `<font-family>` resources — this mirrors how the web app pulls fonts by name from Google Fonts, needs only one shared certificate resource (not one XML file per font), and is the Compose-idiomatic way to do downloadable fonts (the classic View-system XML `<font-family>`-per-font approach from an earlier draft of this plan was dropped in favor of this once actually implementing it — same outcome, less boilerplate).
 
-### Task 4.1: Google Fonts provider XML resources
+### Task 4.1: Google Fonts provider setup
 
 **Files:**
 - Create: `android/app/src/main/res/values/font_certs.xml`
-- Create: `android/app/src/main/res/font/<one file per family used in FEELINGS>.xml` (e.g. `fredoka.xml`, `chewy.xml`, `poppins.xml`, `quicksand.xml`, `caveat.xml`, `bungee.xml`, `gochi_hand.xml`, `luckiest_guy.xml`, `shadows_into_light.xml`, `barlow_condensed.xml`, `rubik.xml`, `spectral.xml`, `playfair_display.xml`, `shantell_sans.xml`, `oswald.xml`, `anton.xml`, `archivo_black.xml`, `griffy.xml`, `schoolbell.xml`, `bitter.xml`, `inter.xml`, `work_sans.xml` — the full font list from `web/src/feelings.js`'s `FEELINGS` table)
+- Modify: `android/app/build.gradle.kts` (add `androidx.compose.ui:ui-text-google-fonts`)
 
-- [ ] **Step 1: Add `res/values/font_certs.xml`**
+**Interfaces:**
+- Produces: `R.array.com_google_android_gms_fonts_certs` (resource), and the `androidx.compose.ui:ui-text-google-fonts` dependency Task 4.2 uses to construct a shared `GoogleFont.Provider` + per-feeling `GoogleFont(name)` instances.
 
-Copy the `com_google_android_gms_fonts_certs` `<array>` resource **verbatim** from the [Android Downloadable Fonts guide](https://developer.android.com/develop/ui/views/text-and-emoji/downloadable-fonts#add-support-library) — its certificate hashes are fixed, Google-published values and must not be retyped by hand or approximated.
+- [x] **Step 1: Add `res/values/font_certs.xml`**
 
-- [ ] **Step 2: Add one font-family XML per font**, following this template (shown for Fredoka — repeat for every family name in the list above, one file each, filename = snake_case family name):
+Copy the `com_google_android_gms_fonts_certs` array **verbatim** from Google's own [Jetchat compose-samples file](https://github.com/android/compose-samples/blob/main/Jetchat/app/src/main/res/values-v23/font_certs.xml) — its certificate hashes are fixed, Google-published values and must not be retyped by hand or approximated. (The generic Android Downloadable Fonts guide only shows a truncated placeholder hash; this sample is the documented authoritative source for the real values, and it's fine at `res/values/` rather than `values-v23/` since this project's minSdk is already 26.)
 
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<font-family xmlns:app="http://schemas.android.com/apk/res-auto"
-    app:fontProviderAuthority="com.google.android.gms.fonts"
-    app:fontProviderPackage="com.google.android.gms"
-    app:fontProviderQuery="Fredoka"
-    app:fontProviderCerts="@array/com_google_android_gms_fonts_certs">
-</font-family>
+- [x] **Step 2: Add the dependency**
+
+In `android/app/build.gradle.kts`, inside `dependencies { ... }`, add:
+
+```kotlin
+    implementation("androidx.compose.ui:ui-text-google-fonts")
 ```
 
-(`fontProviderQuery` is the exact Google Fonts family name, e.g. `"Chewy"`, `"Gochi Hand"`, `"Luckiest Guy"`.)
+(version comes from the already-applied `compose-bom` platform, same as the other `androidx.compose.ui` artifacts.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
-git add android/app/src/main/res/values/font_certs.xml android/app/src/main/res/font
-git commit -m "android: add Google Fonts provider resources for per-feeling fonts"
+git add android/app/src/main/res/values/font_certs.xml android/app/build.gradle.kts
+git commit -m "android: add Google Fonts provider setup for per-feeling fonts"
 ```
 
 ### Task 4.2: `Feelings.kt` — full `FEELINGS` table + `resolveFeeling`
@@ -1502,9 +1501,9 @@ git commit -m "android: add Google Fonts provider resources for per-feeling font
 - Test: `android/app/src/test/java/ing/emojify/app/model/FeelingsTableTest.kt`
 
 **Interfaces:**
-- Produces: `FeelingStyle(cluster, fontRes: Int, bold: Boolean, italic: Boolean, uppercase: Boolean, letterSpacingEm: Float?, entranceMs: Int, emojiMs: Int)`, `FEELINGS: Map<String, FeelingStyle>`, `resolveFeeling(feeling: String): FeelingStyle`. Task 4.3 (`Card.kt`) consumes this.
+- Produces: `FeelingStyle(cluster, fontName: String, bold: Boolean, italic: Boolean, uppercase: Boolean, letterSpacingEm: Float?, entranceMs: Int, emojiMs: Int)`, `FEELINGS: Map<String, FeelingStyle>`, `resolveFeeling(feeling: String): FeelingStyle`. `fontName` is the literal Google Fonts family name (e.g. `"Fredoka"`), resolved to an actual `FontFamily` in `Card.kt` via `GoogleFont`/`GoogleFont.Provider` (Task 4.3), not an `R.font.*` resource id. Task 4.3 (`Card.kt`) consumes this.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```kotlin
 package ing.emojify.app.model
@@ -1530,12 +1529,12 @@ class FeelingsTableTest {
 }
 ```
 
-- [ ] **Step 2: Run to verify it fails**, then implement — append to `Feelings.kt` (keep the `topFeelings` function from Task 2.1 as-is):
+- [x] **Step 2: Run to verify it fails**, then implement — append to `Feelings.kt` (keep the `topFeelings` function from Task 2.1 as-is):
 
 ```kotlin
 data class FeelingStyle(
     val cluster: String,
-    val fontRes: Int,
+    val fontName: String,
     val bold: Boolean = false,
     val italic: Boolean = false,
     val uppercase: Boolean = false,
@@ -1545,28 +1544,28 @@ data class FeelingStyle(
 )
 
 val FEELINGS: Map<String, FeelingStyle> = mapOf(
-    "Joyful" to FeelingStyle("joy", ing.emojify.app.R.font.fredoka, bold = true, entranceMs = 560, emojiMs = 900),
-    "Excited" to FeelingStyle("joy", ing.emojify.app.R.font.chewy, uppercase = true, letterSpacingEm = 0.05f, entranceMs = 460, emojiMs = 380),
-    "Hopeful" to FeelingStyle("drive", ing.emojify.app.R.font.poppins, entranceMs = 780, emojiMs = 3000),
-    "Serene" to FeelingStyle("calm", ing.emojify.app.R.font.quicksand, entranceMs = 900, emojiMs = 4200),
-    "Tender" to FeelingStyle("tender", ing.emojify.app.R.font.caveat, bold = true, entranceMs = 700, emojiMs = 1300),
-    "Playful" to FeelingStyle("play", ing.emojify.app.R.font.bungee, entranceMs = 600, emojiMs = 1100),
-    "Whimsical" to FeelingStyle("play", ing.emojify.app.R.font.gochi_hand, letterSpacingEm = 0.02f, entranceMs = 640, emojiMs = 1500),
-    "Awed" to FeelingStyle("reflective", ing.emojify.app.R.font.luckiest_guy, letterSpacingEm = 0.04f, entranceMs = 520, emojiMs = 2600),
-    "Earnest" to FeelingStyle("tender", ing.emojify.app.R.font.shadows_into_light, letterSpacingEm = 0.01f, entranceMs = 720, emojiMs = 1600),
-    "Determined" to FeelingStyle("drive", ing.emojify.app.R.font.barlow_condensed, uppercase = true, bold = true, entranceMs = 560, emojiMs = 1400),
-    "Proud" to FeelingStyle("drive", ing.emojify.app.R.font.rubik, uppercase = true, bold = true, letterSpacingEm = 0.05f, entranceMs = 700, emojiMs = 2600),
-    "Wistful" to FeelingStyle("sad", ing.emojify.app.R.font.spectral, italic = true, letterSpacingEm = 0.05f, entranceMs = 1050, emojiMs = 4200),
-    "Melancholy" to FeelingStyle("sad", ing.emojify.app.R.font.playfair_display, italic = true, entranceMs = 1000, emojiMs = 3200),
-    "Anxious" to FeelingStyle("anxiety", ing.emojify.app.R.font.shantell_sans, entranceMs = 560, emojiMs = 220),
-    "Tense" to FeelingStyle("anxiety", ing.emojify.app.R.font.oswald, letterSpacingEm = -0.01f, entranceMs = 500, emojiMs = 420),
-    "Furious" to FeelingStyle("anger", ing.emojify.app.R.font.anton, uppercase = true, letterSpacingEm = 0.06f, entranceMs = 420, emojiMs = 450),
-    "Irritated" to FeelingStyle("anger", ing.emojify.app.R.font.archivo_black, uppercase = true, entranceMs = 520, emojiMs = 600),
-    "Disgusted" to FeelingStyle("anger", ing.emojify.app.R.font.griffy, italic = true, letterSpacingEm = 0.03f, entranceMs = 480, emojiMs = 700),
-    "Startled" to FeelingStyle("play", ing.emojify.app.R.font.schoolbell, entranceMs = 420, emojiMs = 2600),
-    "Sarcastic" to FeelingStyle("reflective", ing.emojify.app.R.font.bitter, italic = true, entranceMs = 800, emojiMs = 4200),
-    "Deadpan" to FeelingStyle("reflective", ing.emojify.app.R.font.inter, entranceMs = 700, emojiMs = 6000),
-    "Neutral" to FeelingStyle("reflective", ing.emojify.app.R.font.work_sans, bold = true, entranceMs = 650, emojiMs = 3200),
+    "Joyful" to FeelingStyle("joy", "Fredoka", bold = true, entranceMs = 560, emojiMs = 900),
+    "Excited" to FeelingStyle("joy", "Chewy", uppercase = true, letterSpacingEm = 0.05f, entranceMs = 460, emojiMs = 380),
+    "Hopeful" to FeelingStyle("drive", "Poppins", entranceMs = 780, emojiMs = 3000),
+    "Serene" to FeelingStyle("calm", "Quicksand", entranceMs = 900, emojiMs = 4200),
+    "Tender" to FeelingStyle("tender", "Caveat", bold = true, entranceMs = 700, emojiMs = 1300),
+    "Playful" to FeelingStyle("play", "Bungee", entranceMs = 600, emojiMs = 1100),
+    "Whimsical" to FeelingStyle("play", "Gochi Hand", letterSpacingEm = 0.02f, entranceMs = 640, emojiMs = 1500),
+    "Awed" to FeelingStyle("reflective", "Luckiest Guy", letterSpacingEm = 0.04f, entranceMs = 520, emojiMs = 2600),
+    "Earnest" to FeelingStyle("tender", "Shadows Into Light", letterSpacingEm = 0.01f, entranceMs = 720, emojiMs = 1600),
+    "Determined" to FeelingStyle("drive", "Barlow Condensed", uppercase = true, bold = true, entranceMs = 560, emojiMs = 1400),
+    "Proud" to FeelingStyle("drive", "Rubik", uppercase = true, bold = true, letterSpacingEm = 0.05f, entranceMs = 700, emojiMs = 2600),
+    "Wistful" to FeelingStyle("sad", "Spectral", italic = true, letterSpacingEm = 0.05f, entranceMs = 1050, emojiMs = 4200),
+    "Melancholy" to FeelingStyle("sad", "Playfair Display", italic = true, entranceMs = 1000, emojiMs = 3200),
+    "Anxious" to FeelingStyle("anxiety", "Shantell Sans", entranceMs = 560, emojiMs = 220),
+    "Tense" to FeelingStyle("anxiety", "Oswald", letterSpacingEm = -0.01f, entranceMs = 500, emojiMs = 420),
+    "Furious" to FeelingStyle("anger", "Anton", uppercase = true, letterSpacingEm = 0.06f, entranceMs = 420, emojiMs = 450),
+    "Irritated" to FeelingStyle("anger", "Archivo Black", uppercase = true, entranceMs = 520, emojiMs = 600),
+    "Disgusted" to FeelingStyle("anger", "Griffy", italic = true, letterSpacingEm = 0.03f, entranceMs = 480, emojiMs = 700),
+    "Startled" to FeelingStyle("play", "Schoolbell", entranceMs = 420, emojiMs = 2600),
+    "Sarcastic" to FeelingStyle("reflective", "Bitter", italic = true, entranceMs = 800, emojiMs = 4200),
+    "Deadpan" to FeelingStyle("reflective", "Inter", entranceMs = 700, emojiMs = 6000),
+    "Neutral" to FeelingStyle("reflective", "Work Sans", bold = true, entranceMs = 650, emojiMs = 3200),
 )
 
 fun resolveFeeling(feeling: String?): FeelingStyle = FEELINGS[feeling] ?: FEELINGS.getValue("Neutral")
@@ -1574,7 +1573,7 @@ fun resolveFeeling(feeling: String?): FeelingStyle = FEELINGS[feeling] ?: FEELIN
 
 (cross-check the durations/style flags against `web/src/feelings.js`'s `FEELINGS` table while transcribing — this listing was copied from it directly.)
 
-- [ ] **Step 3: Run to verify it passes and commit**
+- [x] **Step 3: Run to verify it passes and commit**
 
 ```bash
 cd android && ./gradlew test --tests "ing.emojify.app.model.FeelingsTableTest"
@@ -1594,7 +1593,17 @@ Change `Card`'s `feeling: String?` usage: replace the plain `Text(text = ..., co
 
 ```kotlin
     val style = ing.emojify.app.model.resolveFeeling(feeling)
-    val fontFamily = androidx.compose.ui.text.font.FontFamily(androidx.compose.ui.text.font.Font(style.fontRes))
+    val fontProvider = androidx.compose.ui.text.googlefonts.GoogleFont.Provider(
+        providerAuthority = "com.google.android.gms.fonts",
+        providerPackage = "com.google.android.gms",
+        certificates = ing.emojify.app.R.array.com_google_android_gms_fonts_certs,
+    )
+    val fontFamily = androidx.compose.ui.text.font.FontFamily(
+        androidx.compose.ui.text.googlefonts.Font(
+            googleFont = androidx.compose.ui.text.googlefonts.GoogleFont(style.fontName),
+            fontProvider = fontProvider,
+        )
+    )
     val displayText = if (style.uppercase) text.uppercase() else text
     Text(
         text = displayText.ifBlank { "What's on your mind?" },
