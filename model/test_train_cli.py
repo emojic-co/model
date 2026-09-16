@@ -13,7 +13,7 @@ runner = CliRunner()
 
 
 def test_parse_heads_default():
-    assert T._parse_heads(None) == ("style", "emoji", "critic")
+    assert T._parse_heads(None) == ("style", "emoji", "critic", "lang")
 
 
 def test_parse_heads_orders_canonically():
@@ -54,6 +54,7 @@ def test_validate_nondefault_folder_needs_local():
         "style",
         "emoji",
         "critic",
+        "lang",
     )
 
 

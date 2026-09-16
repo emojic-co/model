@@ -1,15 +1,16 @@
 import { cac } from "cac"
 
 import { splitEmojis } from "./emoji.ts"
+import { LANGS } from "./langs.ts"
 import { normalize } from "./normalize.ts"
 import { STYLE_SET } from "./styles.ts"
 
 export const MIN_COUNT = 100
-export const MAX_COUNT = 1500
+export const MAX_COUNT = 3000
 const EVAL_SIZE = 2000
 
 const MIN_MAX_RATIO = 10
-const MAX_MAX_RATIO = 20
+const MAX_MAX_RATIO = 30
 const MATRIX_MIN = [50, 100, 125, 150, 200, 250]
 const MATRIX_MAX = [500, 600, 750, 1000, 1500, 2000, 3000]
 
@@ -357,6 +358,7 @@ if (import.meta.main) {
   await writeFileAtomic(TRAIN, rest.map(toLine).join("\n") + "\n")
 
   const labels = {
+    langs: [...LANGS],
     styles: [...STYLES],
     emojis,
   }
@@ -398,7 +400,7 @@ if (import.meta.main) {
   console.log(`-> ${EVAL}       : ${held.length}`)
   console.log(`-> ${TRAIN}      : ${rest.length}`)
   console.log(
-    `-> ${LABELS}    : ${labels.styles.length} styles, ${labels.emojis.length} emojis`,
+    `-> ${LABELS}    : ${labels.langs.length} langs, ${labels.styles.length} styles, ${labels.emojis.length} emojis`,
   )
   console.log(kwLine)
   console.log(baselineLine)

@@ -25,7 +25,7 @@ from model.config import (
     RELU_SLOPE,
     Z_WEIGHT,
 )
-from model.data import COLOR_DIM, EMOJIS, PAD_IDX, STYLES, VOCAB_SIZE
+from model.data import COLOR_DIM, EMOJIS, LANGS, PAD_IDX, STYLES, VOCAB_SIZE
 
 
 class TextEncoderBlock(nn.Module):
@@ -86,6 +86,15 @@ class StyleHead(nn.Module):
     def forward(self, text_embedding: torch.Tensor) -> torch.Tensor:
         s = self.net(text_embedding)
         return s @ self.embed.weight.t() + self.bias
+
+
+class LangHead(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Linear(EMBED_SIZE_TEXT, len(LANGS))
+
+    def forward(self, text_embedding: torch.Tensor) -> torch.Tensor:
+        return self.net(text_embedding)
 
 
 class EmojiEmbedding(nn.Module):
