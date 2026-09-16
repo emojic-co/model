@@ -18,17 +18,23 @@ import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.toBitmap
 
-private const val PATTERN_OPACITY = 0.25f
+const val DEFAULT_PATTERN_OPACITY = 0.25f
 private const val TILE_PX = 240
 
 @Composable
-fun PatternBackground(cluster: String, tint: androidx.compose.ui.graphics.Color, modifier: Modifier = Modifier) {
+fun PatternBackground(
+    cluster: String,
+    tint: androidx.compose.ui.graphics.Color,
+    modifier: Modifier = Modifier,
+    opacity: Float = DEFAULT_PATTERN_OPACITY,
+    tilePx: Int = TILE_PX,
+) {
     val context = LocalContext.current
-    val bitmap by produceState<android.graphics.Bitmap?>(initialValue = null, cluster) {
+    val bitmap by produceState<android.graphics.Bitmap?>(initialValue = null, cluster, tilePx) {
         val loader = ImageLoader(context)
         val request = ImageRequest.Builder(context)
             .data("file:///android_asset/patterns/$cluster.svg")
-            .size(TILE_PX, TILE_PX)
+            .size(tilePx, tilePx)
             .build()
         val result = loader.execute(request)
         value = (result as? SuccessResult)?.image?.toBitmap()
@@ -39,7 +45,7 @@ fun PatternBackground(cluster: String, tint: androidx.compose.ui.graphics.Color,
                 val shader = BitmapShader(bmp, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT)
                 val paint = Paint().asFrameworkPaint().apply {
                     this.shader = shader
-                    alpha = (PATTERN_OPACITY * 255).toInt()
+                    alpha = (opacity * 255).toInt()
                     colorFilter = android.graphics.PorterDuffColorFilter(tint.toArgb(), android.graphics.PorterDuff.Mode.SRC_IN)
                 }
                 canvas.nativeCanvas.drawRect(0f, 0f, size.width, size.height, paint)

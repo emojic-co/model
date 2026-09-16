@@ -2,8 +2,8 @@ package ing.emojify.app.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,6 +27,7 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import ing.emojify.app.R
 import ing.emojify.app.model.Palette
 import ing.emojify.app.model.patternTint
@@ -47,6 +48,13 @@ private val fontProvider = GoogleFont.Provider(
     providerPackage = "com.google.android.gms",
     certificates = R.array.com_google_android_gms_fonts_certs,
 )
+
+// Proportions mirror web/src/styles.css's `.card` cqw-based sizing (card-emoji: 32cqw,
+// .card { padding: 7% }, useFitText's { min: 5, max: 13 } cqw range for the card text).
+private const val EMOJI_SIZE_RATIO = 0.32f
+private const val CARD_PADDING_RATIO = 0.07f
+private const val TEXT_MIN_SIZE_RATIO = 0.05f
+private const val TEXT_MAX_SIZE_RATIO = 0.13f
 
 @Composable
 fun Card(
@@ -71,59 +79,89 @@ fun Card(
     LaunchedEffect(onCaptureReady) {
         onCaptureReady?.invoke { graphicsLayer.toImageBitmap().asAndroidBitmap() }
     }
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(1f)
-            .clip(RoundedCornerShape(16.dp))
-            .drawWithContent {
-                graphicsLayer.record { this@drawWithContent.drawContent() }
-                drawLayer(graphicsLayer)
-            }
-            .pointerInput(onEmojiCycle, onFeelingCycle) {
-                detectDragGestures(
-                    onDragEnd = {},
-                    onDrag = { change, dragAmount ->
-                        change.consume()
-                        if (kotlin.math.abs(dragAmount.x) > kotlin.math.abs(dragAmount.y)) {
-                            if (kotlin.math.abs(dragAmount.x) > 24) onEmojiCycle(if (dragAmount.x > 0) -1 else 1)
-                        } else {
-                            if (kotlin.math.abs(dragAmount.y) > 24) onFeelingCycle(if (dragAmount.y > 0) -1 else 1)
-                        }
-                    },
-                )
-            },
-    ) {
-        PatternBackground(cluster = style.cluster, tint = tint, modifier = Modifier.matchParentSize())
+
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val cardWidthDp = maxWidth
+        val emojiSizeSp = cardWidthDp.value * EMOJI_SIZE_RATIO
+        val cardPadding = cardWidthDp * CARD_PADDING_RATIO
+        val textMinSp = cardWidthDp.value * TEXT_MIN_SIZE_RATIO
+        val textMaxSp = cardWidthDp.value * TEXT_MAX_SIZE_RATIO
+
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(Brush.linearGradient(listOf(bg1.copy(alpha = 0.85f), bg2.copy(alpha = 0.85f))))
-                .padding(32.dp),
-            contentAlignment = Alignment.Center,
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(16.dp))
+                .drawWithContent {
+                    graphicsLayer.record { this@drawWithContent.drawContent() }
+                    drawLayer(graphicsLayer)
+                }
+                .pointerInput(onEmojiCycle, onFeelingCycle) {
+                    detectDragGestures(
+                        onDragEnd = {},
+                        onDrag = { change, dragAmount ->
+                            change.consume()
+                            if (kotlin.math.abs(dragAmount.x) > kotlin.math.abs(dragAmount.y)) {
+                                if (kotlin.math.abs(dragAmount.x) > 24) onEmojiCycle(if (dragAmount.x > 0) -1 else 1)
+                            } else {
+                                if (kotlin.math.abs(dragAmount.y) > 24) onFeelingCycle(if (dragAmount.y > 0) -1 else 1)
+                            }
+                        },
+                    )
+                },
         ) {
-            val emojiBounce = rememberEmojiBounce(style.emojiMotif, style.emojiMs)
-            val entranceScale = rememberEntranceScale(style.entranceMotif, style.entranceMs, key = text)
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Text(
-                    text = emoji,
-                    style = MaterialTheme.typography.displayLarge,
-                    color = textColor,
-                    modifier = Modifier.offset(y = emojiBounce.value.dp),
-                )
-                Text(
-                    text = displayText.ifBlank { "What's on your mind?" },
-                    color = textColor,
-                    textAlign = TextAlign.Center,
-                    fontFamily = fontFamily,
-                    fontWeight = if (style.bold) FontWeight.Bold else FontWeight.Normal,
-                    fontStyle = if (style.italic) FontStyle.Italic else FontStyle.Normal,
-                    letterSpacing = style.letterSpacingEm?.let { TextUnit(it, TextUnitType.Em) } ?: TextUnit.Unspecified,
-                    modifier = Modifier.scale(entranceScale.value),
-                )
-                Row {
-                    TextButton(onClick = onShare) { Text("share", color = textColor) }
-                    TextButton(onClick = onCopy) { Text("copy", color = textColor) }
+            PatternBackground(cluster = style.cluster, tint = tint, modifier = Modifier.matchParentSize())
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Brush.linearGradient(listOf(bg1.copy(alpha = 0.85f), bg2.copy(alpha = 0.85f))))
+                    .padding(cardPadding),
+            ) {
+                val emojiBounce = rememberEmojiBounce(style.emojiMotif, style.emojiMs)
+                val entranceScale = rememberEntranceScale(style.entranceMotif, style.entranceMs, key = text)
+                Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = emoji,
+                        fontSize = emojiSizeSp.sp,
+                        color = textColor,
+                        modifier = Modifier.offset(y = emojiBounce.value.dp),
+                    )
+                    Box(
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                            val density = LocalDensity.current
+                            val maxWidthPx = with(density) { maxWidth.toPx() }.toInt()
+                            val maxHeightPx = with(density) { maxHeight.toPx() }.toInt()
+                            val fitSp = rememberFitFontSizeSp(
+                                text = displayText.ifBlank { "What's on your mind?" },
+                                fontFamily = fontFamily,
+                                fontWeight = if (style.bold) FontWeight.Bold else FontWeight.Normal,
+                                fontStyle = if (style.italic) FontStyle.Italic else FontStyle.Normal,
+                                letterSpacing = style.letterSpacingEm?.let { TextUnit(it, TextUnitType.Em) } ?: TextUnit.Unspecified,
+                                maxWidthPx = maxWidthPx,
+                                maxHeightPx = maxHeightPx,
+                                minSp = textMinSp,
+                                maxSp = textMaxSp,
+                            )
+                            Text(
+                                text = displayText.ifBlank { "What's on your mind?" },
+                                color = textColor,
+                                textAlign = TextAlign.Center,
+                                fontFamily = fontFamily,
+                                fontSize = fitSp.sp,
+                                fontWeight = if (style.bold) FontWeight.Bold else FontWeight.Normal,
+                                fontStyle = if (style.italic) FontStyle.Italic else FontStyle.Normal,
+                                letterSpacing = style.letterSpacingEm?.let { TextUnit(it, TextUnitType.Em) } ?: TextUnit.Unspecified,
+                                modifier = Modifier.fillMaxWidth().scale(entranceScale.value),
+                            )
+                        }
+                    }
+                    Row {
+                        TextButton(onClick = onShare) { Text("share", color = textColor) }
+                        TextButton(onClick = onCopy) { Text("copy", color = textColor) }
+                    }
                 }
             }
         }
