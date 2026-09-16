@@ -1636,17 +1636,24 @@ git commit -m "android: apply per-feeling font/weight/case/letter-spacing to the
 - Create: `android/scripts/export-patterns.mjs`
 - Create: `android/app/src/main/assets/patterns/*.svg` (generated output)
 
-- [ ] **Step 1: Write the export script**, reusing the exact pattern functions already imported in `web/src/patterns.js`:
+- [x] **Step 1: Write the export script**, reusing the exact pattern functions already imported in `web/src/patterns.js`. Deviation from the original literal script: Node's ESM bare-specifier resolution is based on the *importing module's own path*, not `process.cwd()`, so a bare `import ... from 'hero-patterns'` inside `android/scripts/export-patterns.mjs` cannot see `web/node_modules` no matter which directory the command is run from (verified — `cd web && node ../android/scripts/export-patterns.mjs` fails with `ERR_MODULE_NOT_FOUND`). Fixed by computing `repoRoot` from `import.meta.url` and dynamic-`import()`-ing `hero-patterns`'s resolved dist file by absolute path, and writing output under an absolute `outDir` instead of a cwd-relative one:
 
 ```javascript
 // android/scripts/export-patterns.mjs
 import { writeFileSync, mkdirSync } from 'node:fs'
-import {
+import { fileURLToPath } from 'node:url'
+import path from 'node:path'
+
+const scriptDir = path.dirname(fileURLToPath(import.meta.url))
+const repoRoot = path.resolve(scriptDir, '..', '..')
+const heroPatternsPath = path.join(repoRoot, 'web', 'node_modules', 'hero-patterns', 'dist', 'hero-patterns.cjs.js')
+
+const {
   anchorsAway, brickWall, bubbles, circuitBoard, diagonalStripes, endlessClouds,
   fallingTriangles, floatingCogs, fourPointStars, glamorous, hideout,
   overlappingCircles, skulls, squaresInSquares, stripes, ticTacToe, topography,
   volcanoLamp, wiggle, zigZag,
-} from 'hero-patterns'
+} = await import(`file://${heroPatternsPath}`)
 
 const CLUSTER_PATTERNS = {
   anger: volcanoLamp,
@@ -1660,30 +1667,31 @@ const CLUSTER_PATTERNS = {
   reflective: hideout,
 }
 
-mkdirSync('android/app/src/main/assets/patterns', { recursive: true })
+const outDir = path.join(repoRoot, 'android', 'app', 'src', 'main', 'assets', 'patterns')
+mkdirSync(outDir, { recursive: true })
 
 for (const [cluster, pattern] of Object.entries(CLUSTER_PATTERNS)) {
   const dataUrl = pattern('#ffffff', 1)
   const encoded = dataUrl.match(/^url\((['"]?)data:image\/svg\+xml,(.*)\1\)$/)[2]
   const svg = decodeURIComponent(encoded)
-  writeFileSync(`android/app/src/main/assets/patterns/${cluster}.svg`, svg)
+  writeFileSync(path.join(outDir, `${cluster}.svg`), svg)
 }
 
 console.log('exported', Object.keys(CLUSTER_PATTERNS).length, 'pattern SVGs')
 ```
 
-Run from the repo root (`hero-patterns` is already a `web/` dependency):
+Run from the repo root:
 
 ```bash
-cd web && node ../android/scripts/export-patterns.mjs
+node android/scripts/export-patterns.mjs
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run: `ls android/app/src/main/assets/patterns/`
 Expected: one `.svg` file per cluster (`anger.svg`, `joy.svg`, `play.svg`, `calm.svg`, `sad.svg`, `anxiety.svg`, `tender.svg`, `drive.svg`, `reflective.svg`).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add android/scripts/export-patterns.mjs android/app/src/main/assets/patterns
