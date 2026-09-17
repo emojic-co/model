@@ -63,8 +63,10 @@ A dual-branch compatibility scorer for a `<text, palette>` pair:
 - score: `(proj(text_feat) * color_feat).sum(-1)` — a single scalar.
 
 The palette enters the critic in **OKLab** (`model/model.py:rgb_to_oklab`).
-Trained with a pairwise BCE loss: `BCE(score(text, real), 1) +
-BCE(score(text, negative), 0)`.
+Returns a `(color_score, cond_score)` pair — a color-only branch and a
+text-conditioned branch, combined via `LOSS_WEIGHT_COND_COLOR` in stage
+2's hinge loss. Trained from scratch each `gan` run — there is no
+stage-1 warm start.
 
 ### ColorGen (`model/model.py`)
 
@@ -79,42 +81,39 @@ for `bg1`, `bg2`, `text_color`. Output stays in sRGB; the browser
 | Component | Loss |
 | --- | --- |
 | style, emoji | multi-positive Log-Sum-Exp InfoNCE (`lse_infonce`) |
-| ColorCritic | pairwise BCE, positive + negative `<text, palette>` pairs |
-| ColorGen | `Loss_pos` only: `BCE(critic(text, gen(text, z)), 1)` |
+| ColorCritic | hinge loss on `(color_score, cond_score)`, weighted by `LOSS_WEIGHT_COND_COLOR`; real palettes vs. generator samples |
+| ColorGen | negative critic score (both branches) blended with OKLab `energy_distance` via `LOSS_WEIGHT_ENERGY` |
 
 `loss/emoji` trains `EmojiEmbedding` + `EmojiHead`; `loss/style` trains
 `StyleHead`.
 
-Negative `<text, palette>` pairs:
-
-- **Stage 1** — mismatched real palettes from the training set
-  (`colors.roll(shift)`; `shift = 1` on validation, random on train).
-- **Stage 2** — generator samples (`gen(text, z).detach()`).
+The critic's only negatives are generator samples (`gen(text,
+z).detach()`) — there is no stage-1 phase training it against mismatched
+real palettes.
 
 ## Two-stage training (`model/train.py`)
 
 ### Stage 1 — `LitEncoder`
 
-Co-trains `TextEncoder` + the selected heads (`style`, `emoji`, `critic`;
-default all three). The critic's pairwise BCE loss backprops into the
-shared encoder. Checkpoint + early-stop on the first available of
-`F1/val` (`emoji` + `critic`) → `MRR/e/val` → `MRR/s/val` →
-`auc/critic/val` (max). Writes `enc.pt` plus one `.pt` per selected
-head, plus `emoji_embed.pt` (with `emoji`).
+Co-trains `TextEncoder` + the selected heads (`style`, `emoji`, `lang`;
+default all three; `ColorCritic` is not a stage-1 head). Checkpoint +
+early-stop on the first available of `F1/val` (`emoji` + `style`) →
+`MRR/e/val` → `MRR/s/val` → `acc/lang/val` (max). Writes `enc.pt` plus
+one `.pt` per selected head, plus `emoji_embed.pt` (with `emoji`).
 
 Metrics logged: `MRR/s/val`, `MRR/e/val` (full-vocab mean reciprocal
-rank, emoji measured only over rows carrying ≥1 emoji), `auc/critic/val`
-(hand-rolled Mann-Whitney ROC-AUC over the validation positive/negative
-critic scores), plus the per-head losses.
+rank, emoji measured only over rows carrying ≥1 emoji), `acc/lang/val`,
+plus the per-head losses.
 
 ### Stage 2 — `LitColorGAN`
 
-Frozen encoder. `ColorCritic` warm-started from `<--pt>/critic.pt` and
-kept training with **generator samples as negatives**; `ColorGen`
-trained on `Loss_pos`. Checkpoint + early-stop on `energy/gan/val`
-(min) — the OKLab energy distance between real palettes and generator
-samples, logged against the split-half real-vs-real `energy/gan/ref`
-baseline. Writes `gen.pt`; the stage-2 critic is discarded.
+Frozen encoder. `ColorCritic` is built fresh (`ColorCritic()`) — no
+warm start, so `gan` runs against any encoder checkpoint — and trained
+opposite `ColorGen` with **generator samples as negatives** throughout.
+Checkpoint + early-stop on `energy/gan/val` (min) — the OKLab energy
+distance between real palettes and generator samples, logged against
+the split-half real-vs-real `energy/gan/ref` baseline. Writes `gen.pt`;
+the stage-2 critic is discarded.
 
 ## Artifacts
 
@@ -127,22 +126,20 @@ Saved to the `-o` folder (default `pt/`), each a `{"state_dict",
 | `style.pt` | 1 (if `style` in `--heads`) | `enc` |
 | `emoji.pt` | 1 (if `emoji` in `--heads`) | `enc` |
 | `emoji_embed.pt` | 1 (if `emoji` in `--heads`) | `enc` |
-| `critic.pt` | 1 (if `critic` in `--heads`) | `enc` |
 | `gen.pt` | 2 | `gan` |
 
 ## CLI
 
 ```
-train [-h] [enc|gan] [--local] [--heads style,emoji,critic] [--pt FOLDER] [-o FOLDER]
+train [-h] [enc|gan] [--local] [--heads style,emoji,lang] [--pt FOLDER] [-o FOLDER]
 ```
 
 - no positional — Stage 1 (all heads) → Stage 2 → `model/export_onnx.py`
   → `tools/report.py`.
 - `enc` — Stage 1 only; `--heads` narrows it (default all three); report,
   no export.
-- `gan` — Stage 2 only; aborts unless `enc.pt` / `critic.pt` /
-  `style.pt` / `emoji.pt` / `emoji_embed.pt` are all in `--pt`; then
-  `gen.pt` → export → report.
+- `gan` — Stage 2 only; aborts unless `enc.pt` / `style.pt` / `emoji.pt`
+  / `emoji_embed.pt` are all in `--pt`; then `gen.pt` → export → report.
 - Modal by default; `--local` runs on this machine. `--pt` / `-o` may
   differ from `pt/` only with `--local`, and a non-default `-o` skips
   the `web/public/` export. A dirty git tree always aborts.

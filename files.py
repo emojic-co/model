@@ -29,7 +29,6 @@ STYLE_PT = f"{PT_DIR}/style.pt"
 EMOJI_PT = f"{PT_DIR}/emoji.pt"
 EMOJI_EMBED_PT = f"{PT_DIR}/emoji_embed.pt"
 GEN_PT = f"{PT_DIR}/gen.pt"
-CRITIC_PT = f"{PT_DIR}/critic.pt"
 
 WEB_PUBLIC_DIR = "web/public"
 REPORT_DIR = "report"
