@@ -1,8 +1,15 @@
 # Publishing emojify.ing to Google Play
 
-Status as of 2026-09-16: the app (`android/`) has feature parity with the web
-app through Phase 8 of `android/implementation.md`. Nothing below is done yet
-— this is the checklist to actually ship it.
+Status as of 2026-09-17: the app (`android/`) has feature parity with the web
+app through Phase 8 of `android/implementation.md`. The `ing.emojify` app
+shell already exists in Play Console with the service account granted API
+access, and store listing text, icon, feature graphic, and 3 screenshots are
+already live there (steps 0, 4, 5 below are done — this file lagged the
+actual state). Release signing (step 2) and a signed AAB (step 3) are also
+done locally. What's left is entirely manual, Console-UI-only steps: the
+developer account itself, the closed-testing tester list, and the Data
+safety / content rating questionnaires (no public API for those) — see the
+per-section notes below.
 
 Package: **`ing.emojify`** (renamed from the scaffold-era `ing.emojify.app`
 to match the product domain `emojify.ing`, same convention as the reverse-DNS
@@ -53,42 +60,27 @@ releases.
   start it as soon as you have a working build, even before the rest of
   this checklist is done.
 
-## 2. Release signing (not set up yet)
+## 2. Release signing (done 2026-09-17)
 
-`android/app/build.gradle.kts` currently has no `signingConfigs` — builds
-are debug-signed only. Before a release build:
+`play/release.jks` — a PKCS12 keystore, alias `emojify`, generated locally.
+`.gitignore` now has `play/*.jks` at the repo root (the old note that
+`android/.gitignore`'s `*.jks` rule covered it was wrong — that rule only
+applies inside `android/`, not sibling `play/`; fixed alongside the keystore
+generation). `android/keystore.properties` (gitignored) holds the generated
+password. `android/app/build.gradle.kts` has a `signingConfigs["release"]`
+reading from it, wired into `buildTypes.release`.
 
-1. Generate a keystore (once, keep it forever — losing it means you can
-   never update the app under this listing again unless you're enrolled in
-   Play App Signing, see below):
-   ```bash
-   keytool -genkeypair -v -keystore play/release.jks \
-     -alias emojify -keyalg RSA -keysize 2048 -validity 10000
-   ```
-   `play/release.jks` — gitignored via `android/.gitignore`'s `*.jks` rule.
-   Back it up somewhere outside this repo (password manager / secure
-   storage); it is not recoverable if lost.
-2. Add `android/keystore.properties` (gitignored, `android/.gitignore`
-   already has the `keystore.properties` rule):
-   ```properties
-   storeFile=../play/release.jks
-   storePassword=<your password>
-   keyAlias=emojify
-   keyPassword=<your password>
-   ```
-3. Add a `signingConfigs`/`release` build type to
-   `android/app/build.gradle.kts` that reads `keystore.properties` (standard
-   Gradle pattern — ask Claude to wire this up when you're ready, it's a
-   small, mechanical addition).
-4. Enroll in **Play App Signing** on first upload (Play Console prompts for
-   this) — Google then holds the signing key that ends up on users' devices,
-   and your local `release.jks` becomes an *upload* key only. This is the
-   default and recommended path; it means a lost/rotated upload key is
-   recoverable through Google, a lost app signing key would not be.
+**Back up `play/release.jks` and `android/keystore.properties` outside this
+repo (password manager / secure storage) — this is not something Claude Code
+can do, and losing both means you can never update this listing again unless
+already enrolled in Play App Signing.**
 
-## 3. Build the release bundle
+Enroll in **Play App Signing** on first Console upload — Google then holds
+the signing key that ends up on users' devices, and the local `release.jks`
+becomes an *upload* key only (lost/rotated upload key recoverable through
+Google; a lost app signing key would not be).
 
-Google Play requires the AAB format for new apps, not a raw APK:
+## 3. Build the release bundle (done 2026-09-17)
 
 ```bash
 cd android
@@ -96,50 +88,34 @@ cd android
 # output: android/app/build/outputs/bundle/release/app-release.aab
 ```
 
-Bump `versionCode` (integer, must strictly increase every upload) and
-`versionName` in `android/app/build.gradle.kts` before each release build.
-Current: `versionCode = 1`, `versionName = "0.1"`.
+Built and signed with the keystore above (`versionCode = 1`,
+`versionName = "0.1"`). Bump both before every subsequent release build —
+Play rejects a re-upload with a `versionCode` it's already seen.
 
-## 4. Store listing assets
+## 4. Store listing assets (done — uploaded to Play Console)
 
 Generated from the same brand art as the web app's `web/public/og.png`
 (warm-yellow smiley + `emojify.ing` wordmark), so the Play listing matches
 the site instead of introducing a new look:
 
-- `play/assets/icon-512.png` — 512×512 app icon (Play Console → Store
-  presence → Main store listing → App icon).
-- `play/assets/feature-graphic-1024x500.png` — 1024×500 feature graphic
-  (same page → Feature graphic).
+- `play/assets/icon-512.png` — 512×512 app icon. Uploaded.
+- `play/assets/feature-graphic-1024x500.png` — 1024×500 feature graphic.
+  Uploaded.
+- `play/assets/screenshots/{1-empty,2-grateful,3-party}.png` — 3 genuine
+  on-device captures (empty state, two card results with different
+  feeling/font combos). Uploaded. 2 is the Play minimum; more can be added
+  later but isn't required to submit.
+- Launcher icon (`android/app/src/main/res/drawable/ic_launcher_{background,foreground}.xml`)
+  is now the branded smiley adaptive icon, not the Phase 0 scaffold
+  placeholder — listing icon and installed-app icon match.
 
-**Not generated — need a real device:**
+## 5. Store listing text (done — already set in Play Console)
 
-- **Screenshots** (2–8 required, phone size, 16:9 or 9:16, 320–3840px per
-  side, JPEG/PNG). These have to be genuine captures of the running app —
-  Play reviews for listings that misrepresent the product, and there's no
-  emulator available in this environment to fake them credibly anyway. Once
-  you have a signed build on a phone (`./gradlew installDebug` or install
-  the release AAB via `bundletool`), grab:
-  1. Empty/placeholder state (matches the current `MainScreen` initial
-     view).
-  2. A card result for a clear, appealing phrase — something that shows off
-     a good emoji + feeling + gradient combo.
-  3. A second card result with a different feeling cluster/font, to show
-     visual range.
-  4. (Optional) the settings screen (`SettingsScreen.kt`) showing the
-     contrast-fix toggle.
-- **App icon inside the APK itself**: `android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml`
-  currently points at a placeholder (`ic_launcher_background.xml` is a flat
-  blue square, `ic_launcher_foreground.xml` is a plain dark circle — this is
-  the Phase 0 scaffold icon, never replaced). This is a real gap: the Play
-  *listing* icon (`icon-512.png`, generated above) will show the branded
-  smiley, but the icon that actually lands on the user's home screen after
-  install is still the placeholder. This is also the still-open "app
-  icon/branding" item under Phase 8 in `android/implementation.md`. Worth
-  fixing (adaptive icon foreground/background built from the same smiley
-  art) before submitting, not after — a mismatched listing-vs-launcher icon
-  looks broken and reviewers/users notice immediately.
-
-## 5. Store listing text
+Title, short/full description, contact website, and contact email are
+already committed there (`defaultLanguage: en-US`, contact email is
+`gilad@appy.fyi`, not the `gilad.kutiel@gmail.com` suggested below — change
+it in Console → Store presence if you'd rather use a different address).
+Text kept here for reference:
 
 Short description (≤80 chars):
 ```
@@ -206,13 +182,32 @@ Also under Policy → App content:
 - **Ads**: declare "No ads" (none present).
 - **Government app / financial features / health**: No to all.
 
-## 9. Submit
+## 9. Submit — remaining steps, all manual/Console-only
 
-1. Play Console → **Testing → Closed testing**, create a track, upload the
-   AAB from step 3, add ≥12 testers, start the 14-day clock.
-2. Fill in steps 4–8 (Main store listing, Privacy policy, Data safety, App
-   content) — Play blocks Production release until all are complete.
-3. After the 14-day closed test, promote the same build (or a newer one) to
+The Play Developer API (`androidpublisher` v3) has no endpoint for Data
+safety, content rating, or privacy-policy-URL declarations — those three are
+Console-UI-only regardless of API access. Concretely, what's left:
+
+1. **Developer account**: sign up + $25 fee + government ID verification
+   (step 1) — has to be you, Claude Code can't do KYC.
+2. **Privacy policy URL**: paste `https://emojify.ing/privacy.html` (already
+   live) into Policy → App content → Privacy policy.
+3. **Data safety** and **App content questionnaire** (steps 7–8): fill in
+   by hand using the honest answers already written out there ("No data
+   collected", Everyone rating, no ads).
+4. **Upload the signed AAB and start closed testing**: the bundle is built
+   (`android/app/build/outputs/bundle/release/app-release.aab`) and the API
+   credentials can upload it and attach it to the `alpha` track directly
+   from this repo — but doing so is a real submission against your Play
+   Console account, so Claude Code won't do it without you asking in the
+   moment. Either:
+   - ask Claude Code to run it (the upload+commit script), or
+   - Play Console → **Testing → Closed testing** → upload the AAB by hand.
+
+   Either way you still need to supply **≥12 real opted-in tester emails**
+   (or a Google Group) — that's a list only you can produce — then start the
+   14-day clock.
+5. After the 14-day closed test, promote the same build (or a newer one) to
    **Production**.
 
 ## Ongoing

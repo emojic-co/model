@@ -1,5 +1,15 @@
 Done:
 
-Prepare the android app for release:
-- sync the latest model into the app and push it to my phone.
-- use a local emulator to test and take screenshots of the app.
+Currently, the model generates general colors that do not express the specific text.
+1.  Review the training data and confirm the data is not the problem.
+2.  Review TB logs, latest reports, GAN architecture, config and training and suggest ways to improve the GAN.
+    We can try to reconfigure the current GAN architecture, or try a different architecture.
+    Reviewed 2026-09-17: data confirmed not the problem (per-text LLM-annotated palettes,
+    88% unique bg pairs, only ~2.4% generic fallback rows; report's own intrinsic-floor
+    metric shows real per-text palettes are tightly specific). Root cause found in the GAN
+    loss/training: the conditional (text-aware) critic signal has collapsed to ~0 while the
+    unconditional realism + energy-distance terms dominate 4:1, so the generator learns a
+    plausible aggregate color distribution while ignoring per-text conditioning. See chat
+    for full diagnosis and reconfiguration suggestions (loss reweighting, critic:gen update
+    ratio, optimizer, generator bottleneck) — next step (reconfigure vs. new architecture)
+    is a follow-up decision, not yet implemented.
