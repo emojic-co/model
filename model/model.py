@@ -19,6 +19,7 @@ from model.config import (
     ENCODER_CHANNELS,
     ENCODER_DILATION,
     ENCODER_KERNEL_SIZE,
+    GEN_HIDDEN_SIZE,
     RELU_SLOPE,
     Z_WEIGHT,
 )
@@ -131,7 +132,11 @@ class ColorGen(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.net = nn.Linear(EMBED_SIZE_TEXT, COLOR_DIM)
+        self.net = nn.Sequential(
+            nn.Linear(EMBED_SIZE_TEXT, GEN_HIDDEN_SIZE),
+            nn.LayerNorm(GEN_HIDDEN_SIZE),
+            nn.LeakyReLU(negative_slope=RELU_SLOPE),
+            nn.Linear(GEN_HIDDEN_SIZE, COLOR_DIM))
 
     def forward(
         self,
@@ -158,6 +163,10 @@ class ColorCritic(nn.Module):
             COLOR_DIM,
             CRITIC_EMBEDDING_SIZE))
 
+        self.color_critic = nn.Sequential(
+            nn.LeakyReLU(negative_slope=RELU_SLOPE),
+            sn(nn.Linear(CRITIC_EMBEDDING_SIZE, 1)))
+
         self.text_embedding = sn(nn.Linear(
             EMBED_SIZE_TEXT,
             CRITIC_EMBEDDING_SIZE))
@@ -168,4 +177,6 @@ class ColorCritic(nn.Module):
         c = self.color_embedding(colors)
         t = self.text_embedding(cond)
 
-        return (t * c).sum(dim=-1, keepdim=True)
+        return (
+            (t * c).sum(dim=-1, keepdim=True),
+            self.color_critic(c))
