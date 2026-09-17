@@ -24,6 +24,7 @@ from torch.nn.functional import (
     binary_cross_entropy_with_logits,
     cross_entropy,
     normalize,
+    relu,
 )
 
 from files import (
@@ -502,8 +503,8 @@ class LitColorGAN(pl.LightningModule):
         color_real, color_fake = color_score.chunk(2, dim=0)
         cond_real, cond_fake = cond_score.chunk(2, dim=0)
 
-        loss_critic_color = color_fake.mean() - color_real.mean()
-        loss_critic_cond = cond_fake.mean() - cond_real.mean()
+        loss_critic_color = relu(1 - color_real).mean() + relu(1 + color_fake).mean()
+        loss_critic_cond = relu(1 - cond_real).mean() + relu(1 + cond_fake).mean()
         loss_critic = loss_critic_color \
             + loss_critic_cond * LOSS_WEIGHT_COND_COLOR
 
@@ -520,7 +521,7 @@ class LitColorGAN(pl.LightningModule):
         gen_color_fake, gen_cond_fake = self.critic(cond, fake)
         energy = energy_distance(rgb_to_oklab(fake), rgb_to_oklab(colors))
         loss_gen = (
-            -(gen_color_fake.mean() + gen_cond_fake.mean())
+            -(gen_color_fake.mean() + gen_cond_fake.mean() * LOSS_WEIGHT_COND_COLOR)
             + LOSS_WEIGHT_ENERGY * energy
         )
 
@@ -538,8 +539,12 @@ class LitColorGAN(pl.LightningModule):
         self.log("loss/gan/critic_color", loss_critic_color, prog_bar=False)
         self.log("loss/gan/critic_cond", loss_critic_cond, prog_bar=False)
         self.log("loss/gan/gen", loss_gen, prog_bar=True)
-        self.log("dist/gan/wasserstein_color", -loss_critic_color, prog_bar=False)
-        self.log("dist/gan/wasserstein_cond", -loss_critic_cond, prog_bar=True)
+        self.log(
+            "dist/gan/margin_color", color_real.mean() - color_fake.mean(),
+            prog_bar=False)
+        self.log(
+            "dist/gan/margin_cond", cond_real.mean() - cond_fake.mean(),
+            prog_bar=True)
         self.log("energy/gan/train", energy, prog_bar=True)
 
     def configure_optimizers(self):
