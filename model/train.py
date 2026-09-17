@@ -21,14 +21,12 @@ from lightning.pytorch.callbacks import (
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
 from torch.nn.functional import (
-    binary_cross_entropy_with_logits,
     cross_entropy,
     normalize,
     relu,
 )
 
 from files import (
-    CRITIC_PT,
     DATA_JSONL,
     EMOJI_EMBED_PT,
     EMOJI_PT,
@@ -130,30 +128,7 @@ def harmonic_mean(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     return torch.where(s > 0, 2 * a * b / s, torch.zeros_like(s))
 
 
-def roc_auc(pos: torch.Tensor, neg: torch.Tensor) -> torch.Tensor:
-    if pos.numel() == 0 or neg.numel() == 0:
-        return pos.new_zeros(())
-    diff = pos[:, None] - neg[None, :]
-    wins = torch.sign(diff).clamp(min=0.0)
-    ties = (diff == 0).to(diff.dtype)
-    return (wins + 0.5 * ties).mean()
-
-
-AUC_MAX_SAMPLES = 4096
-
-
-def _cap(x: torch.Tensor) -> torch.Tensor:
-    if x.numel() <= AUC_MAX_SAMPLES:
-        return x
-    idx = torch.randperm(x.numel(), device=x.device)[:AUC_MAX_SAMPLES]
-    return x[idx]
-
-
-def buffered_auc(pos: list[torch.Tensor], neg: list[torch.Tensor]) -> torch.Tensor:
-    return roc_auc(_cap(torch.cat(pos)), _cap(torch.cat(neg)))
-
-
-ALL_HEADS: tuple[str, ...] = ("style", "emoji", "critic", "lang")
+ALL_HEADS: tuple[str, ...] = ("style", "emoji", "lang")
 _DEFAULT_PT = Path(PT_DIR)
 
 
@@ -211,15 +186,8 @@ class LitEncoder(pl.LightningModule):
         if "emoji" in self.heads:
             self.emoji_embed = EmojiEmbedding()
             self.emoji = EmojiHead()
-        if "critic" in self.heads:
-            self.critic = ColorCritic()
         if "lang" in self.heads:
             self.lang = LangHead()
-
-        self._val_pos: list[torch.Tensor] = []
-        self._val_neg: list[torch.Tensor] = []
-        self._trn_pos: list[torch.Tensor] = []
-        self._trn_neg: list[torch.Tensor] = []
 
         self._val_e_rr: list[torch.Tensor] = []
         self._trn_e_rr: list[torch.Tensor] = []
@@ -239,7 +207,7 @@ class LitEncoder(pl.LightningModule):
                  prog_bar=True, batch_size=bs)
 
     def _step(self, batch, split):
-        text, emoji, style, colors, lang, source = batch
+        text, emoji, style, _colors, lang, source = batch
         enc = self.enc(text)
         loss = enc.new_zeros(())
         bs = text.size(0)
@@ -288,32 +256,6 @@ class LitEncoder(pl.LightningModule):
                             n,
                         )
 
-        if "critic" in self.heads:
-            has_color = torch.tensor(
-                [s not in SAMPLING_SOURCES for s in source], device=enc.device
-            )
-            n_color = int(has_color.sum())
-            if n_color > 1:
-                c_enc = enc[has_color]
-                c_colors = colors[has_color]
-                shift = 1 if split == "val" else int(
-                    torch.randint(1, n_color, (1,)).item())
-                neg_colors = c_colors.roll(shift, dims=0)
-                _, pos = self.critic(c_enc, c_colors)
-                _, neg = self.critic(c_enc, neg_colors)
-                loss_critic = binary_cross_entropy_with_logits(
-                    pos, torch.ones_like(pos)
-                ) + binary_cross_entropy_with_logits(neg, torch.zeros_like(neg))
-                loss = loss + loss_critic
-                self._log(f"loss/critic/{split}", loss_critic, n_color)
-                pos_buf, neg_buf = (
-                    (self._val_pos, self._val_neg)
-                    if split == "val"
-                    else (self._trn_pos, self._trn_neg)
-                )
-                pos_buf.append(pos.detach().flatten())
-                neg_buf.append(neg.detach().flatten())
-
         if "lang" in self.heads:
             lang_logits = self.lang(enc)
             loss_lang = cross_entropy(lang_logits, lang)
@@ -326,8 +268,6 @@ class LitEncoder(pl.LightningModule):
         return loss
 
     def on_validation_epoch_start(self):
-        self._val_pos.clear()
-        self._val_neg.clear()
         self._val_e_rr.clear()
         self._val_s_rr.clear()
         self._val_s_tgt.clear()
@@ -337,8 +277,6 @@ class LitEncoder(pl.LightningModule):
         self._epoch_metrics("val")
 
     def on_train_epoch_start(self):
-        self._trn_pos.clear()
-        self._trn_neg.clear()
         self._trn_e_rr.clear()
         self._trn_s_rr.clear()
         self._trn_s_tgt.clear()
@@ -361,16 +299,6 @@ class LitEncoder(pl.LightningModule):
         self._epoch_metrics("train")
 
     def _epoch_metrics(self, split):
-        pos_buf, neg_buf = (
-            (self._val_pos, self._val_neg)
-            if split == "val"
-            else (self._trn_pos, self._trn_neg)
-        )
-        auc = None
-        if "critic" in self.heads and pos_buf:
-            auc = buffered_auc(pos_buf, neg_buf)
-            self.log(f"auc/critic/{split}", auc, prog_bar=True)
-
         emoji_mrr = None
         if "emoji" in self.heads:
             e_rr = self._val_e_rr if split == "val" else self._trn_e_rr
@@ -594,8 +522,6 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
         else "MRR/s/val"
         if "style" in heads
         else "acc/lang/val"
-        if "lang" in heads
-        else "auc/critic/val"
     )
     ckpt = ModelCheckpoint(
         monitor=monitor, mode="max", save_top_k=1, filename="best-{step}"
@@ -714,14 +640,13 @@ def _run_local(
             pt_dir,
             [
                 "enc.pt",
-                "critic.pt",
                 "style.pt",
                 "emoji.pt",
                 "emoji_embed.pt",
             ],
         )
         enc = _load(TextEncoder(), str(pt_dir / "enc.pt"))
-        critic = _load(ColorCritic(), str(pt_dir / "critic.pt"))
+        critic = ColorCritic()
         _train_gan(enc, critic, train_ds(  # type: ignore
             mix_sources=False), out_dir)
         if out_dir == _DEFAULT_PT:
@@ -739,7 +664,7 @@ def _run_local(
             _run_report_local(out_dir)
         return
 
-    critic = _load(ColorCritic(), str(out_dir / "critic.pt"))
+    critic = ColorCritic()
     _train_gan(mod.enc, critic, train_ds(  # type: ignore
         mix_sources=False), out_dir)
     if out_dir == _DEFAULT_PT:
@@ -850,7 +775,6 @@ def train_remote(
     style_bytes: bytes | None = None,
     emoji_bytes: bytes | None = None,
     emoji_embed_bytes: bytes | None = None,
-    critic_bytes: bytes | None = None,
 ) -> dict[str, int]:
     env = _run_env(threads)
     env["EMOJIC_GIT_SHA"] = git_sha
@@ -867,7 +791,6 @@ def train_remote(
         STYLE_PT: style_bytes,
         EMOJI_PT: emoji_bytes,
         EMOJI_EMBED_PT: emoji_embed_bytes,
-        CRITIC_PT: critic_bytes,
     }
     if any(v is not None for v in uploads.values()):
         Path(REPO, PT_DIR).mkdir(parents=True, exist_ok=True)
@@ -990,7 +913,6 @@ def _run_remote(
         "style_bytes": None,
         "emoji_bytes": None,
         "emoji_embed_bytes": None,
-        "critic_bytes": None,
     }
     if stage == "gan":
         for name in (
@@ -998,7 +920,6 @@ def _run_remote(
             STYLE_PT,
             EMOJI_PT,
             EMOJI_EMBED_PT,
-            CRITIC_PT,
         ):
             if not Path(name).exists():
                 raise typer.BadParameter(
@@ -1010,7 +931,6 @@ def _run_remote(
             "style_bytes": Path(STYLE_PT).read_bytes(),
             "emoji_bytes": Path(EMOJI_PT).read_bytes(),
             "emoji_embed_bytes": Path(EMOJI_EMBED_PT).read_bytes(),
-            "critic_bytes": Path(CRITIC_PT).read_bytes(),
         }
 
     threads = GPU_CPU if gpu else CPU
@@ -1067,8 +987,8 @@ def cli(
     heads: str | None = typer.Option(
         None,
         "--heads",
-        help="Comma list from {style,emoji,critic,lang}; only with 'enc'. "
-        "Default: all four.",
+        help="Comma list from {style,emoji,lang}; only with 'enc'. "
+        "Default: all three.",
     ),
     pt: Path = typer.Option(
         _DEFAULT_PT, "--pt", help="Folder to read warm-start .pt from (default pt/)."
@@ -1097,9 +1017,9 @@ def cli(
       (none)   Stage 1 with all heads, then Stage 2, then ONNX export + report.
       enc      Stage 1 only: TextEncoder + the --heads subset. Writes
                enc.pt plus one .pt per head. No export.
-      gan      Stage 2 only: frozen encoder + generator, critic warm-started
-               from <--pt>/critic.pt. Requires enc.pt, critic.pt, style.pt,
-               emoji.pt in --pt. Writes gen.pt, then export + report.
+      gan      Stage 2 only: frozen encoder + generator, critic trained from
+               scratch. Requires enc.pt, style.pt, emoji.pt in --pt. Writes
+               gen.pt, then export + report.
 
     Location
       Runs on Modal by default, on a GPU (a T4 unless --gpu <type> picks
@@ -1109,10 +1029,8 @@ def cli(
 
     Heads (stage 1 eval / checkpoint monitor)
       emoji+style -> F1/val (harmonic mean of MRR/e/val and MRR/s/val),
-      else emoji -> MRR/e/val, style -> MRR/s/val, lang -> acc/lang/val,
-      critic -> auc/critic/val; the first match in that order is the
-      checkpoint + early-stop metric. auc/critic/val is otherwise
-      logging-only, never an early-stop signal.
+      else emoji -> MRR/e/val, style -> MRR/s/val, lang -> acc/lang/val;
+      the first match in that order is the checkpoint + early-stop metric.
     """
     resolved = _validate(stage, local, heads, pt, out, gpu, cpu)
     if local:

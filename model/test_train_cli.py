@@ -13,12 +13,12 @@ runner = CliRunner()
 
 
 def test_parse_heads_default():
-    assert T._parse_heads(None) == ("style", "emoji", "critic", "lang")
+    assert T._parse_heads(None) == ("style", "emoji", "lang")
 
 
 def test_parse_heads_orders_canonically():
     assert T._parse_heads("emoji,style") == ("style", "emoji")
-    assert T._parse_heads(" critic , emoji ") == ("emoji", "critic")
+    assert T._parse_heads(" lang , emoji ") == ("emoji", "lang")
 
 
 def test_parse_heads_rejects_unknown():
@@ -53,7 +53,6 @@ def test_validate_nondefault_folder_needs_local():
     assert T._validate(T.Stage.enc, True, None, Path("pt"), Path("pt"), "", False) == (
         "style",
         "emoji",
-        "critic",
         "lang",
     )
 
@@ -79,26 +78,13 @@ def test_validate_gpu_and_cpu_mutually_exclusive():
     assert T._validate(None, False, None, Path("pt"), Path("pt"), "", True) is None
 
 
-def test_roc_auc_perfect_and_reversed():
-    pos = torch.tensor([3.0, 4.0, 5.0])
-    neg = torch.tensor([0.0, 1.0, 2.0])
-    assert torch.isclose(T.roc_auc(pos, neg), torch.tensor(1.0))
-    assert torch.isclose(T.roc_auc(neg, pos), torch.tensor(0.0))
-
-
-def test_roc_auc_chance_and_empty():
-    x = torch.tensor([1.0, 2.0, 3.0, 4.0])
-    assert torch.isclose(T.roc_auc(x, x.clone()), torch.tensor(0.5))
-    assert torch.isclose(T.roc_auc(torch.empty(0), x), torch.tensor(0.0))
-
-
 def test_litencoder_builds_only_selected_heads():
     m = T.LitEncoder(heads=("style",))
     assert hasattr(m, "style") and not hasattr(
-        m, "emoji") and not hasattr(m, "critic")
-    m2 = T.LitEncoder(heads=("emoji", "critic"))
+        m, "emoji") and not hasattr(m, "lang")
+    m2 = T.LitEncoder(heads=("emoji", "lang"))
     assert hasattr(m2, "emoji") and hasattr(
-        m2, "critic") and not hasattr(m2, "style")
+        m2, "lang") and not hasattr(m2, "style")
     opt = m2.configure_optimizers()
     assert isinstance(opt, torch.optim.Adam)
 
@@ -206,8 +192,6 @@ def main() -> None:
     test_validate_nondefault_folder_needs_local()
     test_validate_gpu_rejects_local()
     test_validate_gpu_and_cpu_mutually_exclusive()
-    test_roc_auc_perfect_and_reversed()
-    test_roc_auc_chance_and_empty()
     test_litencoder_builds_only_selected_heads()
     test_colorcritic_forward_shape()
     test_cli_help_ok()
