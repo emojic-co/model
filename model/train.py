@@ -261,6 +261,18 @@ class LitEncoder(pl.LightningModule):
                             acc_at_k(emoji_logits[mask], emoji[mask], 5).mean(),
                             n,
                         )
+                full_mask = torch.tensor(
+                    [s == SRC_FULL for s in source], device=emoji.device
+                )
+                n_full_e = int(full_mask.sum())
+                if n_full_e:
+                    self._log(
+                        "full_text/acc@1/val",
+                        acc_at_k(
+                            emoji_logits[full_mask], emoji[full_mask], 1
+                        ).mean(),
+                        n_full_e,
+                    )
 
         if "lang" in self.heads:
             lang_logits = self.lang(enc)
@@ -537,9 +549,9 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
     no_bar = _no_progress_bar()
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
-    monitor = "loss/e/val"
+    monitor = "full_text/acc@1/val"
     ckpt = ModelCheckpoint(
-        monitor=monitor, mode="min", save_top_k=1, filename="best-{step}"
+        monitor=monitor, mode="max", save_top_k=1, filename="best-{step}"
     )
     trainer = pl.Trainer(
         devices="auto",
@@ -553,7 +565,7 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
         enable_progress_bar=not no_bar,
         callbacks=[
             ckpt,
-            EarlyStopping(monitor=monitor, mode="min",
+            EarlyStopping(monitor=monitor, mode="max",
                           patience=EARLY_STOP_PATIENCE_ENCODER),
             *bar_cbs,
             ModelSummary(),
@@ -1044,7 +1056,8 @@ def cli(
       pt/ only with --local. A dirty git tree always aborts.
 
     Heads (stage 1 eval / checkpoint monitor)
-      loss/e/val is the checkpoint + early-stop metric, regardless of --heads.
+      full_text/acc@1/val is the checkpoint + early-stop metric; requires
+      "emoji" in --heads.
     """
     resolved = _validate(stage, local, heads, pt, out, gpu, cpu)
     if local:
