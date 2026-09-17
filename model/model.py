@@ -10,7 +10,6 @@ from torch.nn.utils.parametrizations import spectral_norm as sn
 from model.color import COLOR_SHIFT
 from model.config import (
     CRITIC_EMBEDDING_SIZE,
-    CRITIC_HIDDEN_SIZE,
     DROPOUT_EMOJI,
     DROPOUT_STYLE,
     EMBED_SIZE_CHAR,
@@ -161,20 +160,16 @@ class ColorCritic(nn.Module):
         super().__init__()
 
         self.color_embedding = nn.Sequential(
-            sn(nn.Linear(COLOR_DIM, CRITIC_HIDDEN_SIZE, bias=False)),
-            nn.LayerNorm(CRITIC_HIDDEN_SIZE),
-            nn.LeakyReLU(negative_slope=RELU_SLOPE),
-            sn(nn.Linear(CRITIC_HIDDEN_SIZE, CRITIC_EMBEDDING_SIZE)))
+            sn(nn.Linear(COLOR_DIM, CRITIC_EMBEDDING_SIZE)),
+        )
 
         self.color_critic = nn.Sequential(
             nn.LeakyReLU(negative_slope=RELU_SLOPE),
             sn(nn.Linear(CRITIC_EMBEDDING_SIZE, 1)))
 
         self.text_embedding = nn.Sequential(
-            sn(nn.Linear(EMBED_SIZE_TEXT, CRITIC_HIDDEN_SIZE, bias=False)),
-            nn.LayerNorm(CRITIC_HIDDEN_SIZE),
-            nn.LeakyReLU(negative_slope=RELU_SLOPE),
-            sn(nn.Linear(CRITIC_HIDDEN_SIZE, CRITIC_EMBEDDING_SIZE)))
+            sn(nn.Linear(EMBED_SIZE_TEXT, CRITIC_EMBEDDING_SIZE)),
+        )
 
     def forward(
         self, cond: torch.Tensor, colors: torch.Tensor
