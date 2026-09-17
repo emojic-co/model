@@ -1123,6 +1123,8 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 tr:last-child td{border-bottom:none}
 table:not(.scorecard) tr:nth-child(even){background:var(--panel)}
 table:not(.scorecard) tr:hover{background:var(--good-bg)}
+.blk-dot{display:inline-block;width:9px;height:9px;border-radius:50%;
+margin-right:7px;vertical-align:middle}
 .cards-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:18px 0 0}
 .sample-cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0 0}
 .sample-card{width:100%;aspect-ratio:1/1;border:1px solid var(--line);border-radius:12px}
@@ -1135,6 +1137,22 @@ line-height:1.3}
 .mini .st{font-size:9px;letter-spacing:.06em;text-transform:uppercase;margin-top:6px;
 opacity:.75}
 """
+
+
+_BLOCK_COLORS = ["#4b32d6", "#e07b00", "#0a9c8b", "#d6336c", "#8b5cf6"]
+
+
+def _block_color(i: int) -> str:
+    return _BLOCK_COLORS[i % len(_BLOCK_COLORS)]
+
+
+def _block_bg(i: int, amount: float = 0.8) -> str:
+    hx = _block_color(i).lstrip("#")
+    mixed = (
+        round(int(hx[j : j + 2], 16) + (255 - int(hx[j : j + 2], 16)) * amount)
+        for j in (0, 2, 4)
+    )
+    return "#" + "".join(f"{v:02x}" for v in mixed)
 
 
 def _esc(x) -> str:
@@ -1601,8 +1619,11 @@ def _style_dist_html(d) -> str:
 
 def _block_capacity_table(rows) -> str:
     trows = "".join(
-        f"<tr><td>{_esc(r['source'])}</td><td class=\"n\">{r['n']}</td>"
-        f'<td class="n">{r["block"]}</td><td class="n">{_esc(r["range"])}</td>'
+        f'<tr style="background:{_block_bg(r["block"])}">'
+        f'<td>{_esc(r["source"])}</td><td class="n">{r["n"]}</td>'
+        f'<td class="n"><span class="blk-dot" '
+        f'style="background:{_block_color(r["block"])}"></span>{r["block"]}</td>'
+        f'<td class="n">{_esc(r["range"])}</td>'
         f'<td class="n">{r["dilation"]}</td>'
         f'<td class="n">{r["w_norm_mean"]:.3f}</td>'
         f'<td class="n">{r["w_norm_max"]:.3f}</td>'
@@ -1635,7 +1656,8 @@ def _block_capacity_html(d) -> str:
         "averaged over every sample in keywords/terms/eval — see "
         "<code>tools/block_capacity.py</code>. Activation RMS/ch is the "
         "per-block activation norm divided by sqrt(channel count), so it's "
-        "comparable across blocks with different channel widths.</p>",
+        "comparable across blocks with different channel widths. Each "
+        "encoder block keeps the same color across every row/source below.</p>",
     ]
     for head_name in ("EmojiHead", "StyleHead", "ColorRegressor"):
         rows = (d.get(head_name) or {}).get("rows")
