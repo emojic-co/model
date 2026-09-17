@@ -10,6 +10,7 @@ from torch.nn.utils.parametrizations import spectral_norm as sn
 from model.color import COLOR_SHIFT
 from model.config import (
     CRITIC_COLOR_CHANNELS,
+    CRITIC_EMBEDDING_SIZE,
     CRITIC_TEXT_CHANNELS,
     DROPOUT_CRITIC,
     DROPOUT_EMOJI,
@@ -183,13 +184,19 @@ class ColorCritic(nn.Module):
                 CRITIC_COLOR_CHANNELS[-1], 1,
                 bias=False)))
 
-        self.color_embedding = _critic_branch(COLOR_DIM, CRITIC_COLOR_CHANNELS)
+        self.color_embedding = nn.Sequential(
+            _critic_branch(COLOR_DIM, CRITIC_COLOR_CHANNELS),
+            sn(nn.Linear(
+                CRITIC_COLOR_CHANNELS[-1],
+                CRITIC_EMBEDDING_SIZE,
+                bias=False)))
+
         self.text_embedding = nn.Sequential(
             nn.Dropout(p=DROPOUT_CRITIC),
             _critic_branch(EMBED_SIZE_TEXT, CRITIC_TEXT_CHANNELS),
             sn(nn.Linear(
                 CRITIC_TEXT_CHANNELS[-1],
-                CRITIC_COLOR_CHANNELS[-1],
+                CRITIC_EMBEDDING_SIZE,
                 bias=False)))
 
     def forward(

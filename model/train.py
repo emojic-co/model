@@ -503,10 +503,12 @@ class LitColorGAN(pl.LightningModule):
         color_real, color_fake = color_score.chunk(2, dim=0)
         cond_real, cond_fake = cond_score.chunk(2, dim=0)
 
-        loss_critic_color = relu(1 - color_real).mean() + relu(1 + color_fake).mean()
+        loss_critic_color = relu(1 - color_real).mean() + \
+            relu(1 + color_fake).mean()
         loss_critic_cond = relu(1 - cond_real).mean() + relu(1 + cond_fake).mean()
-        loss_critic = loss_critic_color \
-            + loss_critic_cond * LOSS_WEIGHT_COND_COLOR
+        loss_critic = \
+            (1 - LOSS_WEIGHT_COND_COLOR) * loss_critic_color + \
+            LOSS_WEIGHT_COND_COLOR * loss_critic_cond
 
         opt_critic.zero_grad()
         self.manual_backward(loss_critic)
@@ -520,18 +522,22 @@ class LitColorGAN(pl.LightningModule):
         # GENERATOR
         gen_color_fake, gen_cond_fake = self.critic(cond, fake)
         energy = energy_distance(rgb_to_oklab(fake), rgb_to_oklab(colors))
-        loss_gen = (
-            -(gen_color_fake.mean() + gen_cond_fake.mean() * LOSS_WEIGHT_COND_COLOR)
+
+        loss_gen_critic = \
+            -(1 - LOSS_WEIGHT_COND_COLOR) * gen_color_fake.mean() \
+            - LOSS_WEIGHT_COND_COLOR * gen_cond_fake.mean()
+
+        loss_gen = \
+            (1 - LOSS_WEIGHT_ENERGY) * loss_gen_critic \
             + LOSS_WEIGHT_ENERGY * energy
-        )
 
         opt_gen.zero_grad()
+
         self.manual_backward(loss_gen)
         self.clip_gradients(
             opt_gen,  # type: ignore
             gradient_clip_val=GRAD_CLIP_GEN,
-            gradient_clip_algorithm="norm",
-        )
+            gradient_clip_algorithm="norm")
 
         opt_gen.step()
 
@@ -542,9 +548,11 @@ class LitColorGAN(pl.LightningModule):
         self.log(
             "dist/gan/margin_color", color_real.mean() - color_fake.mean(),
             prog_bar=False)
+
         self.log(
             "dist/gan/margin_cond", cond_real.mean() - cond_fake.mean(),
             prog_bar=True)
+
         self.log("energy/gan/train", energy, prog_bar=True)
 
     def configure_optimizers(self):
