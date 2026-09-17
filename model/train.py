@@ -49,7 +49,6 @@ from model.config import (
     EARLY_STOP_PATIENCE_ENCODER,
     EARLY_STOP_PATIENCE_GAN,
     EMBED_SIZE_TEXT,
-    ENERGY_WEIGHT,
     ENERGY_Z_SAMPLES,
     EPOCHS_GAN,
     EPOCHS_TASK,
@@ -58,6 +57,8 @@ from model.config import (
     GRAD_CLIP_GEN,
     INFONCE_TEMP_EMOJI,
     INFONCE_TEMP_STYLE,
+    LOSS_WEIGHT_COND_COLOR,
+    LOSS_WEIGHT_ENERGY,
     LR_ENCODER,
     LR_GAN_CRITIC,
     LR_GAN_GEN,
@@ -421,7 +422,7 @@ class LitColorGAN(pl.LightningModule):
         self.enc = enc.requires_grad_(False).eval()
 
         self.gen = ColorGen()
-        self.tst = critic
+        self.critic = critic
 
         self.register_buffer(
             "z_bank",
@@ -488,37 +489,39 @@ class LitColorGAN(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         text, _, _, colors, *_ = batch
-        opt_gen, opt_tst = self.optimizers()  # type: ignore
+        opt_gen, opt_critic = self.optimizers()  # type: ignore
 
         cond = self._cond(text)
 
         fake = self.gen(cond)
 
+        # CRITIC
         pair = torch.cat([colors, fake.detach()], dim=0)
         cond_pair = torch.cat([cond, cond], dim=0)
-        color_score, cond_score = self.tst(cond_pair, pair)
+        color_score, cond_score = self.critic(cond_pair, pair)
         color_real, color_fake = color_score.chunk(2, dim=0)
         cond_real, cond_fake = cond_score.chunk(2, dim=0)
 
-        loss_tst_color = color_fake.mean() - color_real.mean()
-        loss_tst_cond = cond_fake.mean() - cond_real.mean()
-        loss_tst = loss_tst_color + loss_tst_cond
+        loss_critic_color = color_fake.mean() - color_real.mean()
+        loss_critic_cond = cond_fake.mean() - cond_real.mean()
+        loss_critic = loss_critic_color \
+            + loss_critic_cond * LOSS_WEIGHT_COND_COLOR
 
-        opt_tst.zero_grad()
-        self.manual_backward(loss_tst)
+        opt_critic.zero_grad()
+        self.manual_backward(loss_critic)
         self.clip_gradients(
-            opt_tst,  # type: ignore
+            opt_critic,  # type: ignore
             gradient_clip_val=GRAD_CLIP_CRITIC,
-            gradient_clip_algorithm="norm",
-        )
+            gradient_clip_algorithm="norm")
 
-        opt_tst.step()
+        opt_critic.step()
 
-        gen_color_fake, gen_cond_fake = self.tst(cond, fake)
+        # GENERATOR
+        gen_color_fake, gen_cond_fake = self.critic(cond, fake)
         energy = energy_distance(rgb_to_oklab(fake), rgb_to_oklab(colors))
         loss_gen = (
             -(gen_color_fake.mean() + gen_cond_fake.mean())
-            + ENERGY_WEIGHT * energy
+            + LOSS_WEIGHT_ENERGY * energy
         )
 
         opt_gen.zero_grad()
@@ -531,19 +534,19 @@ class LitColorGAN(pl.LightningModule):
 
         opt_gen.step()
 
-        self.log("loss/gan/tst", loss_tst, prog_bar=True)
-        self.log("loss/gan/tst_color", loss_tst_color, prog_bar=False)
-        self.log("loss/gan/tst_cond", loss_tst_cond, prog_bar=False)
+        self.log("loss/gan/critic", loss_critic, prog_bar=True)
+        self.log("loss/gan/critic_color", loss_critic_color, prog_bar=False)
+        self.log("loss/gan/critic_cond", loss_critic_cond, prog_bar=False)
         self.log("loss/gan/gen", loss_gen, prog_bar=True)
-        self.log("dist/gan/wasserstein_color", -loss_tst_color, prog_bar=False)
-        self.log("dist/gan/wasserstein_cond", -loss_tst_cond, prog_bar=True)
+        self.log("dist/gan/wasserstein_color", -loss_critic_color, prog_bar=False)
+        self.log("dist/gan/wasserstein_cond", -loss_critic_cond, prog_bar=True)
         self.log("energy/gan/train", energy, prog_bar=True)
 
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
-        opt_tst = optim.SGD(self.tst.parameters(), lr=LR_GAN_CRITIC)
+        opt_critic = optim.SGD(self.critic.parameters(), lr=LR_GAN_CRITIC)
 
-        return [opt_gen, opt_tst]
+        return [opt_gen, opt_critic]
 
 
 def _load(mod: nn.Module, path: str) -> nn.Module:
@@ -706,8 +709,8 @@ def _run_local(
         )
         enc = _load(TextEncoder(), str(pt_dir / "enc.pt"))
         critic = _load(ColorCritic(), str(pt_dir / "critic.pt"))
-        _train_gan(enc, critic, train_ds(
-            mix_sources=False), out_dir)  # type: ignore
+        _train_gan(enc, critic, train_ds(  # type: ignore
+            mix_sources=False), out_dir)
         if out_dir == _DEFAULT_PT:
             export()
         if not skip_report:
@@ -724,8 +727,8 @@ def _run_local(
         return
 
     critic = _load(ColorCritic(), str(out_dir / "critic.pt"))
-    _train_gan(mod.enc, critic, train_ds(
-        mix_sources=False), out_dir)  # type: ignore
+    _train_gan(mod.enc, critic, train_ds(  # type: ignore
+        mix_sources=False), out_dir)
     if out_dir == _DEFAULT_PT:
         export()
     if not skip_report:
