@@ -58,6 +58,7 @@ from model.config import (
     INFONCE_TEMP_EMOJI,
     INFONCE_TEMP_STYLE,
     LOSS_WEIGHT_COLOR_REG,
+    LOSS_WEIGHT_COND_COLOR,
     LOSS_WEIGHT_ENERGY,
     LR_ENCODER,
     LR_GAN_CRITIC,
@@ -450,10 +451,16 @@ class LitColorGAN(pl.LightningModule):
         # CRITIC
         pair = torch.cat([colors, fake.detach()], dim=0)
         cond_pair = torch.cat([cond, cond], dim=0)
-        score = self.critic(cond_pair, pair)
-        real, fake_score = score.chunk(2, dim=0)
+        cond_score, color_score = self.critic(cond_pair, pair)
+        cond_real, cond_fake = cond_score.chunk(2, dim=0)
+        color_real, color_fake = color_score.chunk(2, dim=0)
 
-        loss_critic = relu(1 - real).mean() + relu(1 + fake_score).mean()
+        loss_critic_cond = relu(1 - cond_real).mean() + relu(1 + cond_fake).mean()
+        loss_critic_color = relu(1 - color_real).mean() + \
+            relu(1 + color_fake).mean()
+        loss_critic = \
+            LOSS_WEIGHT_COND_COLOR * loss_critic_cond + \
+            (1 - LOSS_WEIGHT_COND_COLOR) * loss_critic_color
 
         opt_critic.zero_grad()
         self.manual_backward(loss_critic)
@@ -465,10 +472,12 @@ class LitColorGAN(pl.LightningModule):
         opt_critic.step()
 
         # GENERATOR
-        gen_score = self.critic(cond, fake)
+        gen_cond_score, gen_color_score = self.critic(cond, fake)
         energy = energy_distance(rgb_to_oklab(fake), rgb_to_oklab(colors))
 
-        loss_gen_critic = -gen_score.mean()
+        loss_gen_critic = \
+            -LOSS_WEIGHT_COND_COLOR * gen_cond_score.mean() \
+            - (1 - LOSS_WEIGHT_COND_COLOR) * gen_color_score.mean()
 
         loss_gen = \
             (1 - LOSS_WEIGHT_ENERGY) * loss_gen_critic \
@@ -485,10 +494,15 @@ class LitColorGAN(pl.LightningModule):
         opt_gen.step()
 
         self.log("loss/gan/critic", loss_critic, prog_bar=True)
+        self.log("loss/gan/critic_cond", loss_critic_cond, prog_bar=False)
+        self.log("loss/gan/critic_color", loss_critic_color, prog_bar=False)
         self.log("loss/gan/gen", loss_gen, prog_bar=True)
         self.log(
-            "dist/gan/margin_cond", real.mean() - fake_score.mean(),
+            "dist/gan/margin_cond", cond_real.mean() - cond_fake.mean(),
             prog_bar=True)
+        self.log(
+            "dist/gan/margin_color", color_real.mean() - color_fake.mean(),
+            prog_bar=False)
 
         self.log("energy/gan/train", energy, prog_bar=True)
 

@@ -835,17 +835,17 @@
     "Sarcastic",
     "Deadpan"
   ],
-  "exported_at": "2026-09-17T12:26+00:00",
+  "exported_at": "2026-09-17T12:57+00:00",
   "model_meta": {
-    "sha": "99b2e30",
+    "sha": "abe3aa4",
     "dirty": false,
-    "generated": "2026-09-17T12:19:38",
+    "generated": "2026-09-17T12:49:57",
     "config": [
-      "ENCODER: 30 3 [60, 60, 60, 60] [1, 2, 4, 8]",
+      "ENCODER: 30 3 [80, 80, 80, 80] [1, 2, 4, 8]",
       "EMOJI: 60 0.15",
-      "STYLE: 12 240 0.1",
+      "STYLE: 12 320 0.1",
       "GAN: 0.2 64 0.1 0.02 0.02 0",
-      "COLOR_REG: 0.1",
+      "COLOR_REG: 1",
       "TRAIN: 42 512 1024 0.1 0.01 1.0 1.0 0.7 0.2 0.005"
     ],
     "train_sha": "84a95184fbb5",

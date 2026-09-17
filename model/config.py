@@ -35,7 +35,7 @@ ENCODER_KERNEL_SIZE = 3
 assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
-ENCODER_CHANNELS = [80, 80, 80, 80]
+ENCODER_CHANNELS = [100, 100, 100, 100]
 ENCODER_DILATION = [1, 2, 4, 8]
 
 # EMBEDDING
@@ -45,9 +45,8 @@ EMBED_SIZE_EMOJI = 60
 EMBED_SIZE_STYLE = 12
 
 # DROPOUT
-DROPOUT_EMOJI = 0.15
+DROPOUT_EMOJI = 0.1
 DROPOUT_STYLE = 0.1
-DROPOUT_CRITIC = 0.1
 
 assert len(ENCODER_CHANNELS) == len(ENCODER_DILATION), \
     "encoder channels and dilation must have the same length"
@@ -67,17 +66,13 @@ style_str = " ".join([
 
 # GAN
 Z_WEIGHT = 0.2
-# GEN_CHANNELS = [64, 32]
-# CRITIC_COLOR_CHANNELS = [96]
-# CRITIC_TEXT_CHANNELS = [96]
+GEN_HIDDEN_SIZE = 128
 CRITIC_EMBEDDING_SIZE = 64
 
-# LOSS_WEIGHT_COND_COLOR = 0.9
+LOSS_WEIGHT_COND_COLOR = 0.9
 LOSS_WEIGHT_ENERGY = 0
 
 # COLOR REGRESSOR
-# DROPOUT_COLOR_REG = 0.1
-# COLOR_REG_CHANNELS = [64, 32]
 LOSS_WEIGHT_COLOR_REG = 1
 
 color_reg_str = " ".join([str(p) for p in (LOSS_WEIGHT_COLOR_REG,)])
@@ -101,14 +96,11 @@ gan_str = " ".join([
     str(p)
     for p in (
         Z_WEIGHT,
-        # GEN_CHANNELS,
-        # CRITIC_COLOR_CHANNELS,
-        # CRITIC_TEXT_CHANNELS,
+        GEN_HIDDEN_SIZE,
         CRITIC_EMBEDDING_SIZE,
-        DROPOUT_CRITIC,
         LR_GAN_GEN,
         LR_GAN_CRITIC,
-        # LOSS_WEIGHT_COND_COLOR,
+        LOSS_WEIGHT_COND_COLOR,
         LOSS_WEIGHT_ENERGY)])
 
 
@@ -237,10 +229,6 @@ def _stats() -> list[tuple[str, object]]:
          f"{TASK_BATCH_SIZE} / {GAN_BATCH_SIZE}"),
         ("EPOCHS_TASK / EPOCHS_GAN", f"{EPOCHS_TASK} / {EPOCHS_GAN}"),
         ("Z_WEIGHT", Z_WEIGHT),
-        # ("GEN_CHANNELS", GEN_CHANNELS),
-        # ("CRITIC_COLOR_CHANNELS", CRITIC_COLOR_CHANNELS),
-        # ("CRITIC_TEXT_CHANNELS", CRITIC_TEXT_CHANNELS),
-        ("DROPOUT_CRITIC", DROPOUT_CRITIC),
     ]
 
 
