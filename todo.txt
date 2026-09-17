@@ -1,3 +1,1 @@
-Done:
-report: Add the ColorRegressor head to the "Model — Encoder block capacity" section.
-report: Use bold lines, bg colors, etc... to make the tables more readable.
+What other analysis can we use to understand which layer has too many channels and which layer has too few channels in the text encoder?

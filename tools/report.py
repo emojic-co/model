@@ -1,6 +1,7 @@
 import html
 import json
 import random
+import re
 import subprocess
 import sys
 from collections import Counter
@@ -400,6 +401,45 @@ def _section_block_capacity(enc, heads: dict) -> dict:
             if rows:
                 out[head_name] = {"rows": rows}
     return out
+
+
+def _section_channel_rank(enc) -> dict:
+    if enc is None:
+        return {}
+    ends = list(accumulate(ENCODER_CHANNELS))
+    bounds = list(zip([0, *ends[:-1]], ends, strict=True))
+    rows = []
+    with torch.no_grad():
+        for source, path in _BLOCK_CAPACITY_SOURCES:
+            texts = [r.text for r in read(path)]
+            if not texts:
+                continue
+            emb = enc(torch.stack([text_to_tensor(t) for t in texts]))
+            for i, (start, end) in enumerate(bounds):
+                channels = end - start
+                a = emb[:, start:end]
+                a = a - a.mean(dim=0, keepdim=True)
+                var = torch.linalg.svdvals(a).pow(2)
+                total = var.sum()
+                if total <= 0:
+                    eff_rank, rank95 = 0.0, 0
+                else:
+                    eff_rank = (total.pow(2) / var.pow(2).sum()).item()
+                    cumvar = torch.cumsum(var, dim=0) / total
+                    rank95 = int(torch.searchsorted(cumvar, 0.95).item()) + 1
+                rows.append(
+                    {
+                        "source": source,
+                        "n": len(texts),
+                        "block": i,
+                        "channels": channels,
+                        "eff_rank": eff_rank,
+                        "eff_rank_pct": 100 * eff_rank / channels,
+                        "rank95": rank95,
+                        "rank95_pct": 100 * rank95 / channels,
+                    }
+                )
+    return {"rows": rows} if rows else {}
 
 
 @cache
@@ -957,6 +997,7 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         "cards",
         "style_dist",
         "block_capacity",
+        "channel_rank",
         "length_acc",
         "eval_samples",
     }
@@ -975,6 +1016,7 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
             "keyword_fails",
             "style_dist",
             "block_capacity",
+            "channel_rank",
             "length_acc",
         }
         & want
@@ -1039,6 +1081,8 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
                 "ColorRegressor": color_reg_head,
             },
         )
+    if "channel_rank" in want:
+        report["channel_rank"] = _section_channel_rank(enc)
     if "length_acc" in want:
         report["length_acc"] = _section_length_acc(enc, emoji_head, eval_records)
     if "eval_samples" in want:
@@ -1066,11 +1110,24 @@ _STYLE = """
 *{box-sizing:border-box}
 body{font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
 color:var(--ink);margin:0;background:#fff}
-.wrap{max-width:920px;margin:0 auto;padding:44px 30px 130px}
+.page{max-width:1180px;margin:0 auto;display:flex;align-items:flex-start;gap:28px}
+.wrap{max-width:920px;flex:1 1 auto;min-width:0;padding:44px 30px 130px}
+.toc{flex:0 0 200px;position:sticky;top:0;max-height:100vh;overflow-y:auto;
+padding:44px 4px 30px 30px;font-size:13.5px}
+.toc-h{color:var(--dim);text-transform:uppercase;letter-spacing:.04em;
+font-size:12px;margin-bottom:8px}
+.toc ul{list-style:none;margin:0;padding:0;border-left:2px solid var(--line)}
+.toc li{margin:0}
+.toc a{display:block;color:var(--dim);text-decoration:none;padding:5px 0 5px 12px;
+margin-left:-2px;border-left:2px solid transparent}
+.toc a:hover{color:var(--ink);border-left-color:var(--accent)}
+@media (max-width:980px){.toc{display:none}}
 h1{font-size:28px;margin:0 0 4px}
-h2{font-size:24px;margin:64px 0 6px;padding-bottom:8px;border-bottom:2px solid var(--ink)}
+h2{font-size:24px;margin:64px 0 6px;padding-bottom:8px;border-bottom:2px solid var(--ink);
+scroll-margin-top:16px}
 h3{font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--dim);
 margin:34px 0 12px}
+h4{font-size:13px;letter-spacing:.02em;color:var(--dim);margin:18px 0 8px}
 .sub{color:var(--dim);font-size:15px}
 .note{color:var(--dim);font-size:14.5px;margin:8px 0 0}
 code{background:var(--panel);padding:1px 6px;border-radius:4px;font-size:15px}
@@ -1617,16 +1674,33 @@ def _style_dist_html(d) -> str:
     )
 
 
-def _block_capacity_table(rows) -> str:
+def _block_capacity_independent_table(rows) -> str:
+    by_block = {}
+    for r in rows:
+        by_block.setdefault(r["block"], r)
     trows = "".join(
         f'<tr style="background:{_block_bg(r["block"])}">'
-        f'<td>{_esc(r["source"])}</td><td class="n">{r["n"]}</td>'
         f'<td class="n"><span class="blk-dot" '
         f'style="background:{_block_color(r["block"])}"></span>{r["block"]}</td>'
         f'<td class="n">{_esc(r["range"])}</td>'
         f'<td class="n">{r["dilation"]}</td>'
         f'<td class="n">{r["w_norm_mean"]:.3f}</td>'
-        f'<td class="n">{r["w_norm_max"]:.3f}</td>'
+        f'<td class="n">{r["w_norm_max"]:.3f}</td></tr>'
+        for r in by_block.values()
+    )
+    return (
+        '<table><tr><th class="n">Block</th><th class="n">Channels</th>'
+        '<th class="n">Dilation</th><th class="n">W col-norm mean</th>'
+        '<th class="n">W col-norm max</th></tr>' + trows + "</table>"
+    )
+
+
+def _block_capacity_dependent_table(rows) -> str:
+    trows = "".join(
+        f'<tr style="background:{_block_bg(r["block"])}">'
+        f'<td>{_esc(r["source"])}</td><td class="n">{r["n"]}</td>'
+        f'<td class="n"><span class="blk-dot" '
+        f'style="background:{_block_color(r["block"])}"></span>{r["block"]}</td>'
         f'<td class="n">{r["act_rms"]:.3f}</td>'
         f'<td class="n">{r["contrib_norm"]:.3f}</td>'
         f'<td class="n">{r["contrib_pct"]:.1f}%</td></tr>'
@@ -1634,8 +1708,6 @@ def _block_capacity_table(rows) -> str:
     )
     return (
         "<table><tr><th>Source</th><th class=\"n\">N</th><th class=\"n\">Block</th>"
-        '<th class="n">Channels</th><th class="n">Dilation</th>'
-        '<th class="n">W col-norm mean</th><th class="n">W col-norm max</th>'
         '<th class="n">Activation RMS/ch</th><th class="n">Contribution norm</th>'
         '<th class="n">Contribution %</th></tr>' + trows + "</table>"
     )
@@ -1662,12 +1734,54 @@ def _block_capacity_html(d) -> str:
     for head_name in ("EmojiHead", "StyleHead", "ColorRegressor"):
         rows = (d.get(head_name) or {}).get("rows")
         out.append(f"<h3>{_esc(head_name)}</h3>")
-        out.append(
-            _block_capacity_table(rows)
-            if rows
-            else '<p class="note">Unavailable for this head.</p>'
-        )
+        if not rows:
+            out.append('<p class="note">Unavailable for this head.</p>')
+            continue
+        out.append("<h4>Input-independent</h4>")
+        out.append(_block_capacity_independent_table(rows))
+        out.append("<h4>Input-dependent</h4>")
+        out.append(_block_capacity_dependent_table(rows))
     return "".join(out)
+
+
+def _channel_rank_html(d) -> str:
+    if not d or not d.get("rows"):
+        return (
+            "<h2>Model — Encoder channel utilization</h2>"
+            '<p class="note">Unavailable — needs enc.pt and data from '
+            "data/keywords.jsonl, data/terms.jsonl, data/eval.jsonl.</p>"
+        )
+    trows = "".join(
+        f'<tr style="background:{_block_bg(r["block"])}">'
+        f'<td>{_esc(r["source"])}</td><td class="n">{r["n"]}</td>'
+        f'<td class="n"><span class="blk-dot" '
+        f'style="background:{_block_color(r["block"])}"></span>{r["block"]}</td>'
+        f'<td class="n">{r["channels"]}</td>'
+        f'<td class="n">{r["eff_rank"]:.1f}</td>'
+        f'<td class="n">{r["eff_rank_pct"]:.1f}%</td>'
+        f'<td class="n">{r["rank95"]}</td>'
+        f'<td class="n">{r["rank95_pct"]:.1f}%</td></tr>'
+        for r in d["rows"]
+    )
+    return (
+        "<h2>Model — Encoder channel utilization</h2>"
+        '<p class="note">Per-block effective dimensionality of the encoder\'s '
+        "own activations (head-independent), computed by SVD of each "
+        "block's centered per-sample activations over every sample in "
+        "keywords/terms/eval. Effective rank is the participation ratio "
+        "(&Sigma;&lambda;)&sup2;/&Sigma;&lambda;&sup2; over that block's "
+        "activation-covariance eigenvalues &lambda; — an occupancy count "
+        "robust to long tails, vs. Rank@95%, the raw number of components "
+        "needed to explain 95% of variance. A block whose ratio sits well "
+        "below 100% is spending channels that carry mostly redundant "
+        "signal (over-provisioned); a block near 100% has no spare "
+        "capacity left for encoding more (under-provisioned). See "
+        "<code>tools/block_capacity.py</code>.</p>"
+        "<table><tr><th>Source</th><th class=\"n\">N</th><th class=\"n\">Block</th>"
+        '<th class="n">Channels</th><th class="n">Effective rank</th>'
+        '<th class="n">Eff. rank %</th><th class="n">Rank@95%</th>'
+        '<th class="n">Rank@95% %</th></tr>' + trows + "</table>"
+    )
 
 
 def _length_acc_html(d) -> str:
@@ -1759,6 +1873,38 @@ def _eval_samples_html(d) -> str:
     )
 
 
+_H2_RE = re.compile(r"<h2([^>]*)>(.*?)</h2>")
+
+
+def _slugify(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-") or "section"
+
+
+def _inject_toc_ids(html_body: str) -> tuple[str, list[tuple[str, str]]]:
+    seen: dict[str, int] = {}
+    items: list[tuple[str, str]] = []
+
+    def repl(m: re.Match) -> str:
+        attrs, inner = m.group(1), m.group(2)
+        title = html.unescape(re.sub(r"<[^>]+>", "", inner))
+        slug = _slugify(title)
+        n = seen.get(slug, 0)
+        seen[slug] = n + 1
+        if n:
+            slug = f"{slug}-{n}"
+        items.append((slug, title))
+        return f'<h2{attrs} id="{slug}">{inner}</h2>'
+
+    return _H2_RE.sub(repl, html_body), items
+
+
+def _toc_html(items: list[tuple[str, str]]) -> str:
+    if not items:
+        return ""
+    lis = "".join(f'<li><a href="#{slug}">{_esc(title)}</a></li>' for slug, title in items)
+    return f'<nav class="toc"><div class="toc-h">On this page</div><ul>{lis}</ul></nav>'
+
+
 def _render_html(report) -> str:
     body = [_header_html(report)]
     if "status" in report:
@@ -1767,6 +1913,8 @@ def _render_html(report) -> str:
         body.append(_style_dist_html(report["style_dist"]))
     if "block_capacity" in report:
         body.append(_block_capacity_html(report["block_capacity"]))
+    if "channel_rank" in report:
+        body.append(_channel_rank_html(report["channel_rank"]))
     if "eval_samples" in report:
         body.append(_eval_samples_html(report["eval_samples"]))
     if "length_acc" in report:
@@ -1793,10 +1941,13 @@ def _render_html(report) -> str:
         )
     if "cards" in report:
         body.append(_cards_html(report["cards"]))
+    html_body, toc_items = _inject_toc_ids("".join(body))
     return (
         '<!doctype html><meta charset="utf-8">'
         f"<title>emojic report — {report['provenance']['ts']}</title>"
-        f'<style>{_STYLE}</style><div class="wrap">{"".join(body)}</div>\n'
+        f"<style>{_STYLE}</style>"
+        f'<div class="page">{_toc_html(toc_items)}'
+        f'<div class="wrap">{html_body}</div></div>\n'
     )
 
 
