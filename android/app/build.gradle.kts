@@ -20,8 +20,8 @@ android {
         applicationId = "ing.emojify"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "0.2"
+        versionCode = 3
+        versionName = "0.3"
     }
 
     signingConfigs {
@@ -37,7 +37,15 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
             if (keystoreProperties.containsKey("storeFile")) {
                 signingConfig = signingConfigs.getByName("release")
             }
