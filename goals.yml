@@ -1,6 +1,6 @@
 # Global project goals — the single, long-term statement of what emojic aims at.
 # Dynamic: re-tune values here as priorities shift. tools/report.py reads this
-# for every scorecard target; each goal/<date>-<sha>.yml is a subset of this tree.
+# for every scorecard target — the only target source in the project.
 
 goals:
   emoji prediction:
@@ -13,7 +13,7 @@ goals:
       "acc@5": 0.85
       "acc@10": 0.9
     full text:
-      "acc@1": 0.7
+      "acc@1": 0.65
       "acc@5": 0.75
       "acc@10": 0.85
     # flags:

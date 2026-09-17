@@ -1,15 +1,33 @@
 Done:
 
-Currently, the model generates general colors that do not express the specific text.
-1.  Review the training data and confirm the data is not the problem.
-2.  Review TB logs, latest reports, GAN architecture, config and training and suggest ways to improve the GAN.
-    We can try to reconfigure the current GAN architecture, or try a different architecture.
-    Reviewed 2026-09-17: data confirmed not the problem (per-text LLM-annotated palettes,
-    88% unique bg pairs, only ~2.4% generic fallback rows; report's own intrinsic-floor
-    metric shows real per-text palettes are tightly specific). Root cause found in the GAN
-    loss/training: the conditional (text-aware) critic signal has collapsed to ~0 while the
-    unconditional realism + energy-distance terms dominate 4:1, so the generator learns a
-    plausible aggregate color distribution while ignoring per-text conditioning. See chat
-    for full diagnosis and reconfiguration suggestions (loss reweighting, critic:gen update
-    ratio, optimizer, generator bottleneck) — next step (reconfigure vs. new architecture)
-    is a follow-up decision, not yet implemented.
+Add a ColorRegressor head.
+This is a throw away head and it is only used during the TextEncoder training.
+The goal of this head is two fold:
+1. To make sure that the TextEncoder is learning a good representation of the text with respect to color prediction.
+2. To monitor and estimate the best color regression error that is possible given the current TextEncoder representation.
+
+Tasks:
+-   Create a minimal ColorRegressor head that takes the TextEncoder representation and predicts the color palette.
+    Make sure to predict the color in the LAB color space.
+-   Add relevant configuration options in the config.py file.
+-   Add relevant metrics to TB logs.
+
+Questions:
+-   Should we use the existing ColorGen head?
+    No. ColorGen is a conditional generator (takes noise + tanh-bounded RGB
+    output) built for the GAN; ColorRegressor is a deterministic probe, so
+    it mirrors ColorGen's channel-stack shape but with its own head and no z.
+-   What should be a good regression error for the ColorRegressor head? (We can use this to monitor the TextEncoder training)
+    Logged both loss/color_reg/{split} (MSE in OKLab space, used in the loss)
+    and dist/color_reg/{split} (mean per-swatch OKLab L2 distance) for a more
+    interpretable number to watch in TensorBoard.
+-   Can we combine its loss with the current EarlyStop conditions?
+    No -- left out of the checkpoint/early-stop monitor. It stays a
+    monitoring-only auxiliary loss (weighted by LOSS_WEIGHT_COLOR_REG) added
+    to the encoder's training loss so gradients still shape the encoder.
+
+Notes:
+-   The GAN training should not be affected by this head since it is only used during the TextEncoder training.
+    Implemented only in LitEncoder (stage "enc"); LitColorGAN/gen training is untouched.
+    Colors used are OKLab (model/color.py's rgb_to_oklab), matching the
+    space already used elsewhere in this repo for color-space math.

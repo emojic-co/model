@@ -22,6 +22,7 @@ from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
 from torch.nn.functional import (
     cross_entropy,
+    mse_loss,
     normalize,
     relu,
 )
@@ -56,7 +57,7 @@ from model.config import (
     GRAD_CLIP_GEN,
     INFONCE_TEMP_EMOJI,
     INFONCE_TEMP_STYLE,
-    LOSS_WEIGHT_COND_COLOR,
+    LOSS_WEIGHT_COLOR_REG,
     LOSS_WEIGHT_ENERGY,
     LR_ENCODER,
     LR_GAN_CRITIC,
@@ -69,6 +70,7 @@ from model.config import (
     VAL_CHECK_INTERVAL,
 )
 from model.data import (
+    SRC_FULL,
     eval_data_loader,
     train_data_loader,
     train_ds,
@@ -78,6 +80,7 @@ from model.metrics import macro_average
 from model.model import (
     ColorCritic,
     ColorGen,
+    ColorRegressor,
     EmojiEmbedding,
     EmojiHead,
     LangHead,
@@ -189,6 +192,8 @@ class LitEncoder(pl.LightningModule):
         if "lang" in self.heads:
             self.lang = LangHead()
 
+        self.color_reg = ColorRegressor()
+
         self._val_e_rr: list[torch.Tensor] = []
         self._trn_e_rr: list[torch.Tensor] = []
 
@@ -207,7 +212,7 @@ class LitEncoder(pl.LightningModule):
                  prog_bar=True, batch_size=bs)
 
     def _step(self, batch, split):
-        text, emoji, style, _colors, lang, source = batch
+        text, emoji, style, colors, lang, source = batch
         enc = self.enc(text)
         loss = enc.new_zeros(())
         bs = text.size(0)
@@ -264,6 +269,23 @@ class LitEncoder(pl.LightningModule):
             acc = (lang_logits.argmax(dim=-1) == lang).float()
             lang_acc = self._val_lang_acc if split == "val" else self._trn_lang_acc
             lang_acc.append(acc.detach())
+
+        is_full = torch.tensor(
+            [s == SRC_FULL for s in source], device=enc.device)
+        n_full = int(is_full.sum())
+        if n_full:
+            real_lab = rgb_to_oklab(colors[is_full])
+            pred_lab = self.color_reg(enc[is_full])
+            loss_color = mse_loss(pred_lab, real_lab)
+            loss = loss + LOSS_WEIGHT_COLOR_REG * loss_color
+            self._log(f"loss/color_reg/{split}", loss_color, n_full)
+            dist = (
+                (pred_lab - real_lab)
+                .view(n_full, 3, 3)
+                .norm(dim=-1)
+                .mean()
+            )
+            self._log(f"dist/color_reg/{split}", dist, n_full)
 
         return loss
 
@@ -341,6 +363,7 @@ class LitEncoder(pl.LightningModule):
             params += list(self.emoji_embed.parameters())
         for h in self.heads:
             params += list(getattr(self, h).parameters())
+        params += list(self.color_reg.parameters())
         return optim.Adam(params, lr=LR_ENCODER)
 
 
@@ -427,16 +450,10 @@ class LitColorGAN(pl.LightningModule):
         # CRITIC
         pair = torch.cat([colors, fake.detach()], dim=0)
         cond_pair = torch.cat([cond, cond], dim=0)
-        color_score, cond_score = self.critic(cond_pair, pair)
-        color_real, color_fake = color_score.chunk(2, dim=0)
-        cond_real, cond_fake = cond_score.chunk(2, dim=0)
+        score = self.critic(cond_pair, pair)
+        real, fake_score = score.chunk(2, dim=0)
 
-        loss_critic_color = relu(1 - color_real).mean() + \
-            relu(1 + color_fake).mean()
-        loss_critic_cond = relu(1 - cond_real).mean() + relu(1 + cond_fake).mean()
-        loss_critic = \
-            (1 - LOSS_WEIGHT_COND_COLOR) * loss_critic_color + \
-            LOSS_WEIGHT_COND_COLOR * loss_critic_cond
+        loss_critic = relu(1 - real).mean() + relu(1 + fake_score).mean()
 
         opt_critic.zero_grad()
         self.manual_backward(loss_critic)
@@ -448,12 +465,10 @@ class LitColorGAN(pl.LightningModule):
         opt_critic.step()
 
         # GENERATOR
-        gen_color_fake, gen_cond_fake = self.critic(cond, fake)
+        gen_score = self.critic(cond, fake)
         energy = energy_distance(rgb_to_oklab(fake), rgb_to_oklab(colors))
 
-        loss_gen_critic = \
-            -(1 - LOSS_WEIGHT_COND_COLOR) * gen_color_fake.mean() \
-            - LOSS_WEIGHT_COND_COLOR * gen_cond_fake.mean()
+        loss_gen_critic = -gen_score.mean()
 
         loss_gen = \
             (1 - LOSS_WEIGHT_ENERGY) * loss_gen_critic \
@@ -470,15 +485,9 @@ class LitColorGAN(pl.LightningModule):
         opt_gen.step()
 
         self.log("loss/gan/critic", loss_critic, prog_bar=True)
-        self.log("loss/gan/critic_color", loss_critic_color, prog_bar=False)
-        self.log("loss/gan/critic_cond", loss_critic_cond, prog_bar=False)
         self.log("loss/gan/gen", loss_gen, prog_bar=True)
         self.log(
-            "dist/gan/margin_color", color_real.mean() - color_fake.mean(),
-            prog_bar=False)
-
-        self.log(
-            "dist/gan/margin_cond", cond_real.mean() - cond_fake.mean(),
+            "dist/gan/margin_cond", real.mean() - fake_score.mean(),
             prog_bar=True)
 
         self.log("energy/gan/train", energy, prog_bar=True)

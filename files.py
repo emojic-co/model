@@ -2,7 +2,6 @@ MODEL_DIR = "model"
 TOOLS_DIR = "tools"
 DATA_DIR = "data"
 PT_DIR = "pt"
-GOAL_DIR = "goal"
 
 GOALS_YML = "goals.yml"
 

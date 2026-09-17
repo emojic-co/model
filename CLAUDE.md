@@ -21,7 +21,7 @@ Architecture (read the code, not this file): `model/model.py` (encoder + heads +
 - `pt/` — `.pt` checkpoints, gitignored.
 - `data/` — data files; `files.py`/`files.ts` list which are committed vs. gitignored-derived.
 - `files.py` / `files.ts` — source of truth for every data/model/pt/goals path. Add paths here first.
-- `report/`, `goal/`, `plans/`, `runs/`, `preview/`, `pr/`, `docs/`, `web/` — generated reports, iteration goals, derived plans, TensorBoard logs, previews, marketing, prose docs, web app.
+- `report/`, `plans/`, `runs/`, `preview/`, `pr/`, `docs/`, `web/` — generated reports, derived plans, TensorBoard logs, previews, marketing, prose docs, web app.
 - `play/` — Google Play publishing: `publish.md` (checklist), `assets/` (store listing graphics).
 
 ## Environment & commands

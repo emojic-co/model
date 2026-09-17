@@ -21,7 +21,6 @@ from files import (
     COLORS_JSONL,
     DATA_JSONL,
     EMOJI_EMBED_PT,
-    GOAL_DIR,
     GOALS_YML,
     GROUP_JSON,
     II_JSON,
@@ -499,14 +498,10 @@ def _meets(cur, target, direction) -> bool:
     return cur <= target if direction == "min" else cur >= target
 
 
-def _grade_merged(cur, iter_target, global_target, direction) -> str:
-    if cur is None or global_target is None:
+def _grade(cur, target, direction) -> str:
+    if cur is None or target is None:
         return "na"
-    if _meets(cur, global_target, direction):
-        return "good"
-    if _meets(cur, iter_target, direction):
-        return "amber"
-    return "red"
+    return "good" if _meets(cur, target, direction) else "red"
 
 
 def _best_emoji_acc(emoji_eval) -> tuple:
@@ -525,153 +520,17 @@ def _dig(node, *keys):
     return node
 
 
-def _set_nested(root: dict, path: list, value) -> None:
-    for k in path[:-1]:
-        root = root.setdefault(k, {})
-    root[path[-1]] = value
-
-
-def _flatten_leaves(node, prefix="") -> dict:
-    out = {}
-    for k, v in (node or {}).items():
-        dotted = f"{prefix}.{k}" if prefix else k
-        if isinstance(v, dict):
-            out.update(_flatten_leaves(v, dotted))
-        else:
-            out[dotted] = v
-    return out
-
-
-def _iter_goal_leaves() -> dict:
-    loaded = _load_goals()
-    if loaded is None:
-        return {}
-    _path, doc = loaded
-    return _flatten_leaves(doc.get("goals") or {})
-
-
-@cache
-def _load_goals():
-    d = Path(GOAL_DIR)
-    if not d.is_dir():
-        return None
-    files = sorted([*d.glob("*.yml"), *d.glob("*.yaml")])
-    if not files:
-        return None
-    path = files[-1]
-    return str(path), (yaml.safe_load(path.read_text(encoding="utf-8")) or {})
-
-
-def _goal_specs() -> dict:
-    def full_text(i):
-        return lambda r: _dig(_best_emoji_acc(_dig(r, "emoji", "eval") or {})[1] or [], i)
-
-    def keyword(i):
-        return lambda r: _dig(r, "keyword", "acc_at_k", i)
-
-    def term(i):
-        return lambda r: _dig(r, "term", "acc_at_k", i)
-
-    def style(i):
-        return lambda r: _dig(r, "cards", "style_acc_at_k", i)
-
-    def color(c):
-        return lambda r: _dig(r, "cards", "per_color", c, "gt_mean_distance")
-
-    specs = {
-        "max text len": ("max", lambda r: _dig(r, "data", "max_text_len")),
-        "vocabulary.size": ("max", lambda r: _dig(r, "labels", "emojis")),
-        "color generator.energy distance.global": (
-            "min",
-            lambda r: _dig(r, "cards", "energy"),
-        ),
-    }
-    for name, idx in ACC_K_INDEX.items():
-        specs[f"emoji prediction.keyword.{name}"] = ("max", keyword(idx))
-        specs[f"emoji prediction.term.{name}"] = ("max", term(idx))
-        specs[f"emoji prediction.full text.{name}"] = ("max", full_text(idx))
-        specs[f"style prediction.full text.{name}"] = ("max", style(idx))
-    for c in CARD_COLORS:
-        specs[f"color generator.energy distance.{c}"] = ("min", color(c))
-    return specs
-
-
-_COVERAGE_PREFIX = "vocabulary.coverage."
-
-
-def _goal_spec_for(dotted, specs):
-    spec = specs.get(dotted)
-    if spec is not None:
-        return spec
-    if dotted.startswith(_COVERAGE_PREFIX):
-        grp = dotted[len(_COVERAGE_PREFIX) :]
-        return (
-            "max",
-            lambda r, grp=grp: _dig(r, "status", "vocab_coverage", "groups", grp, "score"),
-        )
-    return ("max", lambda r: None)
-
-
-def _section_goals(report) -> dict | None:
-    loaded = _load_goals()
-    if loaded is None:
-        return None
-    path, doc = loaded
-    tree = doc.get("goals") or {}
-    specs = _goal_specs()
-    compare: dict = {}
-    counts = Counter()
-
-    def walk(node, prefix):
-        for k, v in node.items():
-            dotted = f"{prefix}.{k}" if prefix else k
-            if isinstance(v, dict):
-                walk(v, dotted)
-                continue
-            direction, fn = _goal_spec_for(dotted, specs)
-            actual = fn(report)
-            if actual is None:
-                met, delta = None, None
-                counts["unmeasured"] += 1
-            else:
-                met = actual >= v if direction == "max" else actual <= v
-                delta = round(actual - v, 4)
-                counts["met" if met else "unmet"] += 1
-            _set_nested(
-                compare,
-                dotted.split("."),
-                {
-                    "target": v,
-                    "actual": actual,
-                    "met": met,
-                    "dir": direction,
-                    "delta": delta,
-                },
-            )
-
-    walk(tree, "")
-    return {
-        "source_file": path,
-        "meta": doc.get("meta", {}),
-        "compare": compare,
-        "summary": dict(counts),
-    }
-
-
 def _acc_rows(
     goals,
     priority,
     label,
-    dotted_prefix,
     targets,
-    iter_leaves,
     values,
     note,
     direction="max",
 ):
     for name, idx in ACC_K_INDEX.items():
         tgt = (targets or {}).get(name)
-        iter_tgt = iter_leaves.get(f"{dotted_prefix}.{name}")
         cur = values[idx] if values and len(values) > idx else None
         goals.append(
             {
@@ -679,9 +538,8 @@ def _acc_rows(
                 "priority": priority,
                 "dir": direction,
                 "target": "—" if tgt is None else f"≥ {tgt:.2f}",
-                "iter_target": "—" if iter_tgt is None else f"≥ {iter_tgt:.2f}",
                 "current": cur,
-                "status": _grade_merged(cur, iter_tgt, tgt, direction),
+                "status": _grade(cur, tgt, direction),
                 "note": note,
             }
         )
@@ -697,7 +555,6 @@ def _section_status(report) -> dict:
     sp = g.get("style prediction") or {}
     energy_tgt = (g.get("color generator") or {}).get("energy distance") or {}
     vocab_g = g.get("vocabulary") or {}
-    iter_leaves = _iter_goal_leaves()
 
     best_name, best = _best_emoji_acc(emoji_eval)
     term = report.get("term") or {}
@@ -707,9 +564,7 @@ def _section_status(report) -> dict:
         goals,
         1,
         "Keyword emoji",
-        "emoji prediction.keyword",
         ep.get("keyword"),
-        iter_leaves,
         keyword.get("acc_at_k"),
         ""
         if keyword.get("acc_at_k")
@@ -719,9 +574,7 @@ def _section_status(report) -> dict:
         goals,
         2,
         "Term emoji",
-        "emoji prediction.term",
         ep.get("term"),
-        iter_leaves,
         term.get("acc_at_k"),
         ""
         if term.get("acc_at_k")
@@ -731,15 +584,12 @@ def _section_status(report) -> dict:
         goals,
         3,
         "Full-text emoji",
-        "emoji prediction.full text",
         ep.get("full text"),
-        iter_leaves,
         best or [],
         f"best variant: {best_name}" if best_name else "emoji.eval not evaluated this run",
     )
 
     energy_global = cards.get("energy")
-    iter_energy_global = iter_leaves.get("color generator.energy distance.global")
     goals.append(
         {
             "goal": "Color energy · global",
@@ -748,28 +598,21 @@ def _section_status(report) -> dict:
             "target": "—"
             if energy_tgt.get("global") is None
             else f"≤ {energy_tgt['global']:.2f}",
-            "iter_target": "—"
-            if iter_energy_global is None
-            else f"≤ {iter_energy_global:.2f}",
             "current": energy_global,
-            "status": _grade_merged(
-                energy_global, iter_energy_global, energy_tgt.get("global"), "min"
-            ),
+            "status": _grade(energy_global, energy_tgt.get("global"), "min"),
             "note": "cards.energy — not wired yet" if energy_global is None else "",
         }
     )
     for c in CARD_COLORS:
         cur = _dig(cards, "per_color", c, "gt_mean_distance")
-        iter_tgt = iter_leaves.get(f"color generator.energy distance.{c}")
         goals.append(
             {
                 "goal": f"Color energy · {c}",
                 "priority": 4,
                 "dir": "min",
                 "target": "—" if energy_tgt.get(c) is None else f"≤ {energy_tgt[c]:.2f}",
-                "iter_target": "—" if iter_tgt is None else f"≤ {iter_tgt:.2f}",
                 "current": cur,
-                "status": _grade_merged(cur, iter_tgt, energy_tgt.get(c), "min"),
+                "status": _grade(cur, energy_tgt.get(c), "min"),
                 "note": "cards off this run" if cur is None else "",
             }
         )
@@ -778,15 +621,12 @@ def _section_status(report) -> dict:
         goals,
         5,
         "Style",
-        "style prediction.full text",
         sp.get("full text"),
-        iter_leaves,
         cards.get("style_acc_at_k"),
         "cards off this run" if not cards.get("style_acc_at_k") else "",
     )
 
     mtl = g.get("max text len")
-    mtl_iter = iter_leaves.get("max text len")
     mtl_cur = data.get("max_text_len")
     goals.append(
         {
@@ -794,15 +634,13 @@ def _section_status(report) -> dict:
             "priority": 6,
             "dir": "max",
             "target": "—" if mtl is None else f"≥ {mtl}",
-            "iter_target": "—" if mtl_iter is None else f"≥ {mtl_iter}",
             "current": mtl_cur,
-            "status": _grade_merged(mtl_cur, mtl_iter, mtl, "max"),
+            "status": _grade(mtl_cur, mtl, "max"),
             "note": f"config.MAX_TEXT_LEN = {mtl_cur}" if mtl_cur is not None else "",
         }
     )
 
     size_tgt = vocab_g.get("size")
-    size_iter = iter_leaves.get("vocabulary.size")
     vocab_size = len(EMOJIS)
     goals.append(
         {
@@ -810,21 +648,14 @@ def _section_status(report) -> dict:
             "priority": 7,
             "dir": "max",
             "target": "—" if size_tgt is None else f"≥ {size_tgt}",
-            "iter_target": "—" if size_iter is None else f"≥ {size_iter}",
             "current": vocab_size,
-            "status": _grade_merged(vocab_size, size_iter, size_tgt, "max"),
+            "status": _grade(vocab_size, size_tgt, "max"),
             "note": "",
         }
     )
 
-    higher_open = any(x["status"] in ("red", "amber") for x in goals if x["priority"] <= 7)
+    higher_open = any(x["status"] == "red" for x in goals if x["priority"] <= 7)
     vc = _vocab_coverage()
-    cov_iter_targets = {
-        k[len(_COVERAGE_PREFIX) :]: v
-        for k, v in iter_leaves.items()
-        if k.startswith(_COVERAGE_PREFIX)
-    }
-    vc_iter = _vocab_coverage(cov_iter_targets) if cov_iter_targets else None
     if not vc.get("measurable"):
         goals.append(
             {
@@ -832,7 +663,6 @@ def _section_status(report) -> dict:
                 "priority": 8,
                 "dir": "max",
                 "target": "all groups ≥ target",
-                "iter_target": "—",
                 "current": None,
                 "status": "na",
                 "note": f"not measurable — {vc.get('reason', '')}",
@@ -846,12 +676,6 @@ def _section_status(report) -> dict:
             if v["score"] is not None and v["target"] is not None
         )[:4]
         weak = " · weakest: " + ", ".join(f"{k} {d:+.2f}" for d, k in worst) if worst else ""
-        iter_txt = (
-            "—"
-            if vc_iter is None
-            else f"{vc_iter['groups_passed']}/{vc_iter['groups_measurable']}"
-            " (this iteration)"
-        )
         if higher_open:
             status, note = "na", "deferred — lower priority than open goals above · " + frac
         else:
@@ -863,7 +687,6 @@ def _section_status(report) -> dict:
                 "priority": 8,
                 "dir": "max",
                 "target": "all groups ≥ target",
-                "iter_target": iter_txt,
                 "current": vc["groups_passed"],
                 "status": status,
                 "note": note,
@@ -1209,9 +1032,6 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         report["eval_samples"] = _section_eval_samples(pt, eval_records)
 
     report["status"] = _section_status(report)
-    goals = _section_goals(report)
-    if goals is not None:
-        report["goals"] = goals
 
     out_dir = Path(out) / f"{prov['ts']}-{prov['model_sha']}"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -1249,7 +1069,6 @@ background:var(--good-bg);border:1px solid var(--good-bd)}
 .scorecard td:first-child{font-weight:600}
 .scorecard .gnote{font-weight:400;font-size:13px;color:var(--dim);margin-top:3px}
 .scorecard tr.sc-good{background:var(--good-bg)}
-.scorecard tr.sc-amber{background:var(--warn-bg)}
 .scorecard tr.sc-red{background:var(--bad-bg)}
 .scorecard tr.sc-na{background:var(--panel);color:var(--dim)}
 .counts{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:18px 0}
@@ -1474,7 +1293,6 @@ def _header_html(report) -> str:
 
 _STATUS_WORD = {
     "good": "✅ on target",
-    "amber": "🟡 close",
     "red": "🔴 below target",
     "na": "⚪ not measured",
 }
@@ -1494,14 +1312,13 @@ def _status_html(status) -> str:
         rows.append(
             f'<tr class="sc-{g["status"]}"><td>{_esc(g["goal"])}{note}</td>'
             f'<td class="n">{_esc(g["target"])}</td>'
-            f'<td class="n">{_esc(g.get("iter_target", "—"))}</td>'
             f'<td class="n">{cur_txt}</td>'
             f"<td>{_STATUS_WORD[g['status']]}</td></tr>"
         )
     out = [
         '<h2 class="status-h">Goal status</h2>'
         '<table class="scorecard"><tr><th>Goal — priority order</th>'
-        '<th class="n">Global target</th><th class="n">Current target</th>'
+        '<th class="n">Target</th>'
         '<th class="n">Current value</th><th>Status</th></tr>' + "".join(rows) + "</table>"
     ]
     vc = status.get("vocab_coverage") or {}
@@ -1527,60 +1344,6 @@ def _status_html(status) -> str:
             '<th class="n">Target</th></tr>' + "".join(grp_rows) + "</table></details>"
         )
     return "".join(out)
-
-
-_GOAL_WORD = {
-    True: "✅ met",
-    False: "🔴 miss",
-    None: "⚪ unmeasured",
-}
-
-
-def _flatten_compare(node, prefix=""):
-    for k, v in node.items():
-        dotted = f"{prefix}.{k}" if prefix else k
-        if isinstance(v, dict) and "target" in v and "dir" in v:
-            yield dotted, v
-        elif isinstance(v, dict):
-            yield from _flatten_compare(v, dotted)
-
-
-def _goals_html(goals) -> str:
-    rows = []
-    for path, leaf in _flatten_compare(goals["compare"]):
-        met = leaf["met"]
-        klass = {True: "sc-good", False: "sc-red", None: "sc-na"}[met]
-        op = "≥" if leaf["dir"] == "max" else "≤"
-        actual = leaf["actual"]
-        if actual is None:
-            act_txt = "n/a"
-        elif isinstance(actual, float):
-            act_txt = f"{actual:.3f}"
-        else:
-            act_txt = _fnum(actual)
-        delta = leaf["delta"]
-        delta_txt = "" if delta is None else f" ({delta:+g})"
-        rows.append(
-            f'<tr class="{klass}"><td>{_esc(path)}</td>'
-            f'<td class="n">{op} {_esc(leaf["target"])}</td>'
-            f'<td class="n">{act_txt}{delta_txt}</td>'
-            f"<td>{_GOAL_WORD[met]}</td></tr>"
-        )
-    s = goals["summary"]
-    tally = " · ".join(f"{s[k]} {k}" for k in ("met", "unmet", "unmeasured") if s.get(k))
-    meta = goals.get("meta") or {}
-    rationale = meta.get("rationale")
-    note = f'<div class="note">{_esc(rationale.strip())}</div>' if rationale else ""
-    return (
-        '<h2 class="status-h">Goals for this iteration — per-leaf detail '
-        f'<span class="sub">{_esc(Path(goals["source_file"]).name)}</span></h2>'
-        f"{note}"
-        '<table class="scorecard"><tr><th>Goal</th>'
-        '<th class="n">Target</th><th class="n">Actual</th><th>Result</th></tr>'
-        + "".join(rows)
-        + "</table>"
-        f'<div class="note">{_esc(tally)}</div>'
-    )
 
 
 def _acc_chart_html(title, source, d) -> str:
@@ -1969,8 +1732,6 @@ def _render_html(report) -> str:
         body.append(_eval_samples_html(report["eval_samples"]))
     if "length_acc" in report:
         body.append(_length_acc_html(report["length_acc"]))
-    if "goals" in report:
-        body.append(_goals_html(report["goals"]))
     if "data" in report:
         body.append(_data_html(report["data"]))
     if "labels" in report:
