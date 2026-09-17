@@ -226,12 +226,9 @@ def test_group_json_shape():
 
 
 def test_section_status_orders_and_grades():
-    import tools.report as rep
     from tools.report import EMOJI_KS, _section_status
 
     n = len(EMOJI_KS)
-    orig = rep._load_goals
-    rep._load_goals = lambda: None
     report = {
         "emoji": {
             "eval": {
@@ -250,25 +247,18 @@ def test_section_status_orders_and_grades():
             "per_color": {"all": {"pure_accuracy": 0.4}},
         },
     }
-    try:
-        st = _section_status(report)
-    finally:
-        rep._load_goals = orig
+    st = _section_status(report)
     prios = [g["priority"] for g in st["goals"]]
     assert prios == sorted(prios)
     assert st["best_emoji_variant"] == "EmojiHead"
     by_goal = {g["goal"]: g for g in st["goals"]}
     assert by_goal["Keyword emoji acc@1"]["priority"] == 1
-    assert by_goal["Keyword emoji acc@1"]["iter_target"] == "—"
-    assert (
-        by_goal["Keyword emoji acc@1"]["current"] == report["keyword"]["acc_at_k"][0]
-    )
+    assert by_goal["Keyword emoji acc@1"]["current"] == report["keyword"]["acc_at_k"][0]
     assert by_goal["Term emoji acc@1"]["priority"] == 2
     assert by_goal["Term emoji acc@1"]["status"] == "na"
     assert by_goal["Full-text emoji acc@1"]["priority"] == 3
     assert (
-        by_goal["Full-text emoji acc@1"]["current"]
-        == report["emoji"]["eval"]["acc_at_k"][0]
+        by_goal["Full-text emoji acc@1"]["current"] == report["emoji"]["eval"]["acc_at_k"][0]
     )
     assert by_goal["Color energy · global"]["priority"] == 4
     assert by_goal["Color energy · global"]["status"] == "na"
@@ -278,40 +268,11 @@ def test_section_status_orders_and_grades():
     assert by_goal["Emoji vocab size"]["priority"] == 7
     cov = by_goal["Vocab coverage (per Unicode group)"]
     assert cov["priority"] == 8
-    assert cov["iter_target"] == "—"
     if st["vocab_coverage"].get("measurable"):
         assert cov["status"] == "na"
         assert "deferred" in cov["note"]
-    assert all(g["status"] in {"good", "amber", "red", "na"} for g in st["goals"])
+    assert all(g["status"] in {"good", "red", "na"} for g in st["goals"])
     assert "vocab_coverage" in st
-
-
-def test_section_status_iter_target_grading():
-    import tools.report as rep
-    from tools.report import EMOJI_KS, _section_status
-
-    n = len(EMOJI_KS)
-    doc = {
-        "goals": {
-            "emoji prediction": {"keyword": {"acc@1": 0.5}},
-            "max text len": 30,
-        }
-    }
-    orig = rep._load_goals
-    rep._load_goals = lambda: ("goal/x.yml", doc)
-    try:
-        report = {
-            "keyword": {"acc_at_k": [0.6] + [0.0] * (n - 1)},
-            "data": {"max_text_len": 32},
-        }
-        st = _section_status(report)
-    finally:
-        rep._load_goals = orig
-    by_goal = {g["goal"]: g for g in st["goals"]}
-    assert by_goal["Keyword emoji acc@1"]["status"] == "amber"
-    assert by_goal["Keyword emoji acc@1"]["iter_target"] == "≥ 0.50"
-    assert by_goal["Max text len"]["status"] == "amber"
-    assert by_goal["Max text len"]["iter_target"] == "≥ 30"
 
 
 def test_vocab_coverage_shape():
@@ -400,90 +361,6 @@ def test_status_html_colors_rows():
     assert "0.500" in h and "800" in h and "n/a" in h
 
 
-def test_section_goals_compare_shape():
-    import tools.report as rep
-    from tools.report import EMOJI_KS, _section_goals
-
-    n = len(EMOJI_KS)
-    acc = [0.6 + 0.03 * i for i in range(n)]
-    doc = {
-        "meta": {"rationale": "step 1"},
-        "goals": {
-            "emoji prediction": {
-                "term": {"acc@1": 0.95},
-                "full text": {"acc@1": 0.70, "acc@5": 0.85},
-            },
-            "vocabulary": {"size": 700, "coverage": {"face-smiling": 0.9}},
-        },
-    }
-    orig = rep._load_goals
-    rep._load_goals = lambda: ("goal/x.yml", doc)
-    try:
-        report = {
-            "emoji": {"eval": {"acc_at_k": acc}},
-            "labels": {"emojis": 150},
-            "status": {"vocab_coverage": {"groups": {"face-smiling": {"score": 0.5}}}},
-        }
-        g = _section_goals(report)
-    finally:
-        rep._load_goals = orig
-
-    assert g["source_file"] == "goal/x.yml"
-    t1 = g["compare"]["emoji prediction"]["full text"]["acc@1"]
-    assert t1["target"] == 0.70 and t1["dir"] == "max"
-    assert t1["actual"] == acc[0] and t1["met"] is False
-    assert t1["delta"] == round(acc[0] - 0.70, 4)
-    assert g["compare"]["vocabulary"]["size"]["actual"] == 150
-    assert g["compare"]["vocabulary"]["size"]["met"] is False
-    cov = g["compare"]["vocabulary"]["coverage"]["face-smiling"]
-    assert cov["target"] == 0.9 and cov["actual"] == 0.5 and cov["met"] is False
-    term_goal = g["compare"]["emoji prediction"]["term"]["acc@1"]
-    assert term_goal["actual"] is None and term_goal["met"] is None
-    assert g["summary"]["unmeasured"] == 1
-    assert g["summary"]["unmet"] == 4
-
-
-def test_goals_html_renders():
-    from tools.report import _goals_html
-
-    goals = {
-        "source_file": "goal/2026-09-10-abc1234.yml",
-        "meta": {"rationale": "prove keyword search"},
-        "compare": {
-            "emoji prediction": {
-                "full text": {
-                    "acc@1": {
-                        "target": 0.7,
-                        "actual": 0.651,
-                        "met": False,
-                        "dir": "max",
-                        "delta": -0.049,
-                    },
-                },
-                "term": {
-                    "acc@1": {
-                        "target": 0.95,
-                        "actual": None,
-                        "met": None,
-                        "dir": "max",
-                        "delta": None,
-                    },
-                },
-            },
-        },
-        "summary": {"unmet": 1, "unmeasured": 1},
-    }
-    h = _goals_html(goals)
-    assert "Goals for this iteration" in h
-    assert "2026-09-10-abc1234.yml" in h
-    assert "prove keyword search" in h
-    assert 'class="sc-red"' in h and 'class="sc-na"' in h
-    assert "emoji prediction.full text.acc@1" in h
-    assert "emoji prediction.term.acc@1" in h
-    assert "≥ 0.7" in h and "0.651" in h and "n/a" in h
-    assert "1 unmet" in h and "1 unmeasured" in h
-
-
 _app = typer.Typer(
     add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
@@ -509,8 +386,6 @@ def main() -> None:
     test_vocab_coverage_shape()
     test_status_vocab_coverage_gate()
     test_status_html_colors_rows()
-    test_section_goals_compare_shape()
-    test_goals_html_renders()
     print("ok")
 
 

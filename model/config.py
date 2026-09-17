@@ -35,7 +35,7 @@ ENCODER_KERNEL_SIZE = 3
 assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
-ENCODER_CHANNELS = [200, 200, 200, 100]
+ENCODER_CHANNELS = [50, 50, 50, 50]
 ENCODER_DILATION = [1, 2, 4, 8]
 
 # EMBEDDING
@@ -67,13 +67,20 @@ style_str = " ".join([
 
 # GAN
 Z_WEIGHT = 0.2
-GEN_CHANNELS = [64, 32]
-CRITIC_COLOR_CHANNELS = [96]
-CRITIC_TEXT_CHANNELS = [96]
+# GEN_CHANNELS = [64, 32]
+# CRITIC_COLOR_CHANNELS = [96]
+# CRITIC_TEXT_CHANNELS = [96]
 CRITIC_EMBEDDING_SIZE = 64
 
-LOSS_WEIGHT_COND_COLOR = 0.9
+# LOSS_WEIGHT_COND_COLOR = 0.9
 LOSS_WEIGHT_ENERGY = 0
+
+# COLOR REGRESSOR
+# DROPOUT_COLOR_REG = 0.1
+# COLOR_REG_CHANNELS = [64, 32]
+LOSS_WEIGHT_COLOR_REG = 0.1
+
+color_reg_str = " ".join([str(p) for p in (LOSS_WEIGHT_COLOR_REG,)])
 
 # LR
 LR_ENCODER = 0.01
@@ -94,14 +101,14 @@ gan_str = " ".join([
     str(p)
     for p in (
         Z_WEIGHT,
-        GEN_CHANNELS,
-        CRITIC_COLOR_CHANNELS,
-        CRITIC_TEXT_CHANNELS,
+        # GEN_CHANNELS,
+        # CRITIC_COLOR_CHANNELS,
+        # CRITIC_TEXT_CHANNELS,
         CRITIC_EMBEDDING_SIZE,
         DROPOUT_CRITIC,
         LR_GAN_GEN,
         LR_GAN_CRITIC,
-        LOSS_WEIGHT_COND_COLOR,
+        # LOSS_WEIGHT_COND_COLOR,
         LOSS_WEIGHT_ENERGY)])
 
 
@@ -161,6 +168,7 @@ CONFIG_PARTS = [
     f"EMOJI: {emj_str}",
     f"STYLE: {style_str}",
     f"GAN: {gan_str}",
+    f"COLOR_REG: {color_reg_str}",
     f"TRAIN: {train_str}",
 ]
 CONFIG_NAME = " | ".join(
@@ -229,9 +237,9 @@ def _stats() -> list[tuple[str, object]]:
          f"{TASK_BATCH_SIZE} / {GAN_BATCH_SIZE}"),
         ("EPOCHS_TASK / EPOCHS_GAN", f"{EPOCHS_TASK} / {EPOCHS_GAN}"),
         ("Z_WEIGHT", Z_WEIGHT),
-        ("GEN_CHANNELS", GEN_CHANNELS),
-        ("CRITIC_COLOR_CHANNELS", CRITIC_COLOR_CHANNELS),
-        ("CRITIC_TEXT_CHANNELS", CRITIC_TEXT_CHANNELS),
+        # ("GEN_CHANNELS", GEN_CHANNELS),
+        # ("CRITIC_COLOR_CHANNELS", CRITIC_COLOR_CHANNELS),
+        # ("CRITIC_TEXT_CHANNELS", CRITIC_TEXT_CHANNELS),
         ("DROPOUT_CRITIC", DROPOUT_CRITIC),
     ]
 

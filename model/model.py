@@ -9,10 +9,7 @@ from torch.nn.utils.parametrizations import spectral_norm as sn
 
 from model.color import COLOR_SHIFT
 from model.config import (
-    CRITIC_COLOR_CHANNELS,
     CRITIC_EMBEDDING_SIZE,
-    CRITIC_TEXT_CHANNELS,
-    DROPOUT_CRITIC,
     DROPOUT_EMOJI,
     DROPOUT_STYLE,
     EMBED_SIZE_CHAR,
@@ -22,7 +19,6 @@ from model.config import (
     ENCODER_CHANNELS,
     ENCODER_DILATION,
     ENCODER_KERNEL_SIZE,
-    GEN_CHANNELS,
     RELU_SLOPE,
     Z_WEIGHT,
 )
@@ -120,26 +116,22 @@ class EmojiHead(nn.Module):
         return self.net(text_embedding)
 
 
+class ColorRegressor(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.net = nn.Linear(EMBED_SIZE_TEXT, COLOR_DIM)
+
+    def forward(self, text_embedding: torch.Tensor) -> torch.Tensor:
+        return self.net(text_embedding)
+
+
 # GAN
 class ColorGen(nn.Module):
     def __init__(self):
         super().__init__()
 
-        io = zip(GEN_CHANNELS[:-1], GEN_CHANNELS[1:], strict=True)
-        self.net = nn.Sequential(
-            nn.Linear(EMBED_SIZE_TEXT, GEN_CHANNELS[0], bias=False),
-            nn.LayerNorm(GEN_CHANNELS[0]),
-            nn.LeakyReLU(negative_slope=RELU_SLOPE),
-            *[
-                nn.Sequential(
-                    nn.Linear(i, o, bias=False),
-                    nn.LayerNorm(o),
-                    nn.LeakyReLU(negative_slope=RELU_SLOPE)
-                )
-                for i, o in io
-            ],
-            nn.Linear(GEN_CHANNELS[-1], COLOR_DIM),
-        )
+        self.net = nn.Linear(EMBED_SIZE_TEXT, COLOR_DIM)
 
     def forward(
         self,
@@ -158,46 +150,17 @@ class ColorGen(nn.Module):
         return tanh(colors) * COLOR_SHIFT
 
 
-def _critic_branch(in_dim: int, channels: list[int]) -> nn.Sequential:
-    cs = [in_dim, *channels]
-    io = zip(cs[:-1], cs[1:], strict=True)
-    return nn.Sequential(
-        *[
-            nn.Sequential(
-                sn(nn.Linear(i, o, bias=False)),
-                nn.LayerNorm(o),
-                nn.LeakyReLU(negative_slope=RELU_SLOPE)
-            )
-            for i, o in io
-        ]
-    )
-
-
 class ColorCritic(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.color_critic = nn.Sequential(
-            nn.Dropout(p=DROPOUT_CRITIC),
-            _critic_branch(COLOR_DIM, CRITIC_COLOR_CHANNELS),
-            sn(nn.Linear(
-                CRITIC_COLOR_CHANNELS[-1], 1,
-                bias=False)))
+        self.color_embedding = sn(nn.Linear(
+            COLOR_DIM,
+            CRITIC_EMBEDDING_SIZE))
 
-        self.color_embedding = nn.Sequential(
-            _critic_branch(COLOR_DIM, CRITIC_COLOR_CHANNELS),
-            sn(nn.Linear(
-                CRITIC_COLOR_CHANNELS[-1],
-                CRITIC_EMBEDDING_SIZE,
-                bias=False)))
-
-        self.text_embedding = nn.Sequential(
-            nn.Dropout(p=DROPOUT_CRITIC),
-            _critic_branch(EMBED_SIZE_TEXT, CRITIC_TEXT_CHANNELS),
-            sn(nn.Linear(
-                CRITIC_TEXT_CHANNELS[-1],
-                CRITIC_EMBEDDING_SIZE,
-                bias=False)))
+        self.text_embedding = sn(nn.Linear(
+            EMBED_SIZE_TEXT,
+            CRITIC_EMBEDDING_SIZE))
 
     def forward(
         self, cond: torch.Tensor, colors: torch.Tensor
@@ -205,6 +168,4 @@ class ColorCritic(nn.Module):
         c = self.color_embedding(colors)
         t = self.text_embedding(cond)
 
-        return (
-            self.color_critic(colors),
-            (t * c).sum(dim=-1, keepdim=True))
+        return (t * c).sum(dim=-1, keepdim=True)
