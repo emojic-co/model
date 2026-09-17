@@ -485,7 +485,7 @@ class LitColorGAN(pl.LightningModule):
 
         # GENERATOR
         gen_cond_score, gen_color_score = self.critic(cond, fake)
-        energy = energy_distance(rgb_to_oklab(fake), rgb_to_oklab(colors))
+        loss_energy = energy_distance(rgb_to_oklab(fake), rgb_to_oklab(colors))
 
         loss_gen_critic = \
             -LOSS_WEIGHT_COND_COLOR * gen_cond_score.mean() \
@@ -493,7 +493,7 @@ class LitColorGAN(pl.LightningModule):
 
         loss_gen = \
             (1 - LOSS_WEIGHT_ENERGY) * loss_gen_critic \
-            + LOSS_WEIGHT_ENERGY * energy
+            + LOSS_WEIGHT_ENERGY * loss_energy
 
         opt_gen.zero_grad()
 
@@ -508,15 +508,18 @@ class LitColorGAN(pl.LightningModule):
         self.log("loss/gan/critic", loss_critic, prog_bar=True)
         self.log("loss/gan/critic_cond", loss_critic_cond, prog_bar=False)
         self.log("loss/gan/critic_color", loss_critic_color, prog_bar=False)
+
+        self.log("loss/gan/gen_critic", loss_gen_critic, prog_bar=False)
         self.log("loss/gan/gen", loss_gen, prog_bar=True)
         self.log(
             "dist/gan/margin_cond", cond_real.mean() - cond_fake.mean(),
             prog_bar=True)
+
         self.log(
             "dist/gan/margin_color", color_real.mean() - color_fake.mean(),
             prog_bar=False)
 
-        self.log("energy/gan/train", energy, prog_bar=True)
+        self.log("energy/gan/train", loss_energy, prog_bar=True)
 
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
