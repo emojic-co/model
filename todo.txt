@@ -1,4 +1,11 @@
+update the web app:
+-   use location hash (#) to sync and share the input text, i.e.
+    switch from https://emojify.ing/<text> to https://emojify.ing/#<text>
+
+-   add a privacy policy privacy.txt at https://emojify.ing/privacy.txt ies.
+
 Done:
 
-Remove translation from both web and android apps.
-Currently the model supports English and Hebrew and does not need translation for them.
+Prepare the android app for release:
+- sync the latest model into the app and push it to my phone.
+- use a local emulator to test and take screenshots of the app.
