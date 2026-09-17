@@ -6,22 +6,15 @@ export function cycle(list, current, dir) {
   return list[(i + dir + n) % n]
 }
 
-export function textToPath(text) {
+export function textToHash(text) {
   const t = text.trim()
-  return t ? `/${encodeURIComponent(t)}` : '/'
+  return t ? `#${encodeURIComponent(t)}` : ''
 }
 
-export function pathToText(pathname) {
+export function hashToText(hash) {
   try {
-    return decodeURIComponent(pathname.replace(/^\//, ''))
+    return decodeURIComponent(hash.replace(/^#/, ''))
   } catch {
     return ''
   }
-}
-
-export function restoreRedirectedPath() {
-  const params = new URLSearchParams(window.location.search)
-  const p = params.get('p')
-  if (p === null) return
-  window.history.replaceState(null, '', '/' + p + window.location.hash)
 }

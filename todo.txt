@@ -1,9 +1,3 @@
-update the web app:
--   use location hash (#) to sync and share the input text, i.e.
-    switch from https://emojify.ing/<text> to https://emojify.ing/#<text>
-
--   add a privacy policy privacy.txt at https://emojify.ing/privacy.txt ies.
-
 Done:
 
 Prepare the android app for release:

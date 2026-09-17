@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useOnnx } from './hooks/useOnnx'
 import { argmax, normalize, fixContrast, sigmoid } from './model'
 import { topFeelings, DEFAULT_COLORS } from './feelings'
-import { cycle, textToPath, pathToText } from './nav'
+import { cycle, textToHash, hashToText } from './nav'
 import { ensureScriptFontsLoaded, scriptForLang, langForText } from './scriptFonts'
 import GitHubButton from 'react-github-btn'
 import { Card } from './components/Card'
@@ -62,7 +62,7 @@ export function App() {
   const emojiSlots = mobile ? 9 : 10
   const feelingCount = mobile ? 4 : 5
   const colorCount = mobile ? 4 : 5
-  const [text, setText] = useState(() => pathToText(window.location.pathname))
+  const [text, setText] = useState(() => hashToText(window.location.hash))
   const [modelText, setModelText] = useState('')
   const [lang, setLang] = useState('en')
   const [scores, setScores] = useState(null)
@@ -97,9 +97,9 @@ export function App() {
   }, [])
 
   useEffect(() => {
-    const path = textToPath(text)
-    if (window.location.pathname !== path) {
-      window.history.replaceState(null, '', path)
+    const hash = textToHash(text)
+    if (window.location.hash !== hash) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search + hash)
     }
   }, [text])
 

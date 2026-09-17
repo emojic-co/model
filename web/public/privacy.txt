@@ -1,0 +1,42 @@
+Privacy Policy — emojify.ing
+Last updated: September 16, 2026.
+
+emojify.ing (web app at https://emojify.ing/ and the Android app, package
+ing.emojify) turns short text into an emoji, a feeling label, and a color
+palette using a small machine-learning model.
+
+What we collect
+----------------
+Nothing. The model runs entirely on your device (in your browser via
+WebAssembly, or on-device in the Android app via ONNX Runtime). The text you
+type is never sent to a server — there is no backend for this app to send it
+to. We don't use analytics, crash reporting, or advertising SDKs, and the
+Android app requests no INTERNET permission.
+
+Local storage
+-------------
+Your browser may cache the app's static files (including the model) for
+faster loads, and the Android app may save a rendered card image to your
+device only when you explicitly choose to share or copy it. None of this
+leaves your device.
+
+Third-party embeds
+-------------------
+The web app embeds a GitHub "star" button (served from ghbtns.com) that
+shows the project's star count. Loading it fetches from GitHub's servers the
+same way any embedded image would; we don't control what GitHub does with
+that request.
+
+Children
+--------
+This app isn't directed at children and doesn't knowingly collect any
+information from anyone, regardless of age — because it doesn't collect
+information at all.
+
+Changes
+-------
+If this policy changes, the updated version will be posted at this same URL.
+
+Contact
+-------
+Questions: gilad.kutiel@gmail.com

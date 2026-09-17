@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cycle, textToPath, pathToText } from './nav'
+import { cycle, textToHash, hashToText } from './nav'
 
 describe('cycle', () => {
   const l = ['a', 'b', 'c']
@@ -14,21 +14,21 @@ describe('cycle', () => {
   it('returns current for an empty list', () => expect(cycle([], 'a', 1)).toBe('a'))
 })
 
-describe('textToPath', () => {
-  it('encodes text as a path segment', () => expect(textToPath('hello world')).toBe('/hello%20world'))
-  it('trims surrounding whitespace', () => expect(textToPath('  hi  ')).toBe('/hi'))
-  it('returns root for empty text', () => expect(textToPath('')).toBe('/'))
-  it('returns root for whitespace-only text', () => expect(textToPath('   ')).toBe('/'))
-  it('encodes slashes so path segments stay intact', () =>
-    expect(textToPath('a/b')).toBe('/a%2Fb'))
+describe('textToHash', () => {
+  it('encodes text as a hash fragment', () => expect(textToHash('hello world')).toBe('#hello%20world'))
+  it('trims surrounding whitespace', () => expect(textToHash('  hi  ')).toBe('#hi'))
+  it('returns empty string for empty text', () => expect(textToHash('')).toBe(''))
+  it('returns empty string for whitespace-only text', () => expect(textToHash('   ')).toBe(''))
+  it('encodes slashes so the fragment stays intact', () =>
+    expect(textToHash('a/b')).toBe('#a%2Fb'))
 })
 
-describe('pathToText', () => {
-  it('decodes a path segment back to text', () => expect(pathToText('/hello%20world')).toBe('hello world'))
-  it('returns empty string for root', () => expect(pathToText('/')).toBe(''))
-  it('returns empty string for a malformed path', () => expect(pathToText('/%E0%A4%A')).toBe(''))
-  it('round-trips with textToPath', () => {
+describe('hashToText', () => {
+  it('decodes a hash fragment back to text', () => expect(hashToText('#hello%20world')).toBe('hello world'))
+  it('returns empty string for an empty hash', () => expect(hashToText('')).toBe(''))
+  it('returns empty string for a malformed hash', () => expect(hashToText('#%E0%A4%A')).toBe(''))
+  it('round-trips with textToHash', () => {
     const text = 'hi there / friend'
-    expect(pathToText(textToPath(text))).toBe(text)
+    expect(hashToText(textToHash(text))).toBe(text)
   })
 })
