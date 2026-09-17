@@ -523,17 +523,9 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
     no_bar = _no_progress_bar()
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
-    monitor = (
-        "F1/val"
-        if {"emoji", "style"} <= set(heads)
-        else "MRR/e/val"
-        if "emoji" in heads
-        else "MRR/s/val"
-        if "style" in heads
-        else "acc/lang/val"
-    )
+    monitor = "loss/e/val"
     ckpt = ModelCheckpoint(
-        monitor=monitor, mode="max", save_top_k=1, filename="best-{step}"
+        monitor=monitor, mode="min", save_top_k=1, filename="best-{step}"
     )
     trainer = pl.Trainer(
         devices="auto",
@@ -547,7 +539,7 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
         enable_progress_bar=not no_bar,
         callbacks=[
             ckpt,
-            EarlyStopping(monitor=monitor, mode="max",
+            EarlyStopping(monitor=monitor, mode="min",
                           patience=EARLY_STOP_PATIENCE_ENCODER),
             *bar_cbs,
             ModelSummary(),
@@ -562,6 +554,7 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
         mod = LitEncoder.load_from_checkpoint(ckpt.best_model_path)
 
     save_pt(mod.enc.state_dict(), str(out_dir / "enc.pt"), stage="enc")
+    save_pt(mod.color_reg.state_dict(), str(out_dir / "color_reg.pt"), stage="enc")
     if "emoji" in heads:
         save_pt(
             mod.emoji_embed.state_dict(),
@@ -1037,9 +1030,7 @@ def cli(
       pt/ only with --local. A dirty git tree always aborts.
 
     Heads (stage 1 eval / checkpoint monitor)
-      emoji+style -> F1/val (harmonic mean of MRR/e/val and MRR/s/val),
-      else emoji -> MRR/e/val, style -> MRR/s/val, lang -> acc/lang/val;
-      the first match in that order is the checkpoint + early-stop metric.
+      loss/e/val is the checkpoint + early-stop metric, regardless of --heads.
     """
     resolved = _validate(stage, local, heads, pt, out, gpu, cpu)
     if local:
