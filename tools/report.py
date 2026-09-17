@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import torch
 import typer
 import yaml
+from torch import nn
 from torch.nn.functional import normalize as _l2norm
 
 from files import (
@@ -44,6 +45,7 @@ from model.export_onnx import CONST_Z
 from model.kwtokens import word_count
 from model.model import (
     ColorGen,
+    ColorRegressor,
     EmojiEmbedding,
     EmojiHead,
     StyleHead,
@@ -363,7 +365,8 @@ def _section_block_capacity(enc, heads: dict) -> dict:
         for head_name, head in heads.items():
             if head is None:
                 continue
-            weight = head.net[1].weight
+            net = head.net
+            weight = net.weight if isinstance(net, nn.Linear) else net[1].weight
             rows = []
             for source, path in _BLOCK_CAPACITY_SOURCES:
                 texts = [r.text for r in read(path)]
@@ -959,9 +962,10 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
     }
     enc_pt, emoji_pt = pt / "enc.pt", pt / "emoji.pt"
     style_pt, gen_pt = pt / "style.pt", pt / "gen.pt"
+    color_reg_pt = pt / "color_reg.pt"
     prov = _provenance(pt)
 
-    enc = emoji_head = style_head = gen = None
+    enc = emoji_head = style_head = gen = color_reg_head = None
     need_enc = bool(
         {
             "emoji",
@@ -988,6 +992,10 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
             style_head, err = _load(StyleHead(), style_pt)
             if err:
                 prov["issues"].append(f"{style_pt} could not load: {err}")
+    if enc is not None and "block_capacity" in want and color_reg_pt.exists():
+        color_reg_head, err = _load(ColorRegressor(), color_reg_pt)
+        if err:
+            prov["issues"].append(f"{color_reg_pt} could not load: {err}")
     if "cards" in want and enc is not None and gen_pt.exists():
         gen, err = _load(ColorGen(), gen_pt)
         if err:
@@ -1024,7 +1032,12 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         report["style_dist"] = _section_style_dist(enc, style_head, eval_records)
     if "block_capacity" in want:
         report["block_capacity"] = _section_block_capacity(
-            enc, {"EmojiHead": emoji_head, "StyleHead": style_head}
+            enc,
+            {
+                "EmojiHead": emoji_head,
+                "StyleHead": style_head,
+                "ColorRegressor": color_reg_head,
+            },
         )
     if "length_acc" in want:
         report["length_acc"] = _section_length_acc(enc, emoji_head, eval_records)
@@ -1101,11 +1114,15 @@ transform-origin:top right;font-size:12.5px;margin-top:9px}
 .linechart .dot{fill:var(--accent)}
 .linechart .vtext{font-size:11px;fill:var(--dim);font-variant-numeric:tabular-nums}
 .linechart .xtext{font-size:12px;fill:var(--ink)}
-table{border-collapse:collapse;width:100%;margin:16px 0;font-size:16px}
+table{border-collapse:collapse;width:100%;margin:16px 0;font-size:16px;
+border:1px solid var(--line)}
 th,td{border-bottom:1px solid var(--line);padding:10px 12px;text-align:left}
-th{font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:.03em}
+th{font-size:13px;color:var(--ink);font-weight:700;text-transform:uppercase;
+letter-spacing:.03em;background:var(--panel);border-bottom:2px solid var(--ink)}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 tr:last-child td{border-bottom:none}
+table:not(.scorecard) tr:nth-child(even){background:var(--panel)}
+table:not(.scorecard) tr:hover{background:var(--good-bg)}
 .cards-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:18px 0 0}
 .sample-cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0 0}
 .sample-card{width:100%;aspect-ratio:1/1;border:1px solid var(--line);border-radius:12px}
@@ -1608,8 +1625,8 @@ def _block_capacity_html(d) -> str:
         return (
             "<h2>Model — Encoder block capacity</h2>"
             '<p class="note">Unavailable — needs enc.pt / emoji.pt / style.pt '
-            "and data from data/keywords.jsonl, data/terms.jsonl, "
-            "data/eval.jsonl.</p>"
+            "/ color_reg.pt and data from data/keywords.jsonl, "
+            "data/terms.jsonl, data/eval.jsonl.</p>"
         )
     out = [
         "<h2>Model — Encoder block capacity</h2>",
@@ -1620,7 +1637,7 @@ def _block_capacity_html(d) -> str:
         "per-block activation norm divided by sqrt(channel count), so it's "
         "comparable across blocks with different channel widths.</p>",
     ]
-    for head_name in ("EmojiHead", "StyleHead"):
+    for head_name in ("EmojiHead", "StyleHead", "ColorRegressor"):
         rows = (d.get(head_name) or {}).get("rows")
         out.append(f"<h3>{_esc(head_name)}</h3>")
         out.append(
