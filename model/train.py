@@ -81,7 +81,6 @@ from model.metrics import macro_average
 from model.model import (
     ColorCritic,
     ColorGen,
-    ColorRegressor,
     EmojiEmbedding,
     EmojiHead,
     LangHead,
@@ -134,6 +133,7 @@ def harmonic_mean(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
 
 ALL_HEADS: tuple[str, ...] = ("style", "emoji", "lang")
 _DEFAULT_PT = Path(PT_DIR)
+COLOR_SOURCE_NAME = "color"
 
 
 class Stage(StrEnum):
@@ -193,7 +193,7 @@ class LitEncoder(pl.LightningModule):
         if "lang" in self.heads:
             self.lang = LangHead()
 
-        self.color_reg = ColorRegressor()
+        self.gen = ColorGen()
 
         self._val_e_rr: list[torch.Tensor] = []
         self._trn_e_rr: list[torch.Tensor] = []
@@ -245,7 +245,9 @@ class LitEncoder(pl.LightningModule):
                 e_rr.append(rr.detach())
 
             if split == "val":
-                for name in SAMPLING_SOURCES:
+                for name, cfg in SAMPLING_SOURCES.items():
+                    if cfg.metric != "acc@1":
+                        continue
                     mask = torch.tensor(
                         [s == name for s in source], device=emoji.device
                     )
@@ -283,22 +285,35 @@ class LitEncoder(pl.LightningModule):
             lang_acc = self._val_lang_acc if split == "val" else self._trn_lang_acc
             lang_acc.append(acc.detach())
 
-        is_full = torch.tensor(
-            [s == SRC_FULL for s in source], device=enc.device)
-        n_full = int(is_full.sum())
-        if n_full:
-            real_lab = rgb_to_oklab(colors[is_full])
-            pred_lab = self.color_reg(enc[is_full])
+        has_color = torch.tensor(
+            [s in (SRC_FULL, COLOR_SOURCE_NAME) for s in source], device=enc.device)
+        n_color = int(has_color.sum())
+        if n_color:
+            real_lab = rgb_to_oklab(colors[has_color])
+            zero_z = torch.zeros_like(enc[has_color])
+            pred_lab = rgb_to_oklab(self.gen(enc[has_color], zero_z))
             loss_color = mse_loss(pred_lab, real_lab)
             loss = loss + LOSS_WEIGHT_COLOR_REG * loss_color
-            self._log(f"loss/color_reg/{split}", loss_color, n_full)
+            self._log(f"loss/color_reg/{split}", loss_color, n_color)
             dist = (
                 (pred_lab - real_lab)
-                .view(n_full, 3, 3)
+                .view(n_color, 3, 3)
                 .norm(dim=-1)
                 .mean()
             )
-            self._log(f"dist/color_reg/{split}", dist, n_full)
+            self._log(f"dist/color_reg/{split}", dist, n_color)
+
+            if split == "val":
+                color_src_mask = torch.tensor(
+                    [s == COLOR_SOURCE_NAME for s in source], device=enc.device
+                )[has_color]
+                n_c = int(color_src_mask.sum())
+                if n_c:
+                    self._log(
+                        f"{COLOR_SOURCE_NAME}/mse",
+                        mse_loss(pred_lab[color_src_mask], real_lab[color_src_mask]),
+                        n_c,
+                    )
 
         return loss
 
@@ -324,8 +339,12 @@ class LitEncoder(pl.LightningModule):
         for name, cfg in SAMPLING_SOURCES.items():
             key = f"{name}/{cfg.metric}"
             if key in metrics:
-                acc = float(metrics[key])
-                gap = max(0.0, cfg.goal - acc) / cfg.goal
+                val = float(metrics[key])
+                gap = (
+                    max(0.0, val - cfg.goal) / cfg.goal
+                    if cfg.lower_is_better
+                    else max(0.0, cfg.goal - val) / cfg.goal
+                )
                 rate = max(SAMPLING_MIN_RATE, base_rate * gap)
                 self.train_dataset.rates.set(name, rate)
             self.log(f"{name}/rate", self.train_dataset.rates.get(name))
@@ -376,7 +395,7 @@ class LitEncoder(pl.LightningModule):
             params += list(self.emoji_embed.parameters())
         for h in self.heads:
             params += list(getattr(self, h).parameters())
-        params += list(self.color_reg.parameters())
+        params += list(self.gen.parameters())
         return optim.Adam(params, lr=LR_ENCODER)
 
 
@@ -583,7 +602,7 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
         mod = LitEncoder.load_from_checkpoint(ckpt.best_model_path)
 
     save_pt(mod.enc.state_dict(), str(out_dir / "enc.pt"), stage="enc")
-    save_pt(mod.color_reg.state_dict(), str(out_dir / "color_reg.pt"), stage="enc")
+    save_pt(mod.gen.state_dict(), str(out_dir / "gen.pt"), stage="enc")
     if "emoji" in heads:
         save_pt(
             mod.emoji_embed.state_dict(),
@@ -598,8 +617,19 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
     return mod
 
 
+def _warm_start_gen(gen: ColorGen, pt_dir: Path) -> None:
+    path = pt_dir / "gen.pt"
+    if not path.exists():
+        return
+    try:
+        sd, _ = load_pt(str(path))
+        gen.load_state_dict(sd)
+    except (RuntimeError, KeyError):
+        pass
+
+
 def _train_gan(
-    enc: TextEncoder, critic: ColorCritic, ds, out_dir: Path
+    enc: TextEncoder, critic: ColorCritic, ds, pt_dir: Path, out_dir: Path
 ) -> LitColorGAN:
     val_dl = eval_data_loader(mix_sources=False)
     no_bar = _no_progress_bar()
@@ -634,6 +664,7 @@ def _train_gan(
     )
 
     gan = LitColorGAN(enc, critic)
+    _warm_start_gen(gan.gen, pt_dir)
     gan_dl = train_data_loader(data_set=ds, batch_size=GAN_BATCH_SIZE)
     trainer.fit(gan, gan_dl, val_dl)
 
@@ -679,7 +710,7 @@ def _run_local(
         enc = _load(TextEncoder(), str(pt_dir / "enc.pt"))
         critic = ColorCritic()
         _train_gan(enc, critic, train_ds(  # type: ignore
-            mix_sources=False), out_dir)
+            mix_sources=False), pt_dir, out_dir)
         if out_dir == _DEFAULT_PT:
             export()
         if not skip_report:
@@ -697,7 +728,7 @@ def _run_local(
 
     critic = ColorCritic()
     _train_gan(mod.enc, critic, train_ds(  # type: ignore
-        mix_sources=False), out_dir)
+        mix_sources=False), out_dir, out_dir)
     if out_dir == _DEFAULT_PT:
         export()
     if not skip_report:

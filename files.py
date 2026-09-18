@@ -20,6 +20,8 @@ CLDR_BASELINE_JSON = f"{DATA_DIR}/cldr-baseline.json"
 EMOJI_POPULARITY_JSON = f"{DATA_DIR}/emoji_popularity.json"
 GROUP_JSON = f"{DATA_DIR}/group.json"
 COLORS_JSONL = f"{DATA_DIR}/colors.jsonl"
+COLOR_TERMS_JSONL = f"{DATA_DIR}/color_terms.jsonl"
+COLOR_NAMES_SOURCE_JSON = f"{DATA_DIR}/color-names-source.json"
 PRED_JSONL = f"{DATA_DIR}/pred.jsonl"
 
 ENC_PT = f"{PT_DIR}/enc.pt"

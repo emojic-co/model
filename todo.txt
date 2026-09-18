@@ -1,1 +1,23 @@
-What other analysis can we use to understand which layer has too many channels and which layer has too few channels in the text encoder?
+Training:
+The goal is to generate data/colors.jsonl file with records the only targets the colors.
+Similar to the data/keywords.jsonl data, the data/colors.jsonl should be randomly sampled during training.
+The difference is that there are no emojis and no styles and the target head is the ColorRegressor head.
+Another difference is that we can not measure accuracy, instead we will measure mse in LAB space.
+Sample ratio will be proportional to the mse.
+
+Tasks:
+-   Create a list with color names and their colors.
+    Also add color terms, e.g. "dark red", "light blue", "pale green", etc.
+    Make sure the list is complete and contains dark, light, pale, bright, etc. for all colors.
+
+-   Sampling rate uses the same:
+        SAMPLING_BASE_RATE
+        SAMPLING_MIN_RATE
+    
+    Actual sample rate is determined by the mse, target mse is set at `goals.yml` file:
+      color regressor:
+        "mse": 0.005
+
+-   Remove the ColorRegressor head from the model and use the ColorGen with a zero noise vector.
+
+

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from files import KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
+from files import COLOR_TERMS_JSONL, KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
 
 # from files import FLAGS_JSONL
 
@@ -109,11 +109,13 @@ class SamplingSource:
     path: str
     metric: str
     goal: float
+    lower_is_better: bool = False
 
 
 SAMPLING_SOURCES: dict[str, SamplingSource] = {
     "keyword": SamplingSource(KEYWORDS_JSONL, "acc@1", 0.95),
     "term": SamplingSource(TERMS_JSONL, "acc@1", 0.9),
+    "color": SamplingSource(COLOR_TERMS_JSONL, "mse", 0.005, lower_is_better=True),
     # "flags": SamplingSource(FLAGS_JSONL, "acc@1", 0.9),
 }
 
