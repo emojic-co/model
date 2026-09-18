@@ -26,6 +26,13 @@ from model.config import (
 from model.data import COLOR_DIM, EMOJIS, LANGS, PAD_IDX, STYLES, VOCAB_SIZE
 
 
+def blk(i: int, o: int):
+    return [
+        nn.Linear(i, o, bias=False),
+        nn.LayerNorm(o),
+        nn.LeakyReLU(negative_slope=RELU_SLOPE)]
+
+
 class TextEncoderBlock(nn.Module):
     def __init__(self, i: int, o: int, dilation: int, num_groups: int = 8):
         super().__init__()
@@ -58,6 +65,8 @@ class TextEncoder(nn.Module):
         self.blocks = nn.ModuleList(
             [TextEncoderBlock(i=i, o=o, dilation=d) for i, o, d in io])
 
+        self.proj = nn.Sequential(*blk(sum(cs), EMBED_SIZE_TEXT))
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         out = self.char_embed(x).transpose(1, 2)
         n = (x != PAD_IDX).sum(dim=1, keepdim=True)
@@ -67,7 +76,8 @@ class TextEncoder(nn.Module):
             keep = torch.arange(out.shape[-1], device=x.device) < n
             masked = out.masked_fill(~keep.unsqueeze(1), float("-inf"))
             pooled.append(torch.max(masked, dim=-1).values)
-        return torch.cat(pooled, dim=-1)
+
+        return self.proj(torch.cat(pooled, dim=-1))
 
 
 class StyleHead(nn.Module):
@@ -118,13 +128,6 @@ class EmojiHead(nn.Module):
 
 
 # GAN
-def blk(i: int, o: int):
-    return [
-        nn.Linear(i, o, bias=False),
-        nn.LayerNorm(o),
-        nn.LeakyReLU(negative_slope=RELU_SLOPE)]
-
-
 class ColorGen(nn.Module):
     def __init__(self):
         super().__init__()

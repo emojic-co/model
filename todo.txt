@@ -1,3 +1,5 @@
-Done:
-manual annotate the data/color_terms.jsonl with emojis (leave the style empty).
-add it to the text encoder training as a sample source.
+Add another layer to the text encoder.
+Set 
+EMBED_SIZE_TEXT = 300
+and use sum(ENCODER_CHANNELS) internally in the TextEncoder.
+Add another layer from sum(ENCODER_CHANNELS) to EMBED_SIZE_TEXT
