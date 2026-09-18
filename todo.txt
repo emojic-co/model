@@ -1,2 +1,2 @@
-Update the tools/data/stat.ts tool to also estimate the best r^2 a color regressor model can achieve.
-You should analyze texts with multiple colors and compare the variance of colors in the text to the variance of colors in the dataset. 
+1. use plain strings in .pt metrics.
+2. GAN training always use a fallback of a fresh training if any .pt file is missing or corrupted.
