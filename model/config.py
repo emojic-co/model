@@ -122,7 +122,7 @@ SAMPLING_SOURCES: dict[Source, SamplingSource] = {
     ),
 }
 
-SAMPLING_BASE_RATE = 0.2
+SAMPLING_MAX_RATE = 0.2
 SAMPLING_MIN_RATE = 0.005
 
 
@@ -139,7 +139,7 @@ train_str = " ".join(
             GRAD_CLIP_CRITIC,
             INFONCE_TEMP_EMOJI,
             # *SAMPLING_SOURCES.values(),
-            SAMPLING_BASE_RATE,
+            SAMPLING_MAX_RATE,
             SAMPLING_MIN_RATE,
         )
     ]

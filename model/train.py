@@ -64,6 +64,7 @@ from model.config import (
     LR_GAN_CRITIC,
     LR_GAN_GEN,
     MACRO_MIN_SUPPORT,
+    SAMPLING_MAX_RATE,
     SAMPLING_MIN_RATE,
     SAMPLING_SOURCES,
     SEED,
@@ -304,7 +305,7 @@ class LitEncoder(pl.LightningModule):
                     if cfg.lower_is_better
                     else max(0.0, cfg.goal - val) / cfg.goal
                 )
-                rate = max(SAMPLING_MIN_RATE, base_rate * gap)
+                rate = min(SAMPLING_MAX_RATE, max(SAMPLING_MIN_RATE, base_rate * gap))
                 self.train_dataset.rates.set(name, rate)
             self.log(
                 named_metric(name, Metric.RATE),
