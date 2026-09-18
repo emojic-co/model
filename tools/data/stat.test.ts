@@ -108,6 +108,51 @@ test("computeStats detects language from script when untagged, and counts explic
   expect(he).toEqual({ lang: "he", texts: 2, pct: expect.closeTo(66.67, 1), tagged: 1 })
 })
 
+test("computeStats averages distinct color palettes per text, dedupes repeats across records", () => {
+  const s = computeStats([
+    { text: "no colors", emojis: "", styles: [] },
+    { text: "one color", emojis: "", styles: [], colors: [{ bg: ["#111111", "#222222"], fg: "#ffffff" }] },
+    { text: "two colors", emojis: "", styles: [], colors: [
+      { bg: ["#111111", "#222222"], fg: "#ffffff" },
+      { bg: ["#333333", "#444444"], fg: "#000000" },
+    ] },
+    { text: "two colors", emojis: "", styles: [], colors: [{ bg: ["#111111", "#222222"], fg: "#ffffff" }] },
+  ])
+  expect(s.meanColorsPerText).toBeCloseTo(1)
+})
+
+test("computeStats estimates a color regressor R^2 ceiling from within-text vs. dataset color variance", () => {
+  const s = computeStats([
+    { text: "steady", emojis: "", styles: [], colors: [{ bg: ["#000000", "#000000"], fg: "#ffffff" }] },
+    { text: "steady", emojis: "", styles: [], colors: [{ bg: ["#000000", "#000000"], fg: "#ffffff" }] },
+    { text: "flip a", emojis: "", styles: [], colors: [
+      { bg: ["#000000", "#000000"], fg: "#000000" },
+      { bg: ["#ffffff", "#ffffff"], fg: "#ffffff" },
+    ] },
+    { text: "flip b", emojis: "", styles: [], colors: [
+      { bg: ["#000000", "#000000"], fg: "#000000" },
+      { bg: ["#ffffff", "#ffffff"], fg: "#ffffff" },
+    ] },
+  ])
+  expect(s.colorFit.colorTexts).toBe(3)
+  expect(s.colorFit.multiColorTexts).toBe(2)
+  expect(s.colorFit.withinTextVariance).toBeGreaterThan(0)
+  expect(s.colorFit.datasetVariance).toBeGreaterThan(0)
+  expect(s.colorFit.r2Ceiling).toBeGreaterThanOrEqual(0)
+  expect(s.colorFit.r2Ceiling).toBeLessThanOrEqual(1)
+  expect(s.colorFit.r2Ceiling).toBeCloseTo(0, 5)
+})
+
+test("computeStats gives a color regressor R^2 ceiling of 1 when no text has color disagreement", () => {
+  const s = computeStats([
+    { text: "a", emojis: "", styles: [], colors: [{ bg: ["#111111", "#222222"], fg: "#ffffff" }] },
+    { text: "b", emojis: "", styles: [], colors: [{ bg: ["#333333", "#444444"], fg: "#000000" }] },
+  ])
+  expect(s.colorFit.multiColorTexts).toBe(0)
+  expect(s.colorFit.withinTextVariance).toBe(0)
+  expect(s.colorFit.r2Ceiling).toBe(1)
+})
+
 test("computeStats counts neg, meta, and meta.single-emoji extra fields", () => {
   const s = computeStats([
     R("plain row", "🐈"),
