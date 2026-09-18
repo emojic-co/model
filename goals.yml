@@ -13,9 +13,9 @@ goals:
       "acc@5": 0.85
       "acc@10": 0.9
     full text:
-      "acc@1": 0.63
-      "acc@5": 0.70
-      "acc@10": 0.85
+      "acc@1": 0.65
+      "acc@5": 0.75
+      "acc@10": 0.9
     # flags:
     #   "acc@1": 0.9
     #   "acc@5": 0.95
@@ -25,7 +25,7 @@ goals:
     full text:
       "acc@1": 0.60
       "acc@5": 0.80
-      "acc@10": 0.90
+      "acc@10": 0.87
 
   color generator:
     energy distance:

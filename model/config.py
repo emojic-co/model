@@ -79,7 +79,7 @@ color_reg_str = " ".join([str(p) for p in (LOSS_WEIGHT_COLOR_REG,)])
 
 # LR
 LR_ENCODER = 0.01
-LR_GAN_GEN = 0.005
+LR_GAN_GEN = 0.001
 LR_GAN_CRITIC = 0.01
 
 # TRAINING
