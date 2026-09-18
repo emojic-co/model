@@ -46,8 +46,7 @@ EMBED_SIZE_EMOJI = 60
 EMBED_SIZE_STYLE = 12
 
 # DROPOUT
-DROPOUT_EMOJI = 0.05
-DROPOUT_STYLE = 0.05
+DROPOUT = 0.1
 
 assert len(ENCODER_CHANNELS) == len(ENCODER_DILATION), \
     "encoder channels and dilation must have the same length"
@@ -60,10 +59,10 @@ enc_str = " ".join([
         ENCODER_DILATION)])
 
 
-emj_str = " ".join([str(p) for p in (EMBED_SIZE_EMOJI, DROPOUT_EMOJI)])
+emj_str = " ".join([str(p) for p in (EMBED_SIZE_EMOJI,)])
 style_str = " ".join([
     str(p)
-    for p in (EMBED_SIZE_STYLE, EMBED_SIZE_TEXT, DROPOUT_STYLE)])
+    for p in (EMBED_SIZE_STYLE, EMBED_SIZE_TEXT,)])
 
 # GAN
 Z_DIM = 64

@@ -10,8 +10,7 @@ from torch.nn.utils.parametrizations import spectral_norm as sn
 from model.color import COLOR_SHIFT
 from model.config import (
     CRITIC_EMBEDDING_SIZE,
-    DROPOUT_EMOJI,
-    DROPOUT_STYLE,
+    DROPOUT,
     EMBED_SIZE_CHAR,
     EMBED_SIZE_EMOJI,
     EMBED_SIZE_STYLE,
@@ -65,7 +64,9 @@ class TextEncoder(nn.Module):
         self.blocks = nn.ModuleList(
             [TextEncoderBlock(i=i, o=o, dilation=d) for i, o, d in io])
 
-        self.proj = nn.Sequential(*blk(sum(cs), EMBED_SIZE_TEXT))
+        self.proj = nn.Sequential(
+            nn.Dropout(p=DROPOUT),
+            *blk(sum(cs), EMBED_SIZE_TEXT))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         out = self.char_embed(x).transpose(1, 2)
@@ -84,12 +85,11 @@ class StyleHead(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.net = nn.Sequential(
-            nn.Dropout(p=DROPOUT_STYLE),
-            nn.Linear(EMBED_SIZE_TEXT, EMBED_SIZE_STYLE, bias=False))
-
         self.embed = nn.Embedding(len(STYLES), EMBED_SIZE_STYLE)
         self.bias = nn.Parameter(torch.zeros(len(STYLES)))
+        self.net = nn.Linear(
+            EMBED_SIZE_TEXT,
+            EMBED_SIZE_STYLE, bias=False)
 
     def forward(self, text_embedding: torch.Tensor) -> torch.Tensor:
         s = self.net(text_embedding)
@@ -119,9 +119,7 @@ class EmojiHead(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.net = nn.Sequential(
-            nn.Dropout(p=DROPOUT_EMOJI),
-            nn.Linear(EMBED_SIZE_TEXT, EMBED_SIZE_EMOJI, bias=False))
+        self.net = nn.Linear(EMBED_SIZE_TEXT, EMBED_SIZE_EMOJI, bias=False)
 
     def forward(self, text_embedding: torch.Tensor) -> torch.Tensor:
         return self.net(text_embedding)
