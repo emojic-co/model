@@ -1,13 +1,14 @@
-from model.runmeta import load_pt
-from model.model import (
-    ColorGen,
-    EmojiEmbedding,
-    EmojiHead,
-    StyleHead,
-    TextEncoder,
-)
-from model.data import CHARS, PAD_IDX
-from model.config import EMBED_SIZE_TEXT, EMOJIS, MAX_TEXT_LEN, SEED, STYLES, Z_WEIGHT
+import json
+import sys
+import warnings
+from datetime import UTC, datetime
+from pathlib import Path
+
+import torch
+import typer
+from torch import nn
+from torch.nn.functional import normalize
+
 from files import (
     EMOJI_EMBED_PT,
     EMOJI_PT,
@@ -17,20 +18,21 @@ from files import (
     STYLE_PT,
     WEB_PUBLIC_DIR,
 )
-from torch.nn.functional import normalize
-from torch import nn
-import typer
-import torch
-import json
-import sys
-import warnings
-from datetime import UTC, datetime
-from pathlib import Path
+from model.config import EMBED_SIZE_TEXT, EMOJIS, MAX_TEXT_LEN, SEED, STYLES, Z_WEIGHT
+from model.data import CHARS, PAD_IDX
+from model.model import (
+    ColorGen,
+    EmojiEmbedding,
+    EmojiHead,
+    StyleHead,
+    TextEncoder,
+)
+from model.runmeta import load_pt
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 
-WEB_PUBLIC = Path(WEB_PUBLIC_DIR)
+WEB_PUBLIC = WEB_PUBLIC_DIR
 ONNX_OPSET = 18
 COLOR_SAMPLES = 5
 
@@ -44,7 +46,7 @@ CONST_Z = normalize(
 )
 
 
-def _load(mod: nn.Module, path: str | Path) -> nn.Module:
+def _load(mod: nn.Module, path: Path) -> nn.Module:
     sd, meta = load_pt(path)
     mod.load_state_dict(sd)
     mod._pt_meta = meta

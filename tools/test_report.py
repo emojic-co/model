@@ -178,12 +178,12 @@ def test_keywords_flex_html():
 def test_section_keyword_and_term_probe():
     from tools.report import KEYWORDS_JSONL, TERMS_JSONL, _rows, _section_keyword_probe
 
-    if not _rows(str(KEYWORDS_JSONL)):
+    if not _rows(KEYWORDS_JSONL):
         print("skip test_section_keyword_and_term_probe (no data/keywords.jsonl)")
         return
     d = _section_keyword_probe(None, None)
     assert d == {}, "no enc/head -> unavailable"
-    if not _rows(str(TERMS_JSONL)):
+    if not _rows(TERMS_JSONL):
         print("skip test_section_keyword_and_term_probe (no data/terms.jsonl)")
 
 

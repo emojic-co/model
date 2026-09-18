@@ -20,6 +20,7 @@ class Metric(StrEnum):
     RATE = "rate"
     MAE = "mae"
     MRR = "mrr"
+    R2 = "r2"
 
 
 class NamedMetric(str):

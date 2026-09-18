@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 import torch
 import typer
 
-from files import EVAL_JSONL
+from files import EVAL_JSONL, PT_DIR, PtFile
 from model.config import ENCODER_DILATION, ENCODER_KERNEL_SIZE, MAX_TEXT_LEN
 from model.data import EMOJIS, read, text_to_tensor
 from model.model import EmojiEmbedding, EmojiHead, TextEncoder
@@ -15,7 +15,7 @@ from model.runmeta import load_pt
 EMOJI_KS = [1, 5, 10]
 
 
-def _load(mod: torch.nn.Module, path: str) -> torch.nn.Module:
+def _load(mod: torch.nn.Module, path: Path) -> torch.nn.Module:
     sd, _ = load_pt(path)
     mod.load_state_dict(sd)
     mod.eval()
@@ -41,10 +41,10 @@ def _bucket(length: int, rf: int) -> str:
     return f"{rf + 1}-{MAX_TEXT_LEN}"
 
 
-def main(pt: Path = typer.Option(Path("pt"), "--pt")) -> None:
-    enc = _load(TextEncoder(), str(pt / "enc.pt"))
-    head = _load(EmojiHead(), str(pt / "emoji.pt"))
-    embed = _load(EmojiEmbedding(), str(pt / "emoji_embed.pt"))
+def main(pt: Path = typer.Option(PT_DIR, "--pt")) -> None:
+    enc = _load(TextEncoder(), PtFile.ENC.in_dir(pt))
+    head = _load(EmojiHead(), PtFile.EMOJI.in_dir(pt))
+    embed = _load(EmojiEmbedding(), PtFile.EMOJI_EMBED.in_dir(pt))
 
     rf = receptive_field()
     vocab = {e: i for i, e in enumerate(EMOJIS)}
@@ -79,7 +79,7 @@ _app = typer.Typer(
 
 
 @_app.command()
-def cli(pt: Path = typer.Option(Path("pt"), "--pt")) -> None:
+def cli(pt: Path = typer.Option(PT_DIR, "--pt")) -> None:
     """Bucket data/eval.jsonl by text length and report EmojiHead Acc@k per bucket."""
     main(pt)
 

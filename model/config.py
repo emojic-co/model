@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 from files import COLOR_TERMS_JSONL, KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
-from model.metric import Metric, Source, Split
+from model.metric import Metric, NamedMetric, Source, Split, named_metric
 
 # from files import FLAGS_JSONL
 
@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 
 # DATA
-with open(LABELS_JSON, encoding="utf-8") as f:
+with LABELS_JSON.open(encoding="utf-8") as f:
     LABELS = json.load(f)
 
 LANGS = LABELS["langs"]
@@ -107,23 +107,31 @@ gan_str = " ".join([
 
 @dataclass(frozen=True)
 class SamplingSource:
-    path: str
-    metric: Metric
-    goal: float
-    lower_is_better: bool = False
-    split: Split | None = None
+    path: Path
+    metric: NamedMetric
+    from_: float
+    to: float
 
 
+SAMPLING_RATE_MAX = 0.2
+SAMPLING_RATE_MIN = 0.005
 SAMPLING_SOURCES: dict[Source, SamplingSource] = {
-    Source.KEYWORD: SamplingSource(KEYWORDS_JSONL, Metric.ACC_1, 0.95),
-    Source.TERM: SamplingSource(TERMS_JSONL, Metric.ACC_1, 0.9),
+    Source.KEYWORD: SamplingSource(
+        KEYWORDS_JSONL,
+        named_metric(Source.KEYWORD, Metric.ACC_1),
+        0, 0.95
+    ),
+    Source.TERM: SamplingSource(
+        TERMS_JSONL,
+        named_metric(Source.TERM, Metric.ACC_1),
+        0, 0.9
+    ),
     Source.COLOR: SamplingSource(
-        COLOR_TERMS_JSONL, Metric.MAE, 5, lower_is_better=True, split=Split.VAL
+        COLOR_TERMS_JSONL,
+        named_metric(Source.COLOR, Metric.R2, Split.VAL),
+        0, 0.5,
     ),
 }
-
-SAMPLING_MAX_RATE = 0.2
-SAMPLING_MIN_RATE = 0.005
 
 
 train_str = " ".join(
@@ -138,9 +146,8 @@ train_str = " ".join(
             GRAD_CLIP_GEN,
             GRAD_CLIP_CRITIC,
             INFONCE_TEMP_EMOJI,
-            # *SAMPLING_SOURCES.values(),
-            SAMPLING_MAX_RATE,
-            SAMPLING_MIN_RATE,
+            SAMPLING_RATE_MAX,
+            SAMPLING_RATE_MIN,
         )
     ]
 )
