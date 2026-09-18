@@ -79,3 +79,6 @@ play/*-key.json
 # Release signing keystore — never commit, unrecoverable if lost.
 play/*.jks
 play/*.keystore
+
+
+tmp.txt
