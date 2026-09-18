@@ -1,4 +1,9 @@
-Done:
-1. remove the color regressor from the TextEncoder train stage.
-2. mix the data/color_terms.jsonl records into the train data of the GAN.
-3. concat the noise to the text embedding (instead of adding it) in the ColorGen.
+Simplify the train script:
+there only 2 options to run this script:
+1. train - train the text encoder, then the GAN model.
+2. train gan - train only the GAN model, using a pretrained text encoder.
+
+both options accept the --local flag.
+
+
+all other subcommands and flags should be removed. 
