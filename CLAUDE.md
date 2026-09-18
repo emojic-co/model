@@ -27,7 +27,7 @@ Architecture (read the code, not this file): `model/model.py` (encoder + heads +
 ## Environment & commands
 
 - Model stack: `uv` (`uv add`/`uv sync`, never `pip install`). Data toolchain: `bun` (`bun install`).
-- Loop: grow corpus (`bun run train` / `bun run upsample`) → `bun run regen` → `train --local` (see `model/train.py` for flags) → report auto-generates (or `tools/report.py` by hand). A single-head/single-stage train is scratch work, not the iteration result.
+- Loop: grow corpus (`bun run upsample`, topic-rotation by default or a targeted mode) → `bun run regen` → `train --local` (see `model/train.py` for flags) → report auto-generates (or `tools/report.py` by hand). A single-head/single-stage train is scratch work, not the iteration result.
 - `model/train.py` aborts on a dirty git tree — commit/stash first.
 - Refresh web app without retraining: `model/export_onnx.py`. `.pt` is gitignored; commit `web/public/` instead.
 - Web app: from `web/`, `npm install && npm run dev` / `npm test` / `npm run build`.

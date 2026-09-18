@@ -9,7 +9,7 @@ import {
 
 const P = (a: string, b: string, f: string) => ({ bg: [a, b], fg: f })
 
-test("collapse unions emojis and styles across rows with the same normalized text, last palette wins", () => {
+test("collapse unions emojis and styles across rows with the same normalized text, and collects every distinct palette", () => {
   const out = collapse([
     { text: "Bus is late", emojis: "🚌", styles: ["Irritated"], ...P("#111111", "#222222", "#eeeeee") },
     { text: "  bus   is late  ", emojis: "😤 🚌", styles: ["Tense", "Irritated"], ...P("#333333", "#444444", "#dddddd") },
@@ -17,28 +17,31 @@ test("collapse unions emojis and styles across rows with the same normalized tex
   expect(out).toHaveLength(1)
   expect(out[0].emojis.split(" ").sort()).toEqual(["😤", "🚌"].sort())
   expect(out[0].styles.sort()).toEqual(["Irritated", "Tense"])
-  expect(out[0].bg).toEqual(["#333333", "#444444"])
-  expect(out[0].fg).toBe("#dddddd")
+  expect(out[0].colors).toEqual([
+    { bg: ["#111111", "#222222"], fg: "#eeeeee" },
+    { bg: ["#333333", "#444444"], fg: "#dddddd" },
+  ])
 })
 
-test("collapse keeps an earlier palette when a later row for the same key has none", () => {
+test("collapse keeps a palette when a later row for the same key has none", () => {
   const out = collapse([
     { text: "quiet lake", emojis: "🏞️", styles: ["Wistful"], ...P("#111111", "#222222", "#eeeeee") },
     { text: "quiet  lake", emojis: "", styles: ["Deadpan"] },
   ])
   expect(out).toHaveLength(1)
-  expect(out[0].bg).toEqual(["#111111", "#222222"])
-  expect(out[0].fg).toBe("#eeeeee")
+  expect(out[0].colors).toEqual([{ bg: ["#111111", "#222222"], fg: "#eeeeee" }])
 })
 
-test("collapse takes the re-annotated palette appended after the original", () => {
+test("collapse keeps both the original and a re-annotated palette appended after it", () => {
   const out = collapse([
     { text: "sun on the water", emojis: "☀️", styles: ["Serene"], ...P("#eef2f6", "#dbe3ec", "#26323f") },
     { text: "sun on the water", emojis: "☀️", styles: ["Serene"], ...P("#1b3a5c", "#0d2036", "#e8eef6"), reannotated: "colors" },
   ])
   expect(out).toHaveLength(1)
-  expect(out[0].bg).toEqual(["#1b3a5c", "#0d2036"])
-  expect(out[0].fg).toBe("#e8eef6")
+  expect(out[0].colors).toEqual([
+    { bg: ["#eef2f6", "#dbe3ec"], fg: "#26323f" },
+    { bg: ["#1b3a5c", "#0d2036"], fg: "#e8eef6" },
+  ])
   expect(out[0].extra).toEqual({ reannotated: "colors" })
 })
 
@@ -57,11 +60,10 @@ test("collapse keeps only styles in the closed set", () => {
   expect(out[0].styles).toEqual(["Joyful"])
 })
 
-test("collapse emits a record with no bg/fg when no source row had a palette", () => {
+test("collapse emits a record with no colors field when no source row had a palette", () => {
   const out = collapse([{ text: "no colors", emojis: "🎈", styles: ["Playful"] }])
   expect(out).toHaveLength(1)
-  expect("bg" in out[0]).toBe(false)
-  expect("fg" in out[0]).toBe(false)
+  expect("colors" in out[0]).toBe(false)
 })
 
 test("collapse keeps the first-seen raw text for a merged key", () => {
@@ -95,13 +97,12 @@ test("toLine emits extra fields after the base schema fields", () => {
     text: "roses at dawn",
     emojis: "🌹",
     styles: ["Wistful"],
-    bg: ["#111111", "#222222"],
-    fg: "#eeeeee",
+    colors: [{ bg: ["#111111", "#222222"], fg: "#eeeeee" }],
     extra: { color: "red" },
   })
   expect(line).toBe(
     '{"text":"roses at dawn","emojis":"🌹","styles":["Wistful"],'
-    + '"bg":["#111111","#222222"],"fg":"#eeeeee","color":"red"}',
+    + '"colors":[{"bg":["#111111","#222222"],"fg":"#eeeeee"}],"color":"red"}',
   )
   expect(JSON.parse(toLine({ text: "t", emojis: "", styles: [] }))).toEqual({
     text: "t",

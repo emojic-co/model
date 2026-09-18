@@ -96,6 +96,18 @@ test("computeStats lists highest-disagreement texts first", () => {
   expect(s.disagreement[0].uniqueEmojis).toBe(4)
 })
 
+test("computeStats detects language from script when untagged, and counts explicit row.lang as tagged", () => {
+  const s = computeStats([
+    R("hello there", "🙂"),
+    R("שלום עולם", "🙂"),
+    R("bonjour le monde", "🙂", [], { lang: "he" }),
+  ])
+  const en = s.langCounts.find((x) => x.lang === "en")
+  const he = s.langCounts.find((x) => x.lang === "he")
+  expect(en).toEqual({ lang: "en", texts: 1, pct: expect.closeTo(33.33, 1), tagged: 0 })
+  expect(he).toEqual({ lang: "he", texts: 2, pct: expect.closeTo(66.67, 1), tagged: 1 })
+})
+
 test("computeStats counts neg, meta, and meta.single-emoji extra fields", () => {
   const s = computeStats([
     R("plain row", "🐈"),

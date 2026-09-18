@@ -4,7 +4,7 @@ import { minimalLine, minimize } from "./minimize.ts"
 
 const P = (a: string, b: string, f: string) => ({ bg: [a, b], fg: f })
 
-test("minimize collapses by normalized text, unions emojis/styles, last palette wins", () => {
+test("minimize collapses by normalized text, unions emojis/styles, and collects every distinct palette", () => {
   const lines = minimize(
     [
       { text: "Bus is late", emojis: "🚌", styles: ["Irritated"], ...P("#111111", "#222222", "#eeeeee") },
@@ -18,12 +18,14 @@ test("minimize collapses by normalized text, unions emojis/styles, last palette 
   const rec = JSON.parse(lines[0])
   expect(rec.emojis.split(" ").sort()).toEqual(["😤", "🚌"].sort())
   expect(rec.styles.sort()).toEqual(["Irritated", "Tense"])
-  expect(rec.bg).toEqual(["#333333", "#444444"])
-  expect(rec.fg).toBe("#dddddd")
+  expect(rec.colors).toEqual([
+    { bg: ["#111111", "#222222"], fg: "#eeeeee" },
+    { bg: ["#333333", "#444444"], fg: "#dddddd" },
+  ])
   expect(rec.min).toBe("abc1234")
 })
 
-test("minimize strips every non-base extra field except lang, keeping text/emojis/styles/bg/fg/lang/min", () => {
+test("minimize strips every non-base extra field except lang, keeping text/emojis/styles/colors/lang/min", () => {
   const out = minimize(
     [
       {
@@ -42,12 +44,12 @@ test("minimize strips every non-base extra field except lang, keeping text/emoji
     "deadbee",
   )
   const rec = JSON.parse(out.trim())
-  expect(Object.keys(rec).sort()).toEqual(["bg", "emojis", "fg", "lang", "min", "styles", "text"])
+  expect(Object.keys(rec).sort()).toEqual(["colors", "emojis", "lang", "min", "styles", "text"])
   expect(rec.lang).toBe("he")
   expect(rec.min).toBe("deadbee")
 })
 
-test("minimize omits bg/fg when no source row carried a palette", () => {
+test("minimize omits colors when no source row carried a palette", () => {
   const out = minimize([{ text: "no colors", emojis: "🎈", styles: ["Playful"] }], "abc1234")
   const rec = JSON.parse(out.trim())
   expect(Object.keys(rec).sort()).toEqual(["emojis", "min", "styles", "text"])
@@ -59,8 +61,7 @@ test("minimalLine marks one collapsed record with the short sha and drops its ex
       text: "roses at dawn",
       emojis: "🌹",
       styles: ["Wistful"],
-      bg: ["#111111", "#222222"],
-      fg: "#eeeeee",
+      colors: [{ bg: ["#111111", "#222222"], fg: "#eeeeee" }],
       extra: { color: "red" },
     },
     "1234abc",
@@ -69,8 +70,7 @@ test("minimalLine marks one collapsed record with the short sha and drops its ex
     text: "roses at dawn",
     emojis: "🌹",
     styles: ["Wistful"],
-    bg: ["#111111", "#222222"],
-    fg: "#eeeeee",
+    colors: [{ bg: ["#111111", "#222222"], fg: "#eeeeee" }],
     min: "1234abc",
   })
 })

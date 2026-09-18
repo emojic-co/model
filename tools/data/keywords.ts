@@ -14,12 +14,12 @@ export type SourceRow = {
   fg?: string
 }
 export type Src = string
+export type Palette = { bg: [string, string]; fg: string }
 export type MergedRow = {
   text: string
   emojis: string[]
   styles: string[]
-  bg?: [string, string]
-  fg?: string
+  colors?: Palette[]
   src: Src
 }
 
@@ -31,11 +31,11 @@ export function wordCount(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length
 }
 
-export function mergeKeywords(
-  sources: Record<string, SourceRow[]>,
-  rand: () => number = Math.random,
-): MergedRow[] {
-  type Palette = { bg: [string, string]; fg: string }
+function samePalette(a: Palette, b: Palette): boolean {
+  return a.bg[0] === b.bg[0] && a.bg[1] === b.bg[1] && a.fg === b.fg
+}
+
+export function mergeKeywords(sources: Record<string, SourceRow[]>): MergedRow[] {
   type Acc = {
     emojis: Set<string>
     styles: Set<string>
@@ -50,7 +50,10 @@ export function mergeKeywords(
       if (!a) byText.set(key, (a = { emojis: new Set(), styles: new Set(), palettes: [], srcs: new Set() }))
       for (const e of r.emojis.split(" ").filter(Boolean)) a.emojis.add(e)
       for (const s of r.styles) a.styles.add(s)
-      if (r.bg && r.fg) a.palettes.push({ bg: r.bg, fg: r.fg })
+      if (r.bg && r.fg) {
+        const p = { bg: r.bg, fg: r.fg }
+        if (!a.palettes.some((q) => samePalette(q, p))) a.palettes.push(p)
+      }
       a.srcs.add(src)
     }
   }
@@ -64,11 +67,7 @@ export function mergeKeywords(
       styles: [...a.styles],
       src: [...a.srcs].sort().join("+"),
     }
-    if (a.palettes.length) {
-      const p = a.palettes[Math.floor(rand() * a.palettes.length)]
-      rec.bg = p.bg
-      rec.fg = p.fg
-    }
+    if (a.palettes.length) rec.colors = a.palettes
     out.push(rec)
   }
   return out.sort((a, b) => (a.text < b.text ? -1 : a.text > b.text ? 1 : 0))
@@ -108,8 +107,7 @@ export function buildFlags(cldr: SourceRow[], vocab: Set<string>): MergedRow[] {
       text: r.text,
       emojis,
       styles: r.styles,
-      bg: r.bg,
-      fg: r.fg,
+      colors: [{ bg: r.bg, fg: r.fg }],
       src: "cldr",
     })
   }
@@ -122,10 +120,7 @@ function toLine(r: MergedRow): string {
     emojis: r.emojis.join(" "),
     styles: r.styles,
   }
-  if (r.bg && r.fg) {
-    base.bg = r.bg
-    base.fg = r.fg
-  }
+  if (r.colors && r.colors.length) base.colors = r.colors
   base.src = r.src
   return JSON.stringify(base)
 }

@@ -9,8 +9,7 @@ function toLine(t: ColorTerm): string {
     text: t.text,
     emojis: "",
     styles: [],
-    bg: t.bg,
-    fg: t.fg,
+    colors: [{ bg: t.bg, fg: t.fg }],
     src: "colors",
   })
 }

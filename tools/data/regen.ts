@@ -19,8 +19,7 @@ export type Row = {
   text: string
   emojis: string
   styles: string[]
-  bg?: string[]
-  fg?: string
+  colors?: Palette[]
   extra?: Record<string, unknown>
 }
 
@@ -30,22 +29,38 @@ const BASE_FIELDS = new Set([
   "styles",
   "bg",
   "fg",
+  "colors",
 ])
 
 type Acc = {
   text: string
   emojis: Set<string>
   styles: Set<string>
-  palette: Palette | undefined
+  palettes: Palette[]
   extra: Record<string, unknown>
 }
 
-function rowPalette(row: Record<string, unknown>): Palette | undefined {
-  const { bg, fg } = row
+function samePalette(a: Palette, b: Palette): boolean {
+  return a.bg[0] === b.bg[0] && a.bg[1] === b.bg[1] && a.fg === b.fg
+}
+
+function rowPalettes(row: Record<string, unknown>): Palette[] {
+  const out: Palette[] = []
+  const { bg, fg, colors } = row
   if (Array.isArray(bg) && bg.length >= 2 && typeof fg === "string") {
-    return { bg: (bg as string[]).slice(0, 2), fg }
+    out.push({ bg: (bg as string[]).slice(0, 2), fg })
   }
-  return undefined
+  if (Array.isArray(colors)) {
+    for (const c of colors as unknown[]) {
+      if (!c || typeof c !== "object") continue
+      const cbg = (c as Record<string, unknown>).bg
+      const cfg = (c as Record<string, unknown>).fg
+      if (Array.isArray(cbg) && cbg.length >= 2 && typeof cfg === "string") {
+        out.push({ bg: (cbg as string[]).slice(0, 2), fg: cfg })
+      }
+    }
+  }
+  return out
 }
 
 export function collapse(rows: unknown[]): Row[] {
@@ -61,7 +76,7 @@ export function collapse(rows: unknown[]): Row[] {
         text,
         emojis: new Set(),
         styles: new Set(),
-        palette: undefined,
+        palettes: [],
         extra: {},
       }
       acc.set(key, a)
@@ -74,8 +89,9 @@ export function collapse(rows: unknown[]): Row[] {
         if (typeof s === "string" && STYLE_SET.has(s)) a.styles.add(s)
       }
     }
-    const p = rowPalette(row)
-    if (p) a.palette = p
+    for (const p of rowPalettes(row)) {
+      if (!a.palettes.some((q) => samePalette(q, p))) a.palettes.push(p)
+    }
     for (const [k, v] of Object.entries(row)) {
       if (BASE_FIELDS.has(k) || v === undefined || k in a.extra) continue
       a.extra[k] = v
@@ -89,10 +105,7 @@ export function collapse(rows: unknown[]): Row[] {
       emojis: [...a.emojis].join(" "),
       styles: [...a.styles],
     }
-    if (a.palette) {
-      rec.bg = a.palette.bg
-      rec.fg = a.palette.fg
-    }
+    if (a.palettes.length) rec.colors = a.palettes
     if (Object.keys(a.extra).length) rec.extra = a.extra
     out.push(rec)
   }
@@ -164,8 +177,8 @@ import { writeKeywordsAndTerms } from "./keywords.ts"
 
 export function toLine(r: Row): string {
   const base =
-    r.bg && r.fg
-      ? { text: r.text, emojis: r.emojis, styles: r.styles, bg: r.bg, fg: r.fg }
+    r.colors && r.colors.length
+      ? { text: r.text, emojis: r.emojis, styles: r.styles, colors: r.colors }
       : { text: r.text, emojis: r.emojis, styles: r.styles }
   const withExtra = r.extra ? { ...base, ...r.extra } : base
   return JSON.stringify(withExtra)

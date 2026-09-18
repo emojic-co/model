@@ -19,8 +19,7 @@ type Row = {
   text: string
   emojis: string
   styles: string[]
-  bg: [string, string]
-  fg: string
+  colors?: { bg: [string, string]; fg: string }[]
 }
 
 type Labels = { styles: string[] }
@@ -66,11 +65,12 @@ body { place-items: start center; padding: 2em 1em; }
 `
 
 function rowCard(r: Row, all: boolean, feeling: string): string {
+  const p = r.colors?.[0]
   return cardHtml({
     text: r.text,
     emoji: all ? r.emojis : firstEmoji(r.emojis),
     feeling,
-    colors: { bg1: r.bg[0], bg2: r.bg[1], text_color: r.fg },
+    colors: p ? { bg1: p.bg[0], bg2: p.bg[1], text_color: p.fg } : DEFAULT_COLORS,
   })
 }
 

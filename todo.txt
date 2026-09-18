@@ -1,0 +1,1 @@
+I want you to try fix the text generator prompt to encourage more diverse texts. Maybe also adjust the LLM temperature and top-p sampling parameters to increase creativity. 

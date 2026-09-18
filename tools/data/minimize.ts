@@ -10,8 +10,8 @@ import { collapse, type Row } from "./regen.ts"
 
 export function minimalLine(r: Row, sha: string): string {
   const rec: Record<string, unknown> =
-    r.bg && r.fg
-      ? { text: r.text, emojis: r.emojis, styles: r.styles, bg: r.bg, fg: r.fg }
+    r.colors && r.colors.length
+      ? { text: r.text, emojis: r.emojis, styles: r.styles, colors: r.colors }
       : { text: r.text, emojis: r.emojis, styles: r.styles }
   if (r.extra?.lang) rec.lang = r.extra.lang
   rec.min = sha

@@ -4,6 +4,8 @@ import { cac } from "cac"
 import { Box, render, Text } from "ink"
 import React from "react"
 
+import { langForText } from "../../web/src/scriptFonts.js"
+import { LANGS, LANG_SET } from "./langs.ts"
 import { splitEmojis } from "./emoji.ts"
 import { readJsonl } from "./io.ts"
 import { normalize } from "./normalize.ts"
@@ -31,6 +33,7 @@ export type Stats = {
   emojiPerText: { count: number; texts: number; pct: number; cumPct: number; tailPct: number }[]
   topEmojis: { emoji: string; texts: number; pct: number }[]
   styleCounts: { style: string; texts: number; pct: number }[]
+  langCounts: { lang: string; texts: number; pct: number; tagged: number }[]
   textLen: { min: number; median: number; p90: number; max: number }
   lenHistogram: { len: number; texts: number }[]
   repeatBuckets: { label: string; texts: number }[]
@@ -43,6 +46,7 @@ type Acc = {
   emojis: Set<string>
   styles: Set<string>
   records: number
+  taggedLang?: string
 }
 
 function quantile(sorted: number[], q: number): number {
@@ -67,6 +71,7 @@ export function computeStats(rawRows: unknown[]): Stats {
       acc.set(key, a)
     }
     a.records++
+    if (typeof row.lang === "string" && LANG_SET.has(row.lang)) a.taggedLang = row.lang
     if (typeof row.emojis === "string") {
       for (const e of splitEmojis(row.emojis)) a.emojis.add(e)
     }
@@ -93,6 +98,8 @@ export function computeStats(rawRows: unknown[]): Stats {
   const perCount = new Map<number, number>()
   const lenCount = new Map<number, number>()
   const styleTexts = new Map<string, number>()
+  const langTexts = new Map<string, number>()
+  const langTagged = new Map<string, number>()
   const repeat = { "1×": 0, "2×": 0, "3–5×": 0, "6+×": 0 }
   const lengths: number[] = []
   let totalEmojiTags = 0
@@ -108,6 +115,10 @@ export function computeStats(rawRows: unknown[]): Stats {
 
     totalStyleTags += a.styles.size
     for (const s of a.styles) styleTexts.set(s, (styleTexts.get(s) ?? 0) + 1)
+
+    const lang = a.taggedLang ?? langForText(a.text)
+    langTexts.set(lang, (langTexts.get(lang) ?? 0) + 1)
+    if (a.taggedLang) langTagged.set(lang, (langTagged.get(lang) ?? 0) + 1)
 
     const len = normalize(a.text).length
     lengths.push(len)
@@ -143,6 +154,13 @@ export function computeStats(rawRows: unknown[]): Stats {
     texts: styleTexts.get(style) ?? 0,
     pct: pct(styleTexts.get(style) ?? 0, texts),
   })).sort((x, y) => y.texts - x.texts || STYLES.indexOf(x.style) - STYLES.indexOf(y.style))
+
+  const langCounts = LANGS.map((lang) => ({
+    lang,
+    texts: langTexts.get(lang) ?? 0,
+    pct: pct(langTexts.get(lang) ?? 0, texts),
+    tagged: langTagged.get(lang) ?? 0,
+  })).sort((x, y) => y.texts - x.texts || LANGS.indexOf(x.lang) - LANGS.indexOf(y.lang))
 
   lengths.sort((x, y) => x - y)
   const textLen = {
@@ -183,6 +201,7 @@ export function computeStats(rawRows: unknown[]): Stats {
     emojiPerText,
     topEmojis,
     styleCounts,
+    langCounts,
     textLen,
     lenHistogram,
     repeatBuckets,
@@ -272,10 +291,19 @@ function App({
 
   const styleRows: Cell[][] = s.styleCounts.map((r) => [r.style, r.texts, pctStr(r.pct)])
 
+  const langRows: Cell[][] = s.langCounts.map((r) => [
+    r.lang,
+    r.texts,
+    pctStr(r.pct),
+    r.tagged,
+    pctStr(pct(r.tagged, r.texts)),
+  ])
+
   const children = [
     h(Section, { key: "overview", title: `Corpus (${file}, collapsed by normalized text)` }, h(Table, { head: ["metric", "value", ""], rows: overviewRows, align: ["l", "r", "l"] })),
     h(Section, { key: "epr", title: "Unique emojis per normalized text" }, h(Table, { head: ["# emojis", "# texts", "%", "cum %", "100−cum %"], rows: emojiPerTextRows, align: ["r", "r", "r", "r", "r"] })),
     h(Section, { key: "styles", title: "Styles by # texts" }, h(Table, { head: ["style", "# texts", "%"], rows: styleRows, align: ["l", "r", "r"] })),
+    h(Section, { key: "langs", title: "Languages by # texts (tagged = explicit row.lang, rest detected from script)" }, h(Table, { head: ["lang", "# texts", "%", "tagged", "tagged %"], rows: langRows, align: ["l", "r", "r", "r", "r"] })),
   ]
 
   if (long) {

@@ -49,21 +49,19 @@ test("mergeKeywords merges rows that only differ pre-normalization", () => {
   ])
 })
 
-test("mergeKeywords picks a random palette from among the source(s) that had one", () => {
+test("mergeKeywords collects every distinct palette from contributing sources", () => {
   const cldr = [{ text: "sun", emojis: "☀️", styles: [], ...P("#111111", "#222222", "#eeeeee") }]
   const emojilib = [{ text: "sun", emojis: "☀️", styles: [], ...P("#333333", "#444444", "#dddddd") }]
-  const first = mergeKeywords({ cldr, emojilib }, () => 0)[0]
-  expect(first.bg).toEqual(["#111111", "#222222"])
-  expect(first.fg).toBe("#eeeeee")
-  const second = mergeKeywords({ cldr, emojilib }, () => 0.999)[0]
-  expect(second.bg).toEqual(["#333333", "#444444"])
-  expect(second.fg).toBe("#dddddd")
+  const [row] = mergeKeywords({ cldr, emojilib })
+  expect(row.colors).toEqual([
+    { bg: ["#111111", "#222222"], fg: "#eeeeee" },
+    { bg: ["#333333", "#444444"], fg: "#dddddd" },
+  ])
 })
 
-test("mergeKeywords omits bg/fg when neither source had a palette", () => {
+test("mergeKeywords omits colors when neither source had a palette", () => {
   const out = mergeKeywords({ cldr: [{ text: "cake", emojis: "🍰", styles: [] }] })
-  expect("bg" in out[0]).toBe(false)
-  expect("fg" in out[0]).toBe(false)
+  expect("colors" in out[0]).toBe(false)
 })
 
 test("wordCount counts whitespace-separated words", () => {
@@ -141,8 +139,8 @@ test("buildFlags keeps cldr rows whose sole in-vocab emoji is a flag, keyed by n
   ]
   const flags = buildFlags(cldr, new Set(["🇯🇵", "🇺🇸", "🍰"]))
   expect(flags).toEqual([
-    { text: "Japan", emojis: ["🇯🇵"], styles: ["Deadpan"], bg: ["#fffafa", "#d71920"], fg: "#17202a", src: "cldr" },
-    { text: "United States", emojis: ["🇺🇸"], styles: ["Deadpan"], bg: ["#173f73", "#b22234"], fg: "#ffffff", src: "cldr" },
+    { text: "Japan", emojis: ["🇯🇵"], styles: ["Deadpan"], colors: [{ bg: ["#fffafa", "#d71920"], fg: "#17202a" }], src: "cldr" },
+    { text: "United States", emojis: ["🇺🇸"], styles: ["Deadpan"], colors: [{ bg: ["#173f73", "#b22234"], fg: "#ffffff" }], src: "cldr" },
   ])
 })
 
@@ -153,6 +151,6 @@ test("buildFlags drops flag emoji not in vocab and rows missing a palette", () =
   ]
   expect(buildFlags(cldr, new Set(["🇹🇩"]))).toEqual([])
   expect(buildFlags(cldr, new Set(["🇯🇵"]))).toEqual([
-    { text: "Japan", emojis: ["🇯🇵"], styles: ["Deadpan"], bg: ["#fffafa", "#d71920"], fg: "#17202a", src: "cldr" },
+    { text: "Japan", emojis: ["🇯🇵"], styles: ["Deadpan"], colors: [{ bg: ["#fffafa", "#d71920"], fg: "#17202a" }], src: "cldr" },
   ])
 })
