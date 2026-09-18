@@ -139,7 +139,7 @@ class ColorGen(nn.Module):
 
         seed = (1 - Z_WEIGHT) * cond_norm + Z_WEIGHT * z
 
-        colors = self.net(normalize(seed, dim=-1))
+        colors = self.net(seed)
         return tanh(colors) * COLOR_SHIFT
 
 
@@ -148,16 +148,14 @@ class ColorCritic(nn.Module):
         super().__init__()
 
         self.color_embedding = nn.Sequential(
-            sn(nn.Linear(COLOR_DIM, CRITIC_EMBEDDING_SIZE)),
-        )
+            sn(nn.Linear(COLOR_DIM, CRITIC_EMBEDDING_SIZE)))
 
         self.color_critic = nn.Sequential(
             nn.LeakyReLU(negative_slope=RELU_SLOPE),
             sn(nn.Linear(CRITIC_EMBEDDING_SIZE, 1)))
 
         self.text_embedding = nn.Sequential(
-            sn(nn.Linear(EMBED_SIZE_TEXT, CRITIC_EMBEDDING_SIZE)),
-        )
+            sn(nn.Linear(EMBED_SIZE_TEXT, CRITIC_EMBEDDING_SIZE)))
 
     def forward(
         self, cond: torch.Tensor, colors: torch.Tensor
