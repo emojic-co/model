@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 from files import COLOR_TERMS_JSONL, KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
-from model.metric import Metric, NamedMetric, Source, Split, named_metric
+from model.metric import Metric, Source, Split, named_metric
 
 # from files import FLAGS_JSONL
 
@@ -36,7 +36,7 @@ ENCODER_KERNEL_SIZE = 3
 assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
-ENCODER_CHANNELS = [140, 240, 200, 100]
+ENCODER_CHANNELS = [120, 200, 200, 100]
 ENCODER_DILATION = [1, 2, 4, 8]
 
 # EMBEDDING
@@ -48,6 +48,7 @@ EMBED_SIZE_STYLE = 12
 # DROPOUT
 DROPOUT_EMOJI = 0.1
 DROPOUT_STYLE = 0.1
+DROPOUT_COLOR = 0.1
 
 assert len(ENCODER_CHANNELS) == len(ENCODER_DILATION), \
     "encoder channels and dilation must have the same length"
@@ -74,14 +75,13 @@ LOSS_WEIGHT_COND_COLOR = 0.5
 LOSS_WEIGHT_ENERGY = 0.1
 
 # COLOR REGRESSOR
-LOSS_WEIGHT_COLOR_REG = 0.5
-DROPOUT_COLOR_REGRESSOR = 0.2
+LOSS_WEIGHT_COLOR_REG = 0.1
 
 color_reg_str = " ".join([
-    str(p) for p in (LOSS_WEIGHT_COLOR_REG, DROPOUT_COLOR_REGRESSOR)])
+    str(p) for p in (LOSS_WEIGHT_COLOR_REG, DROPOUT_COLOR)])
 
 # LR
-LR_ENCODER = 0.01
+LR_ENCODER = 0.02
 LR_GAN_GEN = 0.001
 LR_GAN_CRITIC = 0.05
 
@@ -110,7 +110,7 @@ gan_str = " ".join([
 @dataclass(frozen=True)
 class SamplingSource:
     path: Path
-    metric: NamedMetric
+    metric: str
     from_: float
     to: float
 
@@ -157,8 +157,8 @@ train_str = " ".join(
 EPOCHS_TASK = 1500
 EPOCHS_GAN = 300
 VAL_CHECK_INTERVAL = 100
-EARLY_STOP_PATIENCE_ENCODER = 60
-EARLY_STOP_PATIENCE_GAN = 60
+EARLY_STOP_PATIENCE_ENCODER = 10
+EARLY_STOP_PATIENCE_GAN = 40
 
 # METRICS
 MACRO_MIN_SUPPORT = 5

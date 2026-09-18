@@ -1,2 +1,3 @@
+Done:
 1. use plain strings in .pt metrics.
 2. GAN training always use a fallback of a fresh training if any .pt file is missing or corrupted.
