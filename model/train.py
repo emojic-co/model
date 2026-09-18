@@ -82,7 +82,7 @@ from model.data import (
     train_ds,
 )
 from model.export_onnx import export
-from model.metric import GanMetric, Metric, NamedMetric, Source, Split, named_metric
+from model.metric import GanMetric, Metric, Source, Split, named_metric
 from model.metrics import macro_average, r2_score
 from model.model import (
     ColorCritic,
@@ -210,7 +210,7 @@ class LitEncoder(pl.LightningModule):
 
         self.train_dataset = None
 
-    def _log(self, name: NamedMetric, val: torch.Tensor, bs: int) -> None:
+    def _log(self, name: str, val: torch.Tensor, bs: int) -> None:
         self.log(name, val, on_step=False, on_epoch=True,
                  prog_bar=True, batch_size=bs)
 
@@ -518,10 +518,22 @@ def _no_progress_bar() -> bool:
     return os.environ.get("EMOJIC_NO_PROGRESS_BAR") == "1"
 
 
-def _require_pt(folder: Path, names: list[PtFile]) -> None:
-    missing = [n for n in names if not (folder / n).exists()]
-    if missing:
-        raise typer.BadParameter(f"{folder}: missing {', '.join(missing)}")
+def _pt_files_ok(pt_dir: Path) -> bool:
+    checks: list[tuple[PtFile, nn.Module]] = [
+        (PtFile.ENC, TextEncoder()),
+        (PtFile.STYLE, StyleHead()),
+        (PtFile.EMOJI, EmojiHead()),
+        (PtFile.EMOJI_EMBED, EmojiEmbedding()),
+    ]
+    for name, mod in checks:
+        path = name.in_dir(pt_dir)
+        if not path.exists():
+            return False
+        try:
+            _load(mod, path)
+        except Exception:
+            return False
+    return True
 
 
 def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
@@ -531,7 +543,7 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
     no_bar = _no_progress_bar()
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
-    monitor = str(named_metric(Source.EMOJI, Metric.MRR, Split.VAL))
+    monitor = named_metric(Source.EMOJI, Metric.MRR, Split.VAL)
     ckpt = ModelCheckpoint(
         monitor=monitor, mode="max", save_top_k=1, filename="best-{step}"
     )
@@ -598,7 +610,7 @@ def _train_gan(
     no_bar = _no_progress_bar()
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
-    monitor = str(GanMetric.ENERGY_VAL)
+    monitor = GanMetric.ENERGY_VAL
     ckpt = ModelCheckpoint(
         monitor=monitor, mode="min", save_top_k=1,
         filename="best-gan-{step}"
@@ -663,24 +675,22 @@ def _run_local(
     out_dir.mkdir(parents=True, exist_ok=True)
 
     if stage == Stage.gan:
-        _require_pt(
-            pt_dir,
-            [
-                PtFile.ENC,
-                PtFile.STYLE,
-                PtFile.EMOJI,
-                PtFile.EMOJI_EMBED,
-            ],
+        if _pt_files_ok(pt_dir):
+            enc = _load(TextEncoder(), PtFile.ENC.in_dir(pt_dir))
+            critic = ColorCritic()
+            _train_gan(enc, critic, train_ds(  # type: ignore
+                mix_sources=False), pt_dir, out_dir)
+            if out_dir == _DEFAULT_PT:
+                export()
+            if not skip_report:
+                _run_report_local(out_dir)
+            return
+        print(
+            f"{pt_dir}: missing or corrupted pt files, "
+            "falling back to a fresh full training",
+            flush=True,
         )
-        enc = _load(TextEncoder(), PtFile.ENC.in_dir(pt_dir))
-        critic = ColorCritic()
-        _train_gan(enc, critic, train_ds(  # type: ignore
-            mix_sources=False), pt_dir, out_dir)
-        if out_dir == _DEFAULT_PT:
-            export()
-        if not skip_report:
-            _run_report_local(out_dir)
-        return
+        stage = None
 
     ds = train_ds()
     heads = heads or ALL_HEADS

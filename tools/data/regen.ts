@@ -11,8 +11,8 @@ const EVAL_SIZE = 2000
 
 const MIN_MAX_RATIO = 10
 const MAX_MAX_RATIO = 40
-const MATRIX_MIN = [80, 90, 100, 125, 150]
-const MATRIX_MAX = [1500, 2000, 3000, 3500]
+const MATRIX_MIN = [100, 125, 150]
+const MATRIX_MAX = [2500, 3000, 3500, 4000]
 
 export type Palette = { bg: string[]; fg: string }
 export type Row = {

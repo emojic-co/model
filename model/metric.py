@@ -1,4 +1,4 @@
-from enum import ReprEnum, StrEnum
+from enum import StrEnum
 
 
 class Split(StrEnum):
@@ -23,20 +23,16 @@ class Metric(StrEnum):
     R2 = "r2"
 
 
-class NamedMetric(str):
-    __slots__ = ()
-
-
 def named_metric(
     source: Source, metric: Metric, split: Split | None = None
-) -> NamedMetric:
+) -> str:
     parts = [source.value, metric.value]
     if split is not None:
         parts.append(split.value)
-    return NamedMetric("/".join(parts))
+    return "/".join(parts)
 
 
-class GanMetric(NamedMetric, ReprEnum):
+class GanMetric:
     ENERGY_TRAIN = "gan/energy/train"
     ENERGY_VAL = "gan/energy/val"
     GEN_LOSS = "gan/gen/loss"

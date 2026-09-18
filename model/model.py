@@ -10,7 +10,7 @@ from torch.nn.utils.parametrizations import spectral_norm as sn
 from model.color import COLOR_SHIFT
 from model.config import (
     CRITIC_EMBEDDING_SIZE,
-    DROPOUT_COLOR_REGRESSOR,
+    DROPOUT_COLOR,
     DROPOUT_EMOJI,
     DROPOUT_STYLE,
     EMBED_SIZE_CHAR,
@@ -123,7 +123,7 @@ class ColorGen(nn.Module):
         super().__init__()
 
         self.net = nn.Sequential(
-            nn.Dropout(p=DROPOUT_COLOR_REGRESSOR),
+            nn.Dropout(p=DROPOUT_COLOR),
             nn.Linear(EMBED_SIZE_TEXT, COLOR_DIM))
 
     def forward(
