@@ -410,6 +410,7 @@ class LitColorGAN(pl.LightningModule):
 
     def on_train_epoch_start(self):
         self.enc.eval()
+        self.gen.net[0].eval()
 
     def _cond(self, text: torch.Tensor) -> torch.Tensor:
         with torch.no_grad():

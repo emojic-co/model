@@ -22,10 +22,11 @@ import {
   formatUsage,
 } from "./annotate.ts"
 import type { Drops, Fills, Usage } from "./annotate.ts"
+import { langForText } from "../../web/src/scriptFonts.js"
 import { SEED } from "./config"
 import { splitEmojis } from "./emoji.ts"
 import { appendJsonl, readJsonl } from "./io.ts"
-import { LANGS } from "./langs.ts"
+import { LANGS, LANG_SET } from "./langs.ts"
 
 const TEXTS_PER_EMOJI = 50
 const COLOR_BATCH = 50
@@ -35,14 +36,47 @@ const LINKEDIN_BATCH = 50
 const LINKEDIN_COUNT = 1000
 const SARCASM_BATCH = 50
 const SARCASM_COUNT = 1000
-const TOP_BATCH = 50
-const TOP_COUNT = 100
+const TOPIC_BATCH = 50
+const DEFAULT_COUNT = 2500
 const BALANCE_FRACTION = 0.1
 const MIN_LEN = 4
 const MAX_LEN = 42
 const GEN_CONCURRENCY = 30
+const CREATIVE_TEMPERATURE = 1.15
 
 const COLORS = ["red", "green", "blue", "dark", "bright"]
+
+export const TOPICS = [
+  "food & cooking",
+  "chores & housework",
+  "commute & getting around",
+  "weather & seasons",
+  "pets & animals",
+  "phones, apps & devices",
+  "shopping & money",
+  "tv, film & streaming",
+  "video games",
+  "sport & exercise",
+  "health, sleep & the body",
+  "school, class & studying",
+  "work & the office",
+  "music & gigs",
+  "clothes & how things look",
+  "events, parties & celebrations",
+  "religious holidays & traditions (christian, jewish, muslim, hindu, buddhist, and others)",
+  "hobbies, making & fixing things",
+  "outdoors, parks & nature",
+  "plans, scheduling & logistics",
+  "eating out & food delivery",
+  "cars, bikes & public transport",
+  "news & things happening",
+  "family, friends & relationships",
+  "random small talk",
+]
+
+export function topicForBatch(i: number): string {
+  return TOPICS[i % TOPICS.length]
+}
 
 const VOICES = [
   "a teenager",
@@ -113,6 +147,24 @@ export function countEmojis(rows: { emojis?: string }[]): Map<string, number> {
     }
   }
   return counts
+}
+
+export function countLangs(rows: { text?: string; lang?: unknown }[]): Map<string, number> {
+  const counts = new Map<string, number>()
+  for (const row of rows) {
+    if (typeof row.text !== "string") continue
+    const lang = typeof row.lang === "string" && LANG_SET.has(row.lang)
+      ? row.lang
+      : langForText(row.text)
+    counts.set(lang, (counts.get(lang) ?? 0) + 1)
+  }
+  return counts
+}
+
+export function leastFrequentLang(counts: Map<string, number>): string {
+  return [...LANGS].sort(
+    (a, b) => (counts.get(a) ?? 0) - (counts.get(b) ?? 0) || LANGS.indexOf(a) - LANGS.indexOf(b),
+  )[0]
 }
 
 function mulberry32(seed: number): () => number {
@@ -281,18 +333,24 @@ function genSarcasmPrompt(voice: string, per: number, lang?: string): string {
   ].join("\n")
 }
 
-function genTopPrompt(voice: string, per: number, lang?: string): string {
+function genTopicPrompt(topic: string, voice: string, per: number, lang?: string): string {
   return [
     `Write ${per} short text messages as if sent by ${voice}, one per line.`,
     `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
     ...langLine(lang),
-    `Cover everyday life broadly - plans, feelings, food, weather, work,`,
-    `family, friends, hobbies, travel, complaints, celebrations, small talk -`,
-    `varying subject and mood from message to message.`,
-    `Do not put any emoji in the output.`,
-    `Vary sender, tone, and intent: updates, questions, complaints, plans,`,
-    `reactions, reminders, small talk. Sound real and specific.`,
-    `No numbering, no bullets, no quotes, no commentary.`,
+    `Every message is about ${topic}. Do not announce the topic or use it as a`,
+    "label; let it come through naturally in what is said.",
+    "Across the whole set, still cover a wide range: every mood (positive,",
+    "negative, flat), every intent (statements, questions, requests,",
+    "reactions, reminders, small talk), and every length from very short to",
+    "near the maximum.",
+    "Avoid the single most obvious, generic line for the topic - the kind of",
+    "stock phrase a phrasebook or greeting card would give. Ground each",
+    "message in a specific, idiosyncratic detail instead (a name, a place, a",
+    "number, an odd complaint) so no two messages read like templates of each",
+    "other, and no message is one you'd expect to see repeated verbatim across",
+    "many different people.",
+    "No numbering, no bullets, no quotes, no emoji, no commentary.",
   ].join("\n")
 }
 
@@ -316,6 +374,7 @@ async function genBatch(
 ): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
+    temperature: CREATIVE_TEMPERATURE,
     prompt: genPrompt(voice, emoji, per, lang),
   })
   return cleanLines(text)
@@ -329,6 +388,7 @@ async function genColorBatch(
 ): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
+    temperature: CREATIVE_TEMPERATURE,
     prompt: genColorPrompt(voice, color, per, lang),
   })
   return cleanLines(text)
@@ -341,6 +401,7 @@ async function genMotivationalBatch(
 ): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
+    temperature: CREATIVE_TEMPERATURE,
     prompt: genMotivationalPrompt(voice, per, lang),
   })
   return cleanLines(text)
@@ -353,6 +414,7 @@ async function genLinkedinBatch(
 ): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
+    temperature: CREATIVE_TEMPERATURE,
     prompt: genLinkedinPrompt(voice, per, lang),
   })
   return cleanLines(text)
@@ -365,19 +427,22 @@ async function genSarcasmBatch(
 ): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
+    temperature: CREATIVE_TEMPERATURE,
     prompt: genSarcasmPrompt(voice, per, lang),
   })
   return cleanLines(text)
 }
 
-async function genTopBatch(
+async function genTopicBatch(
+  topic: string,
   voice: string,
   per: number,
   lang?: string,
 ): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
-    prompt: genTopPrompt(voice, per, lang),
+    temperature: CREATIVE_TEMPERATURE,
+    prompt: genTopicPrompt(topic, voice, per, lang),
   })
   return cleanLines(text)
 }
@@ -690,28 +755,29 @@ async function generateForSarcasm(
   genBar.stop()
 }
 
-async function generateForTop(
+async function generateForTopics(
   count: number,
   sink: Sink,
   multibar: cliProgress.MultiBar,
   lang?: string,
 ): Promise<void> {
-  const sizes = batchSizes(count, TOP_BATCH)
+  const sizes = batchSizes(count, TOPIC_BATCH)
   console.log(
-    `top mode -> ${count} texts in ${sizes.length} batches of up to ${TOP_BATCH}${langSuffix(lang)}`,
+    `topics mode -> ${count} texts in ${sizes.length} batches of up to ${TOPIC_BATCH}${langSuffix(lang)}`,
   )
   const genBar = multibar.create(sizes.length, 0, {}, {
     format: "generating  |{bar}| {percentage}% | {value}/{total} batches | ETA: {eta}s",
   })
   const genQ = new PQueue({ concurrency: GEN_CONCURRENCY })
   genQ.addAll(
-    sizes.map((n) => async () => {
+    sizes.map((n, i) => async () => {
+      const topic = topicForBatch(i)
       try {
-        for (const t of await genTopBatch(pickVoice(), n, lang)) {
+        for (const t of await genTopicBatch(topic, pickVoice(), n, lang)) {
           sink.push({ text: t, lang })
         }
       } catch (err) {
-        console.warn(`\n  gen (top) failed: ${err}`)
+        console.warn(`\n  gen (${topic}) failed: ${err}`)
       }
       genBar.increment()
     }),
@@ -749,25 +815,61 @@ cli.option(
 cli
   .command(
     "",
-    `generate generic texts across everyday topics and annotate them (default mode, ${TOP_COUNT} texts unless --count is given)`,
+    `generate generic texts across rotating everyday topics and annotate them `
+    + `(default mode, same as the old \`bun run train\`; ${DEFAULT_COUNT} texts unless --count `
+    + `is given; a single untagged pass unless --lang names one language - unlike other modes, `
+    + `omitting --lang here does not fan out to every language)`,
   )
-  .option("--count <n>", `messages to generate (default ${TOP_COUNT})`)
+  .option("--count <n>", `messages to generate (default ${DEFAULT_COUNT})`)
   .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
   .action(async (options) => {
-    const count = parseCount(options.count, TOP_COUNT)
-    const langs = resolveLangs(parseLang(options.lang))
+    const count = parseCount(options.count, DEFAULT_COUNT)
+    const lang = parseLang(options.lang)
     if (options.dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
-      console.log(`mode                 : top`)
-      console.log(`would generate       : ${count} texts x ${langs.length} lang(s)${langsSuffix(langs)}`)
+      console.log(`mode                 : topics`)
+      console.log(`would generate       : ${count} texts${langSuffix(lang)}`)
       return
     }
     const multibar = new cliProgress.MultiBar(
       { clearOnComplete: false, hideCursor: true },
       cliProgress.Presets.shades_classic,
     )
-    const sink = new StreamingAnnotator("top", multibar, count * langs.length)
-    for (const lang of langs) await generateForTop(count, sink, multibar, lang)
+    const sink = new StreamingAnnotator("topics", multibar, count)
+    await generateForTopics(count, sink, multibar, lang)
+    await sink.finish()
+    multibar.stop()
+  })
+
+cli
+  .command(
+    "lang",
+    `upsample the least-represented language in ${DATA} with rotating-topic texts `
+    + `(picks among ${LANGS.join(", ")}; ignores --lang)`,
+  )
+  .option("--count <n>", `messages to generate (default ${DEFAULT_COUNT})`)
+  .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
+  .action(async (options) => {
+    const count = parseCount(options.count, DEFAULT_COUNT)
+    const rows = await readJsonl<{ text?: string; lang?: unknown }>(DATA)
+    const counts = countLangs(rows)
+    const lang = leastFrequentLang(counts)
+    console.log(
+      LANGS.map((l) => `${l}: ${counts.get(l) ?? 0}`).join(", ")
+      + ` -> upsampling least represented: ${lang}`,
+    )
+    if (options.dry) {
+      console.log("\n--- dry run: nothing generated, annotated, or appended ---")
+      console.log(`mode                 : lang`)
+      console.log(`would generate       : ${count} texts (lang: ${lang})`)
+      return
+    }
+    const multibar = new cliProgress.MultiBar(
+      { clearOnComplete: false, hideCursor: true },
+      cliProgress.Presets.shades_classic,
+    )
+    const sink = new StreamingAnnotator("lang", multibar, count)
+    await generateForTopics(count, sink, multibar, lang)
     await sink.finish()
     multibar.stop()
   })

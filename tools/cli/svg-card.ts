@@ -24,8 +24,7 @@ export type Row = {
   text: string
   emojis: string
   styles: string[]
-  bg: [string, string]
-  fg: string
+  colors: { bg: [string, string]; fg: string }[]
 }
 
 export function firstEmoji(field: string): string {
@@ -80,7 +79,8 @@ export function cardSvg(row: Row, resolution: number, fonts: FontCache): string 
   const letterSpacingEm = st.letterSpacing ? Number.parseFloat(st.letterSpacing) : 0
   const opacity = st.opacity ?? 1
 
-  const colors = { bg1: row.bg[0], bg2: row.bg[1], text_color: row.fg }
+  const palette = row.colors[0]
+  const colors = { bg1: palette.bg[0], bg2: palette.bg[1], text_color: palette.fg }
   const layers = patternLayers(feeling, undefined, undefined, patternTint(colors.bg1, colors.bg2))
 
   const fontPath = fonts.fileFor(family, fontWeight, fontStyle)

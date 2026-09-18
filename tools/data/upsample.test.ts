@@ -4,16 +4,47 @@ import {
   Batcher,
   colorBatchPlan,
   countEmojis,
+  countLangs,
   groupDeficits,
   langLine,
   langsSuffix,
   langSuffix,
   languageName,
+  leastFrequentLang,
   lowestFreqEmojis,
   parseLang,
   rankMissingByFreq,
   resolveLangs,
+  TOPICS,
+  topicForBatch,
 } from "./upsample.ts"
+
+test("TOPICS is a non-trivial unique list", () => {
+  expect(TOPICS.length).toBeGreaterThan(15)
+  expect(new Set(TOPICS).size).toBe(TOPICS.length)
+})
+
+test("topicForBatch round-robins over TOPICS", () => {
+  expect(topicForBatch(0)).toBe(TOPICS[0])
+  expect(topicForBatch(TOPICS.length)).toBe(TOPICS[0])
+  expect(topicForBatch(TOPICS.length + 1)).toBe(TOPICS[1])
+})
+
+test("countLangs trusts an explicit row.lang over script detection, and detects otherwise", () => {
+  const counts = countLangs([
+    { text: "hello there" },
+    { text: "שלום עולם" },
+    { text: "bonjour le monde", lang: "he" },
+    { text: "another line", lang: "fr" },
+  ])
+  expect(counts.get("en")).toBe(2)
+  expect(counts.get("he")).toBe(2)
+})
+
+test("leastFrequentLang picks the lowest-count language, breaking ties by LANGS order", () => {
+  expect(leastFrequentLang(new Map([["en", 100], ["he", 5]]))).toBe("he")
+  expect(leastFrequentLang(new Map())).toBe("en")
+})
 
 test("colorBatchPlan splits each colour's per-colour total into batches of at most batchSize", () => {
   const plan = colorBatchPlan(["red", "blue"], 100, 40)

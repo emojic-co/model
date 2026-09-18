@@ -11,10 +11,11 @@ Row shape used by most `.jsonl` files here: `{text, emojis, styles, bg?, fg?, ..
 ## Master corpus & splits
 
 - **`data.jsonl`** — the committed master corpus, one annotated text per line. Grows via
-  `bun run train` (`tools/data/train.ts`, topic-prompted LLM generation) and
-  `bun run upsample` (`tools/data/upsample.ts`, targeted modes incl. `linkedin`,
-  `motivational`, per-emoji upsampling); both append here via `appendJsonl`. Consumed by
-  `bun run regen` (`tools/data/regen.ts`) as the sole input to `train.jsonl`/`eval.jsonl`.
+  `bun run upsample` (`tools/data/upsample.ts`): run with no subcommand for
+  topic-rotation LLM generation (`--count` controls how many texts), or a targeted mode
+  (`emojis`, `colors`, `linkedin`, `motivational`, `sarcasm`, `groups`, `balance`);
+  all append here via `appendJsonl`. Consumed by `bun run regen` (`tools/data/regen.ts`)
+  as the sole input to `train.jsonl`/`eval.jsonl`.
 - **`train.jsonl`** / **`eval.jsonl`** — gitignored, rebuilt by `regen.ts` from
   `data.jsonl`: de-duplicated, emoji-frequency-capped (`greedyCap`), filtered to the
   kept emoji vocab, then split (`eval.jsonl` is the held-out slice, size `--n`, default
