@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from files import KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
+from files import COLOR_TERMS_JSONL, KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
 from model.metric import Metric, Source, named_metric
 
 # from files import FLAGS_JSONL
@@ -46,8 +46,8 @@ EMBED_SIZE_EMOJI = 60
 EMBED_SIZE_STYLE = 12
 
 # DROPOUT
-DROPOUT_EMOJI = 0.1
-DROPOUT_STYLE = 0.1
+DROPOUT_EMOJI = 0.05
+DROPOUT_STYLE = 0.05
 
 assert len(ENCODER_CHANNELS) == len(ENCODER_DILATION), \
     "encoder channels and dilation must have the same length"
@@ -74,9 +74,9 @@ LOSS_WEIGHT_ENERGY = 0.2
 COLOR_TERMS_MIXIN = 0.01
 
 # LR
-LR_ENCODER = 0.05
-LR_GAN_GEN = 0.001
-LR_GAN_CRITIC = 0.05
+LR_ENCODER = 0.01
+LR_GAN_GEN = 0.01
+LR_GAN_CRITIC = 0.02
 
 # TRAINING
 SEED = 42
@@ -120,6 +120,11 @@ SAMPLING_SOURCES: dict[Source, SamplingSource] = {
     Source.TERM: SamplingSource(
         TERMS_JSONL,
         named_metric(Source.TERM, Metric.ACC_1),
+        0, 0.9
+    ),
+    Source.COLOR: SamplingSource(
+        COLOR_TERMS_JSONL,
+        named_metric(Source.COLOR, Metric.ACC_1),
         0, 0.9
     ),
 }

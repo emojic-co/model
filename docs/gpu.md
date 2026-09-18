@@ -39,15 +39,14 @@ cost lever.
 
 ```
 train                      # stage 1 + stage 2 + export on a T4 (default)
-train enc                  # stage 1 only, on a T4
-train --gpu L4             # override the GPU type
-train gan --gpu A10G       # stage 2 only (needs enc.pt/style.pt/emoji.pt)
-train --cpu                # fall back to the CPU Modal box
+train gan                  # stage 2 only (needs enc.pt/style.pt/emoji.pt), on a T4
 train --local              # unchanged: this machine
 ```
 
-Tune without code edits via env vars on the dispatch, e.g.
-`EMOJIC_TASK_BATCH_SIZE=1024 EMOJIC_DATA_WORKERS=8 train --gpu A10G`.
+`train.py` no longer takes `--heads` / `--pt` / `--output` / `--gpu` /
+`--cpu` — remote runs always dispatch to `DEFAULT_GPU` (`T4`). Tune
+without code edits via env vars on the dispatch, e.g.
+`EMOJIC_TASK_BATCH_SIZE=1024 EMOJIC_DATA_WORKERS=8 train`.
 
 ## Will a GPU actually help here?
 
