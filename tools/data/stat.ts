@@ -22,12 +22,21 @@ export type Disagreement = {
   emojis: string[]
 }
 
+export type ColorFit = {
+  colorTexts: number
+  multiColorTexts: number
+  withinTextVariance: number
+  datasetVariance: number
+  r2Ceiling: number
+}
+
 export type Stats = {
   rawRows: number
   texts: number
   zeroEmojiTexts: number
   meanEmojisPerText: number
   meanStylesPerText: number
+  meanColorsPerText: number
   distinctEmojis: number
   distinctStyles: number
   emojiPerText: { count: number; texts: number; pct: number; cumPct: number; tailPct: number }[]
@@ -39,12 +48,14 @@ export type Stats = {
   repeatBuckets: { label: string; texts: number }[]
   disagreement: Disagreement[]
   extraFields: { neg: number; meta: number; singleEmoji: number }
+  colorFit: ColorFit
 }
 
 type Acc = {
   text: string
   emojis: Set<string>
   styles: Set<string>
+  colors: Set<string>
   records: number
   taggedLang?: string
 }
@@ -53,6 +64,30 @@ function quantile(sorted: number[], q: number): number {
   if (!sorted.length) return 0
   const i = Math.min(sorted.length - 1, Math.floor(q * sorted.length))
   return sorted[i]
+}
+
+function hexToRgb(hex: string): [number, number, number] {
+  const n = parseInt(hex.replace(/^#/, ""), 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+}
+
+function colorVector(bg0: string, bg1: string, fg: string): number[] {
+  return [...hexToRgb(bg0), ...hexToRgb(bg1), ...hexToRgb(fg)]
+}
+
+function vectorSetVariance(vecs: number[][]): number {
+  const n = vecs.length
+  const dims = vecs[0]?.length ?? 0
+  let total = 0
+  for (let d = 0; d < dims; d++) {
+    let mean = 0
+    for (const v of vecs) mean += v[d]
+    mean /= n
+    let variance = 0
+    for (const v of vecs) variance += (v[d] - mean) ** 2
+    total += variance / n
+  }
+  return total
 }
 
 export function computeStats(rawRows: unknown[]): Stats {
@@ -67,7 +102,7 @@ export function computeStats(rawRows: unknown[]): Stats {
 
     let a = acc.get(key)
     if (!a) {
-      a = { text, emojis: new Set(), styles: new Set(), records: 0 }
+      a = { text, emojis: new Set(), styles: new Set(), colors: new Set(), records: 0 }
       acc.set(key, a)
     }
     a.records++
@@ -78,6 +113,16 @@ export function computeStats(rawRows: unknown[]): Stats {
     if (Array.isArray(row.styles)) {
       for (const s of row.styles) {
         if (typeof s === "string" && STYLE_SET.has(s)) a.styles.add(s)
+      }
+    }
+    if (Array.isArray(row.colors)) {
+      for (const c of row.colors as unknown[]) {
+        if (!c || typeof c !== "object") continue
+        const bg = (c as Record<string, unknown>).bg
+        const fg = (c as Record<string, unknown>).fg
+        if (Array.isArray(bg) && bg.length >= 2 && typeof fg === "string") {
+          a.colors.add(JSON.stringify([bg[0], bg[1], fg]))
+        }
       }
     }
 
@@ -104,6 +149,7 @@ export function computeStats(rawRows: unknown[]): Stats {
   const lengths: number[] = []
   let totalEmojiTags = 0
   let totalStyleTags = 0
+  let totalColorTags = 0
   let zeroEmojiTexts = 0
 
   for (const a of keys) {
@@ -115,6 +161,8 @@ export function computeStats(rawRows: unknown[]): Stats {
 
     totalStyleTags += a.styles.size
     for (const s of a.styles) styleTexts.set(s, (styleTexts.get(s) ?? 0) + 1)
+
+    totalColorTags += a.colors.size
 
     const lang = a.taggedLang ?? langForText(a.text)
     langTexts.set(lang, (langTexts.get(lang) ?? 0) + 1)
@@ -176,6 +224,37 @@ export function computeStats(rawRows: unknown[]): Stats {
 
   const repeatBuckets = Object.entries(repeat).map(([label, t]) => ({ label, texts: t }))
 
+  const datasetColorVecs: number[][] = []
+  const withinTextVariances: number[] = []
+  let colorTexts = 0
+  let multiColorTexts = 0
+
+  for (const a of keys) {
+    if (a.colors.size === 0) continue
+    colorTexts++
+    const vecs = [...a.colors].map((s) => {
+      const [bg0, bg1, fg] = JSON.parse(s) as [string, string, string]
+      return colorVector(bg0, bg1, fg)
+    })
+    for (const v of vecs) datasetColorVecs.push(v)
+    if (vecs.length >= 2) {
+      multiColorTexts++
+      withinTextVariances.push(vectorSetVariance(vecs))
+    }
+  }
+
+  const withinTextVariance = withinTextVariances.length
+    ? withinTextVariances.reduce((x, y) => x + y, 0) / withinTextVariances.length
+    : 0
+  const datasetVariance = vectorSetVariance(datasetColorVecs)
+  const colorFit: ColorFit = {
+    colorTexts,
+    multiColorTexts,
+    withinTextVariance,
+    datasetVariance,
+    r2Ceiling: datasetVariance ? Math.max(0, 1 - withinTextVariance / datasetVariance) : 0,
+  }
+
   const disagreement = keys
     .map((a) => ({
       text: a.text,
@@ -196,6 +275,7 @@ export function computeStats(rawRows: unknown[]): Stats {
     zeroEmojiTexts,
     meanEmojisPerText: texts ? totalEmojiTags / texts : 0,
     meanStylesPerText: texts ? totalStyleTags / texts : 0,
+    meanColorsPerText: texts ? totalColorTags / texts : 0,
     distinctEmojis: emojiTexts.size,
     distinctStyles: styleTexts.size,
     emojiPerText,
@@ -207,6 +287,7 @@ export function computeStats(rawRows: unknown[]): Stats {
     repeatBuckets,
     disagreement,
     extraFields,
+    colorFit,
   }
 }
 
@@ -276,6 +357,7 @@ function App({
     ["texts with 0 emojis", s.zeroEmojiTexts, pctStr(pct(s.zeroEmojiTexts, s.texts))],
     ["mean unique emojis / text", s.meanEmojisPerText.toFixed(2), ""],
     ["mean styles / text", s.meanStylesPerText.toFixed(2), ""],
+    ["mean colors / text", s.meanColorsPerText.toFixed(2), ""],
     ["distinct emojis seen", s.distinctEmojis, ""],
     ["distinct styles seen", `${s.distinctStyles} / ${STYLES.length}`, ""],
     ["normalized length min/median/p90/max", `${s.textLen.min} / ${s.textLen.median} / ${s.textLen.p90} / ${s.textLen.max}`, ""],
@@ -299,8 +381,17 @@ function App({
     pctStr(pct(r.tagged, r.texts)),
   ])
 
+  const colorFitRows: Cell[][] = [
+    ["texts with colors", s.colorFit.colorTexts, ""],
+    ["texts with ≥2 distinct colors", s.colorFit.multiColorTexts, pctStr(pct(s.colorFit.multiColorTexts, s.colorFit.colorTexts))],
+    ["within-text color variance (RGB²)", s.colorFit.withinTextVariance.toFixed(1), "noise, from disagreeing texts"],
+    ["dataset color variance (RGB²)", s.colorFit.datasetVariance.toFixed(1), "spread of all tagged colors"],
+    ["color regressor R² ceiling", s.colorFit.r2Ceiling.toFixed(3), "1 − within/dataset variance"],
+  ]
+
   const children = [
     h(Section, { key: "overview", title: `Corpus (${file}, collapsed by normalized text)` }, h(Table, { head: ["metric", "value", ""], rows: overviewRows, align: ["l", "r", "l"] })),
+    h(Section, { key: "colorfit", title: "Color regressor R² ceiling (text-level label disagreement vs. dataset spread)" }, h(Table, { head: ["metric", "value", ""], rows: colorFitRows, align: ["l", "r", "l"] })),
     h(Section, { key: "epr", title: "Unique emojis per normalized text" }, h(Table, { head: ["# emojis", "# texts", "%", "cum %", "100−cum %"], rows: emojiPerTextRows, align: ["r", "r", "r", "r", "r"] })),
     h(Section, { key: "styles", title: "Styles by # texts" }, h(Table, { head: ["style", "# texts", "%"], rows: styleRows, align: ["l", "r", "r"] })),
     h(Section, { key: "langs", title: "Languages by # texts (tagged = explicit row.lang, rest detected from script)" }, h(Table, { head: ["lang", "# texts", "%", "tagged", "tagged %"], rows: langRows, align: ["l", "r", "r", "r", "r"] })),

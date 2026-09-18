@@ -1,1 +1,2 @@
-I want you to try fix the text generator prompt to encourage more diverse texts. Maybe also adjust the LLM temperature and top-p sampling parameters to increase creativity. 
+Update the tools/data/stat.ts tool to also estimate the best r^2 a color regressor model can achieve.
+You should analyze texts with multiple colors and compare the variance of colors in the text to the variance of colors in the dataset. 
