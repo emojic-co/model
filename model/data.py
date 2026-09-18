@@ -2,6 +2,7 @@ import json
 import os
 import re
 from dataclasses import dataclass
+from pathlib import Path
 
 import torch
 from torch.utils.data import DataLoader, Dataset
@@ -11,7 +12,7 @@ from model.config import (
     EMOJIS,
     LANGS,
     MAX_TEXT_LEN,
-    SAMPLING_MAX_RATE,
+    SAMPLING_RATE_MAX,
     SAMPLING_SOURCES,
     STYLES,
 )
@@ -126,9 +127,9 @@ def _parse_record(d: dict) -> record | None:
     return None
 
 
-def read(path):
+def read(path: Path):
     def read_jsonl():
-        with open(path, encoding='utf-8') as f:
+        with path.open(encoding='utf-8') as f:
             for line in f:
                 yield json.loads(line)
 
@@ -143,10 +144,10 @@ _Pool = tuple[
 ]
 
 
-def _load_pool(path: str) -> _Pool | None:
+def _load_pool(path: Path) -> _Pool | None:
     recs: list[record] = []
     try:
-        with open(path, encoding="utf-8") as f:
+        with path.open(encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line:
@@ -201,7 +202,7 @@ class EmojiDataset(Dataset):
         self.lang = torch.tensor([r.lang for r in records], dtype=torch.long)
 
         self.rates = (
-            SamplingRates(list(SAMPLING_SOURCES), SAMPLING_MAX_RATE)
+            SamplingRates(list(SAMPLING_SOURCES), SAMPLING_RATE_MAX)
             if mix_sources
             else None
         )

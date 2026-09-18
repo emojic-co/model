@@ -22,11 +22,10 @@ def _git(*args: str) -> str | None:
 
 
 def _train_sha() -> str | None:
-    p = Path(TRAIN_JSONL)
-    if not p.exists():
+    if not TRAIN_JSONL.exists():
         return None
     h = hashlib.sha256()
-    with p.open("rb") as f:
+    with TRAIN_JSONL.open("rb") as f:
         for chunk in iter(lambda: f.read(1 << 20), b""):
             h.update(chunk)
     return h.hexdigest()[:12]
@@ -49,12 +48,12 @@ def run_meta() -> dict:
     }
 
 
-def save_pt(state_dict: dict, path, **extra) -> None:
-    Path(path).parent.mkdir(parents=True, exist_ok=True)
+def save_pt(state_dict: dict, path: Path, **extra) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
     torch.save({"state_dict": state_dict, "meta": {**run_meta(), **extra}}, path)
 
 
-def load_pt(path, *, map_location: str = "cpu"):
+def load_pt(path: Path, *, map_location: str = "cpu"):
     blob = torch.load(path, map_location=map_location, weights_only=True)
     if isinstance(blob, dict) and "state_dict" in blob:
         return blob["state_dict"], blob.get("meta")
@@ -77,8 +76,8 @@ def require_clean_tree() -> None:
         sys.exit("training aborted: clean git tree required; uncommitted:\n" + porcelain)
 
 
-def write_meta_yml(out_dir, doc: dict) -> None:
-    Path(out_dir, "meta.yml").write_text(
+def write_meta_yml(out_dir: Path, doc: dict) -> None:
+    (out_dir / "meta.yml").write_text(
         yaml.safe_dump(doc, sort_keys=False, allow_unicode=True), encoding="utf-8"
     )
 

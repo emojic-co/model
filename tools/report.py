@@ -27,7 +27,9 @@ from files import (
     GROUP_JSON,
     II_JSON,
     KEYWORDS_JSONL,
+    REPORT_DIR,
     TERMS_JSONL,
+    PtFile,
 )
 from model.color import COLOR_SHIFT, energy_distance, rgb_to_oklab
 from model.config import (
@@ -66,7 +68,13 @@ CARD_COLORS = ("red", "green", "blue", "dark", "bright")
 GOLD_PER_COLOR = 25
 KEYWORD_FAILS_MAX_ROWS = 100
 EVAL_SAMPLE_N = 40
-EVAL_SAMPLE_PT_FILES = ("enc.pt", "style.pt", "emoji.pt", "emoji_embed.pt", "gen.pt")
+EVAL_SAMPLE_PT_FILES = (
+    PtFile.ENC,
+    PtFile.STYLE,
+    PtFile.EMOJI,
+    PtFile.EMOJI_EMBED,
+    PtFile.GEN,
+)
 
 
 def _ts() -> str:
@@ -74,12 +82,11 @@ def _ts() -> str:
 
 
 @cache
-def _rows(path: str) -> tuple:
-    p = Path(path)
-    if not p.exists():
+def _rows(path: Path) -> tuple:
+    if not path.exists():
         return ()
     out = []
-    with p.open(encoding="utf-8") as f:
+    with path.open(encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if line:
@@ -87,7 +94,7 @@ def _rows(path: str) -> tuple:
     return tuple(out)
 
 
-def _load(mod, path):
+def _load(mod: nn.Module, path: Path):
     sd, _ = load_pt(path)
     try:
         mod.load_state_dict(sd)
@@ -105,24 +112,24 @@ def _acc_at_k(logits, target, k):
 
 @cache
 def _emoji_embed():
-    if not Path(EMOJI_EMBED_PT).exists():
+    if not EMOJI_EMBED_PT.exists():
         return None
     m, err = _load(EmojiEmbedding(), EMOJI_EMBED_PT)
     return None if err else m
 
 
 def _provenance(pt: Path):
-    enc_pt, emoji_pt = str(pt / "enc.pt"), str(pt / "emoji.pt")
-    style_pt, gen_pt = str(pt / "style.pt"), str(pt / "gen.pt")
-    emoji_embed_pt = str(pt / "emoji_embed.pt")
+    enc_pt, emoji_pt = PtFile.ENC.in_dir(pt), PtFile.EMOJI.in_dir(pt)
+    style_pt, gen_pt = PtFile.STYLE.in_dir(pt), PtFile.GEN.in_dir(pt)
+    emoji_embed_pt = PtFile.EMOJI_EMBED.in_dir(pt)
     rm = run_meta()
     paths = [enc_pt, emoji_pt, emoji_embed_pt, style_pt, gen_pt]
-    metas = {p: (load_pt(p)[1] if Path(p).exists() else None) for p in paths}
+    metas = {str(p): (load_pt(p)[1] if p.exists() else None) for p in paths}
     present = {p: m for p, m in metas.items() if m}
-    missing = [p for p in paths if not Path(p).exists()]
-    legacy = [p for p in paths if Path(p).exists() and metas[p] is None]
+    missing = [p for p in paths if not p.exists()]
+    legacy = [p for p in paths if p.exists() and metas[str(p)] is None]
     shas = {m.get("sha") for m in present.values()}
-    enc_meta = metas.get(enc_pt)
+    enc_meta = metas.get(str(enc_pt))
     model_sha = enc_meta.get("sha") if enc_meta else "nometa"
     train_now = rm.get("train_sha")
     model_train = enc_meta.get("train_sha") if enc_meta else None
@@ -134,7 +141,10 @@ def _provenance(pt: Path):
             + ", ".join(sorted(s or "?" for s in shas))
         )
     if legacy:
-        issues.append("legacy .pt without embedded metadata: " + ", ".join(legacy))
+        issues.append(
+            "legacy .pt without embedded metadata: "
+            + ", ".join(str(p) for p in legacy)
+        )
     if enc_meta and train_now and model_train and train_now != model_train:
         issues.append(
             f"model trained on train.jsonl {model_train} but current is {train_now} "
@@ -156,7 +166,7 @@ def _provenance(pt: Path):
     }
 
 
-def _length_distribution(path):
+def _length_distribution(path: Path):
     lens = Counter()
     for d in _rows(path):
         lens[len(norm_text(str(d.get("text", ""))))] += 1
@@ -171,8 +181,8 @@ def _section_data():
             "eval": len(_rows(EVAL_PATH)),
         },
         "length_distribution": _length_distribution(TRAIN_PATH),
-        "keywords_length_distribution": _length_distribution(str(KEYWORDS_JSONL)),
-        "terms_length_distribution": _length_distribution(str(TERMS_JSONL)),
+        "keywords_length_distribution": _length_distribution(KEYWORDS_JSONL),
+        "terms_length_distribution": _length_distribution(TERMS_JSONL),
         "max_text_len": MAX_TEXT_LEN,
     }
 
@@ -206,10 +216,9 @@ def _probe(words, enc, head):
 
 @cache
 def _ii_json() -> dict:
-    p = Path(II_JSON)
-    if not p.exists():
+    if not II_JSON.exists():
         return {}
-    return json.loads(p.read_text(encoding="utf-8"))
+    return json.loads(II_JSON.read_text(encoding="utf-8"))
 
 
 @cache
@@ -262,7 +271,7 @@ def _section_keywords_flex(enc, emoji_head) -> dict:
 def _keywords_rows() -> tuple:
     vocab = set(EMOJIS)
     out = []
-    for d in _rows(str(KEYWORDS_JSONL)):
+    for d in _rows(KEYWORDS_JSONL):
         word = str(d.get("text", ""))
         emojis = [e for e in str(d.get("emojis", "")).split() if e in vocab]
         if not word or not emojis or word_count(word) != 1:
@@ -300,10 +309,10 @@ def _section_keyword_fails(enc, emoji_head) -> dict:
     return {"n": len(rows), "failed": len(fails), "rows": fails}
 
 
-def _words_from(path) -> dict[str, list[str]]:
+def _words_from(path: Path) -> dict[str, list[str]]:
     vocab = set(EMOJIS)
     words: dict[str, list[str]] = {}
-    for d in _rows(str(path)):
+    for d in _rows(path):
         text = str(d.get("text", ""))
         if not text or len(norm_text(text)) > MAX_TEXT_LEN:
             continue
@@ -447,11 +456,10 @@ def _section_channel_rank(enc) -> dict:
 
 @cache
 def _cldr_baseline():
-    p = Path(CLDR_BASELINE_JSON)
-    if not p.exists():
+    if not CLDR_BASELINE_JSON.exists():
         return None
     try:
-        data = json.loads(p.read_text(encoding="utf-8"))
+        data = json.loads(CLDR_BASELINE_JSON.read_text(encoding="utf-8"))
         methods = data["methods"]
     except (json.JSONDecodeError, KeyError, OSError):
         return None
@@ -470,18 +478,16 @@ def _strip_variation(e: str) -> str:
 
 @cache
 def _group_json() -> dict:
-    p = Path(GROUP_JSON)
-    if not p.exists():
+    if not GROUP_JSON.exists():
         return {}
-    return json.loads(p.read_text(encoding="utf-8"))
+    return json.loads(GROUP_JSON.read_text(encoding="utf-8"))
 
 
 @cache
 def _load_global_goals() -> dict:
-    p = Path(GOALS_YML)
-    if not p.exists():
+    if not GOALS_YML.exists():
         return {}
-    return (yaml.safe_load(p.read_text(encoding="utf-8")) or {}).get("goals") or {}
+    return (yaml.safe_load(GOALS_YML.read_text(encoding="utf-8")) or {}).get("goals") or {}
 
 
 def _coverage_targets() -> dict:
@@ -998,7 +1004,7 @@ def _section_eval_samples(pt: Path, eval_records) -> dict:
     return {"n": len(out_rows), "rows": out_rows}
 
 
-def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
+def build_report(pt: Path, only: str = "", out: Path = REPORT_DIR) -> Path:
     want = {s.strip() for s in only.split(",") if s.strip()} or {
         "data",
         "labels",
@@ -1013,8 +1019,8 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
         "length_acc",
         "eval_samples",
     }
-    enc_pt, emoji_pt = pt / "enc.pt", pt / "emoji.pt"
-    style_pt, gen_pt = pt / "style.pt", pt / "gen.pt"
+    enc_pt, emoji_pt = PtFile.ENC.in_dir(pt), PtFile.EMOJI.in_dir(pt)
+    style_pt, gen_pt = PtFile.STYLE.in_dir(pt), PtFile.GEN.in_dir(pt)
     prov = _provenance(pt)
 
     enc = emoji_head = style_head = gen = None
@@ -1097,7 +1103,7 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
 
     report["status"] = _section_status(report)
 
-    out_dir = Path(out) / f"{prov['ts']}-{prov['model_sha']}"
+    out_dir = out / f"{prov['ts']}-{prov['model_sha']}"
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "report.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -1981,7 +1987,7 @@ _app = typer.Typer(
 def main(
     pt: Path = typer.Option(..., "--pt", help="Folder containing enc.pt/emoji.pt."),
     only: str = "",
-    out: str = "report",
+    out: Path = REPORT_DIR,
 ) -> None:
     """Evaluate enc/emoji .pt + data files; write report/<ts>-<sha>/."""
     build_report(pt, only=only, out=out)

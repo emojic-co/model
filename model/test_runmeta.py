@@ -33,7 +33,7 @@ def test_run_meta_sha_env_override():
         del os.environ["EMOJIC_GIT_DIRTY"]
 
 
-def test_save_load_round_trip(tmp_path="/tmp/runmeta-rt.pt"):
+def test_save_load_round_trip(tmp_path: Path = Path("/tmp/runmeta-rt.pt")):
     import torch
 
     from model.runmeta import load_pt, save_pt
@@ -45,7 +45,7 @@ def test_save_load_round_trip(tmp_path="/tmp/runmeta-rt.pt"):
     assert meta["sha"]
 
 
-def test_load_pt_legacy_bare(tmp_path="/tmp/runmeta-legacy.pt"):
+def test_load_pt_legacy_bare(tmp_path: Path = Path("/tmp/runmeta-legacy.pt")):
     import torch
 
     from model.runmeta import load_pt
@@ -77,7 +77,7 @@ def test_require_clean_tree_dispatch_skip():
         del os.environ["EMOJIC_DISPATCH_CHECKED"]
 
 
-def test_require_clean_tree_dirty_exits(tmp_path="/tmp/runmeta-gitdirty"):
+def test_require_clean_tree_dirty_exits(tmp_path: Path = Path("/tmp/runmeta-gitdirty")):
     import os
     import subprocess
 
@@ -85,7 +85,7 @@ def test_require_clean_tree_dirty_exits(tmp_path="/tmp/runmeta-gitdirty"):
 
     subprocess.run(["rm", "-rf", tmp_path], check=True)
     subprocess.run(["git", "init", "-q", tmp_path], check=True)
-    open(f"{tmp_path}/x.txt", "w").write("hi")
+    (tmp_path / "x.txt").write_text("hi")
     cwd = os.getcwd()
     try:
         os.chdir(tmp_path)
@@ -100,17 +100,15 @@ def test_require_clean_tree_dirty_exits(tmp_path="/tmp/runmeta-gitdirty"):
         os.chdir(cwd)
 
 
-def test_write_meta_yml(tmp_dir="/tmp/runmeta-yml"):
-    import os
-
+def test_write_meta_yml(tmp_dir: Path = Path("/tmp/runmeta-yml")):
     import yaml
 
     from model.runmeta import write_meta_yml
 
-    os.makedirs(tmp_dir, exist_ok=True)
+    tmp_dir.mkdir(parents=True, exist_ok=True)
     doc = {"report_type": "test-emoji", "models": {"enc.pt": {"sha": "abc"}}}
     write_meta_yml(tmp_dir, doc)
-    back = yaml.safe_load(open(f"{tmp_dir}/meta.yml"))
+    back = yaml.safe_load((tmp_dir / "meta.yml").open())
     assert back["report_type"] == "test-emoji"
     assert back["models"]["enc.pt"]["sha"] == "abc"
 

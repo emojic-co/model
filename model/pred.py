@@ -8,6 +8,7 @@ import torch
 import typer
 from tqdm import tqdm
 
+from files import PtFile
 from model.config import MAX_TEXT_LEN, SEED
 from model.data import EMOJIS, STYLES, normalize, text_to_tensor
 from model.model import (
@@ -31,7 +32,7 @@ def rgb_to_hex(rgb: torch.Tensor) -> list[str]:
     return [f"#{f2h(ints[i])}{f2h(ints[i + 1])}{f2h(ints[i + 2])}" for i in range(0, 9, 3)]
 
 
-def _load(mod: torch.nn.Module, path: str | Path) -> torch.nn.Module:
+def _load(mod: torch.nn.Module, path: Path) -> torch.nn.Module:
     sd, meta = load_pt(path)
     mod.load_state_dict(sd)
     mod._pt_meta = meta  # type: ignore
@@ -73,11 +74,11 @@ def predict(
 ) -> list[dict]:
     torch.manual_seed(SEED)
 
-    enc = _load(TextEncoder(), pt_dir / "enc.pt")
-    gen = _load(ColorGen(), pt_dir / "gen.pt")
-    style = _load(StyleHead(), pt_dir / "style.pt")
-    emoji_embed = _load(EmojiEmbedding(), pt_dir / "emoji_embed.pt")
-    emoji = _load(EmojiHead(), pt_dir / "emoji.pt")
+    enc = _load(TextEncoder(), PtFile.ENC.in_dir(pt_dir))
+    gen = _load(ColorGen(), PtFile.GEN.in_dir(pt_dir))
+    style = _load(StyleHead(), PtFile.STYLE.in_dir(pt_dir))
+    emoji_embed = _load(EmojiEmbedding(), PtFile.EMOJI_EMBED.in_dir(pt_dir))
+    emoji = _load(EmojiHead(), PtFile.EMOJI.in_dir(pt_dir))
 
     records = []
     with torch.no_grad():

@@ -38,10 +38,14 @@ from files import (
     LABELS_JSON,
     MODEL_DIR,
     PT_DIR,
+    REPORT_DIR,
+    RUNS_DIR,
     STYLE_PT,
     TERMS_JSONL,
     TOOLS_DIR,
     TRAIN_JSONL,
+    WEB_PUBLIC_DIR,
+    PtFile,
 )
 from model.color import energy_distance, rgb_to_oklab
 from model.config import (
@@ -64,8 +68,8 @@ from model.config import (
     LR_GAN_CRITIC,
     LR_GAN_GEN,
     MACRO_MIN_SUPPORT,
-    SAMPLING_MAX_RATE,
-    SAMPLING_MIN_RATE,
+    SAMPLING_RATE_MAX,
+    SAMPLING_RATE_MIN,
     SAMPLING_SOURCES,
     SEED,
     TASK_BATCH_SIZE,
@@ -79,7 +83,7 @@ from model.data import (
 )
 from model.export_onnx import export
 from model.metric import GanMetric, Metric, NamedMetric, Source, Split, named_metric
-from model.metrics import macro_average
+from model.metrics import macro_average, r2_score
 from model.model import (
     ColorCritic,
     ColorGen,
@@ -129,7 +133,7 @@ def acc_at_k(logits: torch.Tensor, target: torch.Tensor, k: int) -> torch.Tensor
 
 
 ALL_HEADS: tuple[str, ...] = ("style", "emoji", "lang")
-_DEFAULT_PT = Path(PT_DIR)
+_DEFAULT_PT = PT_DIR
 
 
 class Stage(StrEnum):
@@ -199,6 +203,11 @@ class LitEncoder(pl.LightningModule):
         self._trn_s_rr: list[torch.Tensor] = []
         self._trn_s_tgt: list[torch.Tensor] = []
 
+        self._val_color_pred: list[torch.Tensor] = []
+        self._val_color_tgt: list[torch.Tensor] = []
+        self._trn_color_pred: list[torch.Tensor] = []
+        self._trn_color_tgt: list[torch.Tensor] = []
+
         self.train_dataset = None
 
     def _log(self, name: NamedMetric, val: torch.Tensor, bs: int) -> None:
@@ -236,7 +245,7 @@ class LitEncoder(pl.LightningModule):
 
             if split == Split.VAL:
                 for name, cfg in SAMPLING_SOURCES.items():
-                    if cfg.metric != Metric.ACC_1:
+                    if cfg.metric != named_metric(name, Metric.ACC_1):
                         continue
                     mask = torch.tensor(
                         [s == name for s in source], device=emoji.device
@@ -275,7 +284,15 @@ class LitEncoder(pl.LightningModule):
             pred_rgb = self.gen(enc[has_color], zero_z)
             loss_color = l1_loss(pred_rgb, real_rgb)
             loss = loss + LOSS_WEIGHT_COLOR_REG * loss_color
-            self._log(named_metric(Source.COLOR, Metric.MAE, split), loss_color, n_color)
+            self._log(named_metric(Source.COLOR, Metric.MAE, split),
+                      loss_color, n_color)
+            color_pred, color_tgt = (
+                (self._val_color_pred, self._val_color_tgt)
+                if split == Split.VAL
+                else (self._trn_color_pred, self._trn_color_tgt)
+            )
+            color_pred.append(pred_rgb.detach())
+            color_tgt.append(real_rgb.detach())
 
         return loss
 
@@ -283,6 +300,8 @@ class LitEncoder(pl.LightningModule):
         self._val_e_rr.clear()
         self._val_s_rr.clear()
         self._val_s_tgt.clear()
+        self._val_color_pred.clear()
+        self._val_color_tgt.clear()
 
     def on_validation_epoch_end(self):
         self._epoch_metrics(Split.VAL)
@@ -291,21 +310,20 @@ class LitEncoder(pl.LightningModule):
         self._trn_e_rr.clear()
         self._trn_s_rr.clear()
         self._trn_s_tgt.clear()
+        self._trn_color_pred.clear()
+        self._trn_color_tgt.clear()
 
         if self.train_dataset is None or self.train_dataset.rates is None:
             return
         metrics = self.trainer.callback_metrics
-        base_rate = self.train_dataset.rates.base_rate
         for name, cfg in SAMPLING_SOURCES.items():
-            key = named_metric(name, cfg.metric, cfg.split)
+            key = cfg.metric
             if key in metrics:
                 val = float(metrics[key])
-                gap = (
-                    max(0.0, val - cfg.goal) / cfg.goal
-                    if cfg.lower_is_better
-                    else max(0.0, cfg.goal - val) / cfg.goal
-                )
-                rate = min(SAMPLING_MAX_RATE, max(SAMPLING_MIN_RATE, base_rate * gap))
+                frac = (val - cfg.from_) / (cfg.to - cfg.from_)
+                rate = SAMPLING_RATE_MAX - (
+                    SAMPLING_RATE_MAX - SAMPLING_RATE_MIN) * frac
+                rate = min(SAMPLING_RATE_MAX, max(SAMPLING_RATE_MIN, rate))
                 self.train_dataset.rates.set(name, rate)
             self.log(
                 named_metric(name, Metric.RATE),
@@ -339,6 +357,15 @@ class LitEncoder(pl.LightningModule):
                     named_metric(Source.STYLE, Metric.MRR, split),
                     style_macro, prog_bar=True,
                 )
+
+        color_pred, color_tgt = (
+            (self._val_color_pred, self._val_color_tgt)
+            if split == Split.VAL
+            else (self._trn_color_pred, self._trn_color_tgt)
+        )
+        if color_pred:
+            color_r2 = r2_score(torch.cat(color_pred), torch.cat(color_tgt))
+            self.log(named_metric(Source.COLOR, Metric.R2, split), color_r2)
 
     def training_step(self, batch, batch_idx):
         return self._step(batch, Split.TRAIN)
@@ -479,7 +506,7 @@ class LitColorGAN(pl.LightningModule):
         return [opt_gen, opt_critic]
 
 
-def _load(mod: nn.Module, path: str) -> nn.Module:
+def _load(mod: nn.Module, path: Path) -> nn.Module:
     sd, meta = load_pt(path)
     mod.load_state_dict(sd)
     mod._pt_meta = meta  # type: ignore
@@ -490,7 +517,7 @@ def _no_progress_bar() -> bool:
     return os.environ.get("EMOJIC_NO_PROGRESS_BAR") == "1"
 
 
-def _require_pt(folder: Path, names: list[str]) -> None:
+def _require_pt(folder: Path, names: list[PtFile]) -> None:
     missing = [n for n in names if not (folder / n).exists()]
     if missing:
         raise typer.BadParameter(f"{folder}: missing {', '.join(missing)}")
@@ -533,28 +560,31 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
     if ckpt.best_model_path:
         mod = LitEncoder.load_from_checkpoint(ckpt.best_model_path)
 
-    save_pt(mod.enc.state_dict(), str(out_dir / "enc.pt"), stage="enc")
-    save_pt(mod.gen.state_dict(), str(out_dir / "gen.pt"), stage="enc")
+    save_pt(mod.enc.state_dict(), PtFile.ENC.in_dir(out_dir), stage="enc")
+    save_pt(mod.gen.state_dict(), PtFile.GEN.in_dir(out_dir), stage="enc")
     if "emoji" in heads:
         save_pt(
             mod.emoji_embed.state_dict(),
-            str(out_dir / "emoji_embed.pt"),
+            PtFile.EMOJI_EMBED.in_dir(out_dir),
             stage="enc",
         )
     for h in ALL_HEADS:
         if h in heads:
-            save_pt(getattr(mod, h).state_dict(), str(
-                out_dir / f"{h}.pt"), stage="enc")
+            save_pt(
+                getattr(mod, h).state_dict(),
+                PtFile(f"{h}.pt").in_dir(out_dir),
+                stage="enc",
+            )
 
     return mod
 
 
 def _warm_start_gen(gen: ColorGen, pt_dir: Path) -> None:
-    path = pt_dir / "gen.pt"
+    path = PtFile.GEN.in_dir(pt_dir)
     if not path.exists():
         return
     try:
-        sd, _ = load_pt(str(path))
+        sd, _ = load_pt(path)
         gen.load_state_dict(sd)
     except (RuntimeError, KeyError):
         pass
@@ -606,7 +636,7 @@ def _train_gan(
             ckpt.best_model_path, enc=enc, critic=ColorCritic()
         )
 
-    save_pt(gan.gen.state_dict(), str(out_dir / "gen.pt"), stage="gan")
+    save_pt(gan.gen.state_dict(), PtFile.GEN.in_dir(out_dir), stage="gan")
     return gan
 
 
@@ -634,13 +664,13 @@ def _run_local(
         _require_pt(
             pt_dir,
             [
-                "enc.pt",
-                "style.pt",
-                "emoji.pt",
-                "emoji_embed.pt",
+                PtFile.ENC,
+                PtFile.STYLE,
+                PtFile.EMOJI,
+                PtFile.EMOJI_EMBED,
             ],
         )
-        enc = _load(TextEncoder(), str(pt_dir / "enc.pt"))
+        enc = _load(TextEncoder(), PtFile.ENC.in_dir(pt_dir))
         critic = ColorCritic()
         _train_gan(enc, critic, train_ds(  # type: ignore
             mix_sources=False), pt_dir, out_dir)
@@ -684,21 +714,21 @@ WORKTREE_TAG = hashlib.sha1(str(Path.cwd().resolve()).encode()).hexdigest()[:10]
 VOL_NAME = f"emojic-artifacts-{WORKTREE_TAG}"
 ARTIFACTS = "/artifacts"
 
-DEP_FILES = ["pyproject.toml", "uv.lock", ".python-version", "README.md"]
+DEP_FILES = [Path(p) for p in ("pyproject.toml", "uv.lock", ".python-version", "README.md")]
 CODE_FILES = [
-    "files.py",
-    f"{MODEL_DIR}/__init__.py",
-    f"{MODEL_DIR}/color.py",
-    f"{MODEL_DIR}/config.py",
-    f"{MODEL_DIR}/data.py",
-    f"{MODEL_DIR}/metric.py",
-    f"{MODEL_DIR}/metrics.py",
-    f"{MODEL_DIR}/model.py",
-    f"{MODEL_DIR}/train.py",
-    f"{MODEL_DIR}/export_onnx.py",
-    f"{MODEL_DIR}/pred.py",
-    f"{MODEL_DIR}/runmeta.py",
-    f"{TOOLS_DIR}/report.py",
+    Path("files.py"),
+    MODEL_DIR / "__init__.py",
+    MODEL_DIR / "color.py",
+    MODEL_DIR / "config.py",
+    MODEL_DIR / "data.py",
+    MODEL_DIR / "metric.py",
+    MODEL_DIR / "metrics.py",
+    MODEL_DIR / "model.py",
+    MODEL_DIR / "train.py",
+    MODEL_DIR / "export_onnx.py",
+    MODEL_DIR / "pred.py",
+    MODEL_DIR / "runmeta.py",
+    TOOLS_DIR / "report.py",
     LABELS_JSON,
     DATA_JSONL,
     TRAIN_JSONL,
@@ -707,7 +737,7 @@ CODE_FILES = [
     TERMS_JSONL,
     FLAGS_JSONL,
 ]
-COLLECT_TREES = [PT_DIR, "runs", "web/public", "report"]
+COLLECT_TREES = [PT_DIR, RUNS_DIR, WEB_PUBLIC_DIR, REPORT_DIR]
 
 modal_image = modal.Image.debian_slim(python_version="3.13").pip_install("uv")
 for _name in DEP_FILES:
@@ -737,8 +767,8 @@ def _run_env(threads: int) -> dict[str, str]:
     }
 
 
-def _stash(dst: str) -> int:
-    root, out = Path(REPO), Path(dst)
+def _stash(dst: Path) -> int:
+    root, out = Path(REPO), dst
     n = 0
     for tree in COLLECT_TREES:
         base = root / tree
@@ -838,7 +868,7 @@ def train_remote(
         finally:
             tb.terminate()
     finally:
-        n = _stash(ARTIFACTS)
+        n = _stash(Path(ARTIFACTS))
         vol.commit()
         print(f"stashed {n} files to volume {VOL_NAME}", flush=True)
     if code != 0:
@@ -868,9 +898,9 @@ def _retrieve_and_cleanup() -> bool:
             and kids[0].is_dir()
             and kids[0].name
             not in {
-                PT_DIR,
-                "runs",
-                "report",
+                str(PT_DIR),
+                str(RUNS_DIR),
+                str(REPORT_DIR),
                 "web",
             }
         ):
@@ -917,16 +947,16 @@ def _run_remote(
             EMOJI_PT,
             EMOJI_EMBED_PT,
         ):
-            if not Path(name).exists():
+            if not name.exists():
                 raise typer.BadParameter(
                     f"{name} not found -- run `train enc --local` "
                     "(or fetch a Modal enc run) first"
                 )
         pt_bytes = {
-            "enc_bytes": Path(ENC_PT).read_bytes(),
-            "style_bytes": Path(STYLE_PT).read_bytes(),
-            "emoji_bytes": Path(EMOJI_PT).read_bytes(),
-            "emoji_embed_bytes": Path(EMOJI_EMBED_PT).read_bytes(),
+            "enc_bytes": ENC_PT.read_bytes(),
+            "style_bytes": STYLE_PT.read_bytes(),
+            "emoji_bytes": EMOJI_PT.read_bytes(),
+            "emoji_embed_bytes": EMOJI_EMBED_PT.read_bytes(),
         }
 
     threads = GPU_CPU if gpu else CPU
