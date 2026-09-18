@@ -531,7 +531,7 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
     no_bar = _no_progress_bar()
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
-    monitor = named_metric(Source.EMOJI, Metric.MRR, Split.VAL)
+    monitor = str(named_metric(Source.EMOJI, Metric.MRR, Split.VAL))
     ckpt = ModelCheckpoint(
         monitor=monitor, mode="max", save_top_k=1, filename="best-{step}"
     )
@@ -598,8 +598,9 @@ def _train_gan(
     no_bar = _no_progress_bar()
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
+    monitor = str(GanMetric.ENERGY_VAL)
     ckpt = ModelCheckpoint(
-        monitor=GanMetric.ENERGY_VAL, mode="min", save_top_k=1,
+        monitor=monitor, mode="min", save_top_k=1,
         filename="best-gan-{step}"
     )
     trainer = pl.Trainer(
@@ -618,7 +619,7 @@ def _train_gan(
         callbacks=[
             ckpt,
             EarlyStopping(
-                monitor=GanMetric.ENERGY_VAL,
+                monitor=monitor,
                 mode="min",
                 patience=EARLY_STOP_PATIENCE_GAN),
 
