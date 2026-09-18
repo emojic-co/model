@@ -22,6 +22,7 @@ from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
 from torch.nn.functional import (
     cross_entropy,
+    l1_loss,
     mse_loss,
     normalize,
     relu,
@@ -289,12 +290,14 @@ class LitEncoder(pl.LightningModule):
             [s in (SRC_FULL, COLOR_SOURCE_NAME) for s in source], device=enc.device)
         n_color = int(has_color.sum())
         if n_color:
-            real_lab = rgb_to_oklab(colors[has_color])
+            real_rgb = colors[has_color]
             zero_z = torch.zeros_like(enc[has_color])
-            pred_lab = rgb_to_oklab(self.gen(enc[has_color], zero_z))
-            loss_color = mse_loss(pred_lab, real_lab)
+            pred_rgb = self.gen(enc[has_color], zero_z)
+            loss_color = l1_loss(pred_rgb, real_rgb)
             loss = loss + LOSS_WEIGHT_COLOR_REG * loss_color
             self._log(f"loss/color_reg/{split}", loss_color, n_color)
+            real_lab = rgb_to_oklab(real_rgb)
+            pred_lab = rgb_to_oklab(pred_rgb)
             dist = (
                 (pred_lab - real_lab)
                 .view(n_color, 3, 3)
@@ -571,7 +574,7 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
     no_bar = _no_progress_bar()
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
-    monitor = "full_text/acc@1/val"
+    monitor = "MRR/e/val"
     ckpt = ModelCheckpoint(
         monitor=monitor, mode="max", save_top_k=1, filename="best-{step}"
     )
@@ -1090,7 +1093,7 @@ def cli(
       pt/ only with --local. A dirty git tree always aborts.
 
     Heads (stage 1 eval / checkpoint monitor)
-      full_text/acc@1/val is the checkpoint + early-stop metric; requires
+      MRR/e/val is the checkpoint + early-stop metric; requires
       "emoji" in --heads.
     """
     resolved = _validate(stage, local, heads, pt, out, gpu, cpu)
