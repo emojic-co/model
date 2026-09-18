@@ -46,7 +46,6 @@ from model.export_onnx import CONST_Z
 from model.kwtokens import word_count
 from model.model import (
     ColorGen,
-    ColorRegressor,
     EmojiEmbedding,
     EmojiHead,
     StyleHead,
@@ -367,7 +366,11 @@ def _section_block_capacity(enc, heads: dict) -> dict:
             if head is None:
                 continue
             net = head.net
-            weight = net.weight if isinstance(net, nn.Linear) else net[1].weight
+            if isinstance(net, nn.Linear):
+                weight = net.weight
+            else:
+                linears = [m for m in net.modules() if isinstance(m, nn.Linear)]
+                weight = linears[-1].weight
             rows = []
             for source, path in _BLOCK_CAPACITY_SOURCES:
                 texts = [r.text for r in read(path)]
@@ -1012,10 +1015,9 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
     }
     enc_pt, emoji_pt = pt / "enc.pt", pt / "emoji.pt"
     style_pt, gen_pt = pt / "style.pt", pt / "gen.pt"
-    color_reg_pt = pt / "color_reg.pt"
     prov = _provenance(pt)
 
-    enc = emoji_head = style_head = gen = color_reg_head = None
+    enc = emoji_head = style_head = gen = None
     need_enc = bool(
         {
             "emoji",
@@ -1043,11 +1045,7 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
             style_head, err = _load(StyleHead(), style_pt)
             if err:
                 prov["issues"].append(f"{style_pt} could not load: {err}")
-    if enc is not None and "block_capacity" in want and color_reg_pt.exists():
-        color_reg_head, err = _load(ColorRegressor(), color_reg_pt)
-        if err:
-            prov["issues"].append(f"{color_reg_pt} could not load: {err}")
-    if "cards" in want and enc is not None and gen_pt.exists():
+    if enc is not None and {"cards", "block_capacity"} & want and gen_pt.exists():
         gen, err = _load(ColorGen(), gen_pt)
         if err:
             prov["issues"].append(f"{gen_pt} could not load: {err}")
@@ -1087,7 +1085,7 @@ def build_report(pt: Path, only: str = "", out: str = "report") -> Path:
             {
                 "EmojiHead": emoji_head,
                 "StyleHead": style_head,
-                "ColorRegressor": color_reg_head,
+                "ColorGen": gen,
             },
         )
     if "channel_rank" in want:
@@ -1740,7 +1738,7 @@ def _block_capacity_html(d) -> str:
         return (
             "<h2>Model — Encoder block capacity</h2>"
             '<p class="note">Unavailable — needs enc.pt / emoji.pt / style.pt '
-            "/ color_reg.pt and data from data/keywords.jsonl, "
+            "/ gen.pt and data from data/keywords.jsonl, "
             "data/terms.jsonl, data/eval.jsonl.</p>"
         )
     out = [
@@ -1753,7 +1751,7 @@ def _block_capacity_html(d) -> str:
         "comparable across blocks with different channel widths. Each "
         "encoder block keeps the same color across every row/source below.</p>",
     ]
-    for head_name in ("EmojiHead", "StyleHead", "ColorRegressor"):
+    for head_name in ("EmojiHead", "StyleHead", "ColorGen"):
         rows = (d.get(head_name) or {}).get("rows")
         out.append(f"<h3>{_esc(head_name)}</h3>")
         if not rows:

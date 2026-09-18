@@ -27,6 +27,9 @@ goals:
       "acc@5": 0.80
       "acc@10": 0.87
 
+  color regressor:
+    "mse": 0.005
+
   color generator:
     energy distance:
       global: 0.05

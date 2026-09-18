@@ -19,7 +19,6 @@ from model.config import (
     ENCODER_CHANNELS,
     ENCODER_DILATION,
     ENCODER_KERNEL_SIZE,
-    GEN_HIDDEN_SIZE,
     RELU_SLOPE,
     Z_WEIGHT,
 )
@@ -117,32 +116,13 @@ class EmojiHead(nn.Module):
         return self.net(text_embedding)
 
 
-class ColorRegressor(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-        self.net = nn.Linear(EMBED_SIZE_TEXT, COLOR_DIM)
-
-    def forward(self, text_embedding: torch.Tensor) -> torch.Tensor:
-        return self.net(text_embedding)
-
-
-def blk(i: int, o: int):
-    return [
-        nn.Linear(i, o, bias=False),
-        nn.LayerNorm(o),
-        nn.LeakyReLU(negative_slope=RELU_SLOPE)]
-
-
 # GAN
 class ColorGen(nn.Module):
     def __init__(self):
         super().__init__()
 
         self.net = nn.Sequential(
-            *blk(EMBED_SIZE_TEXT, GEN_HIDDEN_SIZE),
-            *blk(GEN_HIDDEN_SIZE, GEN_HIDDEN_SIZE),
-            nn.Linear(GEN_HIDDEN_SIZE, COLOR_DIM))
+            nn.Linear(EMBED_SIZE_TEXT, COLOR_DIM))
 
     def forward(
         self,

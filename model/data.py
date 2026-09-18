@@ -151,7 +151,7 @@ def _load_pool(path: str) -> _Pool | None:
                 if not line:
                     continue
                 r = _parse_record(json.loads(line))
-                if r is not None and r.emojis:
+                if r is not None and (r.emojis or r.colors):
                     recs.append(r)
     except FileNotFoundError:
         return None
@@ -161,7 +161,10 @@ def _load_pool(path: str) -> _Pool | None:
         torch.stack([text_to_tensor(r.text) for r in recs]),
         [r.emojis for r in recs],
         torch.stack([styles_to_tensor(r.styles) for r in recs]),
-        torch.zeros(len(recs), COLOR_DIM),
+        torch.stack([
+            colors2tensor(r.colors) if r.colors else torch.zeros(COLOR_DIM)
+            for r in recs
+        ]),
         torch.tensor([r.lang for r in recs], dtype=torch.long),
     )
 
