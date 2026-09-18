@@ -27,6 +27,7 @@ from torch.nn.functional import (
 )
 
 from files import (
+    COLOR_TERMS_JSONL,
     DATA_JSONL,
     EMOJI_EMBED_PT,
     EMOJI_PT,
@@ -633,6 +634,7 @@ CODE_FILES = [
     KEYWORDS_JSONL,
     TERMS_JSONL,
     FLAGS_JSONL,
+    COLOR_TERMS_JSONL,
 ]
 COLLECT_TREES = [PT_DIR, RUNS_DIR, WEB_PUBLIC_DIR, REPORT_DIR]
 
