@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from files import COLOR_TERMS_JSONL, KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
-from model.metric import Metric, Source, Split, named_metric
+from files import KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
+from model.metric import Metric, Source, named_metric
 
 # from files import FLAGS_JSONL
 
@@ -36,7 +36,7 @@ ENCODER_KERNEL_SIZE = 3
 assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
-ENCODER_CHANNELS = [160, 234, 160, 20]
+ENCODER_CHANNELS = [160, 220, 200, 60]
 ENCODER_DILATION = [1, 2, 4, 8]
 
 # EMBEDDING
@@ -48,7 +48,6 @@ EMBED_SIZE_STYLE = 12
 # DROPOUT
 DROPOUT_EMOJI = 0.1
 DROPOUT_STYLE = 0.1
-DROPOUT_COLOR = 0.1
 
 assert len(ENCODER_CHANNELS) == len(ENCODER_DILATION), \
     "encoder channels and dilation must have the same length"
@@ -67,18 +66,13 @@ style_str = " ".join([
     for p in (EMBED_SIZE_STYLE, EMBED_SIZE_TEXT, DROPOUT_STYLE)])
 
 # GAN
-Z_WEIGHT = 0.5
+Z_DIM = 64
 GEN_HIDDEN_SIZE = 128
 CRITIC_EMBEDDING_SIZE = 96
 
 LOSS_WEIGHT_COND_COLOR = 0.5
-LOSS_WEIGHT_ENERGY = 0.1
-
-# COLOR REGRESSOR
-LOSS_WEIGHT_COLOR_REG = 0.01
-
-color_reg_str = " ".join([
-    str(p) for p in (LOSS_WEIGHT_COLOR_REG, DROPOUT_COLOR)])
+LOSS_WEIGHT_ENERGY = 0.2
+COLOR_TERMS_MIXIN = 0.01
 
 # LR
 LR_ENCODER = 0.05
@@ -98,13 +92,14 @@ INFONCE_TEMP_STYLE = 0.7
 gan_str = " ".join([
     str(p)
     for p in (
-        Z_WEIGHT,
+        Z_DIM,
         GEN_HIDDEN_SIZE,
         CRITIC_EMBEDDING_SIZE,
         LR_GAN_GEN,
         LR_GAN_CRITIC,
         LOSS_WEIGHT_COND_COLOR,
-        LOSS_WEIGHT_ENERGY)])
+        LOSS_WEIGHT_ENERGY,
+        COLOR_TERMS_MIXIN)])
 
 
 @dataclass(frozen=True)
@@ -128,11 +123,6 @@ SAMPLING_SOURCES: dict[Source, SamplingSource] = {
         TERMS_JSONL,
         named_metric(Source.TERM, Metric.ACC_1),
         0, 0.9
-    ),
-    Source.COLOR: SamplingSource(
-        COLOR_TERMS_JSONL,
-        named_metric(Source.COLOR, Metric.R2, Split.VAL),
-        0, 0.3,
     ),
 }
 
@@ -175,7 +165,6 @@ CONFIG_PARTS = [
     f"EMOJI: {emj_str}",
     f"STYLE: {style_str}",
     f"GAN: {gan_str}",
-    f"COLOR_REG: {color_reg_str}",
     f"TRAIN: {train_str}",
 ]
 CONFIG_NAME = " | ".join(
@@ -243,7 +232,7 @@ def _stats() -> list[tuple[str, object]]:
         ("TASK_BATCH_SIZE / GAN_BATCH_SIZE",
          f"{TASK_BATCH_SIZE} / {GAN_BATCH_SIZE}"),
         ("EPOCHS_TASK / EPOCHS_GAN", f"{EPOCHS_TASK} / {EPOCHS_GAN}"),
-        ("Z_WEIGHT", Z_WEIGHT),
+        ("Z_DIM", Z_DIM),
     ]
 
 

@@ -40,7 +40,6 @@ from model.config import (
     MAX_TEXT_LEN,
     SEED,
     STYLES,
-    Z_WEIGHT,
 )
 from model.data import EVAL_PATH, TRAIN_PATH, read, text_to_tensor
 from model.data import normalize as norm_text
@@ -890,7 +889,9 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
         emb = enc(ids)
         elog = emb_tbl.score(emoji_head(emb))
         slog = style_head(emb)
-        seed = (1 - Z_WEIGHT) * _l2norm(emb)[:, None, :] + Z_WEIGHT * CONST_Z[None, :, :]
+        cond = _l2norm(emb)[:, None, :].expand(-1, CONST_Z.shape[0], -1)
+        z = CONST_Z[None, :, :].expand(emb.shape[0], -1, -1)
+        seed = torch.cat([cond, z], dim=-1)
         raw = gen.net(seed.reshape(-1, seed.shape[-1]))
         palettes = (torch.tanh(raw) * 127.5).reshape(len(rows), CONST_Z.shape[0], 9)
     emoji_acc = [_acc_at_k(elog, etgt, k).mean().item() for k in EMOJI_KS]
