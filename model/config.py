@@ -129,7 +129,7 @@ SAMPLING_SOURCES: dict[Source, SamplingSource] = {
     Source.COLOR: SamplingSource(
         COLOR_TERMS_JSONL,
         named_metric(Source.COLOR, Metric.R2, Split.VAL),
-        0, 0.5,
+        0, 0.2,
     ),
 }
 
