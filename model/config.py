@@ -6,6 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 from files import COLOR_TERMS_JSONL, KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
+from model.metric import Metric, Source, Split
 
 # from files import FLAGS_JSONL
 
@@ -35,7 +36,7 @@ ENCODER_KERNEL_SIZE = 3
 assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
-ENCODER_CHANNELS = [140, 240, 200, 60]
+ENCODER_CHANNELS = [140, 240, 200, 100]
 ENCODER_DILATION = [1, 2, 4, 8]
 
 # EMBEDDING
@@ -107,19 +108,21 @@ gan_str = " ".join([
 @dataclass(frozen=True)
 class SamplingSource:
     path: str
-    metric: str
+    metric: Metric
     goal: float
     lower_is_better: bool = False
+    split: Split | None = None
 
 
-SAMPLING_SOURCES: dict[str, SamplingSource] = {
-    "keyword": SamplingSource(KEYWORDS_JSONL, "acc@1", 0.95),
-    "term": SamplingSource(TERMS_JSONL, "acc@1", 0.9),
-    "color": SamplingSource(COLOR_TERMS_JSONL, "mse", 0.005, lower_is_better=True),
-    # "flags": SamplingSource(FLAGS_JSONL, "acc@1", 0.9),
+SAMPLING_SOURCES: dict[Source, SamplingSource] = {
+    Source.KEYWORD: SamplingSource(KEYWORDS_JSONL, Metric.ACC_1, 0.95),
+    Source.TERM: SamplingSource(TERMS_JSONL, Metric.ACC_1, 0.9),
+    Source.COLOR: SamplingSource(
+        COLOR_TERMS_JSONL, Metric.MAE, 5, lower_is_better=True, split=Split.VAL
+    ),
 }
 
-SAMPLING_BASE_RATE = 0.25
+SAMPLING_BASE_RATE = 0.2
 SAMPLING_MIN_RATE = 0.005
 
 
