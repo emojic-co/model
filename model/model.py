@@ -119,10 +119,10 @@ class EmojiHead(nn.Module):
 
 # GAN
 def blk(i: int, o: int):
-    return nn.Sequential(
+    return [
         nn.Linear(i, o, bias=False),
         nn.LayerNorm(o),
-        nn.LeakyReLU(negative_slope=RELU_SLOPE))
+        nn.LeakyReLU(negative_slope=RELU_SLOPE)]
 
 
 class ColorGen(nn.Module):
@@ -130,7 +130,7 @@ class ColorGen(nn.Module):
         super().__init__()
 
         self.net = nn.Sequential(
-            nn.Linear(EMBED_SIZE_TEXT + Z_DIM, GEN_HIDDEN_SIZE),
+            *blk(EMBED_SIZE_TEXT + Z_DIM, GEN_HIDDEN_SIZE),
             *blk(GEN_HIDDEN_SIZE, GEN_HIDDEN_SIZE),
             nn.Linear(GEN_HIDDEN_SIZE, COLOR_DIM))
 
@@ -152,19 +152,21 @@ class ColorGen(nn.Module):
         return tanh(colors) * COLOR_SHIFT
 
 
+def cblk(i: int, o: int):
+    return [
+        sn(nn.Linear(i, o)),
+        nn.LeakyReLU(negative_slope=RELU_SLOPE)]
+
+
 class ColorCritic(nn.Module):
     def __init__(self):
         super().__init__()
 
         self.color_embedding = nn.Sequential(
-            sn(nn.Linear(COLOR_DIM, CRITIC_EMBEDDING_SIZE)))
-
-        self.color_critic = nn.Sequential(
-            nn.LeakyReLU(negative_slope=RELU_SLOPE),
-            sn(nn.Linear(CRITIC_EMBEDDING_SIZE, 1)))
+            *cblk(COLOR_DIM, CRITIC_EMBEDDING_SIZE))
 
         self.text_embedding = nn.Sequential(
-            sn(nn.Linear(EMBED_SIZE_TEXT, CRITIC_EMBEDDING_SIZE)))
+            *cblk(EMBED_SIZE_TEXT, CRITIC_EMBEDDING_SIZE))
 
     def forward(
         self, cond: torch.Tensor, colors: torch.Tensor
@@ -172,6 +174,4 @@ class ColorCritic(nn.Module):
         c = self.color_embedding(colors)
         t = self.text_embedding(cond)
 
-        return (
-            (t * c).sum(dim=-1, keepdim=True),
-            self.color_critic(c))
+        return (t * c).sum(dim=-1, keepdim=True)
