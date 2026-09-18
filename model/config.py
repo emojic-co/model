@@ -36,7 +36,7 @@ ENCODER_KERNEL_SIZE = 3
 assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
-ENCODER_CHANNELS = [200, 200, 200, 200]
+ENCODER_CHANNELS = [160, 234, 160, 20]
 ENCODER_DILATION = [1, 2, 4, 8]
 
 # EMBEDDING
@@ -67,7 +67,7 @@ style_str = " ".join([
     for p in (EMBED_SIZE_STYLE, EMBED_SIZE_TEXT, DROPOUT_STYLE)])
 
 # GAN
-Z_WEIGHT = 0
+Z_WEIGHT = 0.5
 GEN_HIDDEN_SIZE = 128
 CRITIC_EMBEDDING_SIZE = 96
 
@@ -81,7 +81,7 @@ color_reg_str = " ".join([
     str(p) for p in (LOSS_WEIGHT_COLOR_REG, DROPOUT_COLOR)])
 
 # LR
-LR_ENCODER = 0.03
+LR_ENCODER = 0.1
 LR_GAN_GEN = 0.001
 LR_GAN_CRITIC = 0.05
 
