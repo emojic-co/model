@@ -22,7 +22,6 @@ from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
 from torch.nn.functional import (
     cross_entropy,
-    l1_loss,
     normalize,
     relu,
 )
@@ -49,10 +48,10 @@ from files import (
 )
 from model.color import energy_distance, rgb_to_oklab
 from model.config import (
+    COLOR_TERMS_MIXIN,
     CONFIG_NAME,
     EARLY_STOP_PATIENCE_ENCODER,
     EARLY_STOP_PATIENCE_GAN,
-    EMBED_SIZE_TEXT,
     ENERGY_Z_SAMPLES,
     EPOCHS_GAN,
     EPOCHS_TASK,
@@ -61,7 +60,6 @@ from model.config import (
     GRAD_CLIP_GEN,
     INFONCE_TEMP_EMOJI,
     INFONCE_TEMP_STYLE,
-    LOSS_WEIGHT_COLOR_REG,
     LOSS_WEIGHT_COND_COLOR,
     LOSS_WEIGHT_ENERGY,
     LR_ENCODER,
@@ -74,6 +72,7 @@ from model.config import (
     SEED,
     TASK_BATCH_SIZE,
     VAL_CHECK_INTERVAL,
+    Z_DIM,
 )
 from model.data import (
     SRC_FULL,
@@ -83,7 +82,7 @@ from model.data import (
 )
 from model.export_onnx import export
 from model.metric import GanMetric, Metric, Source, Split, named_metric
-from model.metrics import macro_average, r2_score
+from model.metrics import macro_average
 from model.model import (
     ColorCritic,
     ColorGen,
@@ -193,8 +192,6 @@ class LitEncoder(pl.LightningModule):
         if "lang" in self.heads:
             self.lang = LangHead()
 
-        self.gen = ColorGen()
-
         self._val_e_rr: list[torch.Tensor] = []
         self._trn_e_rr: list[torch.Tensor] = []
 
@@ -203,11 +200,6 @@ class LitEncoder(pl.LightningModule):
         self._trn_s_rr: list[torch.Tensor] = []
         self._trn_s_tgt: list[torch.Tensor] = []
 
-        self._val_color_pred: list[torch.Tensor] = []
-        self._val_color_tgt: list[torch.Tensor] = []
-        self._trn_color_pred: list[torch.Tensor] = []
-        self._trn_color_tgt: list[torch.Tensor] = []
-
         self.train_dataset = None
 
     def _log(self, name: str, val: torch.Tensor, bs: int) -> None:
@@ -215,7 +207,7 @@ class LitEncoder(pl.LightningModule):
                  prog_bar=True, batch_size=bs)
 
     def _step(self, batch, split: Split):
-        text, emoji, style, colors, lang, source = batch
+        text, emoji, style, _colors, lang, source = batch
         enc = self.enc(text)
         loss = enc.new_zeros(())
 
@@ -275,33 +267,12 @@ class LitEncoder(pl.LightningModule):
             loss_lang = cross_entropy(lang_logits, lang)
             loss = loss + loss_lang
 
-        has_color = torch.tensor(
-            [s in (SRC_FULL, Source.COLOR) for s in source], device=enc.device)
-        n_color = int(has_color.sum())
-        if n_color:
-            real_rgb = colors[has_color]
-            zero_z = torch.zeros_like(enc[has_color])
-            pred_rgb = self.gen(enc[has_color], zero_z)
-            loss_color = l1_loss(pred_rgb, real_rgb)
-            loss = loss + LOSS_WEIGHT_COLOR_REG * loss_color
-            self._log(named_metric(Source.COLOR, Metric.MAE, split),
-                      loss_color, n_color)
-            color_pred, color_tgt = (
-                (self._val_color_pred, self._val_color_tgt)
-                if split == Split.VAL
-                else (self._trn_color_pred, self._trn_color_tgt)
-            )
-            color_pred.append(pred_rgb.detach())
-            color_tgt.append(real_rgb.detach())
-
         return loss
 
     def on_validation_epoch_start(self):
         self._val_e_rr.clear()
         self._val_s_rr.clear()
         self._val_s_tgt.clear()
-        self._val_color_pred.clear()
-        self._val_color_tgt.clear()
 
     def on_validation_epoch_end(self):
         self._epoch_metrics(Split.VAL)
@@ -310,8 +281,6 @@ class LitEncoder(pl.LightningModule):
         self._trn_e_rr.clear()
         self._trn_s_rr.clear()
         self._trn_s_tgt.clear()
-        self._trn_color_pred.clear()
-        self._trn_color_tgt.clear()
 
         if self.train_dataset is None or self.train_dataset.rates is None:
             return
@@ -358,15 +327,6 @@ class LitEncoder(pl.LightningModule):
                     style_macro, prog_bar=True,
                 )
 
-        color_pred, color_tgt = (
-            (self._val_color_pred, self._val_color_tgt)
-            if split == Split.VAL
-            else (self._trn_color_pred, self._trn_color_tgt)
-        )
-        if color_pred:
-            color_r2 = r2_score(torch.cat(color_pred), torch.cat(color_tgt))
-            self.log(named_metric(Source.COLOR, Metric.R2, split), color_r2)
-
     def training_step(self, batch, batch_idx):
         return self._step(batch, Split.TRAIN)
 
@@ -379,7 +339,6 @@ class LitEncoder(pl.LightningModule):
             params += list(self.emoji_embed.parameters())
         for h in self.heads:
             params += list(getattr(self, h).parameters())
-        params += list(self.gen.parameters())
         return optim.Adam(params, lr=LR_ENCODER)
 
 
@@ -397,7 +356,7 @@ class LitColorGAN(pl.LightningModule):
             normalize(
                 torch.randn(
                     ENERGY_Z_SAMPLES,
-                    EMBED_SIZE_TEXT,
+                    Z_DIM,
                     generator=torch.Generator().manual_seed(SEED),
                 ),
                 dim=-1,
@@ -574,7 +533,6 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
         mod = LitEncoder.load_from_checkpoint(ckpt.best_model_path)
 
     save_pt(mod.enc.state_dict(), PtFile.ENC.in_dir(out_dir), stage="enc")
-    save_pt(mod.gen.state_dict(), PtFile.GEN.in_dir(out_dir), stage="enc")
     if "emoji" in heads:
         save_pt(
             mod.emoji_embed.state_dict(),
@@ -592,19 +550,8 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
     return mod
 
 
-def _warm_start_gen(gen: ColorGen, pt_dir: Path) -> None:
-    path = PtFile.GEN.in_dir(pt_dir)
-    if not path.exists():
-        return
-    try:
-        sd, _ = load_pt(path)
-        gen.load_state_dict(sd)
-    except (RuntimeError, KeyError):
-        pass
-
-
 def _train_gan(
-    enc: TextEncoder, critic: ColorCritic, ds, pt_dir: Path, out_dir: Path
+    enc: TextEncoder, critic: ColorCritic, ds, out_dir: Path
 ) -> LitColorGAN:
     val_dl = eval_data_loader(mix_sources=False)
     no_bar = _no_progress_bar()
@@ -641,7 +588,6 @@ def _train_gan(
     )
 
     gan = LitColorGAN(enc, critic)
-    _warm_start_gen(gan.gen, pt_dir)
     gan_dl = train_data_loader(data_set=ds, batch_size=GAN_BATCH_SIZE)
     trainer.fit(gan, gan_dl, val_dl)
 
@@ -679,7 +625,7 @@ def _run_local(
             enc = _load(TextEncoder(), PtFile.ENC.in_dir(pt_dir))
             critic = ColorCritic()
             _train_gan(enc, critic, train_ds(  # type: ignore
-                mix_sources=False), pt_dir, out_dir)
+                mix_sources=False, color_mixin=COLOR_TERMS_MIXIN), out_dir)
             if out_dir == _DEFAULT_PT:
                 export()
             if not skip_report:
@@ -703,7 +649,7 @@ def _run_local(
 
     critic = ColorCritic()
     _train_gan(mod.enc, critic, train_ds(  # type: ignore
-        mix_sources=False), out_dir, out_dir)
+        mix_sources=False, color_mixin=COLOR_TERMS_MIXIN), out_dir)
     if out_dir == _DEFAULT_PT:
         export()
     if not skip_report:

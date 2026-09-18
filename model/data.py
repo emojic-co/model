@@ -7,7 +7,7 @@ from pathlib import Path
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from files import EVAL_JSONL, TRAIN_JSONL
+from files import COLOR_TERMS_JSONL, EVAL_JSONL, TRAIN_JSONL
 from model.config import (
     EMOJIS,
     LANGS,
@@ -16,6 +16,7 @@ from model.config import (
     SAMPLING_SOURCES,
     STYLES,
 )
+from model.metric import Source
 
 TRAIN_PATH = TRAIN_JSONL
 EVAL_PATH = EVAL_JSONL
@@ -199,7 +200,12 @@ class SamplingRates:
 
 
 class EmojiDataset(Dataset):
-    def __init__(self, records: list[record], mix_sources: bool = False):
+    def __init__(
+        self,
+        records: list[record],
+        mix_sources: bool = False,
+        color_mixin: float = 0.0,
+    ):
         self.text = torch.stack([text_to_tensor(r.text) for r in records])
         self.emoji_lists = [r.emojis for r in records]
         self.style = torch.stack([styles_to_tensor(r.styles) for r in records])
@@ -218,6 +224,9 @@ class EmojiDataset(Dataset):
                 if pool is not None:
                     self.pools[name] = pool
 
+        self.color_mixin = color_mixin
+        self.color_pool = _load_pool(COLOR_TERMS_JSONL) if color_mixin > 0 else None
+
     def __len__(self):
         return len(self.text)
 
@@ -229,6 +238,8 @@ class EmojiDataset(Dataset):
                 cum += self.rates.get(name)
                 if r < cum:
                     return _sample_pool(pool, name)
+        if self.color_pool is not None and r < self.color_mixin:
+            return _sample_pool(self.color_pool, Source.COLOR)
         return (
             self.text[idx],
             emojis_to_tensor(self.emoji_lists[idx]),
@@ -239,8 +250,10 @@ class EmojiDataset(Dataset):
         )
 
 
-def train_ds(mix_sources: bool = True):
-    return EmojiDataset(list(read(TRAIN_PATH)), mix_sources=mix_sources)
+def train_ds(mix_sources: bool = True, color_mixin: float = 0.0):
+    return EmojiDataset(
+        list(read(TRAIN_PATH)), mix_sources=mix_sources, color_mixin=color_mixin
+    )
 
 
 PIN_MEMORY = torch.cuda.is_available()

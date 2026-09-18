@@ -10,7 +10,6 @@ from torch.nn.utils.parametrizations import spectral_norm as sn
 from model.color import COLOR_SHIFT
 from model.config import (
     CRITIC_EMBEDDING_SIZE,
-    DROPOUT_COLOR,
     DROPOUT_EMOJI,
     DROPOUT_STYLE,
     EMBED_SIZE_CHAR,
@@ -20,8 +19,9 @@ from model.config import (
     ENCODER_CHANNELS,
     ENCODER_DILATION,
     ENCODER_KERNEL_SIZE,
+    GEN_HIDDEN_SIZE,
     RELU_SLOPE,
-    Z_WEIGHT,
+    Z_DIM,
 )
 from model.data import COLOR_DIM, EMOJIS, LANGS, PAD_IDX, STYLES, VOCAB_SIZE
 
@@ -118,13 +118,21 @@ class EmojiHead(nn.Module):
 
 
 # GAN
+def blk(i: int, o: int):
+    return nn.Sequential(
+        nn.Linear(i, o, bias=False),
+        nn.LayerNorm(o),
+        nn.LeakyReLU(negative_slope=RELU_SLOPE))
+
+
 class ColorGen(nn.Module):
     def __init__(self):
         super().__init__()
 
         self.net = nn.Sequential(
-            nn.Dropout(p=DROPOUT_COLOR),
-            nn.Linear(EMBED_SIZE_TEXT, COLOR_DIM))
+            nn.Linear(EMBED_SIZE_TEXT + Z_DIM, GEN_HIDDEN_SIZE),
+            *blk(GEN_HIDDEN_SIZE, GEN_HIDDEN_SIZE),
+            nn.Linear(GEN_HIDDEN_SIZE, COLOR_DIM))
 
     def forward(
         self,
@@ -132,12 +140,13 @@ class ColorGen(nn.Module):
         z: torch.Tensor | None = None,
     ) -> torch.Tensor:
         if z is None:
-            z = torch.randn_like(cond)
+            z = torch.randn(
+                cond.shape[0], Z_DIM, device=cond.device, dtype=cond.dtype)
 
         z = normalize(z, dim=-1)
         cond_norm = normalize(cond, dim=-1)
 
-        seed = (1 - Z_WEIGHT) * cond_norm + Z_WEIGHT * z
+        seed = torch.cat([cond_norm, z], dim=-1)
 
         colors = self.net(seed)
         return tanh(colors) * COLOR_SHIFT

@@ -18,7 +18,7 @@ from files import (
     STYLE_PT,
     WEB_PUBLIC_DIR,
 )
-from model.config import EMBED_SIZE_TEXT, EMOJIS, MAX_TEXT_LEN, SEED, STYLES, Z_WEIGHT
+from model.config import EMOJIS, MAX_TEXT_LEN, SEED, STYLES, Z_DIM
 from model.data import CHARS, PAD_IDX
 from model.model import (
     ColorGen,
@@ -39,7 +39,7 @@ COLOR_SAMPLES = 5
 CONST_Z = normalize(
     torch.randn(
         COLOR_SAMPLES,
-        EMBED_SIZE_TEXT,
+        Z_DIM,
         generator=torch.Generator().manual_seed(SEED),
     ),
     dim=-1,
@@ -85,7 +85,8 @@ class ExportWrapper(nn.Module):
         emb = self.enc(x)
         style_logits = self.style(emb)
         emoji_logits = self.emoji_embed.score(self.emoji(emb))
-        seed = (1 - Z_WEIGHT) * normalize(emb) + Z_WEIGHT * self.z
+        cond = normalize(emb).expand(self.z.shape[0], -1)
+        seed = torch.cat([cond, self.z], dim=-1)
         color = torch.tanh(self.gen.net(seed)) * 127.5 + 127.5
         return style_logits, emoji_logits, color
 
