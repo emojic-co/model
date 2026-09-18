@@ -35,7 +35,7 @@ ENCODER_KERNEL_SIZE = 3
 assert ENCODER_KERNEL_SIZE % 2 == 1, \
     "encoder kernel size must be odd"
 
-ENCODER_CHANNELS = [120, 220, 160, 60]
+ENCODER_CHANNELS = [140, 240, 200, 60]
 ENCODER_DILATION = [1, 2, 4, 8]
 
 # EMBEDDING
@@ -119,7 +119,7 @@ SAMPLING_SOURCES: dict[str, SamplingSource] = {
     # "flags": SamplingSource(FLAGS_JSONL, "acc@1", 0.9),
 }
 
-SAMPLING_BASE_RATE = 0.2
+SAMPLING_BASE_RATE = 0.25
 SAMPLING_MIN_RATE = 0.005
 
 
