@@ -117,32 +117,29 @@ the stage-2 critic is discarded.
 
 ## Artifacts
 
-Saved to the `-o` folder (default `pt/`), each a `{"state_dict",
-"meta"}` blob (`model/runmeta.py:save_pt`):
+Saved to `pt/`, each a `{"state_dict", "meta"}` blob
+(`model/runmeta.py:save_pt`):
 
 | File | Stage | `meta.stage` |
 | --- | --- | --- |
 | `enc.pt` | 1 | `enc` |
-| `style.pt` | 1 (if `style` in `--heads`) | `enc` |
-| `emoji.pt` | 1 (if `emoji` in `--heads`) | `enc` |
-| `emoji_embed.pt` | 1 (if `emoji` in `--heads`) | `enc` |
+| `style.pt` | 1 | `enc` |
+| `emoji.pt` | 1 | `enc` |
+| `emoji_embed.pt` | 1 | `enc` |
 | `gen.pt` | 2 | `gan` |
 
 ## CLI
 
 ```
-train [-h] [enc|gan] [--local] [--heads style,emoji,lang] [--pt FOLDER] [-o FOLDER]
+train [-h] [gan] [--local]
 ```
 
 - no positional — Stage 1 (all heads) → Stage 2 → `model/export_onnx.py`
   → `tools/report.py`.
-- `enc` — Stage 1 only; `--heads` narrows it (default all three); report,
-  no export.
 - `gan` — Stage 2 only; aborts unless `enc.pt` / `style.pt` / `emoji.pt`
-  / `emoji_embed.pt` are all in `--pt`; then `gen.pt` → export → report.
-- Modal by default; `--local` runs on this machine. `--pt` / `-o` may
-  differ from `pt/` only with `--local`, and a non-default `-o` skips
-  the `web/public/` export. A dirty git tree always aborts.
+  / `emoji_embed.pt` are all in `pt/`; then `gen.pt` → export → report.
+- Modal by default; `--local` runs on this machine. A dirty git tree
+  always aborts.
 
 `model/export_onnx.py` exports a single-input (`input`), three-output
 (`style_logits`, `emoji_logits`, `color`) graph; `model/pred.py` and

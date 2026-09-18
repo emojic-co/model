@@ -135,45 +135,7 @@ _DEFAULT_PT = PT_DIR
 
 
 class Stage(StrEnum):
-    enc = "enc"
     gan = "gan"
-
-
-def _parse_heads(csv: str | None) -> tuple[str, ...]:
-    if csv is None:
-        return ALL_HEADS
-    got = {tok.strip() for tok in csv.split(",") if tok.strip()}
-    bad = got - set(ALL_HEADS)
-    if bad or not got:
-        raise typer.BadParameter(
-            f"--heads: {', '.join(sorted(bad)) or 'empty'} "
-            f"(choose from {', '.join(ALL_HEADS)})"
-        )
-    return tuple(h for h in ALL_HEADS if h in got)
-
-
-def _validate(
-    stage: Stage | None,
-    local: bool,
-    heads: str | None,
-    pt: Path,
-    out: Path,
-    gpu: str,
-    cpu: bool,
-) -> tuple[str, ...] | None:
-    if heads is not None and stage != Stage.enc:
-        raise typer.BadParameter("--heads is only valid with the 'enc' stage")
-    if not local and (pt != _DEFAULT_PT or out != _DEFAULT_PT):
-        raise typer.BadParameter(
-            "--pt / -o must be the default (pt/) unless --local is set"
-        )
-    if gpu and cpu:
-        raise typer.BadParameter("--gpu and --cpu are mutually exclusive")
-    if gpu and local:
-        raise typer.BadParameter(
-            "--gpu picks a Modal GPU and can't be combined with --local"
-        )
-    return _parse_heads(heads) if stage == Stage.enc else None
 
 
 class LitEncoder(pl.LightningModule):
@@ -597,54 +559,40 @@ def _run_report_local(pt_dir: Path) -> None:
     )
 
 
-def _run_local(
-    stage: Stage | None,
-    heads: tuple[str, ...] | None,
-    pt_dir: Path,
-    out_dir: Path,
-) -> None:
+def _run_local(stage: Stage | None) -> None:
     require_clean_tree()
     pl.seed_everything(SEED, workers=True)
     torch.backends.cudnn.benchmark = _CUDA
     if _CUDA:
         torch.set_float32_matmul_precision("high")
     skip_report = os.environ.get("EMOJIC_SKIP_REPORT") == "1"
-    out_dir.mkdir(parents=True, exist_ok=True)
+    _DEFAULT_PT.mkdir(parents=True, exist_ok=True)
 
     if stage == Stage.gan:
-        if _pt_files_ok(pt_dir):
-            enc = _load(TextEncoder(), PtFile.ENC.in_dir(pt_dir))
+        if _pt_files_ok(_DEFAULT_PT):
+            enc = _load(TextEncoder(), PtFile.ENC.in_dir(_DEFAULT_PT))
             critic = ColorCritic()
             _train_gan(enc, critic, train_ds(  # type: ignore
-                mix_sources=False, color_mixin=COLOR_TERMS_MIXIN), out_dir)
-            if out_dir == _DEFAULT_PT:
-                export()
+                mix_sources=False, color_mixin=COLOR_TERMS_MIXIN), _DEFAULT_PT)
+            export()
             if not skip_report:
-                _run_report_local(out_dir)
+                _run_report_local(_DEFAULT_PT)
             return
         print(
-            f"{pt_dir}: missing or corrupted pt files, "
+            f"{_DEFAULT_PT}: missing or corrupted pt files, "
             "falling back to a fresh full training",
             flush=True,
         )
-        stage = None
 
     ds = train_ds()
-    heads = heads or ALL_HEADS
-    mod = _train_encoder(ds, heads, out_dir)
-
-    if stage == Stage.enc:
-        if not skip_report:
-            _run_report_local(out_dir)
-        return
+    mod = _train_encoder(ds, ALL_HEADS, _DEFAULT_PT)
 
     critic = ColorCritic()
     _train_gan(mod.enc, critic, train_ds(  # type: ignore
-        mix_sources=False, color_mixin=COLOR_TERMS_MIXIN), out_dir)
-    if out_dir == _DEFAULT_PT:
-        export()
+        mix_sources=False, color_mixin=COLOR_TERMS_MIXIN), _DEFAULT_PT)
+    export()
     if not skip_report:
-        _run_report_local(out_dir)
+        _run_report_local(_DEFAULT_PT)
 
 
 CPU = 16
@@ -741,7 +689,6 @@ def _stash(dst: Path) -> int:
 )
 def train_remote(
     stage: str,
-    heads: str,
     threads: int,
     git_sha: str,
     run_time: str,
@@ -798,8 +745,6 @@ def train_remote(
                 cmd = [VENV_PY, "-m", f"{MODEL_DIR}.train"]
                 if stage:
                     cmd.append(stage)
-                if stage == "enc" and heads:
-                    cmd += ["--heads", heads]
                 cmd.append("--local")
                 proc = subprocess.Popen(
                     cmd,
@@ -880,9 +825,7 @@ def _retrieve_and_cleanup() -> bool:
         shutil.rmtree(staging, ignore_errors=True)
 
 
-def _run_remote(
-    stage: str, heads: str, git_sha: str, run_time: str, gpu: str
-) -> dict[str, int]:
+def _run_remote(stage: str, git_sha: str, run_time: str) -> dict[str, int]:
     pt_bytes: dict[str, bytes | None] = {
         "enc_bytes": None,
         "style_bytes": None,
@@ -898,8 +841,8 @@ def _run_remote(
         ):
             if not name.exists():
                 raise typer.BadParameter(
-                    f"{name} not found -- run `train enc --local` "
-                    "(or fetch a Modal enc run) first"
+                    f"{name} not found -- run `train --local` "
+                    "(or fetch a Modal run) first"
                 )
         pt_bytes = {
             "enc_bytes": ENC_PT.read_bytes(),
@@ -908,35 +851,33 @@ def _run_remote(
             "emoji_embed_bytes": EMOJI_EMBED_PT.read_bytes(),
         }
 
-    threads = GPU_CPU if gpu else CPU
-    fn = train_remote
-    if gpu:
-        fn = train_remote.with_options(
-            gpu=gpu, cpu=GPU_CPU, memory=GPU_MEMORY_MIB, timeout=TIMEOUT_S
-        )
+    fn = train_remote.with_options(
+        gpu=DEFAULT_GPU, cpu=GPU_CPU, memory=GPU_MEMORY_MIB, timeout=TIMEOUT_S
+    )
     return fn.remote(
         stage=stage,
-        heads=heads,
-        threads=threads,
+        threads=GPU_CPU,
         git_sha=git_sha,
         run_time=run_time,
-        gpu=gpu,
+        gpu=DEFAULT_GPU,
         **pt_bytes,
     )
 
 
-def _dispatch(stage: Stage | None, heads_csv: str, gpu: str) -> None:
+def _dispatch(stage: Stage | None) -> None:
     require_clean_tree()
     git_sha = subprocess.run(
         ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True
     ).stdout.strip()
     run_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     stage_str = stage.value if stage else ""
-    where = f"Modal {gpu} GPU" if gpu else "Modal"
-    print(f"Training {stage_str or 'full pipeline'} on {where}...", flush=True)
+    print(
+        f"Training {stage_str or 'full pipeline'} on Modal {DEFAULT_GPU} GPU...",
+        flush=True,
+    )
     try:
         with modal.enable_output(), modal_app.run():
-            print(_run_remote(stage_str, heads_csv, git_sha, run_time, gpu))
+            print(_run_remote(stage_str, git_sha, run_time))
     finally:
         landed = _retrieve_and_cleanup()
     if landed:
@@ -952,65 +893,31 @@ _app = typer.Typer(
 def cli(
     stage: Stage | None = typer.Argument(
         None,
-        metavar="[enc|gan]",
-        help="enc = stage 1 (encoder + heads). gan = stage 2 (color GAN). "
-        "Omit to run both back to back.",
+        metavar="[gan]",
+        help="gan = train only the color GAN, using a pretrained encoder. "
+        "Omit to train the encoder then the GAN.",
     ),
     local: bool = typer.Option(
         False, "--local", help="Train on this machine instead of Modal."
-    ),
-    heads: str | None = typer.Option(
-        None,
-        "--heads",
-        help="Comma list from {style,emoji,lang}; only with 'enc'. "
-        "Default: all three.",
-    ),
-    pt: Path = typer.Option(
-        _DEFAULT_PT, "--pt", help="Folder to read warm-start .pt from (default pt/)."
-    ),
-    out: Path = typer.Option(
-        _DEFAULT_PT,
-        "-o",
-        "--output",
-        help="Folder to write .pt to (default pt/). Non-default skips the web export.",
-    ),
-    gpu: str = typer.Option(
-        "",
-        "--gpu",
-        help="Modal GPU type (e.g. T4, L4, A10G); defaults to "
-        f"{DEFAULT_GPU} on remote. Not valid with --local.",
-    ),
-    cpu: bool = typer.Option(
-        False,
-        "--cpu",
-        help="Run the Modal job on a CPU box instead of the default GPU.",
     ),
 ) -> None:
     """Train the emojic model.
 
     Stages
-      (none)   Stage 1 with all heads, then Stage 2, then ONNX export + report.
-      enc      Stage 1 only: TextEncoder + the --heads subset. Writes
-               enc.pt plus one .pt per head. No export.
-      gan      Stage 2 only: frozen encoder + generator, critic trained from
-               scratch. Requires enc.pt, style.pt, emoji.pt in --pt. Writes
-               gen.pt, then export + report.
+      (none)   Text encoder (all heads), then the color GAN, then ONNX
+               export + report.
+      gan      Color GAN only: frozen pretrained encoder, generator and
+               critic trained from scratch. Requires enc.pt, style.pt,
+               emoji.pt, emoji_embed.pt in pt/. Then export + report.
 
     Location
-      Runs on Modal by default, on a GPU (a T4 unless --gpu <type> picks
-      another; larger batches, pinned-memory loaders). --cpu runs the Modal
-      job on a CPU box instead. --local runs here. --pt / -o may differ from
-      pt/ only with --local. A dirty git tree always aborts.
-
-    Heads (stage 1 eval / checkpoint monitor)
-      emoji/mrr/val is the checkpoint + early-stop metric; requires
-      "emoji" in --heads.
+      Runs on Modal (a T4 GPU) by default. --local runs here instead.
+      A dirty git tree always aborts.
     """
-    resolved = _validate(stage, local, heads, pt, out, gpu, cpu)
     if local:
-        _run_local(stage, resolved, pt, out)
+        _run_local(stage)
     else:
-        _dispatch(stage, heads or "", "" if cpu else (gpu or DEFAULT_GPU))
+        _dispatch(stage)
 
 
 if __name__ == "__main__":
