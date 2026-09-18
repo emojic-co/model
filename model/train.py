@@ -23,7 +23,6 @@ from torch import nn, optim
 from torch.nn.functional import (
     cross_entropy,
     l1_loss,
-    mse_loss,
     normalize,
     relu,
 )
@@ -78,6 +77,7 @@ from model.data import (
     train_ds,
 )
 from model.export_onnx import export
+from model.metric import GanMetric, Metric, NamedMetric, Source, Split, named_metric
 from model.metrics import macro_average
 from model.model import (
     ColorCritic,
@@ -127,14 +127,8 @@ def acc_at_k(logits: torch.Tensor, target: torch.Tensor, k: int) -> torch.Tensor
     return rel[:, :k].amax(dim=-1)
 
 
-def harmonic_mean(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
-    s = a + b
-    return torch.where(s > 0, 2 * a * b / s, torch.zeros_like(s))
-
-
 ALL_HEADS: tuple[str, ...] = ("style", "emoji", "lang")
 _DEFAULT_PT = Path(PT_DIR)
-COLOR_SOURCE_NAME = "color"
 
 
 class Stage(StrEnum):
@@ -204,29 +198,24 @@ class LitEncoder(pl.LightningModule):
         self._trn_s_rr: list[torch.Tensor] = []
         self._trn_s_tgt: list[torch.Tensor] = []
 
-        self._val_lang_acc: list[torch.Tensor] = []
-        self._trn_lang_acc: list[torch.Tensor] = []
-
         self.train_dataset = None
 
-    def _log(self, name, val, bs):
+    def _log(self, name: NamedMetric, val: torch.Tensor, bs: int) -> None:
         self.log(name, val, on_step=False, on_epoch=True,
                  prog_bar=True, batch_size=bs)
 
-    def _step(self, batch, split):
+    def _step(self, batch, split: Split):
         text, emoji, style, colors, lang, source = batch
         enc = self.enc(text)
         loss = enc.new_zeros(())
-        bs = text.size(0)
 
         if "style" in self.heads:
             style_logits = self.style(enc)
             loss_style = lse_infonce(style_logits, style, INFONCE_TEMP_STYLE)
             loss = loss + loss_style
-            self._log(f"loss/s/{split}", loss_style, bs)
             s_rr, s_tgt = (
                 (self._val_s_rr, self._val_s_tgt)
-                if split == "val"
+                if split == Split.VAL
                 else (self._trn_s_rr, self._trn_s_tgt)
             )
             s_rr.append(mrr(style_logits, style).detach())
@@ -237,17 +226,16 @@ class LitEncoder(pl.LightningModule):
             emoji_logits = self.emoji_embed.score(q_txt)
             loss_emoji = lse_infonce(emoji_logits, emoji, INFONCE_TEMP_EMOJI)
             loss = loss + loss_emoji
-            self._log(f"loss/e/{split}", loss_emoji, bs)
             has_e = emoji.sum(dim=-1) > 0
             n_e = int(has_e.sum())
             if n_e:
                 rr = mrr(emoji_logits[has_e], emoji[has_e])
-                e_rr = self._val_e_rr if split == "val" else self._trn_e_rr
+                e_rr = self._val_e_rr if split == Split.VAL else self._trn_e_rr
                 e_rr.append(rr.detach())
 
-            if split == "val":
+            if split == Split.VAL:
                 for name, cfg in SAMPLING_SOURCES.items():
-                    if cfg.metric != "acc@1":
+                    if cfg.metric != Metric.ACC_1:
                         continue
                     mask = torch.tensor(
                         [s == name for s in source], device=emoji.device
@@ -255,13 +243,8 @@ class LitEncoder(pl.LightningModule):
                     n = int(mask.sum())
                     if n:
                         self._log(
-                            f"{name}/acc@1",
+                            named_metric(name, Metric.ACC_1),
                             acc_at_k(emoji_logits[mask], emoji[mask], 1).mean(),
-                            n,
-                        )
-                        self._log(
-                            f"{name}/acc@5",
-                            acc_at_k(emoji_logits[mask], emoji[mask], 5).mean(),
                             n,
                         )
                 full_mask = torch.tensor(
@@ -270,7 +253,7 @@ class LitEncoder(pl.LightningModule):
                 n_full_e = int(full_mask.sum())
                 if n_full_e:
                     self._log(
-                        "full_text/acc@1/val",
+                        named_metric(Source.FULL_TEXT, Metric.ACC_1),
                         acc_at_k(
                             emoji_logits[full_mask], emoji[full_mask], 1
                         ).mean(),
@@ -281,13 +264,9 @@ class LitEncoder(pl.LightningModule):
             lang_logits = self.lang(enc)
             loss_lang = cross_entropy(lang_logits, lang)
             loss = loss + loss_lang
-            self._log(f"loss/lang/{split}", loss_lang, bs)
-            acc = (lang_logits.argmax(dim=-1) == lang).float()
-            lang_acc = self._val_lang_acc if split == "val" else self._trn_lang_acc
-            lang_acc.append(acc.detach())
 
         has_color = torch.tensor(
-            [s in (SRC_FULL, COLOR_SOURCE_NAME) for s in source], device=enc.device)
+            [s in (SRC_FULL, Source.COLOR) for s in source], device=enc.device)
         n_color = int(has_color.sum())
         if n_color:
             real_rgb = colors[has_color]
@@ -295,28 +274,7 @@ class LitEncoder(pl.LightningModule):
             pred_rgb = self.gen(enc[has_color], zero_z)
             loss_color = l1_loss(pred_rgb, real_rgb)
             loss = loss + LOSS_WEIGHT_COLOR_REG * loss_color
-            self._log(f"loss/color_reg/{split}", loss_color, n_color)
-            real_lab = rgb_to_oklab(real_rgb)
-            pred_lab = rgb_to_oklab(pred_rgb)
-            dist = (
-                (pred_lab - real_lab)
-                .view(n_color, 3, 3)
-                .norm(dim=-1)
-                .mean()
-            )
-            self._log(f"dist/color_reg/{split}", dist, n_color)
-
-            if split == "val":
-                color_src_mask = torch.tensor(
-                    [s == COLOR_SOURCE_NAME for s in source], device=enc.device
-                )[has_color]
-                n_c = int(color_src_mask.sum())
-                if n_c:
-                    self._log(
-                        f"{COLOR_SOURCE_NAME}/mse",
-                        mse_loss(pred_lab[color_src_mask], real_lab[color_src_mask]),
-                        n_c,
-                    )
+            self._log(named_metric(Source.COLOR, Metric.MAE, split), loss_color, n_color)
 
         return loss
 
@@ -324,23 +282,21 @@ class LitEncoder(pl.LightningModule):
         self._val_e_rr.clear()
         self._val_s_rr.clear()
         self._val_s_tgt.clear()
-        self._val_lang_acc.clear()
 
     def on_validation_epoch_end(self):
-        self._epoch_metrics("val")
+        self._epoch_metrics(Split.VAL)
 
     def on_train_epoch_start(self):
         self._trn_e_rr.clear()
         self._trn_s_rr.clear()
         self._trn_s_tgt.clear()
-        self._trn_lang_acc.clear()
 
         if self.train_dataset is None or self.train_dataset.rates is None:
             return
         metrics = self.trainer.callback_metrics
         base_rate = self.train_dataset.rates.base_rate
         for name, cfg in SAMPLING_SOURCES.items():
-            key = f"{name}/{cfg.metric}"
+            key = named_metric(name, cfg.metric, cfg.split)
             if key in metrics:
                 val = float(metrics[key])
                 gap = (
@@ -350,47 +306,44 @@ class LitEncoder(pl.LightningModule):
                 )
                 rate = max(SAMPLING_MIN_RATE, base_rate * gap)
                 self.train_dataset.rates.set(name, rate)
-            self.log(f"{name}/rate", self.train_dataset.rates.get(name))
+            self.log(
+                named_metric(name, Metric.RATE),
+                self.train_dataset.rates.get(name),
+            )
 
     def on_train_epoch_end(self):
-        self._epoch_metrics("train")
+        self._epoch_metrics(Split.TRAIN)
 
-    def _epoch_metrics(self, split):
-        emoji_mrr = None
+    def _epoch_metrics(self, split: Split):
         if "emoji" in self.heads:
-            e_rr = self._val_e_rr if split == "val" else self._trn_e_rr
+            e_rr = self._val_e_rr if split == Split.VAL else self._trn_e_rr
             if e_rr:
                 emoji_mrr = torch.cat(e_rr).mean()
-                self.log(f"MRR/e/{split}", emoji_mrr, prog_bar=True)
+                self.log(
+                    named_metric(Source.EMOJI, Metric.MRR, split),
+                    emoji_mrr, prog_bar=True,
+                )
 
-        style_macro = None
         if "style" in self.heads:
             s_rr, s_tgt = (
                 (self._val_s_rr, self._val_s_tgt)
-                if split == "val"
+                if split == Split.VAL
                 else (self._trn_s_rr, self._trn_s_tgt)
             )
             if s_rr:
                 style_macro, _, _ = macro_average(
                     torch.cat(s_rr), torch.cat(s_tgt), MACRO_MIN_SUPPORT
                 )
-                self.log(f"MRR/s/{split}", style_macro, prog_bar=True)
-
-        if emoji_mrr is not None and style_macro is not None:
-            self.log(f"F1/{split}", harmonic_mean(emoji_mrr,
-                     style_macro), prog_bar=True)
-
-        if "lang" in self.heads:
-            lang_acc = self._val_lang_acc if split == "val" else self._trn_lang_acc
-            if lang_acc:
-                self.log(f"acc/lang/{split}",
-                         torch.cat(lang_acc).mean(), prog_bar=True)
+                self.log(
+                    named_metric(Source.STYLE, Metric.MRR, split),
+                    style_macro, prog_bar=True,
+                )
 
     def training_step(self, batch, batch_idx):
-        return self._step(batch, "train")
+        return self._step(batch, Split.TRAIN)
 
     def validation_step(self, batch, batch_idx):
-        self._step(batch, "val")
+        self._step(batch, Split.VAL)
 
     def configure_optimizers(self):
         params = list(self.enc.parameters())
@@ -443,14 +396,6 @@ class LitColorGAN(pl.LightningModule):
         self._val_text.append(text)
         self._val_real.append(colors)
 
-    def _split_energy(self, pts: torch.Tensor) -> torch.Tensor:
-        m = pts.size(0)
-        half = m // 2
-        perm = torch.randperm(m, generator=torch.Generator().manual_seed(SEED)).to(
-            pts.device
-        )
-        return energy_distance(pts[perm[:half]], pts[perm[half: 2 * half]])
-
     def on_validation_epoch_end(self):
         if not self._val_real:
             return
@@ -467,12 +412,7 @@ class LitColorGAN(pl.LightningModule):
 
             fake = rgb_to_oklab(self.gen(self.enc(text), z))
             val = energy_distance(real, fake)
-            self.log("energy/gan/val", val, prog_bar=True)
-
-            if isinstance(self.logger, TensorBoardLogger):
-                ref = self._split_energy(real)
-                self.logger.experiment.add_scalar(
-                    "energy/gan/ref", ref, self.global_step)
+            self.log(GanMetric.ENERGY_VAL, val, prog_bar=True)
 
     def training_step(self, batch, batch_idx):
         text, _, _, colors, *_ = batch
@@ -527,21 +467,9 @@ class LitColorGAN(pl.LightningModule):
 
         opt_gen.step()
 
-        self.log("loss/gan/critic", loss_critic, prog_bar=True)
-        self.log("loss/gan/critic_cond", loss_critic_cond, prog_bar=False)
-        self.log("loss/gan/critic_color", loss_critic_color, prog_bar=False)
-
-        self.log("loss/gan/gen_critic", loss_gen_critic, prog_bar=False)
-        self.log("loss/gan/gen", loss_gen, prog_bar=True)
-        self.log(
-            "dist/gan/margin_cond", cond_real.mean() - cond_fake.mean(),
-            prog_bar=True)
-
-        self.log(
-            "dist/gan/margin_color", color_real.mean() - color_fake.mean(),
-            prog_bar=False)
-
-        self.log("energy/gan/train", loss_energy, prog_bar=True)
+        self.log(GanMetric.CRITIC_LOSS, loss_critic, prog_bar=True)
+        self.log(GanMetric.GEN_LOSS, loss_gen_critic, prog_bar=True)
+        self.log(GanMetric.ENERGY_TRAIN, loss_energy, prog_bar=True)
 
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
@@ -574,7 +502,7 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
     no_bar = _no_progress_bar()
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
-    monitor = "MRR/e/val"
+    monitor = named_metric(Source.EMOJI, Metric.MRR, Split.VAL)
     ckpt = ModelCheckpoint(
         monitor=monitor, mode="max", save_top_k=1, filename="best-{step}"
     )
@@ -639,7 +567,8 @@ def _train_gan(
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
     ckpt = ModelCheckpoint(
-        monitor="energy/gan/val", mode="min", save_top_k=1, filename="best-gan-{step}"
+        monitor=GanMetric.ENERGY_VAL, mode="min", save_top_k=1,
+        filename="best-gan-{step}"
     )
     trainer = pl.Trainer(
         devices="auto",
@@ -657,7 +586,7 @@ def _train_gan(
         callbacks=[
             ckpt,
             EarlyStopping(
-                monitor="energy/gan/val",
+                monitor=GanMetric.ENERGY_VAL,
                 mode="min",
                 patience=EARLY_STOP_PATIENCE_GAN),
 
@@ -1093,7 +1022,7 @@ def cli(
       pt/ only with --local. A dirty git tree always aborts.
 
     Heads (stage 1 eval / checkpoint monitor)
-      MRR/e/val is the checkpoint + early-stop metric; requires
+      emoji/mrr/val is the checkpoint + early-stop metric; requires
       "emoji" in --heads.
     """
     resolved = _validate(stage, local, heads, pt, out, gpu, cpu)

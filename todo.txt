@@ -1,1 +1,0 @@
-update the loss function of the loss/color_reg/train and loss/color_reg/val to MAE in the RGB space, i.e. directly on the output of the generator (-127.5, 127.5).
