@@ -15,7 +15,7 @@ goals:
     full text:
       "acc@1": 0.65
       "acc@5": 0.75
-      "acc@10": 0.9
+      "acc@10": 0.87
     # flags:
     #   "acc@1": 0.9
     #   "acc@5": 0.95
