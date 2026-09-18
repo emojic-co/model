@@ -41,7 +41,7 @@ ENCODER_DILATION = [1, 2, 4, 8]
 
 # EMBEDDING
 EMBED_SIZE_CHAR = 30
-EMBED_SIZE_TEXT = sum(ENCODER_CHANNELS)
+EMBED_SIZE_TEXT = 300
 EMBED_SIZE_EMOJI = 60
 EMBED_SIZE_STYLE = 12
 
@@ -195,6 +195,11 @@ def _encoder_conv_params() -> int:
     return total
 
 
+def _encoder_proj_params() -> int:
+    pooled = sum(ENCODER_CHANNELS)
+    return pooled * EMBED_SIZE_TEXT + 2 * EMBED_SIZE_TEXT
+
+
 def _head_params(embed_size: int, n_labels: int) -> int:
     return EMBED_SIZE_TEXT * embed_size + n_labels * (embed_size + 1)
 
@@ -206,11 +211,12 @@ def _lang_head_params(n_labels: int) -> int:
 def _stats() -> list[tuple[str, object]]:
     rf = _receptive_field()
     cover = "covers full input" if rf >= MAX_TEXT_LEN else "partial coverage"
-    enc = _encoder_conv_params()
+    enc = _encoder_conv_params() + _encoder_proj_params()
     emoji_head = _head_params(EMBED_SIZE_EMOJI, len(EMOJIS))
     style_head = _head_params(EMBED_SIZE_STYLE, len(STYLES))
     lang_head = _lang_head_params(len(LANGS))
-    chain = " -> ".join(str(c) for c in (EMBED_SIZE_CHAR, *ENCODER_CHANNELS))
+    chain = " -> ".join(
+        str(c) for c in (EMBED_SIZE_CHAR, *ENCODER_CHANNELS, EMBED_SIZE_TEXT))
     return [
         ("NUM_LAYERS", len(ENCODER_CHANNELS)),
         ("channel chain", chain),
