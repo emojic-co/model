@@ -29,7 +29,7 @@ goals:
 
   color generator:
     energy distance:
-      global: 0.01
+      global: 0.05
       red: 0.1
       green: 0.1
       blue: 0.1

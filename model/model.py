@@ -157,7 +157,7 @@ class ColorGen(nn.Module):
 
         seed = (1 - Z_WEIGHT) * cond_norm + Z_WEIGHT * z
 
-        colors = self.net(seed)
+        colors = self.net(normalize(seed, dim=-1))
         return tanh(colors) * COLOR_SHIFT
 
 
