@@ -902,6 +902,8 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
             for k in range(palettes.shape[1])
         )
         flat = palettes[i, 0].tolist()
+        gen_l, gen_chroma = _l_chroma(flat)
+        gold_l, gold_chroma = _l_chroma(gold9)
         out_rows.append(
             {
                 "color": r["color"],
@@ -920,6 +922,10 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
                 "dF": df,
                 "hit_pure": dp < _pure_threshold(r["color"]),
                 "hit": df < CARD_DIST_THRESHOLD,
+                "gen_l": gen_l,
+                "gold_l": gold_l,
+                "gen_chroma": gen_chroma,
+                "gold_chroma": gold_chroma,
             }
         )
 
@@ -933,6 +939,8 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
             "gt_mean_distance": gt_mean_distance,
             "intrinsic_floor": floor,
             "shortfall_ratio": gt_mean_distance / floor if floor else None,
+            "l_bias": sum(x["gen_l"] - x["gold_l"] for x in rs) / n,
+            "chroma_bias": sum(x["gen_chroma"] - x["gold_chroma"] for x in rs) / n,
         }
 
     color_pool = _valid_color_rows()
@@ -952,6 +960,7 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
         "emoji_acc_at_k": emoji_acc,
         "style_acc_at_k": style_acc,
         "per_color": per_color,
+        "energy": per_color["all"]["gt_mean_distance"],
         "rows": out_rows,
     }
 
@@ -1238,6 +1247,11 @@ def _card_distance(pred9, gold9, color: str) -> float:
     else:
         d = (p - g).norm(dim=-1)
     return d.mean().item()
+
+
+def _l_chroma(vals9) -> tuple[float, float]:
+    lab = rgb_to_oklab(torch.tensor(vals9, dtype=torch.float32)).reshape(3, 3)
+    return lab[:, 0].mean().item(), lab[:, 1:3].norm(dim=-1).mean().item()
 
 
 PURE_HEX = {
@@ -1596,6 +1610,9 @@ def _cards_html(d) -> str:
     def _fx(v) -> str:
         return f"{v:.1f}&times;" if v is not None else "–"
 
+    def _fsigned(v) -> str:
+        return f"{v:+.3f}" if v is not None else "–"
+
     trows = "".join(
         f"<tr><td>{_esc(c)}</td>"
         f'<td class="n">{pc[c]["pure_mean_distance"]:.3f}</td>'
@@ -1603,7 +1620,9 @@ def _cards_html(d) -> str:
         f'<td class="n">{pc[c]["gt_mean_distance"]:.3f}</td>'
         f'<td class="n">{pc[c]["gt_accuracy"]:.2f}</td>'
         f'<td class="n">{_f3(pc[c]["intrinsic_floor"])}</td>'
-        f'<td class="n">{_fx(pc[c]["shortfall_ratio"])}</td></tr>'
+        f'<td class="n">{_fx(pc[c]["shortfall_ratio"])}</td>'
+        f'<td class="n">{_fsigned(pc[c]["l_bias"])}</td>'
+        f'<td class="n">{_fsigned(pc[c]["chroma_bias"])}</td></tr>'
         for c in (*CARD_COLORS, "all")
     )
     out.append(
@@ -1616,11 +1635,14 @@ def _cards_html(d) -> str:
         "against this ground truth. GT/Floor: how many multiples of that floor the "
         "model's best-of-k GT distance actually is; a high multiple with a low floor "
         "means the model is underperforming an easy category, not that the category "
-        "is inherently hard.</p>"
+        "is inherently hard. &Delta;L/&Delta;chroma: mean Oklab lightness/chroma of "
+        "the model's single top output minus gold (from data/colors.jsonl), signed — "
+        "positive means the model runs lighter/more saturated than gold.</p>"
         "<table><tr><th>Color</th>"
         '<th class="n">Pure dist</th><th class="n">Pure acc</th>'
         '<th class="n">GT dist</th><th class="n">GT acc</th>'
-        '<th class="n">Floor</th><th class="n">GT/Floor</th></tr>'
+        '<th class="n">Floor</th><th class="n">GT/Floor</th>'
+        '<th class="n">&Delta;L</th><th class="n">&Delta;chroma</th></tr>'
         f"{trows}</table>"
     )
     by_color = {}
