@@ -11,7 +11,7 @@ from model.config import (
     EMOJIS,
     LANGS,
     MAX_TEXT_LEN,
-    SAMPLING_BASE_RATE,
+    SAMPLING_MAX_RATE,
     SAMPLING_SOURCES,
     STYLES,
 )
@@ -45,6 +45,7 @@ HEBREW_CHARS = set(HEBREW)
 
 def detect_lang(text: str) -> str:
     return "he" if any(c in HEBREW_CHARS for c in text) else "en"
+
 
 COLOR_DIM = 9
 
@@ -200,7 +201,7 @@ class EmojiDataset(Dataset):
         self.lang = torch.tensor([r.lang for r in records], dtype=torch.long)
 
         self.rates = (
-            SamplingRates(list(SAMPLING_SOURCES), SAMPLING_BASE_RATE)
+            SamplingRates(list(SAMPLING_SOURCES), SAMPLING_MAX_RATE)
             if mix_sources
             else None
         )
