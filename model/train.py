@@ -414,8 +414,10 @@ class LitColorGAN(pl.LightningModule):
         self.log(GanMetric.ENERGY_TRAIN, loss_energy, prog_bar=True)
 
     def configure_optimizers(self):
-        opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
-        opt_critic = optim.SGD(self.critic.parameters(), lr=LR_GAN_CRITIC)
+        # opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
+        # opt_critic = optim.SGD(self.critic.parameters(), lr=LR_GAN_CRITIC)
+        opt_gen = optim.Adam(self.gen.parameters(), lr=LR_GAN_GEN)
+        opt_critic = optim.Adam(self.critic.parameters(), lr=LR_GAN_CRITIC)
 
         return [opt_gen, opt_critic]
 
@@ -612,7 +614,8 @@ WORKTREE_TAG = hashlib.sha1(str(Path.cwd().resolve()).encode()).hexdigest()[:10]
 VOL_NAME = f"emojic-artifacts-{WORKTREE_TAG}"
 ARTIFACTS = "/artifacts"
 
-DEP_FILES = [Path(p) for p in ("pyproject.toml", "uv.lock", ".python-version", "README.md")]
+DEP_FILES = [Path(p) for p in ("pyproject.toml", "uv.lock",
+                               ".python-version", "README.md")]
 CODE_FILES = [
     Path("files.py"),
     MODEL_DIR / "__init__.py",
