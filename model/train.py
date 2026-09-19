@@ -420,8 +420,8 @@ class LitColorEnergy(pl.LightningModule):
 
         self._val_real: list[torch.Tensor] = []
 
-    def _zero_cond(self, colors: torch.Tensor) -> torch.Tensor:
-        return torch.zeros(
+    def _null_cond(self, colors: torch.Tensor) -> torch.Tensor:
+        return torch.ones(
             colors.shape[0], EMBED_SIZE_TEXT,
             device=colors.device, dtype=colors.dtype)
 
@@ -440,14 +440,14 @@ class LitColorEnergy(pl.LightningModule):
         with torch.no_grad():
             real_rgb = torch.cat(self._val_real)
             real = rgb_to_oklab(real_rgb)
-            fake = rgb_to_oklab(self.gen(self._zero_cond(real_rgb)))
+            fake = rgb_to_oklab(self.gen(self._null_cond(real_rgb)))
             val = energy_distance(real, fake)
             self.log(GanMetric.ENERGY_VAL, val, prog_bar=True)
 
     def training_step(self, batch, batch_idx):
         _, _, _, colors, *_ = batch
 
-        fake = self.gen(self._zero_cond(colors))
+        fake = self.gen(self._null_cond(colors))
         loss = energy_distance(rgb_to_oklab(fake), rgb_to_oklab(colors))
 
         self.log(GanMetric.ENERGY_TRAIN, loss, prog_bar=True)
@@ -979,10 +979,11 @@ def cli(
                critic trained from scratch. Requires enc.pt, style.pt,
                emoji.pt, emoji_embed.pt in pt/. Then export + report.
       energy   Debug only: fit ColorGen directly against the energy
-               distance, with a zero text embedding standing in for the
-               (unused, untrained) encoder and no critic. No checkpoints,
-               no export, no report -- just watch gan/energy/{train,val}
-               in TensorBoard. Always runs locally, ignores --local.
+               distance, with a constant (all-ones) text embedding standing
+               in for the (unused, untrained) encoder and no critic. No
+               checkpoints, no export, no report -- just watch
+               gan/energy/{train,val} in TensorBoard. Always runs locally,
+               ignores --local.
 
     Location
       Runs on Modal (a T4 GPU) by default. --local runs here instead.
