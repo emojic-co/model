@@ -48,6 +48,7 @@ from files import (
 from model.color import energy_distance, rgb_to_oklab
 from model.config import (
     CONFIG_NAME,
+    EARLY_STOP_MIN_DELTA_GAN,
     EARLY_STOP_PATIENCE_ENCODER,
     EARLY_STOP_PATIENCE_GAN,
     EMBED_SIZE_TEXT,
@@ -571,7 +572,8 @@ def _train_gan(
             EarlyStopping(
                 monitor=monitor,
                 mode="min",
-                patience=EARLY_STOP_PATIENCE_GAN),
+                patience=EARLY_STOP_PATIENCE_GAN,
+                min_delta=EARLY_STOP_MIN_DELTA_GAN),
 
             *bar_cbs,
             ModelSummary(),
@@ -606,7 +608,15 @@ def _train_energy(ds) -> LitColorEnergy:
         max_epochs=EPOCHS_GAN,
         enable_progress_bar=not no_bar,
         val_check_interval=min(VAL_CHECK_INTERVAL, len(ds)),
-        callbacks=[*bar_cbs, ModelSummary()],
+        callbacks=[
+            *bar_cbs,
+            ModelSummary(),
+            EarlyStopping(
+                monitor=GanMetric.ENERGY_VAL,
+                mode="min",
+                patience=EARLY_STOP_PATIENCE_GAN,
+                min_delta=EARLY_STOP_MIN_DELTA_GAN),
+        ],
     )
 
     mod = LitColorEnergy()
