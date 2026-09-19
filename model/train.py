@@ -414,18 +414,18 @@ class LitColorGAN(pl.LightningModule):
         self.log(GanMetric.ENERGY_TRAIN, loss_energy, prog_bar=True)
 
     def configure_optimizers(self):
-        # opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
-        # opt_critic = optim.SGD(self.critic.parameters(), lr=LR_GAN_CRITIC)
+        opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
+        opt_critic = optim.SGD(self.critic.parameters(), lr=LR_GAN_CRITIC)
 
-        opt_gen = optim.Adam(
-            self.gen.parameters(),
-            lr=LR_GAN_GEN,
-            betas=(0.5, 0.999))
+        # opt_gen = optim.Adam(
+        #     self.gen.parameters(),
+        #     lr=LR_GAN_GEN,
+        #     betas=(0.5, 0.999))
 
-        opt_critic = optim.Adam(
-            self.critic.parameters(),
-            lr=LR_GAN_CRITIC,
-            betas=(0.5, 0.999))
+        # opt_critic = optim.Adam(
+        #     self.critic.parameters(),
+        #     lr=LR_GAN_CRITIC,
+        #     betas=(0.5, 0.999))
 
         return [opt_gen, opt_critic]
 
