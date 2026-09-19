@@ -24,6 +24,7 @@ from torch.nn.functional import (
     cross_entropy,
     relu,
 )
+from torch.utils.data import DataLoader, Dataset
 
 from files import (
     DATA_JSONL,
@@ -75,6 +76,8 @@ from model.config import (
 from model.data import (
     SRC_FULL,
     eval_data_loader,
+    eval_ds,
+    sample_colors_tensor,
     train_data_loader,
     train_ds,
 )
@@ -472,16 +475,10 @@ class LitColorCritic(pl.LightningModule):
         self._val_score: list[torch.Tensor] = []
         self._val_target: list[torch.Tensor] = []
 
-    def _null_cond(self, colors: torch.Tensor) -> torch.Tensor:
-        return torch.ones(
-            colors.shape[0], EMBED_SIZE_TEXT,
-            device=colors.device, dtype=colors.dtype)
-
     def _real_fake(
-        self, colors: torch.Tensor
+        self, cond: torch.Tensor, colors: torch.Tensor
     ) -> tuple[torch.Tensor, torch.Tensor]:
         fake = colors[torch.randperm(colors.shape[0], device=colors.device)]
-        cond = self._null_cond(colors)
 
         pair = torch.cat([colors, fake], dim=0)
         cond_pair = torch.cat([cond, cond], dim=0)
@@ -505,8 +502,8 @@ class LitColorCritic(pl.LightningModule):
         self._val_target.clear()
 
     def training_step(self, batch, batch_idx):
-        _, _, _, colors, *_ = batch
-        score, target = self._real_fake(colors)
+        cond, colors = batch
+        score, target = self._real_fake(cond, colors)
         real, fake_score = score.chunk(2, dim=0)
 
         loss = relu(1 - real).mean() + relu(1 + fake_score).mean()
@@ -525,8 +522,8 @@ class LitColorCritic(pl.LightningModule):
             )
 
     def validation_step(self, batch, batch_idx):
-        _, _, _, colors, *_ = batch
-        score, target = self._real_fake(colors)
+        cond, colors = batch
+        score, target = self._real_fake(cond, colors)
         self._val_score.append(score.detach())
         self._val_target.append(target.detach())
 
@@ -760,8 +757,45 @@ def _train_energy(ds) -> LitColorEnergy:
     return mod
 
 
-def _train_critic(ds) -> LitColorCritic:
-    val_dl = eval_data_loader(mix_sources=False)
+class _CondColorDataset(Dataset):
+    def __init__(self, cond: torch.Tensor, colors: list):
+        self.cond = cond
+        self.colors = colors
+
+    def __len__(self) -> int:
+        return len(self.colors)
+
+    def __getitem__(self, idx: int):
+        return self.cond[idx], sample_colors_tensor(self.colors[idx])
+
+
+def _encode_texts(enc: TextEncoder, text: torch.Tensor) -> torch.Tensor:
+    enc.eval()
+    chunks = []
+    with torch.no_grad():
+        for i in range(0, text.shape[0], GAN_BATCH_SIZE):
+            chunks.append(enc(text[i:i + GAN_BATCH_SIZE]))
+    return torch.cat(chunks)
+
+
+def _train_critic(enc: TextEncoder, ds, val_ds) -> LitColorCritic:
+    enc.requires_grad_(False)
+    train_cond = _encode_texts(enc, ds.text)
+    val_cond = _encode_texts(enc, val_ds.text)
+
+    dl = DataLoader(
+        _CondColorDataset(train_cond, ds.colors),
+        batch_size=GAN_BATCH_SIZE,
+        shuffle=True,
+        drop_last=True,
+    )
+    val_dl = DataLoader(
+        _CondColorDataset(val_cond, val_ds.colors),
+        batch_size=2000,
+        shuffle=False,
+        drop_last=False,
+    )
+
     no_bar = _no_progress_bar()
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
@@ -774,7 +808,7 @@ def _train_critic(ds) -> LitColorCritic:
         deterministic=_DETERMINISTIC,  # type: ignore
         max_epochs=EPOCHS_GAN,
         enable_progress_bar=not no_bar,
-        val_check_interval=min(VAL_CHECK_INTERVAL, len(ds)),
+        val_check_interval=min(VAL_CHECK_INTERVAL, len(dl)),
         gradient_clip_val=GRAD_CLIP_CRITIC,
         gradient_clip_algorithm="norm",
         callbacks=[
@@ -784,7 +818,6 @@ def _train_critic(ds) -> LitColorCritic:
     )
 
     mod = LitColorCritic()
-    dl = train_data_loader(data_set=ds, batch_size=GAN_BATCH_SIZE)
     trainer.fit(mod, dl, val_dl)
     return mod
 
@@ -806,7 +839,17 @@ def _run_local(stage: Stage | None) -> None:
         return
 
     if stage == Stage.critic:
-        _train_critic(train_ds(mix_sources=False))  # type: ignore
+        enc_path = PtFile.ENC.in_dir(_DEFAULT_PT)
+        if not enc_path.exists():
+            raise typer.BadParameter(
+                f"{enc_path} not found -- run `train --local` first"
+            )
+        enc = _load(TextEncoder(), enc_path)
+        _train_critic(
+            enc,  # type: ignore
+            train_ds(mix_sources=False),  # type: ignore
+            eval_ds(mix_sources=False),
+        )
         return
 
     require_clean_tree()
@@ -1142,7 +1185,8 @@ def cli(
         metavar="[gan|energy|critic]",
         help="gan = train only the color GAN, using a pretrained encoder. "
         "energy = debug: fit ColorGen alone (no encoder, no critic). "
-        "critic = debug: fit ColorCritic alone (no encoder, no generator). "
+        "critic = debug: fit ColorCritic alone against a frozen pretrained "
+        "encoder (no generator). "
         "Omit to train the encoder then the GAN.",
     ),
     local: bool = typer.Option(
@@ -1163,13 +1207,15 @@ def cli(
                checkpoints, no export, no report -- just watch
                gan/energy/{train,val} in TensorBoard. Always runs locally,
                ignores --local.
-      critic   Debug only: fit ColorCritic alone, with a constant
-               (all-ones) text embedding standing in for the (unused,
-               untrained) encoder and no generator. Fake pairs are real
-               colors shuffled across the batch. No checkpoints, no
-               export, no report -- just watch gan/critic/{loss,r2/train,
-               r2/val} in TensorBoard. Always runs locally, ignores
-               --local.
+      critic   Debug only: fit ColorCritic alone, no generator. Text is
+               embedded once up front by a frozen pretrained encoder
+               (requires enc.pt in pt/; the encoder itself is not
+               trained) and those embeddings are reused every epoch.
+               Fake pairs are real colors shuffled across the batch,
+               paired with the (unshuffled) real text embeddings. No
+               checkpoints, no export, no report -- just watch
+               gan/critic/{loss,r2/train,r2/val} in TensorBoard. Always
+               runs locally, ignores --local.
 
     Location
       Runs on Modal (a T4 GPU) by default. --local runs here instead.
