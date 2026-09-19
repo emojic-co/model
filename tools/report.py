@@ -16,7 +16,6 @@ import torch
 import typer
 import yaml
 from torch import nn
-from torch.nn.functional import normalize as _l2norm
 
 from files import (
     CLDR_BASELINE_JSON,
@@ -31,7 +30,7 @@ from files import (
     TERMS_JSONL,
     PtFile,
 )
-from model.color import COLOR_SHIFT, energy_distance, rgb_to_oklab
+from model.color import COLOR_SHIFT, rgb_to_oklab
 from model.config import (
     EMOJIS,
     ENCODER_CHANNELS,
@@ -60,13 +59,14 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 EMOJI_KS = list(range(1, 11))
 ACC_K_INDEX = {"acc@1": 0, "acc@5": 4, "acc@10": 9}
-CARD_DIST_THRESHOLD = 0.05
 CARD_PURE_THRESHOLD_RGB = 0.251
 CARD_PURE_THRESHOLD_L = 0.6
 CARD_COLORS = ("red", "green", "blue", "dark", "bright")
 GOLD_PER_COLOR = 25
 KEYWORD_FAILS_MAX_ROWS = 100
 EVAL_SAMPLE_N = 40
+SENS_TEXT_N = 40
+SENS_SWATCH_N = 10
 EVAL_SAMPLE_PT_FILES = (
     PtFile.ENC,
     PtFile.STYLE,
@@ -593,7 +593,6 @@ def _section_status(report) -> dict:
     g = _load_global_goals()
     ep = g.get("emoji prediction") or {}
     sp = g.get("style prediction") or {}
-    energy_tgt = (g.get("color generator") or {}).get("energy distance") or {}
     vocab_g = g.get("vocabulary") or {}
 
     best_name, best = _best_emoji_acc(emoji_eval)
@@ -628,34 +627,6 @@ def _section_status(report) -> dict:
         best or [],
         f"best variant: {best_name}" if best_name else "emoji.eval not evaluated this run",
     )
-
-    energy_global = cards.get("energy")
-    goals.append(
-        {
-            "goal": "Color energy · global",
-            "priority": 4,
-            "dir": "min",
-            "target": "—"
-            if energy_tgt.get("global") is None
-            else f"≤ {energy_tgt['global']:.2f}",
-            "current": energy_global,
-            "status": _grade(energy_global, energy_tgt.get("global"), "min"),
-            "note": "cards.energy — not wired yet" if energy_global is None else "",
-        }
-    )
-    for c in CARD_COLORS:
-        cur = _dig(cards, "per_color", c, "gt_mean_distance")
-        goals.append(
-            {
-                "goal": f"Color energy · {c}",
-                "priority": 4,
-                "dir": "min",
-                "target": "—" if energy_tgt.get(c) is None else f"≤ {energy_tgt[c]:.2f}",
-                "current": cur,
-                "status": _grade(cur, energy_tgt.get(c), "min"),
-                "note": "cards off this run" if cur is None else "",
-            }
-        )
 
     _acc_rows(
         goals,
@@ -838,25 +809,6 @@ def _gold_rows():
     return out
 
 
-def _intrinsic_floor(rows: list[dict]) -> float | None:
-    if len(rows) < 4:
-        return None
-    vecs = torch.tensor(
-        [
-            _hex_to_offsets(r["bg"][0])
-            + _hex_to_offsets(r["bg"][1])
-            + _hex_to_offsets(r["fg"])
-            for r in rows
-        ],
-        dtype=torch.float32,
-    )
-    pts = rgb_to_oklab(vecs)
-    n = pts.size(0)
-    half = n // 2
-    perm = torch.randperm(n, generator=torch.Generator().manual_seed(SEED))
-    return energy_distance(pts[perm[:half]], pts[perm[half : 2 * half]]).item()
-
-
 def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
     emb_tbl = _emoji_embed()
     if None in (enc, style_head, emoji_head, gen, emb_tbl) or not gold_rows:
@@ -878,11 +830,9 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
         emb = enc(ids)
         elog = emb_tbl.score(emoji_head(emb))
         slog = style_head(emb)
-        cond = _l2norm(emb)[:, None, :].expand(-1, CONST_Z.shape[0], -1)
-        z = CONST_Z[None, :, :].expand(emb.shape[0], -1, -1)
-        seed = torch.cat([cond, z], dim=-1)
-        raw = gen.net(seed.reshape(-1, seed.shape[-1]))
-        palettes = (torch.tanh(raw) * 127.5).reshape(len(rows), CONST_Z.shape[0], 9)
+        cond = emb[:, None, :].expand(-1, CONST_Z.shape[0], -1).reshape(-1, emb.shape[-1])
+        z = CONST_Z[None, :, :].expand(len(rows), -1, -1).reshape(-1, CONST_Z.shape[-1])
+        palettes = gen(cond, z).reshape(len(rows), CONST_Z.shape[0], 9)
     emoji_acc = [_acc_at_k(elog, etgt, k).mean().item() for k in EMOJI_KS]
     style_acc = [_acc_at_k(slog, stgt, k).mean().item() for k in EMOJI_KS]
     out_rows = []
@@ -894,10 +844,6 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
         )
         dp = min(
             _pure_distance(palettes[i, k].tolist(), r["color"])
-            for k in range(palettes.shape[1])
-        )
-        df = min(
-            _card_distance(palettes[i, k].tolist(), gold9, r["color"])
             for k in range(palettes.shape[1])
         )
         flat = palettes[i, 0].tolist()
@@ -918,9 +864,7 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
                 "gt_bg2": r["bg"][1],
                 "gt_text_color": r["fg"],
                 "dP": dp,
-                "dF": df,
                 "hit_pure": dp < _pure_threshold(r["color"]),
-                "hit": df < CARD_DIST_THRESHOLD,
                 "gen_l": gen_l,
                 "gold_l": gold_l,
                 "gen_chroma": gen_chroma,
@@ -928,39 +872,89 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
             }
         )
 
-    def _stats(rs, floor):
+    def _stats(idxs):
+        rs = [out_rows[i] for i in idxs]
         n = len(rs) or 1
-        gt_mean_distance = sum(x["dF"] for x in rs) / n
         return {
             "pure_accuracy": sum(x["hit_pure"] for x in rs) / n,
             "pure_mean_distance": sum(x["dP"] for x in rs) / n,
-            "gt_accuracy": sum(x["dF"] < CARD_DIST_THRESHOLD for x in rs) / n,
-            "gt_mean_distance": gt_mean_distance,
-            "intrinsic_floor": floor,
-            "shortfall_ratio": gt_mean_distance / floor if floor else None,
             "l_bias": sum(x["gen_l"] - x["gold_l"] for x in rs) / n,
             "chroma_bias": sum(x["gen_chroma"] - x["gold_chroma"] for x in rs) / n,
         }
 
-    color_pool = _valid_color_rows()
     per_color = {
-        c: _stats(
-            [x for x in out_rows if x["color"] == c],
-            _intrinsic_floor([r for r in color_pool if r.get("color") == c]),
-        )
+        c: _stats([i for i, r in enumerate(out_rows) if r["color"] == c])
         for c in CARD_COLORS
     }
-    per_color["all"] = _stats(out_rows, _intrinsic_floor(color_pool))
+    per_color["all"] = _stats(list(range(len(out_rows))))
     return {
         "n": len(rows),
-        "threshold": CARD_DIST_THRESHOLD,
         "pure_threshold_rgb": CARD_PURE_THRESHOLD_RGB,
         "pure_threshold_l": CARD_PURE_THRESHOLD_L,
         "emoji_acc_at_k": emoji_acc,
         "style_acc_at_k": style_acc,
         "per_color": per_color,
-        "energy": per_color["all"]["gt_mean_distance"],
         "rows": out_rows,
+    }
+
+
+def _section_gen_sensitivity(enc, gen, gold_rows) -> dict:
+    if enc is None or gen is None or not gold_rows:
+        return {}
+    rng = random.Random(SEED)
+    texts = sorted({norm_text(r["text"]) for r in gold_rows})
+    texts = rng.sample(texts, min(SENS_TEXT_N, len(texts)))
+    m = len(texts)
+    k = CONST_Z.shape[0]
+    if m < 2:
+        return {}
+    ids = torch.stack([text_to_tensor(t) for t in texts])
+    with torch.no_grad():
+        emb = enc(ids)
+        cond = emb[:, None, :].expand(-1, k, -1).reshape(-1, emb.shape[-1])
+        z = CONST_Z[None, :, :].expand(m, -1, -1).reshape(-1, CONST_Z.shape[-1])
+        palettes = gen(cond, z).reshape(m, k, 9)
+    pts = rgb_to_oklab(palettes)
+
+    mode = "donot_use_mm_for_euclid_dist"
+    mask_k = (~torch.eye(k, dtype=torch.bool)).reshape(-1)
+    same_text = torch.cdist(pts, pts, compute_mode=mode).reshape(m, k * k)
+    noise_spread = same_text[:, mask_k].mean().item()
+
+    pts_by_z = pts.transpose(0, 1)
+    mask_m = (~torch.eye(m, dtype=torch.bool)).reshape(-1)
+    diff_text = torch.cdist(pts_by_z, pts_by_z, compute_mode=mode).reshape(k, m * m)
+    text_spread = diff_text[:, mask_m].mean().item()
+
+    grand_mean = pts.mean(dim=(0, 1))
+    text_means = pts.mean(dim=1)
+    z_means = pts.mean(dim=0)
+    ss_total = ((pts - grand_mean) ** 2).sum().item()
+    ss_text = (k * (text_means - grand_mean) ** 2).sum().item()
+    ss_noise = (m * (z_means - grand_mean) ** 2).sum().item()
+
+    swatches = []
+    for i in range(min(SENS_SWATCH_N, m)):
+        cards = []
+        for kk in range(k):
+            flat = palettes[i, kk].tolist()
+            cards.append(
+                {
+                    "bg1": _offsets_to_hex(flat[0:3]),
+                    "bg2": _offsets_to_hex(flat[3:6]),
+                }
+            )
+        swatches.append({"text": texts[i], "cards": cards})
+
+    return {
+        "n_texts": m,
+        "n_z": k,
+        "noise_spread": noise_spread,
+        "text_spread": text_spread,
+        "ratio": noise_spread / text_spread if text_spread else None,
+        "text_variance_share": ss_text / ss_total if ss_total else None,
+        "noise_variance_share": ss_noise / ss_total if ss_total else None,
+        "swatches": swatches,
     }
 
 
@@ -1003,6 +997,7 @@ def build_report(pt: Path, only: str = "", out: Path = REPORT_DIR) -> Path:
         "keyword_fails",
         "keyword",
         "cards",
+        "gen_sensitivity",
         "style_dist",
         "block_capacity",
         "channel_rank",
@@ -1019,6 +1014,7 @@ def build_report(pt: Path, only: str = "", out: Path = REPORT_DIR) -> Path:
             "emoji",
             "keyword",
             "cards",
+            "gen_sensitivity",
             "keywords_flex",
             "keyword_fails",
             "style_dist",
@@ -1041,7 +1037,7 @@ def build_report(pt: Path, only: str = "", out: Path = REPORT_DIR) -> Path:
             style_head, err = _load(StyleHead(), style_pt)
             if err:
                 prov["issues"].append(f"{style_pt} could not load: {err}")
-    if enc is not None and "cards" in want and gen_pt.exists():
+    if enc is not None and {"cards", "gen_sensitivity"} & want and gen_pt.exists():
         gen, err = _load(ColorGen(), gen_pt)
         if err:
             prov["issues"].append(f"{gen_pt} could not load: {err}")
@@ -1052,7 +1048,7 @@ def build_report(pt: Path, only: str = "", out: Path = REPORT_DIR) -> Path:
         if {"emoji", "style_dist", "length_acc", "eval_samples"} & want
         else []
     )
-    gold_rows = _gold_rows() if "cards" in want else ()
+    gold_rows = _gold_rows() if {"cards", "gen_sensitivity"} & want else ()
 
     report = {
         "generated": datetime.now().isoformat(timespec="seconds"),
@@ -1073,6 +1069,8 @@ def build_report(pt: Path, only: str = "", out: Path = REPORT_DIR) -> Path:
         report["term"] = _section_term_probe(enc, emoji_head)
     if "cards" in want:
         report["cards"] = _section_cards(enc, style_head, emoji_head, gen, gold_rows)
+    if "gen_sensitivity" in want:
+        report["gen_sensitivity"] = _section_gen_sensitivity(enc, gen, gold_rows)
     if "style_dist" in want:
         report["style_dist"] = _section_style_dist(enc, style_head, eval_records)
     if "block_capacity" in want:
@@ -1189,6 +1187,12 @@ overflow:hidden}
 line-height:1.3}
 .mini .st{font-size:9px;letter-spacing:.06em;text-transform:uppercase;margin-top:6px;
 opacity:.75}
+.sens-grid{display:flex;flex-direction:column;gap:8px;margin:18px 0 0}
+.sens-row{display:flex;align-items:center;gap:10px}
+.sens-label{flex:0 0 180px;font-size:13px;overflow:hidden;text-overflow:ellipsis;
+white-space:nowrap}
+.sens-swatches{display:flex;gap:6px;flex:1 1 auto}
+.sens-swatch{width:44px;height:44px;border-radius:8px;border:1px solid var(--line)}
 """
 
 
@@ -1224,16 +1228,6 @@ def _hex_to_offsets(hx: str) -> list[float]:
 def _offsets_to_hex(vals) -> str:
     ints = [max(0, min(255, round(v + COLOR_SHIFT))) for v in vals]
     return "#" + "".join(f"{v:02x}" for v in ints)
-
-
-def _card_distance(pred9, gold9, color: str) -> float:
-    p = rgb_to_oklab(torch.tensor(pred9, dtype=torch.float32)).reshape(3, 3)
-    g = rgb_to_oklab(torch.tensor(gold9, dtype=torch.float32)).reshape(3, 3)
-    if color in ("dark", "bright"):
-        d = (p[:, 0] - g[:, 0]).abs()
-    else:
-        d = (p - g).norm(dim=-1)
-    return d.mean().item()
 
 
 def _l_chroma(vals9) -> tuple[float, float]:
@@ -1591,12 +1585,6 @@ def _cards_html(d) -> str:
     out.append(f"<h3>Emoji &amp; style acc@k — gold set</h3>{chart}")
     pc = d["per_color"]
 
-    def _f3(v) -> str:
-        return f"{v:.3f}" if v is not None else "–"
-
-    def _fx(v) -> str:
-        return f"{v:.1f}&times;" if v is not None else "–"
-
     def _fsigned(v) -> str:
         return f"{v:+.3f}" if v is not None else "–"
 
@@ -1604,31 +1592,21 @@ def _cards_html(d) -> str:
         f"<tr><td>{_esc(c)}</td>"
         f'<td class="n">{pc[c]["pure_mean_distance"]:.3f}</td>'
         f'<td class="n">{pc[c]["pure_accuracy"]:.2f}</td>'
-        f'<td class="n">{pc[c]["gt_mean_distance"]:.3f}</td>'
-        f'<td class="n">{pc[c]["gt_accuracy"]:.2f}</td>'
-        f'<td class="n">{_f3(pc[c]["intrinsic_floor"])}</td>'
-        f'<td class="n">{_fx(pc[c]["shortfall_ratio"])}</td>'
         f'<td class="n">{_fsigned(pc[c]["l_bias"])}</td>'
         f'<td class="n">{_fsigned(pc[c]["chroma_bias"])}</td></tr>'
         for c in (*CARD_COLORS, "all")
     )
     out.append(
-        "<h3>Colour distance — d(model, pure) then d(model, GT)</h3>"
+        "<h3>Colour distance — d(model, pure)</h3>"
         '<p class="note">Pure acc: dP &lt; '
         f"{d['pure_threshold_rgb']:.3f} (r/g/b), &lt; {d['pure_threshold_l']:.2f} "
-        f"(|&Delta;L|, dark/bright). GT acc: dF &lt; {d['threshold']:.2f}. "
-        "Floor: intrinsic self-energy distance within this colour's own gold-adjacent "
-        "data (data/colors.jsonl, split-half) — the best any generator could do "
-        "against this ground truth. GT/Floor: how many multiples of that floor the "
-        "model's best-of-k GT distance actually is; a high multiple with a low floor "
-        "means the model is underperforming an easy category, not that the category "
-        "is inherently hard. &Delta;L/&Delta;chroma: mean Oklab lightness/chroma of "
-        "the model's single top output minus gold (from data/colors.jsonl), signed — "
-        "positive means the model runs lighter/more saturated than gold.</p>"
+        "(|&Delta;L|, dark/bright) between the model's single top output and the "
+        "category's pure hue. &Delta;L/&Delta;chroma: mean Oklab lightness/chroma "
+        "of the model's single top output minus gold (from data/colors.jsonl), "
+        "signed — positive means the model runs lighter/more saturated than "
+        "gold.</p>"
         "<table><tr><th>Color</th>"
         '<th class="n">Pure dist</th><th class="n">Pure acc</th>'
-        '<th class="n">GT dist</th><th class="n">GT acc</th>'
-        '<th class="n">Floor</th><th class="n">GT/Floor</th>'
         '<th class="n">&Delta;L</th><th class="n">&Delta;chroma</th></tr>'
         f"{trows}</table>"
     )
@@ -1652,6 +1630,81 @@ def _cards_html(d) -> str:
     _grids("bg1", "bg2", "text_color", "emoji", "style")
     out.append("<h3>Ground truth — gold set (eval.jsonl annotations)</h3>")
     _grids("gt_bg1", "gt_bg2", "gt_text_color", "gt_emoji", "gt_style")
+    return "".join(out)
+
+
+def _gen_sensitivity_html(d) -> str:
+    if not d:
+        return (
+            "<h2>Model — Generator sensitivity (text vs. noise)</h2>"
+            '<p class="note">Unavailable — needs enc.pt / gen.pt and a '
+            "non-empty data/colors.jsonl.</p>"
+        )
+    ratio = d["ratio"]
+    if ratio is None:
+        verdict, banner_cls = "not enough spread to judge.", "amber"
+    elif ratio > 1.5:
+        verdict = (
+            "the generator moves far more when only the noise seed changes than "
+            "when only the text changes — output is noise-dominated and text "
+            "conditioning looks weak."
+        )
+        banner_cls = "amber"
+    elif ratio < 0.8:
+        verdict = (
+            "text changes move the output at least as much as the noise seed "
+            "does — conditioning looks intact."
+        )
+        banner_cls = ""
+    else:
+        verdict = "noise and text move the output by comparable amounts."
+        banner_cls = "amber"
+    out = [
+        "<h2>Model — Generator sensitivity (text vs. noise)</h2>",
+        '<p class="note">Takes '
+        f"{d['n_texts']} texts sampled from the gold set and runs every one "
+        f"through all {d['n_z']} fixed noise seeds (CONST_Z — the same seeds "
+        "the shipped web app renders as its card variants), then compares two "
+        "things: how far the output moves when only the noise seed changes "
+        "(same text), against how far it moves when only the text changes "
+        "(same seed). Distances are mean pairwise Oklab distance over the "
+        "full 9-dim card vector, matching model/color.py:energy_distance's "
+        "unit.</p>",
+        "<table><tr><th>Metric</th><th class=\"n\">Value</th></tr>"
+        "<tr><td>Mean distance — same text, different noise seed</td>"
+        f'<td class="n">{d["noise_spread"]:.3f}</td></tr>'
+        "<tr><td>Mean distance — different text, same noise seed</td>"
+        f'<td class="n">{d["text_spread"]:.3f}</td></tr>',
+    ]
+    if ratio is not None:
+        out.append(
+            "<tr><td>Ratio (noise-driven / text-driven)</td>"
+            f'<td class="n">{ratio:.2f}&times;</td></tr>'
+        )
+    if d["text_variance_share"] is not None:
+        out.append(
+            "<tr><td>Output variance explained by text identity</td>"
+            f'<td class="n">{d["text_variance_share"]:.1%}</td></tr>'
+            "<tr><td>Output variance explained by noise seed</td>"
+            f'<td class="n">{d["noise_variance_share"]:.1%}</td></tr>'
+        )
+    out.append("</table>")
+    out.append(f'<div class="banner {banner_cls}">{_esc(verdict)}</div>')
+    rows_html = "".join(
+        f'<div class="sens-row"><div class="sens-label">{_esc(s["text"])}</div>'
+        '<div class="sens-swatches">'
+        + "".join(
+            '<div class="sens-swatch" style="background:linear-gradient(135deg,'
+            f'{_esc(c["bg1"])},{_esc(c["bg2"])})"></div>'
+            for c in s["cards"]
+        )
+        + "</div></div>"
+        for s in d["swatches"]
+    )
+    out.append(
+        f"<h3>Same text, {d['n_z']} noise seeds each</h3>"
+        f'<div class="sens-grid">{rows_html}</div>'
+    )
     return "".join(out)
 
 
@@ -1943,6 +1996,8 @@ def _render_html(report) -> str:
         )
     if "cards" in report:
         body.append(_cards_html(report["cards"]))
+    if "gen_sensitivity" in report:
+        body.append(_gen_sensitivity_html(report["gen_sensitivity"]))
     html_body, toc_items = _inject_toc_ids("".join(body))
     return (
         '<!doctype html><meta charset="utf-8">'

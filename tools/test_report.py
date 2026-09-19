@@ -34,49 +34,6 @@ def test_gold_rows_derived():
         assert _HEX.match(r["fg"]), r
 
 
-def test_card_distance():
-    from tools.report import _card_distance, _hex_to_offsets
-
-    red = _hex_to_offsets("#ff0000") * 3
-    assert _card_distance(list(red), list(red), "red") < 1e-6
-    assert _card_distance(list(red), list(red), "dark") < 1e-6
-    d = _card_distance(
-        list(_hex_to_offsets("#ff0000") * 3),
-        list(_hex_to_offsets("#00ff00") * 3),
-        "green",
-    )
-    assert d > 0.2, d
-
-
-def test_dark_ignores_chroma():
-    from tools.report import _card_distance, _hex_to_offsets
-
-    a = list(_hex_to_offsets("#000000") * 3)
-    b = list(_hex_to_offsets("#0000ff") * 3)
-    d_blue = _card_distance(a, b, "blue")
-    d_dark = _card_distance(a, b, "dark")
-    assert d_dark < d_blue, (d_dark, d_blue)
-    assert d_dark > 0, d_dark
-
-
-def test_intrinsic_floor_deterministic():
-    from tools.report import _intrinsic_floor
-
-    rows = [
-        {"bg": ["#ff0000", "#e00000"], "fg": "#ffffff"},
-        {"bg": ["#f01010", "#d00000"], "fg": "#fff0f0"},
-        {"bg": ["#ff2020", "#e01010"], "fg": "#ffffff"},
-        {"bg": ["#f00000", "#e01010"], "fg": "#fffafa"},
-        {"bg": ["#ff0505", "#df0000"], "fg": "#fff5f5"},
-        {"bg": ["#f00808", "#e00505"], "fg": "#fffefe"},
-    ]
-    a = _intrinsic_floor(rows)
-    b = _intrinsic_floor(rows)
-    assert a == b, (a, b)
-    assert a is not None and a >= 0, a
-    assert _intrinsic_floor(rows[:2]) is None
-
-
 def test_linechart_series():
     from tools.report import _linechart
 
@@ -260,8 +217,6 @@ def test_section_status_orders_and_grades():
     assert (
         by_goal["Full-text emoji acc@1"]["current"] == report["emoji"]["eval"]["acc_at_k"][0]
     )
-    assert by_goal["Color energy · global"]["priority"] == 4
-    assert by_goal["Color energy · global"]["status"] == "na"
     assert by_goal["Style acc@1"]["priority"] == 5
     assert by_goal["Max text len"]["priority"] == 6
     assert by_goal["Max text len"]["status"] == "red"
@@ -370,9 +325,6 @@ _app = typer.Typer(
 @_app.command()
 def main() -> None:
     test_gold_rows_derived()
-    test_card_distance()
-    test_dark_ignores_chroma()
-    test_intrinsic_floor_deterministic()
     test_linechart_series()
     test_linechart_three_way()
     test_emoji_html_overlay()

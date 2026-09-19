@@ -6,6 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 from files import KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
+from model.config import Z_WEIGHT
 from model.metric import Metric, Source, named_metric
 
 # from files import FLAGS_JSONL
@@ -65,7 +66,7 @@ style_str = " ".join([
     for p in (EMBED_SIZE_STYLE, EMBED_SIZE_TEXT,)])
 
 # GAN
-Z_DIM = 40
+Z_WEIGHT = 0.1
 GEN_HIDDEN_SIZE = 40
 CRITIC_EMBEDDING_SIZE = 40
 
@@ -89,7 +90,7 @@ INFONCE_TEMP_STYLE = 0.7
 gan_str = " ".join([
     str(p)
     for p in (
-        Z_DIM,
+        Z_WEIGHT,
         GEN_HIDDEN_SIZE,
         CRITIC_EMBEDDING_SIZE,
         LR_GAN_GEN,
@@ -231,7 +232,7 @@ def _stats() -> list[tuple[str, object]]:
         ("TASK_BATCH_SIZE / GAN_BATCH_SIZE",
          f"{TASK_BATCH_SIZE} / {GAN_BATCH_SIZE}"),
         ("EPOCHS_TASK / EPOCHS_GAN", f"{EPOCHS_TASK} / {EPOCHS_GAN}"),
-        ("Z_DIM", Z_DIM),
+        ("Z_WEIGHT", Z_WEIGHT),
     ]
 
 

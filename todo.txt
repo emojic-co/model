@@ -1,7 +1,2 @@
-Done:
-Similar to the `train energy` command,
-I would like to have a `train critic` command that only train the critic network.
-This is for debugging purposes, and no other network should be used.
-Th train only feeds the critic with real (text,colors) pairs and with fake.
-The fake once are created by just shuffling the real ones.
-Please log the r^2 score of the critic.
+Update the generator to have text embedding + noise instead of [text, noise] concatenated.
+Also when running `train energy` use  actual text embeddings, pre encode all texts and cache them into a .pt file (same as `train critic`)

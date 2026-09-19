@@ -56,7 +56,6 @@ from model.config import (
     EARLY_STOP_MIN_DELTA_GAN,
     EARLY_STOP_PATIENCE_ENCODER,
     EARLY_STOP_PATIENCE_GAN,
-    EMBED_SIZE_TEXT,
     EPOCHS_GAN,
     EPOCHS_TASK,
     GAN_BATCH_SIZE,
@@ -372,6 +371,10 @@ class LitColorGAN(pl.LightningModule):
 
         loss_critic = relu(1 - real).mean() + relu(1 + fake_score).mean()
 
+        n = colors.shape[0]
+        auroc_target = torch.cat([score.new_ones(n), score.new_zeros(n)])
+        auroc = binary_auroc(score.detach().squeeze(-1), auroc_target.long())
+
         opt_critic.zero_grad()
         self.manual_backward(loss_critic)
         self.clip_gradients(
@@ -402,6 +405,7 @@ class LitColorGAN(pl.LightningModule):
         opt_gen.step()
 
         self.log(GanMetric.CRITIC_LOSS, loss_critic, prog_bar=True)
+        self.log(GanMetric.CRITIC_AUROC_TRAIN, auroc, prog_bar=True)
         self.log(GanMetric.GEN_LOSS, loss_gen_critic, prog_bar=True)
         self.log(GanMetric.ENERGY_TRAIN, loss_energy, prog_bar=True)
 
@@ -428,18 +432,16 @@ class LitColorEnergy(pl.LightningModule):
 
         self.gen = ColorGen()
 
+        self._val_cond: list[torch.Tensor] = []
         self._val_real: list[torch.Tensor] = []
 
-    def _null_cond(self, colors: torch.Tensor) -> torch.Tensor:
-        return torch.ones(
-            colors.shape[0], EMBED_SIZE_TEXT,
-            device=colors.device, dtype=colors.dtype)
-
     def on_validation_epoch_start(self):
+        self._val_cond.clear()
         self._val_real.clear()
 
     def validation_step(self, batch, batch_idx):
-        _, _, _, colors, *_ = batch
+        cond, colors = batch
+        self._val_cond.append(cond)
         self._val_real.append(colors)
 
     def on_validation_epoch_end(self):
@@ -448,16 +450,16 @@ class LitColorEnergy(pl.LightningModule):
 
         self.gen.eval()
         with torch.no_grad():
-            real_rgb = torch.cat(self._val_real)
-            real = rgb_to_oklab(real_rgb)
-            fake = rgb_to_oklab(self.gen(self._null_cond(real_rgb)))
+            cond = torch.cat(self._val_cond)
+            real = rgb_to_oklab(torch.cat(self._val_real))
+            fake = rgb_to_oklab(self.gen(cond))
             val = energy_distance(real, fake)
             self.log(GanMetric.ENERGY_VAL, val, prog_bar=True)
 
     def training_step(self, batch, batch_idx):
-        _, _, _, colors, *_ = batch
+        cond, colors = batch
 
-        fake = self.gen(self._null_cond(colors))
+        fake = self.gen(cond)
         loss = energy_distance(rgb_to_oklab(fake), rgb_to_oklab(colors))
 
         self.log(GanMetric.ENERGY_TRAIN, loss, prog_bar=True)
@@ -690,14 +692,13 @@ def _energy_preview_card(bg1: str, bg2: str, fg: str) -> str:
     )
 
 
-def _write_energy_preview(mod: LitColorEnergy, n: int = 50) -> Path:
+def _write_energy_preview(mod: LitColorEnergy, cond: torch.Tensor, n: int = 50) -> Path:
     mod.gen.eval()
     with torch.no_grad():
-        cond = mod._null_cond(torch.empty(n, 1))
-        colors = mod.gen(cond)
+        colors = mod.gen(cond[:n])
 
     cards = "\n".join(
-        _energy_preview_card(*rgb_to_hex(colors[i])) for i in range(n)
+        _energy_preview_card(*rgb_to_hex(colors[i])) for i in range(colors.shape[0])
     )
     html = f"""<!doctype html>
 <html lang="en">
@@ -728,8 +729,25 @@ body {{ margin: 0; padding: 2em; background: #111; font-family: sans-serif; }}
     return out_path
 
 
-def _train_energy(ds) -> LitColorEnergy:
-    val_dl = eval_data_loader(mix_sources=False)
+def _train_energy(
+    enc: TextEncoder, enc_path: Path, ds, val_ds
+) -> LitColorEnergy:
+    enc.requires_grad_(False)
+    train_cond, val_cond = _encoded_texts(enc, enc_path, ds, val_ds)
+
+    dl = DataLoader(
+        _CondColorDataset(train_cond, ds.colors),
+        batch_size=GAN_BATCH_SIZE,
+        shuffle=True,
+        drop_last=True,
+    )
+    val_dl = DataLoader(
+        _CondColorDataset(val_cond, val_ds.colors),
+        batch_size=2000,
+        shuffle=False,
+        drop_last=False,
+    )
+
     no_bar = _no_progress_bar()
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
@@ -742,7 +760,7 @@ def _train_energy(ds) -> LitColorEnergy:
         deterministic=_DETERMINISTIC,  # type: ignore
         max_epochs=EPOCHS_GAN,
         enable_progress_bar=not no_bar,
-        val_check_interval=min(VAL_CHECK_INTERVAL, len(ds)),
+        val_check_interval=min(VAL_CHECK_INTERVAL, len(dl)),
         callbacks=[
             *bar_cbs,
             ModelSummary(),
@@ -755,9 +773,8 @@ def _train_energy(ds) -> LitColorEnergy:
     )
 
     mod = LitColorEnergy()
-    dl = train_data_loader(data_set=ds, batch_size=GAN_BATCH_SIZE)
     trainer.fit(mod, dl, val_dl)
-    out_path = _write_energy_preview(mod)
+    out_path = _write_energy_preview(mod, val_cond)
     print(out_path)
     return mod
 
@@ -870,18 +887,15 @@ def _run_local(stage: Stage | None) -> None:
     if _CUDA:
         torch.set_float32_matmul_precision("high")
 
-    if stage == Stage.energy:
-        _train_energy(train_ds(mix_sources=False))  # type: ignore
-        return
-
-    if stage == Stage.critic:
+    if stage in (Stage.energy, Stage.critic):
         enc_path = PtFile.ENC.in_dir(_DEFAULT_PT)
         if not enc_path.exists():
             raise typer.BadParameter(
                 f"{enc_path} not found -- run `train --local` first"
             )
         enc = _load(TextEncoder(), enc_path)
-        _train_critic(
+        train_fn = _train_energy if stage == Stage.energy else _train_critic
+        train_fn(
             enc,  # type: ignore
             enc_path,
             train_ds(mix_sources=False),  # type: ignore
@@ -1221,7 +1235,8 @@ def cli(
         None,
         metavar="[gan|energy|critic]",
         help="gan = train only the color GAN, using a pretrained encoder. "
-        "energy = debug: fit ColorGen alone (no encoder, no critic). "
+        "energy = debug: fit ColorGen alone against the energy distance, no "
+        "critic, using real cached text embeddings. "
         "critic = debug: fit ColorCritic alone against a frozen pretrained "
         "encoder (no generator). "
         "Omit to train the encoder then the GAN.",
@@ -1239,11 +1254,14 @@ def cli(
                critic trained from scratch. Requires enc.pt, style.pt,
                emoji.pt, emoji_embed.pt in pt/. Then export + report.
       energy   Debug only: fit ColorGen directly against the energy
-               distance, with a constant (all-ones) text embedding standing
-               in for the (unused, untrained) encoder and no critic. No
-               checkpoints, no export, no report -- just watch
-               gan/energy/{train,val} in TensorBoard. Always runs locally,
-               ignores --local.
+               distance, no critic. Text is embedded once up front by a
+               frozen pretrained encoder (requires enc.pt in pt/; the
+               encoder itself is not trained) and those embeddings are
+               reused every epoch. Cached to pt/critic_text_cache.pt (same
+               cache as stage "critic" -- see below), keyed on enc.pt +
+               train.jsonl + eval.jsonl content. No checkpoints, no
+               export, no report -- just watch gan/energy/{train,val} in
+               TensorBoard. Always runs locally, ignores --local.
       critic   Debug only: fit ColorCritic alone, no generator. Text is
                embedded once up front by a frozen pretrained encoder
                (requires enc.pt in pt/; the encoder itself is not
