@@ -73,9 +73,6 @@ LOSS_WEIGHT_ENERGY = 0.05
 GRAD_CLIP_GEN = 1
 GRAD_CLIP_CRITIC = 1
 
-HINGE_REAL_MARGIN = 10
-HINGE_FAKE_MARGIN = 10
-
 # LR
 LR_ENCODER = 0.01
 LR_GAN_GEN = 0.005
@@ -97,9 +94,7 @@ gan_str = " ".join([
         CRITIC_EMBEDDING_SIZE,
         LR_GAN_GEN,
         LR_GAN_CRITIC,
-        LOSS_WEIGHT_ENERGY,
-        HINGE_REAL_MARGIN,
-        HINGE_FAKE_MARGIN)])
+        LOSS_WEIGHT_ENERGY)])
 
 
 @dataclass(frozen=True)
