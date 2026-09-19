@@ -23,7 +23,6 @@ from torch import nn, optim
 from torch.nn.functional import (
     cross_entropy,
     relu,
-    softplus,
 )
 from torch.utils.data import DataLoader, Dataset
 from torchmetrics.functional.classification import binary_auroc
@@ -510,7 +509,7 @@ class LitColorCritic(pl.LightningModule):
         score, target = self._real_fake(cond, colors)
         real, fake_score = score.chunk(2, dim=0)
 
-        loss = softplus(fake_score - real).mean()
+        loss = relu(1 - real).mean() + relu(1 + fake_score).mean()
 
         self._trn_score.append(score.detach())
         self._trn_target.append(target.detach())
