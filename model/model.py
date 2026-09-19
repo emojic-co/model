@@ -2,7 +2,6 @@
 import torch
 import torch.nn as nn
 from torch.nn.functional import (
-    normalize,
     tanh,
 )
 from torch.nn.utils.parametrizations import spectral_norm as sn
@@ -147,10 +146,10 @@ class ColorGen(nn.Module):
             z = torch.randn(
                 cond.shape[0], Z_DIM, device=cond.device, dtype=cond.dtype)
 
-        z = normalize(z, dim=-1)
-        cond_norm = normalize(cond, dim=-1)
+        # z = normalize(z, dim=-1)
+        # cond = normalize(cond, dim=-1)
 
-        seed = torch.cat([cond_norm, z], dim=-1)
+        seed = torch.cat([cond, z], dim=-1)
 
         colors = self.net(seed)
         return tanh(colors) * COLOR_SHIFT
