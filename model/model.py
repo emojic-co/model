@@ -68,7 +68,7 @@ class TextEncoder(nn.Module):
             nn.Dropout(p=DROPOUT),
             *blk(sum(cs), EMBED_SIZE_TEXT))
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def pool(self, x: torch.Tensor) -> torch.Tensor:
         out = self.char_embed(x).transpose(1, 2)
         n = (x != PAD_IDX).sum(dim=1, keepdim=True)
         pooled = []
@@ -78,7 +78,10 @@ class TextEncoder(nn.Module):
             masked = out.masked_fill(~keep.unsqueeze(1), float("-inf"))
             pooled.append(torch.max(masked, dim=-1).values)
 
-        return self.proj(torch.cat(pooled, dim=-1))
+        return torch.cat(pooled, dim=-1)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.proj(self.pool(x))
 
 
 class StyleHead(nn.Module):
