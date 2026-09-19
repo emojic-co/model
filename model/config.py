@@ -6,7 +6,6 @@ from datetime import datetime
 from pathlib import Path
 
 from files import KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
-from model.config import Z_WEIGHT
 from model.metric import Metric, Source, named_metric
 
 # from files import FLAGS_JSONL
