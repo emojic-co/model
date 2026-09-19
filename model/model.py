@@ -149,8 +149,7 @@ class ColorGen(nn.Module):
         z = normalize(z, dim=-1)
         cond = normalize(cond, dim=-1)
 
-        # seed = torch.cat([cond, z], dim=-1)
-        seed = z
+        seed = torch.cat([cond, z], dim=-1)
 
         colors = self.net(seed)
         return tanh(colors) * COLOR_SHIFT
