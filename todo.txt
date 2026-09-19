@@ -1,7 +1,0 @@
-Done:
-create a sub command
-`train energy`
-this command is for debug and it just trains the ColorGen head without the TextEncoder and without the critic.
-It is for fast iteration when trying to just map noise to colors and check the energy loss.
-It assumes the color gen ignores the text embedding.
-You can pass the color gen a zero text embedding to make it ignore the text embedding.
