@@ -39,3 +39,5 @@ class GanMetric:
     CRITIC_LOSS = "gan/critic/loss"
     CRITIC_AUROC_TRAIN = "gan/critic/auroc/train"
     CRITIC_AUROC_VAL = "gan/critic/auroc/val"
+    CRITIC_MEAN_SCORE_REAL = "gan/critic/mean_score/real"
+    CRITIC_MEAN_SCORE_FAKE = "gan/critic/mean_score/fake"

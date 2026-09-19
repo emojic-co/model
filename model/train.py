@@ -514,6 +514,8 @@ class LitColorCritic(pl.LightningModule):
         self._trn_score.append(score.detach())
         self._trn_target.append(target.detach())
         self.log(GanMetric.CRITIC_LOSS, loss, prog_bar=True)
+        self.log(GanMetric.CRITIC_MEAN_SCORE_REAL, real.detach().mean())
+        self.log(GanMetric.CRITIC_MEAN_SCORE_FAKE, fake_score.detach().mean())
         return loss
 
     def on_train_epoch_end(self):
