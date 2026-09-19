@@ -125,7 +125,7 @@ _app = typer.Typer(
 
 @_app.command()
 def cli() -> None:
-    """Print per-block EmojiHead weight column-norms and per-sample contribution."""
+    """Print per-block encoder proj weight column-norms and per-sample contribution."""
     main()
 
 
