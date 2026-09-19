@@ -65,7 +65,7 @@ style_str = " ".join([
     for p in (EMBED_SIZE_STYLE, EMBED_SIZE_TEXT,)])
 
 # GAN
-Z_WEIGHT = 0.1
+Z_WEIGHT = 0.2
 GEN_HIDDEN_SIZE = 40
 CRITIC_EMBEDDING_SIZE = 50
 
