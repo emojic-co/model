@@ -148,7 +148,7 @@ class ColorGen(nn.Module):
                 cond.shape[0], Z_DIM, device=cond.device, dtype=cond.dtype)
 
         z = normalize(z, dim=-1)
-        # cond = normalize(cond, dim=-1)
+        cond = normalize(cond, dim=-1)
 
         seed = torch.cat([cond, z], dim=-1)
 
