@@ -27,7 +27,6 @@ from torch.nn.functional import (
 )
 
 from files import (
-    COLOR_TERMS_JSONL,
     DATA_JSONL,
     EMOJI_EMBED_PT,
     EMOJI_PT,
@@ -49,7 +48,6 @@ from files import (
 )
 from model.color import energy_distance, rgb_to_oklab
 from model.config import (
-    COLOR_TERMS_MIXIN,
     CONFIG_NAME,
     EARLY_STOP_PATIENCE_ENCODER,
     EARLY_STOP_PATIENCE_GAN,
@@ -584,7 +582,7 @@ def _run_local(stage: Stage | None) -> None:
             enc = _load(TextEncoder(), PtFile.ENC.in_dir(_DEFAULT_PT))
             critic = ColorCritic()
             _train_gan(enc, critic, train_ds(  # type: ignore
-                mix_sources=False, color_mixin=COLOR_TERMS_MIXIN), _DEFAULT_PT)
+                mix_sources=False), _DEFAULT_PT)
             export()
             if not skip_report:
                 _run_report_local(_DEFAULT_PT)
@@ -600,7 +598,7 @@ def _run_local(stage: Stage | None) -> None:
 
     critic = ColorCritic()
     _train_gan(mod.enc, critic, train_ds(  # type: ignore
-        mix_sources=False, color_mixin=COLOR_TERMS_MIXIN), _DEFAULT_PT)
+        mix_sources=False), _DEFAULT_PT)
     export()
     if not skip_report:
         _run_report_local(_DEFAULT_PT)
@@ -645,7 +643,6 @@ CODE_FILES = [
     KEYWORDS_JSONL,
     TERMS_JSONL,
     FLAGS_JSONL,
-    COLOR_TERMS_JSONL,
 ]
 COLLECT_TREES = [PT_DIR, RUNS_DIR, WEB_PUBLIC_DIR, REPORT_DIR]
 
