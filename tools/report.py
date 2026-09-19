@@ -363,55 +363,44 @@ def _section_style_dist(enc, style_head, eval_records) -> dict:
     return {"n": n, "dist": dist}
 
 
-def _section_block_capacity(enc, heads: dict) -> dict:
+def _section_block_capacity(enc) -> dict:
     if enc is None:
         return {}
     ends = list(accumulate(ENCODER_CHANNELS))
     bounds = list(zip([0, *ends[:-1]], ends, strict=True))
-    out = {}
+    weight = enc.proj[1].weight
+    rows = []
     with torch.no_grad():
-        for head_name, head in heads.items():
-            if head is None:
+        for source, path in _BLOCK_CAPACITY_SOURCES:
+            texts = [r.text for r in read(path)]
+            if not texts:
                 continue
-            net = head.net
-            if isinstance(net, nn.Linear):
-                weight = net.weight
-            else:
-                linears = [m for m in net.modules() if isinstance(m, nn.Linear)]
-                weight = linears[-1].weight
-            rows = []
-            for source, path in _BLOCK_CAPACITY_SOURCES:
-                texts = [r.text for r in read(path)]
-                if not texts:
-                    continue
-                emb = enc(torch.stack([text_to_tensor(t) for t in texts]))
-                q_norm = (emb @ weight.t()).norm(dim=-1).clamp_min(1e-12)
-                for i, ((start, end), d) in enumerate(
-                    zip(bounds, ENCODER_DILATION, strict=True)
-                ):
-                    w_slice = weight[:, start:end]
-                    a_slice = emb[:, start:end]
-                    col_norms = w_slice.norm(dim=0)
-                    contrib_norm = (a_slice @ w_slice.t()).norm(dim=-1)
-                    rows.append(
-                        {
-                            "source": source,
-                            "n": len(texts),
-                            "block": i,
-                            "range": f"{start}:{end}",
-                            "dilation": d,
-                            "w_norm_mean": col_norms.mean().item(),
-                            "w_norm_max": col_norms.max().item(),
-                            "act_rms": (a_slice.norm(dim=-1) / (end - start) ** 0.5)
-                            .mean()
-                            .item(),
-                            "contrib_norm": contrib_norm.mean().item(),
-                            "contrib_pct": (100 * contrib_norm / q_norm).mean().item(),
-                        }
-                    )
-            if rows:
-                out[head_name] = {"rows": rows}
-    return out
+            pooled = enc.pool(torch.stack([text_to_tensor(t) for t in texts]))
+            q_norm = (pooled @ weight.t()).norm(dim=-1).clamp_min(1e-12)
+            for i, ((start, end), d) in enumerate(
+                zip(bounds, ENCODER_DILATION, strict=True)
+            ):
+                w_slice = weight[:, start:end]
+                a_slice = pooled[:, start:end]
+                col_norms = w_slice.norm(dim=0)
+                contrib_norm = (a_slice @ w_slice.t()).norm(dim=-1)
+                rows.append(
+                    {
+                        "source": source,
+                        "n": len(texts),
+                        "block": i,
+                        "range": f"{start}:{end}",
+                        "dilation": d,
+                        "w_norm_mean": col_norms.mean().item(),
+                        "w_norm_max": col_norms.max().item(),
+                        "act_rms": (a_slice.norm(dim=-1) / (end - start) ** 0.5)
+                        .mean()
+                        .item(),
+                        "contrib_norm": contrib_norm.mean().item(),
+                        "contrib_pct": (100 * contrib_norm / q_norm).mean().item(),
+                    }
+                )
+    return {"rows": rows} if rows else {}
 
 
 def _section_channel_rank(enc) -> dict:
@@ -425,7 +414,7 @@ def _section_channel_rank(enc) -> dict:
             texts = [r.text for r in read(path)]
             if not texts:
                 continue
-            emb = enc(torch.stack([text_to_tensor(t) for t in texts]))
+            emb = enc.pool(torch.stack([text_to_tensor(t) for t in texts]))
             for i, (start, end) in enumerate(bounds):
                 channels = end - start
                 a = emb[:, start:end]
@@ -1047,12 +1036,12 @@ def build_report(pt: Path, only: str = "", out: Path = REPORT_DIR) -> Path:
         emoji_head, err = _load(EmojiHead(), emoji_pt)
         if err:
             prov["issues"].append(f"{emoji_pt} could not load: {err}")
-    if enc is not None and {"cards", "style_dist", "block_capacity"} & want:
+    if enc is not None and {"cards", "style_dist"} & want:
         if style_pt.exists():
             style_head, err = _load(StyleHead(), style_pt)
             if err:
                 prov["issues"].append(f"{style_pt} could not load: {err}")
-    if enc is not None and {"cards", "block_capacity"} & want and gen_pt.exists():
+    if enc is not None and "cards" in want and gen_pt.exists():
         gen, err = _load(ColorGen(), gen_pt)
         if err:
             prov["issues"].append(f"{gen_pt} could not load: {err}")
@@ -1087,14 +1076,7 @@ def build_report(pt: Path, only: str = "", out: Path = REPORT_DIR) -> Path:
     if "style_dist" in want:
         report["style_dist"] = _section_style_dist(enc, style_head, eval_records)
     if "block_capacity" in want:
-        report["block_capacity"] = _section_block_capacity(
-            enc,
-            {
-                "EmojiHead": emoji_head,
-                "StyleHead": style_head,
-                "ColorGen": gen,
-            },
-        )
+        report["block_capacity"] = _section_block_capacity(enc)
     if "channel_rank" in want:
         report["channel_rank"] = _section_channel_rank(enc)
     if "length_acc" in want:
