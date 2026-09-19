@@ -30,7 +30,7 @@ from files import (
     TERMS_JSONL,
     PtFile,
 )
-from model.color import COLOR_SHIFT, rgb_to_oklab
+from model.color import COLOR_SHIFT, energy_distance, rgb_to_oklab
 from model.config import (
     EMOJIS,
     ENCODER_CHANNELS,
@@ -67,6 +67,8 @@ KEYWORD_FAILS_MAX_ROWS = 100
 EVAL_SAMPLE_N = 40
 SENS_TEXT_N = 40
 SENS_SWATCH_N = 10
+COLOR_KEYWORD_SAMPLE_N = 300
+COLOR_KEYWORD_EXAMPLE_N = 10
 EVAL_SAMPLE_PT_FILES = (
     PtFile.ENC,
     PtFile.STYLE,
@@ -958,6 +960,76 @@ def _section_gen_sensitivity(enc, gen, gold_rows) -> dict:
     }
 
 
+def _section_color_keywords(enc, gen) -> dict:
+    cg_goals = _load_global_goals().get("color generator") or {}
+    targets = cg_goals.get("energy distance") or {}
+    if enc is None or gen is None or not targets:
+        return {}
+    rows = _rows(DATA_PATH)
+    out = []
+    for keyword in sorted(targets):
+        matched = [
+            r
+            for r in rows
+            if r.get("colors")
+            and 0 < len(norm_text(str(r.get("text", "")))) <= MAX_TEXT_LEN
+            and keyword.lower() in str(r["text"]).lower()
+        ]
+        rng = random.Random(f"{SEED}:color_keyword:{keyword}")
+        sample = rng.sample(matched, min(COLOR_KEYWORD_SAMPLE_N, len(matched)))
+        target = targets[keyword]
+        if not sample:
+            out.append(
+                {
+                    "keyword": keyword,
+                    "n": 0,
+                    "target": target,
+                    "value": None,
+                    "status": "na",
+                    "examples": [],
+                }
+            )
+            continue
+        ids = torch.stack([text_to_tensor(norm_text(r["text"])) for r in sample])
+        gt9 = torch.tensor(
+            [
+                _hex_to_offsets(r["colors"][0]["bg"][0])
+                + _hex_to_offsets(r["colors"][0]["bg"][1])
+                + _hex_to_offsets(r["colors"][0]["fg"])
+                for r in sample
+            ],
+            dtype=torch.float32,
+        )
+        with torch.no_grad():
+            fake9 = gen(enc(ids))
+        value = energy_distance(rgb_to_oklab(fake9), rgb_to_oklab(gt9)).item()
+        examples = []
+        for i in range(min(COLOR_KEYWORD_EXAMPLE_N, len(sample))):
+            flat = fake9[i].tolist()
+            examples.append(
+                {
+                    "text": sample[i]["text"],
+                    "gt_bg1": sample[i]["colors"][0]["bg"][0],
+                    "gt_bg2": sample[i]["colors"][0]["bg"][1],
+                    "gt_fg": sample[i]["colors"][0]["fg"],
+                    "pred_bg1": _offsets_to_hex(flat[0:3]),
+                    "pred_bg2": _offsets_to_hex(flat[3:6]),
+                    "pred_fg": _offsets_to_hex(flat[6:9]),
+                }
+            )
+        out.append(
+            {
+                "keyword": keyword,
+                "n": len(sample),
+                "target": target,
+                "value": value,
+                "status": _grade(value, target, "min"),
+                "examples": examples,
+            }
+        )
+    return {"rows": out, "sample_n": COLOR_KEYWORD_SAMPLE_N}
+
+
 def _section_eval_samples(pt: Path, eval_records) -> dict:
     pool = [r for r in eval_records if r.emojis]
     if not pool or not all((pt / n).exists() for n in EVAL_SAMPLE_PT_FILES):
@@ -998,6 +1070,7 @@ def build_report(pt: Path, only: str = "", out: Path = REPORT_DIR) -> Path:
         "keyword",
         "cards",
         "gen_sensitivity",
+        "color_keywords",
         "style_dist",
         "block_capacity",
         "channel_rank",
@@ -1015,6 +1088,7 @@ def build_report(pt: Path, only: str = "", out: Path = REPORT_DIR) -> Path:
             "keyword",
             "cards",
             "gen_sensitivity",
+            "color_keywords",
             "keywords_flex",
             "keyword_fails",
             "style_dist",
@@ -1037,7 +1111,8 @@ def build_report(pt: Path, only: str = "", out: Path = REPORT_DIR) -> Path:
             style_head, err = _load(StyleHead(), style_pt)
             if err:
                 prov["issues"].append(f"{style_pt} could not load: {err}")
-    if enc is not None and {"cards", "gen_sensitivity"} & want and gen_pt.exists():
+    gen_wanted = {"cards", "gen_sensitivity", "color_keywords"} & want
+    if enc is not None and gen_wanted and gen_pt.exists():
         gen, err = _load(ColorGen(), gen_pt)
         if err:
             prov["issues"].append(f"{gen_pt} could not load: {err}")
@@ -1071,6 +1146,8 @@ def build_report(pt: Path, only: str = "", out: Path = REPORT_DIR) -> Path:
         report["cards"] = _section_cards(enc, style_head, emoji_head, gen, gold_rows)
     if "gen_sensitivity" in want:
         report["gen_sensitivity"] = _section_gen_sensitivity(enc, gen, gold_rows)
+    if "color_keywords" in want:
+        report["color_keywords"] = _section_color_keywords(enc, gen)
     if "style_dist" in want:
         report["style_dist"] = _section_style_dist(enc, style_head, eval_records)
     if "block_capacity" in want:
@@ -1193,6 +1270,9 @@ opacity:.75}
 white-space:nowrap}
 .sens-swatches{display:flex;gap:6px;flex:1 1 auto}
 .sens-swatch{width:44px;height:44px;border-radius:8px;border:1px solid var(--line)}
+.kw-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 0}
+.kw-grid .grp{grid-column:span 2;font-size:12px;letter-spacing:.04em;
+text-transform:uppercase;color:var(--dim)}
 """
 
 
@@ -1708,6 +1788,69 @@ def _gen_sensitivity_html(d) -> str:
     return "".join(out)
 
 
+def _color_keywords_html(d) -> str:
+    if not d or not d.get("rows"):
+        return (
+            "<h2>Model — Generator energy distance by keyword</h2>"
+            '<p class="note">Unavailable — needs enc.pt / gen.pt and '
+            "goals.yml color generator.energy distance targets.</p>"
+        )
+    def _vtxt(r) -> str:
+        return "–" if r["value"] is None else f"{r['value']:.3f}"
+
+    trows = "".join(
+        f'<tr class="sc-{r["status"]}"><td>{_esc(r["keyword"])}</td>'
+        f'<td class="n">{r["n"]}</td>'
+        f'<td class="n">{_vtxt(r)}</td>'
+        f'<td class="n">&le; {r["target"]:.3f}</td>'
+        f"<td>{_STATUS_WORD[r['status']]}</td></tr>"
+        for r in d["rows"]
+    )
+    return (
+        "<h2>Model — Generator energy distance by keyword</h2>"
+        '<p class="note">For each keyword under goals.yml\'s '
+        "<code>color generator.energy distance</code>, up to "
+        f"{d['sample_n']} rows of data/data.jsonl whose text contains that "
+        "keyword are sampled (deterministic, seeded), one ground-truth colour "
+        "kept per row, and one generated palette drawn per row with fresh "
+        "random generator noise. Energy distance is model/color.py:"
+        "energy_distance between the two sets, in the same Oklab 9-dim card "
+        "vector unit used elsewhere in this report.</p>"
+        '<table class="scorecard"><tr><th>Keyword</th><th class="n">N sampled</th>'
+        '<th class="n">Energy distance</th><th class="n">Target</th>'
+        "<th>Status</th></tr>" + trows + "</table>"
+        + _color_keyword_examples_html(d["rows"])
+    )
+
+
+def _kw_cell(kind: str, ex: dict) -> str:
+    bg1, bg2, fg = ex[f"{kind}_bg1"], ex[f"{kind}_bg2"], ex[f"{kind}_fg"]
+    return (
+        '<div class="mini" style="background:linear-gradient(135deg,'
+        f'{_esc(bg1)},{_esc(bg2)});color:{_esc(fg)}">'
+        f'<span class="tx">{_esc(ex["text"])}</span></div>'
+    )
+
+
+def _color_keyword_examples_html(rows) -> str:
+    out = []
+    for r in rows:
+        examples = r.get("examples")
+        if not examples:
+            continue
+        cells = []
+        for i in range(0, len(examples), 2):
+            pair = examples[i : i + 2]
+            cells += [_kw_cell("gt", ex) for ex in pair]
+            cells += [_kw_cell("pred", ex) for ex in pair]
+        out.append(
+            f"<h3>{_esc(r['keyword'])}</h3>"
+            '<div class="kw-grid"><div class="grp">Ground truth</div>'
+            '<div class="grp">Model prediction</div>' + "".join(cells) + "</div>"
+        )
+    return "".join(out)
+
+
 def _style_dist_html(d) -> str:
     if not d or not d.get("dist"):
         return (
@@ -1998,6 +2141,8 @@ def _render_html(report) -> str:
         body.append(_cards_html(report["cards"]))
     if "gen_sensitivity" in report:
         body.append(_gen_sensitivity_html(report["gen_sensitivity"]))
+    if "color_keywords" in report:
+        body.append(_color_keywords_html(report["color_keywords"]))
     html_body, toc_items = _inject_toc_ids("".join(body))
     return (
         '<!doctype html><meta charset="utf-8">'

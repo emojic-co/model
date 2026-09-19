@@ -1,2 +1,3 @@
-Update the generator to have text embedding + noise instead of [text, noise] concatenated.
-Also when running `train energy` use  actual text embeddings, pre encode all texts and cache them into a .pt file (same as `train critic`)
+At the bottom of the "Model — Generator energy distance by keyword" section.
+Add a 4 columns grid, the left 2 columns are for the GT and the right 2 columns are for model predictions.
+For each keyword, show 5 rows of GT and model predictions (total of 10 GT and 10 model predictions per keyword).

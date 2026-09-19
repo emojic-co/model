@@ -167,7 +167,9 @@ class ColorCritic(nn.Module):
         super().__init__()
 
         self.color_embedding = nn.Sequential(
-            *cblk(COLOR_DIM, CRITIC_EMBEDDING_SIZE))
+            *cblk(COLOR_DIM, CRITIC_EMBEDDING_SIZE),
+            # *cblk(CRITIC_EMBEDDING_SIZE, CRITIC_EMBEDDING_SIZE)
+        )
 
         self.text_embedding = nn.Sequential(
             *cblk(EMBED_SIZE_TEXT, CRITIC_EMBEDDING_SIZE))
