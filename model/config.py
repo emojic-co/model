@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from files import COLOR_TERMS_JSONL, KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
+from files import KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
 from model.metric import Metric, Source, named_metric
 
 # from files import FLAGS_JSONL
@@ -70,7 +70,6 @@ GEN_HIDDEN_SIZE = 32
 CRITIC_EMBEDDING_SIZE = 96
 
 LOSS_WEIGHT_ENERGY = 1
-COLOR_TERMS_MIXIN = 0.01
 GRAD_CLIP_GEN = 1
 GRAD_CLIP_CRITIC = 1
 
@@ -95,8 +94,7 @@ gan_str = " ".join([
         CRITIC_EMBEDDING_SIZE,
         LR_GAN_GEN,
         LR_GAN_CRITIC,
-        LOSS_WEIGHT_ENERGY,
-        COLOR_TERMS_MIXIN)])
+        LOSS_WEIGHT_ENERGY)])
 
 
 @dataclass(frozen=True)
@@ -119,11 +117,6 @@ SAMPLING_SOURCES: dict[Source, SamplingSource] = {
     Source.TERM: SamplingSource(
         TERMS_JSONL,
         named_metric(Source.TERM, Metric.ACC_1),
-        0, 0.9
-    ),
-    Source.COLOR: SamplingSource(
-        COLOR_TERMS_JSONL,
-        named_metric(Source.COLOR, Metric.ACC_1),
         0, 0.9
     ),
 }
