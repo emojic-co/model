@@ -25,6 +25,7 @@ from torch.nn.functional import (
     relu,
 )
 from torch.utils.data import DataLoader, Dataset
+from tqdm import tqdm
 
 from files import (
     DATA_JSONL,
@@ -772,8 +773,11 @@ class _CondColorDataset(Dataset):
 def _encode_texts(enc: TextEncoder, text: torch.Tensor) -> torch.Tensor:
     enc.eval()
     chunks = []
+    starts = range(0, text.shape[0], GAN_BATCH_SIZE)
     with torch.no_grad():
-        for i in range(0, text.shape[0], GAN_BATCH_SIZE):
+        for i in tqdm(
+            starts, desc="encoding text", disable=_no_progress_bar()
+        ):
             chunks.append(enc(text[i:i + GAN_BATCH_SIZE]))
     return torch.cat(chunks)
 
