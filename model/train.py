@@ -61,6 +61,8 @@ from model.config import (
     GAN_BATCH_SIZE,
     GRAD_CLIP_CRITIC,
     GRAD_CLIP_GEN,
+    HINGE_FAKE_MARGIN,
+    HINGE_REAL_MARGIN,
     INFONCE_TEMP_EMOJI,
     INFONCE_TEMP_STYLE,
     LOSS_WEIGHT_ENERGY,
@@ -369,7 +371,8 @@ class LitColorGAN(pl.LightningModule):
         score = self.critic(cond_pair, pair)
         real, fake_score = score.chunk(2, dim=0)
 
-        loss_critic = relu(1 - real).mean() + relu(1 + fake_score).mean()
+        loss_critic = relu(HINGE_REAL_MARGIN - real).mean() \
+            + relu(HINGE_FAKE_MARGIN + fake_score).mean()
 
         n = colors.shape[0]
         auroc_target = torch.cat([score.new_ones(n), score.new_zeros(n)])
@@ -509,7 +512,8 @@ class LitColorCritic(pl.LightningModule):
         score, target = self._real_fake(cond, colors)
         real, fake_score = score.chunk(2, dim=0)
 
-        loss = relu(1 - real).mean() + relu(1 + fake_score).mean()
+        loss = relu(HINGE_REAL_MARGIN - real).mean() \
+            + relu(HINGE_FAKE_MARGIN + fake_score).mean()
 
         self._trn_score.append(score.detach())
         self._trn_target.append(target.detach())
