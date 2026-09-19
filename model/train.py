@@ -35,6 +35,7 @@ from files import (
     KEYWORDS_JSONL,
     LABELS_JSON,
     MODEL_DIR,
+    PREVIEW_DIR,
     PT_DIR,
     REPORT_DIR,
     RUNS_DIR,
@@ -89,7 +90,8 @@ from model.model import (
     StyleHead,
     TextEncoder,
 )
-from model.runmeta import load_pt, require_clean_tree, save_pt
+from model.pred import rgb_to_hex
+from model.runmeta import load_pt, require_clean_tree, run_meta, save_pt
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -593,6 +595,55 @@ def _train_gan(
     return gan
 
 
+_ENERGY_PREVIEW_CARD_TEXT = "What's on your mind?"
+
+
+def _energy_preview_card(bg1: str, bg2: str, fg: str) -> str:
+    return (
+        '<div class="card" style="'
+        f"background:linear-gradient(135deg,{bg1},{bg2});color:{fg}"
+        f'">{_ENERGY_PREVIEW_CARD_TEXT}</div>'
+    )
+
+
+def _write_energy_preview(mod: LitColorEnergy, n: int = 50) -> Path:
+    mod.gen.eval()
+    with torch.no_grad():
+        cond = mod._null_cond(torch.empty(n, 1))
+        colors = mod.gen(cond)
+
+    cards = "\n".join(
+        _energy_preview_card(*rgb_to_hex(colors[i])) for i in range(n)
+    )
+    html = f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>energy preview</title>
+<style>
+body {{ margin: 0; padding: 2em; background: #111; font-family: sans-serif; }}
+.grid {{ display: grid; gap: 1em;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }}
+.card {{ aspect-ratio: 1; border-radius: 12px; display: flex; align-items: center;
+  justify-content: center; text-align: center; padding: 1em; box-sizing: border-box; }}
+</style>
+</head>
+<body>
+<div class="grid">
+{cards}
+</div>
+</body>
+</html>
+"""
+    PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now().strftime("%y-%m-%d-%H-%M")
+    sha = run_meta()["sha"]
+    out_path = PREVIEW_DIR / f"{ts}-{sha}.html"
+    out_path.write_text(html, encoding="utf-8")
+    return out_path
+
+
 def _train_energy(ds) -> LitColorEnergy:
     val_dl = eval_data_loader(mix_sources=False)
     no_bar = _no_progress_bar()
@@ -622,6 +673,8 @@ def _train_energy(ds) -> LitColorEnergy:
     mod = LitColorEnergy()
     dl = train_data_loader(data_set=ds, batch_size=GAN_BATCH_SIZE)
     trainer.fit(mod, dl, val_dl)
+    out_path = _write_energy_preview(mod)
+    print(out_path)
     return mod
 
 
