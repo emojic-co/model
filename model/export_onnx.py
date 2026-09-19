@@ -18,7 +18,7 @@ from files import (
     STYLE_PT,
     WEB_PUBLIC_DIR,
 )
-from model.config import EMOJIS, MAX_TEXT_LEN, SEED, STYLES, Z_DIM
+from model.config import EMBED_SIZE_TEXT, EMOJIS, MAX_TEXT_LEN, SEED, STYLES
 from model.data import CHARS, PAD_IDX
 from model.model import (
     ColorGen,
@@ -39,7 +39,7 @@ COLOR_SAMPLES = 5
 CONST_Z = normalize(
     torch.randn(
         COLOR_SAMPLES,
-        Z_DIM,
+        EMBED_SIZE_TEXT,
         generator=torch.Generator().manual_seed(SEED),
     ),
     dim=-1,
@@ -84,8 +84,8 @@ class ExportWrapper(nn.Module):
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         emb = self.enc(x)
         style_logits = self.style(emb)
-        emoji_logits = self.emoji_embed.score(self.emoji(emb))
-        cond = emb.expand(self.z.shape[0], -1)
+        emoji_logits = self.emoji_embed.score(self.emoji(emb))  # type: ignore
+        cond = emb.expand(self.z.shape[0], -1)  # type: ignore
         color = self.gen(cond, self.z) + 127.5
         return style_logits, emoji_logits, color
 
@@ -141,13 +141,14 @@ def export() -> None:
     emoji = _load(EmojiHead(), EMOJI_PT)
     gen = _load(ColorGen(), GEN_PT)
 
-    if style.embed.weight.shape[0] != len(STYLES):
+    if style.embed.weight.shape[0] != len(STYLES):  # type: ignore
         raise SystemExit(
-            f"style.pt has {style.embed.weight.shape[0]} styles, "
+            f"style.pt has {style.embed.weight.shape[0]} styles, "  # type: ignore
             f"{LABELS_JSON} has {len(STYLES)} -- retrain or restore {LABELS_JSON}"
         )
-    if emoji_embed.embed.weight.shape[0] != len(EMOJIS):
+    if emoji_embed.embed.weight.shape[0] != len(EMOJIS):  # type: ignore
         raise SystemExit(
+            # type: ignore
             f"emoji_embed.pt has {emoji_embed.embed.weight.shape[0]} emojis, "
             f"{LABELS_JSON} has {len(EMOJIS)} -- retrain or restore {LABELS_JSON}"
         )
