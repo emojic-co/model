@@ -21,14 +21,18 @@ def _git(*args: str) -> str | None:
         return None
 
 
-def _train_sha() -> str | None:
-    if not TRAIN_JSONL.exists():
+def file_sha(path: Path) -> str | None:
+    if not path.exists():
         return None
     h = hashlib.sha256()
-    with TRAIN_JSONL.open("rb") as f:
+    with path.open("rb") as f:
         for chunk in iter(lambda: f.read(1 << 20), b""):
             h.update(chunk)
     return h.hexdigest()[:12]
+
+
+def _train_sha() -> str | None:
+    return file_sha(TRAIN_JSONL)
 
 
 def run_meta() -> dict:

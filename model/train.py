@@ -25,9 +25,11 @@ from torch.nn.functional import (
     relu,
 )
 from torch.utils.data import DataLoader, Dataset
+from torchmetrics.functional.classification import binary_auroc
 from tqdm import tqdm
 
 from files import (
+    CRITIC_TEXT_CACHE_PT,
     DATA_JSONL,
     EMOJI_EMBED_PT,
     EMOJI_PT,
@@ -95,7 +97,7 @@ from model.model import (
     TextEncoder,
 )
 from model.pred import rgb_to_hex
-from model.runmeta import load_pt, require_clean_tree, run_meta, save_pt
+from model.runmeta import file_sha, load_pt, require_clean_tree, run_meta, save_pt
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -486,13 +488,11 @@ class LitColorCritic(pl.LightningModule):
         score = self.critic(cond_pair, pair)
 
         n = colors.shape[0]
-        target = torch.cat([score.new_ones(n, 1), -score.new_ones(n, 1)])
+        target = torch.cat([score.new_ones(n, 1), score.new_zeros(n, 1)])
         return score, target
 
-    def _r2(self, score: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        ss_res = ((target - score) ** 2).sum()
-        ss_tot = ((target - target.mean()) ** 2).sum()
-        return 1 - ss_res / ss_tot
+    def _auroc(self, score: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        return binary_auroc(score.squeeze(-1), target.squeeze(-1).long())
 
     def on_train_epoch_start(self):
         self._trn_score.clear()
@@ -517,8 +517,10 @@ class LitColorCritic(pl.LightningModule):
     def on_train_epoch_end(self):
         if self._trn_score:
             self.log(
-                GanMetric.CRITIC_R2_TRAIN,
-                self._r2(torch.cat(self._trn_score), torch.cat(self._trn_target)),
+                GanMetric.CRITIC_AUROC_TRAIN,
+                self._auroc(
+                    torch.cat(self._trn_score), torch.cat(self._trn_target)
+                ),
                 prog_bar=True,
             )
 
@@ -531,8 +533,10 @@ class LitColorCritic(pl.LightningModule):
     def on_validation_epoch_end(self):
         if self._val_score:
             self.log(
-                GanMetric.CRITIC_R2_VAL,
-                self._r2(torch.cat(self._val_score), torch.cat(self._val_target)),
+                GanMetric.CRITIC_AUROC_VAL,
+                self._auroc(
+                    torch.cat(self._val_score), torch.cat(self._val_target)
+                ),
                 prog_bar=True,
             )
 
@@ -782,10 +786,38 @@ def _encode_texts(enc: TextEncoder, text: torch.Tensor) -> torch.Tensor:
     return torch.cat(chunks)
 
 
-def _train_critic(enc: TextEncoder, ds, val_ds) -> LitColorCritic:
-    enc.requires_grad_(False)
+def _critic_text_fingerprint(enc_path: Path) -> dict[str, str | None]:
+    return {
+        "enc_sha256": file_sha(enc_path),
+        "train_sha256": file_sha(TRAIN_JSONL),
+        "eval_sha256": file_sha(EVAL_JSONL),
+    }
+
+
+def _encoded_texts(
+    enc: TextEncoder, enc_path: Path, ds, val_ds
+) -> tuple[torch.Tensor, torch.Tensor]:
+    fingerprint = _critic_text_fingerprint(enc_path)
+
+    if CRITIC_TEXT_CACHE_PT.exists():
+        cached, meta = load_pt(CRITIC_TEXT_CACHE_PT)
+        if meta and all(meta.get(k) == v for k, v in fingerprint.items()):
+            print(f"using cached text encodings: {CRITIC_TEXT_CACHE_PT}")
+            return cached["train"], cached["val"]
+
     train_cond = _encode_texts(enc, ds.text)
     val_cond = _encode_texts(enc, val_ds.text)
+    save_pt(
+        {"train": train_cond, "val": val_cond}, CRITIC_TEXT_CACHE_PT, **fingerprint
+    )
+    return train_cond, val_cond
+
+
+def _train_critic(
+    enc: TextEncoder, enc_path: Path, ds, val_ds
+) -> LitColorCritic:
+    enc.requires_grad_(False)
+    train_cond, val_cond = _encoded_texts(enc, enc_path, ds, val_ds)
 
     dl = DataLoader(
         _CondColorDataset(train_cond, ds.colors),
@@ -851,6 +883,7 @@ def _run_local(stage: Stage | None) -> None:
         enc = _load(TextEncoder(), enc_path)
         _train_critic(
             enc,  # type: ignore
+            enc_path,
             train_ds(mix_sources=False),  # type: ignore
             eval_ds(mix_sources=False),
         )
@@ -1215,11 +1248,14 @@ def cli(
                embedded once up front by a frozen pretrained encoder
                (requires enc.pt in pt/; the encoder itself is not
                trained) and those embeddings are reused every epoch.
-               Fake pairs are real colors shuffled across the batch,
-               paired with the (unshuffled) real text embeddings. No
-               checkpoints, no export, no report -- just watch
-               gan/critic/{loss,r2/train,r2/val} in TensorBoard. Always
-               runs locally, ignores --local.
+               Cached to pt/critic_text_cache.pt, keyed on enc.pt +
+               train.jsonl + eval.jsonl content -- reused as-is on the
+               next run unless one of those changes. Fake pairs are
+               real colors shuffled across the batch, paired with the
+               (unshuffled) real text embeddings. No checkpoints, no
+               export, no report -- just watch
+               gan/critic/{loss,auroc/train,auroc/val} in TensorBoard.
+               Always runs locally, ignores --local.
 
     Location
       Runs on Modal (a T4 GPU) by default. --local runs here instead.

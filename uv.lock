@@ -382,6 +382,7 @@ dependencies = [
     { name = "numpy" },
     { name = "pyyaml" },
     { name = "tensorboard" },
+    { name = "torchmetrics" },
     { name = "tqdm" },
     { name = "typer" },
 ]
@@ -407,6 +408,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.4.6" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "tensorboard", specifier = ">=2.21.0" },
+    { name = "torchmetrics", specifier = ">=1.9.0" },
     { name = "tqdm", specifier = ">=4.70.0" },
     { name = "typer", specifier = ">=0.27.2" },
 ]
