@@ -9,7 +9,7 @@ import torch
 import typer
 from torch import nn
 
-from files import EMOJI_PT, ENC_PT, EVAL_JSONL, KEYWORDS_JSONL, TERMS_JSONL
+from files import ENC_PT, EVAL_JSONL, KEYWORDS_JSONL, TERMS_JSONL
 from model.data import PAD_IDX, VOCAB_SIZE, read, text_to_tensor
 from model.model import TextEncoderBlock
 from model.runmeta import load_pt
@@ -63,14 +63,13 @@ def block_bounds(channels: list[int]) -> list[tuple[int, int]]:
 
 def main() -> None:
     enc_sd, enc_meta = load_pt(ENC_PT)
-    emoji_sd, _ = load_pt(EMOJI_PT)
 
     char_embed_size, channels, dilation = _parse_encoder_config(enc_meta)
     enc = _Encoder(char_embed_size, channels, dilation)
-    enc.load_state_dict(enc_sd)
+    enc.load_state_dict(enc_sd, strict=False)
     enc.eval()
 
-    weight = emoji_sd["net.1.weight"]
+    weight = enc_sd["proj.1.weight"]
     bounds = block_bounds(channels)
 
     rows: list[tuple] = []
