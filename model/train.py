@@ -50,6 +50,7 @@ from model.config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE_ENCODER,
     EARLY_STOP_PATIENCE_GAN,
+    EMBED_SIZE_TEXT,
     EPOCHS_GAN,
     EPOCHS_TASK,
     GAN_BATCH_SIZE,
@@ -132,6 +133,7 @@ _DEFAULT_PT = PT_DIR
 
 class Stage(StrEnum):
     gan = "gan"
+    energy = "energy"
 
 
 class LitEncoder(pl.LightningModule):
@@ -410,6 +412,51 @@ class LitColorGAN(pl.LightningModule):
         return [opt_gen, opt_critic]
 
 
+class LitColorEnergy(pl.LightningModule):
+    def __init__(self):
+        super().__init__()
+
+        self.gen = ColorGen()
+
+        self._val_real: list[torch.Tensor] = []
+
+    def _zero_cond(self, colors: torch.Tensor) -> torch.Tensor:
+        return torch.zeros(
+            colors.shape[0], EMBED_SIZE_TEXT,
+            device=colors.device, dtype=colors.dtype)
+
+    def on_validation_epoch_start(self):
+        self._val_real.clear()
+
+    def validation_step(self, batch, batch_idx):
+        _, _, _, colors, *_ = batch
+        self._val_real.append(colors)
+
+    def on_validation_epoch_end(self):
+        if not self._val_real:
+            return
+
+        self.gen.eval()
+        with torch.no_grad():
+            real_rgb = torch.cat(self._val_real)
+            real = rgb_to_oklab(real_rgb)
+            fake = rgb_to_oklab(self.gen(self._zero_cond(real_rgb)))
+            val = energy_distance(real, fake)
+            self.log(GanMetric.ENERGY_VAL, val, prog_bar=True)
+
+    def training_step(self, batch, batch_idx):
+        _, _, _, colors, *_ = batch
+
+        fake = self.gen(self._zero_cond(colors))
+        loss = energy_distance(rgb_to_oklab(fake), rgb_to_oklab(colors))
+
+        self.log(GanMetric.ENERGY_TRAIN, loss, prog_bar=True)
+        return loss
+
+    def configure_optimizers(self):
+        return optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
+
+
 def _load(mod: nn.Module, path: Path) -> nn.Module:
     sd, meta = load_pt(path)
     mod.load_state_dict(sd)
@@ -544,6 +591,30 @@ def _train_gan(
     return gan
 
 
+def _train_energy(ds) -> LitColorEnergy:
+    val_dl = eval_data_loader(mix_sources=False)
+    no_bar = _no_progress_bar()
+    bar_cbs = [] if no_bar else [TQDMProgressBar()]
+
+    trainer = pl.Trainer(
+        devices="auto",
+        accelerator="auto",
+        logger=TensorBoardLogger(
+            "runs", name=CONFIG_NAME, version="energy", default_hp_metric=False
+        ),
+        deterministic=_DETERMINISTIC,  # type: ignore
+        max_epochs=EPOCHS_GAN,
+        enable_progress_bar=not no_bar,
+        val_check_interval=min(VAL_CHECK_INTERVAL, len(ds)),
+        callbacks=[*bar_cbs, ModelSummary()],
+    )
+
+    mod = LitColorEnergy()
+    dl = train_data_loader(data_set=ds, batch_size=GAN_BATCH_SIZE)
+    trainer.fit(mod, dl, val_dl)
+    return mod
+
+
 def _run_report_local(pt_dir: Path) -> None:
     subprocess.run(
         [sys.executable, "tools/report.py", "--pt", str(pt_dir)], check=True
@@ -551,11 +622,16 @@ def _run_report_local(pt_dir: Path) -> None:
 
 
 def _run_local(stage: Stage | None) -> None:
-    require_clean_tree()
     pl.seed_everything(SEED, workers=True)
     torch.backends.cudnn.benchmark = _CUDA
     if _CUDA:
         torch.set_float32_matmul_precision("high")
+
+    if stage == Stage.energy:
+        _train_energy(train_ds(mix_sources=False))  # type: ignore
+        return
+
+    require_clean_tree()
     skip_report = os.environ.get("EMOJIC_SKIP_REPORT") == "1"
     _DEFAULT_PT.mkdir(parents=True, exist_ok=True)
 
@@ -885,8 +961,9 @@ _app = typer.Typer(
 def cli(
     stage: Stage | None = typer.Argument(
         None,
-        metavar="[gan]",
+        metavar="[gan|energy]",
         help="gan = train only the color GAN, using a pretrained encoder. "
+        "energy = debug: fit ColorGen alone (no encoder, no critic). "
         "Omit to train the encoder then the GAN.",
     ),
     local: bool = typer.Option(
@@ -901,11 +978,21 @@ def cli(
       gan      Color GAN only: frozen pretrained encoder, generator and
                critic trained from scratch. Requires enc.pt, style.pt,
                emoji.pt, emoji_embed.pt in pt/. Then export + report.
+      energy   Debug only: fit ColorGen directly against the energy
+               distance, with a zero text embedding standing in for the
+               (unused, untrained) encoder and no critic. No checkpoints,
+               no export, no report -- just watch gan/energy/{train,val}
+               in TensorBoard. Always runs locally, ignores --local.
 
     Location
       Runs on Modal (a T4 GPU) by default. --local runs here instead.
-      A dirty git tree always aborts.
+      A dirty git tree always aborts (except stage "energy", which never
+      touches checkpoints).
     """
+    if stage == Stage.energy:
+        _run_local(stage)
+        return
+
     if local:
         _run_local(stage)
     else:
