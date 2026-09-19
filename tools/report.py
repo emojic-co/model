@@ -1723,34 +1723,27 @@ def _block_capacity_dependent_table(rows) -> str:
 
 
 def _block_capacity_html(d) -> str:
-    if not d or not any(v.get("rows") for v in d.values()):
+    if not d or not d.get("rows"):
         return (
             "<h2>Model — Encoder block capacity</h2>"
-            '<p class="note">Unavailable — needs enc.pt / emoji.pt / style.pt '
-            "/ gen.pt and data from data/keywords.jsonl, "
-            "data/terms.jsonl, data/eval.jsonl.</p>"
+            '<p class="note">Unavailable — needs enc.pt and data from '
+            "data/keywords.jsonl, data/terms.jsonl, data/eval.jsonl.</p>"
         )
-    out = [
-        "<h2>Model — Encoder block capacity</h2>",
-        '<p class="note">Per-block head weight column-norms and each '
-        "block's actual contribution to that head's output embedding, "
-        "averaged over every sample in keywords/terms/eval — see "
+    rows = d["rows"]
+    return (
+        "<h2>Model — Encoder block capacity</h2>"
+        '<p class="note">Per-block <code>proj</code> weight column-norms and '
+        "each block's actual contribution to the encoder's projected "
+        "embedding, averaged over every sample in keywords/terms/eval — see "
         "<code>tools/block_capacity.py</code>. Activation RMS/ch is the "
         "per-block activation norm divided by sqrt(channel count), so it's "
         "comparable across blocks with different channel widths. Each "
-        "encoder block keeps the same color across every row/source below.</p>",
-    ]
-    for head_name in ("EmojiHead", "StyleHead", "ColorGen"):
-        rows = (d.get(head_name) or {}).get("rows")
-        out.append(f"<h3>{_esc(head_name)}</h3>")
-        if not rows:
-            out.append('<p class="note">Unavailable for this head.</p>')
-            continue
-        out.append("<h4>Input-independent</h4>")
-        out.append(_block_capacity_independent_table(rows))
-        out.append("<h4>Input-dependent</h4>")
-        out.append(_block_capacity_dependent_table(rows))
-    return "".join(out)
+        "encoder block keeps the same color across every row/source below.</p>"
+        "<h3>Input-independent</h3>"
+        + _block_capacity_independent_table(rows)
+        + "<h3>Input-dependent</h3>"
+        + _block_capacity_dependent_table(rows)
+    )
 
 
 def _channel_rank_html(d) -> str:
