@@ -248,7 +248,7 @@ def train_ds(mix_sources: bool = True):
 
 
 PIN_MEMORY = torch.cuda.is_available()
-DATA_WORKERS = int(os.environ.get("EMOJIC_DATA_WORKERS", "0"))
+DATA_WORKERS = int(os.environ.get("EMOJIC_DATA_WORKERS", "4"))
 
 
 def _loader_kwargs() -> dict:
