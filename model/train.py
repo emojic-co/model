@@ -21,6 +21,7 @@ from lightning.pytorch.callbacks import (
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
 from torch.nn.functional import (
+    binary_cross_entropy_with_logits,
     cross_entropy,
     relu,
 )
@@ -509,7 +510,7 @@ class LitColorCritic(pl.LightningModule):
         score, target = self._real_fake(cond, colors)
         real, fake_score = score.chunk(2, dim=0)
 
-        loss = relu(1 - real).mean() + relu(1 + fake_score).mean()
+        loss = binary_cross_entropy_with_logits(score, target)
 
         self._trn_score.append(score.detach())
         self._trn_target.append(target.detach())
