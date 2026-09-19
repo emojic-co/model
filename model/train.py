@@ -22,7 +22,6 @@ from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
 from torch.nn.functional import (
     cross_entropy,
-    normalize,
     relu,
 )
 
@@ -51,7 +50,6 @@ from model.config import (
     CONFIG_NAME,
     EARLY_STOP_PATIENCE_ENCODER,
     EARLY_STOP_PATIENCE_GAN,
-    ENERGY_Z_SAMPLES,
     EPOCHS_GAN,
     EPOCHS_TASK,
     GAN_BATCH_SIZE,
@@ -70,7 +68,6 @@ from model.config import (
     SEED,
     TASK_BATCH_SIZE,
     VAL_CHECK_INTERVAL,
-    Z_DIM,
 )
 from model.data import (
     SRC_FULL,
@@ -311,25 +308,15 @@ class LitColorGAN(pl.LightningModule):
         self.gen = ColorGen()
         self.critic = critic
 
-        self.register_buffer(
-            "z_bank",
-            normalize(
-                torch.randn(
-                    ENERGY_Z_SAMPLES,
-                    Z_DIM,
-                    generator=torch.Generator().manual_seed(SEED),
-                ),
-                dim=-1,
-            ),
-        )
-
         self.automatic_optimization = False
         self._val_text: list[torch.Tensor] = []
         self._val_real: list[torch.Tensor] = []
 
     def on_train_epoch_start(self):
-        self.enc.eval()
         self.gen.net[0].eval()
+
+    def on_train_batch_start(self, batch, batch_idx):
+        self.enc.eval()
 
     def _cond(self, text: torch.Tensor) -> torch.Tensor:
         with torch.no_grad():
@@ -352,13 +339,8 @@ class LitColorGAN(pl.LightningModule):
         with torch.no_grad():
             text = torch.cat(self._val_text)
             real = rgb_to_oklab(torch.cat(self._val_real))
-            n = text.size(0)
-            z = self.z_bank[  # type: ignore
-                torch.arange(n, device=self.device) % self.z_bank.size(
-                    0)  # type: ignore
-            ]
 
-            fake = rgb_to_oklab(self.gen(self.enc(text), z))
+            fake = rgb_to_oklab(self.gen(self.enc(text)))
             val = energy_distance(real, fake)
             self.log(GanMetric.ENERGY_VAL, val, prog_bar=True)
 
@@ -412,13 +394,13 @@ class LitColorGAN(pl.LightningModule):
         self.log(GanMetric.ENERGY_TRAIN, loss_energy, prog_bar=True)
 
     def configure_optimizers(self):
-        # opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
+        opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
         opt_critic = optim.SGD(self.critic.parameters(), lr=LR_GAN_CRITIC)
 
-        opt_gen = optim.Adam(
-            self.gen.parameters(),
-            lr=LR_GAN_GEN,
-            betas=(0.5, 0.999))
+        # opt_gen = optim.Adam(
+        #     self.gen.parameters(),
+        #     lr=LR_GAN_GEN,
+        #     betas=(0.5, 0.999))
 
         # opt_critic = optim.Adam(
         #     self.critic.parameters(),
