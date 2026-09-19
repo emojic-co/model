@@ -49,7 +49,7 @@ CONST_Z = normalize(
 def _load(mod: nn.Module, path: Path) -> nn.Module:
     sd, meta = load_pt(path)
     mod.load_state_dict(sd)
-    mod._pt_meta = meta
+    mod._pt_meta = meta  # type: ignore
     mod.eval()
     return mod
 
@@ -147,9 +147,9 @@ def export() -> None:
             f"{LABELS_JSON} has {len(STYLES)} -- retrain or restore {LABELS_JSON}"
         )
     if emoji_embed.embed.weight.shape[0] != len(EMOJIS):  # type: ignore
+        emojis = emoji_embed.embed.weight.shape[0]  # type: ignore
         raise SystemExit(
-            # type: ignore
-            f"emoji_embed.pt has {emoji_embed.embed.weight.shape[0]} emojis, "
+            f"emoji_embed.pt has {emojis} emojis, "
             f"{LABELS_JSON} has {len(EMOJIS)} -- retrain or restore {LABELS_JSON}"
         )
     _strip_spectral_norm(enc)
