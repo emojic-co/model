@@ -137,6 +137,7 @@ _DEFAULT_PT = PT_DIR
 class Stage(StrEnum):
     gan = "gan"
     energy = "energy"
+    critic = "critic"
 
 
 class LitEncoder(pl.LightningModule):
@@ -460,6 +461,87 @@ class LitColorEnergy(pl.LightningModule):
         return optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
 
 
+class LitColorCritic(pl.LightningModule):
+    def __init__(self):
+        super().__init__()
+
+        self.critic = ColorCritic()
+
+        self._trn_score: list[torch.Tensor] = []
+        self._trn_target: list[torch.Tensor] = []
+        self._val_score: list[torch.Tensor] = []
+        self._val_target: list[torch.Tensor] = []
+
+    def _null_cond(self, colors: torch.Tensor) -> torch.Tensor:
+        return torch.ones(
+            colors.shape[0], EMBED_SIZE_TEXT,
+            device=colors.device, dtype=colors.dtype)
+
+    def _real_fake(
+        self, colors: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        fake = colors[torch.randperm(colors.shape[0], device=colors.device)]
+        cond = self._null_cond(colors)
+
+        pair = torch.cat([colors, fake], dim=0)
+        cond_pair = torch.cat([cond, cond], dim=0)
+        score = self.critic(cond_pair, pair)
+
+        n = colors.shape[0]
+        target = torch.cat([score.new_ones(n, 1), -score.new_ones(n, 1)])
+        return score, target
+
+    def _r2(self, score: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        ss_res = ((target - score) ** 2).sum()
+        ss_tot = ((target - target.mean()) ** 2).sum()
+        return 1 - ss_res / ss_tot
+
+    def on_train_epoch_start(self):
+        self._trn_score.clear()
+        self._trn_target.clear()
+
+    def on_validation_epoch_start(self):
+        self._val_score.clear()
+        self._val_target.clear()
+
+    def training_step(self, batch, batch_idx):
+        _, _, _, colors, *_ = batch
+        score, target = self._real_fake(colors)
+        real, fake_score = score.chunk(2, dim=0)
+
+        loss = relu(1 - real).mean() + relu(1 + fake_score).mean()
+
+        self._trn_score.append(score.detach())
+        self._trn_target.append(target.detach())
+        self.log(GanMetric.CRITIC_LOSS, loss, prog_bar=True)
+        return loss
+
+    def on_train_epoch_end(self):
+        if self._trn_score:
+            self.log(
+                GanMetric.CRITIC_R2_TRAIN,
+                self._r2(torch.cat(self._trn_score), torch.cat(self._trn_target)),
+                prog_bar=True,
+            )
+
+    def validation_step(self, batch, batch_idx):
+        _, _, _, colors, *_ = batch
+        score, target = self._real_fake(colors)
+        self._val_score.append(score.detach())
+        self._val_target.append(target.detach())
+
+    def on_validation_epoch_end(self):
+        if self._val_score:
+            self.log(
+                GanMetric.CRITIC_R2_VAL,
+                self._r2(torch.cat(self._val_score), torch.cat(self._val_target)),
+                prog_bar=True,
+            )
+
+    def configure_optimizers(self):
+        return optim.SGD(self.critic.parameters(), lr=LR_GAN_CRITIC)
+
+
 def _load(mod: nn.Module, path: Path) -> nn.Module:
     sd, meta = load_pt(path)
     mod.load_state_dict(sd)
@@ -678,6 +760,35 @@ def _train_energy(ds) -> LitColorEnergy:
     return mod
 
 
+def _train_critic(ds) -> LitColorCritic:
+    val_dl = eval_data_loader(mix_sources=False)
+    no_bar = _no_progress_bar()
+    bar_cbs = [] if no_bar else [TQDMProgressBar()]
+
+    trainer = pl.Trainer(
+        devices="auto",
+        accelerator="auto",
+        logger=TensorBoardLogger(
+            "runs", name=CONFIG_NAME, version="critic", default_hp_metric=False
+        ),
+        deterministic=_DETERMINISTIC,  # type: ignore
+        max_epochs=EPOCHS_GAN,
+        enable_progress_bar=not no_bar,
+        val_check_interval=min(VAL_CHECK_INTERVAL, len(ds)),
+        gradient_clip_val=GRAD_CLIP_CRITIC,
+        gradient_clip_algorithm="norm",
+        callbacks=[
+            *bar_cbs,
+            ModelSummary(),
+        ],
+    )
+
+    mod = LitColorCritic()
+    dl = train_data_loader(data_set=ds, batch_size=GAN_BATCH_SIZE)
+    trainer.fit(mod, dl, val_dl)
+    return mod
+
+
 def _run_report_local(pt_dir: Path) -> None:
     subprocess.run(
         [sys.executable, "tools/report.py", "--pt", str(pt_dir)], check=True
@@ -692,6 +803,10 @@ def _run_local(stage: Stage | None) -> None:
 
     if stage == Stage.energy:
         _train_energy(train_ds(mix_sources=False))  # type: ignore
+        return
+
+    if stage == Stage.critic:
+        _train_critic(train_ds(mix_sources=False))  # type: ignore
         return
 
     require_clean_tree()
@@ -1024,9 +1139,10 @@ _app = typer.Typer(
 def cli(
     stage: Stage | None = typer.Argument(
         None,
-        metavar="[gan|energy]",
+        metavar="[gan|energy|critic]",
         help="gan = train only the color GAN, using a pretrained encoder. "
         "energy = debug: fit ColorGen alone (no encoder, no critic). "
+        "critic = debug: fit ColorCritic alone (no encoder, no generator). "
         "Omit to train the encoder then the GAN.",
     ),
     local: bool = typer.Option(
@@ -1047,13 +1163,20 @@ def cli(
                checkpoints, no export, no report -- just watch
                gan/energy/{train,val} in TensorBoard. Always runs locally,
                ignores --local.
+      critic   Debug only: fit ColorCritic alone, with a constant
+               (all-ones) text embedding standing in for the (unused,
+               untrained) encoder and no generator. Fake pairs are real
+               colors shuffled across the batch. No checkpoints, no
+               export, no report -- just watch gan/critic/{loss,r2/train,
+               r2/val} in TensorBoard. Always runs locally, ignores
+               --local.
 
     Location
       Runs on Modal (a T4 GPU) by default. --local runs here instead.
-      A dirty git tree always aborts (except stage "energy", which never
-      touches checkpoints).
+      A dirty git tree always aborts (except stage "energy" and "critic",
+      which never touch checkpoints).
     """
-    if stage == Stage.energy:
+    if stage in (Stage.energy, Stage.critic):
         _run_local(stage)
         return
 
