@@ -272,9 +272,13 @@ def train_data_loader(
     )
 
 
+def eval_ds(mix_sources: bool = True) -> EmojiDataset:
+    return EmojiDataset(list(read(EVAL_PATH)), mix_sources=mix_sources)
+
+
 def eval_data_loader(mix_sources: bool = True):
     return DataLoader(
-        EmojiDataset(list(read(EVAL_PATH)), mix_sources=mix_sources),
+        eval_ds(mix_sources=mix_sources),
         batch_size=2000,
         shuffle=False,
         drop_last=False,
