@@ -46,6 +46,7 @@ STYLE_PT = PtFile.STYLE.in_dir(PT_DIR)
 EMOJI_PT = PtFile.EMOJI.in_dir(PT_DIR)
 EMOJI_EMBED_PT = PtFile.EMOJI_EMBED.in_dir(PT_DIR)
 GEN_PT = PtFile.GEN.in_dir(PT_DIR)
+CRITIC_TEXT_CACHE_PT = PT_DIR / "critic_text_cache.pt"
 
 WEB_PUBLIC_DIR = Path("web/public")
 REPORT_DIR = Path("report")

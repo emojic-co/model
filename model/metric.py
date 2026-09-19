@@ -37,5 +37,5 @@ class GanMetric:
     ENERGY_VAL = "gan/energy/val"
     GEN_LOSS = "gan/gen/loss"
     CRITIC_LOSS = "gan/critic/loss"
-    CRITIC_R2_TRAIN = "gan/critic/r2/train"
-    CRITIC_R2_VAL = "gan/critic/r2/val"
+    CRITIC_AUROC_TRAIN = "gan/critic/auroc/train"
+    CRITIC_AUROC_VAL = "gan/critic/auroc/val"
