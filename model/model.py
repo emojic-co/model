@@ -18,6 +18,7 @@ from model.config import (
     ENCODER_CHANNELS,
     ENCODER_DILATION,
     ENCODER_KERNEL_SIZE,
+    GEN_HIDDEN_SIZE,
     RELU_SLOPE,
     Z_DIM,
 )
@@ -133,10 +134,8 @@ class ColorGen(nn.Module):
         super().__init__()
 
         self.net = nn.Sequential(
-            # *blk(Z_DIM, GEN_HIDDEN_SIZE),
-            # *blk(EMBED_SIZE_TEXT + Z_DIM, GEN_HIDDEN_SIZE),
-            # *blk(GEN_HIDDEN_SIZE, GEN_HIDDEN_SIZE),
-            nn.Linear(Z_DIM, COLOR_DIM))
+            *blk(Z_DIM, GEN_HIDDEN_SIZE),
+            nn.Linear(GEN_HIDDEN_SIZE, COLOR_DIM))
 
     def forward(
         self,
