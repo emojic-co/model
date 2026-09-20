@@ -68,6 +68,7 @@ from model.config import (
     LOSS_WEIGHT_COND_COLOR_CRITIC,
     LOSS_WEIGHT_ENERGY,
     LR_ENCODER,
+    LR_GAN_COND_CRITIC,
     LR_GAN_CRITIC,
     LR_GAN_GEN,
     MACRO_MIN_SUPPORT,
@@ -449,7 +450,7 @@ class LitColorGAN(pl.LightningModule):
 
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
-        opt_critic = optim.SGD(self.critic.parameters(), lr=LR_GAN_CRITIC)
+        opt_critic = optim.SGD(self.critic.parameters(), lr=LR_GAN_COND_CRITIC)
         opt_color_critic = optim.SGD(
             self.color_critic.parameters(), lr=LR_GAN_CRITIC)
 
@@ -640,8 +641,10 @@ class LitColorCritic(pl.LightningModule):
 
     def configure_optimizers(self):
         return optim.SGD(
-            [*self.critic.parameters(), *self.color_critic.parameters()],
-            lr=LR_GAN_CRITIC,
+            [
+                {"params": self.critic.parameters(), "lr": LR_GAN_COND_CRITIC},
+                {"params": self.color_critic.parameters(), "lr": LR_GAN_CRITIC},
+            ]
         )
 
 
