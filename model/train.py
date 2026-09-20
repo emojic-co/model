@@ -29,7 +29,6 @@ from torchmetrics.functional.classification import binary_auroc
 from tqdm import tqdm
 
 from files import (
-    CRITIC_TEXT_CACHE_PT,
     DATA_JSONL,
     EMOJI_EMBED_PT,
     EMOJI_PT,
@@ -45,6 +44,7 @@ from files import (
     RUNS_DIR,
     STYLE_PT,
     TERMS_JSONL,
+    TEXT_ENC_CACHE_PT,
     TOOLS_DIR,
     TRAIN_JSONL,
     WEB_PUBLIC_DIR,
@@ -317,36 +317,27 @@ class LitEncoder(pl.LightningModule):
 
 
 class LitColorGAN(pl.LightningModule):
-    def __init__(self, enc: TextEncoder, critic: CondColorCritic):
+    def __init__(self, critic: CondColorCritic):
         super().__init__()
-
-        self.enc = enc.requires_grad_(False).eval()
 
         self.gen = ColorGen()
         self.critic = critic
         self.color_critic = ColorCritic()
 
         self.automatic_optimization = False
-        self._val_text: list[torch.Tensor] = []
+        self._val_cond: list[torch.Tensor] = []
         self._val_real: list[torch.Tensor] = []
 
     def on_train_epoch_start(self):
         self.gen.net[0].eval()
 
-    def on_train_batch_start(self, batch, batch_idx):
-        self.enc.eval()
-
-    def _cond(self, text: torch.Tensor) -> torch.Tensor:
-        with torch.no_grad():
-            return self.enc(text)
-
     def on_validation_epoch_start(self):
-        self._val_text.clear()
+        self._val_cond.clear()
         self._val_real.clear()
 
     def validation_step(self, batch, batch_idx):
-        text, _, _, colors, *_ = batch
-        self._val_text.append(text)
+        cond, colors = batch
+        self._val_cond.append(cond)
         self._val_real.append(colors)
 
     def on_validation_epoch_end(self):
@@ -355,10 +346,9 @@ class LitColorGAN(pl.LightningModule):
 
         self.gen.eval()
         with torch.no_grad():
-            text = torch.cat(self._val_text)
+            cond = torch.cat(self._val_cond)
             colors = torch.cat(self._val_real)
 
-            cond = self.enc(text)
             fake = self.gen(cond)
 
             val_energy = energy_distance(
@@ -366,10 +356,8 @@ class LitColorGAN(pl.LightningModule):
             self.log(GanMetric.ENERGY_VAL, val_energy, prog_bar=True)
 
     def training_step(self, batch, batch_idx):
-        text, _, _, colors, *_ = batch
+        cond, colors = batch
         opt_gen, opt_critic, opt_color_critic = self.optimizers()  # type: ignore
-
-        cond = self._cond(text)
 
         fake = self.gen(cond)
 
@@ -733,9 +721,24 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
 
 
 def _train_gan(
-    enc: TextEncoder, critic: CondColorCritic, ds, out_dir: Path
+    enc: TextEncoder, enc_path: Path, critic: CondColorCritic,
+    ds, val_ds, out_dir: Path,
 ) -> LitColorGAN:
-    val_dl = eval_data_loader(mix_sources=False)
+    enc.requires_grad_(False)
+    train_cond, val_cond = _encoded_texts(enc, enc_path, ds, val_ds)
+
+    gan_dl = DataLoader(
+        _CondColorDataset(train_cond, ds.colors),
+        batch_size=GAN_BATCH_SIZE,
+        shuffle=True,
+        drop_last=True,
+    )
+    val_dl = DataLoader(
+        _CondColorDataset(val_cond, val_ds.colors),
+        batch_size=2000,
+        shuffle=False,
+        drop_last=False,
+    )
     no_bar = _no_progress_bar()
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
@@ -770,13 +773,12 @@ def _train_gan(
         ],
     )
 
-    gan = LitColorGAN(enc, critic)
-    gan_dl = train_data_loader(data_set=ds, batch_size=GAN_BATCH_SIZE)
+    gan = LitColorGAN(critic)
     trainer.fit(gan, gan_dl, val_dl)
 
     if ckpt.best_model_path:
         gan = LitColorGAN.load_from_checkpoint(
-            ckpt.best_model_path, enc=enc, critic=CondColorCritic()
+            ckpt.best_model_path, critic=CondColorCritic()
         )
 
     save_pt(gan.gen.state_dict(), PtFile.GEN.in_dir(out_dir), stage="gan")
@@ -935,7 +937,7 @@ def _encode_texts(enc: TextEncoder, text: torch.Tensor) -> torch.Tensor:
     return torch.cat(chunks)
 
 
-def _critic_text_fingerprint(enc_path: Path) -> dict[str, str | None]:
+def _text_enc_fingerprint(enc_path: Path) -> dict[str, str | None]:
     return {
         "enc_sha256": file_sha(enc_path),
         "train_sha256": file_sha(TRAIN_JSONL),
@@ -946,18 +948,18 @@ def _critic_text_fingerprint(enc_path: Path) -> dict[str, str | None]:
 def _encoded_texts(
     enc: TextEncoder, enc_path: Path, ds, val_ds
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    fingerprint = _critic_text_fingerprint(enc_path)
+    fingerprint = _text_enc_fingerprint(enc_path)
 
-    if CRITIC_TEXT_CACHE_PT.exists():
-        cached, meta = load_pt(CRITIC_TEXT_CACHE_PT)
+    if TEXT_ENC_CACHE_PT.exists():
+        cached, meta = load_pt(TEXT_ENC_CACHE_PT)
         if meta and all(meta.get(k) == v for k, v in fingerprint.items()):
-            print(f"using cached text encodings: {CRITIC_TEXT_CACHE_PT}")
+            print(f"using cached text encodings: {TEXT_ENC_CACHE_PT}")
             return cached["train"], cached["val"]
 
     train_cond = _encode_texts(enc, ds.text)
     val_cond = _encode_texts(enc, val_ds.text)
     save_pt(
-        {"train": train_cond, "val": val_cond}, CRITIC_TEXT_CACHE_PT, **fingerprint
+        {"train": train_cond, "val": val_cond}, TEXT_ENC_CACHE_PT, **fingerprint
     )
     return train_cond, val_cond
 
@@ -1035,10 +1037,15 @@ def _run_local(stage: Stage | None) -> None:
 
     if stage == Stage.gan:
         if _pt_files_ok(_DEFAULT_PT):
-            enc = _load(TextEncoder(), PtFile.ENC.in_dir(_DEFAULT_PT))
+            enc_path = PtFile.ENC.in_dir(_DEFAULT_PT)
+            enc = _load(TextEncoder(), enc_path)
             critic = CondColorCritic()
-            _train_gan(enc, critic, train_ds(  # type: ignore
-                mix_sources=False), _DEFAULT_PT)
+            _train_gan(
+                enc, enc_path, critic,
+                train_ds(mix_sources=False),  # type: ignore
+                eval_ds(mix_sources=False),
+                _DEFAULT_PT,
+            )
             export()
             if not skip_report:
                 _run_report_local(_DEFAULT_PT)
@@ -1053,8 +1060,12 @@ def _run_local(stage: Stage | None) -> None:
     mod = _train_encoder(ds, ALL_HEADS, _DEFAULT_PT)
 
     critic = CondColorCritic()
-    _train_gan(mod.enc, critic, train_ds(  # type: ignore
-        mix_sources=False), _DEFAULT_PT)
+    _train_gan(
+        mod.enc, PtFile.ENC.in_dir(_DEFAULT_PT), critic,
+        train_ds(mix_sources=False),  # type: ignore
+        eval_ds(mix_sources=False),
+        _DEFAULT_PT,
+    )
     export()
     if not skip_report:
         _run_report_local(_DEFAULT_PT)
@@ -1381,7 +1392,10 @@ def cli(
                export + report.
       gan      Color GAN only: frozen pretrained encoder, generator and
                critic trained from scratch. Requires enc.pt, style.pt,
-               emoji.pt, emoji_embed.pt in pt/. Then export + report.
+               emoji.pt, emoji_embed.pt in pt/. Text is embedded once up
+               front and cached to pt/text_enc_cache.pt (shared with
+               stages "energy"/"critic" below), keyed on enc.pt +
+               train.jsonl + eval.jsonl content. Then export + report.
       energy   Debug only: fit ColorGen directly against the energy
                distance. An unconditional ColorCritic trains alongside it
                purely for logging -- it only ever sees a detached fake
@@ -1389,10 +1403,10 @@ def cli(
                embedded once up front by a frozen pretrained encoder
                (requires enc.pt in pt/; the encoder itself is not
                trained) and those embeddings are reused every epoch.
-               Cached to pt/critic_text_cache.pt (same cache as stage
-               "critic" -- see below), keyed on enc.pt + train.jsonl +
-               eval.jsonl content. No checkpoints, no export, no report --
-               just watch gan/energy/{train,val} and
+               Cached to pt/text_enc_cache.pt (same cache as stage "gan"
+               above and stage "critic" below), keyed on enc.pt +
+               train.jsonl + eval.jsonl content. No checkpoints, no
+               export, no report -- just watch gan/energy/{train,val} and
                gan/color_critic/{loss,auroc} in TensorBoard. Always
                runs locally, ignores --local.
       critic   Debug only: fit CondColorCritic alone, no generator. An
@@ -1402,9 +1416,10 @@ def cli(
                chance AUROC. Text is embedded once up front by a frozen
                pretrained encoder (requires enc.pt in pt/; the encoder
                itself is not trained) and those embeddings are reused
-               every epoch. Cached to pt/critic_text_cache.pt, keyed on
-               enc.pt + train.jsonl + eval.jsonl content -- reused as-is
-               on the next run unless one of those changes. Fake pairs
+               every epoch. Cached to pt/text_enc_cache.pt (same cache
+               as stage "gan"/"energy" above), keyed on enc.pt +
+               train.jsonl + eval.jsonl content -- reused as-is on the
+               next run unless one of those changes. Fake pairs
                are real colors shuffled across the batch, paired with
                the (unshuffled) real text embeddings for the conditional
                critic. No checkpoints, no export, no report -- just
