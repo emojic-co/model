@@ -55,6 +55,7 @@ from model.config import (
     CONFIG_NAME,
     EARLY_STOP_MIN_DELTA_GAN,
     EARLY_STOP_PATIENCE_ENCODER,
+    EARLY_STOP_PATIENCE_ENERGY,
     EARLY_STOP_PATIENCE_GAN,
     EPOCHS_GAN,
     EPOCHS_TASK,
@@ -63,6 +64,8 @@ from model.config import (
     GRAD_CLIP_GEN,
     INFONCE_TEMP_EMOJI,
     INFONCE_TEMP_STYLE,
+    LOSS_WEIGHT_COLOR_CRITIC,
+    LOSS_WEIGHT_COND_COLOR_CRITIC,
     LOSS_WEIGHT_ENERGY,
     LR_ENCODER,
     LR_GAN_CRITIC,
@@ -87,6 +90,7 @@ from model.export_onnx import export
 from model.metric import GanMetric, Metric, Source, Split, named_metric
 from model.metrics import macro_average
 from model.model import (
+    ColorCritic,
     ColorGen,
     CondColorCritic,
     EmojiEmbedding,
@@ -319,6 +323,7 @@ class LitColorGAN(pl.LightningModule):
 
         self.gen = ColorGen()
         self.critic = critic
+        self.color_critic = ColorCritic()
 
         self.automatic_optimization = False
         self._val_text: list[torch.Tensor] = []
@@ -350,15 +355,27 @@ class LitColorGAN(pl.LightningModule):
         self.gen.eval()
         with torch.no_grad():
             text = torch.cat(self._val_text)
-            real = rgb_to_oklab(torch.cat(self._val_real))
+            colors = torch.cat(self._val_real)
 
-            fake = rgb_to_oklab(self.gen(self.enc(text)))
-            val = energy_distance(real, fake)
-            self.log(GanMetric.ENERGY_VAL, val, prog_bar=True)
+            cond = self.enc(text)
+            fake = self.gen(cond)
+
+            val_energy = energy_distance(
+                rgb_to_oklab(colors), rgb_to_oklab(fake))
+            self.log(GanMetric.ENERGY_VAL, val_energy, prog_bar=True)
+
+            gen_score = self.critic(cond, fake)
+            gen_color_score = self.color_critic(fake)
+            self.log(
+                GanMetric.GEN_LOSS_COND_COLOR_CRITIC_VAL,
+                -gen_score.mean(), prog_bar=True)
+            self.log(
+                GanMetric.GEN_LOSS_COLOR_CRITIC_VAL,
+                -gen_color_score.mean(), prog_bar=True)
 
     def training_step(self, batch, batch_idx):
         text, _, _, colors, *_ = batch
-        opt_gen, opt_critic = self.optimizers()  # type: ignore
+        opt_gen, opt_critic, opt_color_critic = self.optimizers()  # type: ignore
 
         cond = self._cond(text)
 
@@ -385,15 +402,37 @@ class LitColorGAN(pl.LightningModule):
 
         opt_critic.step()
 
+        # COLOR CRITIC (unconditional)
+        color_score = self.color_critic(pair)
+        color_real, color_fake_score = color_score.chunk(2, dim=0)
+
+        loss_color_critic = \
+            relu(1 - color_real).mean() + relu(1 + color_fake_score).mean()
+
+        color_auroc = binary_auroc(
+            color_score.detach().squeeze(-1), auroc_target.long())
+
+        opt_color_critic.zero_grad()
+        self.manual_backward(loss_color_critic)
+        self.clip_gradients(
+            opt_color_critic,  # type: ignore
+            gradient_clip_val=GRAD_CLIP_CRITIC,
+            gradient_clip_algorithm="norm")
+
+        opt_color_critic.step()
+
         # GENERATOR
         gen_score = self.critic(cond, fake)
+        gen_color_score = self.color_critic(fake)
         loss_energy = energy_distance(rgb_to_oklab(fake), rgb_to_oklab(colors))
 
         loss_gen_critic = -gen_score.mean()
+        loss_gen_color_critic = -gen_color_score.mean()
 
         loss_gen = \
-            (1 - LOSS_WEIGHT_ENERGY) * loss_gen_critic \
-            + LOSS_WEIGHT_ENERGY * loss_energy
+            LOSS_WEIGHT_COND_COLOR_CRITIC * loss_gen_critic \
+            + LOSS_WEIGHT_ENERGY * loss_energy \
+            + LOSS_WEIGHT_COLOR_CRITIC * loss_gen_color_critic
 
         opt_gen.zero_grad()
 
@@ -407,12 +446,21 @@ class LitColorGAN(pl.LightningModule):
 
         self.log(GanMetric.CRITIC_LOSS, loss_critic, prog_bar=True)
         self.log(GanMetric.CRITIC_AUROC_TRAIN, auroc, prog_bar=True)
-        self.log(GanMetric.GEN_LOSS, loss_gen_critic, prog_bar=True)
+        self.log(GanMetric.COLOR_CRITIC_LOSS, loss_color_critic, prog_bar=True)
+        self.log(GanMetric.COLOR_CRITIC_AUROC_TRAIN, color_auroc, prog_bar=True)
+        self.log(
+            GanMetric.GEN_LOSS_COND_COLOR_CRITIC_TRAIN,
+            loss_gen_critic, prog_bar=True)
+        self.log(
+            GanMetric.GEN_LOSS_COLOR_CRITIC_TRAIN,
+            loss_gen_color_critic, prog_bar=True)
         self.log(GanMetric.ENERGY_TRAIN, loss_energy, prog_bar=True)
 
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
         opt_critic = optim.SGD(self.critic.parameters(), lr=LR_GAN_CRITIC)
+        opt_color_critic = optim.SGD(
+            self.color_critic.parameters(), lr=LR_GAN_CRITIC)
 
         # opt_gen = optim.Adam(
         #     self.gen.parameters(),
@@ -424,7 +472,7 @@ class LitColorGAN(pl.LightningModule):
         #     lr=LR_GAN_CRITIC,
         #     betas=(0.5, 0.999))
 
-        return [opt_gen, opt_critic]
+        return [opt_gen, opt_critic, opt_color_critic]
 
 
 class LitColorEnergy(pl.LightningModule):
@@ -432,6 +480,9 @@ class LitColorEnergy(pl.LightningModule):
         super().__init__()
 
         self.gen = ColorGen()
+        self.color_critic = ColorCritic()
+
+        self.automatic_optimization = False
 
         self._val_cond: list[torch.Tensor] = []
         self._val_real: list[torch.Tensor] = []
@@ -459,15 +510,48 @@ class LitColorEnergy(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         cond, colors = batch
+        opt_gen, opt_color_critic = self.optimizers()  # type: ignore
 
         fake = self.gen(cond)
-        loss = energy_distance(rgb_to_oklab(fake), rgb_to_oklab(colors))
+        loss_energy = energy_distance(rgb_to_oklab(fake), rgb_to_oklab(colors))
 
-        self.log(GanMetric.ENERGY_TRAIN, loss, prog_bar=True)
-        return loss
+        opt_gen.zero_grad()
+        self.manual_backward(loss_energy)
+        self.clip_gradients(
+            opt_gen,  # type: ignore
+            gradient_clip_val=GRAD_CLIP_GEN,
+            gradient_clip_algorithm="norm")
+        opt_gen.step()
+
+        # COLOR CRITIC: logging only, trained on a detached fake so it never
+        # feeds a gradient back into the generator.
+        pair = torch.cat([colors, fake.detach()], dim=0)
+        score = self.color_critic(pair)
+        real, fake_score = score.chunk(2, dim=0)
+
+        loss_color_critic = relu(1 - real).mean() + relu(1 + fake_score).mean()
+
+        n = colors.shape[0]
+        auroc_target = torch.cat([score.new_ones(n), score.new_zeros(n)])
+        auroc = binary_auroc(score.detach().squeeze(-1), auroc_target.long())
+
+        opt_color_critic.zero_grad()
+        self.manual_backward(loss_color_critic)
+        self.clip_gradients(
+            opt_color_critic,  # type: ignore
+            gradient_clip_val=GRAD_CLIP_CRITIC,
+            gradient_clip_algorithm="norm")
+        opt_color_critic.step()
+
+        self.log(GanMetric.ENERGY_TRAIN, loss_energy, prog_bar=True)
+        self.log(GanMetric.COLOR_CRITIC_LOSS, loss_color_critic, prog_bar=True)
+        self.log(GanMetric.COLOR_CRITIC_AUROC_TRAIN, auroc, prog_bar=True)
 
     def configure_optimizers(self):
-        return optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
+        opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
+        opt_color_critic = optim.SGD(
+            self.color_critic.parameters(), lr=LR_GAN_CRITIC)
+        return [opt_gen, opt_color_critic]
 
 
 class LitColorCritic(pl.LightningModule):
@@ -800,7 +884,7 @@ def _train_energy(
             EarlyStopping(
                 monitor=GanMetric.ENERGY_VAL,
                 mode="min",
-                patience=EARLY_STOP_PATIENCE_GAN,
+                patience=EARLY_STOP_PATIENCE_ENERGY,
                 min_delta=EARLY_STOP_MIN_DELTA_GAN),
         ],
     )
@@ -1268,8 +1352,10 @@ def cli(
         None,
         metavar="[gan|energy|critic]",
         help="gan = train only the color GAN, using a pretrained encoder. "
-        "energy = debug: fit ColorGen alone against the energy distance, no "
-        "critic, using real cached text embeddings. "
+        "energy = debug: fit ColorGen alone against the energy distance "
+        "(an unconditional ColorCritic also trains alongside it for "
+        "logging only, with no gradient into the generator), using real "
+        "cached text embeddings. "
         "critic = debug: fit ColorCritic alone against a frozen pretrained "
         "encoder (no generator). "
         "Omit to train the encoder then the GAN.",
@@ -1287,14 +1373,18 @@ def cli(
                critic trained from scratch. Requires enc.pt, style.pt,
                emoji.pt, emoji_embed.pt in pt/. Then export + report.
       energy   Debug only: fit ColorGen directly against the energy
-               distance, no critic. Text is embedded once up front by a
-               frozen pretrained encoder (requires enc.pt in pt/; the
-               encoder itself is not trained) and those embeddings are
-               reused every epoch. Cached to pt/critic_text_cache.pt (same
-               cache as stage "critic" -- see below), keyed on enc.pt +
-               train.jsonl + eval.jsonl content. No checkpoints, no
-               export, no report -- just watch gan/energy/{train,val} in
-               TensorBoard. Always runs locally, ignores --local.
+               distance. An unconditional ColorCritic trains alongside it
+               purely for logging -- it only ever sees a detached fake
+               color, so it feeds no gradient into the generator. Text is
+               embedded once up front by a frozen pretrained encoder
+               (requires enc.pt in pt/; the encoder itself is not
+               trained) and those embeddings are reused every epoch.
+               Cached to pt/critic_text_cache.pt (same cache as stage
+               "critic" -- see below), keyed on enc.pt + train.jsonl +
+               eval.jsonl content. No checkpoints, no export, no report --
+               just watch gan/energy/{train,val} and
+               gan/color_critic/{loss,auroc/train} in TensorBoard. Always
+               runs locally, ignores --local.
       critic   Debug only: fit ColorCritic alone, no generator. Text is
                embedded once up front by a frozen pretrained encoder
                (requires enc.pt in pt/; the encoder itself is not
