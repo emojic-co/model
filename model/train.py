@@ -620,7 +620,8 @@ class LitColorCritic(pl.LightningModule):
 
         self.log(GanMetric.COND_COLOR_CRITIC_LOSS, loss, prog_bar=True)
         self.log(GanMetric.COND_COLOR_CRITIC_MEAN_SCORE_REAL, real.detach().mean())
-        self.log(GanMetric.COND_COLOR_CRITIC_MEAN_SCORE_FAKE, fake_score.detach().mean())
+        self.log(GanMetric.COND_COLOR_CRITIC_MEAN_SCORE_FAKE,
+                 fake_score.detach().mean())
         self.log(GanMetric.COLOR_CRITIC_LOSS, loss_color, prog_bar=True)
         return loss + loss_color
 
@@ -1042,7 +1043,7 @@ def _run_local(stage: Stage | None) -> None:
         train_fn(
             enc,  # type: ignore
             enc_path,
-            train_ds(mix_sources=False),  # type: ignore
+            train_ds(mix_sources=False),
             eval_ds(mix_sources=False),
         )
         return
@@ -1057,8 +1058,8 @@ def _run_local(stage: Stage | None) -> None:
             enc = _load(TextEncoder(), enc_path)
             critic = CondColorCritic()
             _train_gan(
-                enc, enc_path, critic,
-                train_ds(mix_sources=False),  # type: ignore
+                enc, enc_path, critic,  # type: ignore
+                train_ds(mix_sources=False),
                 eval_ds(mix_sources=False),
                 _DEFAULT_PT,
             )
@@ -1078,7 +1079,7 @@ def _run_local(stage: Stage | None) -> None:
     critic = CondColorCritic()
     _train_gan(
         mod.enc, PtFile.ENC.in_dir(_DEFAULT_PT), critic,
-        train_ds(mix_sources=False),  # type: ignore
+        train_ds(mix_sources=False),
         eval_ds(mix_sources=False),
         _DEFAULT_PT,
     )

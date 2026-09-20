@@ -169,7 +169,6 @@ class ColorCritic(nn.Module):
 
         self.color_critic = nn.Sequential(
             *cblk(COLOR_DIM, CRITIC_HIDDEN_SIZE),
-            *cblk(CRITIC_HIDDEN_SIZE, CRITIC_HIDDEN_SIZE),
             nn.Linear(CRITIC_HIDDEN_SIZE, 1, bias=False))
 
     def forward(self, colors: torch.Tensor):
