@@ -14,7 +14,7 @@ export async function appendJsonl(path: string, rows: string[]): Promise<void> {
 
 export async function writeFileAtomic(
   path: string,
-  data: string,
+  data: string | Buffer,
   backup = false,
 ): Promise<void> {
   const tmp = `${path}.tmp`
