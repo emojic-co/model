@@ -87,8 +87,8 @@ from model.export_onnx import export
 from model.metric import GanMetric, Metric, Source, Split, named_metric
 from model.metrics import macro_average
 from model.model import (
-    ColorCritic,
     ColorGen,
+    CondColorCritic,
     EmojiEmbedding,
     EmojiHead,
     LangHead,
@@ -312,7 +312,7 @@ class LitEncoder(pl.LightningModule):
 
 
 class LitColorGAN(pl.LightningModule):
-    def __init__(self, enc: TextEncoder, critic: ColorCritic):
+    def __init__(self, enc: TextEncoder, critic: CondColorCritic):
         super().__init__()
 
         self.enc = enc.requires_grad_(False).eval()
@@ -474,7 +474,7 @@ class LitColorCritic(pl.LightningModule):
     def __init__(self):
         super().__init__()
 
-        self.critic = ColorCritic()
+        self.critic = CondColorCritic()
 
         self._trn_score: list[torch.Tensor] = []
         self._trn_target: list[torch.Tensor] = []
@@ -634,7 +634,7 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
 
 
 def _train_gan(
-    enc: TextEncoder, critic: ColorCritic, ds, out_dir: Path
+    enc: TextEncoder, critic: CondColorCritic, ds, out_dir: Path
 ) -> LitColorGAN:
     val_dl = eval_data_loader(mix_sources=False)
     no_bar = _no_progress_bar()
@@ -677,7 +677,7 @@ def _train_gan(
 
     if ckpt.best_model_path:
         gan = LitColorGAN.load_from_checkpoint(
-            ckpt.best_model_path, enc=enc, critic=ColorCritic()
+            ckpt.best_model_path, enc=enc, critic=CondColorCritic()
         )
 
     save_pt(gan.gen.state_dict(), PtFile.GEN.in_dir(out_dir), stage="gan")
@@ -943,7 +943,7 @@ def _run_local(stage: Stage | None) -> None:
     if stage == Stage.gan:
         if _pt_files_ok(_DEFAULT_PT):
             enc = _load(TextEncoder(), PtFile.ENC.in_dir(_DEFAULT_PT))
-            critic = ColorCritic()
+            critic = CondColorCritic()
             _train_gan(enc, critic, train_ds(  # type: ignore
                 mix_sources=False), _DEFAULT_PT)
             export()
@@ -959,7 +959,7 @@ def _run_local(stage: Stage | None) -> None:
     ds = train_ds()
     mod = _train_encoder(ds, ALL_HEADS, _DEFAULT_PT)
 
-    critic = ColorCritic()
+    critic = CondColorCritic()
     _train_gan(mod.enc, critic, train_ds(  # type: ignore
         mix_sources=False), _DEFAULT_PT)
     export()

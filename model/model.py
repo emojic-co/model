@@ -9,7 +9,8 @@ from torch.nn.utils.parametrizations import spectral_norm as sn
 
 from model.color import COLOR_SHIFT
 from model.config import (
-    CRITIC_EMBEDDING_SIZE,
+    COND_CRITIC_EMBEDDING_SIZE,
+    CRITIC_HIDDEN_SIZE,
     DROPOUT,
     EMBED_SIZE_CHAR,
     EMBED_SIZE_EMOJI,
@@ -166,16 +167,27 @@ class ColorCritic(nn.Module):
     def __init__(self):
         super().__init__()
 
+        self.color_critic = nn.Sequential(
+            *cblk(COLOR_DIM, CRITIC_HIDDEN_SIZE),
+            nn.Linear(CRITIC_HIDDEN_SIZE, 1, bias=False))
+
+    def forward(self, colors: torch.Tensor):
+
+        return self.color_critic(colors)
+
+
+class CondColorCritic(nn.Module):
+    def __init__(self):
+        super().__init__()
+
         self.color_embedding = nn.Sequential(
-            *cblk(COLOR_DIM, CRITIC_EMBEDDING_SIZE),
-            *cblk(CRITIC_EMBEDDING_SIZE, CRITIC_EMBEDDING_SIZE))
+            *cblk(COLOR_DIM, COND_CRITIC_EMBEDDING_SIZE),
+            *cblk(COND_CRITIC_EMBEDDING_SIZE, COND_CRITIC_EMBEDDING_SIZE))
 
         self.text_embedding = nn.Sequential(
-            *cblk(EMBED_SIZE_TEXT, CRITIC_EMBEDDING_SIZE))
+            *cblk(EMBED_SIZE_TEXT, COND_CRITIC_EMBEDDING_SIZE))
 
-    def forward(
-        self, cond: torch.Tensor, colors: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, cond: torch.Tensor, colors: torch.Tensor):
         c = self.color_embedding(colors)
         t = self.text_embedding(cond)
 

@@ -1,6 +1,12 @@
-Done:
-- when it finishes, update the generated html to include samples from the:
-    color generator:
-      energy distance:
+There are now two Critic models:
+1. ColorCritic - maps colors to a single score
+2. CondColorCritic - maps a (text, color) pair to a single score
 
-  Same as in the report "Model — Generator energy distance by keyword" section.
+The CondColorCritic is already setup.
+
+Add the ColorCritic model to both:
+train GAN - should also produce a gradient for the generator, add a config entry to control its loss weight.
+train energy - add it just for logging, do not connect it to the generator loss.
+
+
+Also as a side task, lower the early stop patience for the `train energy` routine it should be a fast feedback loop.
