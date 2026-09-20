@@ -1166,6 +1166,7 @@ CODE_FILES = [
     MODEL_DIR / "color.py",
     MODEL_DIR / "config.py",
     MODEL_DIR / "data.py",
+    MODEL_DIR / "kwtokens.py",
     MODEL_DIR / "metric.py",
     MODEL_DIR / "metrics.py",
     MODEL_DIR / "model.py",
