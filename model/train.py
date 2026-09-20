@@ -57,6 +57,8 @@ from model.config import (
     EARLY_STOP_PATIENCE_ENCODER,
     EARLY_STOP_PATIENCE_ENERGY,
     EARLY_STOP_PATIENCE_GAN,
+    ENERGY_TRAIN_SAMPLE_SIZE,
+    ENERGY_VAL_SAMPLE_SIZE,
     EPOCHS_GAN,
     EPOCHS_TASK,
     GAN_BATCH_SIZE,
@@ -139,6 +141,13 @@ def acc_at_k(logits: torch.Tensor, target: torch.Tensor, k: int) -> torch.Tensor
     order = logits.argsort(dim=-1, descending=True)
     rel = target.gather(1, order)
     return rel[:, :k].amax(dim=-1)
+
+
+def _energy_subsample(x: torch.Tensor, n: int) -> torch.Tensor:
+    if x.shape[0] <= n:
+        return x
+    idx = torch.randperm(x.shape[0], device=x.device)[:n]
+    return x[idx]
 
 
 ALL_HEADS: tuple[str, ...] = ("style", "emoji", "lang")
@@ -352,7 +361,8 @@ class LitColorGAN(pl.LightningModule):
             fake = self.gen(cond)
 
             val_energy = energy_distance(
-                rgb_to_oklab(colors), rgb_to_oklab(fake))
+                rgb_to_oklab(_energy_subsample(colors, ENERGY_VAL_SAMPLE_SIZE)),
+                rgb_to_oklab(_energy_subsample(fake, ENERGY_VAL_SAMPLE_SIZE)))
             self.log(GanMetric.ENERGY_VAL, val_energy, prog_bar=True)
 
     def training_step(self, batch, batch_idx):
@@ -404,7 +414,9 @@ class LitColorGAN(pl.LightningModule):
         # GENERATOR
         gen_score = self.critic(cond, fake)
         gen_color_score = self.color_critic(fake)
-        loss_energy = energy_distance(rgb_to_oklab(fake), rgb_to_oklab(colors))
+        loss_energy = energy_distance(
+            rgb_to_oklab(_energy_subsample(fake, ENERGY_TRAIN_SAMPLE_SIZE)),
+            rgb_to_oklab(_energy_subsample(colors, ENERGY_TRAIN_SAMPLE_SIZE)))
 
         loss_gen_critic = -gen_score.mean()
         loss_gen_color_critic = -gen_color_score.mean()
@@ -485,7 +497,9 @@ class LitColorEnergy(pl.LightningModule):
             cond = torch.cat(self._val_cond)
             real = rgb_to_oklab(torch.cat(self._val_real))
             fake = rgb_to_oklab(self.gen(cond))
-            val = energy_distance(real, fake)
+            val = energy_distance(
+                _energy_subsample(real, ENERGY_VAL_SAMPLE_SIZE),
+                _energy_subsample(fake, ENERGY_VAL_SAMPLE_SIZE))
             self.log(GanMetric.ENERGY_VAL, val, prog_bar=True)
 
     def training_step(self, batch, batch_idx):
@@ -493,7 +507,9 @@ class LitColorEnergy(pl.LightningModule):
         opt_gen, opt_color_critic = self.optimizers()  # type: ignore
 
         fake = self.gen(cond)
-        loss_energy = energy_distance(rgb_to_oklab(fake), rgb_to_oklab(colors))
+        loss_energy = energy_distance(
+            rgb_to_oklab(_energy_subsample(fake, ENERGY_TRAIN_SAMPLE_SIZE)),
+            rgb_to_oklab(_energy_subsample(colors, ENERGY_TRAIN_SAMPLE_SIZE)))
 
         opt_gen.zero_grad()
         self.manual_backward(loss_energy)
