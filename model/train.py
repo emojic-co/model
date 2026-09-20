@@ -97,6 +97,7 @@ from model.model import (
 )
 from model.pred import rgb_to_hex
 from model.runmeta import file_sha, load_pt, require_clean_tree, run_meta, save_pt
+from tools.report import _color_keywords_html, _section_color_keywords
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -694,7 +695,9 @@ def _energy_preview_card(bg1: str, bg2: str, fg: str) -> str:
     )
 
 
-def _write_energy_preview(mod: LitColorEnergy, cond: torch.Tensor, n: int = 50) -> Path:
+def _write_energy_preview(
+    mod: LitColorEnergy, cond: torch.Tensor, enc: TextEncoder, n: int = 50
+) -> Path:
     mod.gen.eval()
     with torch.no_grad():
         colors = mod.gen(cond[:n])
@@ -702,6 +705,7 @@ def _write_energy_preview(mod: LitColorEnergy, cond: torch.Tensor, n: int = 50) 
     cards = "\n".join(
         _energy_preview_card(*rgb_to_hex(colors[i])) for i in range(colors.shape[0])
     )
+    kw_html = _color_keywords_html(_section_color_keywords(enc, mod.gen))
     html = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -709,16 +713,43 @@ def _write_energy_preview(mod: LitColorEnergy, cond: torch.Tensor, n: int = 50) 
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>energy preview</title>
 <style>
+:root{{--ink:#1b1f24;--dim:#656b73;--line:#e2e5e9;--panel:#f5f6f8;
+--good-bg:#e6f6ec;--good-bd:#b2dec1;--bad-bg:#fdeaea;--bad-bd:#f0b6b6}}
 body {{ margin: 0; padding: 2em; background: #111; font-family: sans-serif; }}
 .grid {{ display: grid; gap: 1em;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }}
 .card {{ aspect-ratio: 1; border-radius: 12px; display: flex; align-items: center;
   justify-content: center; text-align: center; padding: 1em; box-sizing: border-box; }}
+.kw {{ background: #fff; color: var(--ink); border-radius: 12px; padding: 2em;
+  margin-top: 2em; }}
+.kw h2 {{ font-size: 22px; margin: 0 0 6px; }}
+.kw h3 {{ font-size: 14px; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--dim); margin: 28px 0 10px; }}
+.kw .note {{ color: var(--dim); font-size: 14px; margin: 6px 0 0; }}
+.kw table {{ border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 15px; }}
+.kw th, .kw td {{ border-bottom: 1px solid var(--line); padding: 8px 10px;
+  text-align: left; }}
+.kw td.n, .kw th.n {{ text-align: right; font-variant-numeric: tabular-nums; }}
+.kw table.scorecard tr.sc-good {{ background: var(--good-bg); }}
+.kw table.scorecard tr.sc-red {{ background: var(--bad-bg); }}
+.kw table.scorecard tr.sc-na {{ background: var(--panel); color: var(--dim); }}
+.kw .kw-grid {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+  margin: 12px 0 0; }}
+.kw .kw-grid .grp {{ grid-column: span 2; font-size: 12px; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--dim); }}
+.kw .mini {{ aspect-ratio: 1/1; border-radius: 12px; padding: 12px 10px;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  text-align: center; overflow: hidden; }}
+.kw .mini .tx {{ font-size: 12px; font-weight: 600; overflow-wrap: anywhere;
+  line-height: 1.3; }}
 </style>
 </head>
 <body>
 <div class="grid">
 {cards}
+</div>
+<div class="kw">
+{kw_html}
 </div>
 </body>
 </html>
@@ -776,7 +807,7 @@ def _train_energy(
 
     mod = LitColorEnergy()
     trainer.fit(mod, dl, val_dl)
-    out_path = _write_energy_preview(mod, val_cond)
+    out_path = _write_energy_preview(mod, val_cond, enc)
     print(out_path)
     return mod
 

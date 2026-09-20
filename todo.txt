@@ -1,5 +1,6 @@
-when it finishes, update the generated html to include samples from the:
-  color generator:
-    energy distance:
+Done:
+- when it finishes, update the generated html to include samples from the:
+    color generator:
+      energy distance:
 
-Same as in the report "Model — Generator energy distance by keyword" section.
+  Same as in the report "Model — Generator energy distance by keyword" section.
