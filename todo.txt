@@ -1,5 +1,12 @@
-Done:
-Update the log names:
-Always use either `color_critic` or `cond_color_critic` never just `critic`
+git LFS:
+The goal is to reduce the git LFS usage:
+1. Always compress archive files.
+2. Remove uncompressed archive files from git LFS.
+3. Compress the existing ones, update the minimize script to compress then and clean the git history.
+4. Clean the git history for the data/data.jsonl, it should only keep the latest file (the history is kept in the archive as compressed files).
 
-And make sure there are both `gan/color_critic/auroc` and `gan/cond_color_critic/auroc` in the logs.
+Plan first, report the effect of this plan in storage numbers, wait for my approval, then implement it.
+
+
+No need for `gan/gen/loss/(cond_)color_critic/val` just `gan/gen/loss/(cond_)color_critic/train`
+In general, during GAN train, the only value that we want to track for both train and val is the energy loss, the rest of the metrics are train only (and no need to add /train to the metric name)
