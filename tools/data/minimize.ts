@@ -1,11 +1,12 @@
 import { execFileSync } from "node:child_process"
 import { existsSync } from "node:fs"
-import { mkdir, rename, stat } from "node:fs/promises"
+import { mkdir, readFile, stat, unlink } from "node:fs/promises"
+import { gzipSync } from "node:zlib"
 
 import { cac } from "cac"
 
 import { ARCHIVE_DIR, DATA_JSONL as DATA } from "../../files.ts"
-import { readJsonl, writeFileAtomic } from "./io.ts"
+import { parseJsonlText, readJsonl, writeFileAtomic } from "./io.ts"
 import { collapse, type Row } from "./regen.ts"
 
 export function minimalLine(r: Row, sha: string): string {
@@ -62,7 +63,7 @@ if (import.meta.main) {
   }
 
   const sha = shortSha()
-  const archivePath = `${ARCHIVE_DIR}/data.${sha}.jsonl`
+  const archivePath = `${ARCHIVE_DIR}/data.${sha}.jsonl.gz`
   const beforeBytes = (await stat(DATA)).size
 
   if (dataDirty()) {
@@ -93,10 +94,13 @@ if (import.meta.main) {
     process.exit(1)
   }
 
-  await mkdir(ARCHIVE_DIR, { recursive: true })
-  await rename(DATA, archivePath)
+  const raw = await readFile(DATA, "utf8")
+  const rows = parseJsonlText<unknown>(raw, DATA)
 
-  const rows = await readJsonl<unknown>(archivePath)
+  await mkdir(ARCHIVE_DIR, { recursive: true })
+  await writeFileAtomic(archivePath, gzipSync(raw, { level: 9 }))
+  await unlink(DATA)
+
   const out = minimize(rows, sha)
   await writeFileAtomic(DATA, out)
 
@@ -111,7 +115,7 @@ if (import.meta.main) {
   console.log(`size       : ${fmtBytes(beforeBytes)} -> ${fmtBytes(afterBytes)}`)
   console.log("")
   console.log("next steps (not run by this tool):")
-  console.log(`  git lfs install && git lfs track "${DATA}" "${ARCHIVE_DIR}/*.jsonl"`)
+  console.log(`  git lfs install && git lfs track "${DATA}" "${ARCHIVE_DIR}/*.jsonl.gz"`)
   console.log(`  git add .gitattributes ${ARCHIVE_DIR}/ ${DATA}`)
   console.log("  # purge the pre-LFS blobs from history (deliberate, needs a force-push):")
   console.log(`  git lfs migrate import --include="${DATA}" --everything`)

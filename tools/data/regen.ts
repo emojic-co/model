@@ -5,13 +5,13 @@ import { LANGS } from "./langs.ts"
 import { normalize } from "./normalize.ts"
 import { STYLE_SET } from "./styles.ts"
 
-export const MIN_COUNT = 100
+export const MIN_COUNT = 125
 export const MAX_COUNT = 3000
 const EVAL_SIZE = 2000
 
 const MIN_MAX_RATIO = 10
-const MAX_MAX_RATIO = 40
-const MATRIX_MIN = [100, 125, 150]
+const MAX_MAX_RATIO = 50
+const MATRIX_MIN = [80, 100, 125, 150]
 const MATRIX_MAX = [2500, 3000, 3500, 4000]
 
 export type Palette = { bg: string[]; fg: string }
@@ -69,7 +69,7 @@ export function collapse(rows: unknown[]): Row[] {
     const row = (raw ?? {}) as Record<string, unknown>
     const text = typeof row.text === "string" ? row.text : ""
     const key = normalize(text)
-    if (!key) continue
+    if (!key || key.length > MAX_TEXT_LEN) continue
     let a = acc.get(key)
     if (!a) {
       a = {
@@ -171,7 +171,7 @@ import {
   WA_KEYWORDS_JSON as WA,
 } from "../../files.ts"
 import { runBaseline } from "../analysis/cldr-baseline.ts"
-import { SEED, STYLES } from "./config"
+import { MAX_TEXT_LEN, SEED, STYLES } from "./config"
 import { readJsonl, writeFileAtomic } from "./io.ts"
 import { writeKeywordsAndTerms } from "./keywords.ts"
 

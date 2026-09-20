@@ -21,7 +21,9 @@ from lightning.pytorch.callbacks import (
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
 from torch.nn.functional import (
+    binary_cross_entropy_with_logits,
     cross_entropy,
+    l1_loss,
     relu,
 )
 from torch.utils.data import DataLoader, Dataset
@@ -29,7 +31,6 @@ from torchmetrics.functional.classification import binary_auroc
 from tqdm import tqdm
 
 from files import (
-    CRITIC_TEXT_CACHE_PT,
     DATA_JSONL,
     EMOJI_EMBED_PT,
     EMOJI_PT,
@@ -45,6 +46,7 @@ from files import (
     RUNS_DIR,
     STYLE_PT,
     TERMS_JSONL,
+    TEXT_ENC_CACHE_PT,
     TOOLS_DIR,
     TRAIN_JSONL,
     WEB_PUBLIC_DIR,
@@ -55,7 +57,10 @@ from model.config import (
     CONFIG_NAME,
     EARLY_STOP_MIN_DELTA_GAN,
     EARLY_STOP_PATIENCE_ENCODER,
+    EARLY_STOP_PATIENCE_ENERGY,
     EARLY_STOP_PATIENCE_GAN,
+    ENERGY_TRAIN_SAMPLE_SIZE,
+    ENERGY_VAL_SAMPLE_SIZE,
     EPOCHS_GAN,
     EPOCHS_TASK,
     GAN_BATCH_SIZE,
@@ -63,11 +68,17 @@ from model.config import (
     GRAD_CLIP_GEN,
     INFONCE_TEMP_EMOJI,
     INFONCE_TEMP_STYLE,
+    LOSS_WEIGHT_COLOR_CRITIC,
+    LOSS_WEIGHT_COLOR_REGRESSION,
+    LOSS_WEIGHT_COND_COLOR_CRITIC,
+    LOSS_WEIGHT_ENC_COND_COLOR_CRITIC,
     LOSS_WEIGHT_ENERGY,
     LR_ENCODER,
+    LR_GAN_COND_CRITIC,
     LR_GAN_CRITIC,
     LR_GAN_GEN,
     MACRO_MIN_SUPPORT,
+    NOISE_DIM,
     SAMPLING_RATE_MAX,
     SAMPLING_RATE_MIN,
     SAMPLING_SOURCES,
@@ -89,6 +100,7 @@ from model.metrics import macro_average
 from model.model import (
     ColorCritic,
     ColorGen,
+    CondColorCritic,
     EmojiEmbedding,
     EmojiHead,
     LangHead,
@@ -97,6 +109,7 @@ from model.model import (
 )
 from model.pred import rgb_to_hex
 from model.runmeta import file_sha, load_pt, require_clean_tree, run_meta, save_pt
+from tools.report import _color_keywords_html, _section_color_keywords
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -135,6 +148,19 @@ def acc_at_k(logits: torch.Tensor, target: torch.Tensor, k: int) -> torch.Tensor
     return rel[:, :k].amax(dim=-1)
 
 
+def r2_score(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    ss_res = (target - pred).pow(2).sum()
+    ss_tot = (target - target.mean(dim=0, keepdim=True)).pow(2).sum()
+    return 1 - ss_res / ss_tot.clamp(min=1e-8)
+
+
+def _energy_subsample(x: torch.Tensor, n: int) -> torch.Tensor:
+    if x.shape[0] <= n:
+        return x
+    idx = torch.randperm(x.shape[0], device=x.device)[:n]
+    return x[idx]
+
+
 ALL_HEADS: tuple[str, ...] = ("style", "emoji", "lang")
 _DEFAULT_PT = PT_DIR
 
@@ -152,6 +178,8 @@ class LitEncoder(pl.LightningModule):
         self.heads = tuple(heads)
 
         self.enc = TextEncoder()
+        self.color_gen = ColorGen()
+        self.cond_color_critic = CondColorCritic()
         if "style" in self.heads:
             self.style = StyleHead()
         if "emoji" in self.heads:
@@ -175,7 +203,7 @@ class LitEncoder(pl.LightningModule):
                  prog_bar=True, batch_size=bs)
 
     def _step(self, batch, split: Split):
-        text, emoji, style, _colors, lang, source = batch
+        text, emoji, style, colors, lang, source = batch
         enc = self.enc(text)
         loss = enc.new_zeros(())
 
@@ -203,7 +231,14 @@ class LitEncoder(pl.LightningModule):
                 e_rr = self._val_e_rr if split == Split.VAL else self._trn_e_rr
                 e_rr.append(rr.detach())
 
-            if split == Split.VAL:
+            if split == Split.VAL and n_e:
+                self._log(
+                    named_metric(Source.FULL_TEXT, Metric.ACC_1),
+                    acc_at_k(emoji_logits[has_e], emoji[has_e], 1).mean(),
+                    n_e,
+                )
+
+            if split == Split.TRAIN:
                 for name, cfg in SAMPLING_SOURCES.items():
                     if cfg.metric != named_metric(name, Metric.ACC_1):
                         continue
@@ -217,23 +252,50 @@ class LitEncoder(pl.LightningModule):
                             acc_at_k(emoji_logits[mask], emoji[mask], 1).mean(),
                             n,
                         )
-                full_mask = torch.tensor(
-                    [s == SRC_FULL for s in source], device=emoji.device
-                )
-                n_full_e = int(full_mask.sum())
-                if n_full_e:
-                    self._log(
-                        named_metric(Source.FULL_TEXT, Metric.ACC_1),
-                        acc_at_k(
-                            emoji_logits[full_mask], emoji[full_mask], 1
-                        ).mean(),
-                        n_full_e,
-                    )
 
         if "lang" in self.heads:
             lang_logits = self.lang(enc)
             loss_lang = cross_entropy(lang_logits, lang)
             loss = loss + loss_lang
+
+        has_color = torch.tensor(
+            [s == SRC_FULL for s in source], device=enc.device
+        )
+        n_color = int(has_color.sum())
+        if n_color:
+            cond = enc[has_color]
+            real_color = colors[has_color]
+
+            z = torch.zeros(
+                n_color, NOISE_DIM, device=cond.device, dtype=cond.dtype)
+            pred_color = self.color_gen(cond, z=z)
+            loss_color_gen = l1_loss(pred_color, real_color)
+            loss = loss + LOSS_WEIGHT_COLOR_REGRESSION * loss_color_gen
+            self._log(
+                named_metric(Source.COLOR, Metric.MAE, split),
+                loss_color_gen.detach(), n_color,
+            )
+            self._log(
+                named_metric(Source.COLOR, Metric.R2, split),
+                r2_score(pred_color.detach(), real_color), n_color,
+            )
+
+            fake_color = real_color[
+                torch.randperm(n_color, device=real_color.device)
+            ]
+            pair = torch.cat([real_color, fake_color], dim=0)
+            cond_pair = torch.cat([cond, cond], dim=0)
+            score = self.cond_color_critic(cond_pair, pair)
+            target = torch.cat(
+                [score.new_ones(n_color, 1), score.new_zeros(n_color, 1)]
+            )
+            loss_critic = binary_cross_entropy_with_logits(score, target)
+            loss = loss + LOSS_WEIGHT_ENC_COND_COLOR_CRITIC * loss_critic
+            self._log(
+                named_metric(Source.COLOR, Metric.AUROC, split),
+                binary_auroc(score.detach().squeeze(-1), target.squeeze(-1).long()),
+                n_color,
+            )
 
         return loss
 
@@ -303,6 +365,8 @@ class LitEncoder(pl.LightningModule):
 
     def configure_optimizers(self):
         params = list(self.enc.parameters())
+        params += list(self.color_gen.parameters())
+        params += list(self.cond_color_critic.parameters())
         if "emoji" in self.heads:
             params += list(self.emoji_embed.parameters())
         for h in self.heads:
@@ -311,35 +375,27 @@ class LitEncoder(pl.LightningModule):
 
 
 class LitColorGAN(pl.LightningModule):
-    def __init__(self, enc: TextEncoder, critic: ColorCritic):
+    def __init__(self, critic: CondColorCritic):
         super().__init__()
-
-        self.enc = enc.requires_grad_(False).eval()
 
         self.gen = ColorGen()
         self.critic = critic
+        self.color_critic = ColorCritic()
 
         self.automatic_optimization = False
-        self._val_text: list[torch.Tensor] = []
+        self._val_cond: list[torch.Tensor] = []
         self._val_real: list[torch.Tensor] = []
 
     def on_train_epoch_start(self):
         self.gen.net[0].eval()
 
-    def on_train_batch_start(self, batch, batch_idx):
-        self.enc.eval()
-
-    def _cond(self, text: torch.Tensor) -> torch.Tensor:
-        with torch.no_grad():
-            return self.enc(text)
-
     def on_validation_epoch_start(self):
-        self._val_text.clear()
+        self._val_cond.clear()
         self._val_real.clear()
 
     def validation_step(self, batch, batch_idx):
-        text, _, _, colors, *_ = batch
-        self._val_text.append(text)
+        cond, colors = batch
+        self._val_cond.append(cond)
         self._val_real.append(colors)
 
     def on_validation_epoch_end(self):
@@ -348,18 +404,19 @@ class LitColorGAN(pl.LightningModule):
 
         self.gen.eval()
         with torch.no_grad():
-            text = torch.cat(self._val_text)
-            real = rgb_to_oklab(torch.cat(self._val_real))
+            cond = torch.cat(self._val_cond)
+            colors = torch.cat(self._val_real)
 
-            fake = rgb_to_oklab(self.gen(self.enc(text)))
-            val = energy_distance(real, fake)
-            self.log(GanMetric.ENERGY_VAL, val, prog_bar=True)
+            fake = self.gen(cond)
+
+            val_energy = energy_distance(
+                rgb_to_oklab(_energy_subsample(colors, ENERGY_VAL_SAMPLE_SIZE)),
+                rgb_to_oklab(_energy_subsample(fake, ENERGY_VAL_SAMPLE_SIZE)))
+            self.log(GanMetric.ENERGY_VAL, val_energy, prog_bar=True)
 
     def training_step(self, batch, batch_idx):
-        text, _, _, colors, *_ = batch
-        opt_gen, opt_critic = self.optimizers()  # type: ignore
-
-        cond = self._cond(text)
+        cond, colors = batch
+        opt_gen, opt_critic, opt_color_critic = self.optimizers()  # type: ignore
 
         fake = self.gen(cond)
 
@@ -384,15 +441,39 @@ class LitColorGAN(pl.LightningModule):
 
         opt_critic.step()
 
+        # COLOR CRITIC (unconditional)
+        color_score = self.color_critic(pair)
+        color_real, color_fake_score = color_score.chunk(2, dim=0)
+
+        loss_color_critic = \
+            relu(1 - color_real).mean() + relu(1 + color_fake_score).mean()
+
+        color_auroc = binary_auroc(
+            color_score.detach().squeeze(-1), auroc_target.long())
+
+        opt_color_critic.zero_grad()
+        self.manual_backward(loss_color_critic)
+        self.clip_gradients(
+            opt_color_critic,  # type: ignore
+            gradient_clip_val=GRAD_CLIP_CRITIC,
+            gradient_clip_algorithm="norm")
+
+        opt_color_critic.step()
+
         # GENERATOR
         gen_score = self.critic(cond, fake)
-        loss_energy = energy_distance(rgb_to_oklab(fake), rgb_to_oklab(colors))
+        gen_color_score = self.color_critic(fake)
+        loss_energy = energy_distance(
+            rgb_to_oklab(_energy_subsample(fake, ENERGY_TRAIN_SAMPLE_SIZE)),
+            rgb_to_oklab(_energy_subsample(colors, ENERGY_TRAIN_SAMPLE_SIZE)))
 
         loss_gen_critic = -gen_score.mean()
+        loss_gen_color_critic = -gen_color_score.mean()
 
         loss_gen = \
-            (1 - LOSS_WEIGHT_ENERGY) * loss_gen_critic \
-            + LOSS_WEIGHT_ENERGY * loss_energy
+            LOSS_WEIGHT_COND_COLOR_CRITIC * loss_gen_critic \
+            + LOSS_WEIGHT_ENERGY * loss_energy \
+            + LOSS_WEIGHT_COLOR_CRITIC * loss_gen_color_critic
 
         opt_gen.zero_grad()
 
@@ -404,14 +485,23 @@ class LitColorGAN(pl.LightningModule):
 
         opt_gen.step()
 
-        self.log(GanMetric.CRITIC_LOSS, loss_critic, prog_bar=True)
-        self.log(GanMetric.CRITIC_AUROC_TRAIN, auroc, prog_bar=True)
-        self.log(GanMetric.GEN_LOSS, loss_gen_critic, prog_bar=True)
+        self.log(GanMetric.COND_COLOR_CRITIC_LOSS, loss_critic, prog_bar=True)
+        self.log(GanMetric.COND_COLOR_CRITIC_AUROC, auroc, prog_bar=True)
+        self.log(GanMetric.COLOR_CRITIC_LOSS, loss_color_critic, prog_bar=True)
+        self.log(GanMetric.COLOR_CRITIC_AUROC, color_auroc, prog_bar=True)
+        self.log(
+            GanMetric.GEN_LOSS_COND_COLOR_CRITIC,
+            loss_gen_critic, prog_bar=True)
+        self.log(
+            GanMetric.GEN_LOSS_COLOR_CRITIC,
+            loss_gen_color_critic, prog_bar=True)
         self.log(GanMetric.ENERGY_TRAIN, loss_energy, prog_bar=True)
 
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
-        opt_critic = optim.SGD(self.critic.parameters(), lr=LR_GAN_CRITIC)
+        opt_critic = optim.SGD(self.critic.parameters(), lr=LR_GAN_COND_CRITIC)
+        opt_color_critic = optim.SGD(
+            self.color_critic.parameters(), lr=LR_GAN_CRITIC)
 
         # opt_gen = optim.Adam(
         #     self.gen.parameters(),
@@ -423,7 +513,7 @@ class LitColorGAN(pl.LightningModule):
         #     lr=LR_GAN_CRITIC,
         #     betas=(0.5, 0.999))
 
-        return [opt_gen, opt_critic]
+        return [opt_gen, opt_critic, opt_color_critic]
 
 
 class LitColorEnergy(pl.LightningModule):
@@ -431,6 +521,9 @@ class LitColorEnergy(pl.LightningModule):
         super().__init__()
 
         self.gen = ColorGen()
+        self.color_critic = ColorCritic()
+
+        self.automatic_optimization = False
 
         self._val_cond: list[torch.Tensor] = []
         self._val_real: list[torch.Tensor] = []
@@ -453,32 +546,71 @@ class LitColorEnergy(pl.LightningModule):
             cond = torch.cat(self._val_cond)
             real = rgb_to_oklab(torch.cat(self._val_real))
             fake = rgb_to_oklab(self.gen(cond))
-            val = energy_distance(real, fake)
+            val = energy_distance(
+                _energy_subsample(real, ENERGY_VAL_SAMPLE_SIZE),
+                _energy_subsample(fake, ENERGY_VAL_SAMPLE_SIZE))
             self.log(GanMetric.ENERGY_VAL, val, prog_bar=True)
 
     def training_step(self, batch, batch_idx):
         cond, colors = batch
+        opt_gen, opt_color_critic = self.optimizers()  # type: ignore
 
         fake = self.gen(cond)
-        loss = energy_distance(rgb_to_oklab(fake), rgb_to_oklab(colors))
+        loss_energy = energy_distance(
+            rgb_to_oklab(_energy_subsample(fake, ENERGY_TRAIN_SAMPLE_SIZE)),
+            rgb_to_oklab(_energy_subsample(colors, ENERGY_TRAIN_SAMPLE_SIZE)))
 
-        self.log(GanMetric.ENERGY_TRAIN, loss, prog_bar=True)
-        return loss
+        opt_gen.zero_grad()
+        self.manual_backward(loss_energy)
+        self.clip_gradients(
+            opt_gen,  # type: ignore
+            gradient_clip_val=GRAD_CLIP_GEN,
+            gradient_clip_algorithm="norm")
+        opt_gen.step()
+
+        # COLOR CRITIC: logging only, trained on a detached fake so it never
+        # feeds a gradient back into the generator.
+        pair = torch.cat([colors, fake.detach()], dim=0)
+        score = self.color_critic(pair)
+        real, fake_score = score.chunk(2, dim=0)
+
+        loss_color_critic = relu(1 - real).mean() + relu(1 + fake_score).mean()
+
+        n = colors.shape[0]
+        auroc_target = torch.cat([score.new_ones(n), score.new_zeros(n)])
+        auroc = binary_auroc(score.detach().squeeze(-1), auroc_target.long())
+
+        opt_color_critic.zero_grad()
+        self.manual_backward(loss_color_critic)
+        self.clip_gradients(
+            opt_color_critic,  # type: ignore
+            gradient_clip_val=GRAD_CLIP_CRITIC,
+            gradient_clip_algorithm="norm")
+        opt_color_critic.step()
+
+        self.log(GanMetric.ENERGY_TRAIN, loss_energy, prog_bar=True)
+        self.log(GanMetric.COLOR_CRITIC_LOSS, loss_color_critic, prog_bar=True)
+        self.log(GanMetric.COLOR_CRITIC_AUROC, auroc, prog_bar=True)
 
     def configure_optimizers(self):
-        return optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
+        opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
+        opt_color_critic = optim.SGD(
+            self.color_critic.parameters(), lr=LR_GAN_CRITIC)
+        return [opt_gen, opt_color_critic]
 
 
 class LitColorCritic(pl.LightningModule):
     def __init__(self):
         super().__init__()
 
-        self.critic = ColorCritic()
+        self.critic = CondColorCritic()
+        self.color_critic = ColorCritic()
 
         self._trn_score: list[torch.Tensor] = []
         self._trn_target: list[torch.Tensor] = []
-        self._val_score: list[torch.Tensor] = []
-        self._val_target: list[torch.Tensor] = []
+
+        self._trn_color_score: list[torch.Tensor] = []
+        self._trn_color_target: list[torch.Tensor] = []
 
     def _real_fake(
         self, cond: torch.Tensor, colors: torch.Tensor
@@ -493,16 +625,26 @@ class LitColorCritic(pl.LightningModule):
         target = torch.cat([score.new_ones(n, 1), score.new_zeros(n, 1)])
         return score, target
 
+    def _color_real_fake(
+        self, colors: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        fake = colors[torch.randperm(colors.shape[0], device=colors.device)]
+
+        pair = torch.cat([colors, fake], dim=0)
+        score = self.color_critic(pair)
+
+        n = colors.shape[0]
+        target = torch.cat([score.new_ones(n, 1), score.new_zeros(n, 1)])
+        return score, target
+
     def _auroc(self, score: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         return binary_auroc(score.squeeze(-1), target.squeeze(-1).long())
 
     def on_train_epoch_start(self):
         self._trn_score.clear()
         self._trn_target.clear()
-
-    def on_validation_epoch_start(self):
-        self._val_score.clear()
-        self._val_target.clear()
+        self._trn_color_score.clear()
+        self._trn_color_target.clear()
 
     def training_step(self, batch, batch_idx):
         cond, colors = batch
@@ -511,41 +653,53 @@ class LitColorCritic(pl.LightningModule):
 
         loss = relu(1 - real).mean() + relu(1 + fake_score).mean()
 
+        # Unconditional ColorCritic, trained here only as a sanity check:
+        # real vs. shuffled colors share the same marginal distribution, so
+        # it has nothing to key on and should sit near chance AUROC.
+        color_score, color_target = self._color_real_fake(colors)
+        color_real, color_fake_score = color_score.chunk(2, dim=0)
+
+        loss_color = \
+            relu(1 - color_real).mean() + relu(1 + color_fake_score).mean()
+
         self._trn_score.append(score.detach())
         self._trn_target.append(target.detach())
-        self.log(GanMetric.CRITIC_LOSS, loss, prog_bar=True)
-        self.log(GanMetric.CRITIC_MEAN_SCORE_REAL, real.detach().mean())
-        self.log(GanMetric.CRITIC_MEAN_SCORE_FAKE, fake_score.detach().mean())
-        return loss
+        self._trn_color_score.append(color_score.detach())
+        self._trn_color_target.append(color_target.detach())
+
+        self.log(GanMetric.COND_COLOR_CRITIC_LOSS, loss, prog_bar=True)
+        self.log(GanMetric.COND_COLOR_CRITIC_MEAN_SCORE_REAL, real.detach().mean())
+        self.log(GanMetric.COND_COLOR_CRITIC_MEAN_SCORE_FAKE,
+                 fake_score.detach().mean())
+        self.log(GanMetric.COLOR_CRITIC_LOSS, loss_color, prog_bar=True)
+        return loss + loss_color
 
     def on_train_epoch_end(self):
         if self._trn_score:
             self.log(
-                GanMetric.CRITIC_AUROC_TRAIN,
+                GanMetric.COND_COLOR_CRITIC_AUROC,
                 self._auroc(
                     torch.cat(self._trn_score), torch.cat(self._trn_target)
                 ),
                 prog_bar=True,
             )
-
-    def validation_step(self, batch, batch_idx):
-        cond, colors = batch
-        score, target = self._real_fake(cond, colors)
-        self._val_score.append(score.detach())
-        self._val_target.append(target.detach())
-
-    def on_validation_epoch_end(self):
-        if self._val_score:
+        if self._trn_color_score:
             self.log(
-                GanMetric.CRITIC_AUROC_VAL,
+                GanMetric.COLOR_CRITIC_AUROC,
                 self._auroc(
-                    torch.cat(self._val_score), torch.cat(self._val_target)
+                    torch.cat(self._trn_color_score),
+                    torch.cat(self._trn_color_target),
                 ),
                 prog_bar=True,
             )
 
     def configure_optimizers(self):
-        return optim.SGD(self.critic.parameters(), lr=LR_GAN_CRITIC)
+        return optim.SGD(
+            [
+                {"params": self.critic.parameters(), "lr": LR_GAN_COND_CRITIC},
+                {"params": self.color_critic.parameters(), "lr": LR_GAN_CRITIC},
+            ]
+        )
 
 
 def _load(mod: nn.Module, path: Path) -> nn.Module:
@@ -633,9 +787,24 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
 
 
 def _train_gan(
-    enc: TextEncoder, critic: ColorCritic, ds, out_dir: Path
+    enc: TextEncoder, enc_path: Path, critic: CondColorCritic,
+    ds, val_ds, out_dir: Path,
 ) -> LitColorGAN:
-    val_dl = eval_data_loader(mix_sources=False)
+    enc.requires_grad_(False)
+    train_cond, val_cond = _encoded_texts(enc, enc_path, ds, val_ds)
+
+    gan_dl = DataLoader(
+        _CondColorDataset(train_cond, ds.colors),
+        batch_size=GAN_BATCH_SIZE,
+        shuffle=True,
+        drop_last=True,
+    )
+    val_dl = DataLoader(
+        _CondColorDataset(val_cond, val_ds.colors),
+        batch_size=2000,
+        shuffle=False,
+        drop_last=False,
+    )
     no_bar = _no_progress_bar()
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
@@ -670,13 +839,12 @@ def _train_gan(
         ],
     )
 
-    gan = LitColorGAN(enc, critic)
-    gan_dl = train_data_loader(data_set=ds, batch_size=GAN_BATCH_SIZE)
+    gan = LitColorGAN(critic)
     trainer.fit(gan, gan_dl, val_dl)
 
     if ckpt.best_model_path:
         gan = LitColorGAN.load_from_checkpoint(
-            ckpt.best_model_path, enc=enc, critic=ColorCritic()
+            ckpt.best_model_path, critic=CondColorCritic()
         )
 
     save_pt(gan.gen.state_dict(), PtFile.GEN.in_dir(out_dir), stage="gan")
@@ -694,7 +862,9 @@ def _energy_preview_card(bg1: str, bg2: str, fg: str) -> str:
     )
 
 
-def _write_energy_preview(mod: LitColorEnergy, cond: torch.Tensor, n: int = 50) -> Path:
+def _write_energy_preview(
+    mod: LitColorEnergy, cond: torch.Tensor, enc: TextEncoder, n: int = 50
+) -> Path:
     mod.gen.eval()
     with torch.no_grad():
         colors = mod.gen(cond[:n])
@@ -702,6 +872,7 @@ def _write_energy_preview(mod: LitColorEnergy, cond: torch.Tensor, n: int = 50) 
     cards = "\n".join(
         _energy_preview_card(*rgb_to_hex(colors[i])) for i in range(colors.shape[0])
     )
+    kw_html = _color_keywords_html(_section_color_keywords(enc, mod.gen))
     html = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -709,16 +880,43 @@ def _write_energy_preview(mod: LitColorEnergy, cond: torch.Tensor, n: int = 50) 
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>energy preview</title>
 <style>
+:root{{--ink:#1b1f24;--dim:#656b73;--line:#e2e5e9;--panel:#f5f6f8;
+--good-bg:#e6f6ec;--good-bd:#b2dec1;--bad-bg:#fdeaea;--bad-bd:#f0b6b6}}
 body {{ margin: 0; padding: 2em; background: #111; font-family: sans-serif; }}
 .grid {{ display: grid; gap: 1em;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }}
 .card {{ aspect-ratio: 1; border-radius: 12px; display: flex; align-items: center;
   justify-content: center; text-align: center; padding: 1em; box-sizing: border-box; }}
+.kw {{ background: #fff; color: var(--ink); border-radius: 12px; padding: 2em;
+  margin-top: 2em; }}
+.kw h2 {{ font-size: 22px; margin: 0 0 6px; }}
+.kw h3 {{ font-size: 14px; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--dim); margin: 28px 0 10px; }}
+.kw .note {{ color: var(--dim); font-size: 14px; margin: 6px 0 0; }}
+.kw table {{ border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 15px; }}
+.kw th, .kw td {{ border-bottom: 1px solid var(--line); padding: 8px 10px;
+  text-align: left; }}
+.kw td.n, .kw th.n {{ text-align: right; font-variant-numeric: tabular-nums; }}
+.kw table.scorecard tr.sc-good {{ background: var(--good-bg); }}
+.kw table.scorecard tr.sc-red {{ background: var(--bad-bg); }}
+.kw table.scorecard tr.sc-na {{ background: var(--panel); color: var(--dim); }}
+.kw .kw-grid {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+  margin: 12px 0 0; }}
+.kw .kw-grid .grp {{ grid-column: span 2; font-size: 12px; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--dim); }}
+.kw .mini {{ aspect-ratio: 1/1; border-radius: 12px; padding: 12px 10px;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  text-align: center; overflow: hidden; }}
+.kw .mini .tx {{ font-size: 12px; font-weight: 600; overflow-wrap: anywhere;
+  line-height: 1.3; }}
 </style>
 </head>
 <body>
 <div class="grid">
 {cards}
+</div>
+<div class="kw">
+{kw_html}
 </div>
 </body>
 </html>
@@ -769,14 +967,14 @@ def _train_energy(
             EarlyStopping(
                 monitor=GanMetric.ENERGY_VAL,
                 mode="min",
-                patience=EARLY_STOP_PATIENCE_GAN,
+                patience=EARLY_STOP_PATIENCE_ENERGY,
                 min_delta=EARLY_STOP_MIN_DELTA_GAN),
         ],
     )
 
     mod = LitColorEnergy()
     trainer.fit(mod, dl, val_dl)
-    out_path = _write_energy_preview(mod, val_cond)
+    out_path = _write_energy_preview(mod, val_cond, enc)
     print(out_path)
     return mod
 
@@ -795,17 +993,19 @@ class _CondColorDataset(Dataset):
 
 def _encode_texts(enc: TextEncoder, text: torch.Tensor) -> torch.Tensor:
     enc.eval()
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    enc.to(device)
     chunks = []
     starts = range(0, text.shape[0], GAN_BATCH_SIZE)
     with torch.no_grad():
         for i in tqdm(
             starts, desc="encoding text", disable=_no_progress_bar()
         ):
-            chunks.append(enc(text[i:i + GAN_BATCH_SIZE]))
+            chunks.append(enc(text[i:i + GAN_BATCH_SIZE].to(device)).cpu())
     return torch.cat(chunks)
 
 
-def _critic_text_fingerprint(enc_path: Path) -> dict[str, str | None]:
+def _text_enc_fingerprint(enc_path: Path) -> dict[str, str | None]:
     return {
         "enc_sha256": file_sha(enc_path),
         "train_sha256": file_sha(TRAIN_JSONL),
@@ -816,18 +1016,18 @@ def _critic_text_fingerprint(enc_path: Path) -> dict[str, str | None]:
 def _encoded_texts(
     enc: TextEncoder, enc_path: Path, ds, val_ds
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    fingerprint = _critic_text_fingerprint(enc_path)
+    fingerprint = _text_enc_fingerprint(enc_path)
 
-    if CRITIC_TEXT_CACHE_PT.exists():
-        cached, meta = load_pt(CRITIC_TEXT_CACHE_PT)
+    if TEXT_ENC_CACHE_PT.exists():
+        cached, meta = load_pt(TEXT_ENC_CACHE_PT)
         if meta and all(meta.get(k) == v for k, v in fingerprint.items()):
-            print(f"using cached text encodings: {CRITIC_TEXT_CACHE_PT}")
+            print(f"using cached text encodings: {TEXT_ENC_CACHE_PT}")
             return cached["train"], cached["val"]
 
     train_cond = _encode_texts(enc, ds.text)
     val_cond = _encode_texts(enc, val_ds.text)
     save_pt(
-        {"train": train_cond, "val": val_cond}, CRITIC_TEXT_CACHE_PT, **fingerprint
+        {"train": train_cond, "val": val_cond}, TEXT_ENC_CACHE_PT, **fingerprint
     )
     return train_cond, val_cond
 
@@ -836,19 +1036,13 @@ def _train_critic(
     enc: TextEncoder, enc_path: Path, ds, val_ds
 ) -> LitColorCritic:
     enc.requires_grad_(False)
-    train_cond, val_cond = _encoded_texts(enc, enc_path, ds, val_ds)
+    train_cond, _ = _encoded_texts(enc, enc_path, ds, val_ds)
 
     dl = DataLoader(
         _CondColorDataset(train_cond, ds.colors),
         batch_size=GAN_BATCH_SIZE,
         shuffle=True,
         drop_last=True,
-    )
-    val_dl = DataLoader(
-        _CondColorDataset(val_cond, val_ds.colors),
-        batch_size=2000,
-        shuffle=False,
-        drop_last=False,
     )
 
     no_bar = _no_progress_bar()
@@ -858,12 +1052,12 @@ def _train_critic(
         devices="auto",
         accelerator="auto",
         logger=TensorBoardLogger(
-            "runs", name=CONFIG_NAME, version="critic", default_hp_metric=False
+            "runs", name=CONFIG_NAME, version="cond_color_critic",
+            default_hp_metric=False
         ),
         deterministic=_DETERMINISTIC,  # type: ignore
         max_epochs=EPOCHS_GAN,
         enable_progress_bar=not no_bar,
-        val_check_interval=min(VAL_CHECK_INTERVAL, len(dl)),
         gradient_clip_val=GRAD_CLIP_CRITIC,
         gradient_clip_algorithm="norm",
         callbacks=[
@@ -873,7 +1067,7 @@ def _train_critic(
     )
 
     mod = LitColorCritic()
-    trainer.fit(mod, dl, val_dl)
+    trainer.fit(mod, dl)
     return mod
 
 
@@ -900,8 +1094,8 @@ def _run_local(stage: Stage | None) -> None:
         train_fn(
             enc,  # type: ignore
             enc_path,
-            train_ds(mix_sources=False),  # type: ignore
-            eval_ds(mix_sources=False),
+            train_ds(mix_sources=False),
+            eval_ds(),
         )
         return
 
@@ -911,10 +1105,15 @@ def _run_local(stage: Stage | None) -> None:
 
     if stage == Stage.gan:
         if _pt_files_ok(_DEFAULT_PT):
-            enc = _load(TextEncoder(), PtFile.ENC.in_dir(_DEFAULT_PT))
-            critic = ColorCritic()
-            _train_gan(enc, critic, train_ds(  # type: ignore
-                mix_sources=False), _DEFAULT_PT)
+            enc_path = PtFile.ENC.in_dir(_DEFAULT_PT)
+            enc = _load(TextEncoder(), enc_path)
+            critic = CondColorCritic()
+            _train_gan(
+                enc, enc_path, critic,  # type: ignore
+                train_ds(mix_sources=False),
+                eval_ds(),
+                _DEFAULT_PT,
+            )
             export()
             if not skip_report:
                 _run_report_local(_DEFAULT_PT)
@@ -928,9 +1127,13 @@ def _run_local(stage: Stage | None) -> None:
     ds = train_ds()
     mod = _train_encoder(ds, ALL_HEADS, _DEFAULT_PT)
 
-    critic = ColorCritic()
-    _train_gan(mod.enc, critic, train_ds(  # type: ignore
-        mix_sources=False), _DEFAULT_PT)
+    critic = CondColorCritic()
+    _train_gan(
+        mod.enc, PtFile.ENC.in_dir(_DEFAULT_PT), critic,
+        train_ds(mix_sources=False),
+        eval_ds(),
+        _DEFAULT_PT,
+    )
     export()
     if not skip_report:
         _run_report_local(_DEFAULT_PT)
@@ -960,6 +1163,7 @@ CODE_FILES = [
     MODEL_DIR / "color.py",
     MODEL_DIR / "config.py",
     MODEL_DIR / "data.py",
+    MODEL_DIR / "kwtokens.py",
     MODEL_DIR / "metric.py",
     MODEL_DIR / "metrics.py",
     MODEL_DIR / "model.py",
@@ -1237,10 +1441,13 @@ def cli(
         None,
         metavar="[gan|energy|critic]",
         help="gan = train only the color GAN, using a pretrained encoder. "
-        "energy = debug: fit ColorGen alone against the energy distance, no "
-        "critic, using real cached text embeddings. "
-        "critic = debug: fit ColorCritic alone against a frozen pretrained "
-        "encoder (no generator). "
+        "energy = debug: fit ColorGen alone against the energy distance "
+        "(an unconditional ColorCritic also trains alongside it for "
+        "logging only, with no gradient into the generator), using real "
+        "cached text embeddings. "
+        "critic = debug: fit CondColorCritic against a frozen pretrained "
+        "encoder (no generator); an unconditional ColorCritic trains "
+        "alongside it as a chance-AUROC sanity check. "
         "Omit to train the encoder then the GAN.",
     ),
     local: bool = typer.Option(
@@ -1254,28 +1461,40 @@ def cli(
                export + report.
       gan      Color GAN only: frozen pretrained encoder, generator and
                critic trained from scratch. Requires enc.pt, style.pt,
-               emoji.pt, emoji_embed.pt in pt/. Then export + report.
+               emoji.pt, emoji_embed.pt in pt/. Text is embedded once up
+               front and cached to pt/text_enc_cache.pt (shared with
+               stages "energy"/"critic" below), keyed on enc.pt +
+               train.jsonl + eval.jsonl content. Then export + report.
       energy   Debug only: fit ColorGen directly against the energy
-               distance, no critic. Text is embedded once up front by a
-               frozen pretrained encoder (requires enc.pt in pt/; the
-               encoder itself is not trained) and those embeddings are
-               reused every epoch. Cached to pt/critic_text_cache.pt (same
-               cache as stage "critic" -- see below), keyed on enc.pt +
-               train.jsonl + eval.jsonl content. No checkpoints, no
-               export, no report -- just watch gan/energy/{train,val} in
-               TensorBoard. Always runs locally, ignores --local.
-      critic   Debug only: fit ColorCritic alone, no generator. Text is
+               distance. An unconditional ColorCritic trains alongside it
+               purely for logging -- it only ever sees a detached fake
+               color, so it feeds no gradient into the generator. Text is
                embedded once up front by a frozen pretrained encoder
                (requires enc.pt in pt/; the encoder itself is not
                trained) and those embeddings are reused every epoch.
-               Cached to pt/critic_text_cache.pt, keyed on enc.pt +
+               Cached to pt/text_enc_cache.pt (same cache as stage "gan"
+               above and stage "critic" below), keyed on enc.pt +
+               train.jsonl + eval.jsonl content. No checkpoints, no
+               export, no report -- just watch gan/energy/{train,val} and
+               gan/color_critic/{loss,auroc} in TensorBoard. Always
+               runs locally, ignores --local.
+      critic   Debug only: fit CondColorCritic alone, no generator. An
+               unconditional ColorCritic trains alongside it as a sanity
+               check -- real vs. shuffled colors share the same marginal
+               distribution with no text to key on, so it should sit near
+               chance AUROC. Text is embedded once up front by a frozen
+               pretrained encoder (requires enc.pt in pt/; the encoder
+               itself is not trained) and those embeddings are reused
+               every epoch. Cached to pt/text_enc_cache.pt (same cache
+               as stage "gan"/"energy" above), keyed on enc.pt +
                train.jsonl + eval.jsonl content -- reused as-is on the
-               next run unless one of those changes. Fake pairs are
-               real colors shuffled across the batch, paired with the
-               (unshuffled) real text embeddings. No checkpoints, no
-               export, no report -- just watch
-               gan/critic/{loss,auroc/train,auroc/val} in TensorBoard.
-               Always runs locally, ignores --local.
+               next run unless one of those changes. Fake pairs
+               are real colors shuffled across the batch, paired with
+               the (unshuffled) real text embeddings for the conditional
+               critic. No checkpoints, no export, no report -- just
+               watch gan/cond_color_critic/{loss,auroc} and
+               gan/color_critic/{loss,auroc} in
+               TensorBoard. Always runs locally, ignores --local.
 
     Location
       Runs on Modal (a T4 GPU) by default. --local runs here instead.

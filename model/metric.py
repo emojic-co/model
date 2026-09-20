@@ -21,6 +21,7 @@ class Metric(StrEnum):
     MAE = "mae"
     MRR = "mrr"
     R2 = "r2"
+    AUROC = "auroc"
 
 
 def named_metric(
@@ -35,9 +36,11 @@ def named_metric(
 class GanMetric:
     ENERGY_TRAIN = "gan/energy/train"
     ENERGY_VAL = "gan/energy/val"
-    GEN_LOSS = "gan/gen/loss"
-    CRITIC_LOSS = "gan/critic/loss"
-    CRITIC_AUROC_TRAIN = "gan/critic/auroc/train"
-    CRITIC_AUROC_VAL = "gan/critic/auroc/val"
-    CRITIC_MEAN_SCORE_REAL = "gan/critic/mean_score/real"
-    CRITIC_MEAN_SCORE_FAKE = "gan/critic/mean_score/fake"
+    GEN_LOSS_COND_COLOR_CRITIC = "gan/gen/loss/cond_color_critic"
+    GEN_LOSS_COLOR_CRITIC = "gan/gen/loss/color_critic"
+    COND_COLOR_CRITIC_LOSS = "gan/cond_color_critic/loss"
+    COND_COLOR_CRITIC_AUROC = "gan/cond_color_critic/auroc"
+    COND_COLOR_CRITIC_MEAN_SCORE_REAL = "gan/cond_color_critic/mean_score/real"
+    COND_COLOR_CRITIC_MEAN_SCORE_FAKE = "gan/cond_color_critic/mean_score/fake"
+    COLOR_CRITIC_LOSS = "gan/color_critic/loss"
+    COLOR_CRITIC_AUROC = "gan/color_critic/auroc"

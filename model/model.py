@@ -9,7 +9,8 @@ from torch.nn.utils.parametrizations import spectral_norm as sn
 
 from model.color import COLOR_SHIFT
 from model.config import (
-    CRITIC_EMBEDDING_SIZE,
+    COND_CRITIC_EMBEDDING_SIZE,
+    CRITIC_HIDDEN_SIZE,
     DROPOUT,
     EMBED_SIZE_CHAR,
     EMBED_SIZE_EMOJI,
@@ -19,8 +20,8 @@ from model.config import (
     ENCODER_DILATION,
     ENCODER_KERNEL_SIZE,
     GEN_HIDDEN_SIZE,
+    NOISE_DIM,
     RELU_SLOPE,
-    Z_WEIGHT,
 )
 from model.data import COLOR_DIM, EMOJIS, LANGS, PAD_IDX, STYLES, VOCAB_SIZE
 
@@ -134,7 +135,7 @@ class ColorGen(nn.Module):
         super().__init__()
 
         self.net = nn.Sequential(
-            *blk(EMBED_SIZE_TEXT, GEN_HIDDEN_SIZE),
+            *blk(EMBED_SIZE_TEXT + NOISE_DIM, GEN_HIDDEN_SIZE),
             *blk(GEN_HIDDEN_SIZE, GEN_HIDDEN_SIZE),
             nn.Linear(GEN_HIDDEN_SIZE, COLOR_DIM))
 
@@ -144,13 +145,13 @@ class ColorGen(nn.Module):
         z: torch.Tensor | None = None,
     ) -> torch.Tensor:
         if z is None:
-            z = torch.randn_like(
-                cond, device=cond.device, dtype=cond.dtype)
+            z = torch.randn(
+                cond.shape[0], NOISE_DIM, device=cond.device, dtype=cond.dtype)
 
         z = normalize(z, dim=-1)
         cond = normalize(cond, dim=-1)
 
-        seed = (1 - Z_WEIGHT) * cond + Z_WEIGHT * z
+        seed = torch.cat([cond, z], dim=-1)
 
         colors = self.net(seed)
         return tanh(colors) * COLOR_SHIFT
@@ -166,16 +167,27 @@ class ColorCritic(nn.Module):
     def __init__(self):
         super().__init__()
 
+        self.color_critic = nn.Sequential(
+            *cblk(COLOR_DIM, CRITIC_HIDDEN_SIZE),
+            nn.Linear(CRITIC_HIDDEN_SIZE, 1, bias=False))
+
+    def forward(self, colors: torch.Tensor):
+
+        return self.color_critic(colors)
+
+
+class CondColorCritic(nn.Module):
+    def __init__(self):
+        super().__init__()
+
         self.color_embedding = nn.Sequential(
-            *cblk(COLOR_DIM, CRITIC_EMBEDDING_SIZE),
-            *cblk(CRITIC_EMBEDDING_SIZE, CRITIC_EMBEDDING_SIZE))
+            *cblk(COLOR_DIM, COND_CRITIC_EMBEDDING_SIZE),
+            *cblk(COND_CRITIC_EMBEDDING_SIZE, COND_CRITIC_EMBEDDING_SIZE))
 
         self.text_embedding = nn.Sequential(
-            *cblk(EMBED_SIZE_TEXT, CRITIC_EMBEDDING_SIZE))
+            *cblk(EMBED_SIZE_TEXT, COND_CRITIC_EMBEDDING_SIZE))
 
-    def forward(
-        self, cond: torch.Tensor, colors: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, cond: torch.Tensor, colors: torch.Tensor):
         c = self.color_embedding(colors)
         t = self.text_embedding(cond)
 

@@ -1,2 +1,2 @@
 data/data.jsonl filter=lfs diff=lfs merge=lfs -text
-archive/*.jsonl filter=lfs diff=lfs merge=lfs -text
+archive/*.jsonl.gz filter=lfs diff=lfs merge=lfs -text

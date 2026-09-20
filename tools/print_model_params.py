@@ -1,19 +1,18 @@
+from model.model import ColorGen, CondColorCritic, EmojiHead, StyleHead, TextEncoder
+from torch import nn
+import typer
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-import typer
-from torch import nn
-
-from model.model import ColorCritic, ColorGen, EmojiHead, StyleHead, TextEncoder
 
 MODELS: list[tuple[str, type[nn.Module]]] = [
     ("TextEncoder", TextEncoder),
     ("StyleHead", StyleHead),
     ("EmojiHead", EmojiHead),
     ("ColorGen", ColorGen),
-    ("ColorCritic", ColorCritic),
+    ("ColorCritic", CondColorCritic),
 ]
 
 

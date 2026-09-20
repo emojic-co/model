@@ -1,3 +1,15 @@
-At the bottom of the "Model — Generator energy distance by keyword" section.
-Add a 4 columns grid, the left 2 columns are for the GT and the right 2 columns are for model predictions.
-For each keyword, show 5 rows of GT and model predictions (total of 10 GT and 10 model predictions per keyword).
+Done:
+Update the text encoder train procedure:
+Add two more heads:
+1. ColorGen - will be used as a color regressor with zero noise input, minimize MAE loss in the RGB color space, log also r^2.
+2. CondColorCritic - will be used as a classifier on a (text, color) pairs both real and fake (shuffeled pairs), minimize BCE loss, log auroc.
+
+Use the:
+LOSS_WEIGHT_COLOR_REGRESSION = 0.1
+LOSS_WEIGHT_COND_COLOR_CRITIC = 0.1
+
+As absolute loss booster to the total text encoder loss.
+
+
+Note:
+These are throwaway heads, do not use them for the GAN training step.
