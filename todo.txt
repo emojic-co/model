@@ -1,3 +1,5 @@
-At the bottom of the "Model — Generator energy distance by keyword" section.
-Add a 4 columns grid, the left 2 columns are for the GT and the right 2 columns are for model predictions.
-For each keyword, show 5 rows of GT and model predictions (total of 10 GT and 10 model predictions per keyword).
+when it finishes, update the generated html to include samples from the:
+  color generator:
+    energy distance:
+
+Same as in the report "Model — Generator energy distance by keyword" section.
