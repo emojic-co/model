@@ -1,3 +1,5 @@
-And update the log names to:
-gan/gen/loss/color_critic/{train,val}
-gan/gen/loss/cond_color_critic/{train,val}
+Done:
+Update the log names:
+Always use either `color_critic` or `cond_color_critic` never just `critic`
+
+And make sure there are both `gan/color_critic/auroc` and `gan/cond_color_critic/auroc` in the logs.

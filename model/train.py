@@ -444,8 +444,8 @@ class LitColorGAN(pl.LightningModule):
 
         opt_gen.step()
 
-        self.log(GanMetric.CRITIC_LOSS, loss_critic, prog_bar=True)
-        self.log(GanMetric.CRITIC_AUROC_TRAIN, auroc, prog_bar=True)
+        self.log(GanMetric.COND_COLOR_CRITIC_LOSS, loss_critic, prog_bar=True)
+        self.log(GanMetric.COND_COLOR_CRITIC_AUROC_TRAIN, auroc, prog_bar=True)
         self.log(GanMetric.COLOR_CRITIC_LOSS, loss_color_critic, prog_bar=True)
         self.log(GanMetric.COLOR_CRITIC_AUROC_TRAIN, color_auroc, prog_bar=True)
         self.log(
@@ -632,16 +632,16 @@ class LitColorCritic(pl.LightningModule):
         self._trn_color_score.append(color_score.detach())
         self._trn_color_target.append(color_target.detach())
 
-        self.log(GanMetric.CRITIC_LOSS, loss, prog_bar=True)
-        self.log(GanMetric.CRITIC_MEAN_SCORE_REAL, real.detach().mean())
-        self.log(GanMetric.CRITIC_MEAN_SCORE_FAKE, fake_score.detach().mean())
+        self.log(GanMetric.COND_COLOR_CRITIC_LOSS, loss, prog_bar=True)
+        self.log(GanMetric.COND_COLOR_CRITIC_MEAN_SCORE_REAL, real.detach().mean())
+        self.log(GanMetric.COND_COLOR_CRITIC_MEAN_SCORE_FAKE, fake_score.detach().mean())
         self.log(GanMetric.COLOR_CRITIC_LOSS, loss_color, prog_bar=True)
         return loss + loss_color
 
     def on_train_epoch_end(self):
         if self._trn_score:
             self.log(
-                GanMetric.CRITIC_AUROC_TRAIN,
+                GanMetric.COND_COLOR_CRITIC_AUROC_TRAIN,
                 self._auroc(
                     torch.cat(self._trn_score), torch.cat(self._trn_target)
                 ),
@@ -670,7 +670,7 @@ class LitColorCritic(pl.LightningModule):
     def on_validation_epoch_end(self):
         if self._val_score:
             self.log(
-                GanMetric.CRITIC_AUROC_VAL,
+                GanMetric.COND_COLOR_CRITIC_AUROC_VAL,
                 self._auroc(
                     torch.cat(self._val_score), torch.cat(self._val_target)
                 ),
@@ -1033,7 +1033,8 @@ def _train_critic(
         devices="auto",
         accelerator="auto",
         logger=TensorBoardLogger(
-            "runs", name=CONFIG_NAME, version="critic", default_hp_metric=False
+            "runs", name=CONFIG_NAME, version="cond_color_critic",
+            default_hp_metric=False
         ),
         deterministic=_DETERMINISTIC,  # type: ignore
         max_epochs=EPOCHS_GAN,
@@ -1459,7 +1460,7 @@ def cli(
                are real colors shuffled across the batch, paired with
                the (unshuffled) real text embeddings for the conditional
                critic. No checkpoints, no export, no report -- just
-               watch gan/critic/{loss,auroc/train,auroc/val} and
+               watch gan/cond_color_critic/{loss,auroc/train,auroc/val} and
                gan/color_critic/{loss,auroc/train,auroc/val} in
                TensorBoard. Always runs locally, ignores --local.
 
