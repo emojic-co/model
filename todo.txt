@@ -1,4 +1,13 @@
-I want to run experiment in which the GAN is trained only with the color critic loss.
-The goal is to see if the energy decreases even when the energy loss is not used in training. 
-Currently the energy loss increasing, what can we do to fix this?
-Using only the generator and the color critic loss is a hard constraint.
+I want to avoid as much as we can using the energy loss directly to train the generator.
+The reason is that while it lower the energy distance the final results are more often than not do not match the text.
+I tried to use just the `color_critic` and just the `cond_color_critic` but, while lowering the energy distance a bit, they do not lower it enough.
+The final results also look bad.
+I think we must change something else than just balance between the loss functions.
+Either change the models, the training or both.
+I prefer to modify the models over changing the train procedure.
+
+We might want to try (again) to concat the noise to the text in the generator.
+Please, if you choose to implement it, use the (already defined) `Z_WEIGHT` to control the dimension of the noise.
+The dimension of the noise should be `Z_WEIGHT * TEXT_EMBEDDING_SIZE` and the noise should be concatenated to the text embedding before being passed to the generator.
+
+If you have any other suggestions, please let me know.
