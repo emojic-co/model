@@ -69,7 +69,7 @@ export function collapse(rows: unknown[]): Row[] {
     const row = (raw ?? {}) as Record<string, unknown>
     const text = typeof row.text === "string" ? row.text : ""
     const key = normalize(text)
-    if (!key) continue
+    if (!key || key.length > MAX_TEXT_LEN) continue
     let a = acc.get(key)
     if (!a) {
       a = {
@@ -171,7 +171,7 @@ import {
   WA_KEYWORDS_JSON as WA,
 } from "../../files.ts"
 import { runBaseline } from "../analysis/cldr-baseline.ts"
-import { SEED, STYLES } from "./config"
+import { MAX_TEXT_LEN, SEED, STYLES } from "./config"
 import { readJsonl, writeFileAtomic } from "./io.ts"
 import { writeKeywordsAndTerms } from "./keywords.ts"
 

@@ -998,13 +998,15 @@ class _CondColorDataset(Dataset):
 
 def _encode_texts(enc: TextEncoder, text: torch.Tensor) -> torch.Tensor:
     enc.eval()
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    enc.to(device)
     chunks = []
     starts = range(0, text.shape[0], GAN_BATCH_SIZE)
     with torch.no_grad():
         for i in tqdm(
             starts, desc="encoding text", disable=_no_progress_bar()
         ):
-            chunks.append(enc(text[i:i + GAN_BATCH_SIZE]))
+            chunks.append(enc(text[i:i + GAN_BATCH_SIZE].to(device)).cpu())
     return torch.cat(chunks)
 
 
