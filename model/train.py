@@ -21,7 +21,9 @@ from lightning.pytorch.callbacks import (
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
 from torch.nn.functional import (
+    binary_cross_entropy_with_logits,
     cross_entropy,
+    l1_loss,
     relu,
 )
 from torch.utils.data import DataLoader, Dataset
@@ -67,13 +69,16 @@ from model.config import (
     INFONCE_TEMP_EMOJI,
     INFONCE_TEMP_STYLE,
     LOSS_WEIGHT_COLOR_CRITIC,
+    LOSS_WEIGHT_COLOR_REGRESSION,
     LOSS_WEIGHT_COND_COLOR_CRITIC,
+    LOSS_WEIGHT_ENC_COND_COLOR_CRITIC,
     LOSS_WEIGHT_ENERGY,
     LR_ENCODER,
     LR_GAN_COND_CRITIC,
     LR_GAN_CRITIC,
     LR_GAN_GEN,
     MACRO_MIN_SUPPORT,
+    NOISE_DIM,
     SAMPLING_RATE_MAX,
     SAMPLING_RATE_MIN,
     SAMPLING_SOURCES,
@@ -143,6 +148,12 @@ def acc_at_k(logits: torch.Tensor, target: torch.Tensor, k: int) -> torch.Tensor
     return rel[:, :k].amax(dim=-1)
 
 
+def r2_score(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    ss_res = (target - pred).pow(2).sum()
+    ss_tot = (target - target.mean(dim=0, keepdim=True)).pow(2).sum()
+    return 1 - ss_res / ss_tot.clamp(min=1e-8)
+
+
 def _energy_subsample(x: torch.Tensor, n: int) -> torch.Tensor:
     if x.shape[0] <= n:
         return x
@@ -167,6 +178,8 @@ class LitEncoder(pl.LightningModule):
         self.heads = tuple(heads)
 
         self.enc = TextEncoder()
+        self.color_gen = ColorGen()
+        self.cond_color_critic = CondColorCritic()
         if "style" in self.heads:
             self.style = StyleHead()
         if "emoji" in self.heads:
@@ -190,7 +203,7 @@ class LitEncoder(pl.LightningModule):
                  prog_bar=True, batch_size=bs)
 
     def _step(self, batch, split: Split):
-        text, emoji, style, _colors, lang, source = batch
+        text, emoji, style, colors, lang, source = batch
         enc = self.enc(text)
         loss = enc.new_zeros(())
 
@@ -249,6 +262,45 @@ class LitEncoder(pl.LightningModule):
             lang_logits = self.lang(enc)
             loss_lang = cross_entropy(lang_logits, lang)
             loss = loss + loss_lang
+
+        has_color = torch.tensor(
+            [s == SRC_FULL for s in source], device=enc.device
+        )
+        n_color = int(has_color.sum())
+        if n_color:
+            cond = enc[has_color]
+            real_color = colors[has_color]
+
+            z = torch.zeros(
+                n_color, NOISE_DIM, device=cond.device, dtype=cond.dtype)
+            pred_color = self.color_gen(cond, z=z)
+            loss_color_gen = l1_loss(pred_color, real_color)
+            loss = loss + LOSS_WEIGHT_COLOR_REGRESSION * loss_color_gen
+            self._log(
+                named_metric(Source.COLOR, Metric.MAE, split),
+                loss_color_gen.detach(), n_color,
+            )
+            self._log(
+                named_metric(Source.COLOR, Metric.R2, split),
+                r2_score(pred_color.detach(), real_color), n_color,
+            )
+
+            fake_color = real_color[
+                torch.randperm(n_color, device=real_color.device)
+            ]
+            pair = torch.cat([real_color, fake_color], dim=0)
+            cond_pair = torch.cat([cond, cond], dim=0)
+            score = self.cond_color_critic(cond_pair, pair)
+            target = torch.cat(
+                [score.new_ones(n_color, 1), score.new_zeros(n_color, 1)]
+            )
+            loss_critic = binary_cross_entropy_with_logits(score, target)
+            loss = loss + LOSS_WEIGHT_ENC_COND_COLOR_CRITIC * loss_critic
+            self._log(
+                named_metric(Source.COLOR, Metric.AUROC, split),
+                binary_auroc(score.detach().squeeze(-1), target.squeeze(-1).long()),
+                n_color,
+            )
 
         return loss
 
@@ -318,6 +370,8 @@ class LitEncoder(pl.LightningModule):
 
     def configure_optimizers(self):
         params = list(self.enc.parameters())
+        params += list(self.color_gen.parameters())
+        params += list(self.cond_color_critic.parameters())
         if "emoji" in self.heads:
             params += list(self.emoji_embed.parameters())
         for h in self.heads:

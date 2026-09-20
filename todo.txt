@@ -1,13 +1,15 @@
-I want to avoid as much as we can using the energy loss directly to train the generator.
-The reason is that while it lower the energy distance the final results are more often than not do not match the text.
-I tried to use just the `color_critic` and just the `cond_color_critic` but, while lowering the energy distance a bit, they do not lower it enough.
-The final results also look bad.
-I think we must change something else than just balance between the loss functions.
-Either change the models, the training or both.
-I prefer to modify the models over changing the train procedure.
+Done:
+Update the text encoder train procedure:
+Add two more heads:
+1. ColorGen - will be used as a color regressor with zero noise input, minimize MAE loss in the RGB color space, log also r^2.
+2. CondColorCritic - will be used as a classifier on a (text, color) pairs both real and fake (shuffeled pairs), minimize BCE loss, log auroc.
 
-We might want to try (again) to concat the noise to the text in the generator.
-Please, if you choose to implement it, use the (already defined) `Z_WEIGHT` to control the dimension of the noise.
-The dimension of the noise should be `Z_WEIGHT * TEXT_EMBEDDING_SIZE` and the noise should be concatenated to the text embedding before being passed to the generator.
+Use the:
+LOSS_WEIGHT_COLOR_REGRESSION = 0.1
+LOSS_WEIGHT_COND_COLOR_CRITIC = 0.1
 
-If you have any other suggestions, please let me know.
+As absolute loss booster to the total text encoder loss.
+
+
+Note:
+These are throwaway heads, do not use them for the GAN training step.
