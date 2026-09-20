@@ -559,11 +559,17 @@ class LitColorCritic(pl.LightningModule):
         super().__init__()
 
         self.critic = CondColorCritic()
+        self.color_critic = ColorCritic()
 
         self._trn_score: list[torch.Tensor] = []
         self._trn_target: list[torch.Tensor] = []
         self._val_score: list[torch.Tensor] = []
         self._val_target: list[torch.Tensor] = []
+
+        self._trn_color_score: list[torch.Tensor] = []
+        self._trn_color_target: list[torch.Tensor] = []
+        self._val_color_score: list[torch.Tensor] = []
+        self._val_color_target: list[torch.Tensor] = []
 
     def _real_fake(
         self, cond: torch.Tensor, colors: torch.Tensor
@@ -578,16 +584,32 @@ class LitColorCritic(pl.LightningModule):
         target = torch.cat([score.new_ones(n, 1), score.new_zeros(n, 1)])
         return score, target
 
+    def _color_real_fake(
+        self, colors: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        fake = colors[torch.randperm(colors.shape[0], device=colors.device)]
+
+        pair = torch.cat([colors, fake], dim=0)
+        score = self.color_critic(pair)
+
+        n = colors.shape[0]
+        target = torch.cat([score.new_ones(n, 1), score.new_zeros(n, 1)])
+        return score, target
+
     def _auroc(self, score: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         return binary_auroc(score.squeeze(-1), target.squeeze(-1).long())
 
     def on_train_epoch_start(self):
         self._trn_score.clear()
         self._trn_target.clear()
+        self._trn_color_score.clear()
+        self._trn_color_target.clear()
 
     def on_validation_epoch_start(self):
         self._val_score.clear()
         self._val_target.clear()
+        self._val_color_score.clear()
+        self._val_color_target.clear()
 
     def training_step(self, batch, batch_idx):
         cond, colors = batch
@@ -596,12 +618,25 @@ class LitColorCritic(pl.LightningModule):
 
         loss = relu(1 - real).mean() + relu(1 + fake_score).mean()
 
+        # Unconditional ColorCritic, trained here only as a sanity check:
+        # real vs. shuffled colors share the same marginal distribution, so
+        # it has nothing to key on and should sit near chance AUROC.
+        color_score, color_target = self._color_real_fake(colors)
+        color_real, color_fake_score = color_score.chunk(2, dim=0)
+
+        loss_color = \
+            relu(1 - color_real).mean() + relu(1 + color_fake_score).mean()
+
         self._trn_score.append(score.detach())
         self._trn_target.append(target.detach())
+        self._trn_color_score.append(color_score.detach())
+        self._trn_color_target.append(color_target.detach())
+
         self.log(GanMetric.CRITIC_LOSS, loss, prog_bar=True)
         self.log(GanMetric.CRITIC_MEAN_SCORE_REAL, real.detach().mean())
         self.log(GanMetric.CRITIC_MEAN_SCORE_FAKE, fake_score.detach().mean())
-        return loss
+        self.log(GanMetric.COLOR_CRITIC_LOSS, loss_color, prog_bar=True)
+        return loss + loss_color
 
     def on_train_epoch_end(self):
         if self._trn_score:
@@ -612,12 +647,25 @@ class LitColorCritic(pl.LightningModule):
                 ),
                 prog_bar=True,
             )
+        if self._trn_color_score:
+            self.log(
+                GanMetric.COLOR_CRITIC_AUROC_TRAIN,
+                self._auroc(
+                    torch.cat(self._trn_color_score),
+                    torch.cat(self._trn_color_target),
+                ),
+                prog_bar=True,
+            )
 
     def validation_step(self, batch, batch_idx):
         cond, colors = batch
         score, target = self._real_fake(cond, colors)
         self._val_score.append(score.detach())
         self._val_target.append(target.detach())
+
+        color_score, color_target = self._color_real_fake(colors)
+        self._val_color_score.append(color_score.detach())
+        self._val_color_target.append(color_target.detach())
 
     def on_validation_epoch_end(self):
         if self._val_score:
@@ -628,9 +676,21 @@ class LitColorCritic(pl.LightningModule):
                 ),
                 prog_bar=True,
             )
+        if self._val_color_score:
+            self.log(
+                GanMetric.COLOR_CRITIC_AUROC_VAL,
+                self._auroc(
+                    torch.cat(self._val_color_score),
+                    torch.cat(self._val_color_target),
+                ),
+                prog_bar=True,
+            )
 
     def configure_optimizers(self):
-        return optim.SGD(self.critic.parameters(), lr=LR_GAN_CRITIC)
+        return optim.SGD(
+            [*self.critic.parameters(), *self.color_critic.parameters()],
+            lr=LR_GAN_CRITIC,
+        )
 
 
 def _load(mod: nn.Module, path: Path) -> nn.Module:
@@ -1356,8 +1416,9 @@ def cli(
         "(an unconditional ColorCritic also trains alongside it for "
         "logging only, with no gradient into the generator), using real "
         "cached text embeddings. "
-        "critic = debug: fit ColorCritic alone against a frozen pretrained "
-        "encoder (no generator). "
+        "critic = debug: fit CondColorCritic against a frozen pretrained "
+        "encoder (no generator); an unconditional ColorCritic trains "
+        "alongside it as a chance-AUROC sanity check. "
         "Omit to train the encoder then the GAN.",
     ),
     local: bool = typer.Option(
@@ -1385,18 +1446,22 @@ def cli(
                just watch gan/energy/{train,val} and
                gan/color_critic/{loss,auroc/train} in TensorBoard. Always
                runs locally, ignores --local.
-      critic   Debug only: fit ColorCritic alone, no generator. Text is
-               embedded once up front by a frozen pretrained encoder
-               (requires enc.pt in pt/; the encoder itself is not
-               trained) and those embeddings are reused every epoch.
-               Cached to pt/critic_text_cache.pt, keyed on enc.pt +
-               train.jsonl + eval.jsonl content -- reused as-is on the
-               next run unless one of those changes. Fake pairs are
-               real colors shuffled across the batch, paired with the
-               (unshuffled) real text embeddings. No checkpoints, no
-               export, no report -- just watch
-               gan/critic/{loss,auroc/train,auroc/val} in TensorBoard.
-               Always runs locally, ignores --local.
+      critic   Debug only: fit CondColorCritic alone, no generator. An
+               unconditional ColorCritic trains alongside it as a sanity
+               check -- real vs. shuffled colors share the same marginal
+               distribution with no text to key on, so it should sit near
+               chance AUROC. Text is embedded once up front by a frozen
+               pretrained encoder (requires enc.pt in pt/; the encoder
+               itself is not trained) and those embeddings are reused
+               every epoch. Cached to pt/critic_text_cache.pt, keyed on
+               enc.pt + train.jsonl + eval.jsonl content -- reused as-is
+               on the next run unless one of those changes. Fake pairs
+               are real colors shuffled across the batch, paired with
+               the (unshuffled) real text embeddings for the conditional
+               critic. No checkpoints, no export, no report -- just
+               watch gan/critic/{loss,auroc/train,auroc/val} and
+               gan/color_critic/{loss,auroc/train,auroc/val} in
+               TensorBoard. Always runs locally, ignores --local.
 
     Location
       Runs on Modal (a T4 GPU) by default. --local runs here instead.
