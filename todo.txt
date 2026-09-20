@@ -1,1 +1,4 @@
-When training the GAN can you pre-encode all texts and cache it in a .pt file.
+I want to run experiment in which the GAN is trained only with the color critic loss.
+The goal is to see if the energy decreases even when the energy loss is not used in training. 
+Currently the energy loss increasing, what can we do to fix this?
+Using only the generator and the color critic loss is a hard constraint.
