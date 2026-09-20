@@ -231,7 +231,14 @@ class LitEncoder(pl.LightningModule):
                 e_rr = self._val_e_rr if split == Split.VAL else self._trn_e_rr
                 e_rr.append(rr.detach())
 
-            if split == Split.VAL:
+            if split == Split.VAL and n_e:
+                self._log(
+                    named_metric(Source.FULL_TEXT, Metric.ACC_1),
+                    acc_at_k(emoji_logits[has_e], emoji[has_e], 1).mean(),
+                    n_e,
+                )
+
+            if split == Split.TRAIN:
                 for name, cfg in SAMPLING_SOURCES.items():
                     if cfg.metric != named_metric(name, Metric.ACC_1):
                         continue
@@ -245,18 +252,6 @@ class LitEncoder(pl.LightningModule):
                             acc_at_k(emoji_logits[mask], emoji[mask], 1).mean(),
                             n,
                         )
-                full_mask = torch.tensor(
-                    [s == SRC_FULL for s in source], device=emoji.device
-                )
-                n_full_e = int(full_mask.sum())
-                if n_full_e:
-                    self._log(
-                        named_metric(Source.FULL_TEXT, Metric.ACC_1),
-                        acc_at_k(
-                            emoji_logits[full_mask], emoji[full_mask], 1
-                        ).mean(),
-                        n_full_e,
-                    )
 
         if "lang" in self.heads:
             lang_logits = self.lang(enc)
@@ -1100,7 +1095,7 @@ def _run_local(stage: Stage | None) -> None:
             enc,  # type: ignore
             enc_path,
             train_ds(mix_sources=False),
-            eval_ds(mix_sources=False),
+            eval_ds(),
         )
         return
 
@@ -1116,7 +1111,7 @@ def _run_local(stage: Stage | None) -> None:
             _train_gan(
                 enc, enc_path, critic,  # type: ignore
                 train_ds(mix_sources=False),
-                eval_ds(mix_sources=False),
+                eval_ds(),
                 _DEFAULT_PT,
             )
             export()
@@ -1136,7 +1131,7 @@ def _run_local(stage: Stage | None) -> None:
     _train_gan(
         mod.enc, PtFile.ENC.in_dir(_DEFAULT_PT), critic,
         train_ds(mix_sources=False),
-        eval_ds(mix_sources=False),
+        eval_ds(),
         _DEFAULT_PT,
     )
     export()
