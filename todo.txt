@@ -1,4 +1,8 @@
 TODO:
+
+Done:
+Make sure that the generated image from the card does not have any "share" "copy" buttons not related to the card itself.
+
 1.  We need to make sure that the android and web apps produce identical visual results.
     Create a .yml file on the web that the android app syncs along with the model weights.
     The file should describe:
@@ -19,6 +23,3 @@ TODO:
 4. On web:
     "copy" just generates and copies the image to the clipboard.
     "share" shares the link to the card.
-
-Done:
-Make sure that the generated image from the card does not have any "share" "copy" buttons not related to the card itself.

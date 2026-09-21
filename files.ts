@@ -25,6 +25,8 @@ export const PRED_JSONL = `${DATA_DIR}/pred.jsonl`
 
 export const WEB_PUBLIC_DIR = "web/public"
 export const WEB_SRC_DIR = "web/src"
+export const ANDROID_ASSETS_DIR = "android/app/src/main/assets"
+export const STYLE_YML = `${WEB_PUBLIC_DIR}/style.yml`
 export const REPORT_DIR = "report"
 export const RUNS_DIR = "runs"
 export const PREVIEW_DIR = "preview"

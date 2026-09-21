@@ -48,8 +48,8 @@ export const PATTERN_FNS = {
   Wistful: { pattern: endlessClouds, scale: 2 },
 }
 
-const MAX_OPACITY = 0.14
-const REFERENCE_PX = 600
+export const MAX_OPACITY = 0.14
+export const REFERENCE_PX = 600
 
 function tileLayer({ pattern, scale }, fill, opacity) {
   const image = pattern(fill, opacity)

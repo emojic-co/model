@@ -1,7 +1,5 @@
 package ing.emojify
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -24,10 +22,4 @@ fun shareCard(context: Context, bitmap: Bitmap) {
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     context.startActivity(Intent.createChooser(intent, null))
-}
-
-fun copyCardToClipboard(context: Context, bitmap: Bitmap) {
-    val uri = writeCardPng(context, bitmap)
-    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    clipboard.setPrimaryClip(ClipData.newUri(context.contentResolver, "emojify card", uri))
 }

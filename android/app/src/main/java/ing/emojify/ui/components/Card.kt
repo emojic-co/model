@@ -5,15 +5,20 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -42,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ing.emojify.R
 import ing.emojify.model.Palette
+import ing.emojify.model.Styles
 import ing.emojify.model.patternTint
 import ing.emojify.model.resolveFeeling
 
@@ -51,14 +57,6 @@ private val fontProvider = GoogleFont.Provider(
     certificates = R.array.com_google_android_gms_fonts_certs,
 )
 
-// Proportions mirror web/src/styles.css's `.card` cqw-based sizing (card-emoji: 32cqw,
-// .card { padding: 7% }, useFitText's { min: 5, max: 13 } cqw range for the card text).
-private const val EMOJI_SIZE_RATIO = 0.32f
-private const val CARD_PADDING_RATIO = 0.07f
-private const val TEXT_MIN_SIZE_RATIO = 0.05f
-private const val TEXT_MAX_SIZE_RATIO = 0.13f
-private const val PATTERN_TILE_RATIO = 0.28f
-
 @Composable
 fun Card(
     text: String,
@@ -66,7 +64,6 @@ fun Card(
     feeling: String?,
     lang: String?,
     colors: Palette,
-    onCopy: () -> Unit,
     onShare: () -> Unit,
     onEmojiCycle: (Int) -> Unit,
     onFeelingCycle: (Int) -> Unit,
@@ -84,14 +81,16 @@ fun Card(
         onCaptureReady?.invoke { graphicsLayer.toImageBitmap().asAndroidBitmap() }
     }
 
+    val global = Styles.file.global
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val cardWidthDp = maxWidth
-        val emojiSizeSp = cardWidthDp.value * EMOJI_SIZE_RATIO
-        val cardPadding = cardWidthDp * CARD_PADDING_RATIO
-        val textMinSp = cardWidthDp.value * TEXT_MIN_SIZE_RATIO
-        val textMaxSp = cardWidthDp.value * TEXT_MAX_SIZE_RATIO
+        val emojiSizeSp = cardWidthDp.value * global.emojiRatio
+        val cardPadding = cardWidthDp * global.padRatio
+        val textMinSp = cardWidthDp.value * global.textMinRatio
+        val textMaxSp = cardWidthDp.value * global.textMaxRatio
         val density = LocalDensity.current
-        val patternTilePx = with(density) { (cardWidthDp * PATTERN_TILE_RATIO).toPx() }.toInt().coerceAtLeast(1)
+        val patternTileWidthPx = with(density) { (cardWidthDp * style.patternWidthRatio).toPx() }.toInt().coerceAtLeast(1)
+        val patternTileHeightPx = with(density) { (cardWidthDp * style.patternHeightRatio).toPx() }.toInt().coerceAtLeast(1)
 
         Column {
             Box(
@@ -122,11 +121,14 @@ fun Card(
                         .fillMaxSize()
                         .background(Brush.linearGradient(listOf(bg1, bg2))),
                 )
-                PatternBackground(
-                    cluster = style.cluster,
+                FeelingPatternBackground(
+                    feeling = feeling ?: "Neutral",
+                    svg = style.patternSvg,
                     tint = tint,
                     modifier = Modifier.matchParentSize(),
-                    tilePx = patternTilePx,
+                    opacity = global.maxPatternOpacity,
+                    tileWidthPx = patternTileWidthPx,
+                    tileHeightPx = patternTileHeightPx,
                 )
                 Box(
                     modifier = Modifier
@@ -153,7 +155,7 @@ fun Card(
                                 val fitSp = rememberFitFontSizeSp(
                                     text = displayText.ifBlank { "What's on your mind?" },
                                     fontFamily = fontFamily,
-                                    fontWeight = if (style.bold) FontWeight.Bold else FontWeight.Normal,
+                                    fontWeight = FontWeight(style.fontWeight),
                                     fontStyle = if (style.italic) FontStyle.Italic else FontStyle.Normal,
                                     letterSpacing = style.letterSpacingEm?.let { TextUnit(it, TextUnitType.Em) } ?: TextUnit.Unspecified,
                                     maxWidthPx = maxWidthPx,
@@ -169,7 +171,7 @@ fun Card(
                                     fontFamily = fontFamily,
                                     fontSize = fitSp.sp,
                                     lineHeight = (fitSp * 1.2f).sp,
-                                    fontWeight = if (style.bold) FontWeight.Bold else FontWeight.Normal,
+                                    fontWeight = FontWeight(style.fontWeight),
                                     fontStyle = if (style.italic) FontStyle.Italic else FontStyle.Normal,
                                     letterSpacing = style.letterSpacingEm?.let { TextUnit(it, TextUnitType.Em) } ?: TextUnit.Unspecified,
                                     modifier = Modifier.fillMaxWidth().scale(entranceScale.value),
@@ -179,9 +181,14 @@ fun Card(
                     }
                 }
             }
-            Row {
-                TextButton(onClick = onShare) { Text("share") }
-                TextButton(onClick = onCopy) { Text("copy") }
+            FilledTonalButton(
+                onClick = onShare,
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                contentPadding = ButtonDefaults.ContentPadding,
+            ) {
+                Icon(Icons.Filled.Share, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Share")
             }
         }
     }

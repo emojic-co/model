@@ -39,7 +39,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
-import ing.emojify.copyCardToClipboard
 import ing.emojify.model.EmojiScore
 import ing.emojify.model.Meta
 import ing.emojify.ui.components.SWATCH_MAX_SIZE
@@ -146,7 +145,6 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                 feeling = shownFeeling,
                 lang = lang,
                 colors = colors,
-                onCopy = { scope.launch { capture?.invoke()?.let { copyCardToClipboard(context, it) } } },
                 onShare = { scope.launch { capture?.invoke()?.let { shareCard(context, it) } } },
                 onEmojiCycle = { dir -> override = override.copy(emoji = cycle(emojiTop.map { it.emoji }, shownEmoji, dir)) },
                 onFeelingCycle = { dir -> override = override.copy(feeling = cycle(feelingOptions, shownFeeling, dir)) },

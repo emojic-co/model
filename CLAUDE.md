@@ -30,6 +30,7 @@ Architecture (read the code, not this file): `model/model.py` (encoder + heads +
 - Loop: grow corpus (`bun run upsample`, topic-rotation by default or a targeted mode) → `bun run regen` → `train --local` (see `model/train.py` for flags) → report auto-generates (or `tools/report.py` by hand). A single-head/single-stage train is scratch work, not the iteration result.
 - `model/train.py` aborts on a dirty git tree — commit/stash first.
 - Refresh web app without retraining: `model/export_onnx.py`. `.pt` is gitignored; commit `web/public/` instead.
+- Refresh card visual style (fonts/weights/patterns/layout ratios) without retraining: `bun run export-style` — see `tools/data/export-style.ts`.
 - Web app: from `web/`, `npm install && npm run dev` / `npm test` / `npm run build`.
 - `bun run regen` must run before any Python entry point that loads the label vocab.
 
@@ -37,6 +38,7 @@ Architecture (read the code, not this file): `model/model.py` (encoder + heads +
 
 - Colors are a GAN, not a head; style/emoji are the only classifier heads — see `model/model.py` / `model/train.py`.
 - `model/data.py` normalize and `web/src/model.js` normalize must stay byte-identical (training vs. browser inference); changing either invalidates checkpoints.
+- `web/src/feelings.js` + `web/src/patterns.js` are the source of truth for per-style visuals (font/weight/pattern/opacity); `web/public/style.yml` is generated from them by `tools/data/export-style.ts` and synced into the Android app (`android/app/src/main/assets/style.yml`, OTA-refreshed by `StyleUpdater.kt`) so both apps render identical cards. Edit the JS, then re-run `bun run export-style` — `tools/data/export-style.test.ts` fails the build if they drift.
 - Fixed-length char indexing with an explicit pad index, shared by training and inference.
 - No pytest suite, no CI gate on tests — `ruff` before committing; real verification is a full `train --local` + `tools/report.py` run, not the quick checks. Checkpoints get overwritten even when worse — trust the report, not file presence.
 - Save/load checkpoints via `model/runmeta.py`, not raw `torch.save`/`load`.

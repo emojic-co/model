@@ -17,6 +17,7 @@
     "pinterest": "bun run tools/social/pinterest.ts",
     "show-labels": "bun run tools/data/show-labels.ts",
     "emoji-coverage": "bun run tools/analysis/emoji-coverage.ts",
+    "export-style": "bun run tools/data/export-style.ts",
     "serve": "live-server docs --port=8000",
     "web": "cd web && bun install && bun run dev",
     "web:build": "cd web && bun install && bun run build",

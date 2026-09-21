@@ -52,7 +52,7 @@ private fun FeelingSwatch(feeling: String, isActive: Boolean, swatchSize: androi
     val fitSp = rememberFitFontSizeSp(
         text = displayText,
         fontFamily = fontFamily,
-        fontWeight = if (style.bold) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal,
+        fontWeight = androidx.compose.ui.text.font.FontWeight(style.fontWeight),
         fontStyle = if (style.italic) androidx.compose.ui.text.font.FontStyle.Italic else androidx.compose.ui.text.font.FontStyle.Normal,
         letterSpacing = style.letterSpacingEm?.let { TextUnit(it, TextUnitType.Em) } ?: TextUnit.Unspecified,
         maxWidthPx = innerPx,
@@ -82,7 +82,7 @@ private fun FeelingSwatch(feeling: String, isActive: Boolean, swatchSize: androi
             fontSize = fitSp.sp,
             lineHeight = (fitSp * 1.2f).sp,
             textAlign = TextAlign.Center,
-            fontWeight = if (style.bold) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal,
+            fontWeight = androidx.compose.ui.text.font.FontWeight(style.fontWeight),
             fontStyle = if (style.italic) androidx.compose.ui.text.font.FontStyle.Italic else androidx.compose.ui.text.font.FontStyle.Normal,
             letterSpacing = style.letterSpacingEm?.let { TextUnit(it, TextUnitType.Em) } ?: TextUnit.Unspecified,
             modifier = Modifier.padding(SWATCH_PADDING),

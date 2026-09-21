@@ -17,6 +17,9 @@ import ing.emojify.model.Meta
 import ing.emojify.model.ModelUpdatePrefs
 import ing.emojify.model.ModelUpdater
 import ing.emojify.model.OnnxPredictor
+import ing.emojify.model.Styles
+import ing.emojify.model.StyleUpdater
+import ing.emojify.model.parseStyleFile
 import ing.emojify.ui.MainScreen
 import ing.emojify.ui.SettingsScreen
 import kotlinx.coroutines.CoroutineScope
@@ -29,6 +32,9 @@ private fun loadBundledModel(assets: AssetManager): Pair<String, ByteArray> {
     val modelBytes = assets.open("model.onnx").use { it.readBytes() }
     return metaJson to modelBytes
 }
+
+private fun loadBundledStyle(assets: AssetManager): String =
+    assets.open("style.yml").bufferedReader().use { it.readText() }
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,9 +53,22 @@ class MainActivity : ComponentActivity() {
         val meta = Json.decodeFromString(Meta.serializer(), metaJson)
         val predictor = OnnxPredictor(modelBytes, meta)
 
+        val styleUpdater = StyleUpdater(applicationContext)
+        val styleYaml = if (styleUpdater.hasCachedStyle()) {
+            try {
+                styleUpdater.cachedStyleFile.readText()
+            } catch (_: Exception) {
+                loadBundledStyle(assets)
+            }
+        } else {
+            loadBundledStyle(assets)
+        }
+        Styles.init(parseStyleFile(styleYaml))
+
         val prefs = getSharedPreferences(ModelUpdatePrefs.FILE, Context.MODE_PRIVATE)
         val wifiOnly = prefs.getBoolean(ModelUpdatePrefs.KEY_WIFI_ONLY, ModelUpdatePrefs.DEFAULT_WIFI_ONLY)
         CoroutineScope(Dispatchers.IO).launch { updater.run(wifiOnly = wifiOnly) }
+        CoroutineScope(Dispatchers.IO).launch { styleUpdater.run(wifiOnly = wifiOnly) }
 
         setContent {
             MaterialTheme {

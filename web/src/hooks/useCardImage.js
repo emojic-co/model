@@ -7,19 +7,37 @@ import { ensureScriptFontsLoaded, scriptForLang } from '../scriptFonts'
 
 const S = 512
 const WATERMARK = 'emojify.ing'
-const WATERMARK_PX = Math.round(0.044 * S)
 const EMOJI_STACK = '"Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif'
 
-const PAD = 0.07 * S
-const GAP = 0.03 * S
-const EMOJI_PX = 0.32 * S
-const EMOJI_DY = 0.065 * S
-const TEXT_BOX_PAD_X = 0.03 * S
-const TEXT_BOX_PAD_Y = 0.05 * S
-const TEXT_LINE_HEIGHT = 1.5
-const TEXT_MIN_PX = Math.round(0.05 * S)
-const TEXT_MAX_PX = Math.round(0.13 * S)
-const MAX_LINES = 10
+// Card layout ratios, relative to card size. Shared with tools/data/export-style.ts,
+// which bakes these into style.yml for the Android app to mirror.
+export const RATIOS = {
+  padRatio: 0.07,
+  gapRatio: 0.03,
+  emojiRatio: 0.32,
+  emojiDyRatio: 0.065,
+  textBoxPadXRatio: 0.03,
+  textBoxPadYRatio: 0.05,
+  textLineHeight: 1.5,
+  textMinRatio: 0.05,
+  textMaxRatio: 0.13,
+  maxLines: 10,
+  watermarkPxRatio: 0.044,
+  watermarkOpacity: 0.28,
+  watermarkMarginRatio: 0.055,
+}
+
+const WATERMARK_PX = Math.round(RATIOS.watermarkPxRatio * S)
+const PAD = RATIOS.padRatio * S
+const GAP = RATIOS.gapRatio * S
+const EMOJI_PX = RATIOS.emojiRatio * S
+const EMOJI_DY = RATIOS.emojiDyRatio * S
+const TEXT_BOX_PAD_X = RATIOS.textBoxPadXRatio * S
+const TEXT_BOX_PAD_Y = RATIOS.textBoxPadYRatio * S
+const TEXT_LINE_HEIGHT = RATIOS.textLineHeight
+const TEXT_MIN_PX = Math.round(RATIOS.textMinRatio * S)
+const TEXT_MAX_PX = Math.round(RATIOS.textMaxRatio * S)
+const MAX_LINES = RATIOS.maxLines
 
 async function ensureFonts(stack, emoji) {
   if (!document.fonts) return
@@ -137,8 +155,8 @@ async function render({ text, emoji, feeling, lang, colors }) {
     contrastRatio('#000000', colors.bg2) >= contrastRatio('#ffffff', colors.bg2)
       ? '#000000'
       : '#ffffff'
-  ctx.globalAlpha = 0.28
-  ctx.fillText(WATERMARK, S - 0.055 * S, S - 0.055 * S)
+  ctx.globalAlpha = RATIOS.watermarkOpacity
+  ctx.fillText(WATERMARK, S - RATIOS.watermarkMarginRatio * S, S - RATIOS.watermarkMarginRatio * S)
   ctx.restore()
 
   return new Promise((resolve, reject) => {
