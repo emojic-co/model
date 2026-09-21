@@ -1,7 +1,24 @@
+TODO:
+1.  We need to make sure that the android and web apps produce identical visual results.
+    Create a .yml file on the web that the android app syncs along with the model weights.
+    The file should describe:
+    - global settings:
+        - max opacity
+        - font size calculation
+        - etc...
+
+    - For each style:
+        - Font family
+        - Font weight
+        - bg pattern (literal SVG not just the name)
+        - etc...
+
+    Make sure that both android and web apps use this file to render the card.
+
+3. On android, it is enough to have just the "share" button, make it obvious and follow common design patters for a shared button.
+4. On web:
+    "copy" just generates and copies the image to the clipboard.
+    "share" shares the link to the card.
+
 Done:
-Create a tool `tools/social/pinterest.ts`
-The tool should publish cards to pinterest.com in all supported languages.
-The tool should track which cards were published.
-The tool should have a predefined engaging cards.
-The tool should also have a preview mode.
-Cards must look exactly the same as in the web app.
+Make sure that the generated image from the card does not have any "share" "copy" buttons not related to the card itself.
