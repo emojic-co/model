@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -85,6 +86,13 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
     var capture by remember { mutableStateOf<(suspend () -> android.graphics.Bitmap)?>(null) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val emojiListState = rememberLazyListState()
+    val feelingBarState = rememberLazyListState()
+
+    LaunchedEffect(text) {
+        emojiListState.scrollToItem(0)
+        feelingBarState.scrollToItem(0)
+    }
 
     LaunchedEffect(text) {
         if (text.trim().length < MIN_CHARS) {
@@ -178,7 +186,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             )
             Spacer(modifier = Modifier.height(16.dp))
-            EmojiList(items = emojiTop.ifEmpty { null }, active = shownEmoji) { picked ->
+            EmojiList(items = emojiTop.ifEmpty { null }, active = shownEmoji, state = emojiListState) { picked ->
                 override = override.copy(emoji = picked)
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -190,7 +198,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                     contentAlignment = Alignment.Center,
                 ) {
                     val swatchSize = (maxHeight - 8.dp).coerceIn(SWATCH_MIN_SIZE, SWATCH_MAX_SIZE)
-                    FeelingBar(feelings = feelingOptions, active = shownFeeling, swatchSize = swatchSize) { picked ->
+                    FeelingBar(feelings = feelingOptions, active = shownFeeling, swatchSize = swatchSize, state = feelingBarState) { picked ->
                         override = override.copy(feeling = picked)
                     }
                 }

@@ -1,6 +1,7 @@
 package ing.emojify.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -10,11 +11,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
@@ -179,17 +181,24 @@ fun Card(
                     }
                 }
             }
-            ExtendedFloatingActionButton(
-                onClick = onShare,
-                icon = { Icon(Icons.Filled.Share, contentDescription = null) },
-                text = { Text("Share") },
-                containerColor = Color.White.copy(alpha = 0.75f),
-                contentColor = Color.Black.copy(alpha = 0.8f),
-                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 1.dp, pressedElevation = 1.dp),
+            Box(
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .offset(y = (-16).dp),
-            )
+                    .align(Alignment.TopEnd)
+                    .padding(14.dp)
+                    .shadow(elevation = 3.dp, shape = CircleShape, clip = false)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.85f))
+                    .clickable(onClick = onShare)
+                    .size(40.dp),
+            ) {
+                Icon(
+                    Icons.Filled.Share,
+                    contentDescription = "Share",
+                    tint = Color.Black.copy(alpha = 0.85f),
+                    modifier = Modifier.size(20.dp),
+                )
+            }
         }
     }
 }

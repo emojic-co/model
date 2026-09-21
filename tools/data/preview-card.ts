@@ -28,7 +28,7 @@ export function cardHtml({ text, emoji, feeling, colors, lang }: CardData): stri
   const r = resolveFeeling(feeling, lang)
   const placeholder = !text.trim()
   const displayText = placeholder ? "What's on your mind?" : text
-  const layers = patternLayers(feeling, undefined, undefined, patternTint(colors.bg1, colors.bg2))
+  const layers = patternLayers(feeling, patternTint(colors.bg1, colors.bg2))
   const backgroundImage = [
     ...layers.map((l) => l.image),
     `linear-gradient(135deg, ${colors.bg1}, ${colors.bg2})`,

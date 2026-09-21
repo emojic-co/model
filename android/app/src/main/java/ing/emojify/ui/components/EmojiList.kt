@@ -4,8 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,9 +17,9 @@ import androidx.compose.ui.unit.dp
 import ing.emojify.model.EmojiScore
 
 @Composable
-fun EmojiList(items: List<EmojiScore>?, active: String?, onPick: (String) -> Unit) {
+fun EmojiList(items: List<EmojiScore>?, active: String?, state: LazyListState = rememberLazyListState(), onPick: (String) -> Unit) {
     if (items.isNullOrEmpty()) return
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    LazyRow(state = state, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(items, key = { it.emoji }) { item ->
             val isActive = item.emoji == active
             Text(

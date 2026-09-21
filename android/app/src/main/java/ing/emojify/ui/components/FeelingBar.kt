@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -49,6 +51,8 @@ private fun FeelingSwatch(feeling: String, isActive: Boolean, swatchSize: androi
     val displayText = if (style.uppercase) feeling.uppercase() else feeling
     val density = LocalDensity.current
     val innerPx = with(density) { (swatchSize - SWATCH_PADDING * 2).toPx() }.toInt()
+    val patternTileWidthPx = with(density) { (swatchSize * style.patternWidthRatio).toPx() }.toInt().coerceAtLeast(1)
+    val patternTileHeightPx = with(density) { (swatchSize * style.patternHeightRatio).toPx() }.toInt().coerceAtLeast(1)
     val fitSp = rememberFitFontSizeSp(
         text = displayText,
         fontFamily = fontFamily,
@@ -74,7 +78,15 @@ private fun FeelingSwatch(feeling: String, isActive: Boolean, swatchSize: androi
             )
             .clickable { onPick(feeling) },
     ) {
-        PatternBackground(cluster = style.cluster, tint = SWATCH_INK, opacity = 0.14f, modifier = Modifier.matchParentSize())
+        FeelingPatternBackground(
+            feeling = feeling,
+            svg = style.patternSvg,
+            tint = SWATCH_INK,
+            opacity = 0.14f,
+            modifier = Modifier.matchParentSize(),
+            tileWidthPx = patternTileWidthPx,
+            tileHeightPx = patternTileHeightPx,
+        )
         Text(
             text = displayText,
             color = SWATCH_INK,
@@ -95,10 +107,11 @@ fun FeelingBar(
     feelings: List<String>,
     active: String?,
     swatchSize: androidx.compose.ui.unit.Dp = SWATCH_MIN_SIZE,
+    state: LazyListState = rememberLazyListState(),
     onPick: (String) -> Unit,
 ) {
     if (feelings.isEmpty()) return
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    LazyRow(state = state, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(feelings, key = { it }) { feeling ->
             FeelingSwatch(feeling = feeling, isActive = feeling == active, swatchSize = swatchSize, onPick = onPick)
         }

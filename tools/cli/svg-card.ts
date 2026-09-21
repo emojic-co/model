@@ -82,7 +82,7 @@ export function cardSvg(row: Row, resolution: number, fonts: FontCache): string 
 
   const palette = row.colors[0]
   const colors = { bg1: palette.bg[0], bg2: palette.bg[1], text_color: palette.fg }
-  const layers = patternLayers(feeling, undefined, undefined, patternTint(colors.bg1, colors.bg2))
+  const layers = patternLayers(feeling, patternTint(colors.bg1, colors.bg2))
 
   const fontPath = fonts.fileFor(family, fontWeight, fontStyle)
   const widthAt = widthAtFn(fontPath, (px) => letterSpacingEm * px)

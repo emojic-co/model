@@ -140,10 +140,12 @@ async function render({ text, emoji, feeling, lang, colors }) {
   const lines = wrapLines((str) => ctx.measureText(str).width, headline, maxWidth, MAX_LINES)
   let ty = textCenterY - ((lines.length - 1) * fpx * TEXT_LINE_HEIGHT) / 2
   ctx.globalAlpha = st.opacity ?? 1
+  if ('direction' in ctx) ctx.direction = lang === 'he' ? 'rtl' : 'ltr'
   for (const line of lines) {
     ctx.fillText(line, S / 2, ty)
     ty += fpx * TEXT_LINE_HEIGHT
   }
+  if ('direction' in ctx) ctx.direction = 'ltr'
   ctx.globalAlpha = 1
   if ('letterSpacing' in ctx) ctx.letterSpacing = '0px'
 

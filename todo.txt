@@ -1,6 +1,6 @@
 TODO:
     Android APP:
-    - actual card and preview style cards do not match.
+    - when user inputs new text reset the emoji, color and style bars (scroll them back to start)
 
 Done:
 style.yml:
