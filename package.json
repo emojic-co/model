@@ -14,6 +14,7 @@
     "color-terms": "bun run tools/data/color-terms.ts",
     "preview": "bun run tools/preview.ts",
     "imgs": "bun run tools/cli/imgs.ts",
+    "pinterest": "bun run tools/social/pinterest.ts",
     "show-labels": "bun run tools/data/show-labels.ts",
     "emoji-coverage": "bun run tools/analysis/emoji-coverage.ts",
     "serve": "live-server docs --port=8000",

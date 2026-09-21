@@ -25,6 +25,7 @@ export type Row = {
   emojis: string
   styles: string[]
   colors: { bg: [string, string]; fg: string }[]
+  lang?: string
 }
 
 export function firstEmoji(field: string): string {
@@ -70,7 +71,7 @@ function decodePatternTile(cssUrl: string): { href: string; w: number; h: number
 
 export function cardSvg(row: Row, resolution: number, fonts: FontCache): string {
   const feeling = row.styles[0] ?? "Neutral"
-  const r = resolveFeeling(feeling)
+  const r = resolveFeeling(feeling, row.lang)
   const st = r.style ?? {}
   const fontWeight = st.fontWeight ?? 600
   const fontStyle = st.fontStyle === "italic" ? "italic" : "normal"

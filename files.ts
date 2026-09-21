@@ -32,3 +32,6 @@ export const DOCS_DIR = "docs"
 export const REGEN_MD = `${DOCS_DIR}/regen.md`
 export const GOALS_YML = "goals.yml"
 export const EMOJI_COVERAGE_HTML = `${WEB_PUBLIC_DIR}/emoji-coverage.html`
+
+export const SOCIAL_DIR = `${TOOLS_DIR}/social`
+export const PINTEREST_STATE_JSON = `${SOCIAL_DIR}/pinterest-published.json`

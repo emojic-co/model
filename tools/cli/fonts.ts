@@ -56,21 +56,25 @@ export class FontCache {
   }
 }
 
-export async function ensureFonts(): Promise<FontCache> {
+export async function ensureFonts(extraQueries: string[] = []): Promise<FontCache> {
   await mkdir(FONTS_DIR, { recursive: true })
-  const url = await googleFontsUrl()
-  const css = await (await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } })).text()
-  const faces = parseFontFaces(css)
+  const urls = [
+    await googleFontsUrl(),
+    ...extraQueries.map((q) => `https://fonts.googleapis.com/css2?${q}&display=swap`),
+  ]
 
   const cache = new FontCache()
   let downloaded = 0
-  for (const face of faces) {
-    const path = fileFor(face)
-    cache.add(face, path)
-    if (existsSync(path)) continue
-    const res = await fetch(face.url)
-    await writeFile(path, new Uint8Array(await res.arrayBuffer()))
-    downloaded++
+  for (const url of urls) {
+    const css = await (await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } })).text()
+    for (const face of parseFontFaces(css)) {
+      const path = fileFor(face)
+      cache.add(face, path)
+      if (existsSync(path)) continue
+      const res = await fetch(face.url)
+      await writeFile(path, new Uint8Array(await res.arrayBuffer()))
+      downloaded++
+    }
   }
   if (downloaded) await execFileAsync("fc-cache", ["-f", FONTS_DIR])
 
