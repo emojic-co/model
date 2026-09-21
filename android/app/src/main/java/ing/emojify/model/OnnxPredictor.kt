@@ -3,10 +3,9 @@ package ing.emojify.model
 import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
-import android.content.res.AssetManager
 import java.nio.LongBuffer
 
-class OnnxPredictor(assets: AssetManager, meta: Meta) : AutoCloseable {
+class OnnxPredictor(modelBytes: ByteArray, meta: Meta) : AutoCloseable {
     data class Prediction(
         val emojiLogits: FloatArray,
         val styleLogits: FloatArray,
@@ -16,9 +15,7 @@ class OnnxPredictor(assets: AssetManager, meta: Meta) : AutoCloseable {
 
     private val env = OrtEnvironment.getEnvironment()
     private val char2idx = meta.charToIndex()
-    private val session: OrtSession = assets.open("model.onnx").use { stream ->
-        env.createSession(stream.readBytes())
-    }
+    private val session: OrtSession = env.createSession(modelBytes)
 
     fun predict(text: String, meta: Meta): Prediction {
         val ids = encode(text, meta, char2idx)

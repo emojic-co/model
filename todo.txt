@@ -1,21 +1,2 @@
-4 point stars
-anchors away
-aztec
-brick wall
-bubbles
-circles and squares
-endless clouds
-falling triangles
-floating cogs
-glamorous
-happy intersection
-hideout
-i like food
-jigsaw
-overlapping circles
-plus
-polka dots
-random shapes
-skulls
-squares
-wiggle
+can we update the android app to check and fetch latest onnx model from the web?
+can we compact the entire logic into the onnx file?
