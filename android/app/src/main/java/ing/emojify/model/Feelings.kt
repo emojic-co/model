@@ -37,7 +37,7 @@ object Styles {
     }
 }
 
-private fun StyleEntry.toFeelingStyle() = FeelingStyle(
+private fun StyleEntry.toFeelingStyle(patterns: Map<String, String>) = FeelingStyle(
     cluster = cluster,
     fontName = font,
     fontWeight = fontWeight,
@@ -48,14 +48,14 @@ private fun StyleEntry.toFeelingStyle() = FeelingStyle(
     emojiMs = emojiMs,
     entranceMotif = entrance,
     emojiMotif = emoji,
-    patternSvg = pattern.svg,
+    patternSvg = patterns.getValue(pattern.name),
     patternWidthRatio = pattern.widthRatio,
     patternHeightRatio = pattern.heightRatio,
 )
 
 fun resolveFeeling(feeling: String?, lang: String? = "en"): FeelingStyle {
     val entry = Styles.file.styles[feeling] ?: Styles.file.styles.getValue("Neutral")
-    val base = entry.toFeelingStyle()
+    val base = entry.toFeelingStyle(Styles.file.patterns)
     val script = scriptForLang(lang)
     return if (script == LATIN) base else base.copy(fontName = fontForScript(script, base.cluster))
 }

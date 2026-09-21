@@ -1,0 +1,442 @@
+{
+  "Joyful": {
+    "en": {
+      "text": "I found a great spot for team photos",
+      "emoji": "🌲",
+      "colors": {
+        "bg1": "#d9ecf7",
+        "bg2": "#a9cfe5",
+        "text_color": "#17324d"
+      }
+    },
+    "he": {
+      "text": "השמש יצאה בדיוק בהפסקת הצהריים",
+      "emoji": "☀️",
+      "colors": {
+        "bg1": "#f8d85c",
+        "bg2": "#f3ad3d",
+        "text_color": "#3a290d"
+      }
+    }
+  },
+  "Excited": {
+    "en": {
+      "text": "We race soon, stay ready",
+      "emoji": "🏁",
+      "colors": {
+        "bg1": "#f0d7b5",
+        "bg2": "#dca879",
+        "text_color": "#321e13"
+      }
+    },
+    "he": {
+      "text": "בואו נרקוד עד הסוף",
+      "emoji": "💃",
+      "colors": {
+        "bg1": "#f05a78",
+        "bg2": "#d83f9f",
+        "text_color": "#3a102b"
+      }
+    }
+  },
+  "Hopeful": {
+    "en": {
+      "text": "should we bake something tomorrow?",
+      "emoji": "🥰",
+      "colors": {
+        "bg1": "#f2d9e2",
+        "bg2": "#dfb8c9",
+        "text_color": "#3c2330"
+      }
+    },
+    "he": {
+      "text": "מחר אני הולכת לשוק",
+      "emoji": "🛒",
+      "colors": {
+        "bg1": "#f6c453",
+        "bg2": "#e98f3a",
+        "text_color": "#3b2415"
+      }
+    }
+  },
+  "Serene": {
+    "en": {
+      "text": "We’re camping by the fjord",
+      "emoji": "🏕️",
+      "colors": {
+        "bg1": "#4b8790",
+        "bg2": "#2f6678",
+        "text_color": "#f3fbf8"
+      }
+    },
+    "he": {
+      "text": "היום מסיים מוקדם, נדבר בערב",
+      "emoji": "🌇",
+      "colors": {
+        "bg1": "#f2c68f",
+        "bg2": "#d88a78",
+        "text_color": "#35243a"
+      }
+    }
+  },
+  "Tender": {
+    "en": {
+      "text": "I brought extra sandwiches",
+      "emoji": "👬",
+      "colors": {
+        "bg1": "#e0b36f",
+        "bg2": "#c6814f",
+        "text_color": "#342114"
+      }
+    },
+    "he": {
+      "text": "שרון, תודה על המרק, הצלת אותי",
+      "emoji": "🍲",
+      "colors": {
+        "bg1": "#e8a05b",
+        "bg2": "#c96b3d",
+        "text_color": "#30170f"
+      }
+    }
+  },
+  "Playful": {
+    "en": {
+      "text": "We’re doing laps until nap time",
+      "emoji": "🏃",
+      "colors": {
+        "bg1": "#4aa6a8",
+        "bg2": "#8bd3c7",
+        "text_color": "#10383b"
+      }
+    },
+    "he": {
+      "text": "התחלתי בגלל הכלב, נשארתי בגלל רותם",
+      "emoji": "🐶",
+      "colors": {
+        "bg1": "#d69a62",
+        "bg2": "#a9654a",
+        "text_color": "#321d22"
+      }
+    }
+  },
+  "Whimsical": {
+    "en": {
+      "text": "She found something interesting again",
+      "emoji": "🦝",
+      "colors": {
+        "bg1": "#f1dfa9",
+        "bg2": "#dfc578",
+        "text_color": "#3b2d12"
+      }
+    },
+    "he": {
+      "text": "שמתי קינמון גם על החביתה",
+      "emoji": "🍳",
+      "colors": {
+        "bg1": "#e4b84f",
+        "bg2": "#c77b39",
+        "text_color": "#2b1b0b"
+      }
+    }
+  },
+  "Awed": {
+    "en": {
+      "text": "The team is amazed at your progress.",
+      "emoji": "📈",
+      "colors": {
+        "bg1": "#e5f0d5",
+        "bg2": "#bfd99f",
+        "text_color": "#263b18"
+      }
+    },
+    "he": {
+      "text": "הילדים מצאו מאובן ליד הגבעה.",
+      "emoji": "🧒",
+      "colors": {
+        "bg1": "#d6a55c",
+        "bg2": "#9a693f",
+        "text_color": "#211a13"
+      }
+    }
+  },
+  "Earnest": {
+    "en": {
+      "text": "Can you bring in my bins?",
+      "emoji": "😖",
+      "colors": {
+        "bg1": "#b8cfb2",
+        "bg2": "#86ad87",
+        "text_color": "#17351f"
+      }
+    },
+    "he": {
+      "text": "אל תמליחי לפני שטועמים",
+      "emoji": "🧂",
+      "colors": {
+        "bg1": "#c7d7df",
+        "bg2": "#8faebb",
+        "text_color": "#14252d"
+      }
+    }
+  },
+  "Determined": {
+    "en": {
+      "text": "I’m searching for the entrance",
+      "emoji": "🧭",
+      "colors": {
+        "bg1": "#e5e0d0",
+        "bg2": "#c9bea2",
+        "text_color": "#2c281d"
+      }
+    },
+    "he": {
+      "text": "נשארו לי עוד שני קילומטרים עקשנים.",
+      "emoji": "🏃",
+      "colors": {
+        "bg1": "#4e7184",
+        "bg2": "#284354",
+        "text_color": "#ffffff"
+      }
+    }
+  },
+  "Proud": {
+    "en": {
+      "text": "This grasshopper reference is perfect",
+      "emoji": "💯",
+      "colors": {
+        "bg1": "#d0e2b8",
+        "bg2": "#91b66d",
+        "text_color": "#1b321b"
+      }
+    },
+    "he": {
+      "text": "התוכי למד לחקות את צפירת המשאית",
+      "emoji": "🦜",
+      "colors": {
+        "bg1": "#f2b83f",
+        "bg2": "#df6546",
+        "text_color": "#30170d"
+      }
+    }
+  },
+  "Wistful": {
+    "en": {
+      "text": "I dusted off my old bicycle",
+      "emoji": "🥰",
+      "colors": {
+        "bg1": "#c8d9d0",
+        "bg2": "#a9c2b7",
+        "text_color": "#19332b"
+      }
+    },
+    "he": {
+      "text": "פעם לבשתי עניבה רק בחתונות",
+      "emoji": "👔",
+      "colors": {
+        "bg1": "#5d6d91",
+        "bg2": "#846070",
+        "text_color": "#f8f2e8"
+      }
+    }
+  },
+  "Melancholy": {
+    "en": {
+      "text": "I smiled, but it wasn't real.",
+      "emoji": "😔",
+      "colors": {
+        "bg1": "#b7a9c8",
+        "bg2": "#8f91b5",
+        "text_color": "#241d2b"
+      }
+    },
+    "he": {
+      "text": "ביטלנו את הטיול, הלילה היה קשוח",
+      "emoji": "🚫",
+      "colors": {
+        "bg1": "#35415f",
+        "bg2": "#20283d",
+        "text_color": "#f5e9d0"
+      }
+    }
+  },
+  "Anxious": {
+    "en": {
+      "text": "I’m freaking out!",
+      "emoji": "😱",
+      "colors": {
+        "bg1": "#ff9a9a",
+        "bg2": "#f05a5a",
+        "text_color": "#3b0d0d"
+      }
+    },
+    "he": {
+      "text": "אתם שומעים את האזעקה?",
+      "emoji": "🚨",
+      "colors": {
+        "bg1": "#9f3028",
+        "bg2": "#6d2527",
+        "text_color": "#fff1d6"
+      }
+    }
+  },
+  "Tense": {
+    "en": {
+      "text": "Drainage ditch is overflowing",
+      "emoji": "🐊",
+      "colors": {
+        "bg1": "#6aa9bc",
+        "bg2": "#4c8e83",
+        "text_color": "#102b33"
+      }
+    },
+    "he": {
+      "text": "אל תשכח לנקות את האמבטיה",
+      "emoji": "🛁",
+      "colors": {
+        "bg1": "#b8d8e6",
+        "bg2": "#78a9bd",
+        "text_color": "#132832"
+      }
+    }
+  },
+  "Furious": {
+    "en": {
+      "text": "I’m furious at this android",
+      "emoji": "🤖",
+      "colors": {
+        "bg1": "#c94b4b",
+        "bg2": "#8f2424",
+        "text_color": "#fff4ed"
+      }
+    },
+    "he": {
+      "text": "תמר כועסת מאז השיחה של אתמול",
+      "emoji": "😠",
+      "colors": {
+        "bg1": "#d65a4a",
+        "bg2": "#8f2f35",
+        "text_color": "#fff3ed"
+      }
+    }
+  },
+  "Irritated": {
+    "en": {
+      "text": "Why did you tell Dad that?",
+      "emoji": "👨",
+      "colors": {
+        "bg1": "#f2b7b7",
+        "bg2": "#dc8f9b",
+        "text_color": "#42151d"
+      }
+    },
+    "he": {
+      "text": "נועה, אל תזרקי את הברגים הקטנים",
+      "emoji": "🔩",
+      "colors": {
+        "bg1": "#aebdca",
+        "bg2": "#7f95a5",
+        "text_color": "#17232b"
+      }
+    }
+  },
+  "Disgusted": {
+    "en": {
+      "text": "That sandwich is growing green hair.",
+      "emoji": "🥪",
+      "colors": {
+        "bg1": "#91b27a",
+        "bg2": "#638657",
+        "text_color": "#10200d"
+      }
+    },
+    "he": {
+      "text": "יש ריח של ארגז חול",
+      "emoji": "🗑️",
+      "colors": {
+        "bg1": "#f0ecf9",
+        "bg2": "#ddd3f0",
+        "text_color": "#332a45"
+      }
+    }
+  },
+  "Startled": {
+    "en": {
+      "text": "She ate the whole spoonful?!",
+      "emoji": "🥄",
+      "colors": {
+        "bg1": "#ffe3a3",
+        "bg2": "#f7c875",
+        "text_color": "#3d2605"
+      }
+    },
+    "he": {
+      "text": "לא מאמין שהצבתי בית על הר געש",
+      "emoji": "🏠",
+      "colors": {
+        "bg1": "#5a1c18",
+        "bg2": "#c84c22",
+        "text_color": "#fff2d0"
+      }
+    }
+  },
+  "Sarcastic": {
+    "en": {
+      "text": "Should I bring anything besides opinions?",
+      "emoji": "💬",
+      "colors": {
+        "bg1": "#b8ded6",
+        "bg2": "#8fc7bd",
+        "text_color": "#163c3a"
+      }
+    },
+    "he": {
+      "text": "כיף, ביטלו את התוכנית ברגע האחרון",
+      "emoji": "📅",
+      "colors": {
+        "bg1": "#76515c",
+        "bg2": "#49343d",
+        "text_color": "#fff3e6"
+      }
+    }
+  },
+  "Deadpan": {
+    "en": {
+      "text": "Roger wants the logo in gold",
+      "emoji": "🎨",
+      "colors": {
+        "bg1": "#d8b24c",
+        "bg2": "#b98925",
+        "text_color": "#241b0b"
+      }
+    },
+    "he": {
+      "text": "אפשר לחלוק מונית לתחנה?",
+      "emoji": "🚕",
+      "colors": {
+        "bg1": "#d7c49a",
+        "bg2": "#b6a06e",
+        "text_color": "#252116"
+      }
+    }
+  },
+  "Neutral": {
+    "en": {
+      "text": "Just got back from the store",
+      "emoji": "🙂",
+      "colors": {
+        "bg1": "#a8e2f4",
+        "bg2": "#78c9f4",
+        "text_color": "#282e36"
+      }
+    },
+    "he": {
+      "text": "עוד יום רגיל בעבודה",
+      "emoji": "🙂",
+      "colors": {
+        "bg1": "#a8e2f4",
+        "bg2": "#78c9f4",
+        "text_color": "#282e36"
+      }
+    }
+  }
+}

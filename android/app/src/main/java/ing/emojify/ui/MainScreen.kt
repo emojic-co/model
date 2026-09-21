@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -164,6 +165,17 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                     focusedIndicatorColor = Color.Transparent,
                 ),
                 modifier = Modifier.fillMaxWidth(),
+            )
+            Text(
+                "${text.length}/${meta.max_text_len}",
+                style = MaterialTheme.typography.labelSmall,
+                color = if (text.length >= meta.max_text_len) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                textAlign = TextAlign.End,
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             )
             Spacer(modifier = Modifier.height(16.dp))
             EmojiList(items = emojiTop.ifEmpty { null }, active = shownEmoji) { picked ->

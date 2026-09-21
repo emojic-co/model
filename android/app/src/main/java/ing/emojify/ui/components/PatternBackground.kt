@@ -13,7 +13,9 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import android.util.Log
 import coil3.ImageLoader
+import coil3.request.ErrorResult
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.toBitmap
@@ -23,6 +25,7 @@ import kotlinx.coroutines.withContext
 
 const val DEFAULT_PATTERN_OPACITY = 0.25f
 private const val TILE_PX = 240
+private const val TAG = "PatternBackground"
 
 private suspend fun loadTile(context: android.content.Context, source: String, widthPx: Int, heightPx: Int): android.graphics.Bitmap? {
     val loader = ImageLoader(context)
@@ -31,6 +34,7 @@ private suspend fun loadTile(context: android.content.Context, source: String, w
         .size(widthPx.coerceAtLeast(1), heightPx.coerceAtLeast(1))
         .build()
     val result = loader.execute(request)
+    if (result is ErrorResult) Log.e(TAG, "failed to decode $source (${widthPx}x$heightPx)", result.throwable)
     return (result as? SuccessResult)?.image?.toBitmap()
 }
 

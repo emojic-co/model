@@ -1,25 +1,9 @@
 TODO:
+    Android APP:
+    - actual card and preview style cards do not match.
 
 Done:
-Make sure that the generated image from the card does not have any "share" "copy" buttons not related to the card itself.
-
-1.  We need to make sure that the android and web apps produce identical visual results.
-    Create a .yml file on the web that the android app syncs along with the model weights.
-    The file should describe:
-    - global settings:
-        - max opacity
-        - font size calculation
-        - etc...
-
-    - For each style:
-        - Font family
-        - Font weight
-        - bg pattern (literal SVG not just the name)
-        - etc...
-
-    Make sure that both android and web apps use this file to render the card.
-
-3. On android, it is enough to have just the "share" button, make it obvious and follow common design patters for a shared button.
-4. On web:
-    "copy" just generates and copies the image to the clipboard.
-    "share" shares the link to the card.
+style.yml:
+    -   refactor the structure of the .yml file.
+        create a `patterns` section where we map a pattern name to a literal svg.
+        then for each style just reference the pattern name instead of the svg.

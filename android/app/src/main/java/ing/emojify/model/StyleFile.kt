@@ -24,7 +24,7 @@ data class GlobalSettings(
 
 @Serializable
 data class StylePattern(
-    val svg: String,
+    val name: String,
     val widthRatio: Float,
     val heightRatio: Float,
 )
@@ -49,6 +49,7 @@ data class StyleEntry(
 data class StyleFile(
     val exportedAt: String,
     val global: GlobalSettings,
+    val patterns: Map<String, String>,
     val styles: Map<String, StyleEntry>,
 )
 

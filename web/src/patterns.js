@@ -48,6 +48,35 @@ export const PATTERN_FNS = {
   Wistful: { pattern: endlessClouds, scale: 2 },
 }
 
+export const PATTERN_NAMES = new Map([
+  [anchorsAway, 'anchors-away'],
+  [aztec, 'aztec'],
+  [brickWall, 'brick-wall'],
+  [bubbles, 'bubbles'],
+  [circuitBoard, 'circuit-board'],
+  [diagonalStripes, 'diagonal-stripes'],
+  [dominos, 'dominos'],
+  [endlessClouds, 'endless-clouds'],
+  [fallingTriangles, 'falling-triangles'],
+  [floatingCogs, 'floating-cogs'],
+  [fourPointStars, 'four-point-stars'],
+  [glamorous, 'glamorous'],
+  [hideout, 'hideout'],
+  [jigsaw, 'jigsaw'],
+  [overlappingCircles, 'overlapping-circles'],
+  [skulls, 'skulls'],
+  [squaresInSquares, 'squares-in-squares'],
+  [stripes, 'stripes'],
+  [volcanoLamp, 'volcano-lamp'],
+  [wiggle, 'wiggle'],
+  [zigZag, 'zig-zag'],
+])
+
+export function patternName(feeling) {
+  const entry = PATTERN_FNS[feeling] ?? PATTERN_FNS.Neutral
+  return PATTERN_NAMES.get(entry.pattern)
+}
+
 export const MAX_OPACITY = 0.14
 export const REFERENCE_PX = 600
 

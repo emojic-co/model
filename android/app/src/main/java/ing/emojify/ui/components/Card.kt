@@ -5,18 +5,16 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -92,7 +90,7 @@ fun Card(
         val patternTileWidthPx = with(density) { (cardWidthDp * style.patternWidthRatio).toPx() }.toInt().coerceAtLeast(1)
         val patternTileHeightPx = with(density) { (cardWidthDp * style.patternHeightRatio).toPx() }.toInt().coerceAtLeast(1)
 
-        Column {
+        Box {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -181,15 +179,17 @@ fun Card(
                     }
                 }
             }
-            FilledTonalButton(
+            ExtendedFloatingActionButton(
                 onClick = onShare,
-                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                contentPadding = ButtonDefaults.ContentPadding,
-            ) {
-                Icon(Icons.Filled.Share, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Share")
-            }
+                icon = { Icon(Icons.Filled.Share, contentDescription = null) },
+                text = { Text("Share") },
+                containerColor = Color.White.copy(alpha = 0.75f),
+                contentColor = Color.Black.copy(alpha = 0.8f),
+                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 1.dp, pressedElevation = 1.dp),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .offset(y = (-16).dp),
+            )
         }
     }
 }

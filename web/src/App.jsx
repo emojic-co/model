@@ -338,6 +338,11 @@ export function App() {
                   emoji coverage
                 </a>
               </span>
+              <span>
+                <a href="/style-preview.html" target="_blank" rel="noopener noreferrer">
+                  style preview
+                </a>
+              </span>
             </div>
             <div className="footer-col">
               <span>made with ❤️ by Gilad</span>
