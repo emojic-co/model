@@ -1,6 +1,9 @@
+Done:
 Create a tool `tools/social/pinterest.ts`
 The tool should publish cards to pinterest.com in all supported languages.
 The tool should track which cards were published.
 The tool should have a predefined engaging cards.
+The tool should also have a preview mode.
+Cards must look exactly the same as in the web app.
 The tool should also have a preview mode.
 Cards must look exactly the same as in the web app.
