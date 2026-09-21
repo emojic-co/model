@@ -1,2 +1,1 @@
-can we update the android app to check and fetch latest onnx model from the web?
-can we compact the entire logic into the onnx file?
+web app, can we make the cards bg pattern a bit more subtle?
