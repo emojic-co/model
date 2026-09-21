@@ -82,7 +82,8 @@ async function renderStyles(all: boolean): Promise<string> {
   for (const row of rows) {
     for (const style of row.styles) byStyle.get(style)?.push(row)
   }
-  const sections = labels.styles
+  const sections = [...labels.styles]
+    .sort((a, b) => (byStyle.get(b)?.length ?? 0) - (byStyle.get(a)?.length ?? 0))
     .map((style) => {
       const picks = sample(byStyle.get(style) ?? [], STYLE_SAMPLES)
       const cards = picks.map((r) => rowCard(r, all, style)).join("\n")
