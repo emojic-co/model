@@ -49,6 +49,7 @@ GEN_PT = PtFile.GEN.in_dir(PT_DIR)
 TEXT_ENC_CACHE_PT = PT_DIR / "text_enc_cache.pt"
 
 WEB_PUBLIC_DIR = Path("web/public")
+ANDROID_ASSETS_DIR = Path("android/app/src/main/assets")
 REPORT_DIR = Path("report")
 RUNS_DIR = Path("runs")
 PREVIEW_DIR = Path("preview")

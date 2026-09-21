@@ -1,4 +1,5 @@
 import json
+import shutil
 import sys
 import warnings
 from datetime import UTC, datetime
@@ -10,6 +11,7 @@ from torch import nn
 from torch.nn.functional import normalize
 
 from files import (
+    ANDROID_ASSETS_DIR,
     EMOJI_EMBED_PT,
     EMOJI_PT,
     ENC_PT,
@@ -126,12 +128,15 @@ def export_web(wrapper: nn.Module) -> None:
         "exported_at": datetime.now(UTC).isoformat(timespec="minutes"),
         "model_meta": getattr(wrapper.enc, "_pt_meta", None),
     }
-    (WEB_PUBLIC / "meta.json").write_text(
-        json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
+    meta_json = json.dumps(meta, ensure_ascii=False, indent=2)
+    (WEB_PUBLIC / "meta.json").write_text(meta_json, encoding="utf-8")
     (WEB_PUBLIC / "config.json").write_text(
         json.dumps({"max_text_len": MAX_TEXT_LEN}, indent=2), encoding="utf-8"
     )
+
+    ANDROID_ASSETS_DIR.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(WEB_PUBLIC / "model.onnx", ANDROID_ASSETS_DIR / "model.onnx")
+    (ANDROID_ASSETS_DIR / "meta.json").write_text(meta_json, encoding="utf-8")
 
 
 def export() -> None:
@@ -156,7 +161,10 @@ def export() -> None:
 
     wrapper = ExportWrapper(enc, style, emoji_embed, emoji, gen).eval()
     export_web(wrapper)
-    print(f"wrote {WEB_PUBLIC}/model.onnx + meta.json + config.json")
+    print(
+        f"wrote {WEB_PUBLIC}/model.onnx + meta.json + config.json, "
+        f"and {ANDROID_ASSETS_DIR}/model.onnx + meta.json"
+    )
 
 
 _app = typer.Typer(
