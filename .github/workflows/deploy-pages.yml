@@ -8,6 +8,11 @@ on:
     branches: [main]
     paths:
       - web/**
+      - data/data.jsonl
+      - data/group.json
+      - goals.yml
+      - tools/data/regen.ts
+      - tools/analysis/emoji-coverage.ts
       - .github/workflows/deploy-pages.yml
   workflow_dispatch:
 
@@ -28,6 +33,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run regen
+      - run: bun run emoji-coverage
       - uses: actions/setup-node@v4
         with:
           node-version: 22
