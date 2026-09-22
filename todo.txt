@@ -1,9 +1,0 @@
-TODO:
-    Android APP:
-    - when user inputs new text reset the emoji, color and style bars (scroll them back to start)
-
-Done:
-style.yml:
-    -   refactor the structure of the .yml file.
-        create a `patterns` section where we map a pattern name to a literal svg.
-        then for each style just reference the pattern name instead of the svg.

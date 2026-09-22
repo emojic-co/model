@@ -255,10 +255,16 @@ export function lowestFreqEmojis(
     .map((x) => x.k)
 }
 
-function genPrompt(voice: string, emoji: string, per: number, lang?: string): string {
+function genPrompt(
+  voice: string,
+  emoji: string,
+  per: number,
+  lang?: string,
+  maxLen: number = MAX_LEN,
+): string {
   return [
-    `Write ${per} short text messages as if sent by ${voice}, one per line.`,
-    `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
+    `Write ${per} short WhatsApp messages as if sent by ${voice}, one per line.`,
+    `Each message between ${MIN_LEN} and ${maxLen} characters.`,
     ...langLine(lang),
     `Every message must read naturally as one a person would send together with`,
     `the emoji ${emoji} - its subject, activity, place, or mood fits that emoji.`,
@@ -269,10 +275,16 @@ function genPrompt(voice: string, emoji: string, per: number, lang?: string): st
   ].join("\n")
 }
 
-function genColorPrompt(voice: string, color: string, per: number, lang?: string): string {
+function genColorPrompt(
+  voice: string,
+  color: string,
+  per: number,
+  lang?: string,
+  maxLen: number = MAX_LEN,
+): string {
   return [
-    `Write ${per} short text messages as if sent by ${voice}, one per line.`,
-    `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
+    `Write ${per} short WhatsApp messages as if sent by ${voice}, one per line.`,
+    `Each message between ${MIN_LEN} and ${maxLen} characters.`,
     ...langLine(lang),
     `Every message must evoke the colour "${color}" - its light and mood, or`,
     `concrete things that are almost always that colour.`,
@@ -289,11 +301,16 @@ function genColorPrompt(voice: string, color: string, per: number, lang?: string
   ].join("\n")
 }
 
-function genMotivationalPrompt(voice: string, per: number, lang?: string): string {
+function genMotivationalPrompt(
+  voice: string,
+  per: number,
+  lang?: string,
+  maxLen: number = MAX_LEN,
+): string {
   return [
-    `Write ${per} short inspirational, encouraging, or motivational messages,`,
-    `one per line, as if sent by ${voice} to encourage someone else.`,
-    `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
+    `Write ${per} short inspirational, encouraging, or motivational WhatsApp`,
+    `messages, one per line, as if sent by ${voice} to encourage someone else.`,
+    `Each message between ${MIN_LEN} and ${maxLen} characters.`,
     ...langLine(lang),
     `Vary tone and occasion: cheering someone on, comfort after a setback,`,
     `a pep talk before something hard, praise for effort, a reminder to keep going.`,
@@ -303,11 +320,16 @@ function genMotivationalPrompt(voice: string, per: number, lang?: string): strin
   ].join("\n")
 }
 
-function genLinkedinPrompt(voice: string, per: number, lang?: string): string {
+function genLinkedinPrompt(
+  voice: string,
+  per: number,
+  lang?: string,
+  maxLen: number = MAX_LEN,
+): string {
   return [
     `Write ${per} short, funny, relatable workplace or day-in-the-life`,
-    `messages as if sent by ${voice}, one per line.`,
-    `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
+    `WhatsApp messages as if sent by ${voice}, one per line.`,
+    `Each message between ${MIN_LEN} and ${maxLen} characters.`,
     ...langLine(lang),
     `Capture a specific everyday work moment - meetings, commute, coffee,`,
     `deadlines, standups, a good or bad day at the job - with dry wit or`,
@@ -318,10 +340,15 @@ function genLinkedinPrompt(voice: string, per: number, lang?: string): string {
   ].join("\n")
 }
 
-function genSarcasmPrompt(voice: string, per: number, lang?: string): string {
+function genSarcasmPrompt(
+  voice: string,
+  per: number,
+  lang?: string,
+  maxLen: number = MAX_LEN,
+): string {
   return [
-    `Write ${per} short sarcastic text messages as if sent by ${voice}, one per line.`,
-    `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
+    `Write ${per} short sarcastic WhatsApp messages as if sent by ${voice}, one per line.`,
+    `Each message between ${MIN_LEN} and ${maxLen} characters.`,
     ...langLine(lang),
     `Each message must be dripping with sarcasm or irony - saying the opposite`,
     `of what is meant, mock enthusiasm, deadpan exaggeration, or a backhanded`,
@@ -333,23 +360,18 @@ function genSarcasmPrompt(voice: string, per: number, lang?: string): string {
   ].join("\n")
 }
 
-function genTopicPrompt(topic: string, voice: string, per: number, lang?: string): string {
+function genTopicPrompt(
+  topic: string,
+  voice: string,
+  per: number,
+  lang?: string,
+  maxLen?: number,
+): string {
   return [
-    `Write ${per} short text messages as if sent by ${voice}, one per line.`,
-    `Each message between ${MIN_LEN} and ${MAX_LEN} characters.`,
+    `Write ${per} short WhatsApp messages as if sent by ${voice}, one per line.`,
+    ...(maxLen !== undefined ? [`Each message between ${MIN_LEN} and ${maxLen} characters.`] : []),
     ...langLine(lang),
-    `Every message is about ${topic}. Do not announce the topic or use it as a`,
-    "label; let it come through naturally in what is said.",
-    "Across the whole set, still cover a wide range: every mood (positive,",
-    "negative, flat), every intent (statements, questions, requests,",
-    "reactions, reminders, small talk), and every length from very short to",
-    "near the maximum.",
-    "Avoid the single most obvious, generic line for the topic - the kind of",
-    "stock phrase a phrasebook or greeting card would give. Ground each",
-    "message in a specific, idiosyncratic detail instead (a name, a place, a",
-    "number, an odd complaint) so no two messages read like templates of each",
-    "other, and no message is one you'd expect to see repeated verbatim across",
-    "many different people.",
+    `Every message is about ${topic}.`,
     "No numbering, no bullets, no quotes, no emoji, no commentary.",
   ].join("\n")
 }
@@ -371,11 +393,12 @@ async function genBatch(
   emoji: string,
   per: number,
   lang?: string,
+  maxLen?: number,
 ): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
     temperature: CREATIVE_TEMPERATURE,
-    prompt: genPrompt(voice, emoji, per, lang),
+    prompt: genPrompt(voice, emoji, per, lang, maxLen),
   })
   return cleanLines(text)
 }
@@ -385,11 +408,12 @@ async function genColorBatch(
   color: string,
   per: number,
   lang?: string,
+  maxLen?: number,
 ): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
     temperature: CREATIVE_TEMPERATURE,
-    prompt: genColorPrompt(voice, color, per, lang),
+    prompt: genColorPrompt(voice, color, per, lang, maxLen),
   })
   return cleanLines(text)
 }
@@ -398,11 +422,12 @@ async function genMotivationalBatch(
   voice: string,
   per: number,
   lang?: string,
+  maxLen?: number,
 ): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
     temperature: CREATIVE_TEMPERATURE,
-    prompt: genMotivationalPrompt(voice, per, lang),
+    prompt: genMotivationalPrompt(voice, per, lang, maxLen),
   })
   return cleanLines(text)
 }
@@ -411,11 +436,12 @@ async function genLinkedinBatch(
   voice: string,
   per: number,
   lang?: string,
+  maxLen?: number,
 ): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
     temperature: CREATIVE_TEMPERATURE,
-    prompt: genLinkedinPrompt(voice, per, lang),
+    prompt: genLinkedinPrompt(voice, per, lang, maxLen),
   })
   return cleanLines(text)
 }
@@ -424,11 +450,12 @@ async function genSarcasmBatch(
   voice: string,
   per: number,
   lang?: string,
+  maxLen?: number,
 ): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
     temperature: CREATIVE_TEMPERATURE,
-    prompt: genSarcasmPrompt(voice, per, lang),
+    prompt: genSarcasmPrompt(voice, per, lang, maxLen),
   })
   return cleanLines(text)
 }
@@ -438,11 +465,12 @@ async function genTopicBatch(
   voice: string,
   per: number,
   lang?: string,
+  maxLen?: number,
 ): Promise<string[]> {
   const { text } = await generateText({
     model: MODEL,
     temperature: CREATIVE_TEMPERATURE,
-    prompt: genTopicPrompt(topic, voice, per, lang),
+    prompt: genTopicPrompt(topic, voice, per, lang, maxLen),
   })
   return cleanLines(text)
 }
@@ -613,6 +641,7 @@ async function generateForEmojis(
   sink: Sink,
   multibar: cliProgress.MultiBar,
   lang?: string,
+  maxLen?: number,
 ): Promise<void> {
   const genBar = multibar.create(targets.length, 0, {}, {
     format: "generating  |{bar}| {percentage}% | {value}/{total} emojis | ETA: {eta}s",
@@ -621,7 +650,7 @@ async function generateForEmojis(
   genQ.addAll(
     targets.map((emoji) => async () => {
       try {
-        for (const t of await genBatch(pickVoice(), emoji, per, lang)) {
+        for (const t of await genBatch(pickVoice(), emoji, per, lang, maxLen)) {
           sink.push({ text: t, target: emoji, lang })
         }
       } catch (err) {
@@ -639,6 +668,7 @@ async function generateForColors(
   sink: Sink,
   multibar: cliProgress.MultiBar,
   lang?: string,
+  maxLen?: number,
 ): Promise<void> {
   const colorPlan = colorBatchPlan(COLORS, per, COLOR_BATCH)
   console.log(
@@ -652,7 +682,7 @@ async function generateForColors(
   genQ.addAll(
     colorPlan.map(({ color, n }) => async () => {
       try {
-        for (const t of await genColorBatch(pickVoice(), color, n, lang)) {
+        for (const t of await genColorBatch(pickVoice(), color, n, lang, maxLen)) {
           sink.push({ text: t, color, lang })
         }
       } catch (err) {
@@ -670,6 +700,7 @@ async function generateForMotivational(
   sink: Sink,
   multibar: cliProgress.MultiBar,
   lang?: string,
+  maxLen?: number,
 ): Promise<void> {
   const sizes = batchSizes(count, MOTIVATIONAL_BATCH)
   console.log(
@@ -682,7 +713,7 @@ async function generateForMotivational(
   genQ.addAll(
     sizes.map((n) => async () => {
       try {
-        for (const t of await genMotivationalBatch(pickVoice(), n, lang)) {
+        for (const t of await genMotivationalBatch(pickVoice(), n, lang, maxLen)) {
           sink.push({ text: t, lang })
         }
       } catch (err) {
@@ -700,6 +731,7 @@ async function generateForLinkedin(
   sink: Sink,
   multibar: cliProgress.MultiBar,
   lang?: string,
+  maxLen?: number,
 ): Promise<void> {
   const sizes = batchSizes(count, LINKEDIN_BATCH)
   console.log(
@@ -712,7 +744,7 @@ async function generateForLinkedin(
   genQ.addAll(
     sizes.map((n) => async () => {
       try {
-        for (const t of await genLinkedinBatch(pickVoice(), n, lang)) {
+        for (const t of await genLinkedinBatch(pickVoice(), n, lang, maxLen)) {
           sink.push({ text: t, lang })
         }
       } catch (err) {
@@ -730,6 +762,7 @@ async function generateForSarcasm(
   sink: Sink,
   multibar: cliProgress.MultiBar,
   lang?: string,
+  maxLen?: number,
 ): Promise<void> {
   const sizes = batchSizes(count, SARCASM_BATCH)
   console.log(
@@ -742,7 +775,7 @@ async function generateForSarcasm(
   genQ.addAll(
     sizes.map((n) => async () => {
       try {
-        for (const t of await genSarcasmBatch(pickVoice(), n, lang)) {
+        for (const t of await genSarcasmBatch(pickVoice(), n, lang, maxLen)) {
           sink.push({ text: t, lang, sarcastic: true })
         }
       } catch (err) {
@@ -760,6 +793,7 @@ async function generateForTopics(
   sink: Sink,
   multibar: cliProgress.MultiBar,
   lang?: string,
+  maxLen?: number,
 ): Promise<void> {
   const sizes = batchSizes(count, TOPIC_BATCH)
   console.log(
@@ -773,7 +807,7 @@ async function generateForTopics(
     sizes.map((n, i) => async () => {
       const topic = topicForBatch(i)
       try {
-        for (const t of await genTopicBatch(topic, pickVoice(), n, lang)) {
+        for (const t of await genTopicBatch(topic, pickVoice(), n, lang, maxLen)) {
           sink.push({ text: t, lang })
         }
       } catch (err) {
@@ -804,12 +838,30 @@ function parseCount(raw: unknown, def: number): number {
   return count
 }
 
+function parseMaxLen(raw: unknown): number {
+  const maxLen = Number(raw ?? MAX_LEN)
+  if (!(maxLen >= MIN_LEN)) {
+    console.error(`--max-len must be >= ${MIN_LEN}, got ${JSON.stringify(raw)}`)
+    process.exit(1)
+  }
+  return maxLen
+}
+
+function printSamplePrompt(prompt: string): void {
+  console.log(`\n--- sample prompt ---\n${prompt}`)
+}
+
 const cli = cac("upsample")
 
 cli.option(
   "--lang <code>",
   `generate text in this language (ISO 639-1 code, e.g. 'he' for Hebrew); `
   + `omit to upsample in every language (${LANGS.join(", ")})`,
+)
+
+cli.option(
+  "--max-len <n>",
+  `maximum characters per generated message (default ${MAX_LEN})`,
 )
 
 cli
@@ -825,10 +877,14 @@ cli
   .action(async (options) => {
     const count = parseCount(options.count, DEFAULT_COUNT)
     const lang = parseLang(options.lang)
+    const maxLen = options.maxLen !== undefined ? parseMaxLen(options.maxLen) : undefined
     if (options.dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : topics`)
       console.log(`would generate       : ${count} texts${langSuffix(lang)}`)
+      printSamplePrompt(
+        genTopicPrompt(topicForBatch(0), pickVoice(), Math.min(count, TOPIC_BATCH), lang, maxLen),
+      )
       return
     }
     const multibar = new cliProgress.MultiBar(
@@ -836,7 +892,7 @@ cli
       cliProgress.Presets.shades_classic,
     )
     const sink = new StreamingAnnotator("topics", multibar, count)
-    await generateForTopics(count, sink, multibar, lang)
+    await generateForTopics(count, sink, multibar, lang, maxLen)
     await sink.finish()
     multibar.stop()
   })
@@ -851,6 +907,7 @@ cli
   .option("--dry", "report what would be upsampled, then exit without generating, annotating, or appending")
   .action(async (options) => {
     const count = parseCount(options.count, DEFAULT_COUNT)
+    const maxLen = options.maxLen !== undefined ? parseMaxLen(options.maxLen) : undefined
     const rows = await readJsonl<{ text?: string; lang?: unknown }>(DATA)
     const counts = countLangs(rows)
     const lang = leastFrequentLang(counts)
@@ -862,6 +919,9 @@ cli
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : lang`)
       console.log(`would generate       : ${count} texts (lang: ${lang})`)
+      printSamplePrompt(
+        genTopicPrompt(topicForBatch(0), pickVoice(), Math.min(count, TOPIC_BATCH), lang, maxLen),
+      )
       return
     }
     const multibar = new cliProgress.MultiBar(
@@ -869,7 +929,7 @@ cli
       cliProgress.Presets.shades_classic,
     )
     const sink = new StreamingAnnotator("lang", multibar, count)
-    await generateForTopics(count, sink, multibar, lang)
+    await generateForTopics(count, sink, multibar, lang, maxLen)
     await sink.finish()
     multibar.stop()
   })
@@ -890,6 +950,7 @@ cli
     }
     const per = parsePer(options.per)
     const langs = resolveLangs(parseLang(options.lang))
+    const maxLen = parseMaxLen(options.maxLen)
     console.log(`targeting ${targets.length} emoji -> ${targets.join(" ")}`)
     if (options.dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
@@ -898,6 +959,7 @@ cli
         `would generate       : ~${targets.length * per * langs.length} texts `
         + `(${per}/emoji x ${langs.length} lang(s))${langsSuffix(langs)}`,
       )
+      printSamplePrompt(genPrompt(pickVoice(), targets[0], per, langs[0], maxLen))
       return
     }
     const multibar = new cliProgress.MultiBar(
@@ -905,7 +967,7 @@ cli
       cliProgress.Presets.shades_classic,
     )
     const sink = new StreamingAnnotator("emoji-target", multibar, targets.length * per * langs.length)
-    for (const lang of langs) await generateForEmojis(targets, per, sink, multibar, lang)
+    for (const lang of langs) await generateForEmojis(targets, per, sink, multibar, lang, maxLen)
     await sink.finish()
     multibar.stop()
   })
@@ -917,6 +979,7 @@ cli
   .action(async (options) => {
     const per = parsePer(options.per)
     const langs = resolveLangs(parseLang(options.lang))
+    const maxLen = parseMaxLen(options.maxLen)
     if (options.dry) {
       const colorPlan = colorBatchPlan(COLORS, per, COLOR_BATCH)
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
@@ -925,6 +988,7 @@ cli
         `would generate       : ${colorPlan.reduce((s, b) => s + b.n, 0) * langs.length} texts `
         + `over ${COLORS.length} colours x ${langs.length} lang(s)${langsSuffix(langs)}`,
       )
+      printSamplePrompt(genColorPrompt(pickVoice(), COLORS[0], colorPlan[0].n, langs[0], maxLen))
       return
     }
     const multibar = new cliProgress.MultiBar(
@@ -932,7 +996,7 @@ cli
       cliProgress.Presets.shades_classic,
     )
     const sink = new StreamingAnnotator("colors", multibar, COLORS.length * per * langs.length)
-    for (const lang of langs) await generateForColors(per, sink, multibar, lang)
+    for (const lang of langs) await generateForColors(per, sink, multibar, lang, maxLen)
     await sink.finish()
     multibar.stop()
   })
@@ -947,10 +1011,14 @@ cli
   .action(async (options) => {
     const count = parseCount(options.count, MOTIVATIONAL_COUNT)
     const langs = resolveLangs(parseLang(options.lang))
+    const maxLen = parseMaxLen(options.maxLen)
     if (options.dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : motivational`)
       console.log(`would generate       : ${count} texts x ${langs.length} lang(s)${langsSuffix(langs)}`)
+      printSamplePrompt(
+        genMotivationalPrompt(pickVoice(), Math.min(count, MOTIVATIONAL_BATCH), langs[0], maxLen),
+      )
       return
     }
     const multibar = new cliProgress.MultiBar(
@@ -958,7 +1026,7 @@ cli
       cliProgress.Presets.shades_classic,
     )
     const sink = new StreamingAnnotator("motivational", multibar, count * langs.length)
-    for (const lang of langs) await generateForMotivational(count, sink, multibar, lang)
+    for (const lang of langs) await generateForMotivational(count, sink, multibar, lang, maxLen)
     await sink.finish()
     multibar.stop()
   })
@@ -973,10 +1041,14 @@ cli
   .action(async (options) => {
     const count = parseCount(options.count, LINKEDIN_COUNT)
     const langs = resolveLangs(parseLang(options.lang))
+    const maxLen = parseMaxLen(options.maxLen)
     if (options.dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : linkedin`)
       console.log(`would generate       : ${count} texts x ${langs.length} lang(s)${langsSuffix(langs)}`)
+      printSamplePrompt(
+        genLinkedinPrompt(pickVoice(), Math.min(count, LINKEDIN_BATCH), langs[0], maxLen),
+      )
       return
     }
     const multibar = new cliProgress.MultiBar(
@@ -984,7 +1056,7 @@ cli
       cliProgress.Presets.shades_classic,
     )
     const sink = new StreamingAnnotator("linkedin", multibar, count * langs.length)
-    for (const lang of langs) await generateForLinkedin(count, sink, multibar, lang)
+    for (const lang of langs) await generateForLinkedin(count, sink, multibar, lang, maxLen)
     await sink.finish()
     multibar.stop()
   })
@@ -999,10 +1071,14 @@ cli
   .action(async (options) => {
     const count = parseCount(options.count, SARCASM_COUNT)
     const langs = resolveLangs(parseLang(options.lang))
+    const maxLen = parseMaxLen(options.maxLen)
     if (options.dry) {
       console.log("\n--- dry run: nothing generated, annotated, or appended ---")
       console.log(`mode                 : sarcasm`)
       console.log(`would generate       : ${count} texts x ${langs.length} lang(s)${langsSuffix(langs)}`)
+      printSamplePrompt(
+        genSarcasmPrompt(pickVoice(), Math.min(count, SARCASM_BATCH), langs[0], maxLen),
+      )
       return
     }
     const multibar = new cliProgress.MultiBar(
@@ -1010,7 +1086,7 @@ cli
       cliProgress.Presets.shades_classic,
     )
     const sink = new StreamingAnnotator("sarcasm", multibar, count * langs.length)
-    for (const lang of langs) await generateForSarcasm(count, sink, multibar, lang)
+    for (const lang of langs) await generateForSarcasm(count, sink, multibar, lang, maxLen)
     await sink.finish()
     multibar.stop()
   })
@@ -1025,6 +1101,7 @@ cli
   .action(async (options) => {
     const per = parsePer(options.per)
     const langs = resolveLangs(parseLang(options.lang))
+    const maxLen = parseMaxLen(options.maxLen)
     const [rows, groups, labels, coverage] = await Promise.all([
       readJsonl<{ emojis?: string }>(DATA),
       loadGroups(),
@@ -1056,6 +1133,7 @@ cli
         `would generate       : ~${targets.length * per * langs.length} texts `
         + `(${per}/emoji x ${langs.length} lang(s))${langsSuffix(langs)}`,
       )
+      printSamplePrompt(genPrompt(pickVoice(), targets[0], per, langs[0], maxLen))
       return
     }
     const multibar = new cliProgress.MultiBar(
@@ -1066,7 +1144,7 @@ cli
     const groupedSink: Sink = {
       push: (c) => sink.push(c.target ? { ...c, group: groupOf.get(c.target) } : c),
     }
-    for (const lang of langs) await generateForEmojis(targets, per, groupedSink, multibar, lang)
+    for (const lang of langs) await generateForEmojis(targets, per, groupedSink, multibar, lang, maxLen)
     await sink.finish()
     multibar.stop()
   })
@@ -1081,6 +1159,7 @@ cli
   .action(async (options) => {
     const per = parsePer(options.per)
     const langs = resolveLangs(parseLang(options.lang))
+    const maxLen = parseMaxLen(options.maxLen)
     const rows = await readJsonl<{ emojis?: string }>(TRAIN_JSONL)
     const counts = countEmojis(rows)
     if (!counts.size) {
@@ -1101,6 +1180,7 @@ cli
         `would generate       : ~${targets.length * per * langs.length} texts `
         + `(${per}/emoji x ${langs.length} lang(s))${langsSuffix(langs)}`,
       )
+      printSamplePrompt(genPrompt(pickVoice(), targets[0], per, langs[0], maxLen))
       return
     }
     const multibar = new cliProgress.MultiBar(
@@ -1108,7 +1188,7 @@ cli
       cliProgress.Presets.shades_classic,
     )
     const sink = new StreamingAnnotator("balance", multibar, targets.length * per * langs.length)
-    for (const lang of langs) await generateForEmojis(targets, per, sink, multibar, lang)
+    for (const lang of langs) await generateForEmojis(targets, per, sink, multibar, lang, maxLen)
     await sink.finish()
     multibar.stop()
   })
