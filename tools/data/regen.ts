@@ -5,8 +5,8 @@ import { LANGS } from "./langs.ts"
 import { normalize } from "./normalize.ts"
 import { STYLE_SET } from "./styles.ts"
 
-export const MIN_COUNT = 125
-export const MAX_COUNT = 3000
+export const MIN_COUNT = 100
+export const MAX_COUNT = 4000
 const EVAL_SIZE = 2000
 
 const MIN_MAX_RATIO = 10
