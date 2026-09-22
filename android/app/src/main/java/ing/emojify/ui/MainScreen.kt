@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -160,11 +161,21 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                 onCaptureReady = { capture = it },
             )
             Spacer(modifier = Modifier.height(16.dp))
+            val clearButton: @Composable () -> Unit = {
+                if (text.isNotEmpty()) {
+                    IconButton(onClick = { text = "" }) {
+                        Icon(Icons.Default.Clear, contentDescription = "Clear text")
+                    }
+                }
+            }
+            val isHebrew = langForText(text) == "he"
             TextField(
                 value = text,
                 onValueChange = { text = it },
                 placeholder = { Text("type at least 3 characters…") },
                 textStyle = LocalTextStyle.current.copy(textDirection = TextDirection.Content),
+                leadingIcon = if (isHebrew) clearButton else null,
+                trailingIcon = if (isHebrew) null else clearButton,
                 shape = RoundedCornerShape(16.dp),
                 colors = TextFieldDefaults.colors(
                     unfocusedContainerColor = Color.White.copy(alpha = 0.6f),

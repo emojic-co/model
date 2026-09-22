@@ -1,0 +1,2 @@
+Done:
+Android APP: Add a clear button to cleat the text, use just an "X" icon inside the text box.
