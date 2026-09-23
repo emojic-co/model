@@ -20,7 +20,6 @@ from model.config import (
     ENCODER_DILATION,
     ENCODER_KERNEL_SIZE,
     GEN_HIDDEN_SIZE,
-    NOISE_DIM,
     RELU_SLOPE,
     Z_WEIGHT,
 )
@@ -146,8 +145,10 @@ class ColorGen(nn.Module):
         z: torch.Tensor | None = None,
     ) -> torch.Tensor:
         if z is None:
-            z = torch.randn(
-                cond.shape[0], NOISE_DIM, device=cond.device, dtype=cond.dtype)
+            z = torch.randn_like(cond, device=cond.device, dtype=cond.dtype)
+
+        assert cond.shape == z.shape, \
+            f"cond and z must have the same shape, got {cond.shape} and {z.shape}"
 
         z = normalize(z, dim=-1)
         cond = normalize(cond, dim=-1)
