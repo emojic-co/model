@@ -92,8 +92,8 @@ SEED = 42
 TASK_BATCH_SIZE = 1024
 GAN_BATCH_SIZE = 1024
 RELU_SLOPE = 0.1
-MARGIN_EMOJI = 1.0
-MARGIN_STYLE = 1.0
+INFONCE_TEMP_EMOJI = 0.7
+INFONCE_TEMP_STYLE = 0.7
 
 gan_str = " ".join([
     str(p)
@@ -145,7 +145,7 @@ train_str = " ".join(
             LR_ENCODER,
             GRAD_CLIP_GEN,
             GRAD_CLIP_CRITIC,
-            MARGIN_EMOJI,
+            INFONCE_TEMP_EMOJI,
             SAMPLING_RATE_MAX,
             SAMPLING_RATE_MIN,
         )

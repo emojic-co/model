@@ -58,6 +58,8 @@ from model.config import (
     GAN_BATCH_SIZE,
     GRAD_CLIP_CRITIC,
     GRAD_CLIP_GEN,
+    INFONCE_TEMP_EMOJI,
+    INFONCE_TEMP_STYLE,
     LOSS_WEIGHT_COLOR_CRITIC,
     LOSS_WEIGHT_COND_COLOR_CRITIC,
     LOSS_WEIGHT_ENERGY,
@@ -65,8 +67,6 @@ from model.config import (
     LR_GAN_COND_CRITIC,
     LR_GAN_CRITIC,
     LR_GAN_GEN,
-    MARGIN_EMOJI,
-    MARGIN_STYLE,
     SAMPLING_RATE_MAX,
     SAMPLING_RATE_MIN,
     SAMPLING_SOURCES,
@@ -100,45 +100,21 @@ _CUDA = torch.cuda.is_available()
 _DETERMINISTIC: bool | str = "warn" if _CUDA else True
 
 
-def avgmax_hinge(
+def lse_infonce(
     logits: torch.Tensor,
     target: torch.Tensor,
-    margin: float,
+    temp: float,
 ) -> torch.Tensor:
     has_pos = target.sum(dim=-1) > 0
-    has_neg = (target == 0).sum(dim=-1) > 0
-    valid = has_pos & has_neg
-    if not bool(valid.any()):
+    if not bool(has_pos.any()):
         return logits.new_zeros(())
 
-    pos_avg = (logits * target).sum(dim=-1) / target.sum(dim=-1).clamp(min=1)
-    neg_max = logits.masked_fill(target != 0, float("-inf")).amax(dim=-1)
-    row_loss = relu(margin - (pos_avg - neg_max))
+    z = logits / temp
+    all_lse = torch.logsumexp(z, dim=-1)
+    pos_lse = torch.logsumexp(z.masked_fill(target == 0, float("-inf")), dim=-1)
+    row_loss = all_lse - pos_lse
 
-    return row_loss[valid].mean()
-
-
-def avg_violators_hinge(
-    logits: torch.Tensor,
-    target: torch.Tensor,
-    margin: float,
-) -> torch.Tensor:
-    has_pos = target.sum(dim=-1) > 0
-    has_neg = (target == 0).sum(dim=-1) > 0
-    valid = has_pos & has_neg
-    if not bool(valid.any()):
-        return logits.new_zeros(())
-
-    pos_min = logits.masked_fill(target == 0, float("inf")).amin(dim=-1)
-    viol = (target == 0) & (logits > pos_min.unsqueeze(-1))
-    n_viol = viol.sum(dim=-1)
-    neg_avg = (logits * viol).sum(dim=-1) / n_viol.clamp(min=1)
-    row_loss = relu(margin - (pos_min - neg_avg))
-
-    active = valid & (n_viol > 0)
-    if not bool(active.any()):
-        return logits.new_zeros(())
-    return row_loss[active].mean()
+    return row_loss[has_pos].mean()
 
 
 def mrr(logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
@@ -187,10 +163,7 @@ class LitEncoder(pl.LightningModule):
         enc = self.enc(text)
 
         style_logits = self.style(enc)
-        loss_style = (
-            avgmax_hinge(style_logits, style, MARGIN_STYLE)
-            + avg_violators_hinge(style_logits, style, MARGIN_STYLE)
-        )
+        loss_style = lse_infonce(style_logits, style, INFONCE_TEMP_STYLE)
         self._log(
             named_metric(Source.STYLE, Metric.MRR, split),
             mrr(style_logits, style).mean(),
@@ -198,10 +171,7 @@ class LitEncoder(pl.LightningModule):
         )
 
         emoji_logits = self.emoji(enc)
-        loss_emoji = (
-            avgmax_hinge(emoji_logits, emoji, MARGIN_EMOJI)
-            + avg_violators_hinge(emoji_logits, emoji, MARGIN_EMOJI)
-        )
+        loss_emoji = lse_infonce(emoji_logits, emoji, INFONCE_TEMP_EMOJI)
         has_e = emoji.sum(dim=-1) > 0
         n_e = int(has_e.sum())
         if n_e:
