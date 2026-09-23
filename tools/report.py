@@ -69,6 +69,49 @@ SENS_TEXT_N = 40
 SENS_SWATCH_N = 10
 COLOR_KEYWORD_SAMPLE_N = 300
 COLOR_KEYWORD_EXAMPLE_N = 10
+LANG_PAIR_TOPK = 5
+LANG_PAIR_AGREE_THRESH = 0.2
+LANG_PAIR_SWATCH_N = 10
+LANG_PAIRS = (
+    ("green", "ירוק"),
+    ("blue", "כחול"),
+    ("yellow", "צהוב"),
+    ("purple", "סגול"),
+    ("black", "שחור"),
+    ("white", "לבן"),
+    ("pink", "ורוד"),
+    ("brown", "חום"),
+    ("happy", "שמח"),
+    ("angry", "כועס"),
+    ("tired", "עייף"),
+    ("dog", "כלב"),
+    ("coffee", "קפה"),
+    ("pizza", "פיצה"),
+    ("cake", "עוגה"),
+    ("star", "כוכב"),
+    ("water", "מים"),
+    ("rain", "גשם"),
+    ("night", "לילה"),
+    ("morning", "בוקר"),
+    ("beach", "חוף"),
+    ("snow", "שלג"),
+    ("wind", "רוח"),
+    ("king", "מלך"),
+    ("queen", "מלכה"),
+    ("friend", "חבר"),
+    ("book", "ספר"),
+    ("phone", "טלפון"),
+    ("car", "מכונית"),
+    ("house", "בית"),
+    ("gift", "מתנה"),
+    ("guitar", "גיטרה"),
+    ("bicycle", "אופניים"),
+    ("camera", "מצלמה"),
+    ("key", "מפתח"),
+    ("clock", "שעון"),
+    ("umbrella", "מטריה"),
+    ("birthday", "יום הולדת"),
+)
 EVAL_SAMPLE_PT_FILES = (
     PtFile.ENC,
     PtFile.STYLE,
@@ -1030,6 +1073,78 @@ def _section_color_keywords(enc, gen) -> dict:
     return {"rows": out, "sample_n": COLOR_KEYWORD_SAMPLE_N}
 
 
+def _section_lang_consistency(enc, emoji_head, style_head, gen) -> dict:
+    emb_model = _emoji_embed()
+    if None in (enc, emoji_head, style_head, gen, emb_model):
+        return {}
+    en_ids = torch.stack(
+        [text_to_tensor(norm_text(en)[:MAX_TEXT_LEN]) for en, _ in LANG_PAIRS]
+    )
+    he_ids = torch.stack(
+        [text_to_tensor(norm_text(he)[:MAX_TEXT_LEN]) for _, he in LANG_PAIRS]
+    )
+    with torch.no_grad():
+        enc_en, enc_he = enc(en_ids), enc(he_ids)
+        emoji_en = emb_model.score(emoji_head(enc_en))
+        emoji_he = emb_model.score(emoji_head(enc_he))
+        style_en, style_he = style_head(enc_en), style_head(enc_he)
+        zeros = torch.zeros_like(enc_en)
+        color_en, color_he = gen(enc_en, zeros), gen(enc_he, zeros)
+    ok_en, ok_he = rgb_to_oklab(color_en), rgb_to_oklab(color_he)
+
+    rows = []
+    for i, (en, he) in enumerate(LANG_PAIRS):
+        top_en = set(emoji_en[i].topk(LANG_PAIR_TOPK).indices.tolist())
+        top_he = set(emoji_he[i].topk(LANG_PAIR_TOPK).indices.tolist())
+        jaccard = len(top_en & top_he) / len(top_en | top_he)
+        s_en, s_he = style_en[i].argmax().item(), style_he[i].argmax().item()
+        flat_en, flat_he = color_en[i].tolist(), color_he[i].tolist()
+        rows.append(
+            {
+                "en": en,
+                "he": he,
+                "emb_cos": nn.functional.cosine_similarity(
+                    enc_en[i], enc_he[i], dim=0
+                ).item(),
+                "emoji_jaccard": jaccard,
+                "emoji_top_en": [EMOJIS[j] for j in top_en],
+                "emoji_top_he": [EMOJIS[j] for j in top_he],
+                "style_en": STYLES[s_en],
+                "style_he": STYLES[s_he],
+                "style_match": s_en == s_he,
+                "color_dist": (ok_en[i] - ok_he[i]).norm().item(),
+                "en_bg1": _offsets_to_hex(flat_en[0:3]),
+                "en_bg2": _offsets_to_hex(flat_en[3:6]),
+                "en_fg": _offsets_to_hex(flat_en[6:9]),
+                "he_bg1": _offsets_to_hex(flat_he[0:3]),
+                "he_bg2": _offsets_to_hex(flat_he[3:6]),
+                "he_fg": _offsets_to_hex(flat_he[6:9]),
+            }
+        )
+    rows.sort(key=lambda r: -r["color_dist"])
+
+    n = len(rows)
+    agree = [r for r in rows if r["emoji_jaccard"] >= LANG_PAIR_AGREE_THRESH]
+    disagree = [r for r in rows if r["emoji_jaccard"] < LANG_PAIR_AGREE_THRESH]
+    return {
+        "n": n,
+        "topk": LANG_PAIR_TOPK,
+        "agree_thresh": LANG_PAIR_AGREE_THRESH,
+        "n_agree": len(agree),
+        "emb_cos_mean": sum(r["emb_cos"] for r in rows) / n,
+        "emoji_jaccard_mean": sum(r["emoji_jaccard"] for r in rows) / n,
+        "style_match_rate": sum(r["style_match"] for r in rows) / n,
+        "color_dist_mean": sum(r["color_dist"] for r in rows) / n,
+        "color_dist_mean_agree": (
+            sum(r["color_dist"] for r in agree) / len(agree) if agree else None
+        ),
+        "color_dist_mean_disagree": (
+            sum(r["color_dist"] for r in disagree) / len(disagree) if disagree else None
+        ),
+        "rows": rows,
+    }
+
+
 def _section_eval_samples(pt: Path, eval_records) -> dict:
     pool = [r for r in eval_records if r.emojis]
     if not pool or not all((pt / n).exists() for n in EVAL_SAMPLE_PT_FILES):
@@ -1076,6 +1191,7 @@ def build_report(pt: Path, only: str = "", out: Path = REPORT_DIR) -> Path:
         "channel_rank",
         "length_acc",
         "eval_samples",
+        "lang_consistency",
     }
     enc_pt, emoji_pt = PtFile.ENC.in_dir(pt), PtFile.EMOJI.in_dir(pt)
     style_pt, gen_pt = PtFile.STYLE.in_dir(pt), PtFile.GEN.in_dir(pt)
@@ -1095,6 +1211,7 @@ def build_report(pt: Path, only: str = "", out: Path = REPORT_DIR) -> Path:
             "block_capacity",
             "channel_rank",
             "length_acc",
+            "lang_consistency",
         }
         & want
     )
@@ -1106,12 +1223,12 @@ def build_report(pt: Path, only: str = "", out: Path = REPORT_DIR) -> Path:
         emoji_head, err = _load(EmojiHead(), emoji_pt)
         if err:
             prov["issues"].append(f"{emoji_pt} could not load: {err}")
-    if enc is not None and {"cards", "style_dist"} & want:
+    if enc is not None and {"cards", "style_dist", "lang_consistency"} & want:
         if style_pt.exists():
             style_head, err = _load(StyleHead(), style_pt)
             if err:
                 prov["issues"].append(f"{style_pt} could not load: {err}")
-    gen_wanted = {"cards", "gen_sensitivity", "color_keywords"} & want
+    gen_wanted = {"cards", "gen_sensitivity", "color_keywords", "lang_consistency"} & want
     if enc is not None and gen_wanted and gen_pt.exists():
         gen, err = _load(ColorGen(), gen_pt)
         if err:
@@ -1158,6 +1275,10 @@ def build_report(pt: Path, only: str = "", out: Path = REPORT_DIR) -> Path:
         report["length_acc"] = _section_length_acc(enc, emoji_head, eval_records)
     if "eval_samples" in want:
         report["eval_samples"] = _section_eval_samples(pt, eval_records)
+    if "lang_consistency" in want:
+        report["lang_consistency"] = _section_lang_consistency(
+            enc, emoji_head, style_head, gen
+        )
 
     report["status"] = _section_status(report)
 
@@ -1851,6 +1972,100 @@ def _color_keyword_examples_html(rows) -> str:
     return "".join(out)
 
 
+def _lang_consistency_html(d) -> str:
+    if not d or not d.get("rows"):
+        return (
+            "<h2>Cross-lingual consistency (en vs he)</h2>"
+            '<p class="note">Unavailable — needs enc.pt, emoji.pt, '
+            "emoji_embed.pt, style.pt and gen.pt.</p>"
+        )
+
+    def _pct(v) -> str:
+        return "–" if v is None else f"{v:.1%}"
+
+    def _num(v) -> str:
+        return "–" if v is None else f"{v:.3f}"
+
+    def _row_html(r) -> str:
+        style_cell = (
+            "="
+            if r["style_match"]
+            else f"{_esc(r['style_en'])} / {_esc(r['style_he'])}"
+        )
+        flag = (
+            "⚠"
+            if r["emoji_jaccard"] >= d["agree_thresh"]
+            and r["color_dist"] > d["color_dist_mean"]
+            else ""
+        )
+        return (
+            f"<tr><td>{_esc(r['en'])}</td><td>{_esc(r['he'])}</td>"
+            f'<td class="n">{r["emb_cos"]:.3f}</td>'
+            f'<td class="n">{r["emoji_jaccard"]:.2f}</td>'
+            f"<td>{style_cell}</td>"
+            f'<td class="n">{r["color_dist"]:.3f}</td>'
+            f"<td>{flag}</td></tr>"
+        )
+
+    trows = "".join(_row_html(r) for r in d["rows"])
+    swatch_rows = []
+    for r in d["rows"][:LANG_PAIR_SWATCH_N]:
+        en_cell = _kw_cell(
+            "en",
+            {
+                "en_bg1": r["en_bg1"],
+                "en_bg2": r["en_bg2"],
+                "en_fg": r["en_fg"],
+                "text": r["en"],
+            },
+        )
+        he_cell = _kw_cell(
+            "he",
+            {
+                "he_bg1": r["he_bg1"],
+                "he_bg2": r["he_bg2"],
+                "he_fg": r["he_fg"],
+                "text": r["he"],
+            },
+        )
+        swatch_rows.append((r["en"], en_cell, he_cell))
+    swatch_html = "".join(
+        f"<h3>{_esc(en)}</h3>"
+        '<div class="kw-grid"><div class="grp">English</div>'
+        f'<div class="grp">Hebrew</div>{en_cell}{he_cell}</div>'
+        for en, en_cell, he_cell in swatch_rows
+    )
+
+    return (
+        "<h2>Cross-lingual consistency (en vs he)</h2>"
+        '<p class="note">For each of '
+        f"{d['n']} curated en/he word pairs (tools/report.py:LANG_PAIRS, "
+        "each word verified present in data/keywords.jsonl / data/terms.jsonl "
+        "for both languages), the English and Hebrew text are encoded "
+        "separately and compared: cosine similarity of the raw TextEncoder "
+        f"embedding, Jaccard overlap of the top-{d['topk']} EmojiHead "
+        "predictions, StyleHead top-1 agreement, and ColorGen output distance "
+        "(Oklab, zero noise vector so only text conditioning is compared, "
+        "same 9-dim card unit as elsewhere in this report). Rows sorted by "
+        "color distance, worst first. ⚠ flags a pair whose emoji "
+        f"predictions agree (Jaccard &ge; {d['agree_thresh']}) but whose "
+        "color distance is still above the mean — an emoji/color split like "
+        "the one that motivated this section.</p>"
+        '<p class="note">Mean encoder cosine ' + _num(d["emb_cos_mean"])
+        + f", mean emoji Jaccard@{d['topk']} " + _num(d["emoji_jaccard_mean"])
+        + ", style top-1 agreement " + _pct(d["style_match_rate"])
+        + ", mean color distance " + _num(d["color_dist_mean"])
+        + f" (agreeing-emoji pairs, n={d['n_agree']}: "
+        + _num(d["color_dist_mean_agree"]) + "; disagreeing-emoji pairs: "
+        + _num(d["color_dist_mean_disagree"]) + ").</p>"
+        '<table><tr><th>en</th><th>he</th>'
+        '<th class="n">Embed cos</th>'
+        f'<th class="n">Emoji Jaccard@{d["topk"]}</th>'
+        '<th>Style (en/he)</th><th class="n">Color dist</th><th></th></tr>'
+        + trows + "</table>" + swatch_html
+    )
+
+
 def _style_dist_html(d) -> str:
     if not d or not d.get("dist"):
         return (
@@ -2143,6 +2358,8 @@ def _render_html(report) -> str:
         body.append(_gen_sensitivity_html(report["gen_sensitivity"]))
     if "color_keywords" in report:
         body.append(_color_keywords_html(report["color_keywords"]))
+    if "lang_consistency" in report:
+        body.append(_lang_consistency_html(report["lang_consistency"]))
     html_body, toc_items = _inject_toc_ids("".join(body))
     return (
         '<!doctype html><meta charset="utf-8">'

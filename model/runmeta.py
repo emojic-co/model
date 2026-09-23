@@ -1,5 +1,6 @@
 import hashlib
 import os
+import shutil
 import subprocess
 import sys
 from datetime import datetime
@@ -8,7 +9,7 @@ from pathlib import Path
 import torch
 import yaml
 
-from files import TRAIN_JSONL
+from files import HISTORY_DIR, TRAIN_JSONL
 from model.config import CONFIG_PARTS
 
 
@@ -54,7 +55,10 @@ def run_meta() -> dict:
 
 def save_pt(state_dict: dict, path: Path, **extra) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    torch.save({"state_dict": state_dict, "meta": {**run_meta(), **extra}}, path)
+    meta = {**run_meta(), **extra}
+    torch.save({"state_dict": state_dict, "meta": meta}, path)
+    HISTORY_DIR.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(path, HISTORY_DIR / f"{meta['sha']}-{path.name}")
 
 
 def load_pt(path: Path, *, map_location: str = "cpu"):

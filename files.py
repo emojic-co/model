@@ -5,6 +5,7 @@ MODEL_DIR = Path("model")
 TOOLS_DIR = Path("tools")
 DATA_DIR = Path("data")
 PT_DIR = Path("pt")
+HISTORY_DIR = Path("history")
 
 GOALS_YML = Path("goals.yml")
 
