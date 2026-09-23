@@ -157,8 +157,7 @@ def r2_score(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
 def _energy_subsample(x: torch.Tensor, n: int) -> torch.Tensor:
     if x.shape[0] <= n:
         return x
-    idx = torch.randperm(x.shape[0], device=x.device)[:n]
-    return x[idx]
+    return x[:n]
 
 
 ALL_HEADS: tuple[str, ...] = ("style", "emoji", "lang")
