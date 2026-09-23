@@ -78,7 +78,6 @@ from model.config import (
     LR_GAN_CRITIC,
     LR_GAN_GEN,
     MACRO_MIN_SUPPORT,
-    NOISE_DIM,
     SAMPLING_RATE_MAX,
     SAMPLING_RATE_MIN,
     SAMPLING_SOURCES,
@@ -265,8 +264,7 @@ class LitEncoder(pl.LightningModule):
             cond = enc[has_color]
             real_color = colors[has_color]
 
-            z = torch.zeros(
-                n_color, NOISE_DIM, device=cond.device, dtype=cond.dtype)
+            z = torch.zeros_like(cond)
             pred_color = self.color_gen(cond, z=z)
             loss_color_gen = l1_loss(pred_color, real_color)
             loss = loss + LOSS_WEIGHT_COLOR_REGRESSION * loss_color_gen
