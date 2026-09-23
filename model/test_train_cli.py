@@ -16,7 +16,7 @@ runner = CliRunner()
 
 def test_litencoder_builds_all_heads():
     m = T.LitEncoder()
-    assert hasattr(m, "style") and hasattr(m, "emoji") and hasattr(m, "lang")
+    assert hasattr(m, "style") and hasattr(m, "emoji")
     opt = m.configure_optimizers()
     assert isinstance(opt, torch.optim.Adam)
 

@@ -31,10 +31,8 @@ PRED_JSONL = DATA_DIR / "pred.jsonl"
 
 class PtFile(StrEnum):
     ENC = "enc.pt"
-    LANG = "lang.pt"
     STYLE = "style.pt"
     EMOJI = "emoji.pt"
-    EMOJI_EMBED = "emoji_embed.pt"
     GEN = "gen.pt"
 
     def in_dir(self, pt_dir: Path) -> Path:
@@ -42,10 +40,8 @@ class PtFile(StrEnum):
 
 
 ENC_PT = PtFile.ENC.in_dir(PT_DIR)
-LANG_PT = PtFile.LANG.in_dir(PT_DIR)
 STYLE_PT = PtFile.STYLE.in_dir(PT_DIR)
 EMOJI_PT = PtFile.EMOJI.in_dir(PT_DIR)
-EMOJI_EMBED_PT = PtFile.EMOJI_EMBED.in_dir(PT_DIR)
 GEN_PT = PtFile.GEN.in_dir(PT_DIR)
 TEXT_ENC_CACHE_PT = PT_DIR / "text_enc_cache.pt"
 

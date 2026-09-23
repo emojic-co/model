@@ -22,20 +22,15 @@ over time is taken; the per-block pooled vectors are concatenated into a
 is the raw pooled vector — not L2-normed. The two heads consume it raw;
 `ColorGen` and `ColorCritic` L2-norm their text conditioning internally.
 
-### StyleHead / EmojiHead / EmojiEmbedding
+### StyleHead / EmojiHead
 
 `StyleHead` and `EmojiHead` are each `Dropout → Linear(TEXT_EMBED_SIZE →
 *_EMBED_SIZE, bias=False)` → a query vector (`STYLE_EMBED_SIZE` 16 /
-`EMOJI_EMBED_SIZE` 64).
-
-`StyleHead` keeps its own label-embedding table
-(`nn.Embedding(len(STYLES), 16)` + bias,
-`logits = proj @ embed.weight.t() + bias`).
-
-The emoji side splits the table out into `EmojiEmbedding` — a shared
-module owning `nn.Embedding(len(EMOJIS), 64)` + bias, with
-`score(q) = q @ E.t() + bias`. `EmojiHead` returns only the 64-d query
-`q_txt`; `emoji_logits = EmojiEmbedding.score(q_txt)`.
+`EMOJI_EMBED_SIZE` 64), scored against a label-embedding table owned by
+the same module (`nn.Embedding(len(labels), *_EMBED_SIZE)` + bias,
+`logits = proj @ embed.weight.t() + bias`). `EmojiHead.score(q)` exposes
+the table-scoring step on its own for callers (`tools/report.py`) that
+need to probe a raw query vector.
 
 Both heads train as retrieval with `model/train.py:lse_infonce` — a
 multi-positive Log-Sum-Exp InfoNCE: `logsumexp` over all label logits
@@ -84,8 +79,7 @@ for `bg1`, `bg2`, `text_color`. Output stays in sRGB; the browser
 | ColorCritic | hinge loss on `(color_score, cond_score)`, weighted by `LOSS_WEIGHT_COND_COLOR`; real palettes vs. generator samples |
 | ColorGen | negative critic score (both branches) blended with OKLab `energy_distance` via `LOSS_WEIGHT_ENERGY` |
 
-`loss/emoji` trains `EmojiEmbedding` + `EmojiHead`; `loss/style` trains
-`StyleHead`.
+`loss/emoji` trains `EmojiHead`; `loss/style` trains `StyleHead`.
 
 The critic's only negatives are generator samples (`gen(text,
 z).detach()`) — there is no stage-1 phase training it against mismatched
@@ -99,7 +93,7 @@ Co-trains `TextEncoder` + the selected heads (`style`, `emoji`, `lang`;
 default all three; `ColorCritic` is not a stage-1 head). Checkpoint +
 early-stop on the first available of `F1/val` (`emoji` + `style`) →
 `MRR/e/val` → `MRR/s/val` → `acc/lang/val` (max). Writes `enc.pt` plus
-one `.pt` per selected head, plus `emoji_embed.pt` (with `emoji`).
+one `.pt` per selected head.
 
 Metrics logged: `MRR/s/val`, `MRR/e/val` (full-vocab mean reciprocal
 rank, emoji measured only over rows carrying ≥1 emoji), `acc/lang/val`,
@@ -125,7 +119,6 @@ Saved to `pt/`, each a `{"state_dict", "meta"}` blob
 | `enc.pt` | 1 | `enc` |
 | `style.pt` | 1 | `enc` |
 | `emoji.pt` | 1 | `enc` |
-| `emoji_embed.pt` | 1 | `enc` |
 | `gen.pt` | 2 | `gan` |
 
 ## CLI
@@ -137,11 +130,11 @@ train [-h] [gan] [--local]
 - no positional — Stage 1 (all heads) → Stage 2 → `model/export_onnx.py`
   → `tools/report.py`.
 - `gan` — Stage 2 only; aborts unless `enc.pt` / `style.pt` / `emoji.pt`
-  / `emoji_embed.pt` are all in `pt/`; then `gen.pt` → export → report.
+  are all in `pt/`; then `gen.pt` → export → report.
 - Modal by default; `--local` runs on this machine. A dirty git tree
   always aborts.
 
 `model/export_onnx.py` exports a single-input (`input`), three-output
 (`style_logits`, `emoji_logits`, `color`) graph; `model/pred.py` and
-`tools/report.py` score `EmojiHead` queries against `EmojiEmbedding`
-directly, with no fusion/blending step.
+`tools/report.py` score `EmojiHead` directly, with no fusion/blending
+step.

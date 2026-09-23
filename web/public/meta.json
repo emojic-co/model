@@ -933,11 +933,11 @@
     "Sarcastic",
     "Deadpan"
   ],
-  "exported_at": "2026-09-23T09:47+00:00",
+  "exported_at": "2026-09-23T12:39+00:00",
   "model_meta": {
-    "sha": "0da4ae8",
+    "sha": "50816ef",
     "dirty": false,
-    "generated": "2026-09-23T08:42:48",
+    "generated": "2026-09-23T12:07:59",
     "config": [
       "ENCODER: 30 3 [160, 220, 200, 60] [1, 2, 4, 8]",
       "EMOJI: 60",

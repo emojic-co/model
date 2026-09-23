@@ -20,20 +20,13 @@ from lightning.pytorch.callbacks import (
 )
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
-from torch.nn.functional import (
-    binary_cross_entropy_with_logits,
-    cross_entropy,
-    l1_loss,
-    relu,
-)
+from torch.nn.functional import relu
 from torch.utils.data import DataLoader, Dataset
 from torchmetrics.functional.classification import binary_auroc
 from tqdm import tqdm
 
 from files import (
-    COLOR_TERMS_JSONL,
     DATA_JSONL,
-    EMOJI_EMBED_PT,
     EMOJI_PT,
     ENC_PT,
     EVAL_JSONL,
@@ -41,7 +34,6 @@ from files import (
     KEYWORDS_JSONL,
     LABELS_JSON,
     MODEL_DIR,
-    PREVIEW_DIR,
     PT_DIR,
     REPORT_DIR,
     RUNS_DIR,
@@ -58,7 +50,6 @@ from model.config import (
     CONFIG_NAME,
     EARLY_STOP_MIN_DELTA_GAN,
     EARLY_STOP_PATIENCE_ENCODER,
-    EARLY_STOP_PATIENCE_ENERGY,
     EARLY_STOP_PATIENCE_GAN,
     ENERGY_TRAIN_SAMPLE_SIZE,
     ENERGY_VAL_SAMPLE_SIZE,
@@ -67,18 +58,15 @@ from model.config import (
     GAN_BATCH_SIZE,
     GRAD_CLIP_CRITIC,
     GRAD_CLIP_GEN,
-    INFONCE_TEMP_EMOJI,
-    INFONCE_TEMP_STYLE,
     LOSS_WEIGHT_COLOR_CRITIC,
-    LOSS_WEIGHT_COLOR_REGRESSION,
     LOSS_WEIGHT_COND_COLOR_CRITIC,
-    LOSS_WEIGHT_ENC_COND_COLOR_CRITIC,
     LOSS_WEIGHT_ENERGY,
     LR_ENCODER,
     LR_GAN_COND_CRITIC,
     LR_GAN_CRITIC,
     LR_GAN_GEN,
-    MACRO_MIN_SUPPORT,
+    MARGIN_EMOJI,
+    MARGIN_STYLE,
     SAMPLING_RATE_MAX,
     SAMPLING_RATE_MIN,
     SAMPLING_SOURCES,
@@ -95,20 +83,15 @@ from model.data import (
 )
 from model.export_onnx import export
 from model.metric import GanMetric, Metric, Source, Split, named_metric
-from model.metrics import macro_average
 from model.model import (
     ColorCritic,
     ColorGen,
     CondColorCritic,
-    EmojiEmbedding,
     EmojiHead,
-    LangHead,
     StyleHead,
     TextEncoder,
 )
-from model.pred import rgb_to_hex
-from model.runmeta import file_sha, load_pt, require_clean_tree, run_meta, save_pt
-from tools.report import _color_keywords_html, _section_color_keywords
+from model.runmeta import file_sha, load_pt, require_clean_tree, save_pt
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -117,21 +100,22 @@ _CUDA = torch.cuda.is_available()
 _DETERMINISTIC: bool | str = "warn" if _CUDA else True
 
 
-def lse_infonce(
+def avgmax_hinge(
     logits: torch.Tensor,
     target: torch.Tensor,
-    temp: float,
+    margin: float,
 ) -> torch.Tensor:
     has_pos = target.sum(dim=-1) > 0
-    if not bool(has_pos.any()):
+    has_neg = (target == 0).sum(dim=-1) > 0
+    valid = has_pos & has_neg
+    if not bool(valid.any()):
         return logits.new_zeros(())
 
-    z = logits / temp
-    all_lse = torch.logsumexp(z, dim=-1)
-    pos_lse = torch.logsumexp(z.masked_fill(target == 0, float("-inf")), dim=-1)
-    row_loss = all_lse - pos_lse
+    pos_avg = (logits * target).sum(dim=-1) / target.sum(dim=-1).clamp(min=1)
+    neg_max = logits.masked_fill(target != 0, float("-inf")).amax(dim=-1)
+    row_loss = relu(margin - (pos_avg - neg_max))
 
-    return row_loss[has_pos].mean()
+    return row_loss[valid].mean()
 
 
 def mrr(logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
@@ -147,52 +131,27 @@ def acc_at_k(logits: torch.Tensor, target: torch.Tensor, k: int) -> torch.Tensor
     return rel[:, :k].amax(dim=-1)
 
 
-def r2_score(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-    ss_res = (target - pred).pow(2).sum()
-    ss_tot = (target - target.mean(dim=0, keepdim=True)).pow(2).sum()
-    return 1 - ss_res / ss_tot.clamp(min=1e-8)
-
-
 def _energy_subsample(x: torch.Tensor, n: int) -> torch.Tensor:
     if x.shape[0] <= n:
         return x
     return x[:n]
 
 
-ALL_HEADS: tuple[str, ...] = ("style", "emoji", "lang")
 _DEFAULT_PT = PT_DIR
 
 
 class Stage(StrEnum):
     gan = "gan"
-    energy = "energy"
-    critic = "critic"
 
 
 class LitEncoder(pl.LightningModule):
-    def __init__(self, heads: tuple[str, ...] = ALL_HEADS):
+    def __init__(self):
         super().__init__()
         self.save_hyperparameters()
-        self.heads = tuple(heads)
 
         self.enc = TextEncoder()
-        self.color_gen = ColorGen()
-        self.cond_color_critic = CondColorCritic()
-        if "style" in self.heads:
-            self.style = StyleHead()
-        if "emoji" in self.heads:
-            self.emoji_embed = EmojiEmbedding()
-            self.emoji = EmojiHead()
-        if "lang" in self.heads:
-            self.lang = LangHead()
-
-        self._val_e_rr: list[torch.Tensor] = []
-        self._trn_e_rr: list[torch.Tensor] = []
-
-        self._val_s_rr: list[torch.Tensor] = []
-        self._val_s_tgt: list[torch.Tensor] = []
-        self._trn_s_rr: list[torch.Tensor] = []
-        self._trn_s_tgt: list[torch.Tensor] = []
+        self.style = StyleHead()
+        self.emoji = EmojiHead()
 
         self.train_dataset = None
 
@@ -201,118 +160,50 @@ class LitEncoder(pl.LightningModule):
                  prog_bar=True, batch_size=bs)
 
     def _step(self, batch, split: Split):
-        text, emoji, style, colors, lang, source = batch
+        text, emoji, style, source = batch
         enc = self.enc(text)
-        loss = enc.new_zeros(())
 
-        if "style" in self.heads:
-            style_logits = self.style(enc)
-            loss_style = lse_infonce(style_logits, style, INFONCE_TEMP_STYLE)
-            loss = loss + loss_style
-            s_rr, s_tgt = (
-                (self._val_s_rr, self._val_s_tgt)
-                if split == Split.VAL
-                else (self._trn_s_rr, self._trn_s_tgt)
-            )
-            s_rr.append(mrr(style_logits, style).detach())
-            s_tgt.append(style.detach())
-
-        if "emoji" in self.heads:
-            q_txt = self.emoji(enc)
-            emoji_logits = self.emoji_embed.score(q_txt)
-            loss_emoji = lse_infonce(emoji_logits, emoji, INFONCE_TEMP_EMOJI)
-            loss = loss + loss_emoji
-            has_e = emoji.sum(dim=-1) > 0
-            n_e = int(has_e.sum())
-            if n_e:
-                rr = mrr(emoji_logits[has_e], emoji[has_e])
-                e_rr = self._val_e_rr if split == Split.VAL else self._trn_e_rr
-                e_rr.append(rr.detach())
-
-            if split == Split.VAL and n_e:
-                self._log(
-                    named_metric(Source.FULL_TEXT, Metric.ACC_1),
-                    acc_at_k(emoji_logits[has_e], emoji[has_e], 1).mean(),
-                    n_e,
-                )
-
-            if split == Split.TRAIN:
-                for name, cfg in SAMPLING_SOURCES.items():
-                    if cfg.metric != named_metric(name, Metric.ACC_1):
-                        continue
-                    mask = torch.tensor(
-                        [s == name for s in source], device=emoji.device
-                    )
-                    n = int(mask.sum())
-                    if n:
-                        self._log(
-                            named_metric(name, Metric.ACC_1),
-                            acc_at_k(emoji_logits[mask], emoji[mask], 1).mean(),
-                            n,
-                        )
-
-        if "lang" in self.heads:
-            lang_logits = self.lang(enc)
-            loss_lang = cross_entropy(lang_logits, lang)
-            loss = loss + loss_lang
-
-        has_color = torch.tensor(
-            [s == Source.COLOR for s in source], device=enc.device
+        style_logits = self.style(enc)
+        loss_style = avgmax_hinge(style_logits, style, MARGIN_STYLE)
+        self._log(
+            named_metric(Source.STYLE, Metric.MRR, split),
+            mrr(style_logits, style).mean(),
+            style.size(0),
         )
-        n_color = int(has_color.sum())
-        if n_color:
-            cond = enc[has_color]
-            real_color = colors[has_color]
 
-            z = torch.zeros_like(cond)
-            pred_color = self.color_gen(cond, z=z)
-            loss_color_gen = l1_loss(pred_color, real_color)
-            loss = loss + LOSS_WEIGHT_COLOR_REGRESSION * loss_color_gen
+        emoji_logits = self.emoji(enc)
+        loss_emoji = avgmax_hinge(emoji_logits, emoji, MARGIN_EMOJI)
+        has_e = emoji.sum(dim=-1) > 0
+        n_e = int(has_e.sum())
+        if n_e:
+            rr = mrr(emoji_logits[has_e], emoji[has_e])
+            self._log(named_metric(Source.EMOJI, Metric.MRR, split), rr.mean(), n_e)
 
-            fake_color = real_color[
-                torch.randperm(n_color, device=real_color.device)
-            ]
-            pair = torch.cat([real_color, fake_color], dim=0)
-            cond_pair = torch.cat([cond, cond], dim=0)
-            score = self.cond_color_critic(cond_pair, pair)
-            target = torch.cat(
-                [score.new_ones(n_color, 1), score.new_zeros(n_color, 1)]
+        if split == Split.VAL and n_e:
+            self._log(
+                named_metric(Source.FULL_TEXT, Metric.ACC_1),
+                acc_at_k(emoji_logits[has_e], emoji[has_e], 1).mean(),
+                n_e,
             )
-            loss_critic = binary_cross_entropy_with_logits(score, target)
-            loss = loss + LOSS_WEIGHT_ENC_COND_COLOR_CRITIC * loss_critic
 
-            if split == Split.TRAIN:
-                self._log(
-                    named_metric(Source.COLOR, Metric.MAE),
-                    loss_color_gen.detach(), n_color,
+        if split == Split.TRAIN:
+            for name, cfg in SAMPLING_SOURCES.items():
+                if cfg.metric != named_metric(name, Metric.ACC_1):
+                    continue
+                mask = torch.tensor(
+                    [s == name for s in source], device=emoji.device
                 )
-                self._log(
-                    named_metric(Source.COLOR, Metric.R2),
-                    r2_score(pred_color.detach(), real_color), n_color,
-                )
-                self._log(
-                    named_metric(Source.COLOR, Metric.AUROC),
-                    binary_auroc(
-                        score.detach().squeeze(-1), target.squeeze(-1).long()
-                    ),
-                    n_color,
-                )
+                n = int(mask.sum())
+                if n:
+                    self._log(
+                        named_metric(name, Metric.ACC_1),
+                        acc_at_k(emoji_logits[mask], emoji[mask], 1).mean(),
+                        n,
+                    )
 
-        return loss
-
-    def on_validation_epoch_start(self):
-        self._val_e_rr.clear()
-        self._val_s_rr.clear()
-        self._val_s_tgt.clear()
-
-    def on_validation_epoch_end(self):
-        self._epoch_metrics(Split.VAL)
+        return loss_style + loss_emoji
 
     def on_train_epoch_start(self):
-        self._trn_e_rr.clear()
-        self._trn_s_rr.clear()
-        self._trn_s_tgt.clear()
-
         if self.train_dataset is None or self.train_dataset.rates is None:
             return
         metrics = self.trainer.callback_metrics
@@ -330,34 +221,6 @@ class LitEncoder(pl.LightningModule):
                 self.train_dataset.rates.get(name),
             )
 
-    def on_train_epoch_end(self):
-        self._epoch_metrics(Split.TRAIN)
-
-    def _epoch_metrics(self, split: Split):
-        if "emoji" in self.heads:
-            e_rr = self._val_e_rr if split == Split.VAL else self._trn_e_rr
-            if e_rr:
-                emoji_mrr = torch.cat(e_rr).mean()
-                self.log(
-                    named_metric(Source.EMOJI, Metric.MRR, split),
-                    emoji_mrr, prog_bar=True,
-                )
-
-        if "style" in self.heads:
-            s_rr, s_tgt = (
-                (self._val_s_rr, self._val_s_tgt)
-                if split == Split.VAL
-                else (self._trn_s_rr, self._trn_s_tgt)
-            )
-            if s_rr:
-                style_macro, _, _ = macro_average(
-                    torch.cat(s_rr), torch.cat(s_tgt), MACRO_MIN_SUPPORT
-                )
-                self.log(
-                    named_metric(Source.STYLE, Metric.MRR, split),
-                    style_macro, prog_bar=True,
-                )
-
     def training_step(self, batch, batch_idx):
         return self._step(batch, Split.TRAIN)
 
@@ -365,13 +228,11 @@ class LitEncoder(pl.LightningModule):
         self._step(batch, Split.VAL)
 
     def configure_optimizers(self):
-        params = list(self.enc.parameters())
-        params += list(self.color_gen.parameters())
-        params += list(self.cond_color_critic.parameters())
-        if "emoji" in self.heads:
-            params += list(self.emoji_embed.parameters())
-        for h in self.heads:
-            params += list(getattr(self, h).parameters())
+        params = (
+            list(self.enc.parameters())
+            + list(self.style.parameters())
+            + list(self.emoji.parameters())
+        )
         return optim.Adam(params, lr=LR_ENCODER)
 
 
@@ -517,192 +378,6 @@ class LitColorGAN(pl.LightningModule):
         return [opt_gen, opt_critic, opt_color_critic]
 
 
-class LitColorEnergy(pl.LightningModule):
-    def __init__(self):
-        super().__init__()
-
-        self.gen = ColorGen()
-        self.color_critic = ColorCritic()
-
-        self.automatic_optimization = False
-
-        self._val_cond: list[torch.Tensor] = []
-        self._val_real: list[torch.Tensor] = []
-
-    def on_validation_epoch_start(self):
-        self._val_cond.clear()
-        self._val_real.clear()
-
-    def validation_step(self, batch, batch_idx):
-        cond, colors = batch
-        self._val_cond.append(cond)
-        self._val_real.append(colors)
-
-    def on_validation_epoch_end(self):
-        if not self._val_real:
-            return
-
-        self.gen.eval()
-        with torch.no_grad():
-            cond = torch.cat(self._val_cond)
-            real = rgb_to_oklab(torch.cat(self._val_real))
-            fake = rgb_to_oklab(self.gen(cond))
-            val = energy_distance(
-                _energy_subsample(real, ENERGY_VAL_SAMPLE_SIZE),
-                _energy_subsample(fake, ENERGY_VAL_SAMPLE_SIZE))
-            self.log(GanMetric.ENERGY_VAL, val, prog_bar=True)
-
-    def training_step(self, batch, batch_idx):
-        cond, colors = batch
-        opt_gen, opt_color_critic = self.optimizers()  # type: ignore
-
-        fake = self.gen(cond)
-        loss_energy = energy_distance(
-            rgb_to_oklab(_energy_subsample(fake, ENERGY_TRAIN_SAMPLE_SIZE)),
-            rgb_to_oklab(_energy_subsample(colors, ENERGY_TRAIN_SAMPLE_SIZE)))
-
-        opt_gen.zero_grad()
-        self.manual_backward(loss_energy)
-        self.clip_gradients(
-            opt_gen,  # type: ignore
-            gradient_clip_val=GRAD_CLIP_GEN,
-            gradient_clip_algorithm="norm")
-        opt_gen.step()
-
-        # COLOR CRITIC: logging only, trained on a detached fake so it never
-        # feeds a gradient back into the generator.
-        pair = torch.cat([colors, fake.detach()], dim=0)
-        score = self.color_critic(pair)
-        real, fake_score = score.chunk(2, dim=0)
-
-        loss_color_critic = relu(1 - real).mean() + relu(1 + fake_score).mean()
-
-        n = colors.shape[0]
-        auroc_target = torch.cat([score.new_ones(n), score.new_zeros(n)])
-        auroc = binary_auroc(score.detach().squeeze(-1), auroc_target.long())
-
-        opt_color_critic.zero_grad()
-        self.manual_backward(loss_color_critic)
-        self.clip_gradients(
-            opt_color_critic,  # type: ignore
-            gradient_clip_val=GRAD_CLIP_CRITIC,
-            gradient_clip_algorithm="norm")
-        opt_color_critic.step()
-
-        self.log(GanMetric.ENERGY_TRAIN, loss_energy, prog_bar=True)
-        self.log(GanMetric.COLOR_CRITIC_LOSS, loss_color_critic, prog_bar=True)
-        self.log(GanMetric.COLOR_CRITIC_AUROC, auroc, prog_bar=True)
-
-    def configure_optimizers(self):
-        opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
-        opt_color_critic = optim.SGD(
-            self.color_critic.parameters(), lr=LR_GAN_CRITIC)
-        return [opt_gen, opt_color_critic]
-
-
-class LitColorCritic(pl.LightningModule):
-    def __init__(self):
-        super().__init__()
-
-        self.critic = CondColorCritic()
-        self.color_critic = ColorCritic()
-
-        self._trn_score: list[torch.Tensor] = []
-        self._trn_target: list[torch.Tensor] = []
-
-        self._trn_color_score: list[torch.Tensor] = []
-        self._trn_color_target: list[torch.Tensor] = []
-
-    def _real_fake(
-        self, cond: torch.Tensor, colors: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor]:
-        fake = colors[torch.randperm(colors.shape[0], device=colors.device)]
-
-        pair = torch.cat([colors, fake], dim=0)
-        cond_pair = torch.cat([cond, cond], dim=0)
-        score = self.critic(cond_pair, pair)
-
-        n = colors.shape[0]
-        target = torch.cat([score.new_ones(n, 1), score.new_zeros(n, 1)])
-        return score, target
-
-    def _color_real_fake(
-        self, colors: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor]:
-        fake = colors[torch.randperm(colors.shape[0], device=colors.device)]
-
-        pair = torch.cat([colors, fake], dim=0)
-        score = self.color_critic(pair)
-
-        n = colors.shape[0]
-        target = torch.cat([score.new_ones(n, 1), score.new_zeros(n, 1)])
-        return score, target
-
-    def _auroc(self, score: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        return binary_auroc(score.squeeze(-1), target.squeeze(-1).long())
-
-    def on_train_epoch_start(self):
-        self._trn_score.clear()
-        self._trn_target.clear()
-        self._trn_color_score.clear()
-        self._trn_color_target.clear()
-
-    def training_step(self, batch, batch_idx):
-        cond, colors = batch
-        score, target = self._real_fake(cond, colors)
-        real, fake_score = score.chunk(2, dim=0)
-
-        loss = relu(1 - real).mean() + relu(1 + fake_score).mean()
-
-        # Unconditional ColorCritic, trained here only as a sanity check:
-        # real vs. shuffled colors share the same marginal distribution, so
-        # it has nothing to key on and should sit near chance AUROC.
-        color_score, color_target = self._color_real_fake(colors)
-        color_real, color_fake_score = color_score.chunk(2, dim=0)
-
-        loss_color = \
-            relu(1 - color_real).mean() + relu(1 + color_fake_score).mean()
-
-        self._trn_score.append(score.detach())
-        self._trn_target.append(target.detach())
-        self._trn_color_score.append(color_score.detach())
-        self._trn_color_target.append(color_target.detach())
-
-        self.log(GanMetric.COND_COLOR_CRITIC_LOSS, loss, prog_bar=True)
-        self.log(GanMetric.COND_COLOR_CRITIC_MEAN_SCORE_REAL, real.detach().mean())
-        self.log(GanMetric.COND_COLOR_CRITIC_MEAN_SCORE_FAKE,
-                 fake_score.detach().mean())
-        self.log(GanMetric.COLOR_CRITIC_LOSS, loss_color, prog_bar=True)
-        return loss + loss_color
-
-    def on_train_epoch_end(self):
-        if self._trn_score:
-            self.log(
-                GanMetric.COND_COLOR_CRITIC_AUROC,
-                self._auroc(
-                    torch.cat(self._trn_score), torch.cat(self._trn_target)
-                ),
-                prog_bar=True,
-            )
-        if self._trn_color_score:
-            self.log(
-                GanMetric.COLOR_CRITIC_AUROC,
-                self._auroc(
-                    torch.cat(self._trn_color_score),
-                    torch.cat(self._trn_color_target),
-                ),
-                prog_bar=True,
-            )
-
-    def configure_optimizers(self):
-        return optim.SGD(
-            [
-                {"params": self.critic.parameters(), "lr": LR_GAN_COND_CRITIC},
-                {"params": self.color_critic.parameters(), "lr": LR_GAN_CRITIC},
-            ]
-        )
-
-
 def _load(mod: nn.Module, path: Path) -> nn.Module:
     sd, meta = load_pt(path)
     mod.load_state_dict(sd)
@@ -719,7 +394,6 @@ def _pt_files_ok(pt_dir: Path) -> bool:
         (PtFile.ENC, TextEncoder()),
         (PtFile.STYLE, StyleHead()),
         (PtFile.EMOJI, EmojiHead()),
-        (PtFile.EMOJI_EMBED, EmojiEmbedding()),
     ]
     for name, mod in checks:
         path = name.in_dir(pt_dir)
@@ -732,7 +406,7 @@ def _pt_files_ok(pt_dir: Path) -> bool:
     return True
 
 
-def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
+def _train_encoder(ds, out_dir: Path) -> LitEncoder:
     dl = train_data_loader(data_set=ds, batch_size=TASK_BATCH_SIZE)
     val_dl = eval_data_loader()
 
@@ -762,7 +436,7 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
         ],
     )
 
-    mod = LitEncoder(heads=heads)
+    mod = LitEncoder()
     mod.train_dataset = ds
     trainer.fit(mod, dl, val_dl)
 
@@ -770,19 +444,8 @@ def _train_encoder(ds, heads: tuple[str, ...], out_dir: Path) -> LitEncoder:
         mod = LitEncoder.load_from_checkpoint(ckpt.best_model_path)
 
     save_pt(mod.enc.state_dict(), PtFile.ENC.in_dir(out_dir), stage="enc")
-    if "emoji" in heads:
-        save_pt(
-            mod.emoji_embed.state_dict(),
-            PtFile.EMOJI_EMBED.in_dir(out_dir),
-            stage="enc",
-        )
-    for h in ALL_HEADS:
-        if h in heads:
-            save_pt(
-                getattr(mod, h).state_dict(),
-                PtFile(f"{h}.pt").in_dir(out_dir),
-                stage="enc",
-            )
+    save_pt(mod.style.state_dict(), PtFile.STYLE.in_dir(out_dir), stage="enc")
+    save_pt(mod.emoji.state_dict(), PtFile.EMOJI.in_dir(out_dir), stage="enc")
 
     return mod
 
@@ -852,134 +515,6 @@ def _train_gan(
     return gan
 
 
-_ENERGY_PREVIEW_CARD_TEXT = "What's on your mind?"
-
-
-def _energy_preview_card(bg1: str, bg2: str, fg: str) -> str:
-    return (
-        '<div class="card" style="'
-        f"background:linear-gradient(135deg,{bg1},{bg2});color:{fg}"
-        f'">{_ENERGY_PREVIEW_CARD_TEXT}</div>'
-    )
-
-
-def _write_energy_preview(
-    mod: LitColorEnergy, cond: torch.Tensor, enc: TextEncoder, n: int = 50
-) -> Path:
-    mod.gen.eval()
-    with torch.no_grad():
-        colors = mod.gen(cond[:n])
-
-    cards = "\n".join(
-        _energy_preview_card(*rgb_to_hex(colors[i])) for i in range(colors.shape[0])
-    )
-    kw_html = _color_keywords_html(_section_color_keywords(enc, mod.gen))
-    html = f"""<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>energy preview</title>
-<style>
-:root{{--ink:#1b1f24;--dim:#656b73;--line:#e2e5e9;--panel:#f5f6f8;
---good-bg:#e6f6ec;--good-bd:#b2dec1;--bad-bg:#fdeaea;--bad-bd:#f0b6b6}}
-body {{ margin: 0; padding: 2em; background: #111; font-family: sans-serif; }}
-.grid {{ display: grid; gap: 1em;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }}
-.card {{ aspect-ratio: 1; border-radius: 12px; display: flex; align-items: center;
-  justify-content: center; text-align: center; padding: 1em; box-sizing: border-box; }}
-.kw {{ background: #fff; color: var(--ink); border-radius: 12px; padding: 2em;
-  margin-top: 2em; }}
-.kw h2 {{ font-size: 22px; margin: 0 0 6px; }}
-.kw h3 {{ font-size: 14px; text-transform: uppercase; letter-spacing: .04em;
-  color: var(--dim); margin: 28px 0 10px; }}
-.kw .note {{ color: var(--dim); font-size: 14px; margin: 6px 0 0; }}
-.kw table {{ border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 15px; }}
-.kw th, .kw td {{ border-bottom: 1px solid var(--line); padding: 8px 10px;
-  text-align: left; }}
-.kw td.n, .kw th.n {{ text-align: right; font-variant-numeric: tabular-nums; }}
-.kw table.scorecard tr.sc-good {{ background: var(--good-bg); }}
-.kw table.scorecard tr.sc-red {{ background: var(--bad-bg); }}
-.kw table.scorecard tr.sc-na {{ background: var(--panel); color: var(--dim); }}
-.kw .kw-grid {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
-  margin: 12px 0 0; }}
-.kw .kw-grid .grp {{ grid-column: span 2; font-size: 12px; letter-spacing: .04em;
-  text-transform: uppercase; color: var(--dim); }}
-.kw .mini {{ aspect-ratio: 1/1; border-radius: 12px; padding: 12px 10px;
-  display: flex; flex-direction: column; justify-content: center; align-items: center;
-  text-align: center; overflow: hidden; }}
-.kw .mini .tx {{ font-size: 12px; font-weight: 600; overflow-wrap: anywhere;
-  line-height: 1.3; }}
-</style>
-</head>
-<body>
-<div class="grid">
-{cards}
-</div>
-<div class="kw">
-{kw_html}
-</div>
-</body>
-</html>
-"""
-    PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now().strftime("%y-%m-%d-%H-%M")
-    sha = run_meta()["sha"]
-    out_path = PREVIEW_DIR / f"{ts}-{sha}.html"
-    out_path.write_text(html, encoding="utf-8")
-    return out_path
-
-
-def _train_energy(
-    enc: TextEncoder, enc_path: Path, ds, val_ds
-) -> LitColorEnergy:
-    enc.requires_grad_(False)
-    train_cond, val_cond = _encoded_texts(enc, enc_path, ds, val_ds)
-
-    dl = DataLoader(
-        _CondColorDataset(train_cond, ds.colors),
-        batch_size=GAN_BATCH_SIZE,
-        shuffle=True,
-        drop_last=True,
-    )
-    val_dl = DataLoader(
-        _CondColorDataset(val_cond, val_ds.colors),
-        batch_size=2000,
-        shuffle=False,
-        drop_last=False,
-    )
-
-    no_bar = _no_progress_bar()
-    bar_cbs = [] if no_bar else [TQDMProgressBar()]
-
-    trainer = pl.Trainer(
-        devices="auto",
-        accelerator="auto",
-        logger=TensorBoardLogger(
-            "runs", name=CONFIG_NAME, version="energy", default_hp_metric=False
-        ),
-        deterministic=_DETERMINISTIC,  # type: ignore
-        max_epochs=EPOCHS_GAN,
-        enable_progress_bar=not no_bar,
-        val_check_interval=min(VAL_CHECK_INTERVAL, len(dl)),
-        callbacks=[
-            *bar_cbs,
-            ModelSummary(),
-            EarlyStopping(
-                monitor=GanMetric.ENERGY_VAL,
-                mode="min",
-                patience=EARLY_STOP_PATIENCE_ENERGY,
-                min_delta=EARLY_STOP_MIN_DELTA_GAN),
-        ],
-    )
-
-    mod = LitColorEnergy()
-    trainer.fit(mod, dl, val_dl)
-    out_path = _write_energy_preview(mod, val_cond, enc)
-    print(out_path)
-    return mod
-
-
 class _CondColorDataset(Dataset):
     def __init__(self, cond: torch.Tensor, colors: list):
         self.cond = cond
@@ -994,7 +529,8 @@ class _CondColorDataset(Dataset):
 
 def _encode_texts(enc: TextEncoder, text: torch.Tensor) -> torch.Tensor:
     enc.eval()
-    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    device = torch.device(
+        "cuda") if torch.cuda.is_available() else torch.device("cpu")
     enc.to(device)
     chunks = []
     starts = range(0, text.shape[0], GAN_BATCH_SIZE)
@@ -1033,45 +569,6 @@ def _encoded_texts(
     return train_cond, val_cond
 
 
-def _train_critic(
-    enc: TextEncoder, enc_path: Path, ds, val_ds
-) -> LitColorCritic:
-    enc.requires_grad_(False)
-    train_cond, _ = _encoded_texts(enc, enc_path, ds, val_ds)
-
-    dl = DataLoader(
-        _CondColorDataset(train_cond, ds.colors),
-        batch_size=GAN_BATCH_SIZE,
-        shuffle=True,
-        drop_last=True,
-    )
-
-    no_bar = _no_progress_bar()
-    bar_cbs = [] if no_bar else [TQDMProgressBar()]
-
-    trainer = pl.Trainer(
-        devices="auto",
-        accelerator="auto",
-        logger=TensorBoardLogger(
-            "runs", name=CONFIG_NAME, version="cond_color_critic",
-            default_hp_metric=False
-        ),
-        deterministic=_DETERMINISTIC,  # type: ignore
-        max_epochs=EPOCHS_GAN,
-        enable_progress_bar=not no_bar,
-        gradient_clip_val=GRAD_CLIP_CRITIC,
-        gradient_clip_algorithm="norm",
-        callbacks=[
-            *bar_cbs,
-            ModelSummary(),
-        ],
-    )
-
-    mod = LitColorCritic()
-    trainer.fit(mod, dl)
-    return mod
-
-
 def _run_report_local(pt_dir: Path) -> None:
     subprocess.run(
         [sys.executable, "tools/report.py", "--pt", str(pt_dir)], check=True
@@ -1083,22 +580,6 @@ def _run_local(stage: Stage | None) -> None:
     torch.backends.cudnn.benchmark = _CUDA
     if _CUDA:
         torch.set_float32_matmul_precision("high")
-
-    if stage in (Stage.energy, Stage.critic):
-        enc_path = PtFile.ENC.in_dir(_DEFAULT_PT)
-        if not enc_path.exists():
-            raise typer.BadParameter(
-                f"{enc_path} not found -- run `train --local` first"
-            )
-        enc = _load(TextEncoder(), enc_path)
-        train_fn = _train_energy if stage == Stage.energy else _train_critic
-        train_fn(
-            enc,  # type: ignore
-            enc_path,
-            train_ds(mix_sources=False),
-            eval_ds(),
-        )
-        return
 
     require_clean_tree()
     skip_report = os.environ.get("EMOJIC_SKIP_REPORT") == "1"
@@ -1126,7 +607,7 @@ def _run_local(stage: Stage | None) -> None:
         )
 
     ds = train_ds()
-    mod = _train_encoder(ds, ALL_HEADS, _DEFAULT_PT)
+    mod = _train_encoder(ds, _DEFAULT_PT)
 
     critic = CondColorCritic()
     _train_gan(
@@ -1179,7 +660,6 @@ CODE_FILES = [
     EVAL_JSONL,
     KEYWORDS_JSONL,
     TERMS_JSONL,
-    COLOR_TERMS_JSONL,
     FLAGS_JSONL,
 ]
 COLLECT_TREES = [PT_DIR, RUNS_DIR, WEB_PUBLIC_DIR, REPORT_DIR]
@@ -1244,7 +724,6 @@ def train_remote(
     enc_bytes: bytes | None = None,
     style_bytes: bytes | None = None,
     emoji_bytes: bytes | None = None,
-    emoji_embed_bytes: bytes | None = None,
 ) -> dict[str, int]:
     env = _run_env(threads)
     env["EMOJIC_GIT_SHA"] = git_sha
@@ -1260,7 +739,6 @@ def train_remote(
         ENC_PT: enc_bytes,
         STYLE_PT: style_bytes,
         EMOJI_PT: emoji_bytes,
-        EMOJI_EMBED_PT: emoji_embed_bytes,
     }
     if any(v is not None for v in uploads.values()):
         Path(REPO, PT_DIR).mkdir(parents=True, exist_ok=True)
@@ -1378,14 +856,12 @@ def _run_remote(stage: str, git_sha: str, run_time: str) -> dict[str, int]:
         "enc_bytes": None,
         "style_bytes": None,
         "emoji_bytes": None,
-        "emoji_embed_bytes": None,
     }
     if stage == "gan":
         for name in (
             ENC_PT,
             STYLE_PT,
             EMOJI_PT,
-            EMOJI_EMBED_PT,
         ):
             if not name.exists():
                 raise typer.BadParameter(
@@ -1396,7 +872,6 @@ def _run_remote(stage: str, git_sha: str, run_time: str) -> dict[str, int]:
             "enc_bytes": ENC_PT.read_bytes(),
             "style_bytes": STYLE_PT.read_bytes(),
             "emoji_bytes": EMOJI_PT.read_bytes(),
-            "emoji_embed_bytes": EMOJI_EMBED_PT.read_bytes(),
         }
 
     fn = train_remote.with_options(
@@ -1441,72 +916,18 @@ _app = typer.Typer(
 def cli(
     stage: Stage | None = typer.Argument(
         None,
-        metavar="[gan|energy|critic]",
-        help="gan = train only the color GAN, using a pretrained encoder. "
-        "energy = debug: fit ColorGen alone against the energy distance "
-        "(an unconditional ColorCritic also trains alongside it for "
-        "logging only, with no gradient into the generator), using real "
-        "cached text embeddings. "
-        "critic = debug: fit CondColorCritic against a frozen pretrained "
-        "encoder (no generator); an unconditional ColorCritic trains "
-        "alongside it as a chance-AUROC sanity check. "
+        metavar="[gan]",
+        help="gan = train only the color GAN, using a pretrained encoder "
+        "(enc.pt, style.pt, emoji.pt in pt/). "
         "Omit to train the encoder then the GAN.",
     ),
     local: bool = typer.Option(
         False, "--local", help="Train on this machine instead of Modal."
     ),
 ) -> None:
-    """Train the emojic model.
-
-    Stages
-      (none)   Text encoder (all heads), then the color GAN, then ONNX
-               export + report.
-      gan      Color GAN only: frozen pretrained encoder, generator and
-               critic trained from scratch. Requires enc.pt, style.pt,
-               emoji.pt, emoji_embed.pt in pt/. Text is embedded once up
-               front and cached to pt/text_enc_cache.pt (shared with
-               stages "energy"/"critic" below), keyed on enc.pt +
-               train.jsonl + eval.jsonl content. Then export + report.
-      energy   Debug only: fit ColorGen directly against the energy
-               distance. An unconditional ColorCritic trains alongside it
-               purely for logging -- it only ever sees a detached fake
-               color, so it feeds no gradient into the generator. Text is
-               embedded once up front by a frozen pretrained encoder
-               (requires enc.pt in pt/; the encoder itself is not
-               trained) and those embeddings are reused every epoch.
-               Cached to pt/text_enc_cache.pt (same cache as stage "gan"
-               above and stage "critic" below), keyed on enc.pt +
-               train.jsonl + eval.jsonl content. No checkpoints, no
-               export, no report -- just watch gan/energy/{train,val} and
-               gan/color_critic/{loss,auroc} in TensorBoard. Always
-               runs locally, ignores --local.
-      critic   Debug only: fit CondColorCritic alone, no generator. An
-               unconditional ColorCritic trains alongside it as a sanity
-               check -- real vs. shuffled colors share the same marginal
-               distribution with no text to key on, so it should sit near
-               chance AUROC. Text is embedded once up front by a frozen
-               pretrained encoder (requires enc.pt in pt/; the encoder
-               itself is not trained) and those embeddings are reused
-               every epoch. Cached to pt/text_enc_cache.pt (same cache
-               as stage "gan"/"energy" above), keyed on enc.pt +
-               train.jsonl + eval.jsonl content -- reused as-is on the
-               next run unless one of those changes. Fake pairs
-               are real colors shuffled across the batch, paired with
-               the (unshuffled) real text embeddings for the conditional
-               critic. No checkpoints, no export, no report -- just
-               watch gan/cond_color_critic/{loss,auroc} and
-               gan/color_critic/{loss,auroc} in
-               TensorBoard. Always runs locally, ignores --local.
-
-    Location
-      Runs on Modal (a T4 GPU) by default. --local runs here instead.
-      A dirty git tree always aborts (except stage "energy" and "critic",
-      which never touch checkpoints).
-    """
-    if stage in (Stage.energy, Stage.critic):
-        _run_local(stage)
-        return
-
+    """Train the emojic model, then export + report. Runs on Modal (a T4
+    GPU) by default; --local runs here instead. Aborts on a dirty git
+    tree."""
     if local:
         _run_local(stage)
     else:

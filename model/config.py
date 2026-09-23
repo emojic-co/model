@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from files import COLOR_TERMS_JSONL, KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
+from files import KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
 from model.metric import Metric, Source, named_metric
 
 # from files import FLAGS_JSONL
@@ -17,11 +17,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 with LABELS_JSON.open(encoding="utf-8") as f:
     LABELS = json.load(f)
 
-LANGS = LABELS["langs"]
 STYLES = LABELS["styles"]
 EMOJIS = LABELS["emojis"]
 
-LANG_COUNT = len(LANGS)
 STYLE_COUNT = len(STYLES)
 EMOJI_COUNT = len(EMOJIS)
 
@@ -38,10 +36,6 @@ assert ENCODER_KERNEL_SIZE % 2 == 1, \
 
 ENCODER_CHANNELS = [160, 220, 200, 60]
 ENCODER_DILATION = [1, 2, 4, 8]
-
-# ENCODER LOSS WEIGHTS
-LOSS_WEIGHT_COLOR_REGRESSION = 0.05
-LOSS_WEIGHT_ENC_COND_COLOR_CRITIC = 0.1
 
 # EMBEDDING
 EMBED_SIZE_CHAR = 30
@@ -97,10 +91,9 @@ LR_GAN_COND_CRITIC = 0.005
 SEED = 42
 TASK_BATCH_SIZE = 1024
 GAN_BATCH_SIZE = 1024
-COLOR_TERMS_BATCH_SIZE = 128
 RELU_SLOPE = 0.1
-INFONCE_TEMP_EMOJI = 0.7
-INFONCE_TEMP_STYLE = 0.7
+MARGIN_EMOJI = 1.0
+MARGIN_STYLE = 1.0
 
 gan_str = " ".join([
     str(p)
@@ -138,11 +131,6 @@ SAMPLING_SOURCES: dict[Source, SamplingSource] = {
         named_metric(Source.TERM, Metric.ACC_1),
         0, 0.9
     ),
-    Source.COLOR: SamplingSource(
-        COLOR_TERMS_JSONL,
-        named_metric(Source.COLOR, Metric.R2),
-        0, 0.9
-    ),
 }
 
 
@@ -157,7 +145,7 @@ train_str = " ".join(
             LR_ENCODER,
             GRAD_CLIP_GEN,
             GRAD_CLIP_CRITIC,
-            INFONCE_TEMP_EMOJI,
+            MARGIN_EMOJI,
             SAMPLING_RATE_MAX,
             SAMPLING_RATE_MIN,
         )
@@ -171,9 +159,6 @@ EARLY_STOP_PATIENCE_ENCODER = 30
 EARLY_STOP_PATIENCE_GAN = 200
 EARLY_STOP_PATIENCE_ENERGY = 30
 EARLY_STOP_MIN_DELTA_GAN = 0.005
-
-# METRICS
-MACRO_MIN_SUPPORT = 5
 
 # TENSORBOARD RUN NAME
 RUN_TIME = os.environ.get(
@@ -219,17 +204,12 @@ def _head_params(embed_size: int, n_labels: int) -> int:
     return EMBED_SIZE_TEXT * embed_size + n_labels * (embed_size + 1)
 
 
-def _lang_head_params(n_labels: int) -> int:
-    return EMBED_SIZE_TEXT * n_labels + n_labels
-
-
 def _stats() -> list[tuple[str, object]]:
     rf = _receptive_field()
     cover = "covers full input" if rf >= MAX_TEXT_LEN else "partial coverage"
     enc = _encoder_conv_params() + _encoder_proj_params()
     emoji_head = _head_params(EMBED_SIZE_EMOJI, len(EMOJIS))
     style_head = _head_params(EMBED_SIZE_STYLE, len(STYLES))
-    lang_head = _lang_head_params(len(LANGS))
     chain = " -> ".join(
         str(c) for c in (EMBED_SIZE_CHAR, *ENCODER_CHANNELS, EMBED_SIZE_TEXT))
     return [
@@ -242,17 +222,15 @@ def _stats() -> list[tuple[str, object]]:
         ("RF vs MAX_TEXT_LEN", f"{rf} / {MAX_TEXT_LEN}  ({cover})"),
         ("TEXT_EMBED_SIZE", EMBED_SIZE_TEXT),
         ("MAX_TEXT_LEN", MAX_TEXT_LEN),
-        ("# langs", len(LANGS)),
         ("# styles", len(STYLES)),
         ("# emojis", len(EMOJIS)),
         ("STYLE_EMBED_SIZE", EMBED_SIZE_STYLE),
         ("EMOJI_EMBED_SIZE", EMBED_SIZE_EMOJI),
         ("encoder conv params", f"{enc:,}"),
-        ("lang head params", f"{lang_head:,}"),
         ("style head params", f"{style_head:,}"),
         ("emoji head params", f"{emoji_head:,}"),
         ("PARAM_COUNT (enc + heads)",
-         f"{enc + lang_head + style_head + emoji_head:,}"),
+         f"{enc + style_head + emoji_head:,}"),
         ("TASK_BATCH_SIZE / GAN_BATCH_SIZE",
          f"{TASK_BATCH_SIZE} / {GAN_BATCH_SIZE}"),
         ("EPOCHS_TASK / EPOCHS_GAN", f"{EPOCHS_TASK} / {EPOCHS_GAN}"),

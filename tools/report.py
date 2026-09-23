@@ -21,7 +21,6 @@ from files import (
     CLDR_BASELINE_JSON,
     COLORS_JSONL,
     DATA_JSONL,
-    EMOJI_EMBED_PT,
     GOALS_YML,
     GROUP_JSON,
     II_JSON,
@@ -46,7 +45,6 @@ from model.export_onnx import CONST_Z
 from model.kwtokens import word_count
 from model.model import (
     ColorGen,
-    EmojiEmbedding,
     EmojiHead,
     StyleHead,
     TextEncoder,
@@ -116,7 +114,6 @@ EVAL_SAMPLE_PT_FILES = (
     PtFile.ENC,
     PtFile.STYLE,
     PtFile.EMOJI,
-    PtFile.EMOJI_EMBED,
     PtFile.GEN,
 )
 
@@ -154,20 +151,11 @@ def _acc_at_k(logits, target, k):
     return target.gather(1, top).amax(dim=-1)
 
 
-@cache
-def _emoji_embed():
-    if not EMOJI_EMBED_PT.exists():
-        return None
-    m, err = _load(EmojiEmbedding(), EMOJI_EMBED_PT)
-    return None if err else m
-
-
 def _provenance(pt: Path):
     enc_pt, emoji_pt = PtFile.ENC.in_dir(pt), PtFile.EMOJI.in_dir(pt)
     style_pt, gen_pt = PtFile.STYLE.in_dir(pt), PtFile.GEN.in_dir(pt)
-    emoji_embed_pt = PtFile.EMOJI_EMBED.in_dir(pt)
     rm = run_meta()
-    paths = [enc_pt, emoji_pt, emoji_embed_pt, style_pt, gen_pt]
+    paths = [enc_pt, emoji_pt, style_pt, gen_pt]
     metas = {str(p): (load_pt(p)[1] if p.exists() else None) for p in paths}
     present = {p: m for p, m in metas.items() if m}
     missing = [p for p in paths if not p.exists()]
@@ -236,9 +224,6 @@ def _section_labels():
 
 
 def _probe(words, enc, head):
-    emb_tbl = _emoji_embed()
-    if emb_tbl is None:
-        return {"n": 0, "total": len(words), "acc_at_k": [0.0] * len(EMOJI_KS)}
     vocab = {e: i for i, e in enumerate(EMOJIS)}
     scored = []
     with torch.no_grad():
@@ -247,7 +232,7 @@ def _probe(words, enc, head):
             if not ids:
                 continue
             emb = enc(text_to_tensor(norm_text(word)).unsqueeze(0))
-            logits = emb_tbl.score(head(emb))
+            logits = head(emb)
             order = logits.squeeze(0).argsort(descending=True).tolist()
             scored.append(min(order.index(i) + 1 for i in ids))
     n = len(scored) or 1
@@ -284,14 +269,13 @@ def _flex_keyword_candidates() -> tuple:
 
 
 def _section_keywords_flex(enc, emoji_head) -> dict:
-    emb = _emoji_embed()
     cands = _flex_keyword_candidates()
-    if enc is None or emoji_head is None or emb is None or not cands:
+    if enc is None or emoji_head is None or not cands:
         return {}
     idx = {e: i for i, e in enumerate(EMOJIS)}
     with torch.no_grad():
         texts = torch.stack([text_to_tensor(norm_text(kw)) for kw, _ in cands])
-        order = emb.score(emoji_head(enc(texts))).argsort(dim=-1, descending=True)
+        order = emoji_head(enc(texts)).argsort(dim=-1, descending=True)
     ranked = []
     for row, (kw, tgt) in enumerate(cands):
         pos = order[row].tolist()
@@ -325,14 +309,13 @@ def _keywords_rows() -> tuple:
 
 
 def _section_keyword_fails(enc, emoji_head) -> dict:
-    emb = _emoji_embed()
     rows = _keywords_rows()
-    if enc is None or emoji_head is None or emb is None or not rows:
+    if enc is None or emoji_head is None or not rows:
         return {}
     idx = {e: i for i, e in enumerate(EMOJIS)}
     with torch.no_grad():
         texts = torch.stack([text_to_tensor(norm_text(w)) for w, _, _ in rows])
-        order = emb.score(emoji_head(enc(texts))).argsort(dim=-1, descending=True)
+        order = emoji_head(enc(texts)).argsort(dim=-1, descending=True)
     fails = []
     for row, (word, exp, src) in enumerate(rows):
         pos = order[row].tolist()
@@ -368,17 +351,15 @@ def _words_from(path: Path) -> dict[str, list[str]]:
 
 
 def _section_keyword_probe(enc, head) -> dict:
-    emb = _emoji_embed()
     words = _words_from(KEYWORDS_JSONL)
-    if enc is None or head is None or emb is None or not words:
+    if enc is None or head is None or not words:
         return {}
     return dict(_probe(words, enc, head))
 
 
 def _section_term_probe(enc, head) -> dict:
-    emb = _emoji_embed()
     words = _words_from(TERMS_JSONL)
-    if enc is None or head is None or emb is None or not words:
+    if enc is None or head is None or not words:
         return {}
     return dict(_probe(words, enc, head))
 
@@ -652,7 +633,7 @@ def _section_status(report) -> dict:
         keyword.get("acc_at_k"),
         ""
         if keyword.get("acc_at_k")
-        else "unmeasured — needs data/keywords.jsonl and enc.pt/emoji.pt/emoji_embed.pt",
+        else "unmeasured — needs data/keywords.jsonl and enc.pt/emoji.pt",
     )
     _acc_rows(
         goals,
@@ -662,7 +643,7 @@ def _section_status(report) -> dict:
         term.get("acc_at_k"),
         ""
         if term.get("acc_at_k")
-        else "unmeasured — needs data/terms.jsonl and enc.pt/emoji.pt/emoji_embed.pt",
+        else "unmeasured — needs data/terms.jsonl and enc.pt/emoji.pt",
     )
     _acc_rows(
         goals,
@@ -759,8 +740,7 @@ def _section_status(report) -> dict:
 
 
 def _section_emoji(enc, head, eval_records):
-    emb = _emoji_embed()
-    if enc is None or head is None or emb is None:
+    if enc is None or head is None:
         return {}
     d = {}
     rows = [r for r in eval_records if r.emojis]
@@ -773,8 +753,7 @@ def _section_emoji(enc, head, eval_records):
                 tgt[i, vocab[e]] = 1.0
         with torch.no_grad():
             enc_emb = enc(texts)
-            q_txt = head(enc_emb)
-            logits = emb.score(q_txt)
+            logits = head(enc_emb)
         d["eval"] = {
             "n": len(rows),
             "acc_at_k": [_acc_at_k(logits, tgt, k).mean().item() for k in EMOJI_KS],
@@ -784,8 +763,7 @@ def _section_emoji(enc, head, eval_records):
 
 
 def _section_length_acc(enc, head, eval_records) -> dict:
-    emb = _emoji_embed()
-    if enc is None or head is None or emb is None:
+    if enc is None or head is None:
         return {}
     rows = [r for r in eval_records if r.emojis]
     if not rows:
@@ -807,7 +785,7 @@ def _section_length_acc(enc, head, eval_records) -> dict:
         for e in r.emojis:
             tgt[i, vocab[e]] = 1.0
     with torch.no_grad():
-        logits = emb.score(head(enc(texts)))
+        logits = head(enc(texts))
 
     groups: dict[str, list[int]] = {}
     for i, r in enumerate(rows):
@@ -855,8 +833,7 @@ def _gold_rows():
 
 
 def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
-    emb_tbl = _emoji_embed()
-    if None in (enc, style_head, emoji_head, gen, emb_tbl) or not gold_rows:
+    if None in (enc, style_head, emoji_head, gen) or not gold_rows:
         return {}
     rows = list(gold_rows)
     ids = torch.stack([text_to_tensor(norm_text(r["text"])) for r in rows])
@@ -873,7 +850,7 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
                 stgt[i, svocab[s]] = 1.0
     with torch.no_grad():
         emb = enc(ids)
-        elog = emb_tbl.score(emoji_head(emb))
+        elog = emoji_head(emb)
         slog = style_head(emb)
         cond = emb[:, None, :].expand(-1, CONST_Z.shape[0], -1).reshape(-1, emb.shape[-1])
         z = CONST_Z[None, :, :].expand(len(rows), -1, -1).reshape(-1, CONST_Z.shape[-1])
@@ -1074,8 +1051,7 @@ def _section_color_keywords(enc, gen) -> dict:
 
 
 def _section_lang_consistency(enc, emoji_head, style_head, gen) -> dict:
-    emb_model = _emoji_embed()
-    if None in (enc, emoji_head, style_head, gen, emb_model):
+    if None in (enc, emoji_head, style_head, gen):
         return {}
     en_ids = torch.stack(
         [text_to_tensor(norm_text(en)[:MAX_TEXT_LEN]) for en, _ in LANG_PAIRS]
@@ -1085,8 +1061,8 @@ def _section_lang_consistency(enc, emoji_head, style_head, gen) -> dict:
     )
     with torch.no_grad():
         enc_en, enc_he = enc(en_ids), enc(he_ids)
-        emoji_en = emb_model.score(emoji_head(enc_en))
-        emoji_he = emb_model.score(emoji_head(enc_he))
+        emoji_en = emoji_head(enc_en)
+        emoji_he = emoji_head(enc_he)
         style_en, style_he = style_head(enc_en), style_head(enc_he)
         zeros = torch.zeros_like(enc_en)
         color_en, color_he = gen(enc_en, zeros), gen(enc_he, zeros)
@@ -1638,8 +1614,8 @@ def _acc_chart_html(title, source, d) -> str:
     if not d or not d.get("acc_at_k"):
         return (
             f"<h2>{_esc(title)}</h2>"
-            f'<p class="note">unavailable — needs enc.pt / emoji.pt / '
-            f"emoji_embed.pt and a non-empty {_esc(source)}.</p>"
+            f'<p class="note">unavailable — needs enc.pt / emoji.pt and '
+            f"a non-empty {_esc(source)}.</p>"
         )
     points = list(zip((str(k) for k in EMOJI_KS), d["acc_at_k"], strict=True))
     return (
@@ -1721,7 +1697,7 @@ def _keywords_flex_html(d) -> str:
     if not d:
         return (
             "<h2>Model — Keyword vocab</h2>"
-            '<p class="note">enc.pt / emoji.pt / emoji_embed.pt not available.</p>'
+            '<p class="note">enc.pt / emoji.pt not available.</p>'
         )
     covered = d["candidates"] - d["missed"]
     rate = covered / d["candidates"] if d["candidates"] else 0.0
@@ -1739,7 +1715,7 @@ def _keyword_fails_html(d) -> str:
     if not d:
         return (
             "<h2>Failed keywords — data/keywords.jsonl</h2>"
-            '<p class="note">enc.pt / emoji.pt / emoji_embed.pt not available, or '
+            '<p class="note">enc.pt / emoji.pt not available, or '
             "data/keywords.jsonl is missing/empty.</p>"
         )
     rows = d["rows"][:KEYWORD_FAILS_MAX_ROWS]
@@ -1769,7 +1745,7 @@ def _cards_html(d) -> str:
         return (
             "<h2>Cards</h2>"
             '<p class="note">Unavailable — needs enc.pt / style.pt / emoji.pt / '
-            "emoji_embed.pt / gen.pt and a non-empty data/colors.jsonl.</p>"
+            "gen.pt and a non-empty data/colors.jsonl.</p>"
         )
     out = [
         "<h2>Cards</h2>",
@@ -1977,7 +1953,7 @@ def _lang_consistency_html(d) -> str:
         return (
             "<h2>Cross-lingual consistency (en vs he)</h2>"
             '<p class="note">Unavailable — needs enc.pt, emoji.pt, '
-            "emoji_embed.pt, style.pt and gen.pt.</p>"
+            "style.pt and gen.pt.</p>"
         )
 
     def _pct(v) -> str:
@@ -2201,7 +2177,7 @@ def _length_acc_html(d) -> str:
     if not d or not d.get("buckets"):
         return (
             "<h2>Model — Accuracy vs. text length</h2>"
-            '<p class="note">Unavailable — needs enc.pt / emoji.pt / emoji_embed.pt '
+            '<p class="note">Unavailable — needs enc.pt / emoji.pt '
             "and data/eval.jsonl.</p>"
         )
     rf, mtl = d["receptive_field"], d["max_text_len"]
@@ -2243,7 +2219,7 @@ def _eval_samples_html(d) -> str:
         return (
             "<h2>Model — Sample cards (eval.jsonl)</h2>"
             '<p class="note">Unavailable — needs enc.pt / style.pt / emoji.pt / '
-            "emoji_embed.pt / gen.pt and data/eval.jsonl.</p>"
+            "gen.pt and data/eval.jsonl.</p>"
         )
     rows = d["rows"]
     gt_cards = [

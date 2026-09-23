@@ -23,7 +23,7 @@ from model.config import (
     RELU_SLOPE,
     Z_WEIGHT,
 )
-from model.data import COLOR_DIM, EMOJIS, LANGS, PAD_IDX, STYLES, VOCAB_SIZE
+from model.data import COLOR_DIM, EMOJIS, PAD_IDX, STYLES, VOCAB_SIZE
 
 
 def blk(i: int, o: int):
@@ -100,33 +100,19 @@ class StyleHead(nn.Module):
         return s @ self.embed.weight.t() + self.bias
 
 
-class LangHead(nn.Module):
+class EmojiHead(nn.Module):
     def __init__(self):
         super().__init__()
-        self.net = nn.Linear(EMBED_SIZE_TEXT, len(LANGS))
 
-    def forward(self, text_embedding: torch.Tensor) -> torch.Tensor:
-        return self.net(text_embedding)
-
-
-class EmojiEmbedding(nn.Module):
-    def __init__(self):
-        super().__init__()
+        self.net = nn.Linear(EMBED_SIZE_TEXT, EMBED_SIZE_EMOJI, bias=False)
         self.embed = nn.Embedding(len(EMOJIS), EMBED_SIZE_EMOJI)
         self.bias = nn.Parameter(torch.zeros(len(EMOJIS)))
 
     def score(self, q: torch.Tensor) -> torch.Tensor:
         return q @ self.embed.weight.t() + self.bias
 
-
-class EmojiHead(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-        self.net = nn.Linear(EMBED_SIZE_TEXT, EMBED_SIZE_EMOJI, bias=False)
-
     def forward(self, text_embedding: torch.Tensor) -> torch.Tensor:
-        return self.net(text_embedding)
+        return self.score(self.net(text_embedding))
 
 
 # GAN

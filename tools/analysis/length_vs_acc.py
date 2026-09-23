@@ -9,7 +9,7 @@ import typer
 from files import EVAL_JSONL, PT_DIR, PtFile
 from model.config import ENCODER_DILATION, ENCODER_KERNEL_SIZE, MAX_TEXT_LEN
 from model.data import EMOJIS, read, text_to_tensor
-from model.model import EmojiEmbedding, EmojiHead, TextEncoder
+from model.model import EmojiHead, TextEncoder
 from model.runmeta import load_pt
 
 EMOJI_KS = [1, 5, 10]
@@ -44,7 +44,6 @@ def _bucket(length: int, rf: int) -> str:
 def main(pt: Path = typer.Option(PT_DIR, "--pt")) -> None:
     enc = _load(TextEncoder(), PtFile.ENC.in_dir(pt))
     head = _load(EmojiHead(), PtFile.EMOJI.in_dir(pt))
-    embed = _load(EmojiEmbedding(), PtFile.EMOJI_EMBED.in_dir(pt))
 
     rf = receptive_field()
     vocab = {e: i for i, e in enumerate(EMOJIS)}
@@ -61,7 +60,7 @@ def main(pt: Path = typer.Option(PT_DIR, "--pt")) -> None:
             tgt[i, vocab[e]] = 1.0
 
     with torch.no_grad():
-        logits = embed.score(head(enc(texts)))
+        logits = head(enc(texts))
 
     print(f"RECEPTIVE_FIELD={rf}  MAX_TEXT_LEN={MAX_TEXT_LEN}  eval rows={len(rows)}")
     print(f"{'bucket':<10} {'n':>5} " + " ".join(f"acc@{k:<3}" for k in EMOJI_KS))

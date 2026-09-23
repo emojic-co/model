@@ -12,7 +12,6 @@ from torch.nn.functional import normalize
 
 from files import (
     ANDROID_ASSETS_DIR,
-    EMOJI_EMBED_PT,
     EMOJI_PT,
     ENC_PT,
     GEN_PT,
@@ -24,7 +23,6 @@ from model.config import EMBED_SIZE_TEXT, EMOJIS, MAX_TEXT_LEN, SEED, STYLES
 from model.data import CHARS, PAD_IDX
 from model.model import (
     ColorGen,
-    EmojiEmbedding,
     EmojiHead,
     StyleHead,
     TextEncoder,
@@ -69,14 +67,12 @@ class ExportWrapper(nn.Module):
         self,
         enc: nn.Module,
         style: nn.Module,
-        emoji_embed: nn.Module,
         emoji: nn.Module,
         gen: nn.Module,
     ) -> None:
         super().__init__()
         self.enc = enc
         self.style = style
-        self.emoji_embed = emoji_embed
         self.emoji = emoji
         self.gen = gen
         self.register_buffer("z", CONST_Z)
@@ -86,7 +82,7 @@ class ExportWrapper(nn.Module):
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         emb = self.enc(x)
         style_logits = self.style(emb)
-        emoji_logits = self.emoji_embed.score(self.emoji(emb))  # type: ignore
+        emoji_logits = self.emoji(emb)
         cond = emb.expand(self.z.shape[0], -1)  # type: ignore
         color = self.gen(cond, self.z) + 127.5
         return style_logits, emoji_logits, color
@@ -142,7 +138,6 @@ def export_web(wrapper: nn.Module) -> None:
 def export() -> None:
     enc = _load(TextEncoder(), ENC_PT)
     style = _load(StyleHead(), STYLE_PT)
-    emoji_embed = _load(EmojiEmbedding(), EMOJI_EMBED_PT)
     emoji = _load(EmojiHead(), EMOJI_PT)
     gen = _load(ColorGen(), GEN_PT)
 
@@ -151,15 +146,15 @@ def export() -> None:
             f"style.pt has {style.embed.weight.shape[0]} styles, "  # type: ignore
             f"{LABELS_JSON} has {len(STYLES)} -- retrain or restore {LABELS_JSON}"
         )
-    if emoji_embed.embed.weight.shape[0] != len(EMOJIS):  # type: ignore
-        emojis = emoji_embed.embed.weight.shape[0]  # type: ignore
+    if emoji.embed.weight.shape[0] != len(EMOJIS):  # type: ignore
+        emojis = emoji.embed.weight.shape[0]  # type: ignore
         raise SystemExit(
-            f"emoji_embed.pt has {emojis} emojis, "
+            f"emoji.pt has {emojis} emojis, "
             f"{LABELS_JSON} has {len(EMOJIS)} -- retrain or restore {LABELS_JSON}"
         )
     _strip_spectral_norm(enc)
 
-    wrapper = ExportWrapper(enc, style, emoji_embed, emoji, gen).eval()
+    wrapper = ExportWrapper(enc, style, emoji, gen).eval()
     export_web(wrapper)
     print(
         f"wrote {WEB_PUBLIC}/model.onnx + meta.json + config.json, "

@@ -13,7 +13,6 @@ from model.config import MAX_TEXT_LEN, SEED
 from model.data import EMOJIS, STYLES, normalize, text_to_tensor
 from model.model import (
     ColorGen,
-    EmojiEmbedding,
     EmojiHead,
     StyleHead,
     TextEncoder,
@@ -77,7 +76,6 @@ def predict(
     enc = _load(TextEncoder(), PtFile.ENC.in_dir(pt_dir))
     gen = _load(ColorGen(), PtFile.GEN.in_dir(pt_dir))
     style = _load(StyleHead(), PtFile.STYLE.in_dir(pt_dir))
-    emoji_embed = _load(EmojiEmbedding(), PtFile.EMOJI_EMBED.in_dir(pt_dir))
     emoji = _load(EmojiHead(), PtFile.EMOJI.in_dir(pt_dir))
 
     records = []
@@ -88,8 +86,7 @@ def predict(
             emb = enc(text_tensor)
 
             styles = top_labels(style(emb), STYLES, min_k=1, max_k=3)
-            q_txt = emoji(emb)
-            emoji_logits = emoji_embed.score(q_txt)
+            emoji_logits = emoji(emb)
             emojis = top_labels(emoji_logits, EMOJIS, min_k=1, max_k=1)
 
             colors = gen(emb).squeeze(0)

@@ -1,15 +1,6 @@
 Done:
+Implement a loss function:
+max(0, margin - (avg(positive_logits) - max(negative_logits)))
 
-Not good, this is what should be:
-    During the text encoder train step we:
-    -   load data from data/train.jsonl
-    -   randomly sample from sample sources (randomly replace some of the records with predefined sources, rate is set by the goal and current metric)
-    -   we also sample the data/color_terms.jsonl according to the goal and current metric, it is similar to other sample sources,
-        the only difference is that this is the only source the color regressor is trained on.
-        You should log (in addition to the other metrics):
-        - color/rate
-        - color/mae
-        - color/r2
-
-
-    Let me know if you do not understand the above, or if you need more information.
+Does it make sense?
+Give it a proper name and replace the lse_infonce loss function.
