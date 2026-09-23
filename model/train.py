@@ -86,7 +86,6 @@ from model.config import (
     VAL_CHECK_INTERVAL,
 )
 from model.data import (
-    SRC_FULL,
     eval_data_loader,
     eval_ds,
     sample_colors_tensor,
@@ -257,7 +256,7 @@ class LitEncoder(pl.LightningModule):
             loss = loss + loss_lang
 
         has_color = torch.tensor(
-            [s == SRC_FULL for s in source], device=enc.device
+            [s == Source.COLOR for s in source], device=enc.device
         )
         n_color = int(has_color.sum())
         if n_color:

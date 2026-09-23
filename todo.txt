@@ -1,3 +1,5 @@
+Done:
+
 Add the `data/color_terms.jsonl` as a sample source.
 In addition, update the text encoder training:
     The color regressor should only be trained on the color terms.

@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from files import KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
-from model.metric import Metric, Source, named_metric
+from files import COLOR_TERMS_JSONL, KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
+from model.metric import Metric, Source, Split, named_metric
 
 # from files import FLAGS_JSONL
 
@@ -136,6 +136,11 @@ SAMPLING_SOURCES: dict[Source, SamplingSource] = {
         TERMS_JSONL,
         named_metric(Source.TERM, Metric.ACC_1),
         0, 0.9
+    ),
+    Source.COLOR: SamplingSource(
+        COLOR_TERMS_JSONL,
+        named_metric(Source.COLOR, Metric.R2, Split.TRAIN),
+        0, 0.3
     ),
 }
 
