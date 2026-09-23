@@ -31,6 +31,7 @@ from torchmetrics.functional.classification import binary_auroc
 from tqdm import tqdm
 
 from files import (
+    COLOR_TERMS_JSONL,
     DATA_JSONL,
     EMOJI_EMBED_PT,
     EMOJI_PT,
@@ -1178,6 +1179,7 @@ CODE_FILES = [
     EVAL_JSONL,
     KEYWORDS_JSONL,
     TERMS_JSONL,
+    COLOR_TERMS_JSONL,
     FLAGS_JSONL,
 ]
 COLLECT_TREES = [PT_DIR, RUNS_DIR, WEB_PUBLIC_DIR, REPORT_DIR]
