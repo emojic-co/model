@@ -118,6 +118,29 @@ def avgmax_hinge(
     return row_loss[valid].mean()
 
 
+def avg_violators_hinge(
+    logits: torch.Tensor,
+    target: torch.Tensor,
+    margin: float,
+) -> torch.Tensor:
+    has_pos = target.sum(dim=-1) > 0
+    has_neg = (target == 0).sum(dim=-1) > 0
+    valid = has_pos & has_neg
+    if not bool(valid.any()):
+        return logits.new_zeros(())
+
+    pos_min = logits.masked_fill(target == 0, float("inf")).amin(dim=-1)
+    viol = (target == 0) & (logits > pos_min.unsqueeze(-1))
+    n_viol = viol.sum(dim=-1)
+    neg_avg = (logits * viol).sum(dim=-1) / n_viol.clamp(min=1)
+    row_loss = relu(margin - (pos_min - neg_avg))
+
+    active = valid & (n_viol > 0)
+    if not bool(active.any()):
+        return logits.new_zeros(())
+    return row_loss[active].mean()
+
+
 def mrr(logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
     order = logits.argsort(dim=-1, descending=True)
     rel = target.gather(1, order)
@@ -164,7 +187,10 @@ class LitEncoder(pl.LightningModule):
         enc = self.enc(text)
 
         style_logits = self.style(enc)
-        loss_style = avgmax_hinge(style_logits, style, MARGIN_STYLE)
+        loss_style = (
+            avgmax_hinge(style_logits, style, MARGIN_STYLE)
+            + avg_violators_hinge(style_logits, style, MARGIN_STYLE)
+        )
         self._log(
             named_metric(Source.STYLE, Metric.MRR, split),
             mrr(style_logits, style).mean(),
@@ -172,7 +198,10 @@ class LitEncoder(pl.LightningModule):
         )
 
         emoji_logits = self.emoji(enc)
-        loss_emoji = avgmax_hinge(emoji_logits, emoji, MARGIN_EMOJI)
+        loss_emoji = (
+            avgmax_hinge(emoji_logits, emoji, MARGIN_EMOJI)
+            + avg_violators_hinge(emoji_logits, emoji, MARGIN_EMOJI)
+        )
         has_e = emoji.sum(dim=-1) > 0
         n_e = int(has_e.sum())
         if n_e:

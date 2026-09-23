@@ -1,0 +1,2793 @@
+{
+  "generated": "2026-09-23T19:49:08",
+  "provenance": {
+    "ts": "26-09-23-19-49",
+    "report_code": "ae7314a",
+    "report_dirty": true,
+    "model_sha": "50816ef",
+    "model_train_sha": "430a9a77e73b",
+    "current_train_sha": "430a9a77e73b",
+    "models": {
+      "pt/enc.pt": {
+        "sha": "50816ef",
+        "dirty": false,
+        "generated": "2026-09-23T12:07:59",
+        "config": [
+          "ENCODER: 30 3 [160, 220, 200, 60] [1, 2, 4, 8]",
+          "EMOJI: 60",
+          "STYLE: 12 300",
+          "GAN: 0.1 80 10 0.005 0.005 0.005 0.01 1 0.1",
+          "TRAIN: 42 1024 1024 0.1 0.01 1 1 0.7 0.15 0.01"
+        ],
+        "train_sha": "430a9a77e73b",
+        "stage": "enc"
+      },
+      "pt/emoji.pt": {
+        "sha": "50816ef",
+        "dirty": false,
+        "generated": "2026-09-23T12:07:59",
+        "config": [
+          "ENCODER: 30 3 [160, 220, 200, 60] [1, 2, 4, 8]",
+          "EMOJI: 60",
+          "STYLE: 12 300",
+          "GAN: 0.1 80 10 0.005 0.005 0.005 0.01 1 0.1",
+          "TRAIN: 42 1024 1024 0.1 0.01 1 1 0.7 0.15 0.01"
+        ],
+        "train_sha": "430a9a77e73b",
+        "stage": "enc"
+      },
+      "pt/style.pt": {
+        "sha": "50816ef",
+        "dirty": false,
+        "generated": "2026-09-23T12:07:59",
+        "config": [
+          "ENCODER: 30 3 [160, 220, 200, 60] [1, 2, 4, 8]",
+          "EMOJI: 60",
+          "STYLE: 12 300",
+          "GAN: 0.1 80 10 0.005 0.005 0.005 0.01 1 0.1",
+          "TRAIN: 42 1024 1024 0.1 0.01 1 1 0.7 0.15 0.01"
+        ],
+        "train_sha": "430a9a77e73b",
+        "stage": "enc"
+      },
+      "pt/gen.pt": {
+        "sha": "50816ef",
+        "dirty": false,
+        "generated": "2026-09-23T12:39:25",
+        "config": [
+          "ENCODER: 30 3 [160, 220, 200, 60] [1, 2, 4, 8]",
+          "EMOJI: 60",
+          "STYLE: 12 300",
+          "GAN: 0.1 80 10 0.005 0.005 0.005 0.01 1 0.1",
+          "TRAIN: 42 1024 1024 0.1 0.01 1 1 0.7 0.15 0.01"
+        ],
+        "train_sha": "430a9a77e73b",
+        "stage": "gan"
+      }
+    },
+    "consistent": false,
+    "issues": [
+      "pt/emoji.pt could not load: Error(s) in loading state_dict for EmojiHead:"
+    ]
+  },
+  "data": {
+    "records": {
+      "data": 469749,
+      "train": 375791,
+      "eval": 2000
+    },
+    "length_distribution": [
+      [
+        42,
+        2038
+      ],
+      [
+        41,
+        2601
+      ],
+      [
+        40,
+        3329
+      ],
+      [
+        39,
+        4155
+      ],
+      [
+        38,
+        5216
+      ],
+      [
+        37,
+        6557
+      ],
+      [
+        36,
+        8042
+      ],
+      [
+        35,
+        10159
+      ],
+      [
+        34,
+        12543
+      ],
+      [
+        33,
+        15551
+      ],
+      [
+        32,
+        18511
+      ],
+      [
+        31,
+        21790
+      ],
+      [
+        30,
+        24668
+      ],
+      [
+        29,
+        26641
+      ],
+      [
+        28,
+        27359
+      ],
+      [
+        27,
+        27173
+      ],
+      [
+        26,
+        26145
+      ],
+      [
+        25,
+        24452
+      ],
+      [
+        24,
+        21638
+      ],
+      [
+        23,
+        18566
+      ],
+      [
+        22,
+        15437
+      ],
+      [
+        21,
+        12773
+      ],
+      [
+        20,
+        10217
+      ],
+      [
+        19,
+        8199
+      ],
+      [
+        18,
+        6287
+      ],
+      [
+        17,
+        4662
+      ],
+      [
+        16,
+        3376
+      ],
+      [
+        15,
+        2456
+      ],
+      [
+        14,
+        1897
+      ],
+      [
+        13,
+        1232
+      ],
+      [
+        12,
+        700
+      ],
+      [
+        11,
+        448
+      ],
+      [
+        10,
+        282
+      ],
+      [
+        9,
+        200
+      ],
+      [
+        8,
+        151
+      ],
+      [
+        7,
+        108
+      ],
+      [
+        6,
+        75
+      ],
+      [
+        5,
+        76
+      ],
+      [
+        4,
+        69
+      ],
+      [
+        3,
+        11
+      ],
+      [
+        1,
+        1
+      ]
+    ],
+    "keywords_length_distribution": [
+      [
+        20,
+        1
+      ],
+      [
+        16,
+        2
+      ],
+      [
+        15,
+        1
+      ],
+      [
+        14,
+        6
+      ],
+      [
+        13,
+        27
+      ],
+      [
+        12,
+        41
+      ],
+      [
+        11,
+        90
+      ],
+      [
+        10,
+        141
+      ],
+      [
+        9,
+        273
+      ],
+      [
+        8,
+        381
+      ],
+      [
+        7,
+        672
+      ],
+      [
+        6,
+        800
+      ],
+      [
+        5,
+        1179
+      ],
+      [
+        4,
+        1107
+      ],
+      [
+        3,
+        507
+      ]
+    ],
+    "terms_length_distribution": [
+      [
+        43,
+        1
+      ],
+      [
+        41,
+        1
+      ],
+      [
+        39,
+        1
+      ],
+      [
+        38,
+        1
+      ],
+      [
+        35,
+        1
+      ],
+      [
+        33,
+        1
+      ],
+      [
+        32,
+        1
+      ],
+      [
+        31,
+        2
+      ],
+      [
+        30,
+        3
+      ],
+      [
+        29,
+        8
+      ],
+      [
+        28,
+        4
+      ],
+      [
+        27,
+        4
+      ],
+      [
+        26,
+        4
+      ],
+      [
+        25,
+        10
+      ],
+      [
+        24,
+        15
+      ],
+      [
+        23,
+        13
+      ],
+      [
+        22,
+        21
+      ],
+      [
+        21,
+        19
+      ],
+      [
+        20,
+        18
+      ],
+      [
+        19,
+        35
+      ],
+      [
+        18,
+        33
+      ],
+      [
+        17,
+        44
+      ],
+      [
+        16,
+        52
+      ],
+      [
+        15,
+        52
+      ],
+      [
+        14,
+        79
+      ],
+      [
+        13,
+        129
+      ],
+      [
+        12,
+        127
+      ],
+      [
+        11,
+        176
+      ],
+      [
+        10,
+        222
+      ],
+      [
+        9,
+        191
+      ],
+      [
+        8,
+        149
+      ],
+      [
+        7,
+        99
+      ],
+      [
+        6,
+        38
+      ],
+      [
+        5,
+        4
+      ]
+    ],
+    "max_text_len": 42
+  },
+  "labels": {
+    "styles": 21,
+    "emojis": 906
+  },
+  "emoji": {},
+  "keywords_flex": {},
+  "keyword_fails": {},
+  "keyword": {},
+  "term": {},
+  "cards": {},
+  "gen_sensitivity": {
+    "n_texts": 40,
+    "n_z": 5,
+    "noise_spread": 0.016721948981285095,
+    "text_spread": 0.18936902284622192,
+    "ratio": 0.08830350777520904,
+    "text_variance_share": 0.9931043491249103,
+    "noise_variance_share": 0.003977899261610265,
+    "swatches": [
+      {
+        "text": "the attic is freezing again",
+        "cards": [
+          {
+            "bg1": "#e6e0e8",
+            "bg2": "#cec9da"
+          },
+          {
+            "bg1": "#e3e1ea",
+            "bg2": "#cbc8da"
+          },
+          {
+            "bg1": "#e5e2e9",
+            "bg2": "#cccad9"
+          },
+          {
+            "bg1": "#e3e4eb",
+            "bg2": "#cacbda"
+          },
+          {
+            "bg1": "#e2e0e8",
+            "bg2": "#cac8da"
+          }
+        ]
+      },
+      {
+        "text": "could we move the call outdoors?",
+        "cards": [
+          {
+            "bg1": "#d6ddd3",
+            "bg2": "#b8bfb3"
+          },
+          {
+            "bg1": "#d5dfd5",
+            "bg2": "#b5beb3"
+          },
+          {
+            "bg1": "#d8ded6",
+            "bg2": "#b7bfb4"
+          },
+          {
+            "bg1": "#d4e1da",
+            "bg2": "#b2c2b8"
+          },
+          {
+            "bg1": "#d7ded5",
+            "bg2": "#b7bfb4"
+          }
+        ]
+      },
+      {
+        "text": "boots soaked through red clay everywhere",
+        "cards": [
+          {
+            "bg1": "#ebb69e",
+            "bg2": "#c67a71"
+          },
+          {
+            "bg1": "#eaba9f",
+            "bg2": "#c2766a"
+          },
+          {
+            "bg1": "#ebbba0",
+            "bg2": "#c57c6f"
+          },
+          {
+            "bg1": "#e6beac",
+            "bg2": "#bc8179"
+          },
+          {
+            "bg1": "#e9ba9d",
+            "bg2": "#c0796c"
+          }
+        ]
+      },
+      {
+        "text": "the flue is throwing sparks",
+        "cards": [
+          {
+            "bg1": "#c1dcd1",
+            "bg2": "#86bfac"
+          },
+          {
+            "bg1": "#bddcd1",
+            "bg2": "#7fbda9"
+          },
+          {
+            "bg1": "#c0ddd2",
+            "bg2": "#83bfab"
+          },
+          {
+            "bg1": "#bddfd7",
+            "bg2": "#82c3b3"
+          },
+          {
+            "bg1": "#bbdbcf",
+            "bg2": "#80bda9"
+          }
+        ]
+      },
+      {
+        "text": "i made coffee strong enough for dawn",
+        "cards": [
+          {
+            "bg1": "#fdd05d",
+            "bg2": "#f2aa5e"
+          },
+          {
+            "bg1": "#fdd15d",
+            "bg2": "#f1a65a"
+          },
+          {
+            "bg1": "#fdd35d",
+            "bg2": "#f1aa5b"
+          },
+          {
+            "bg1": "#fcd66a",
+            "bg2": "#efb065"
+          },
+          {
+            "bg1": "#fdd25b",
+            "bg2": "#f1aa5c"
+          }
+        ]
+      },
+      {
+        "text": "i hear frogs behind the storage shed",
+        "cards": [
+          {
+            "bg1": "#e8d4cc",
+            "bg2": "#cbb0ad"
+          },
+          {
+            "bg1": "#e6d6cc",
+            "bg2": "#c5aca9"
+          },
+          {
+            "bg1": "#e8d6cc",
+            "bg2": "#caafaa"
+          },
+          {
+            "bg1": "#e2d7d5",
+            "bg2": "#c0b4b8"
+          },
+          {
+            "bg1": "#e5d5cb",
+            "bg2": "#c5aeaa"
+          }
+        ]
+      },
+      {
+        "text": "i bought navy wool socks",
+        "cards": [
+          {
+            "bg1": "#ebb06c",
+            "bg2": "#bf8152"
+          },
+          {
+            "bg1": "#e9b26d",
+            "bg2": "#ba7e4f"
+          },
+          {
+            "bg1": "#ebb46d",
+            "bg2": "#bc814f"
+          },
+          {
+            "bg1": "#e7b479",
+            "bg2": "#b7835b"
+          },
+          {
+            "bg1": "#e9b26d",
+            "bg2": "#ba7f50"
+          }
+        ]
+      },
+      {
+        "text": "do you want to swim at noon?",
+        "cards": [
+          {
+            "bg1": "#d7d6bb",
+            "bg2": "#a9b290"
+          },
+          {
+            "bg1": "#d4d7be",
+            "bg2": "#a3af8f"
+          },
+          {
+            "bg1": "#d7d8bc",
+            "bg2": "#a7b290"
+          },
+          {
+            "bg1": "#d2dac5",
+            "bg2": "#a0b697"
+          },
+          {
+            "bg1": "#d6d7bd",
+            "bg2": "#a7b090"
+          }
+        ]
+      },
+      {
+        "text": "we watched gulls from the porch",
+        "cards": [
+          {
+            "bg1": "#d9eaf1",
+            "bg2": "#b6d6e7"
+          },
+          {
+            "bg1": "#d7ebf2",
+            "bg2": "#b1d6e7"
+          },
+          {
+            "bg1": "#d9ebf2",
+            "bg2": "#b4d7e7"
+          },
+          {
+            "bg1": "#d8ecf3",
+            "bg2": "#b3d8e7"
+          },
+          {
+            "bg1": "#d7eaf1",
+            "bg2": "#b3d6e7"
+          }
+        ]
+      },
+      {
+        "text": "coffees black and strong",
+        "cards": [
+          {
+            "bg1": "#f3c87a",
+            "bg2": "#c6a166"
+          },
+          {
+            "bg1": "#f3ca7b",
+            "bg2": "#c39d64"
+          },
+          {
+            "bg1": "#f3c97b",
+            "bg2": "#c19e61"
+          },
+          {
+            "bg1": "#f0cf8c",
+            "bg2": "#bba76e"
+          },
+          {
+            "bg1": "#f2c672",
+            "bg2": "#c19c5f"
+          }
+        ]
+      }
+    ]
+  },
+  "color_keywords": {
+    "rows": [
+      {
+        "keyword": " red ",
+        "n": 300,
+        "target": 0.1,
+        "value": 0.7041516304016113,
+        "status": "red",
+        "examples": [
+          {
+            "text": "The red wagon needs a wheel",
+            "gt_bg1": "#e9a0a0",
+            "gt_bg2": "#c95f5f",
+            "gt_fg": "#351416",
+            "pred_bg1": "#b5e0e8",
+            "pred_bg2": "#7cbec4",
+            "pred_fg": "#133640"
+          },
+          {
+            "text": "I’ll return your red toolbox tonight",
+            "gt_bg1": "#e7aaa5",
+            "gt_bg2": "#c86b65",
+            "gt_fg": "#321111",
+            "pred_bg1": "#ced5c1",
+            "pred_bg2": "#9ab393",
+            "pred_fg": "#1c2d24"
+          },
+          {
+            "text": "The red blanket survived the spit-up",
+            "gt_bg1": "#a72f38",
+            "gt_bg2": "#cf6260",
+            "gt_fg": "#fff4e8",
+            "pred_bg1": "#f5bb82",
+            "pred_bg2": "#e58d6a",
+            "pred_fg": "#35140c"
+          },
+          {
+            "text": "The red bus missed my stop",
+            "gt_bg1": "#d75b57",
+            "gt_bg2": "#ad3940",
+            "gt_fg": "#ffffff",
+            "pred_bg1": "#d9dae6",
+            "pred_bg2": "#b7bed0",
+            "pred_fg": "#232f3a"
+          },
+          {
+            "text": "Please watch for bright red streaks.",
+            "gt_bg1": "#e05252",
+            "gt_bg2": "#c73d46",
+            "gt_fg": "#ffffff",
+            "pred_bg1": "#cfdbe0",
+            "pred_bg2": "#bac9cf",
+            "pred_fg": "#37434a"
+          },
+          {
+            "text": "My sleeve has a tiny red spot",
+            "gt_bg1": "#eee4e4",
+            "gt_bg2": "#d8c8ca",
+            "gt_fg": "#332329",
+            "pred_bg1": "#ebd8dc",
+            "pred_bg2": "#cdb3c4",
+            "pred_fg": "#2d262c"
+          },
+          {
+            "text": "Stop sending me red flags",
+            "gt_bg1": "#e8a0a0",
+            "gt_bg2": "#c96f6f",
+            "gt_fg": "#3b1111",
+            "pred_bg1": "#e3d0c9",
+            "pred_bg2": "#ceb2ad",
+            "pred_fg": "#3c3235"
+          },
+          {
+            "text": "The red light means wait",
+            "gt_bg1": "#8f242b",
+            "gt_bg2": "#d34b43",
+            "gt_fg": "#fff1df",
+            "pred_bg1": "#b2dee5",
+            "pred_bg2": "#a9d2cd",
+            "pred_fg": "#22393c"
+          },
+          {
+            "text": "My red bike chain snapped",
+            "gt_bg1": "#e65b55",
+            "gt_bg2": "#b9343d",
+            "gt_fg": "#24141a",
+            "pred_bg1": "#e5dac8",
+            "pred_bg2": "#c0b29c",
+            "pred_fg": "#221d19"
+          },
+          {
+            "text": "I forgot my red scarf again",
+            "gt_bg1": "#c94343",
+            "gt_bg2": "#982f38",
+            "gt_fg": "#fff4e8",
+            "pred_bg1": "#d1c786",
+            "pred_bg2": "#8b905d",
+            "pred_fg": "#2e321e"
+          }
+        ]
+      },
+      {
+        "keyword": "blue",
+        "n": 300,
+        "target": 0.1,
+        "value": 0.3459169268608093,
+        "status": "red",
+        "examples": [
+          {
+            "text": "Your blue flowers are blooming.",
+            "gt_bg1": "#dcebf4",
+            "gt_bg2": "#bfd9e8",
+            "gt_fg": "#173247",
+            "pred_bg1": "#e5d691",
+            "pred_bg2": "#a8b072",
+            "pred_fg": "#151b0e"
+          },
+          {
+            "text": "The decorator wants blue icing",
+            "gt_bg1": "#b8d9f2",
+            "gt_bg2": "#8eb9df",
+            "gt_fg": "#172b3a",
+            "pred_bg1": "#d9e0df",
+            "pred_bg2": "#afbdb9",
+            "pred_fg": "#1b2b2a"
+          },
+          {
+            "text": "His blue socks are mismatched",
+            "gt_bg1": "#8db7e8",
+            "gt_bg2": "#c3d9f2",
+            "gt_fg": "#172b45",
+            "pred_bg1": "#f8d2d2",
+            "pred_bg2": "#e1a7c0",
+            "pred_fg": "#1c0d10"
+          },
+          {
+            "text": "Blue raspberry shake after lifting",
+            "gt_bg1": "#91b9e8",
+            "gt_bg2": "#668dcc",
+            "gt_fg": "#18243b",
+            "pred_bg1": "#f0ce6f",
+            "pred_bg2": "#d3a350",
+            "pred_fg": "#2a200e"
+          },
+          {
+            "text": "Anyone seen my blue marker?",
+            "gt_bg1": "#c5e1fa",
+            "gt_bg2": "#79b5e7",
+            "gt_fg": "#0e2b49",
+            "pred_bg1": "#d2d8d8",
+            "pred_bg2": "#b8c1c3",
+            "pred_fg": "#243333"
+          },
+          {
+            "text": "Could I borrow your blue paint?",
+            "gt_bg1": "#c4d9ee",
+            "gt_bg2": "#a5c2df",
+            "gt_fg": "#172b3a",
+            "pred_bg1": "#dae2e7",
+            "pred_bg2": "#b7c6cd",
+            "pred_fg": "#19282d"
+          },
+          {
+            "text": "The blueberry one is mine",
+            "gt_bg1": "#b9e5ff",
+            "gt_bg2": "#4f9ed8",
+            "gt_fg": "#102b45",
+            "pred_bg1": "#dfcca9",
+            "pred_bg2": "#b7ac8d",
+            "pred_fg": "#1e1f19"
+          },
+          {
+            "text": "Those blueberries were perfect",
+            "gt_bg1": "#f0ecf9",
+            "gt_bg2": "#ddd3f0",
+            "gt_fg": "#332a45",
+            "pred_bg1": "#ecc68c",
+            "pred_bg2": "#c5a269",
+            "pred_fg": "#18130d"
+          },
+          {
+            "text": "Your blue pajamas are in the wash.",
+            "gt_bg1": "#9bbce5",
+            "gt_bg2": "#7899c7",
+            "gt_fg": "#17243b",
+            "pred_bg1": "#f1e4e9",
+            "pred_bg2": "#e1c7d4",
+            "pred_fg": "#252124"
+          },
+          {
+            "text": "Blue hour starts after handover",
+            "gt_bg1": "#627ca8",
+            "gt_bg2": "#354f7c",
+            "gt_fg": "#f4f6ff",
+            "pred_bg1": "#e5eae9",
+            "pred_bg2": "#c3d0d0",
+            "pred_fg": "#192e2f"
+          }
+        ]
+      },
+      {
+        "keyword": "bright",
+        "n": 300,
+        "target": 0.1,
+        "value": 0.2816963791847229,
+        "status": "red",
+        "examples": [
+          {
+            "text": "Angry, bright, and done",
+            "gt_bg1": "#ff9b5b",
+            "gt_bg2": "#ef5b4d",
+            "gt_fg": "#35120d",
+            "pred_bg1": "#f4c27c",
+            "pred_bg2": "#e89b5c",
+            "pred_fg": "#351c11"
+          },
+          {
+            "text": "The site looks bright this morning",
+            "gt_bg1": "#f8e6a4",
+            "gt_bg2": "#c8e1ed",
+            "gt_fg": "#26343b",
+            "pred_bg1": "#91cbc6",
+            "pred_bg2": "#6cb0ad",
+            "pred_fg": "#1c3836"
+          },
+          {
+            "text": "Your bright eyes warm this old heart.",
+            "gt_bg1": "#ffd98a",
+            "gt_bg2": "#f3ad75",
+            "gt_fg": "#3c2008",
+            "pred_bg1": "#fbdaa1",
+            "pred_bg2": "#f0b37d",
+            "pred_fg": "#251008"
+          },
+          {
+            "text": "The lime tiles brighten the kitchen",
+            "gt_bg1": "#d8f06a",
+            "gt_bg2": "#b9d94a",
+            "gt_fg": "#172600",
+            "pred_bg1": "#e3ccc3",
+            "pred_bg2": "#afad9f",
+            "pred_fg": "#14181b"
+          },
+          {
+            "text": "Bright skies, better proposal writing.",
+            "gt_bg1": "#8fc9ed",
+            "gt_bg2": "#74b3dc",
+            "gt_fg": "#102d4a",
+            "pred_bg1": "#ebb664",
+            "pred_bg2": "#ce8b4b",
+            "pred_fg": "#2c180e"
+          },
+          {
+            "text": "I hope you know how deeply you brighten me.",
+            "gt_bg1": "#f7d978",
+            "gt_bg2": "#efb84f",
+            "gt_fg": "#3b2605",
+            "pred_bg1": "#faca6c",
+            "pred_bg2": "#eea359",
+            "pred_fg": "#301107"
+          },
+          {
+            "text": "Bright morning, sleepy sibling.",
+            "gt_bg1": "#ffe7a3",
+            "gt_bg2": "#f5c58c",
+            "gt_fg": "#3c2b20",
+            "pred_bg1": "#f1e6c2",
+            "pred_bg2": "#d3c38d",
+            "pred_fg": "#1b1810"
+          },
+          {
+            "text": "The coast is bright today",
+            "gt_bg1": "#1c2a22",
+            "gt_bg2": "#26382e",
+            "gt_fg": "#e4efe8",
+            "pred_bg1": "#e3d1ab",
+            "pred_bg2": "#b6a87f",
+            "pred_fg": "#1f2519"
+          },
+          {
+            "text": "Bright morning for a roof repair",
+            "gt_bg1": "#ffe39a",
+            "gt_bg2": "#f4c86b",
+            "gt_fg": "#3a2708",
+            "pred_bg1": "#dec583",
+            "pred_bg2": "#9f9856",
+            "pred_fg": "#151910"
+          },
+          {
+            "text": "Morning rounds and one bright leaf",
+            "gt_bg1": "#f2e9b8",
+            "gt_bg2": "#c8d994",
+            "gt_fg": "#283419",
+            "pred_bg1": "#aaddd0",
+            "pred_bg2": "#69b99a",
+            "pred_fg": "#14392f"
+          }
+        ]
+      },
+      {
+        "keyword": "coffee",
+        "n": 300,
+        "target": 0.1,
+        "value": 0.4386206269264221,
+        "status": "red",
+        "examples": [
+          {
+            "text": "Anyone want coffee at midnight?",
+            "gt_bg1": "#5a3929",
+            "gt_bg2": "#2f2020",
+            "gt_fg": "#fff1d0",
+            "pred_bg1": "#fac96a",
+            "pred_bg2": "#eca663",
+            "pred_fg": "#2d1309"
+          },
+          {
+            "text": "Coffee on campus costs too much",
+            "gt_bg1": "#e1c7ad",
+            "gt_bg2": "#c79d78",
+            "gt_fg": "#352317",
+            "pred_bg1": "#fbdba3",
+            "pred_bg2": "#edb08b",
+            "pred_fg": "#28110b"
+          },
+          {
+            "text": "Coffee before lecture?",
+            "gt_bg1": "#e7d5c2",
+            "gt_bg2": "#c9a98a",
+            "gt_fg": "#332318",
+            "pred_bg1": "#f3daa1",
+            "pred_bg2": "#cfaf82",
+            "pred_fg": "#19150d"
+          },
+          {
+            "text": "Is there coffee in the lounge?",
+            "gt_bg1": "#d8b58a",
+            "gt_bg2": "#b88459",
+            "gt_fg": "#2b1b12",
+            "pred_bg1": "#fbcf70",
+            "pred_bg2": "#efa868",
+            "pred_fg": "#261007"
+          },
+          {
+            "text": "Coffee's ready. Bring your best focus.",
+            "gt_bg1": "#f6d08a",
+            "gt_bg2": "#c9834f",
+            "gt_fg": "#2f1b12",
+            "pred_bg1": "#f9c442",
+            "pred_bg2": "#dd9b38",
+            "pred_fg": "#251507"
+          },
+          {
+            "text": "I need coffee and a charging cable",
+            "gt_bg1": "#e5d1b8",
+            "gt_bg2": "#c9ae91",
+            "gt_fg": "#302217",
+            "pred_bg1": "#f4cf9c",
+            "pred_bg2": "#dca98b",
+            "pred_fg": "#29160f"
+          },
+          {
+            "text": "Shall we celebrate with coffee?",
+            "gt_bg1": "#fcd9a8",
+            "gt_bg2": "#f6b6a8",
+            "gt_fg": "#3b1f12",
+            "pred_bg1": "#fcb92f",
+            "pred_bg2": "#ed913c",
+            "pred_fg": "#1d0a03"
+          },
+          {
+            "text": "Coffee first, then the 8 a.m.",
+            "gt_bg1": "#8b5a35",
+            "gt_bg2": "#c89a68",
+            "gt_fg": "#1b120d",
+            "pred_bg1": "#fbcb5b",
+            "pred_bg2": "#eaab54",
+            "pred_fg": "#2c1509"
+          },
+          {
+            "text": "Coffee first, then I run this line",
+            "gt_bg1": "#ead8bf",
+            "gt_bg2": "#c8a77f",
+            "gt_fg": "#2c2119",
+            "pred_bg1": "#facc6c",
+            "pred_bg2": "#e7aa61",
+            "pred_fg": "#29140a"
+          },
+          {
+            "text": "Grab coffee before your call",
+            "gt_bg1": "#d8c1a6",
+            "gt_bg2": "#bd9d7b",
+            "gt_fg": "#2a2119",
+            "pred_bg1": "#fbd9a5",
+            "pred_bg2": "#eaae82",
+            "pred_fg": "#1c0e09"
+          }
+        ]
+      },
+      {
+        "keyword": "dark",
+        "n": 300,
+        "target": 0.1,
+        "value": 1.0537841320037842,
+        "status": "red",
+        "examples": [
+          {
+            "text": "N'Djamena after dark is beautiful",
+            "gt_bg1": "#171b4a",
+            "gt_bg2": "#49306d",
+            "gt_fg": "#f4e9c8",
+            "pred_bg1": "#f1b77c",
+            "pred_bg2": "#dc8f72",
+            "pred_fg": "#37170e"
+          },
+          {
+            "text": "I will be home before it gets dark",
+            "gt_bg1": "#232529",
+            "gt_bg2": "#303338",
+            "gt_fg": "#e8eaed",
+            "pred_bg1": "#bdd5d1",
+            "pred_bg2": "#96b3ab",
+            "pred_fg": "#2a3b39"
+          },
+          {
+            "text": "The conference room is empty after dark",
+            "gt_bg1": "#202b3b",
+            "gt_bg2": "#394653",
+            "gt_fg": "#e7edf0",
+            "pred_bg1": "#cfd9ce",
+            "pred_bg2": "#b0b6b3",
+            "pred_fg": "#293031"
+          },
+          {
+            "text": "The client prefers the darker blue.",
+            "gt_bg1": "#1f4e79",
+            "gt_bg2": "#163a5c",
+            "gt_fg": "#ffffff",
+            "pred_bg1": "#d0e7ef",
+            "pred_bg2": "#adcddd",
+            "pred_fg": "#182f3d"
+          },
+          {
+            "text": "It's too dark to read the newspaper.",
+            "gt_bg1": "#20263f",
+            "gt_bg2": "#343052",
+            "gt_fg": "#ffffff",
+            "pred_bg1": "#cbd8e0",
+            "pred_bg2": "#abb7c5",
+            "pred_fg": "#202e3b"
+          },
+          {
+            "text": "The dark hallway is scary.",
+            "gt_bg1": "#252c44",
+            "gt_bg2": "#0f1728",
+            "gt_fg": "#f7edda",
+            "pred_bg1": "#bbd0c2",
+            "pred_bg2": "#9fb7ac",
+            "pred_fg": "#405447"
+          },
+          {
+            "text": "We should go up before dark",
+            "gt_bg1": "#d8c8b8",
+            "gt_bg2": "#bda38d",
+            "gt_fg": "#302116",
+            "pred_bg1": "#c1d5c4",
+            "pred_bg2": "#a4b99e",
+            "pred_fg": "#35493b"
+          },
+          {
+            "text": "I'm in a very dark mood today.",
+            "gt_bg1": "#241b3a",
+            "gt_bg2": "#10101f",
+            "gt_fg": "#f3e8ff",
+            "pred_bg1": "#d1bb8a",
+            "pred_bg2": "#c5997a",
+            "pred_fg": "#5e3a27"
+          },
+          {
+            "text": "This tunnel is seriously dark",
+            "gt_bg1": "#1d2733",
+            "gt_bg2": "#354554",
+            "gt_fg": "#f1f5f7",
+            "pred_bg1": "#c5bfa4",
+            "pred_bg2": "#b2a99d",
+            "pred_fg": "#82744c"
+          },
+          {
+            "text": "This jacket is darker in person",
+            "gt_bg1": "#626873",
+            "gt_bg2": "#3d424b",
+            "gt_fg": "#ffffff",
+            "pred_bg1": "#f0bb97",
+            "pred_bg2": "#c79274",
+            "pred_fg": "#211810"
+          }
+        ]
+      },
+      {
+        "keyword": "gold",
+        "n": 300,
+        "target": 0.1,
+        "value": 0.2826772630214691,
+        "status": "red",
+        "examples": [
+          {
+            "text": "Golden hour walk after feeding",
+            "gt_bg1": "#f4c27a",
+            "gt_bg2": "#e39a62",
+            "gt_fg": "#352218",
+            "pred_bg1": "#edd69f",
+            "pred_bg2": "#c7a16c",
+            "pred_fg": "#20160e"
+          },
+          {
+            "text": "I noticed the golden light outside.",
+            "gt_bg1": "#f2cf73",
+            "gt_bg2": "#dca957",
+            "gt_fg": "#38230f",
+            "pred_bg1": "#d0e0e1",
+            "pred_bg2": "#a8c4c8",
+            "pred_fg": "#25333e"
+          },
+          {
+            "text": "That marigold survived the move",
+            "gt_bg1": "#e8d76a",
+            "gt_bg2": "#b8c75b",
+            "gt_fg": "#263514",
+            "pred_bg1": "#c8b47a",
+            "pred_bg2": "#a19768",
+            "pred_fg": "#3e3926"
+          },
+          {
+            "text": "The old porch caught golden light",
+            "gt_bg1": "#f2cf7b",
+            "gt_bg2": "#bd874d",
+            "gt_fg": "#3d2818",
+            "pred_bg1": "#ccdde1",
+            "pred_bg2": "#93c2c9",
+            "pred_fg": "#15242e"
+          },
+          {
+            "text": "Don't forget the golden apples",
+            "gt_bg1": "#f5d66d",
+            "gt_bg2": "#d9ae42",
+            "gt_fg": "#292315",
+            "pred_bg1": "#f5c874",
+            "pred_bg2": "#d28f4c",
+            "pred_fg": "#160d07"
+          },
+          {
+            "text": "Gold medal talk after finals",
+            "gt_bg1": "#f5d778",
+            "gt_bg2": "#d6a92e",
+            "gt_fg": "#2b2108",
+            "pred_bg1": "#e2c495",
+            "pred_bg2": "#cba982",
+            "pred_fg": "#3e2c1e"
+          },
+          {
+            "text": "Please bring my gold spectacles",
+            "gt_bg1": "#e8c85e",
+            "gt_bg2": "#c49d35",
+            "gt_fg": "#29200d",
+            "pred_bg1": "#cad7ca",
+            "pred_bg2": "#9fc0b4",
+            "pred_fg": "#273b36"
+          },
+          {
+            "text": "The goldfish looks much happier",
+            "gt_bg1": "#f6d98b",
+            "gt_bg2": "#eeb96f",
+            "gt_fg": "#3b2a14",
+            "pred_bg1": "#f6c559",
+            "pred_bg2": "#db9c54",
+            "pred_fg": "#2a1509"
+          },
+          {
+            "text": "Fresh marigolds by reception",
+            "gt_bg1": "#ffd35a",
+            "gt_bg2": "#e89a32",
+            "gt_fg": "#30200b",
+            "pred_bg1": "#9ac388",
+            "pred_bg2": "#629f62",
+            "pred_fg": "#183623"
+          },
+          {
+            "text": "The marigolds are blooming nicely.",
+            "gt_bg1": "#f3d66d",
+            "gt_bg2": "#ddb649",
+            "gt_fg": "#382707",
+            "pred_bg1": "#eebb3a",
+            "pred_bg2": "#c38325",
+            "pred_fg": "#1f1106"
+          }
+        ]
+      },
+      {
+        "keyword": "green",
+        "n": 300,
+        "target": 0.1,
+        "value": 0.26613354682922363,
+        "status": "red",
+        "examples": [
+          {
+            "text": "Can you bring my green hoodie",
+            "gt_bg1": "#b8d2b0",
+            "gt_bg2": "#8fb99a",
+            "gt_fg": "#172d24",
+            "pred_bg1": "#d1d8d7",
+            "pred_bg2": "#a3bcc2",
+            "pred_fg": "#202d2f"
+          },
+          {
+            "text": "Green team sync moved to noon",
+            "gt_bg1": "#b8d79a",
+            "gt_bg2": "#96bd78",
+            "gt_fg": "#173021",
+            "pred_bg1": "#cfe4e5",
+            "pred_bg2": "#a2c8cc",
+            "pred_fg": "#18323a"
+          },
+          {
+            "text": "Morning shift starts with greens",
+            "gt_bg1": "#f3c56b",
+            "gt_bg2": "#7ba85b",
+            "gt_fg": "#20351f",
+            "pred_bg1": "#badfde",
+            "pred_bg2": "#8dc9c8",
+            "pred_fg": "#214244"
+          },
+          {
+            "text": "Can we soften the bright green?",
+            "gt_bg1": "#d9f0b0",
+            "gt_bg2": "#a8d36f",
+            "gt_fg": "#183016",
+            "pred_bg1": "#d8e4ca",
+            "pred_bg2": "#a6c5a5",
+            "pred_fg": "#203223"
+          },
+          {
+            "text": "The damp is green, black and revolting",
+            "gt_bg1": "#536b3f",
+            "gt_bg2": "#1d2a20",
+            "gt_fg": "#ffffff",
+            "pred_bg1": "#edb56b",
+            "pred_bg2": "#d58760",
+            "pred_fg": "#3a1f0f"
+          },
+          {
+            "text": "I’m wearing my green and gold today",
+            "gt_bg1": "#16834f",
+            "gt_bg2": "#c9b52e",
+            "gt_fg": "#102519",
+            "pred_bg1": "#e6c893",
+            "pred_bg2": "#c4a071",
+            "pred_fg": "#271c12"
+          },
+          {
+            "text": "I swapped shifts with the greenhouse team",
+            "gt_bg1": "#d4e3d6",
+            "gt_bg2": "#a8c5aa",
+            "gt_fg": "#203525",
+            "pred_bg1": "#c1b99e",
+            "pred_bg2": "#9e9586",
+            "pred_fg": "#453b2e"
+          },
+          {
+            "text": "The green room is booked",
+            "gt_bg1": "#b8d39a",
+            "gt_bg2": "#8fb777",
+            "gt_fg": "#183019",
+            "pred_bg1": "#abd3e0",
+            "pred_bg2": "#8cb9c5",
+            "pred_fg": "#1e3545"
+          },
+          {
+            "text": "Our green team won the relay",
+            "gt_bg1": "#b8df9e",
+            "gt_bg2": "#72bb70",
+            "gt_fg": "#16351d",
+            "pred_bg1": "#e09446",
+            "pred_bg2": "#bb7e4f",
+            "pred_fg": "#371e10"
+          },
+          {
+            "text": "The greenway is clear this morning",
+            "gt_bg1": "#c8dfc0",
+            "gt_bg2": "#9fc79e",
+            "gt_fg": "#1d3824",
+            "pred_bg1": "#b1e7ef",
+            "pred_bg2": "#74d0d8",
+            "pred_fg": "#123e49"
+          }
+        ]
+      },
+      {
+        "keyword": "lemon",
+        "n": 300,
+        "target": 0.1,
+        "value": 0.5079804062843323,
+        "status": "red",
+        "examples": [
+          {
+            "text": "I left the lemon tea outside",
+            "gt_bg1": "#f4e88c",
+            "gt_bg2": "#dfc98a",
+            "gt_fg": "#293323",
+            "pred_bg1": "#f5ce74",
+            "pred_bg2": "#da9952",
+            "pred_fg": "#27190b"
+          },
+          {
+            "text": "can you grab me a lemonade",
+            "gt_bg1": "#f3e8b5",
+            "gt_bg2": "#d9c66f",
+            "gt_fg": "#3d350d",
+            "pred_bg1": "#f0c248",
+            "pred_bg2": "#c8872e",
+            "pred_fg": "#271c09"
+          },
+          {
+            "text": "I left lemons by the kettle",
+            "gt_bg1": "#e8d98a",
+            "gt_bg2": "#cdbb68",
+            "gt_fg": "#302b16",
+            "pred_bg1": "#ecdb95",
+            "pred_bg2": "#b3a45b",
+            "pred_fg": "#151b0d"
+          },
+          {
+            "text": "Could you bring fresh lemons?",
+            "gt_bg1": "#fff4b8",
+            "gt_bg2": "#f4d86a",
+            "gt_fg": "#332600",
+            "pred_bg1": "#d8cf75",
+            "pred_bg2": "#9a994c",
+            "pred_fg": "#212712"
+          },
+          {
+            "text": "I’m bringing a fresh lemon slice.",
+            "gt_bg1": "#f0d45c",
+            "gt_bg2": "#d8bf42",
+            "gt_fg": "#30270d",
+            "pred_bg1": "#e1bf4f",
+            "pred_bg2": "#a98533",
+            "pred_fg": "#1c180a"
+          },
+          {
+            "text": "I picked up some fresh lemons",
+            "gt_bg1": "#e8ed8a",
+            "gt_bg2": "#cbd45b",
+            "gt_fg": "#26320d",
+            "pred_bg1": "#cbc15d",
+            "pred_bg2": "#8a8b39",
+            "pred_fg": "#232711"
+          },
+          {
+            "text": "Lunch is lemon cake today",
+            "gt_bg1": "#fff1a8",
+            "gt_bg2": "#f2cf63",
+            "gt_fg": "#493400",
+            "pred_bg1": "#f6b83a",
+            "pred_bg2": "#d4721d",
+            "pred_fg": "#1f0f05"
+          },
+          {
+            "text": "That lemonade was wonderfully tart.",
+            "gt_bg1": "#f4df72",
+            "gt_bg2": "#d8bd45",
+            "gt_fg": "#302b12",
+            "pred_bg1": "#ecad34",
+            "pred_bg2": "#bc6b20",
+            "pred_fg": "#231106"
+          },
+          {
+            "text": "The lemon paint is drying",
+            "gt_bg1": "#f4dc61",
+            "gt_bg2": "#e5c348",
+            "gt_fg": "#332611",
+            "pred_bg1": "#c5b881",
+            "pred_bg2": "#8d7d59",
+            "pred_fg": "#1f1e15"
+          },
+          {
+            "text": "Lemon tea before work",
+            "gt_bg1": "#f5e6a8",
+            "gt_bg2": "#dfc985",
+            "gt_fg": "#342b16",
+            "pred_bg1": "#f7b75f",
+            "pred_bg2": "#e27d46",
+            "pred_fg": "#2e1009"
+          }
+        ]
+      }
+    ],
+    "sample_n": 300
+  },
+  "style_dist": {
+    "n": 2000,
+    "dist": [
+      {
+        "style": "Deadpan",
+        "gt": 0.3045,
+        "pred": 0.3415
+      },
+      {
+        "style": "Irritated",
+        "gt": 0.1625,
+        "pred": 0.1615
+      },
+      {
+        "style": "Earnest",
+        "gt": 0.145,
+        "pred": 0.0645
+      },
+      {
+        "style": "Joyful",
+        "gt": 0.0825,
+        "pred": 0.054
+      },
+      {
+        "style": "Hopeful",
+        "gt": 0.0825,
+        "pred": 0.033
+      },
+      {
+        "style": "Tender",
+        "gt": 0.082,
+        "pred": 0.0465
+      },
+      {
+        "style": "Serene",
+        "gt": 0.0805,
+        "pred": 0.0555
+      },
+      {
+        "style": "Playful",
+        "gt": 0.074,
+        "pred": 0.054
+      },
+      {
+        "style": "Anxious",
+        "gt": 0.065,
+        "pred": 0.0295
+      },
+      {
+        "style": "Tense",
+        "gt": 0.0645,
+        "pred": 0.0205
+      },
+      {
+        "style": "Sarcastic",
+        "gt": 0.048,
+        "pred": 0.019
+      },
+      {
+        "style": "Excited",
+        "gt": 0.039,
+        "pred": 0.0165
+      },
+      {
+        "style": "Determined",
+        "gt": 0.037,
+        "pred": 0.015
+      },
+      {
+        "style": "Proud",
+        "gt": 0.037,
+        "pred": 0.014
+      },
+      {
+        "style": "Startled",
+        "gt": 0.0315,
+        "pred": 0.0235
+      },
+      {
+        "style": "Awed",
+        "gt": 0.024,
+        "pred": 0.014
+      },
+      {
+        "style": "Melancholy",
+        "gt": 0.0235,
+        "pred": 0.0135
+      },
+      {
+        "style": "Wistful",
+        "gt": 0.0225,
+        "pred": 0.0085
+      },
+      {
+        "style": "Whimsical",
+        "gt": 0.022,
+        "pred": 0.009
+      },
+      {
+        "style": "Disgusted",
+        "gt": 0.008,
+        "pred": 0.0055
+      },
+      {
+        "style": "Furious",
+        "gt": 0.0015,
+        "pred": 0.001
+      }
+    ]
+  },
+  "block_capacity": {
+    "rows": [
+      {
+        "source": "keywords",
+        "n": 5228,
+        "block": 0,
+        "range": "0:160",
+        "dilation": 1,
+        "w_norm_mean": 14.652822494506836,
+        "w_norm_max": 24.205589294433594,
+        "act_rms": 1.6122983694076538,
+        "contrib_norm": 1589.5223388671875,
+        "contrib_pct": 58.4820556640625
+      },
+      {
+        "source": "keywords",
+        "n": 5228,
+        "block": 1,
+        "range": "160:380",
+        "dilation": 2,
+        "w_norm_mean": 19.495336532592773,
+        "w_norm_max": 30.458791732788086,
+        "act_rms": 1.255724549293518,
+        "contrib_norm": 880.0089111328125,
+        "contrib_pct": 31.778640747070312
+      },
+      {
+        "source": "keywords",
+        "n": 5228,
+        "block": 2,
+        "range": "380:580",
+        "dilation": 4,
+        "w_norm_mean": 23.420774459838867,
+        "w_norm_max": 34.42969512939453,
+        "act_rms": 1.1376980543136597,
+        "contrib_norm": 405.0447998046875,
+        "contrib_pct": 14.454811096191406
+      },
+      {
+        "source": "keywords",
+        "n": 5228,
+        "block": 3,
+        "range": "580:640",
+        "dilation": 8,
+        "w_norm_mean": 28.600507736206055,
+        "w_norm_max": 56.81242370605469,
+        "act_rms": 1.3681228160858154,
+        "contrib_norm": 440.1669921875,
+        "contrib_pct": 14.48868465423584
+      },
+      {
+        "source": "terms",
+        "n": 1557,
+        "block": 0,
+        "range": "0:160",
+        "dilation": 1,
+        "w_norm_mean": 14.652822494506836,
+        "w_norm_max": 24.205589294433594,
+        "act_rms": 1.2828770875930786,
+        "contrib_norm": 1448.793701171875,
+        "contrib_pct": 52.466026306152344
+      },
+      {
+        "source": "terms",
+        "n": 1557,
+        "block": 1,
+        "range": "160:380",
+        "dilation": 2,
+        "w_norm_mean": 19.495336532592773,
+        "w_norm_max": 30.458791732788086,
+        "act_rms": 1.0790196657180786,
+        "contrib_norm": 1075.1756591796875,
+        "contrib_pct": 38.34675979614258
+      },
+      {
+        "source": "terms",
+        "n": 1557,
+        "block": 2,
+        "range": "380:580",
+        "dilation": 4,
+        "w_norm_mean": 23.420774459838867,
+        "w_norm_max": 34.42969512939453,
+        "act_rms": 0.9874300360679626,
+        "contrib_norm": 375.5714416503906,
+        "contrib_pct": 13.263481140136719
+      },
+      {
+        "source": "terms",
+        "n": 1557,
+        "block": 3,
+        "range": "580:640",
+        "dilation": 8,
+        "w_norm_mean": 28.600507736206055,
+        "w_norm_max": 56.81242370605469,
+        "act_rms": 1.0409966707229614,
+        "contrib_norm": 335.27423095703125,
+        "contrib_pct": 11.30331039428711
+      },
+      {
+        "source": "eval",
+        "n": 2000,
+        "block": 0,
+        "range": "0:160",
+        "dilation": 1,
+        "w_norm_mean": 14.652822494506836,
+        "w_norm_max": 24.205589294433594,
+        "act_rms": 1.1156171560287476,
+        "contrib_norm": 1431.62841796875,
+        "contrib_pct": 45.718772888183594
+      },
+      {
+        "source": "eval",
+        "n": 2000,
+        "block": 1,
+        "range": "160:380",
+        "dilation": 2,
+        "w_norm_mean": 19.495336532592773,
+        "w_norm_max": 30.458791732788086,
+        "act_rms": 0.8219071626663208,
+        "contrib_norm": 1053.7650146484375,
+        "contrib_pct": 33.456871032714844
+      },
+      {
+        "source": "eval",
+        "n": 2000,
+        "block": 2,
+        "range": "380:580",
+        "dilation": 4,
+        "w_norm_mean": 23.420774459838867,
+        "w_norm_max": 34.42969512939453,
+        "act_rms": 0.7176126837730408,
+        "contrib_norm": 340.5336608886719,
+        "contrib_pct": 10.678546905517578
+      },
+      {
+        "source": "eval",
+        "n": 2000,
+        "block": 3,
+        "range": "580:640",
+        "dilation": 8,
+        "w_norm_mean": 28.600507736206055,
+        "w_norm_max": 56.81242370605469,
+        "act_rms": 0.7288249731063843,
+        "contrib_norm": 475.6280822753906,
+        "contrib_pct": 14.683667182922363
+      }
+    ]
+  },
+  "channel_rank": {
+    "rows": [
+      {
+        "source": "keywords",
+        "n": 5228,
+        "block": 0,
+        "channels": 160,
+        "eff_rank": 57.80124282836914,
+        "eff_rank_pct": 36.12577676773071,
+        "rank95": 125,
+        "rank95_pct": 78.125
+      },
+      {
+        "source": "keywords",
+        "n": 5228,
+        "block": 1,
+        "channels": 220,
+        "eff_rank": 131.72625732421875,
+        "eff_rank_pct": 59.87557151100852,
+        "rank95": 179,
+        "rank95_pct": 81.36363636363636
+      },
+      {
+        "source": "keywords",
+        "n": 5228,
+        "block": 2,
+        "channels": 200,
+        "eff_rank": 134.5684051513672,
+        "eff_rank_pct": 67.2842025756836,
+        "rank95": 171,
+        "rank95_pct": 85.5
+      },
+      {
+        "source": "keywords",
+        "n": 5228,
+        "block": 3,
+        "channels": 60,
+        "eff_rank": 36.35951232910156,
+        "eff_rank_pct": 60.59918721516927,
+        "rank95": 51,
+        "rank95_pct": 85.0
+      },
+      {
+        "source": "terms",
+        "n": 1557,
+        "block": 0,
+        "channels": 160,
+        "eff_rank": 45.468788146972656,
+        "eff_rank_pct": 28.41799259185791,
+        "rank95": 122,
+        "rank95_pct": 76.25
+      },
+      {
+        "source": "terms",
+        "n": 1557,
+        "block": 1,
+        "channels": 220,
+        "eff_rank": 126.45773315429688,
+        "eff_rank_pct": 57.48078779740767,
+        "rank95": 176,
+        "rank95_pct": 80.0
+      },
+      {
+        "source": "terms",
+        "n": 1557,
+        "block": 2,
+        "channels": 200,
+        "eff_rank": 121.97191619873047,
+        "eff_rank_pct": 60.985958099365234,
+        "rank95": 167,
+        "rank95_pct": 83.5
+      },
+      {
+        "source": "terms",
+        "n": 1557,
+        "block": 3,
+        "channels": 60,
+        "eff_rank": 31.384363174438477,
+        "eff_rank_pct": 52.30727195739746,
+        "rank95": 50,
+        "rank95_pct": 83.33333333333333
+      },
+      {
+        "source": "eval",
+        "n": 2000,
+        "block": 0,
+        "channels": 160,
+        "eff_rank": 28.369140625,
+        "eff_rank_pct": 17.730712890625,
+        "rank95": 123,
+        "rank95_pct": 76.875
+      },
+      {
+        "source": "eval",
+        "n": 2000,
+        "block": 1,
+        "channels": 220,
+        "eff_rank": 139.58505249023438,
+        "eff_rank_pct": 63.44775113192472,
+        "rank95": 180,
+        "rank95_pct": 81.81818181818181
+      },
+      {
+        "source": "eval",
+        "n": 2000,
+        "block": 2,
+        "channels": 200,
+        "eff_rank": 110.7220230102539,
+        "eff_rank_pct": 55.36101150512695,
+        "rank95": 168,
+        "rank95_pct": 84.0
+      },
+      {
+        "source": "eval",
+        "n": 2000,
+        "block": 3,
+        "channels": 60,
+        "eff_rank": 29.043039321899414,
+        "eff_rank_pct": 48.40506553649902,
+        "rank95": 50,
+        "rank95_pct": 83.33333333333333
+      }
+    ]
+  },
+  "length_acc": {},
+  "eval_samples": {},
+  "lang_consistency": {},
+  "status": {
+    "best_emoji_variant": null,
+    "summary": {
+      "na": 12,
+      "good": 3
+    },
+    "goals": [
+      {
+        "goal": "Keyword emoji acc@1",
+        "priority": 1,
+        "dir": "max",
+        "target": "≥ 0.97",
+        "current": null,
+        "status": "na",
+        "note": "unmeasured — needs data/keywords.jsonl and enc.pt/emoji.pt"
+      },
+      {
+        "goal": "Keyword emoji acc@5",
+        "priority": 1,
+        "dir": "max",
+        "target": "≥ 0.98",
+        "current": null,
+        "status": "na",
+        "note": "unmeasured — needs data/keywords.jsonl and enc.pt/emoji.pt"
+      },
+      {
+        "goal": "Keyword emoji acc@10",
+        "priority": 1,
+        "dir": "max",
+        "target": "≥ 0.99",
+        "current": null,
+        "status": "na",
+        "note": "unmeasured — needs data/keywords.jsonl and enc.pt/emoji.pt"
+      },
+      {
+        "goal": "Term emoji acc@1",
+        "priority": 2,
+        "dir": "max",
+        "target": "≥ 0.80",
+        "current": null,
+        "status": "na",
+        "note": "unmeasured — needs data/terms.jsonl and enc.pt/emoji.pt"
+      },
+      {
+        "goal": "Term emoji acc@5",
+        "priority": 2,
+        "dir": "max",
+        "target": "≥ 0.85",
+        "current": null,
+        "status": "na",
+        "note": "unmeasured — needs data/terms.jsonl and enc.pt/emoji.pt"
+      },
+      {
+        "goal": "Term emoji acc@10",
+        "priority": 2,
+        "dir": "max",
+        "target": "≥ 0.90",
+        "current": null,
+        "status": "na",
+        "note": "unmeasured — needs data/terms.jsonl and enc.pt/emoji.pt"
+      },
+      {
+        "goal": "Full-text emoji acc@1",
+        "priority": 3,
+        "dir": "max",
+        "target": "≥ 0.65",
+        "current": null,
+        "status": "na",
+        "note": "emoji.eval not evaluated this run"
+      },
+      {
+        "goal": "Full-text emoji acc@5",
+        "priority": 3,
+        "dir": "max",
+        "target": "≥ 0.75",
+        "current": null,
+        "status": "na",
+        "note": "emoji.eval not evaluated this run"
+      },
+      {
+        "goal": "Full-text emoji acc@10",
+        "priority": 3,
+        "dir": "max",
+        "target": "≥ 0.87",
+        "current": null,
+        "status": "na",
+        "note": "emoji.eval not evaluated this run"
+      },
+      {
+        "goal": "Style acc@1",
+        "priority": 5,
+        "dir": "max",
+        "target": "≥ 0.60",
+        "current": null,
+        "status": "na",
+        "note": "cards off this run"
+      },
+      {
+        "goal": "Style acc@5",
+        "priority": 5,
+        "dir": "max",
+        "target": "≥ 0.80",
+        "current": null,
+        "status": "na",
+        "note": "cards off this run"
+      },
+      {
+        "goal": "Style acc@10",
+        "priority": 5,
+        "dir": "max",
+        "target": "≥ 0.87",
+        "current": null,
+        "status": "na",
+        "note": "cards off this run"
+      },
+      {
+        "goal": "Max text len",
+        "priority": 6,
+        "dir": "max",
+        "target": "≥ 42",
+        "current": 42,
+        "status": "good",
+        "note": "config.MAX_TEXT_LEN = 42"
+      },
+      {
+        "goal": "Emoji vocab size",
+        "priority": 7,
+        "dir": "max",
+        "target": "≥ 700",
+        "current": 906,
+        "status": "good",
+        "note": ""
+      },
+      {
+        "goal": "Vocab coverage (per Unicode group)",
+        "priority": 8,
+        "dir": "max",
+        "target": "all groups ≥ target",
+        "current": 100,
+        "status": "good",
+        "note": "100/100 groups meet target · weakest: animal-amphibian +0.00, animal-marine +0.00, award-medal +0.00, currency +0.00"
+      }
+    ],
+    "vocab_coverage": {
+      "measurable": true,
+      "groups": {
+        "face-smiling": {
+          "score": 0.5,
+          "covered": 7,
+          "total": 14,
+          "target": 0.5,
+          "passed": true
+        },
+        "face-affection": {
+          "score": 0.4444444444444444,
+          "covered": 4,
+          "total": 9,
+          "target": 0.4,
+          "passed": true
+        },
+        "face-tongue": {
+          "score": 0.5,
+          "covered": 3,
+          "total": 6,
+          "target": 0.35,
+          "passed": true
+        },
+        "face-hand": {
+          "score": 0.42857142857142855,
+          "covered": 3,
+          "total": 7,
+          "target": 0.4,
+          "passed": true
+        },
+        "face-neutral-skeptical": {
+          "score": 0.6875,
+          "covered": 11,
+          "total": 16,
+          "target": 0.3,
+          "passed": true
+        },
+        "face-sleepy": {
+          "score": 0.6666666666666666,
+          "covered": 4,
+          "total": 6,
+          "target": 0.3,
+          "passed": true
+        },
+        "face-unwell": {
+          "score": 0.8333333333333334,
+          "covered": 10,
+          "total": 12,
+          "target": 0.3,
+          "passed": true
+        },
+        "face-hat": {
+          "score": 0.3333333333333333,
+          "covered": 1,
+          "total": 3,
+          "target": 0.3,
+          "passed": true
+        },
+        "face-glasses": {
+          "score": 0.3333333333333333,
+          "covered": 1,
+          "total": 3,
+          "target": 0.3,
+          "passed": true
+        },
+        "face-concerned": {
+          "score": 0.7037037037037037,
+          "covered": 19,
+          "total": 27,
+          "target": 0.2,
+          "passed": true
+        },
+        "face-negative": {
+          "score": 0.75,
+          "covered": 6,
+          "total": 8,
+          "target": 0.4,
+          "passed": true
+        },
+        "face-costume": {
+          "score": 0.875,
+          "covered": 7,
+          "total": 8,
+          "target": 0.4,
+          "passed": true
+        },
+        "cat-face": {
+          "score": 0.2222222222222222,
+          "covered": 2,
+          "total": 9,
+          "target": 0.2,
+          "passed": true
+        },
+        "monkey-face": {
+          "score": 1.0,
+          "covered": 3,
+          "total": 3,
+          "target": 1.0,
+          "passed": true
+        },
+        "heart": {
+          "score": 0.6,
+          "covered": 15,
+          "total": 25,
+          "target": 0.2,
+          "passed": true
+        },
+        "emotion": {
+          "score": 0.6,
+          "covered": 9,
+          "total": 15,
+          "target": 0.45,
+          "passed": true
+        },
+        "hand-fingers-open": {
+          "score": 0.2727272727272727,
+          "covered": 3,
+          "total": 11,
+          "target": 0.2,
+          "passed": true
+        },
+        "hand-fingers-partial": {
+          "score": 0.5555555555555556,
+          "covered": 5,
+          "total": 9,
+          "target": 0.5,
+          "passed": true
+        },
+        "hand-single-finger": {
+          "score": 0.42857142857142855,
+          "covered": 3,
+          "total": 7,
+          "target": 0.2,
+          "passed": true
+        },
+        "hand-fingers-closed": {
+          "score": 0.5,
+          "covered": 3,
+          "total": 6,
+          "target": 0.2,
+          "passed": true
+        },
+        "hands": {
+          "score": 1.0,
+          "covered": 7,
+          "total": 7,
+          "target": 1.0,
+          "passed": true
+        },
+        "hand-prop": {
+          "score": 0.3333333333333333,
+          "covered": 1,
+          "total": 3,
+          "target": 0.3,
+          "passed": true
+        },
+        "body-parts": {
+          "score": 0.8333333333333334,
+          "covered": 15,
+          "total": 18,
+          "target": 0.8,
+          "passed": true
+        },
+        "person": {
+          "score": 0.32142857142857145,
+          "covered": 9,
+          "total": 28,
+          "target": 0.2,
+          "passed": true
+        },
+        "person-gesture": {
+          "score": 0.2,
+          "covered": 6,
+          "total": 30,
+          "target": 0.2,
+          "passed": true
+        },
+        "person-role": {
+          "score": 0.15853658536585366,
+          "covered": 13,
+          "total": 82,
+          "target": 0.1,
+          "passed": true
+        },
+        "person-fantasy": {
+          "score": 0.18181818181818182,
+          "covered": 6,
+          "total": 33,
+          "target": 0.1,
+          "passed": true
+        },
+        "person-activity": {
+          "score": 0.1724137931034483,
+          "covered": 10,
+          "total": 58,
+          "target": 0.1,
+          "passed": true
+        },
+        "person-sport": {
+          "score": 0.13953488372093023,
+          "covered": 6,
+          "total": 43,
+          "target": 0.1,
+          "passed": true
+        },
+        "person-resting": {
+          "score": 0.6,
+          "covered": 3,
+          "total": 5,
+          "target": 0.1,
+          "passed": true
+        },
+        "family": {
+          "score": 0.13513513513513514,
+          "covered": 5,
+          "total": 37,
+          "target": 0.1,
+          "passed": true
+        },
+        "person-symbol": {
+          "score": 0.45454545454545453,
+          "covered": 5,
+          "total": 11,
+          "target": 0.1,
+          "passed": true
+        },
+        "skin-tone": {
+          "score": 0.0,
+          "covered": 0,
+          "total": 5,
+          "target": 0.0,
+          "passed": true
+        },
+        "hair-style": {
+          "score": 0.25,
+          "covered": 1,
+          "total": 4,
+          "target": 0.1,
+          "passed": true
+        },
+        "animal-mammal": {
+          "score": 0.5151515151515151,
+          "covered": 34,
+          "total": 66,
+          "target": 0.5,
+          "passed": true
+        },
+        "animal-bird": {
+          "score": 0.6363636363636364,
+          "covered": 14,
+          "total": 22,
+          "target": 0.5,
+          "passed": true
+        },
+        "animal-amphibian": {
+          "score": 1.0,
+          "covered": 1,
+          "total": 1,
+          "target": 1.0,
+          "passed": true
+        },
+        "animal-reptile": {
+          "score": 0.75,
+          "covered": 6,
+          "total": 8,
+          "target": 0.5,
+          "passed": true
+        },
+        "animal-marine": {
+          "score": 0.5,
+          "covered": 9,
+          "total": 18,
+          "target": 0.5,
+          "passed": true
+        },
+        "animal-bug": {
+          "score": 0.75,
+          "covered": 12,
+          "total": 16,
+          "target": 0.5,
+          "passed": true
+        },
+        "plant-flower": {
+          "score": 0.6666666666666666,
+          "covered": 8,
+          "total": 12,
+          "target": 0.2,
+          "passed": true
+        },
+        "plant-other": {
+          "score": 0.8235294117647058,
+          "covered": 14,
+          "total": 17,
+          "target": 0.2,
+          "passed": true
+        },
+        "food-fruit": {
+          "score": 0.85,
+          "covered": 17,
+          "total": 20,
+          "target": 0.5,
+          "passed": true
+        },
+        "food-vegetable": {
+          "score": 0.7894736842105263,
+          "covered": 15,
+          "total": 19,
+          "target": 0.5,
+          "passed": true
+        },
+        "food-prepared": {
+          "score": 0.8529411764705882,
+          "covered": 29,
+          "total": 34,
+          "target": 0.5,
+          "passed": true
+        },
+        "food-asian": {
+          "score": 0.7058823529411765,
+          "covered": 12,
+          "total": 17,
+          "target": 0.5,
+          "passed": true
+        },
+        "food-marine": {
+          "score": null,
+          "covered": 0,
+          "total": 0,
+          "target": 0,
+          "passed": null
+        },
+        "food-sweet": {
+          "score": 1.0,
+          "covered": 14,
+          "total": 14,
+          "target": 0.5,
+          "passed": true
+        },
+        "drink": {
+          "score": 0.9,
+          "covered": 18,
+          "total": 20,
+          "target": 0.9,
+          "passed": true
+        },
+        "dishware": {
+          "score": 1.0,
+          "covered": 7,
+          "total": 7,
+          "target": 0.5,
+          "passed": true
+        },
+        "place-map": {
+          "score": 0.8571428571428571,
+          "covered": 6,
+          "total": 7,
+          "target": 0.1,
+          "passed": true
+        },
+        "place-geographic": {
+          "score": 0.8,
+          "covered": 8,
+          "total": 10,
+          "target": 0.5,
+          "passed": true
+        },
+        "place-building": {
+          "score": 0.8148148148148148,
+          "covered": 22,
+          "total": 27,
+          "target": 0.5,
+          "passed": true
+        },
+        "place-religious": {
+          "score": 0.6666666666666666,
+          "covered": 4,
+          "total": 6,
+          "target": 0.5,
+          "passed": true
+        },
+        "place-other": {
+          "score": 0.8235294117647058,
+          "covered": 14,
+          "total": 17,
+          "target": 0.1,
+          "passed": true
+        },
+        "transport-ground": {
+          "score": 0.62,
+          "covered": 31,
+          "total": 50,
+          "target": 0.3,
+          "passed": true
+        },
+        "transport-water": {
+          "score": 0.8888888888888888,
+          "covered": 8,
+          "total": 9,
+          "target": 0.5,
+          "passed": true
+        },
+        "transport-air": {
+          "score": 0.5384615384615384,
+          "covered": 7,
+          "total": 13,
+          "target": 0.5,
+          "passed": true
+        },
+        "hotel": {
+          "score": 1.0,
+          "covered": 2,
+          "total": 2,
+          "target": 0.5,
+          "passed": true
+        },
+        "time": {
+          "score": 0.5161290322580645,
+          "covered": 16,
+          "total": 31,
+          "target": 0.1,
+          "passed": true
+        },
+        "sky-weather": {
+          "score": 0.6595744680851063,
+          "covered": 31,
+          "total": 47,
+          "target": 0.5,
+          "passed": true
+        },
+        "event": {
+          "score": 0.5238095238095238,
+          "covered": 11,
+          "total": 21,
+          "target": 0.5,
+          "passed": true
+        },
+        "award-medal": {
+          "score": 0.5,
+          "covered": 3,
+          "total": 6,
+          "target": 0.5,
+          "passed": true
+        },
+        "sport": {
+          "score": 0.3333333333333333,
+          "covered": 9,
+          "total": 27,
+          "target": 0.1,
+          "passed": true
+        },
+        "game": {
+          "score": 0.4583333333333333,
+          "covered": 11,
+          "total": 24,
+          "target": 0.1,
+          "passed": true
+        },
+        "arts-crafts": {
+          "score": 1.0,
+          "covered": 7,
+          "total": 7,
+          "target": 0.1,
+          "passed": true
+        },
+        "clothing": {
+          "score": 0.7659574468085106,
+          "covered": 36,
+          "total": 47,
+          "target": 0.1,
+          "passed": true
+        },
+        "sound": {
+          "score": 0.7777777777777778,
+          "covered": 7,
+          "total": 9,
+          "target": 0.5,
+          "passed": true
+        },
+        "music": {
+          "score": 0.8888888888888888,
+          "covered": 8,
+          "total": 9,
+          "target": 0.5,
+          "passed": true
+        },
+        "musical-instrument": {
+          "score": 0.6153846153846154,
+          "covered": 8,
+          "total": 13,
+          "target": 0.5,
+          "passed": true
+        },
+        "phone": {
+          "score": 0.5,
+          "covered": 3,
+          "total": 6,
+          "target": 0.5,
+          "passed": true
+        },
+        "computer": {
+          "score": 0.7857142857142857,
+          "covered": 11,
+          "total": 14,
+          "target": 0.5,
+          "passed": true
+        },
+        "light-video": {
+          "score": 1.0,
+          "covered": 16,
+          "total": 16,
+          "target": 0.5,
+          "passed": true
+        },
+        "book-paper": {
+          "score": 0.5882352941176471,
+          "covered": 10,
+          "total": 17,
+          "target": 0.5,
+          "passed": true
+        },
+        "money": {
+          "score": 0.5454545454545454,
+          "covered": 6,
+          "total": 11,
+          "target": 0.4,
+          "passed": true
+        },
+        "mail": {
+          "score": 0.8461538461538461,
+          "covered": 11,
+          "total": 13,
+          "target": 0.2,
+          "passed": true
+        },
+        "writing": {
+          "score": 0.8571428571428571,
+          "covered": 6,
+          "total": 7,
+          "target": 0.1,
+          "passed": true
+        },
+        "office": {
+          "score": 0.7391304347826086,
+          "covered": 17,
+          "total": 23,
+          "target": 0.4,
+          "passed": true
+        },
+        "lock": {
+          "score": 0.8333333333333334,
+          "covered": 5,
+          "total": 6,
+          "target": 0.1,
+          "passed": true
+        },
+        "tool": {
+          "score": 0.6666666666666666,
+          "covered": 18,
+          "total": 27,
+          "target": 0.2,
+          "passed": true
+        },
+        "science": {
+          "score": 0.7142857142857143,
+          "covered": 5,
+          "total": 7,
+          "target": 0.5,
+          "passed": true
+        },
+        "medical": {
+          "score": 0.7142857142857143,
+          "covered": 5,
+          "total": 7,
+          "target": 0.5,
+          "passed": true
+        },
+        "household": {
+          "score": 0.88,
+          "covered": 22,
+          "total": 25,
+          "target": 0.5,
+          "passed": true
+        },
+        "other-object": {
+          "score": 0.3333333333333333,
+          "covered": 3,
+          "total": 9,
+          "target": 0.2,
+          "passed": true
+        },
+        "transport-sign": {
+          "score": 0.3076923076923077,
+          "covered": 4,
+          "total": 13,
+          "target": 0.1,
+          "passed": true
+        },
+        "warning": {
+          "score": 0.3076923076923077,
+          "covered": 4,
+          "total": 13,
+          "target": 0.1,
+          "passed": true
+        },
+        "arrow": {
+          "score": 0.2857142857142857,
+          "covered": 6,
+          "total": 21,
+          "target": 0.1,
+          "passed": true
+        },
+        "religion": {
+          "score": 0.46153846153846156,
+          "covered": 6,
+          "total": 13,
+          "target": 0.0,
+          "passed": true
+        },
+        "zodiac": {
+          "score": 1.0,
+          "covered": 13,
+          "total": 13,
+          "target": 1.0,
+          "passed": true
+        },
+        "av-symbol": {
+          "score": 0.28,
+          "covered": 7,
+          "total": 25,
+          "target": 0,
+          "passed": true
+        },
+        "gender": {
+          "score": 1.0,
+          "covered": 3,
+          "total": 3,
+          "target": 1.0,
+          "passed": true
+        },
+        "math": {
+          "score": 0.3333333333333333,
+          "covered": 2,
+          "total": 6,
+          "target": 0.0,
+          "passed": true
+        },
+        "punctuation": {
+          "score": 0.5714285714285714,
+          "covered": 4,
+          "total": 7,
+          "target": 0.5,
+          "passed": true
+        },
+        "currency": {
+          "score": 0.0,
+          "covered": 0,
+          "total": 2,
+          "target": 0,
+          "passed": true
+        },
+        "other-symbol": {
+          "score": 0.13636363636363635,
+          "covered": 3,
+          "total": 22,
+          "target": 0.1,
+          "passed": true
+        },
+        "keycap": {
+          "score": 0.46153846153846156,
+          "covered": 6,
+          "total": 13,
+          "target": 0.0,
+          "passed": true
+        },
+        "alphanum": {
+          "score": 0.15384615384615385,
+          "covered": 6,
+          "total": 39,
+          "target": 0.0,
+          "passed": true
+        },
+        "geometric": {
+          "score": 0.4117647058823529,
+          "covered": 14,
+          "total": 34,
+          "target": 0,
+          "passed": true
+        },
+        "flag": {
+          "score": 0.25,
+          "covered": 2,
+          "total": 8,
+          "target": 0.1,
+          "passed": true
+        },
+        "country-flag": {
+          "score": 0.07722007722007722,
+          "covered": 20,
+          "total": 259,
+          "target": 0,
+          "passed": true
+        },
+        "subdivision-flag": {
+          "score": 0.0,
+          "covered": 0,
+          "total": 3,
+          "target": 0,
+          "passed": true
+        }
+      },
+      "groups_total": 101,
+      "groups_measurable": 100,
+      "groups_passed": 100,
+      "score": 1.0,
+      "passed": true,
+      "top_missing": [
+        "😀",
+        "😃",
+        "😁",
+        "😆",
+        "🤣",
+        "😉",
+        "😇",
+        "😗",
+        "☺️",
+        "😚",
+        "😙",
+        "🥲",
+        "😛",
+        "😝",
+        "🤑",
+        "🤭",
+        "🫢",
+        "🫣",
+        "🫡",
+        "😐️",
+        "😶",
+        "😶‍🌫️",
+        "🙂‍↔️",
+        "🙂‍↕️",
+        "😪",
+        "🫩",
+        "🤮",
+        "🥴",
+        "🤠",
+        "🥸"
+      ]
+    }
+  }
+}

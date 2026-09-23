@@ -1,6 +1,4 @@
-Done:
-Implement a loss function:
-max(0, margin - (avg(positive_logits) - max(negative_logits)))
+What if we also add:
+max(0, margin - (min(positive_logits) - avg(negative_logits)))
 
-Does it make sense?
-Give it a proper name and replace the lse_infonce loss function.
+Take a flat avg but only for the negative logits that are > min(positive_logits)
