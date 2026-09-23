@@ -1,5 +1,15 @@
 Done:
 
-Add the `data/color_terms.jsonl` as a sample source.
-In addition, update the text encoder training:
-    The color regressor should only be trained on the color terms.
+Not good, this is what should be:
+    During the text encoder train step we:
+    -   load data from data/train.jsonl
+    -   randomly sample from sample sources (randomly replace some of the records with predefined sources, rate is set by the goal and current metric)
+    -   we also sample the data/color_terms.jsonl according to the goal and current metric, it is similar to other sample sources,
+        the only difference is that this is the only source the color regressor is trained on.
+        You should log (in addition to the other metrics):
+        - color/rate
+        - color/mae
+        - color/r2
+
+
+    Let me know if you do not understand the above, or if you need more information.

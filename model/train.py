@@ -267,14 +267,6 @@ class LitEncoder(pl.LightningModule):
             pred_color = self.color_gen(cond, z=z)
             loss_color_gen = l1_loss(pred_color, real_color)
             loss = loss + LOSS_WEIGHT_COLOR_REGRESSION * loss_color_gen
-            self._log(
-                named_metric(Source.COLOR, Metric.MAE, split),
-                loss_color_gen.detach(), n_color,
-            )
-            self._log(
-                named_metric(Source.COLOR, Metric.R2, split),
-                r2_score(pred_color.detach(), real_color), n_color,
-            )
 
             fake_color = real_color[
                 torch.randperm(n_color, device=real_color.device)
@@ -287,11 +279,23 @@ class LitEncoder(pl.LightningModule):
             )
             loss_critic = binary_cross_entropy_with_logits(score, target)
             loss = loss + LOSS_WEIGHT_ENC_COND_COLOR_CRITIC * loss_critic
-            self._log(
-                named_metric(Source.COLOR, Metric.AUROC, split),
-                binary_auroc(score.detach().squeeze(-1), target.squeeze(-1).long()),
-                n_color,
-            )
+
+            if split == Split.TRAIN:
+                self._log(
+                    named_metric(Source.COLOR, Metric.MAE),
+                    loss_color_gen.detach(), n_color,
+                )
+                self._log(
+                    named_metric(Source.COLOR, Metric.R2),
+                    r2_score(pred_color.detach(), real_color), n_color,
+                )
+                self._log(
+                    named_metric(Source.COLOR, Metric.AUROC),
+                    binary_auroc(
+                        score.detach().squeeze(-1), target.squeeze(-1).long()
+                    ),
+                    n_color,
+                )
 
         return loss
 

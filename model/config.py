@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 from files import COLOR_TERMS_JSONL, KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
-from model.metric import Metric, Source, Split, named_metric
+from model.metric import Metric, Source, named_metric
 
 # from files import FLAGS_JSONL
 
@@ -97,6 +97,7 @@ LR_GAN_COND_CRITIC = 0.005
 SEED = 42
 TASK_BATCH_SIZE = 1024
 GAN_BATCH_SIZE = 1024
+COLOR_TERMS_BATCH_SIZE = 128
 RELU_SLOPE = 0.1
 INFONCE_TEMP_EMOJI = 0.7
 INFONCE_TEMP_STYLE = 0.7
@@ -139,7 +140,7 @@ SAMPLING_SOURCES: dict[Source, SamplingSource] = {
     ),
     Source.COLOR: SamplingSource(
         COLOR_TERMS_JSONL,
-        named_metric(Source.COLOR, Metric.R2, Split.TRAIN),
+        named_metric(Source.COLOR, Metric.R2),
         0, 0.3
     ),
 }
