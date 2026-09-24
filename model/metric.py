@@ -45,5 +45,6 @@ class GanMetric:
     COND_COLOR_CRITIC_AUROC = "gan/cond_color_critic/auroc"
     COND_COLOR_CRITIC_MEAN_SCORE_REAL = "gan/cond_color_critic/mean_score/real"
     COND_COLOR_CRITIC_MEAN_SCORE_FAKE = "gan/cond_color_critic/mean_score/fake"
+    COND_COLOR_CRITIC_MEAN_SCORE_WRONG = "gan/cond_color_critic/mean_score/wrong"
     COLOR_CRITIC_LOSS = "gan/color_critic/loss"
     COLOR_CRITIC_AUROC = "gan/color_critic/auroc"

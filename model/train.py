@@ -44,6 +44,7 @@ from files import (
 )
 from model.color import energy_distance, rgb_to_oklab
 from model.config import (
+    COND_CRITIC_MISMATCH_WEIGHT,
     CONFIG_NAME,
     EARLY_STOP_MIN_DELTA_GAN,
     EARLY_STOP_PATIENCE_ENCODER,
@@ -341,14 +342,20 @@ class LitColorGAN(pl.LightningModule):
         fake = self.gen(cond)
 
         # CRITIC
-        pair = torch.cat([colors, fake.detach()], dim=0)
-        cond_pair = torch.cat([cond, cond], dim=0)
-        score = self.critic(cond_pair, self.color_embed(pair))
-        real, fake_score = score.chunk(2, dim=0)
+        color_embed_real = self.color_embed(colors)
+        color_embed_fake = self.color_embed(fake.detach())
+        cond_wrong = cond[torch.randperm(cond.shape[0], device=cond.device)]
 
-        loss_critic = relu(1 - real).mean() + relu(1 + fake_score).mean()
+        real = self.critic(cond, color_embed_real)
+        fake_score = self.critic(cond, color_embed_fake)
+        wrong_score = self.critic(cond_wrong, color_embed_real)
+
+        loss_critic = relu(1 - real).mean() \
+            + COND_CRITIC_MISMATCH_WEIGHT * relu(1 + fake_score).mean() \
+            + (1 - COND_CRITIC_MISMATCH_WEIGHT) * relu(1 + wrong_score).mean()
 
         n = colors.shape[0]
+        score = torch.cat([real, fake_score], dim=0)
         auroc_target = torch.cat([score.new_ones(n), score.new_zeros(n)])
         auroc = binary_auroc(score.detach().squeeze(-1), auroc_target.long())
 
@@ -362,6 +369,7 @@ class LitColorGAN(pl.LightningModule):
         opt_critic.step()
 
         # COLOR CRITIC (unconditional)
+        pair = torch.cat([colors, fake.detach()], dim=0)
         color_score = self.color_critic(self.color_critic_embed(pair))
         color_real, color_fake_score = color_score.chunk(2, dim=0)
 
@@ -407,6 +415,15 @@ class LitColorGAN(pl.LightningModule):
 
         self.log(GanMetric.COND_COLOR_CRITIC_LOSS, loss_critic, prog_bar=True)
         self.log(GanMetric.COND_COLOR_CRITIC_AUROC, auroc, prog_bar=True)
+        self.log(
+            GanMetric.COND_COLOR_CRITIC_MEAN_SCORE_REAL,
+            real.detach().mean(), prog_bar=False)
+        self.log(
+            GanMetric.COND_COLOR_CRITIC_MEAN_SCORE_FAKE,
+            fake_score.detach().mean(), prog_bar=False)
+        self.log(
+            GanMetric.COND_COLOR_CRITIC_MEAN_SCORE_WRONG,
+            wrong_score.detach().mean(), prog_bar=False)
         self.log(GanMetric.COLOR_CRITIC_LOSS, loss_color_critic, prog_bar=True)
         self.log(GanMetric.COLOR_CRITIC_AUROC, color_auroc, prog_bar=True)
         self.log(
