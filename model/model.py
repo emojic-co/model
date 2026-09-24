@@ -156,6 +156,7 @@ class ColorEmbedding(nn.Module):
 
         self.net = nn.Sequential(
             *cblk(COLOR_DIM, EMBED_SIZE_COLOR),
+            *cblk(EMBED_SIZE_COLOR, EMBED_SIZE_COLOR),
             *cblk(EMBED_SIZE_COLOR, EMBED_SIZE_COLOR))
 
     def forward(self, colors: torch.Tensor) -> torch.Tensor:
