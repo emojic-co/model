@@ -112,7 +112,9 @@ def margin_loss(
     neg_mask = ~pos_mask
     loss_pos = leaky_relu(margin - logits, MARGIN_LOSS_SLOPE) * pos_mask
     loss_neg = relu(margin + logits) * neg_mask
-    return (loss_neg.mean(dim=-1) + loss_pos.mean(dim=-1)).mean()
+    pos_count = pos_mask.sum(dim=-1).clamp(min=1)
+    neg_count = neg_mask.sum(dim=-1).clamp(min=1)
+    return (loss_neg / neg_count + loss_pos / pos_count).mean()
 
 
 def mrr(logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
