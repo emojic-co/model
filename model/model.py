@@ -7,7 +7,7 @@ from torch.nn.functional import (
 )
 from torch.nn.utils.parametrizations import spectral_norm as sn
 
-from model.color import COLOR_SHIFT
+from model.color import COLOR_SHIFT, rgb_to_oklab
 from model.config import (
     DROPOUT,
     EMBED_SIZE_CHAR,
@@ -160,6 +160,7 @@ class ColorEmbedding(nn.Module):
             *cblk(EMBED_SIZE_COLOR, EMBED_SIZE_COLOR))
 
     def forward(self, colors: torch.Tensor) -> torch.Tensor:
+        colors = rgb_to_oklab(colors)
         return self.net(colors)
 
 

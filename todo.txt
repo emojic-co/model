@@ -1,1 +1,3 @@
-There are too many TB log names, can you organize them and make a short doc in docs/logs.md that summarize them?
+Done:
+ColorEmbedding:
+convert the color to OKLAB/LAB color space before embedding it.
