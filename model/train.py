@@ -20,7 +20,7 @@ from lightning.pytorch.callbacks import (
 )
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
-from torch.nn.functional import logsigmoid, relu
+from torch.nn.functional import relu
 from torch.utils.data import DataLoader, Dataset
 from torchmetrics.functional.classification import binary_auroc
 from tqdm import tqdm
@@ -49,11 +49,6 @@ from files import (
 )
 from model.color import energy_distance, rgb_to_oklab
 from model.config import (
-    ASL_GAMMA_NEG_EMOJI,
-    ASL_GAMMA_NEG_STYLE,
-    ASL_GAMMA_POS,
-    ASL_MARGIN_EMOJI,
-    ASL_MARGIN_STYLE,
     CONFIG_NAME,
     EARLY_STOP_MIN_DELTA_GAN,
     EARLY_STOP_PATIENCE_ENCODER,
@@ -66,6 +61,7 @@ from model.config import (
     GAN_BATCH_SIZE,
     GRAD_CLIP_CRITIC,
     GRAD_CLIP_GEN,
+    LOSS_WEIGHT_COLOR,
     LOSS_WEIGHT_COLOR_CRITIC,
     LOSS_WEIGHT_COND_COLOR_CRITIC,
     LOSS_WEIGHT_EMOJI,
@@ -75,6 +71,8 @@ from model.config import (
     LR_GAN_COND_CRITIC,
     LR_GAN_CRITIC,
     LR_GAN_GEN,
+    MARGIN_EMOJI_HINGE,
+    MARGIN_STYLE_HINGE,
     SAMPLING_RATE_MAX,
     SAMPLING_RATE_MIN,
     SAMPLING_SOURCES,
@@ -109,31 +107,16 @@ _CUDA = torch.cuda.is_available()
 _DETERMINISTIC: bool | str = "warn" if _CUDA else True
 
 
-def asymmetric_loss(
+def margin_loss(
     logits: torch.Tensor,
     target: torch.Tensor,
-    gamma_neg: float,
-    gamma_pos: float,
     margin: float,
-    eps: float = 1e-8,
 ) -> torch.Tensor:
-    p = torch.sigmoid(logits)
-    p_neg = 1 - p
-    if margin > 0:
-        p_neg = (p_neg + margin).clamp(max=1.0)
-
-    loss_pos = target * logsigmoid(logits)
-    loss_neg = (1 - target) * torch.log(p_neg.clamp(min=eps))
-    loss = loss_pos + loss_neg
-
-    if gamma_pos > 0 or gamma_neg > 0:
-        with torch.no_grad():
-            pt = target * p + (1 - target) * p_neg
-            gamma = target * gamma_pos + (1 - target) * gamma_neg
-            focal_weight = (1 - pt).pow(gamma)
-        loss = loss * focal_weight
-
-    return -loss.sum(dim=-1).mean()
+    pos_mask = target > 0
+    neg_mask = ~pos_mask
+    loss_neg = relu(logits + margin) * neg_mask
+    loss_pos = relu(margin - logits) * pos_mask
+    return (loss_neg.sum(dim=-1) + loss_pos.sum(dim=-1)).mean()
 
 
 def mrr(logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
@@ -185,9 +168,7 @@ class LitEncoder(pl.LightningModule):
         enc = self.enc(text)
 
         style_logits = self.style(enc)
-        loss_style = asymmetric_loss(
-            style_logits, style, ASL_GAMMA_NEG_STYLE, ASL_GAMMA_POS, ASL_MARGIN_STYLE
-        )
+        loss_style = margin_loss(style_logits, style, MARGIN_STYLE_HINGE)
         self._log(
             named_metric(Source.STYLE, Metric.LOSS, split),
             loss_style,
@@ -201,9 +182,7 @@ class LitEncoder(pl.LightningModule):
         )
 
         emoji_logits = self.emoji(enc)
-        loss_emoji = asymmetric_loss(
-            emoji_logits, emoji, ASL_GAMMA_NEG_EMOJI, ASL_GAMMA_POS, ASL_MARGIN_EMOJI
-        )
+        loss_emoji = margin_loss(emoji_logits, emoji, MARGIN_EMOJI_HINGE)
         self._log(
             named_metric(Source.EMOJI, Metric.LOSS, split),
             loss_emoji,
@@ -260,7 +239,7 @@ class LitEncoder(pl.LightningModule):
         return (
             loss_style
             + loss_emoji
-            + LOSS_WEIGHT_COND_COLOR_CRITIC * loss_cond_critic
+            + LOSS_WEIGHT_COLOR * loss_cond_critic
         )
 
     def on_train_epoch_start(self):
