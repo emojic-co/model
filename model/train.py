@@ -26,6 +26,7 @@ from torchmetrics.functional.classification import binary_auroc
 from tqdm import tqdm
 
 from files import (
+    COND_CRITIC_PT,
     DATA_JSONL,
     EMOJI_PT,
     ENC_PT,
@@ -153,6 +154,7 @@ class LitEncoder(pl.LightningModule):
         self.enc = TextEncoder()
         self.style = StyleHead()
         self.emoji = EmojiHead()
+        self.cond_critic = CondColorCritic()
 
         self.train_dataset = None
 
@@ -161,7 +163,7 @@ class LitEncoder(pl.LightningModule):
                  prog_bar=True, batch_size=bs)
 
     def _step(self, batch, split: Split):
-        text, emoji, style, source = batch
+        text, emoji, style, source, colors, has_color = batch
         enc = self.enc(text)
 
         style_logits = self.style(enc)
@@ -202,7 +204,30 @@ class LitEncoder(pl.LightningModule):
                         n,
                     )
 
-        return loss_style + loss_emoji
+        loss_cond_critic = enc.new_zeros(())
+        n_c = int(has_color.sum())
+        if n_c > 1:
+            cond_c = enc[has_color]
+            colors_c = colors[has_color]
+            perm = torch.randperm(n_c, device=colors_c.device)
+            fake = colors_c[perm]
+
+            pair = torch.cat([colors_c, fake], dim=0)
+            cond_pair = torch.cat([cond_c, cond_c], dim=0)
+            score = self.cond_critic(cond_pair, pair)
+            real, fake_score = score.chunk(2, dim=0)
+
+            loss_cond_critic = relu(1 - real).mean() + relu(1 + fake_score).mean()
+
+            target = torch.cat([score.new_ones(n_c), score.new_zeros(n_c)])
+            auroc = binary_auroc(score.detach().squeeze(-1), target.long())
+            self._log(named_metric(Source.COLOR, Metric.AUROC, split), auroc, n_c)
+
+        return (
+            loss_style
+            + loss_emoji
+            + LOSS_WEIGHT_COND_COLOR_CRITIC * loss_cond_critic
+        )
 
     def on_train_epoch_start(self):
         if self.train_dataset is None or self.train_dataset.rates is None:
@@ -233,6 +258,7 @@ class LitEncoder(pl.LightningModule):
             list(self.enc.parameters())
             + list(self.style.parameters())
             + list(self.emoji.parameters())
+            + list(self.cond_critic.parameters())
         )
         return optim.Adam(params, lr=LR_ENCODER)
 
@@ -431,6 +457,22 @@ def _no_progress_bar() -> bool:
     return os.environ.get("EMOJIC_NO_PROGRESS_BAR") == "1"
 
 
+def _load_cond_critic(pt_dir: Path) -> CondColorCritic:
+    path = PtFile.COND_CRITIC.in_dir(pt_dir)
+    critic = CondColorCritic()
+    if not path.exists():
+        return critic
+    try:
+        return _load(critic, path)  # type: ignore
+    except Exception:
+        print(
+            f"{path}: does not match CondColorCritic, "
+            "falling back to a fresh critic",
+            flush=True,
+        )
+        return CondColorCritic()
+
+
 def _pt_files_ok(pt_dir: Path) -> bool:
     checks: list[tuple[PtFile, nn.Module]] = [
         (PtFile.ENC, TextEncoder()),
@@ -488,6 +530,9 @@ def _train_encoder(ds, out_dir: Path) -> LitEncoder:
     save_pt(mod.enc.state_dict(), PtFile.ENC.in_dir(out_dir), stage="enc")
     save_pt(mod.style.state_dict(), PtFile.STYLE.in_dir(out_dir), stage="enc")
     save_pt(mod.emoji.state_dict(), PtFile.EMOJI.in_dir(out_dir), stage="enc")
+    save_pt(
+        mod.cond_critic.state_dict(),
+        PtFile.COND_CRITIC.in_dir(out_dir), stage="enc")
 
     return mod
 
@@ -684,7 +729,7 @@ def _run_local(stage: Stage | None) -> None:
         if _pt_files_ok(_DEFAULT_PT):
             enc_path = PtFile.ENC.in_dir(_DEFAULT_PT)
             enc = _load(TextEncoder(), enc_path)
-            critic = CondColorCritic()
+            critic = _load_cond_critic(_DEFAULT_PT)
             _train_gan(
                 enc, enc_path, critic,  # type: ignore
                 train_ds(mix_sources=False),
@@ -704,7 +749,7 @@ def _run_local(stage: Stage | None) -> None:
     ds = train_ds()
     mod = _train_encoder(ds, _DEFAULT_PT)
 
-    critic = CondColorCritic()
+    critic = _load_cond_critic(_DEFAULT_PT)
     _train_gan(
         mod.enc, PtFile.ENC.in_dir(_DEFAULT_PT), critic,
         train_ds(mix_sources=False),
@@ -819,6 +864,7 @@ def train_remote(
     enc_bytes: bytes | None = None,
     style_bytes: bytes | None = None,
     emoji_bytes: bytes | None = None,
+    cond_critic_bytes: bytes | None = None,
 ) -> dict[str, int]:
     env = _run_env(threads)
     env["EMOJIC_GIT_SHA"] = git_sha
@@ -834,6 +880,7 @@ def train_remote(
         ENC_PT: enc_bytes,
         STYLE_PT: style_bytes,
         EMOJI_PT: emoji_bytes,
+        COND_CRITIC_PT: cond_critic_bytes,
     }
     if any(v is not None for v in uploads.values()):
         Path(REPO, PT_DIR).mkdir(parents=True, exist_ok=True)
@@ -951,6 +998,7 @@ def _run_remote(stage: str, git_sha: str, run_time: str) -> dict[str, int]:
         "enc_bytes": None,
         "style_bytes": None,
         "emoji_bytes": None,
+        "cond_critic_bytes": None,
     }
     if stage == "gan":
         for name in (
@@ -967,6 +1015,9 @@ def _run_remote(stage: str, git_sha: str, run_time: str) -> dict[str, int]:
             "enc_bytes": ENC_PT.read_bytes(),
             "style_bytes": STYLE_PT.read_bytes(),
             "emoji_bytes": EMOJI_PT.read_bytes(),
+            "cond_critic_bytes": (
+                COND_CRITIC_PT.read_bytes() if COND_CRITIC_PT.exists() else None
+            ),
         }
 
     fn = train_remote.with_options(

@@ -9,10 +9,10 @@ from torch.nn.utils.parametrizations import spectral_norm as sn
 
 from model.color import COLOR_SHIFT
 from model.config import (
-    COND_CRITIC_EMBEDDING_SIZE,
     CRITIC_HIDDEN_SIZE,
     DROPOUT,
     EMBED_SIZE_CHAR,
+    EMBED_SIZE_COND_COLOR,
     EMBED_SIZE_EMOJI,
     EMBED_SIZE_STYLE,
     EMBED_SIZE_TEXT,
@@ -169,11 +169,11 @@ class CondColorCritic(nn.Module):
         super().__init__()
 
         self.color_embedding = nn.Sequential(
-            *cblk(COLOR_DIM, COND_CRITIC_EMBEDDING_SIZE),
-            *cblk(COND_CRITIC_EMBEDDING_SIZE, COND_CRITIC_EMBEDDING_SIZE))
+            *cblk(COLOR_DIM, EMBED_SIZE_COND_COLOR),
+            *cblk(EMBED_SIZE_COND_COLOR, EMBED_SIZE_COND_COLOR))
 
         self.text_embedding = nn.Sequential(
-            *cblk(EMBED_SIZE_TEXT, COND_CRITIC_EMBEDDING_SIZE))
+            *cblk(EMBED_SIZE_TEXT, EMBED_SIZE_COND_COLOR))
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor):
         c = self.color_embedding(colors)

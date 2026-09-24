@@ -1,10 +1,8 @@
 Done:
+During the TextEncoder train add also the conditional color critic loss to the total loss.
+The CondColorCritic gets real examples and fake (shuffling the batch) examples.
+Log both color/auroc/train and color/auroc/val metrics.
+Add a LOSS_WEIGHT_COND_COLOR_CRITIC hyperparameter to the config file and use it to weight the loss.
 
-I want to see if the current CondColorCritic has enough capacity to learn the conditional distribution.
-To do this:
-add a subcommand `train cond` that will:
-1. pre encode all the texts in train.jsonl and eva.jsonl and cache them in .pt files.
-2. train the CondColorCritic on the cached embeddings, each batch the CondColorCritic gets real data + fake where fake is a shuffling of texts and colors.
-3. log auroc, train for 100 epochs with early stopping on auroc.
-
-Note: this is always a local run, never on modal.
+Save the CondColorCritic to a .pt file and load it in the GAN training stage.
+Fall back to a fresh CondColorCritic if the .pt file is not found or does not match the current CondColorCritic.

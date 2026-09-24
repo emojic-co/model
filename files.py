@@ -34,6 +34,7 @@ class PtFile(StrEnum):
     STYLE = "style.pt"
     EMOJI = "emoji.pt"
     GEN = "gen.pt"
+    COND_CRITIC = "cond_critic.pt"
 
     def in_dir(self, pt_dir: Path) -> Path:
         return pt_dir / self.value
@@ -43,6 +44,7 @@ ENC_PT = PtFile.ENC.in_dir(PT_DIR)
 STYLE_PT = PtFile.STYLE.in_dir(PT_DIR)
 EMOJI_PT = PtFile.EMOJI.in_dir(PT_DIR)
 GEN_PT = PtFile.GEN.in_dir(PT_DIR)
+COND_CRITIC_PT = PtFile.COND_CRITIC.in_dir(PT_DIR)
 TEXT_ENC_CACHE_PT = PT_DIR / "text_enc_cache.pt"
 
 WEB_PUBLIC_DIR = Path("web/public")

@@ -165,7 +165,14 @@ def _load_pool(path: Path) -> _Pool | None:
 def _sample_pool(pool: _Pool, src: str) -> tuple:
     text, emoji_lists, style = pool
     j = int(torch.randint(len(text), (1,)).item())
-    return (text[j], emojis_to_tensor(emoji_lists[j]), style[j], src)
+    return (
+        text[j],
+        emojis_to_tensor(emoji_lists[j]),
+        style[j],
+        src,
+        torch.zeros(COLOR_DIM),
+        False,
+    )
 
 
 class SamplingRates:
@@ -214,11 +221,14 @@ class EmojiDataset(Dataset):
                 cum += self.rates.get(name)
                 if r < cum:
                     return _sample_pool(pool, name)
+        colors = self.colors[idx]
         return (
             self.text[idx],
             emojis_to_tensor(self.emoji_lists[idx]),
             self.style[idx],
             SRC_FULL,
+            sample_colors_tensor(colors),
+            bool(colors),
         )
 
 
