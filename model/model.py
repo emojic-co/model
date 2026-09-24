@@ -19,8 +19,8 @@ from model.config import (
     ENCODER_DILATION,
     ENCODER_KERNEL_SIZE,
     GEN_HIDDEN_SIZE,
-    NOISE_SIZE,
     RELU_SLOPE,
+    Z_SIZE,
 )
 from model.data import COLOR_DIM, EMOJIS, PAD_IDX, STYLES, VOCAB_SIZE
 
@@ -127,7 +127,7 @@ class ColorGen(nn.Module):
         super().__init__()
 
         self.net = nn.Sequential(
-            *gblk(EMBED_SIZE_TEXT + NOISE_SIZE, GEN_HIDDEN_SIZE),
+            *gblk(EMBED_SIZE_TEXT + Z_SIZE, GEN_HIDDEN_SIZE),
             *gblk(GEN_HIDDEN_SIZE, GEN_HIDDEN_SIZE),
             nn.Linear(GEN_HIDDEN_SIZE, COLOR_DIM))
 
