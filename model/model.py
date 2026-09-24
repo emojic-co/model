@@ -179,4 +179,7 @@ class CondColorCritic(nn.Module):
         c = self.color_embedding(colors)
         t = self.text_embedding(cond)
 
+        c = normalize(c, dim=-1)
+        t = normalize(t, dim=-1)
+
         return (t * c).sum(dim=-1, keepdim=True)
