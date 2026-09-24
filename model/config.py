@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 from files import KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
-from model.metric import Metric, Source, named_metric
+from model.metric import LogStage, Metric, Source, named_metric
 
 # from files import FLAGS_JSONL
 
@@ -82,7 +82,7 @@ GRAD_CLIP_CRITIC = 1
 # GAN LOSS WEIGHTS
 LOSS_WEIGHT_ENERGY = 0.01
 LOSS_WEIGHT_COLOR_CRITIC = .1
-LOSS_WEIGHT_COND_COLOR_CRITIC = 1
+LOSS_WEIGHT_COND = 1
 COND_CRITIC_MISMATCH_WEIGHT = 0.5
 
 # ENERGY
@@ -111,7 +111,7 @@ gan_str = " ".join([
         LR_GAN_CRITIC,
         LR_GAN_COND_CRITIC,
         LOSS_WEIGHT_ENERGY,
-        LOSS_WEIGHT_COND_COLOR_CRITIC,
+        LOSS_WEIGHT_COND,
         LOSS_WEIGHT_COLOR_CRITIC)])
 
 
@@ -129,12 +129,12 @@ SAMPLING_RATE_MIN = 0.01
 SAMPLING_SOURCES: dict[Source, SamplingSource] = {
     Source.KEYWORD: SamplingSource(
         KEYWORDS_JSONL,
-        named_metric(Source.KEYWORD, Metric.ACC_1),
+        named_metric(LogStage.ENC, Source.KEYWORD, Metric.ACC_1),
         0, 0.95
     ),
     Source.TERM: SamplingSource(
         TERMS_JSONL,
-        named_metric(Source.TERM, Metric.ACC_1),
+        named_metric(LogStage.ENC, Source.TERM, Metric.ACC_1),
         0, 0.9
     ),
 }

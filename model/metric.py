@@ -6,6 +6,12 @@ class Split(StrEnum):
     VAL = "val"
 
 
+class LogStage(StrEnum):
+    ENC = "enc"
+    GAN = "gan"
+    COND = "cond"
+
+
 class Source(StrEnum):
     KEYWORD = "keyword"
     TERM = "term"
@@ -23,14 +29,12 @@ class Metric(StrEnum):
     R2 = "r2"
     AUROC = "auroc"
     LOSS = "loss"
-    AVG_LOGITS_POS = "avg_logits/pos"
-    AVG_LOGITS_NEG = "avg_logits/neg"
 
 
 def named_metric(
-    source: Source, metric: Metric, split: Split | None = None
+    stage: LogStage, source: Source, metric: Metric, split: Split | None = None
 ) -> str:
-    parts = [source.value, metric.value]
+    parts = [stage.value, f"{source.value}_{metric.value}"]
     if split is not None:
         parts.append(split.value)
     return "/".join(parts)
@@ -39,13 +43,13 @@ def named_metric(
 class GanMetric:
     ENERGY_TRAIN = "gan/energy/train"
     ENERGY_VAL = "gan/energy/val"
-    GEN_LOSS_COND_COLOR_CRITIC = "gan/gen/loss/cond_color_critic"
-    GEN_LOSS_COLOR_CRITIC = "gan/gen/loss/color_critic"
-    COND_COLOR_CRITIC_LOSS = "gan/cond_color_critic/loss"
-    COND_AUROC_GEN = "gan/cond/auroc/gen"
-    COND_AUROC_SHUF = "gan/cond/auroc/shuf"
-    COND_COLOR_CRITIC_MEAN_SCORE_REAL = "gan/cond_color_critic/mean_score/real"
-    COND_COLOR_CRITIC_MEAN_SCORE_FAKE = "gan/cond_color_critic/mean_score/fake"
-    COND_COLOR_CRITIC_MEAN_SCORE_WRONG = "gan/cond_color_critic/mean_score/wrong"
-    COLOR_CRITIC_LOSS = "gan/color_critic/loss"
-    COLOR_CRITIC_AUROC = "gan/color_critic/auroc"
+    GEN_LOSS_COND = "gan/gen_loss_cond"
+    GEN_LOSS_COLOR = "gan/gen_loss_color"
+    COND_LOSS = "gan/cond_loss"
+    COND_AUROC_GEN = "gan/cond_auroc_gen"
+    COND_AUROC_SHUF = "gan/cond_auroc_shuf"
+    COND_MEAN_SCORE_REAL = "gan/cond_mean_score_real"
+    COND_MEAN_SCORE_FAKE = "gan/cond_mean_score_fake"
+    COND_MEAN_SCORE_WRONG = "gan/cond_mean_score_wrong"
+    COLOR_LOSS = "gan/color_loss"
+    COLOR_AUROC = "gan/color_auroc"

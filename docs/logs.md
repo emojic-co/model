@@ -1,18 +1,26 @@
 # TensorBoard log names
 
-Every scalar tag is built from `model/metric.py`: `named_metric(source, metric, split)`
-joins `Source`/`Metric`/`Split` enum values with `/` (`model/metric.py:30-36`), e.g.
-`emoji/mrr/val`. GAN tags don't fit that `source/metric/split` shape (asymmetric
-generator/critic naming) and are instead flat string constants on `GanMetric`
-(`model/metric.py:39-51`). Both are the source of truth — this doc is a reading guide, not
-a new spec.
+Every scalar tag follows one template: `<stage>/<metric>[/<train|val>]`. `stage` is
+`enc` / `gan` / `cond` — the same `LogStage` value used as the TensorBoard run version
+(`runs/<CONFIG_NAME>/<stage>`). `metric` is a single name (may itself contain
+underscores, e.g. `style_loss`, `cond_mean_score_real`). The `/<train|val>`
+segment is present only for metrics logged on both splits — a metric logged on one split
+only (or with no train/val distinction) omits it.
 
-Each training stage writes its own TensorBoard run directory,
-`runs/<CONFIG_NAME>/<version>`, where `<version>` is `enc` / `gan` / `cond` (matches
-`Stage` in `model/train.py:145-148`, set per `TensorBoardLogger(..., version=...)` call).
-Tags below are grouped by which stage writes them.
+Within a metric name, `cond` means "scored by the *conditional* critic" (`CondColorCritic`
+in `model/model.py`, scored against the text embedding) and `color` alone means "scored by
+the *unconditional*, color-only critic" (`ColorCritic`) — `cond_*` vs. plain `color_*`/
+`*_color` is the load-bearing distinction, not a shortening of the same thing.
 
-## `enc` — encoder stage (`LitEncoder`, `model/train.py:151-277`)
+`model/metric.py` is the source of truth. `named_metric(stage, source, metric, split)`
+(`model/metric.py:34-40`) builds the `source/metric`-style enc/cond tags by joining
+`Source` + `Metric` enum values into one `metric` segment, e.g.
+`named_metric(LogStage.ENC, Source.EMOJI, Metric.MRR, Split.VAL)` → `enc/emoji_mrr/val`.
+GAN tags don't fit the source+metric shape (asymmetric generator/critic naming) and are
+instead flat string constants on `GanMetric` (`model/metric.py:43-55`), already written in
+final `gan/<metric>[/<split>]` form. This doc is a reading guide, not a new spec.
+
+## `enc` — encoder stage (`LitEncoder`, `model/train.py:151-283`)
 
 Trained jointly: style head, emoji head, and the conditional color critic (co-trained here
 so the encoder learns color-relevant structure, even though the critic/GAN proper trains
@@ -20,50 +28,42 @@ later in the `gan` stage).
 
 | Tag | Split | Meaning |
 |---|---|---|
-| `style/loss/train`, `style/loss/val` | both | `lse_infonce` loss, style head |
-| `style/mrr/train`, `style/mrr/val` | both | mean reciprocal rank, style head |
-| `emoji/loss/train`, `emoji/loss/val` | both | `lse_infonce` loss, emoji head |
-| `emoji/mrr/train`, `emoji/mrr/val` | both | mean reciprocal rank, emoji head. **`emoji/mrr/val` is the checkpoint/early-stop monitor for this stage** (`model/train.py:564-581`) |
-| `emoji/avg_logits/pos/train`, `.../val` | both | mean emoji-head logit over true-label positions (sanity signal, not a loss) |
-| `emoji/avg_logits/neg/train`, `.../val` | both | mean emoji-head logit over non-label positions |
-| `full_text/acc@1` | val only | acc@1 over the full eval set, no per-source split |
-| `keyword/acc@1`, `term/acc@1` | train only | acc@1 restricted to rows sampled from that source (`SAMPLING_SOURCES`, `model/config.py:129-140`); drives the adaptive per-source sampling rate, not just diagnostics |
-| `keyword/rate`, `term/rate` | train only | current per-source sampling rate set by `on_train_epoch_start` (`model/train.py:261-277`) from the acc@1 tags above |
-| `color/auroc/train`, `color/auroc/val` | both | conditional color critic AUROC (real vs. shuffled-color pairs), co-trained with the encoder |
+| `enc/style_loss/train`, `enc/style_loss/val` | both | `lse_infonce` loss, style head |
+| `enc/style_mrr/train`, `enc/style_mrr/val` | both | mean reciprocal rank, style head |
+| `enc/emoji_loss/train`, `enc/emoji_loss/val` | both | `lse_infonce` loss, emoji head |
+| `enc/emoji_mrr/train`, `enc/emoji_mrr/val` | both | mean reciprocal rank, emoji head. **`enc/emoji_mrr/val` is the checkpoint/early-stop monitor for this stage** (`model/train.py:554-576`) |
+| `enc/full_text_acc@1` | val only | acc@1 over the full eval set, no per-source split |
+| `enc/keyword_acc@1`, `enc/term_acc@1` | train only | acc@1 restricted to rows sampled from that source (`SAMPLING_SOURCES`, `model/config.py:129-140`); drives the adaptive per-source sampling rate, not just diagnostics |
+| `enc/keyword_rate`, `enc/term_rate` | train only | current per-source sampling rate set by `on_train_epoch_start` (`model/train.py:251-267`) from the `acc@1` tags above |
+| `enc/color_auroc/train`, `enc/color_auroc/val` | both | conditional color critic AUROC (real vs. shuffled-color pairs), co-trained with the encoder |
 
-## `gan` — GAN stage (`LitColorGAN`, `model/train.py:607-462` region)
+## `gan` — GAN stage (`LitColorGAN`, `model/train.py:286-452`)
 
 Color generator vs. two critics (a *conditional* critic scored against the text
-embedding, and an *unconditional* color-only critic). All `gan/*` tags are `GanMetric`
-constants, not `named_metric` tuples.
+embedding, and an *unconditional* color-only critic).
 
 | Tag | Meaning |
 |---|---|
-| `gan/energy/train`, `gan/energy/val` | Sinkhorn/energy-distance between real and generated color distributions (Oklab space). **`gan/energy/val` is the checkpoint/early-stop monitor for this stage**, mode `min` (`model/train.py:630-654`) |
-| `gan/cond_color_critic/loss` | conditional critic hinge loss |
-| `gan/cond/auroc/gen` | conditional critic AUROC, real vs. generator-fake |
-| `gan/cond/auroc/shuf` | conditional critic AUROC, real vs. shuffled-condition (mismatch) pairs |
-| `gan/cond_color_critic/mean_score/real`, `.../fake`, `.../wrong` | mean conditional-critic score by pair type (real, generator-fake, mismatched-condition) |
-| `gan/color_critic/loss` | unconditional color critic hinge loss |
-| `gan/color_critic/auroc` | unconditional color critic AUROC |
-| `gan/gen/loss/cond_color_critic` | generator loss term from the conditional critic |
-| `gan/gen/loss/color_critic` | generator loss term from the unconditional critic |
+| `gan/energy/train`, `gan/energy/val` | Sinkhorn/energy-distance between real and generated color distributions (Oklab space). **`gan/energy/val` is the checkpoint/early-stop monitor for this stage**, mode `min` (`model/train.py:621-650`) |
+| `gan/cond_loss` | conditional critic hinge loss |
+| `gan/cond_auroc_gen` | conditional critic AUROC, real vs. generator-fake |
+| `gan/cond_auroc_shuf` | conditional critic AUROC, real vs. shuffled-condition (mismatch) pairs |
+| `gan/cond_mean_score_real`, `..._fake`, `..._wrong` | mean conditional-critic score by pair type (real, generator-fake, mismatched-condition) |
+| `gan/color_loss` | unconditional color critic hinge loss |
+| `gan/color_auroc` | unconditional color critic AUROC — **not** the same critic as `enc/color_auroc` / `cond/color_auroc` below, despite the shared `color_auroc` metric name; this one is unconditional (`ColorCritic`), those are conditional (`CondColorCritic`) |
+| `gan/gen_loss_cond` | generator loss term from the conditional critic |
+| `gan/gen_loss_color` | generator loss term from the unconditional critic |
 
-## `cond` — conditional critic probe stage (`LitCondCriticProbe`, `model/train.py:465-506`)
+## `cond` — conditional critic probe stage (`LitCondCriticProbe`, `model/train.py:455-496`)
 
 Pretrains the conditional color critic alone (encoder frozen), ahead of the `gan` stage.
-Reuses the same tag names as the encoder stage's color critic:
+Same underlying metric as `enc/color_auroc/*`, distinguished by the `cond` stage prefix
+since it's a different training context (encoder frozen here, co-trained there):
 
 | Tag | Split |
 |---|---|
-| `color/auroc/train` | train |
-| `color/auroc/val` | val |
+| `cond/color_auroc/train` | train |
+| `cond/color_auroc/val` | val |
 
 No checkpoint/early-stop monitor here — this stage is a fixed-epoch probe
 (`EPOCHS_COND_PROBE`), not an early-stopped fit.
-
-## Reading tags across stages
-
-`color/auroc/{train,val}` appears in both `enc` and `cond` runs (same metric, two
-different training contexts — co-trained-with-encoder vs. standalone probe); compare them
-within a run, not across, since the encoder is frozen in one and not the other.

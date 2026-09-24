@@ -61,7 +61,7 @@ from model.config import (
     INFONCE_TEMP_STYLE,
     LOSS_WEIGHT_COLOR,
     LOSS_WEIGHT_COLOR_CRITIC,
-    LOSS_WEIGHT_COND_COLOR_CRITIC,
+    LOSS_WEIGHT_COND,
     LOSS_WEIGHT_EMOJI,
     LOSS_WEIGHT_ENERGY,
     LOSS_WEIGHT_STYLE,
@@ -84,7 +84,7 @@ from model.data import (
     train_ds,
 )
 from model.export_onnx import export
-from model.metric import GanMetric, Metric, Source, Split, named_metric
+from model.metric import GanMetric, LogStage, Metric, Source, Split, named_metric
 from model.model import (
     ColorCritic,
     ColorEmbedding,
@@ -172,35 +172,21 @@ class LitEncoder(pl.LightningModule):
         style_logits = self.style(enc)
         loss_style = lse_infonce(style_logits, style, INFONCE_TEMP_STYLE)
         self._log(
-            named_metric(Source.STYLE, Metric.LOSS, split),
+            named_metric(LogStage.ENC, Source.STYLE, Metric.LOSS, split),
             loss_style,
             style.size(0),
         )
         loss_style = LOSS_WEIGHT_STYLE * loss_style
         self._log(
-            named_metric(Source.STYLE, Metric.MRR, split),
+            named_metric(LogStage.ENC, Source.STYLE, Metric.MRR, split),
             mrr(style_logits, style).mean(),
             style.size(0),
         )
 
         emoji_logits = self.emoji(enc)
-        pos_mask = emoji > 0
-        neg_mask = ~pos_mask
-        if pos_mask.any():
-            self._log(
-                named_metric(Source.EMOJI, Metric.AVG_LOGITS_POS, split),
-                emoji_logits[pos_mask].mean(),
-                emoji.size(0),
-            )
-        if neg_mask.any():
-            self._log(
-                named_metric(Source.EMOJI, Metric.AVG_LOGITS_NEG, split),
-                emoji_logits[neg_mask].mean(),
-                emoji.size(0),
-            )
         loss_emoji = lse_infonce(emoji_logits, emoji, INFONCE_TEMP_EMOJI)
         self._log(
-            named_metric(Source.EMOJI, Metric.LOSS, split),
+            named_metric(LogStage.ENC, Source.EMOJI, Metric.LOSS, split),
             loss_emoji,
             emoji.size(0),
         )
@@ -209,18 +195,20 @@ class LitEncoder(pl.LightningModule):
         n_e = int(has_e.sum())
         if n_e:
             rr = mrr(emoji_logits[has_e], emoji[has_e])
-            self._log(named_metric(Source.EMOJI, Metric.MRR, split), rr.mean(), n_e)
+            self._log(
+                named_metric(LogStage.ENC, Source.EMOJI, Metric.MRR, split),
+                rr.mean(), n_e)
 
         if split == Split.VAL and n_e:
             self._log(
-                named_metric(Source.FULL_TEXT, Metric.ACC_1),
+                named_metric(LogStage.ENC, Source.FULL_TEXT, Metric.ACC_1),
                 acc_at_k(emoji_logits[has_e], emoji[has_e], 1).mean(),
                 n_e,
             )
 
         if split == Split.TRAIN:
             for name, cfg in SAMPLING_SOURCES.items():
-                if cfg.metric != named_metric(name, Metric.ACC_1):
+                if cfg.metric != named_metric(LogStage.ENC, name, Metric.ACC_1):
                     continue
                 mask = torch.tensor(
                     [s == name for s in source], device=emoji.device
@@ -228,7 +216,7 @@ class LitEncoder(pl.LightningModule):
                 n = int(mask.sum())
                 if n:
                     self._log(
-                        named_metric(name, Metric.ACC_1),
+                        named_metric(LogStage.ENC, name, Metric.ACC_1),
                         acc_at_k(emoji_logits[mask], emoji[mask], 1).mean(),
                         n,
                     )
@@ -250,7 +238,9 @@ class LitEncoder(pl.LightningModule):
 
             target = torch.cat([score.new_ones(n_c), score.new_zeros(n_c)])
             auroc = binary_auroc(score.detach().squeeze(-1), target.long())
-            self._log(named_metric(Source.COLOR, Metric.AUROC, split), auroc, n_c)
+            self._log(
+                named_metric(LogStage.ENC, Source.COLOR, Metric.AUROC, split),
+                auroc, n_c)
 
         return (
             loss_style
@@ -272,7 +262,7 @@ class LitEncoder(pl.LightningModule):
                 rate = min(SAMPLING_RATE_MAX, max(SAMPLING_RATE_MIN, rate))
                 self.train_dataset.rates.set(name, rate)
             self.log(
-                named_metric(name, Metric.RATE),
+                named_metric(LogStage.ENC, name, Metric.RATE),
                 self.train_dataset.rates.get(name),
             )
 
@@ -403,7 +393,7 @@ class LitColorGAN(pl.LightningModule):
         loss_gen_color_critic = -gen_color_score.mean()
 
         loss_gen = \
-            LOSS_WEIGHT_COND_COLOR_CRITIC * loss_gen_critic \
+            LOSS_WEIGHT_COND * loss_gen_critic \
             + LOSS_WEIGHT_ENERGY * loss_energy \
             + LOSS_WEIGHT_COLOR_CRITIC * loss_gen_color_critic
 
@@ -417,25 +407,25 @@ class LitColorGAN(pl.LightningModule):
 
         opt_gen.step()
 
-        self.log(GanMetric.COND_COLOR_CRITIC_LOSS, loss_critic, prog_bar=True)
+        self.log(GanMetric.COND_LOSS, loss_critic, prog_bar=True)
         self.log(GanMetric.COND_AUROC_GEN, auroc_gen, prog_bar=True)
         self.log(GanMetric.COND_AUROC_SHUF, auroc_shuf, prog_bar=True)
         self.log(
-            GanMetric.COND_COLOR_CRITIC_MEAN_SCORE_REAL,
+            GanMetric.COND_MEAN_SCORE_REAL,
             real.detach().mean(), prog_bar=False)
         self.log(
-            GanMetric.COND_COLOR_CRITIC_MEAN_SCORE_FAKE,
+            GanMetric.COND_MEAN_SCORE_FAKE,
             fake_score.detach().mean(), prog_bar=False)
         self.log(
-            GanMetric.COND_COLOR_CRITIC_MEAN_SCORE_WRONG,
+            GanMetric.COND_MEAN_SCORE_WRONG,
             wrong_score.detach().mean(), prog_bar=False)
-        self.log(GanMetric.COLOR_CRITIC_LOSS, loss_color_critic, prog_bar=True)
-        self.log(GanMetric.COLOR_CRITIC_AUROC, color_auroc, prog_bar=True)
+        self.log(GanMetric.COLOR_LOSS, loss_color_critic, prog_bar=True)
+        self.log(GanMetric.COLOR_AUROC, color_auroc, prog_bar=True)
         self.log(
-            GanMetric.GEN_LOSS_COND_COLOR_CRITIC,
+            GanMetric.GEN_LOSS_COND,
             loss_gen_critic, prog_bar=True)
         self.log(
-            GanMetric.GEN_LOSS_COLOR_CRITIC,
+            GanMetric.GEN_LOSS_COLOR,
             loss_gen_color_critic, prog_bar=True)
         self.log(GanMetric.ENERGY_TRAIN, loss_energy, prog_bar=True)
 
@@ -488,7 +478,7 @@ class LitCondCriticProbe(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         loss, auroc = self._step(batch)
         self.log(
-            named_metric(Source.COLOR, Metric.AUROC, Split.TRAIN),
+            named_metric(LogStage.COND, Source.COLOR, Metric.AUROC, Split.TRAIN),
             auroc, on_step=False, on_epoch=True, prog_bar=True,
         )
         return loss
@@ -496,7 +486,7 @@ class LitCondCriticProbe(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         _, auroc = self._step(batch)
         self.log(
-            named_metric(Source.COLOR, Metric.AUROC, Split.VAL),
+            named_metric(LogStage.COND, Source.COLOR, Metric.AUROC, Split.VAL),
             auroc, on_step=False, on_epoch=True, prog_bar=True,
         )
 
@@ -561,7 +551,7 @@ def _train_encoder(ds, out_dir: Path) -> LitEncoder:
     no_bar = _no_progress_bar()
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
-    monitor = named_metric(Source.EMOJI, Metric.MRR, Split.VAL)
+    monitor = named_metric(LogStage.ENC, Source.EMOJI, Metric.MRR, Split.VAL)
     ckpt = ModelCheckpoint(
         monitor=monitor, mode="max", save_top_k=1, filename="best-{step}"
     )
@@ -569,7 +559,8 @@ def _train_encoder(ds, out_dir: Path) -> LitEncoder:
         devices="auto",
         accelerator="auto",
         logger=TensorBoardLogger(
-            "runs", name=CONFIG_NAME, version="enc", default_hp_metric=False
+            "runs", name=CONFIG_NAME, version=LogStage.ENC.value,
+            default_hp_metric=False
         ),
         deterministic=_DETERMINISTIC,  # type: ignore
         max_epochs=EPOCHS_TASK,
@@ -638,7 +629,7 @@ def _train_gan(
         logger=TensorBoardLogger(
             "runs",
             name=CONFIG_NAME,
-            version="gan",
+            version=LogStage.GAN.value,
             default_hp_metric=False),
 
         deterministic=_DETERMINISTIC,  # type: ignore
@@ -767,7 +758,8 @@ def _run_cond() -> None:
         devices="auto",
         accelerator="auto",
         logger=TensorBoardLogger(
-            "runs", name=CONFIG_NAME, version="cond", default_hp_metric=False
+            "runs", name=CONFIG_NAME, version=LogStage.COND.value,
+            default_hp_metric=False
         ),
         deterministic=_DETERMINISTIC,  # type: ignore
         max_epochs=EPOCHS_COND_PROBE,
