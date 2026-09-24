@@ -23,6 +23,8 @@ class Metric(StrEnum):
     R2 = "r2"
     AUROC = "auroc"
     LOSS = "loss"
+    AVG_LOGITS_POS = "avg_logits/pos"
+    AVG_LOGITS_NEG = "avg_logits/neg"
 
 
 def named_metric(

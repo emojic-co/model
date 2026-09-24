@@ -1,9 +1,3 @@
-Actually make it simpler, make the loss function 
-sum(clamp_neg(neg_logits)) - sum(clamp_pos(pos_logits))
-where 
-clamp_neg(x) = max(x, -1)
-clamp_pos(x) = min(x, 1)
-
-Make sense?
-
-
+Add 2 TB logs:
+emoji/avg_logits/pos
+emoji/avg_logits/neg

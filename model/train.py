@@ -20,7 +20,7 @@ from lightning.pytorch.callbacks import (
 )
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
-from torch.nn.functional import relu
+from torch.nn.functional import leaky_relu, relu
 from torch.utils.data import DataLoader, Dataset
 from torchmetrics.functional.classification import binary_auroc
 from tqdm import tqdm
@@ -72,6 +72,7 @@ from model.config import (
     LR_GAN_CRITIC,
     LR_GAN_GEN,
     MARGIN_EMOJI_HINGE,
+    MARGIN_LOSS_SLOPE,
     MARGIN_STYLE_HINGE,
     SAMPLING_RATE_MAX,
     SAMPLING_RATE_MIN,
@@ -114,8 +115,8 @@ def margin_loss(
 ) -> torch.Tensor:
     pos_mask = target > 0
     neg_mask = ~pos_mask
-    loss_neg = relu(logits + margin) * neg_mask
-    loss_pos = relu(margin - logits) * pos_mask
+    loss_neg = leaky_relu(logits + margin, MARGIN_LOSS_SLOPE) * neg_mask
+    loss_pos = leaky_relu(margin - logits, MARGIN_LOSS_SLOPE) * pos_mask
     return (loss_neg.sum(dim=-1) + loss_pos.sum(dim=-1)).mean()
 
 
@@ -182,6 +183,20 @@ class LitEncoder(pl.LightningModule):
         )
 
         emoji_logits = self.emoji(enc)
+        pos_mask = emoji > 0
+        neg_mask = ~pos_mask
+        if pos_mask.any():
+            self._log(
+                named_metric(Source.EMOJI, Metric.AVG_LOGITS_POS, split),
+                emoji_logits[pos_mask].mean(),
+                emoji.size(0),
+            )
+        if neg_mask.any():
+            self._log(
+                named_metric(Source.EMOJI, Metric.AVG_LOGITS_NEG, split),
+                emoji_logits[neg_mask].mean(),
+                emoji.size(0),
+            )
         loss_emoji = margin_loss(emoji_logits, emoji, MARGIN_EMOJI_HINGE)
         self._log(
             named_metric(Source.EMOJI, Metric.LOSS, split),
