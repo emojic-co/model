@@ -61,17 +61,15 @@ LOSS_WEIGHT_EMOJI = 1
 LOSS_WEIGHT_STYLE = 1
 LOSS_WEIGHT_COLOR = 0.1
 
-# CLASSIFIER LOSS (MARGIN)
-MARGIN_EMOJI_HINGE = 2.0
-MARGIN_STYLE_HINGE = 2.0
+# CLASSIFIER LOSS (INFONCE)
+INFONCE_TEMP_EMOJI = 0.7
+INFONCE_TEMP_STYLE = 0.7
 
-emj_str = " ".join([
-    str(p)
-    for p in (EMBED_SIZE_EMOJI, MARGIN_EMOJI_HINGE)])
+emj_str = " ".join([str(p) for p in (EMBED_SIZE_EMOJI,)])
 
 style_str = " ".join([
     str(p)
-    for p in (EMBED_SIZE_STYLE, EMBED_SIZE_TEXT, MARGIN_STYLE_HINGE)])
+    for p in (EMBED_SIZE_STYLE, EMBED_SIZE_TEXT)])
 
 # GAN
 Z_WEIGHT = 0.2
@@ -154,6 +152,7 @@ train_str = " ".join(
             LR_ENCODER,
             GRAD_CLIP_GEN,
             GRAD_CLIP_CRITIC,
+            INFONCE_TEMP_EMOJI,
             SAMPLING_RATE_MAX,
             SAMPLING_RATE_MIN,
         )

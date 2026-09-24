@@ -56,6 +56,8 @@ from model.config import (
     GAN_BATCH_SIZE,
     GRAD_CLIP_CRITIC,
     GRAD_CLIP_GEN,
+    INFONCE_TEMP_EMOJI,
+    INFONCE_TEMP_STYLE,
     LOSS_WEIGHT_COLOR,
     LOSS_WEIGHT_COLOR_CRITIC,
     LOSS_WEIGHT_COND_COLOR_CRITIC,
@@ -66,8 +68,6 @@ from model.config import (
     LR_GAN_COND_CRITIC,
     LR_GAN_CRITIC,
     LR_GAN_GEN,
-    MARGIN_EMOJI_HINGE,
-    MARGIN_STYLE_HINGE,
     SAMPLING_RATE_MAX,
     SAMPLING_RATE_MIN,
     SAMPLING_SOURCES,
@@ -102,19 +102,21 @@ _CUDA = torch.cuda.is_available()
 _DETERMINISTIC: bool | str = "warn" if _CUDA else True
 
 
-def margin_loss(
+def lse_infonce(
     logits: torch.Tensor,
     target: torch.Tensor,
-    margin: float,
-    pow: float = 2.0,
+    temp: float,
 ) -> torch.Tensor:
-    pos_mask = target > 0
-    neg_mask = ~pos_mask
-    loss_pos = relu(margin - logits).pow(pow) * pos_mask
-    loss_neg = relu(margin + logits).pow(pow) * neg_mask
-    pos_count = pos_mask.sum(dim=-1, keepdim=True).clamp(min=1)
-    neg_count = neg_mask.sum(dim=-1, keepdim=True).clamp(min=1)
-    return (loss_neg / neg_count + loss_pos / pos_count).sum(dim=-1).mean()
+    has_pos = target.sum(dim=-1) > 0
+    if not bool(has_pos.any()):
+        return logits.new_zeros(())
+
+    z = logits / temp
+    all_lse = torch.logsumexp(z, dim=-1)
+    pos_lse = torch.logsumexp(z.masked_fill(target == 0, float("-inf")), dim=-1)
+    row_loss = all_lse - pos_lse
+
+    return row_loss[has_pos].mean()
 
 
 def mrr(logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
@@ -167,7 +169,7 @@ class LitEncoder(pl.LightningModule):
         enc = self.enc(text)
 
         style_logits = self.style(enc)
-        loss_style = margin_loss(style_logits, style, MARGIN_STYLE_HINGE)
+        loss_style = lse_infonce(style_logits, style, INFONCE_TEMP_STYLE)
         self._log(
             named_metric(Source.STYLE, Metric.LOSS, split),
             loss_style,
@@ -195,7 +197,7 @@ class LitEncoder(pl.LightningModule):
                 emoji_logits[neg_mask].mean(),
                 emoji.size(0),
             )
-        loss_emoji = margin_loss(emoji_logits, emoji, MARGIN_EMOJI_HINGE)
+        loss_emoji = lse_infonce(emoji_logits, emoji, INFONCE_TEMP_EMOJI)
         self._log(
             named_metric(Source.EMOJI, Metric.LOSS, split),
             loss_emoji,
