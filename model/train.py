@@ -355,9 +355,13 @@ class LitColorGAN(pl.LightningModule):
             + (1 - COND_CRITIC_MISMATCH_WEIGHT) * relu(1 + wrong_score).mean()
 
         n = colors.shape[0]
-        score = torch.cat([real, fake_score], dim=0)
-        auroc_target = torch.cat([score.new_ones(n), score.new_zeros(n)])
-        auroc = binary_auroc(score.detach().squeeze(-1), auroc_target.long())
+        auroc_target = torch.cat([real.new_ones(n), real.new_zeros(n)])
+        auroc_gen = binary_auroc(
+            torch.cat([real, fake_score], dim=0).detach().squeeze(-1),
+            auroc_target.long())
+        auroc_shuf = binary_auroc(
+            torch.cat([real, wrong_score], dim=0).detach().squeeze(-1),
+            auroc_target.long())
 
         opt_critic.zero_grad()
         self.manual_backward(loss_critic)
@@ -414,7 +418,8 @@ class LitColorGAN(pl.LightningModule):
         opt_gen.step()
 
         self.log(GanMetric.COND_COLOR_CRITIC_LOSS, loss_critic, prog_bar=True)
-        self.log(GanMetric.COND_COLOR_CRITIC_AUROC, auroc, prog_bar=True)
+        self.log(GanMetric.COND_AUROC_GEN, auroc_gen, prog_bar=True)
+        self.log(GanMetric.COND_AUROC_SHUF, auroc_shuf, prog_bar=True)
         self.log(
             GanMetric.COND_COLOR_CRITIC_MEAN_SCORE_REAL,
             real.detach().mean(), prog_bar=False)
