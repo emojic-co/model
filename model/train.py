@@ -67,7 +67,6 @@ from model.config import (
     LR_GAN_CRITIC,
     LR_GAN_GEN,
     MARGIN_EMOJI_HINGE,
-    MARGIN_LOSS_SLOPE,
     MARGIN_STYLE_HINGE,
     SAMPLING_RATE_MAX,
     SAMPLING_RATE_MIN,
