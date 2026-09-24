@@ -121,7 +121,6 @@ class ColorGen(nn.Module):
 
         self.net = nn.Sequential(
             *blk(EMBED_SIZE_TEXT, GEN_HIDDEN_SIZE),
-            *blk(GEN_HIDDEN_SIZE, GEN_HIDDEN_SIZE),
             nn.Linear(GEN_HIDDEN_SIZE, COLOR_DIM))
 
     def forward(

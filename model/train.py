@@ -60,7 +60,6 @@ from model.config import (
     INFONCE_TEMP_EMOJI,
     INFONCE_TEMP_STYLE,
     LOSS_WEIGHT_COLOR,
-    LOSS_WEIGHT_COLOR_CRITIC,
     LOSS_WEIGHT_COND,
     LOSS_WEIGHT_EMOJI,
     LOSS_WEIGHT_ENERGY,
@@ -395,7 +394,7 @@ class LitColorGAN(pl.LightningModule):
         loss_gen = \
             LOSS_WEIGHT_COND * loss_gen_critic \
             + LOSS_WEIGHT_ENERGY * loss_energy \
-            + LOSS_WEIGHT_COLOR_CRITIC * loss_gen_color_critic
+            + LOSS_WEIGHT_COLOR * loss_gen_color_critic
 
         opt_gen.zero_grad()
 
