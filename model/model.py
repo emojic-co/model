@@ -7,7 +7,7 @@ from torch.nn.functional import (
 )
 from torch.nn.utils.parametrizations import spectral_norm as sn
 
-from model.color import COLOR_SHIFT, rgb_to_oklab
+from model.color import COLOR_SHIFT
 from model.config import (
     DROPOUT,
     EMBED_SIZE_CHAR,
@@ -144,9 +144,15 @@ class ColorGen(nn.Module):
         return tanh(colors) * COLOR_SHIFT
 
 
+# def cblk(i: int, o: int):
+#     return [
+#         sn(nn.Linear(i, o)),
+#         nn.LeakyReLU(RELU_SLOPE)]
+
 def cblk(i: int, o: int):
     return [
-        sn(nn.Linear(i, o)),
+        nn.Linear(i, o, bias=False),
+        nn.BatchNorm1d(o),
         nn.LeakyReLU(RELU_SLOPE)]
 
 
@@ -156,11 +162,11 @@ class ColorEmbedding(nn.Module):
 
         self.net = nn.Sequential(
             *cblk(COLOR_DIM, EMBED_SIZE_COLOR),
-            *cblk(EMBED_SIZE_COLOR, EMBED_SIZE_COLOR),
+            # *cblk(EMBED_SIZE_COLOR, EMBED_SIZE_COLOR),
             *cblk(EMBED_SIZE_COLOR, EMBED_SIZE_COLOR))
 
     def forward(self, colors: torch.Tensor) -> torch.Tensor:
-        colors = rgb_to_oklab(colors)
+        # colors = rgb_to_oklab(colors)
         return self.net(colors)
 
 
