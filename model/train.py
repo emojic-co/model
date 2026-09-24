@@ -20,7 +20,7 @@ from lightning.pytorch.callbacks import (
 )
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
-from torch.nn.functional import leaky_relu, relu
+from torch.nn.functional import relu
 from torch.utils.data import DataLoader, Dataset
 from torchmetrics.functional.classification import binary_auroc
 from tqdm import tqdm
@@ -110,7 +110,7 @@ def margin_loss(
 ) -> torch.Tensor:
     pos_mask = target > 0
     neg_mask = ~pos_mask
-    loss_pos = leaky_relu(margin - logits, MARGIN_LOSS_SLOPE) * pos_mask
+    loss_pos = relu(margin - logits, MARGIN_LOSS_SLOPE) * pos_mask
     loss_neg = relu(margin + logits) * neg_mask
     pos_count = pos_mask.sum(dim=-1, keepdim=True).clamp(min=1)
     neg_count = neg_mask.sum(dim=-1, keepdim=True).clamp(min=1)
