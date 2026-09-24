@@ -115,6 +115,13 @@ class EmojiHead(nn.Module):
 
 
 # GAN
+def gblk(i: int, o: int):
+    return [
+        nn.Linear(i, o, bias=False),
+        nn.BatchNorm1d(o),
+        nn.LeakyReLU(RELU_SLOPE)]
+
+
 class ColorGen(nn.Module):
     def __init__(self):
         super().__init__()
@@ -152,7 +159,7 @@ class ColorGen(nn.Module):
 def cblk(i: int, o: int):
     return [
         nn.Linear(i, o, bias=False),
-        nn.BatchNorm1d(o),
+        nn.LayerNorm(o),
         nn.LeakyReLU(RELU_SLOPE)]
 
 
