@@ -2,7 +2,6 @@
 import torch
 import torch.nn as nn
 from torch.nn.functional import (
-    normalize,
     tanh,
 )
 from torch.nn.utils.parametrizations import spectral_norm as sn
@@ -118,7 +117,7 @@ class EmojiHead(nn.Module):
 def gblk(i: int, o: int):
     return [
         nn.Linear(i, o, bias=False),
-        nn.BatchNorm1d(o),
+        nn.LayerNorm(o),
         nn.LeakyReLU(RELU_SLOPE)]
 
 
@@ -128,7 +127,7 @@ class ColorGen(nn.Module):
 
         self.net = nn.Sequential(
             *gblk(EMBED_SIZE_TEXT + NOISE_SIZE, GEN_HIDDEN_SIZE),
-            *gblk(GEN_HIDDEN_SIZE, GEN_HIDDEN_SIZE),
+            # *gblk(GEN_HIDDEN_SIZE, GEN_HIDDEN_SIZE),
             nn.Linear(GEN_HIDDEN_SIZE, COLOR_DIM))
 
     def forward(
@@ -142,8 +141,8 @@ class ColorGen(nn.Module):
         assert cond.shape == z.shape, \
             f"cond and z must have the same shape, got {cond.shape} and {z.shape}"
 
-        z = normalize(z, dim=-1)
-        cond = normalize(cond, dim=-1)
+        # z = normalize(z, dim=-1)
+        # cond = normalize(cond, dim=-1)
 
         seed = torch.cat([cond, z], dim=-1)
 
