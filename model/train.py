@@ -106,11 +106,12 @@ def margin_loss(
     logits: torch.Tensor,
     target: torch.Tensor,
     margin: float,
+    pow: float = 2.0,
 ) -> torch.Tensor:
     pos_mask = target > 0
     neg_mask = ~pos_mask
-    loss_pos = relu(margin - logits) * pos_mask
-    loss_neg = relu(margin + logits) * neg_mask
+    loss_pos = relu(margin - logits).pow(pow) * pos_mask
+    loss_neg = relu(margin + logits).pow(pow) * neg_mask
     pos_count = pos_mask.sum(dim=-1, keepdim=True).clamp(min=1)
     neg_count = neg_mask.sum(dim=-1, keepdim=True).clamp(min=1)
     return (loss_neg / neg_count + loss_pos / pos_count).sum(dim=-1).mean()
