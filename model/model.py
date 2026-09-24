@@ -19,8 +19,8 @@ from model.config import (
     ENCODER_DILATION,
     ENCODER_KERNEL_SIZE,
     GEN_HIDDEN_SIZE,
+    NOISE_SIZE,
     RELU_SLOPE,
-    Z_WEIGHT,
 )
 from model.data import COLOR_DIM, EMOJIS, PAD_IDX, STYLES, VOCAB_SIZE
 
@@ -120,7 +120,7 @@ class ColorGen(nn.Module):
         super().__init__()
 
         self.net = nn.Sequential(
-            *blk(EMBED_SIZE_TEXT, GEN_HIDDEN_SIZE),
+            *blk(EMBED_SIZE_TEXT + NOISE_SIZE, GEN_HIDDEN_SIZE),
             *blk(GEN_HIDDEN_SIZE, GEN_HIDDEN_SIZE),
             nn.Linear(GEN_HIDDEN_SIZE, COLOR_DIM))
 
@@ -138,7 +138,7 @@ class ColorGen(nn.Module):
         z = normalize(z, dim=-1)
         cond = normalize(cond, dim=-1)
 
-        seed = (1 - Z_WEIGHT) * cond + Z_WEIGHT * z
+        seed = torch.cat([cond, z], dim=-1)
 
         colors = self.net(seed)
         return tanh(colors) * COLOR_SHIFT

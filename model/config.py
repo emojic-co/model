@@ -72,7 +72,8 @@ style_str = " ".join([
     for p in (EMBED_SIZE_STYLE, EMBED_SIZE_TEXT)])
 
 # GAN
-Z_WEIGHT = 0.3
+# Z_WEIGHT = 0.3
+NOISE_SIZE = EMBED_SIZE_TEXT
 GEN_HIDDEN_SIZE = 32
 
 
@@ -104,7 +105,7 @@ RELU_SLOPE = 0.1
 gan_str = " ".join([
     str(p)
     for p in (
-        Z_WEIGHT,
+        NOISE_SIZE,
         GEN_HIDDEN_SIZE,
         EMBED_SIZE_COLOR,
         LR_GAN_GEN,
@@ -241,7 +242,7 @@ def _stats() -> list[tuple[str, object]]:
         ("TASK_BATCH_SIZE / GAN_BATCH_SIZE",
          f"{TASK_BATCH_SIZE} / {GAN_BATCH_SIZE}"),
         ("EPOCHS_TASK / EPOCHS_GAN", f"{EPOCHS_TASK} / {EPOCHS_GAN}"),
-        ("Z_WEIGHT", Z_WEIGHT),
+        ("NOISE_SIZE", NOISE_SIZE),
     ]
 
 
