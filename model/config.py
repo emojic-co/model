@@ -69,6 +69,7 @@ MARGIN_LOSS_SLOPE = 0.1
 emj_str = " ".join([
     str(p)
     for p in (EMBED_SIZE_EMOJI, MARGIN_EMOJI_HINGE)])
+
 style_str = " ".join([
     str(p)
     for p in (EMBED_SIZE_STYLE, EMBED_SIZE_TEXT, MARGIN_STYLE_HINGE)])

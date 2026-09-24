@@ -111,7 +111,7 @@ def margin_loss(
     pos_mask = target > 0
     neg_mask = ~pos_mask
     loss_pos = leaky_relu(margin - logits, MARGIN_LOSS_SLOPE) * pos_mask
-    loss_neg = leaky_relu(margin + logits, MARGIN_LOSS_SLOPE) * neg_mask
+    loss_neg = relu(margin + logits) * neg_mask
     return (loss_neg.mean(dim=-1) + loss_pos.mean(dim=-1)).mean()
 
 
