@@ -147,7 +147,7 @@ class ColorGen(nn.Module):
 def cblk(i: int, o: int):
     return [
         sn(nn.Linear(i, o)),
-        nn.LeakyReLU(negative_slope=RELU_SLOPE)]
+        nn.LeakyReLU(RELU_SLOPE)]
 
 
 class ColorEmbedding(nn.Module):
