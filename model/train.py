@@ -185,9 +185,15 @@ class LitEncoder(pl.LightningModule):
         enc = self.enc(text)
 
         style_logits = self.style(enc)
-        loss_style = LOSS_WEIGHT_STYLE * asymmetric_loss(
+        loss_style = asymmetric_loss(
             style_logits, style, ASL_GAMMA_NEG_STYLE, ASL_GAMMA_POS, ASL_MARGIN_STYLE
         )
+        self._log(
+            named_metric(Source.STYLE, Metric.LOSS, split),
+            loss_style,
+            style.size(0),
+        )
+        loss_style = LOSS_WEIGHT_STYLE * loss_style
         self._log(
             named_metric(Source.STYLE, Metric.MRR, split),
             mrr(style_logits, style).mean(),
@@ -195,9 +201,15 @@ class LitEncoder(pl.LightningModule):
         )
 
         emoji_logits = self.emoji(enc)
-        loss_emoji = LOSS_WEIGHT_EMOJI * asymmetric_loss(
+        loss_emoji = asymmetric_loss(
             emoji_logits, emoji, ASL_GAMMA_NEG_EMOJI, ASL_GAMMA_POS, ASL_MARGIN_EMOJI
         )
+        self._log(
+            named_metric(Source.EMOJI, Metric.LOSS, split),
+            loss_emoji,
+            emoji.size(0),
+        )
+        loss_emoji = LOSS_WEIGHT_EMOJI * loss_emoji
         has_e = emoji.sum(dim=-1) > 0
         n_e = int(has_e.sum())
         if n_e:

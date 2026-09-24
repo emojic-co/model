@@ -22,6 +22,7 @@ class Metric(StrEnum):
     MRR = "mrr"
     R2 = "r2"
     AUROC = "auroc"
+    LOSS = "loss"
 
 
 def named_metric(
