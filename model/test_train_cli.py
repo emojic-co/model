@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 
@@ -83,6 +84,35 @@ def test_cli_no_flags_dispatches_remote():
         T._run_local, T._dispatch = orig_local, orig_dispatch
 
 
+def test_dispatch_pipeline_trains_gan_locally_after_encoder():
+    import contextlib
+
+    import modal
+
+    orig_remote, orig_retrieve, orig_local, orig_run, orig_output = (
+        T._run_remote, T._retrieve_and_cleanup, T._run_local,
+        T.modal_app.run, modal.enable_output,
+    )
+    calls = {}
+    T._run_remote = lambda stage, *a, **k: calls.setdefault("remote", stage)
+    T._retrieve_and_cleanup = lambda: True
+    T._run_local = lambda *a, **k: calls.setdefault("local", a)
+    T.modal_app.run = lambda: contextlib.nullcontext(T.modal_app)
+    modal.enable_output = lambda: contextlib.nullcontext()
+    os.environ["EMOJIC_DISPATCH_CHECKED"] = "1"
+    try:
+        T._dispatch(None)
+        assert calls["remote"] == T.Stage.encoder.value
+        assert calls["local"] == (T.Stage.gan,)
+    finally:
+        del os.environ["EMOJIC_DISPATCH_CHECKED"]
+        T._run_remote, T._retrieve_and_cleanup, T._run_local = (
+            orig_remote, orig_retrieve, orig_local
+        )
+        T.modal_app.run = orig_run
+        modal.enable_output = orig_output
+
+
 _app = typer.Typer(
     add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
@@ -99,6 +129,7 @@ def main() -> None:
     test_cli_gan_dispatches_local()
     test_cli_no_stage_local()
     test_cli_no_flags_dispatches_remote()
+    test_dispatch_pipeline_trains_gan_locally_after_encoder()
     print("ok")
 
 

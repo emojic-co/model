@@ -26,11 +26,7 @@ from torchmetrics.functional.classification import binary_auroc
 from tqdm import tqdm
 
 from files import (
-    COND_COLOR_EMBED_PT,
-    COND_CRITIC_PT,
     DATA_JSONL,
-    EMOJI_PT,
-    ENC_PT,
     EVAL_JSONL,
     FLAGS_JSONL,
     KEYWORDS_JSONL,
@@ -39,7 +35,6 @@ from files import (
     PT_DIR,
     REPORT_DIR,
     RUNS_DIR,
-    STYLE_PT,
     TERMS_JSONL,
     TEXT_ENC_CACHE_PT,
     TOOLS_DIR,
@@ -115,8 +110,8 @@ def margin_loss(
 ) -> torch.Tensor:
     pos_mask = target > 0
     neg_mask = ~pos_mask
-    loss_neg = leaky_relu(logits + margin, MARGIN_LOSS_SLOPE) * neg_mask
     loss_pos = leaky_relu(margin - logits, MARGIN_LOSS_SLOPE) * pos_mask
+    loss_neg = relu(logits + margin) * neg_mask
     return (loss_neg.sum(dim=-1) + loss_pos.sum(dim=-1)).mean()
 
 
@@ -144,6 +139,7 @@ _DEFAULT_PT = PT_DIR
 
 class Stage(StrEnum):
     gan = "gan"
+    encoder = "encoder"
     cond = "cond"
 
 
@@ -479,7 +475,8 @@ class LitCondCriticProbe(pl.LightningModule):
         )
 
     def configure_optimizers(self):
-        params = list(self.critic.parameters()) + list(self.color_embed.parameters())
+        params = list(self.critic.parameters()) + \
+            list(self.color_embed.parameters())
         return optim.SGD(params, lr=LR_GAN_COND_CRITIC)
 
 
@@ -791,6 +788,11 @@ def _run_local(stage: Stage | None) -> None:
             "falling back to a fresh full training",
             flush=True,
         )
+        stage = None
+
+    if stage == Stage.encoder:
+        _train_encoder(train_ds(), _DEFAULT_PT)
+        return
 
     ds = train_ds()
     mod = _train_encoder(ds, _DEFAULT_PT)
@@ -907,11 +909,6 @@ def train_remote(
     git_sha: str,
     run_time: str,
     gpu: str = "",
-    enc_bytes: bytes | None = None,
-    style_bytes: bytes | None = None,
-    emoji_bytes: bytes | None = None,
-    cond_critic_bytes: bytes | None = None,
-    cond_color_embed_bytes: bytes | None = None,
 ) -> dict[str, int]:
     env = _run_env(threads)
     env["EMOJIC_GIT_SHA"] = git_sha
@@ -922,19 +919,6 @@ def train_remote(
         env["EMOJIC_GAN_BATCH_SIZE"] = str(GPU_GAN_BATCH_SIZE)
         env["EMOJIC_DATA_WORKERS"] = "4"
         env["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
-
-    uploads = {
-        ENC_PT: enc_bytes,
-        STYLE_PT: style_bytes,
-        EMOJI_PT: emoji_bytes,
-        COND_CRITIC_PT: cond_critic_bytes,
-        COND_COLOR_EMBED_PT: cond_color_embed_bytes,
-    }
-    if any(v is not None for v in uploads.values()):
-        Path(REPO, PT_DIR).mkdir(parents=True, exist_ok=True)
-    for rel, data in uploads.items():
-        if data is not None:
-            Path(REPO, rel).write_bytes(data)
 
     code = 1
     try:
@@ -1042,37 +1026,6 @@ def _retrieve_and_cleanup() -> bool:
 
 
 def _run_remote(stage: str, git_sha: str, run_time: str) -> dict[str, int]:
-    pt_bytes: dict[str, bytes | None] = {
-        "enc_bytes": None,
-        "style_bytes": None,
-        "emoji_bytes": None,
-        "cond_critic_bytes": None,
-        "cond_color_embed_bytes": None,
-    }
-    if stage == "gan":
-        for name in (
-            ENC_PT,
-            STYLE_PT,
-            EMOJI_PT,
-        ):
-            if not name.exists():
-                raise typer.BadParameter(
-                    f"{name} not found -- run `train --local` "
-                    "(or fetch a Modal run) first"
-                )
-        pt_bytes = {
-            "enc_bytes": ENC_PT.read_bytes(),
-            "style_bytes": STYLE_PT.read_bytes(),
-            "emoji_bytes": EMOJI_PT.read_bytes(),
-            "cond_critic_bytes": (
-                COND_CRITIC_PT.read_bytes() if COND_CRITIC_PT.exists() else None
-            ),
-            "cond_color_embed_bytes": (
-                COND_COLOR_EMBED_PT.read_bytes()
-                if COND_COLOR_EMBED_PT.exists() else None
-            ),
-        }
-
     fn = train_remote.with_options(
         gpu=DEFAULT_GPU, cpu=GPU_CPU, memory=GPU_MEMORY_MIB, timeout=TIMEOUT_S
     )
@@ -1082,7 +1035,6 @@ def _run_remote(stage: str, git_sha: str, run_time: str) -> dict[str, int]:
         git_sha=git_sha,
         run_time=run_time,
         gpu=DEFAULT_GPU,
-        **pt_bytes,
     )
 
 
@@ -1092,18 +1044,19 @@ def _dispatch(stage: Stage | None) -> None:
         ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True
     ).stdout.strip()
     run_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    stage_str = stage.value if stage else ""
+    remote_stage = stage or Stage.encoder
+    suffix = ", then the GAN locally" if stage is None else ""
     print(
-        f"Training {stage_str or 'full pipeline'} on Modal {DEFAULT_GPU} GPU...",
+        f"Training {remote_stage.value} on Modal {DEFAULT_GPU} GPU{suffix}...",
         flush=True,
     )
     try:
         with modal.enable_output(), modal_app.run():
-            print(_run_remote(stage_str, git_sha, run_time))
+            print(_run_remote(remote_stage.value, git_sha, run_time))
     finally:
         landed = _retrieve_and_cleanup()
-    if landed:
-        _run_report_local(_DEFAULT_PT)
+    if stage is None and landed:
+        _run_local(Stage.gan)
 
 
 _app = typer.Typer(
@@ -1115,23 +1068,30 @@ _app = typer.Typer(
 def cli(
     stage: Stage | None = typer.Argument(
         None,
-        metavar="[gan|cond]",
+        metavar="[gan|encoder|cond]",
         help="gan = train only the color GAN, using a pretrained encoder "
-        "(enc.pt, style.pt, emoji.pt in pt/). "
+        "(enc.pt, style.pt, emoji.pt in pt/); always runs locally. "
+        "encoder = train only the text encoder + heads, on Modal unless "
+        "--local. "
         "cond = probe whether CondColorCritic has capacity to learn the "
         "conditional color distribution, training it on cached text "
         "encodings against shuffled (mismatched) real pairs; always local. "
-        "Omit to train the encoder then the GAN.",
+        "Omit to train the encoder (Modal unless --local), then the GAN, "
+        "which always trains locally.",
     ),
     local: bool = typer.Option(
-        False, "--local", help="Train on this machine instead of Modal."
+        False, "--local",
+        help="Train the encoder stage on this machine instead of Modal "
+        "(the GAN always trains locally).",
     ),
 ) -> None:
-    """Train the emojic model, then export + report. Runs on Modal (a T4
-    GPU) by default; --local runs here instead. Aborts on a dirty git
-    tree."""
+    """Train the emojic model, then export + report. The encoder trains
+    on Modal (a T4 GPU) by default and --local runs it here instead; the
+    GAN always trains locally. Aborts on a dirty git tree."""
     if stage == Stage.cond:
         _run_cond()
+    elif stage == Stage.gan:
+        _run_local(Stage.gan)
     elif local:
         _run_local(stage)
     else:
