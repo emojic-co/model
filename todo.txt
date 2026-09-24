@@ -1,5 +1,1 @@
-Our emoji annotations have 2 characteristics:
-1. Each text is associated with just a few emojis out of ~1,000 possible emojis.
-2. We assumes there are many false negatives, i.e. for each text, there are more emojis that could be associated with it, but were not annotated.
-
-Under these assumptions, write a document doc/loss_function.md that describe our dataset and several loss functions that are appropriate for these settings.
+Can we use the trained model (with lse_infonce loss) to annotate missing emojis? i.e. can we use its prediction as a confidence score and add emojis when the confidence is high enough?
