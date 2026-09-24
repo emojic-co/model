@@ -73,7 +73,7 @@ style_str = " ".join([
 
 # GAN
 Z_WEIGHT = 0.3
-GEN_HIDDEN_SIZE = 64
+GEN_HIDDEN_SIZE = 32
 
 
 GRAD_CLIP_GEN = 1
