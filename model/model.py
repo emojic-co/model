@@ -1,7 +1,8 @@
 
 import torch
-import torch.nn as nn
+from torch import nn
 from torch.nn.functional import (
+    normalize,
     tanh,
 )
 from torch.nn.utils.parametrizations import spectral_norm as sn
@@ -141,8 +142,8 @@ class ColorGen(nn.Module):
         assert cond.shape == z.shape, \
             f"cond and z must have the same shape, got {cond.shape} and {z.shape}"
 
-        # z = normalize(z, dim=-1)
-        # cond = normalize(cond, dim=-1)
+        z = normalize(z, dim=-1)
+        cond = normalize(cond, dim=-1)
 
         seed = torch.cat([cond, z], dim=-1)
 

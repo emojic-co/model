@@ -1,3 +1,2 @@
 Done:
-ColorEmbedding:
-convert the color to OKLAB/LAB color space before embedding it.
+Rename TB run name to <time>-<sha>/<enc|gan|cond> and remove any other info from the name.

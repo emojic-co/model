@@ -2,7 +2,7 @@
 
 Every scalar tag follows one template: `<stage>/<metric>[/<train|val>]`. `stage` is
 `enc` / `gan` / `cond` — the same `LogStage` value used as the TensorBoard run version
-(`runs/<CONFIG_NAME>/<stage>`). `metric` is a single name (may itself contain
+(`runs/<time>-<sha>/<stage>`, `CONFIG_NAME = <time>-<sha>` in `model/config.py`). `metric` is a single name (may itself contain
 underscores, e.g. `style_loss`, `cond_mean_score_real`). The `/<train|val>`
 segment is present only for metrics logged on both splits — a metric logged on one split
 only (or with no train/val distinction) omits it.

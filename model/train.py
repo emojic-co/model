@@ -1060,7 +1060,7 @@ def _dispatch(stage: Stage | None) -> None:
     git_sha = subprocess.run(
         ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True
     ).stdout.strip()
-    run_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    run_time = datetime.now().strftime("%Y%m%d-%H%M%S")
     remote_stage = stage or Stage.encoder
     suffix = ", then the GAN locally" if stage is None else ""
     print(

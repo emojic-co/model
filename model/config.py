@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 import sys
 from dataclasses import dataclass
 from datetime import datetime
@@ -170,7 +171,23 @@ EARLY_STOP_MIN_DELTA_GAN = 0.005
 
 # TENSORBOARD RUN NAME
 RUN_TIME = os.environ.get(
-    "EMOJIC_RUN_TIME") or datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    "EMOJIC_RUN_TIME") or datetime.now().strftime("%Y%m%d-%H%M%S")
+
+
+def _git_sha() -> str:
+    sha = os.environ.get("EMOJIC_GIT_SHA")
+    if sha:
+        return sha
+    try:
+        return subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True, text=True, check=True,
+        ).stdout.strip() or "unknown"
+    except Exception:
+        return "unknown"
+
+
+GIT_SHA = _git_sha()
 CONFIG_PARTS = [
     f"ENCODER: {enc_str}",
     f"EMOJI: {emj_str}",
@@ -178,12 +195,7 @@ CONFIG_PARTS = [
     f"GAN: {gan_str}",
     f"TRAIN: {train_str}",
 ]
-CONFIG_NAME = " | ".join(
-    [
-        f"TIME: {RUN_TIME}",
-        *CONFIG_PARTS,
-    ]
-)
+CONFIG_NAME = f"{RUN_TIME}-{GIT_SHA}"
 
 
 def _receptive_field() -> int:
