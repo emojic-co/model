@@ -75,7 +75,6 @@ style_str = " ".join([
 Z_WEIGHT = 0.3
 
 GEN_HIDDEN_SIZE = 80
-CRITIC_HIDDEN_SIZE = 32
 
 
 GRAD_CLIP_GEN = 1
