@@ -1,4 +1,10 @@
-What if we also add:
-max(0, margin - (min(positive_logits) - avg(negative_logits)))
+Done:
 
-Take a flat avg but only for the negative logits that are > min(positive_logits)
+I want to see if the current CondColorCritic has enough capacity to learn the conditional distribution.
+To do this:
+add a subcommand `train cond` that will:
+1. pre encode all the texts in train.jsonl and eva.jsonl and cache them in .pt files.
+2. train the CondColorCritic on the cached embeddings, each batch the CondColorCritic gets real data + fake where fake is a shuffling of texts and colors.
+3. log auroc, train for 100 epochs with early stopping on auroc.
+
+Note: this is always a local run, never on modal.

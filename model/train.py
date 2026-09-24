@@ -49,10 +49,12 @@ from model.color import energy_distance, rgb_to_oklab
 from model.config import (
     CONFIG_NAME,
     EARLY_STOP_MIN_DELTA_GAN,
+    EARLY_STOP_PATIENCE_COND_PROBE,
     EARLY_STOP_PATIENCE_ENCODER,
     EARLY_STOP_PATIENCE_GAN,
     ENERGY_TRAIN_SAMPLE_SIZE,
     ENERGY_VAL_SAMPLE_SIZE,
+    EPOCHS_COND_PROBE,
     EPOCHS_GAN,
     EPOCHS_TASK,
     GAN_BATCH_SIZE,
@@ -141,6 +143,7 @@ _DEFAULT_PT = PT_DIR
 
 class Stage(StrEnum):
     gan = "gan"
+    cond = "cond"
 
 
 class LitEncoder(pl.LightningModule):
@@ -377,6 +380,47 @@ class LitColorGAN(pl.LightningModule):
         return [opt_gen, opt_critic, opt_color_critic]
 
 
+class LitCondCriticProbe(pl.LightningModule):
+    def __init__(self):
+        super().__init__()
+        self.critic = CondColorCritic()
+
+    def _step(self, batch: tuple[torch.Tensor, torch.Tensor]):
+        cond, colors = batch
+        perm = torch.randperm(colors.shape[0], device=colors.device)
+        fake = colors[perm]
+
+        pair = torch.cat([colors, fake], dim=0)
+        cond_pair = torch.cat([cond, cond], dim=0)
+        score = self.critic(cond_pair, pair)
+        real, fake_score = score.chunk(2, dim=0)
+
+        loss = relu(1 - real).mean() + relu(1 + fake_score).mean()
+
+        n = colors.shape[0]
+        target = torch.cat([score.new_ones(n), score.new_zeros(n)])
+        auroc = binary_auroc(score.detach().squeeze(-1), target.long())
+        return loss, auroc
+
+    def training_step(self, batch, batch_idx):
+        loss, auroc = self._step(batch)
+        self.log(
+            named_metric(Source.COLOR, Metric.AUROC, Split.TRAIN),
+            auroc, on_step=False, on_epoch=True, prog_bar=True,
+        )
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        _, auroc = self._step(batch)
+        self.log(
+            named_metric(Source.COLOR, Metric.AUROC, Split.VAL),
+            auroc, on_step=False, on_epoch=True, prog_bar=True,
+        )
+
+    def configure_optimizers(self):
+        return optim.SGD(self.critic.parameters(), lr=LR_GAN_COND_CRITIC)
+
+
 def _load(mod: nn.Module, path: Path) -> nn.Module:
     sd, meta = load_pt(path)
     mod.load_state_dict(sd)
@@ -566,6 +610,65 @@ def _encoded_texts(
         {"train": train_cond, "val": val_cond}, TEXT_ENC_CACHE_PT, **fingerprint
     )
     return train_cond, val_cond
+
+
+def _run_cond() -> None:
+    pl.seed_everything(SEED, workers=True)
+    torch.backends.cudnn.benchmark = _CUDA
+    if _CUDA:
+        torch.set_float32_matmul_precision("high")
+
+    require_clean_tree()
+    _DEFAULT_PT.mkdir(parents=True, exist_ok=True)
+
+    enc_path = PtFile.ENC.in_dir(_DEFAULT_PT)
+    if not enc_path.exists():
+        sys.exit(
+            f"{enc_path}: missing -- run `train --local` first to produce "
+            "a trained encoder"
+        )
+    enc = _load(TextEncoder(), enc_path)  # type: ignore
+    enc.requires_grad_(False)
+
+    ds = train_ds(mix_sources=False)
+    val_ds = eval_ds()
+    train_cond, val_cond = _encoded_texts(enc, enc_path, ds, val_ds)  # type: ignore
+
+    train_dl = DataLoader(
+        _CondColorDataset(train_cond, ds.colors),
+        batch_size=GAN_BATCH_SIZE,
+        shuffle=True,
+        drop_last=True,
+    )
+    val_dl = DataLoader(
+        _CondColorDataset(val_cond, val_ds.colors),
+        batch_size=2000,
+        shuffle=False,
+        drop_last=False,
+    )
+
+    no_bar = _no_progress_bar()
+    bar_cbs = [] if no_bar else [TQDMProgressBar()]
+
+    monitor = named_metric(Source.COLOR, Metric.AUROC, Split.VAL)
+    trainer = pl.Trainer(
+        devices="auto",
+        accelerator="auto",
+        logger=TensorBoardLogger(
+            "runs", name=CONFIG_NAME, version="cond", default_hp_metric=False
+        ),
+        deterministic=_DETERMINISTIC,  # type: ignore
+        max_epochs=EPOCHS_COND_PROBE,
+        enable_progress_bar=not no_bar,
+        callbacks=[
+            EarlyStopping(monitor=monitor, mode="max",
+                          patience=EARLY_STOP_PATIENCE_COND_PROBE),
+            *bar_cbs,
+            ModelSummary(),
+        ],
+    )
+
+    trainer.fit(LitCondCriticProbe(), train_dl, val_dl)
 
 
 def _run_report_local(pt_dir: Path) -> None:
@@ -915,9 +1018,12 @@ _app = typer.Typer(
 def cli(
     stage: Stage | None = typer.Argument(
         None,
-        metavar="[gan]",
+        metavar="[gan|cond]",
         help="gan = train only the color GAN, using a pretrained encoder "
         "(enc.pt, style.pt, emoji.pt in pt/). "
+        "cond = probe whether CondColorCritic has capacity to learn the "
+        "conditional color distribution, training it on cached text "
+        "encodings against shuffled (mismatched) real pairs; always local. "
         "Omit to train the encoder then the GAN.",
     ),
     local: bool = typer.Option(
@@ -927,7 +1033,9 @@ def cli(
     """Train the emojic model, then export + report. Runs on Modal (a T4
     GPU) by default; --local runs here instead. Aborts on a dirty git
     tree."""
-    if local:
+    if stage == Stage.cond:
+        _run_cond()
+    elif local:
         _run_local(stage)
     else:
         _dispatch(stage)

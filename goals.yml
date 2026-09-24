@@ -33,11 +33,14 @@ goals:
   color generator:
     energy distance:
       coffee: 0.1
+      chocolate: 0.1
       lemon: 0.1
-      green: 0.1
-      blue: 0.1
+
       dark: 0.1
       bright: 0.1
+
+      green: 0.1
+      blue: 0.1
       gold: 0.1
       " red ": 0.1
 
