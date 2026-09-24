@@ -22,9 +22,10 @@ def test_litencoder_builds_all_heads():
 
 
 def test_colorcritic_forward_shape():
-    from model.model import CondColorCritic
+    from model.model import ColorEmbedding, CondColorCritic
 
-    score = CondColorCritic()(torch.zeros(5, EMBED_SIZE_TEXT), torch.zeros(5, 9))
+    color_embedding = ColorEmbedding()(torch.zeros(5, 9))
+    score = CondColorCritic()(torch.zeros(5, EMBED_SIZE_TEXT), color_embedding)
     assert score.shape == (5, 1)
 
 

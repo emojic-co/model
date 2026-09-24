@@ -12,7 +12,7 @@ from model.config import (
     CRITIC_HIDDEN_SIZE,
     DROPOUT,
     EMBED_SIZE_CHAR,
-    EMBED_SIZE_COND_COLOR,
+    EMBED_SIZE_COLOR,
     EMBED_SIZE_EMOJI,
     EMBED_SIZE_STYLE,
     EMBED_SIZE_TEXT,
@@ -151,32 +151,39 @@ def cblk(i: int, o: int):
         nn.LeakyReLU(negative_slope=RELU_SLOPE)]
 
 
+class ColorEmbedding(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.net = nn.Sequential(
+            *cblk(COLOR_DIM, EMBED_SIZE_COLOR),
+            *cblk(EMBED_SIZE_COLOR, EMBED_SIZE_COLOR))
+
+    def forward(self, colors: torch.Tensor) -> torch.Tensor:
+        return self.net(colors)
+
+
 class ColorCritic(nn.Module):
     def __init__(self):
         super().__init__()
 
         self.color_critic = nn.Sequential(
-            *cblk(COLOR_DIM, CRITIC_HIDDEN_SIZE),
+            *cblk(EMBED_SIZE_COLOR, CRITIC_HIDDEN_SIZE),
             sn(nn.Linear(CRITIC_HIDDEN_SIZE, 1, bias=False)))
 
-    def forward(self, colors: torch.Tensor):
+    def forward(self, color_embedding: torch.Tensor):
 
-        return self.color_critic(colors)
+        return self.color_critic(color_embedding)
 
 
 class CondColorCritic(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.color_embedding = nn.Sequential(
-            *cblk(COLOR_DIM, EMBED_SIZE_COND_COLOR),
-            *cblk(EMBED_SIZE_COND_COLOR, EMBED_SIZE_COND_COLOR))
-
         self.text_embedding = nn.Sequential(
-            *cblk(EMBED_SIZE_TEXT, EMBED_SIZE_COND_COLOR))
+            *cblk(EMBED_SIZE_TEXT, EMBED_SIZE_COLOR))
 
-    def forward(self, cond: torch.Tensor, colors: torch.Tensor):
-        c = self.color_embedding(colors)
+    def forward(self, cond: torch.Tensor, color_embedding: torch.Tensor):
         t = self.text_embedding(cond)
 
-        return (t * c).sum(dim=-1, keepdim=True)
+        return (t * color_embedding).sum(dim=-1, keepdim=True)

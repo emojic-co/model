@@ -42,7 +42,7 @@ EMBED_SIZE_CHAR = 32
 EMBED_SIZE_EMOJI = 64
 EMBED_SIZE_STYLE = 16
 EMBED_SIZE_TEXT = 128
-EMBED_SIZE_COND_COLOR = 32
+EMBED_SIZE_COLOR = 32
 
 # DROPOUT
 DROPOUT = 0.1
@@ -57,11 +57,27 @@ enc_str = " ".join([
         ENCODER_CHANNELS,
         ENCODER_DILATION)])
 
+# CLASSIFIER LOSS (ASL)
+ASL_GAMMA_POS = 0
 
-emj_str = " ".join([str(p) for p in (EMBED_SIZE_EMOJI,)])
+ASL_GAMMA_NEG_EMOJI = 4
+ASL_MARGIN_EMOJI = 0.05
+
+ASL_GAMMA_NEG_STYLE = 2
+ASL_MARGIN_STYLE = 0.05
+
+LOSS_WEIGHT_EMOJI = 1
+LOSS_WEIGHT_STYLE = 1
+
+emj_str = " ".join([
+    str(p)
+    for p in (EMBED_SIZE_EMOJI, ASL_GAMMA_NEG_EMOJI, ASL_MARGIN_EMOJI)])
 style_str = " ".join([
     str(p)
-    for p in (EMBED_SIZE_STYLE, EMBED_SIZE_TEXT,)])
+    for p in (
+        EMBED_SIZE_STYLE, EMBED_SIZE_TEXT,
+        ASL_GAMMA_NEG_STYLE, ASL_MARGIN_STYLE,
+    )])
 
 # GAN
 Z_WEIGHT = 0.2
@@ -93,15 +109,13 @@ SEED = 42
 TASK_BATCH_SIZE = 1024
 GAN_BATCH_SIZE = 1024
 RELU_SLOPE = 0.1
-INFONCE_TEMP_EMOJI = 0.7
-INFONCE_TEMP_STYLE = 0.7
 
 gan_str = " ".join([
     str(p)
     for p in (
         Z_WEIGHT,
         GEN_HIDDEN_SIZE,
-        EMBED_SIZE_COND_COLOR,
+        EMBED_SIZE_COLOR,
         LR_GAN_GEN,
         LR_GAN_CRITIC,
         LR_GAN_COND_CRITIC,
@@ -146,7 +160,6 @@ train_str = " ".join(
             LR_ENCODER,
             GRAD_CLIP_GEN,
             GRAD_CLIP_CRITIC,
-            INFONCE_TEMP_EMOJI,
             SAMPLING_RATE_MAX,
             SAMPLING_RATE_MIN,
         )

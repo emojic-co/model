@@ -1,8 +1,3 @@
 Done:
-During the TextEncoder train add also the conditional color critic loss to the total loss.
-The CondColorCritic gets real examples and fake (shuffling the batch) examples.
-Log both color/auroc/train and color/auroc/val metrics.
-Add a LOSS_WEIGHT_COND_COLOR_CRITIC hyperparameter to the config file and use it to weight the loss.
-
-Save the CondColorCritic to a .pt file and load it in the GAN training stage.
-Fall back to a fresh CondColorCritic if the .pt file is not found or does not match the current CondColorCritic.
+Now refactor both CondColorCritic and ColorCritic:
+Their forward method should receive the color embedding instead of the colors themselves.

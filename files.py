@@ -35,6 +35,7 @@ class PtFile(StrEnum):
     EMOJI = "emoji.pt"
     GEN = "gen.pt"
     COND_CRITIC = "cond_critic.pt"
+    COND_COLOR_EMBED = "cond_color_embed.pt"
 
     def in_dir(self, pt_dir: Path) -> Path:
         return pt_dir / self.value
@@ -45,6 +46,7 @@ STYLE_PT = PtFile.STYLE.in_dir(PT_DIR)
 EMOJI_PT = PtFile.EMOJI.in_dir(PT_DIR)
 GEN_PT = PtFile.GEN.in_dir(PT_DIR)
 COND_CRITIC_PT = PtFile.COND_CRITIC.in_dir(PT_DIR)
+COND_COLOR_EMBED_PT = PtFile.COND_COLOR_EMBED.in_dir(PT_DIR)
 TEXT_ENC_CACHE_PT = PT_DIR / "text_enc_cache.pt"
 
 WEB_PUBLIC_DIR = Path("web/public")

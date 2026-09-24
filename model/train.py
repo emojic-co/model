@@ -20,12 +20,13 @@ from lightning.pytorch.callbacks import (
 )
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch import nn, optim
-from torch.nn.functional import relu
+from torch.nn.functional import logsigmoid, relu
 from torch.utils.data import DataLoader, Dataset
 from torchmetrics.functional.classification import binary_auroc
 from tqdm import tqdm
 
 from files import (
+    COND_COLOR_EMBED_PT,
     COND_CRITIC_PT,
     DATA_JSONL,
     EMOJI_PT,
@@ -48,6 +49,11 @@ from files import (
 )
 from model.color import energy_distance, rgb_to_oklab
 from model.config import (
+    ASL_GAMMA_NEG_EMOJI,
+    ASL_GAMMA_NEG_STYLE,
+    ASL_GAMMA_POS,
+    ASL_MARGIN_EMOJI,
+    ASL_MARGIN_STYLE,
     CONFIG_NAME,
     EARLY_STOP_MIN_DELTA_GAN,
     EARLY_STOP_PATIENCE_ENCODER,
@@ -60,11 +66,11 @@ from model.config import (
     GAN_BATCH_SIZE,
     GRAD_CLIP_CRITIC,
     GRAD_CLIP_GEN,
-    INFONCE_TEMP_EMOJI,
-    INFONCE_TEMP_STYLE,
     LOSS_WEIGHT_COLOR_CRITIC,
     LOSS_WEIGHT_COND_COLOR_CRITIC,
+    LOSS_WEIGHT_EMOJI,
     LOSS_WEIGHT_ENERGY,
+    LOSS_WEIGHT_STYLE,
     LR_ENCODER,
     LR_GAN_COND_CRITIC,
     LR_GAN_CRITIC,
@@ -87,6 +93,7 @@ from model.export_onnx import export
 from model.metric import GanMetric, Metric, Source, Split, named_metric
 from model.model import (
     ColorCritic,
+    ColorEmbedding,
     ColorGen,
     CondColorCritic,
     EmojiHead,
@@ -102,21 +109,31 @@ _CUDA = torch.cuda.is_available()
 _DETERMINISTIC: bool | str = "warn" if _CUDA else True
 
 
-def lse_infonce(
+def asymmetric_loss(
     logits: torch.Tensor,
     target: torch.Tensor,
-    temp: float,
+    gamma_neg: float,
+    gamma_pos: float,
+    margin: float,
+    eps: float = 1e-8,
 ) -> torch.Tensor:
-    has_pos = target.sum(dim=-1) > 0
-    if not bool(has_pos.any()):
-        return logits.new_zeros(())
+    p = torch.sigmoid(logits)
+    p_neg = 1 - p
+    if margin > 0:
+        p_neg = (p_neg + margin).clamp(max=1.0)
 
-    z = logits / temp
-    all_lse = torch.logsumexp(z, dim=-1)
-    pos_lse = torch.logsumexp(z.masked_fill(target == 0, float("-inf")), dim=-1)
-    row_loss = all_lse - pos_lse
+    loss_pos = target * logsigmoid(logits)
+    loss_neg = (1 - target) * torch.log(p_neg.clamp(min=eps))
+    loss = loss_pos + loss_neg
 
-    return row_loss[has_pos].mean()
+    if gamma_pos > 0 or gamma_neg > 0:
+        with torch.no_grad():
+            pt = target * p + (1 - target) * p_neg
+            gamma = target * gamma_pos + (1 - target) * gamma_neg
+            focal_weight = (1 - pt).pow(gamma)
+        loss = loss * focal_weight
+
+    return -loss.mean(dim=-1).mean()
 
 
 def mrr(logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
@@ -155,6 +172,7 @@ class LitEncoder(pl.LightningModule):
         self.style = StyleHead()
         self.emoji = EmojiHead()
         self.cond_critic = CondColorCritic()
+        self.color_embed = ColorEmbedding()
 
         self.train_dataset = None
 
@@ -167,7 +185,9 @@ class LitEncoder(pl.LightningModule):
         enc = self.enc(text)
 
         style_logits = self.style(enc)
-        loss_style = lse_infonce(style_logits, style, INFONCE_TEMP_STYLE)
+        loss_style = LOSS_WEIGHT_STYLE * asymmetric_loss(
+            style_logits, style, ASL_GAMMA_NEG_STYLE, ASL_GAMMA_POS, ASL_MARGIN_STYLE
+        )
         self._log(
             named_metric(Source.STYLE, Metric.MRR, split),
             mrr(style_logits, style).mean(),
@@ -175,7 +195,9 @@ class LitEncoder(pl.LightningModule):
         )
 
         emoji_logits = self.emoji(enc)
-        loss_emoji = lse_infonce(emoji_logits, emoji, INFONCE_TEMP_EMOJI)
+        loss_emoji = LOSS_WEIGHT_EMOJI * asymmetric_loss(
+            emoji_logits, emoji, ASL_GAMMA_NEG_EMOJI, ASL_GAMMA_POS, ASL_MARGIN_EMOJI
+        )
         has_e = emoji.sum(dim=-1) > 0
         n_e = int(has_e.sum())
         if n_e:
@@ -214,7 +236,7 @@ class LitEncoder(pl.LightningModule):
 
             pair = torch.cat([colors_c, fake], dim=0)
             cond_pair = torch.cat([cond_c, cond_c], dim=0)
-            score = self.cond_critic(cond_pair, pair)
+            score = self.cond_critic(cond_pair, self.color_embed(pair))
             real, fake_score = score.chunk(2, dim=0)
 
             loss_cond_critic = relu(1 - real).mean() + relu(1 + fake_score).mean()
@@ -259,17 +281,20 @@ class LitEncoder(pl.LightningModule):
             + list(self.style.parameters())
             + list(self.emoji.parameters())
             + list(self.cond_critic.parameters())
+            + list(self.color_embed.parameters())
         )
         return optim.Adam(params, lr=LR_ENCODER)
 
 
 class LitColorGAN(pl.LightningModule):
-    def __init__(self, critic: CondColorCritic):
+    def __init__(self, critic: CondColorCritic, color_embed: ColorEmbedding):
         super().__init__()
 
         self.gen = ColorGen()
         self.critic = critic
+        self.color_embed = color_embed
         self.color_critic = ColorCritic()
+        self.color_critic_embed = ColorEmbedding()
 
         self.automatic_optimization = False
         self._val_cond: list[torch.Tensor] = []
@@ -312,7 +337,7 @@ class LitColorGAN(pl.LightningModule):
         # CRITIC
         pair = torch.cat([colors, fake.detach()], dim=0)
         cond_pair = torch.cat([cond, cond], dim=0)
-        score = self.critic(cond_pair, pair)
+        score = self.critic(cond_pair, self.color_embed(pair))
         real, fake_score = score.chunk(2, dim=0)
 
         loss_critic = relu(1 - real).mean() + relu(1 + fake_score).mean()
@@ -331,7 +356,7 @@ class LitColorGAN(pl.LightningModule):
         opt_critic.step()
 
         # COLOR CRITIC (unconditional)
-        color_score = self.color_critic(pair)
+        color_score = self.color_critic(self.color_critic_embed(pair))
         color_real, color_fake_score = color_score.chunk(2, dim=0)
 
         loss_color_critic = \
@@ -350,8 +375,8 @@ class LitColorGAN(pl.LightningModule):
         opt_color_critic.step()
 
         # GENERATOR
-        gen_score = self.critic(cond, fake)
-        gen_color_score = self.color_critic(fake)
+        gen_score = self.critic(cond, self.color_embed(fake))
+        gen_color_score = self.color_critic(self.color_critic_embed(fake))
         loss_energy = energy_distance(
             rgb_to_oklab(_energy_subsample(fake, ENERGY_TRAIN_SAMPLE_SIZE)),
             rgb_to_oklab(_energy_subsample(colors, ENERGY_TRAIN_SAMPLE_SIZE)))
@@ -388,9 +413,13 @@ class LitColorGAN(pl.LightningModule):
 
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
-        opt_critic = optim.SGD(self.critic.parameters(), lr=LR_GAN_COND_CRITIC)
+        opt_critic = optim.SGD(
+            list(self.critic.parameters()) + list(self.color_embed.parameters()),
+            lr=LR_GAN_COND_CRITIC)
         opt_color_critic = optim.SGD(
-            self.color_critic.parameters(), lr=LR_GAN_CRITIC)
+            list(self.color_critic.parameters())
+            + list(self.color_critic_embed.parameters()),
+            lr=LR_GAN_CRITIC)
 
         # opt_gen = optim.Adam(
         #     self.gen.parameters(),
@@ -409,6 +438,7 @@ class LitCondCriticProbe(pl.LightningModule):
     def __init__(self):
         super().__init__()
         self.critic = CondColorCritic()
+        self.color_embed = ColorEmbedding()
 
     def _step(self, batch: tuple[torch.Tensor, torch.Tensor]):
         cond, colors = batch
@@ -417,7 +447,7 @@ class LitCondCriticProbe(pl.LightningModule):
 
         pair = torch.cat([colors, fake], dim=0)
         cond_pair = torch.cat([cond, cond], dim=0)
-        score = self.critic(cond_pair, pair)
+        score = self.critic(cond_pair, self.color_embed(pair))
         real, fake_score = score.chunk(2, dim=0)
 
         loss = relu(1 - real).mean() + relu(1 + fake_score).mean()
@@ -443,7 +473,8 @@ class LitCondCriticProbe(pl.LightningModule):
         )
 
     def configure_optimizers(self):
-        return optim.SGD(self.critic.parameters(), lr=LR_GAN_COND_CRITIC)
+        params = list(self.critic.parameters()) + list(self.color_embed.parameters())
+        return optim.SGD(params, lr=LR_GAN_COND_CRITIC)
 
 
 def _load(mod: nn.Module, path: Path) -> nn.Module:
@@ -457,20 +488,24 @@ def _no_progress_bar() -> bool:
     return os.environ.get("EMOJIC_NO_PROGRESS_BAR") == "1"
 
 
-def _load_cond_critic(pt_dir: Path) -> CondColorCritic:
-    path = PtFile.COND_CRITIC.in_dir(pt_dir)
+def _load_cond_critic(pt_dir: Path) -> tuple[CondColorCritic, ColorEmbedding]:
+    critic_path = PtFile.COND_CRITIC.in_dir(pt_dir)
+    embed_path = PtFile.COND_COLOR_EMBED.in_dir(pt_dir)
     critic = CondColorCritic()
-    if not path.exists():
-        return critic
+    color_embed = ColorEmbedding()
+    if not critic_path.exists() or not embed_path.exists():
+        return critic, color_embed
     try:
-        return _load(critic, path)  # type: ignore
+        _load(critic, critic_path)  # type: ignore
+        _load(color_embed, embed_path)  # type: ignore
+        return critic, color_embed
     except Exception:
         print(
-            f"{path}: does not match CondColorCritic, "
+            f"{critic_path}: does not match CondColorCritic/ColorEmbedding, "
             "falling back to a fresh critic",
             flush=True,
         )
-        return CondColorCritic()
+        return CondColorCritic(), ColorEmbedding()
 
 
 def _pt_files_ok(pt_dir: Path) -> bool:
@@ -533,12 +568,16 @@ def _train_encoder(ds, out_dir: Path) -> LitEncoder:
     save_pt(
         mod.cond_critic.state_dict(),
         PtFile.COND_CRITIC.in_dir(out_dir), stage="enc")
+    save_pt(
+        mod.color_embed.state_dict(),
+        PtFile.COND_COLOR_EMBED.in_dir(out_dir), stage="enc")
 
     return mod
 
 
 def _train_gan(
     enc: TextEncoder, enc_path: Path, critic: CondColorCritic,
+    color_embed: ColorEmbedding,
     ds, val_ds, out_dir: Path,
 ) -> LitColorGAN:
     enc.requires_grad_(False)
@@ -590,12 +629,13 @@ def _train_gan(
         ],
     )
 
-    gan = LitColorGAN(critic)
+    gan = LitColorGAN(critic, color_embed)
     trainer.fit(gan, gan_dl, val_dl)
 
     if ckpt.best_model_path:
         gan = LitColorGAN.load_from_checkpoint(
-            ckpt.best_model_path, critic=CondColorCritic()
+            ckpt.best_model_path, critic=CondColorCritic(),
+            color_embed=ColorEmbedding(),
         )
 
     save_pt(gan.gen.state_dict(), PtFile.GEN.in_dir(out_dir), stage="gan")
@@ -729,9 +769,9 @@ def _run_local(stage: Stage | None) -> None:
         if _pt_files_ok(_DEFAULT_PT):
             enc_path = PtFile.ENC.in_dir(_DEFAULT_PT)
             enc = _load(TextEncoder(), enc_path)
-            critic = _load_cond_critic(_DEFAULT_PT)
+            critic, color_embed = _load_cond_critic(_DEFAULT_PT)
             _train_gan(
-                enc, enc_path, critic,  # type: ignore
+                enc, enc_path, critic, color_embed,  # type: ignore
                 train_ds(mix_sources=False),
                 eval_ds(),
                 _DEFAULT_PT,
@@ -749,9 +789,9 @@ def _run_local(stage: Stage | None) -> None:
     ds = train_ds()
     mod = _train_encoder(ds, _DEFAULT_PT)
 
-    critic = _load_cond_critic(_DEFAULT_PT)
+    critic, color_embed = _load_cond_critic(_DEFAULT_PT)
     _train_gan(
-        mod.enc, PtFile.ENC.in_dir(_DEFAULT_PT), critic,
+        mod.enc, PtFile.ENC.in_dir(_DEFAULT_PT), critic, color_embed,
         train_ds(mix_sources=False),
         eval_ds(),
         _DEFAULT_PT,
@@ -865,6 +905,7 @@ def train_remote(
     style_bytes: bytes | None = None,
     emoji_bytes: bytes | None = None,
     cond_critic_bytes: bytes | None = None,
+    cond_color_embed_bytes: bytes | None = None,
 ) -> dict[str, int]:
     env = _run_env(threads)
     env["EMOJIC_GIT_SHA"] = git_sha
@@ -881,6 +922,7 @@ def train_remote(
         STYLE_PT: style_bytes,
         EMOJI_PT: emoji_bytes,
         COND_CRITIC_PT: cond_critic_bytes,
+        COND_COLOR_EMBED_PT: cond_color_embed_bytes,
     }
     if any(v is not None for v in uploads.values()):
         Path(REPO, PT_DIR).mkdir(parents=True, exist_ok=True)
@@ -999,6 +1041,7 @@ def _run_remote(stage: str, git_sha: str, run_time: str) -> dict[str, int]:
         "style_bytes": None,
         "emoji_bytes": None,
         "cond_critic_bytes": None,
+        "cond_color_embed_bytes": None,
     }
     if stage == "gan":
         for name in (
@@ -1017,6 +1060,10 @@ def _run_remote(stage: str, git_sha: str, run_time: str) -> dict[str, int]:
             "emoji_bytes": EMOJI_PT.read_bytes(),
             "cond_critic_bytes": (
                 COND_CRITIC_PT.read_bytes() if COND_CRITIC_PT.exists() else None
+            ),
+            "cond_color_embed_bytes": (
+                COND_COLOR_EMBED_PT.read_bytes()
+                if COND_COLOR_EMBED_PT.exists() else None
             ),
         }
 
