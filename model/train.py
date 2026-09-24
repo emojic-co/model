@@ -49,7 +49,6 @@ from model.color import energy_distance, rgb_to_oklab
 from model.config import (
     CONFIG_NAME,
     EARLY_STOP_MIN_DELTA_GAN,
-    EARLY_STOP_PATIENCE_COND_PROBE,
     EARLY_STOP_PATIENCE_ENCODER,
     EARLY_STOP_PATIENCE_GAN,
     ENERGY_TRAIN_SAMPLE_SIZE,
@@ -650,7 +649,6 @@ def _run_cond() -> None:
     no_bar = _no_progress_bar()
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
-    monitor = named_metric(Source.COLOR, Metric.AUROC, Split.VAL)
     trainer = pl.Trainer(
         devices="auto",
         accelerator="auto",
@@ -660,12 +658,7 @@ def _run_cond() -> None:
         deterministic=_DETERMINISTIC,  # type: ignore
         max_epochs=EPOCHS_COND_PROBE,
         enable_progress_bar=not no_bar,
-        callbacks=[
-            EarlyStopping(monitor=monitor, mode="max",
-                          patience=EARLY_STOP_PATIENCE_COND_PROBE),
-            *bar_cbs,
-            ModelSummary(),
-        ],
+        callbacks=[*bar_cbs, ModelSummary()],
     )
 
     trainer.fit(LitCondCriticProbe(), train_dl, val_dl)

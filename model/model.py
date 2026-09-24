@@ -157,7 +157,7 @@ class ColorCritic(nn.Module):
 
         self.color_critic = nn.Sequential(
             *cblk(COLOR_DIM, CRITIC_HIDDEN_SIZE),
-            nn.Linear(CRITIC_HIDDEN_SIZE, 1, bias=False))
+            sn(nn.Linear(CRITIC_HIDDEN_SIZE, 1, bias=False)))
 
     def forward(self, colors: torch.Tensor):
 
@@ -178,8 +178,5 @@ class CondColorCritic(nn.Module):
     def forward(self, cond: torch.Tensor, colors: torch.Tensor):
         c = self.color_embedding(colors)
         t = self.text_embedding(cond)
-
-        c = normalize(c, dim=-1)
-        t = normalize(t, dim=-1)
 
         return (t * c).sum(dim=-1, keepdim=True)
