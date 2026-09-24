@@ -1,1 +1,1 @@
-Can we use the trained model (with lse_infonce loss) to annotate missing emojis? i.e. can we use its prediction as a confidence score and add emojis when the confidence is high enough?
+There are too many TB log names, can you organize them and make a short doc in docs/logs.md that summarize them?
