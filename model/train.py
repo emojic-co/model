@@ -133,7 +133,7 @@ def asymmetric_loss(
             focal_weight = (1 - pt).pow(gamma)
         loss = loss * focal_weight
 
-    return -loss.mean(dim=-1).mean()
+    return -loss.sum(dim=-1).mean()
 
 
 def mrr(logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
