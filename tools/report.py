@@ -35,6 +35,7 @@ from model.config import (
     ENCODER_CHANNELS,
     ENCODER_DILATION,
     ENCODER_KERNEL_SIZE,
+    GEN_HIDDEN_SIZE,
     MAX_TEXT_LEN,
     SEED,
     STYLES,
@@ -44,7 +45,6 @@ from model.data import normalize as norm_text
 from model.export_onnx import CONST_Z
 from model.kwtokens import word_count
 from model.model import (
-    Z_SIZE,
     ColorGen,
     EmojiHead,
     StyleHead,
@@ -1066,7 +1066,8 @@ def _section_lang_consistency(enc, emoji_head, style_head, gen) -> dict:
         emoji_he = emoji_head(enc_he)
         style_en, style_he = style_head(enc_en), style_head(enc_he)
         zeros = torch.zeros(
-            *enc_en.shape[:-1], Z_SIZE, device=enc_en.device, dtype=enc_en.dtype
+            *enc_en.shape[:-1], GEN_HIDDEN_SIZE,
+            device=enc_en.device, dtype=enc_en.dtype
         )
         color_en, color_he = gen(enc_en, zeros), gen(enc_he, zeros)
     ok_en, ok_he = rgb_to_oklab(color_en), rgb_to_oklab(color_he)
