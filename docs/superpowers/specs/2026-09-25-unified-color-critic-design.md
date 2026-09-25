@@ -50,37 +50,49 @@ Three call sites in `model/train.py`:
 
 ## New `Critic` module
 
-`model/model.py`, replacing all three classes:
+`model/model.py`, replacing all three classes. No dual-tower
+dot-product: concatenate the text embedding and the raw color vector
+into one vector and run it through a single deep net down to a scalar.
 
 ```python
+CRITIC_HIDDEN_SIZE = 128  # model/config.py
+
+
 class Critic(nn.Module):
     def __init__(self):
         super().__init__()
-        self.embed_net = nn.Sequential(
-            *cblk(COLOR_DIM, EMBED_SIZE_COLOR),
-            *cblk(EMBED_SIZE_COLOR, EMBED_SIZE_COLOR))
-        self.text_proj = nn.Sequential(*cblk(EMBED_SIZE_TEXT, EMBED_SIZE_COLOR))
-
-    def embed(self, colors: torch.Tensor) -> torch.Tensor:
-        assert torch.all((colors >= -COLOR_SHIFT) & (colors <= COLOR_SHIFT)), ...
-        return self.embed_net(colors)
-
-    def score(self, cond: torch.Tensor, color_embedding: torch.Tensor) -> torch.Tensor:
-        t = self.text_proj(cond)
-        return (t * color_embedding).sum(dim=-1, keepdim=True)
+        self.net = nn.Sequential(
+            *cblk(EMBED_SIZE_TEXT + COLOR_DIM, CRITIC_HIDDEN_SIZE),
+            *cblk(CRITIC_HIDDEN_SIZE, CRITIC_HIDDEN_SIZE),
+            *cblk(CRITIC_HIDDEN_SIZE, CRITIC_HIDDEN_SIZE),
+            sn(nn.Linear(CRITIC_HIDDEN_SIZE, 1)))
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
-        return self.score(cond, self.embed(colors))
+        assert torch.all((colors >= -COLOR_SHIFT) & (colors <= COLOR_SHIFT)), \
+            f"colors must be in [-{COLOR_SHIFT}, {COLOR_SHIFT}], " \
+            f"got min={colors.min().item()} max={colors.max().item()}"
+        return self.net(torch.cat([cond, colors], dim=-1))
 ```
 
-`embed`/`score` stay split (mirrors the old `CondColorCritic.forward`
-signature) so call sites that reuse one color embedding against two
-conditions (as `LitColorGAN` does for `real` vs. `wrong_score`) don't
-recompute it. There is no more separate unconditional scalar head —
-realism judgment is folded into the same dot-product score by training
-it against random-color negatives, which is what makes this module a
-genuine replacement for `ColorCritic` rather than just a rename of
-`CondColorCritic`.
+Three `cblk` blocks (spectral-norm linear + LayerNorm + LeakyReLU,
+same block style the old critics used) then a spectral-norm linear
+readout — "deep" relative to the old two-block towers, since the net
+now has to do the text/color interaction work that used to be a dot
+product. `CRITIC_HIDDEN_SIZE` is a new `model/config.py` constant.
+`EMBED_SIZE_COLOR` (only ever used by the three deleted classes — not
+by `ColorGen`, which sizes off `Z_SIZE`/`GEN_HIDDEN_SIZE`/`COLOR_DIM`
+directly) becomes dead and is deleted along with them.
+
+There's no more separate `embed`/`score` split: `forward` is the only
+entry point, and every score requires a full forward pass over the
+concatenated vector — a call site can no longer compute one color
+embedding once and cheaply re-score it against two different `cond`s.
+`LitColorGAN`'s `real`/`wrong_score` reuse (see below) loses that
+reuse and calls `self.critic(...)` twice instead. There is also no
+separate unconditional scalar head — realism judgment is folded into
+the same score by training it against random-color negatives, which is
+what makes this module a genuine replacement for `ColorCritic` rather
+than just a rename of `CondColorCritic`.
 
 ## Random-color negative
 
@@ -154,18 +166,19 @@ outright — merged into the single conditional `Critic`, per the
 "replaces both" instruction. `self.critic: Critic`, warm-started same
 as today.
 
-Per step, the critic now sees real + three negative groups:
+Per step, the critic now sees real + three negative groups. Each score
+is its own forward pass (no more embed-once-score-twice: see above) —
+`real` and `wrong_score` each run `colors` through the full net rather
+than sharing one color embedding:
 
 ```python
-color_embed_real = self.critic.embed(colors)
-color_embed_fake = self.critic.embed(fake.detach())
-color_embed_random = self.critic.embed(rnd_color_tensor(colors.shape[0], device=colors.device))
+random_colors = rnd_color_tensor(colors.shape[0], device=colors.device)
 cond_wrong = cond[torch.randperm(cond.shape[0], device=cond.device)]
 
-real = self.critic.score(cond, color_embed_real)
-fake_score = self.critic.score(cond, color_embed_fake)
-wrong_score = self.critic.score(cond_wrong, color_embed_real)
-random_score = self.critic.score(cond, color_embed_random)
+real = self.critic(cond, colors)
+fake_score = self.critic(cond, fake.detach())
+wrong_score = self.critic(cond_wrong, colors)
+random_score = self.critic(cond, random_colors)
 
 loss_critic = relu(1 - real).mean() \
     + COND_CRITIC_MISMATCH_WEIGHT * relu(1 + fake_score).mean() \
@@ -234,13 +247,16 @@ run, never hand-migrated), no migration path is provided.
 
 ## Config (`model/config.py`)
 
+- `EMBED_SIZE_COLOR` deleted (dead — see above); `CRITIC_HIDDEN_SIZE = 128`
+  added in its place.
 - `LR_GAN_CRITIC` deleted (was the now-gone unconditional critic's LR).
   `LR_GAN_COND_CRITIC` stays, now the merged GAN-stage critic's LR.
 - `GAN_LOSS_COLOR` deleted (dead generator-loss weight, see above).
 - `COND_CRITIC_RANDOM_WEIGHT = 0.1` added, next to
   `COND_CRITIC_MISMATCH_WEIGHT`.
-- `gan_str` (config-name fingerprint string) drops `LR_GAN_CRITIC` and
-  `GAN_LOSS_COLOR`, gains `COND_CRITIC_RANDOM_WEIGHT`.
+- `gan_str` (config-name fingerprint string) drops `LR_GAN_CRITIC`,
+  `EMBED_SIZE_COLOR`, and `GAN_LOSS_COLOR`, gains `CRITIC_HIDDEN_SIZE`
+  and `COND_CRITIC_RANDOM_WEIGHT`.
 
 ## Test (`model/test_train_cli.py`)
 
