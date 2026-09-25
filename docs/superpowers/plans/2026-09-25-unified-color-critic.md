@@ -1550,6 +1550,7 @@ EOF
 - Modify: `model/metric.py` (delete `Metric.AUROC`; delete `GanMetric.GEN_LOSS_COLOR`, `COLOR_LOSS`, `COLOR_AUROC`)
 - Modify: `files.py` (delete `PtFile.COND_CRITIC`, `PtFile.COND_COLOR_EMBED`, `COND_CRITIC_PT`, `COND_COLOR_EMBED_PT`)
 - Modify: `model/config.py` (delete `EMBED_SIZE_COLOR`, `LR_GAN_CRITIC`, `GAN_LOSS_COLOR`; rewrite `gan_str`)
+- Modify: `tools/print_model_params.py` (dev utility script, not covered by the design spec's file list — discovered via a repo-wide grep at execution time: it imports `CondColorCritic` directly and would break at runtime once that class is deleted, since ruff's import-order check doesn't verify the imported name still exists)
 
 **Interfaces:**
 - Consumes: nothing new — this task only removes symbols nothing references anymore after Tasks 6-8.
@@ -1561,7 +1562,51 @@ EOF
 grep -rn "ColorEmbedding\|ColorCritic\b\|CondColorCritic" --include=*.py . | grep -v "class Critic\b"
 ```
 
-Expected: only the `class ColorEmbedding` / `class ColorCritic` / `class CondColorCritic` definition lines in `model/model.py` (no call sites left — Tasks 6-8 removed them all). If anything else shows up, stop and re-check the earlier task's edit before proceeding.
+Expected: two hits outside `model/model.py`'s own definitions —
+`tools/print_model_params.py:1` (import line) and
+`tools/print_model_params.py:15` (`("ColorCritic", CondColorCritic)` table
+row). Everything else should be only the `class ColorEmbedding` /
+`class ColorCritic` / `class CondColorCritic` definition lines in
+`model/model.py` (no other call sites left — Tasks 6-8 removed them
+all). If anything else shows up, stop and re-check the earlier task's
+edit before proceeding.
+
+- [ ] **Step 1b: Fix `tools/print_model_params.py`**
+
+Change:
+
+```python
+from model.model import ColorGen, CondColorCritic, EmojiHead, StyleHead, TextEncoder
+from torch import nn
+import typer
+import sys
+from pathlib import Path
+```
+
+to:
+
+```python
+import sys
+from pathlib import Path
+
+import typer
+from torch import nn
+
+from model.model import ColorGen, Critic, EmojiHead, StyleHead, TextEncoder
+```
+
+(fixes the pre-existing `ruff` import-order warning on this file while
+touching it) and change:
+
+```python
+    ("ColorCritic", CondColorCritic),
+```
+
+to:
+
+```python
+    ("Critic", Critic),
+```
 
 - [ ] **Step 2: Implement — `model/model.py`**
 
@@ -1796,12 +1841,20 @@ Expected: `test_train_cli.py` prints `ok`; ruff reports no errors (in particular
 grep -rn "cond_critic\.pt\|cond_color_embed\.pt\|COND_CRITIC\|COND_COLOR_EMBED\|color_auroc\b\|GEN_LOSS_COLOR\|EMBED_SIZE_COLOR\|LR_GAN_CRITIC\b" --include=*.py --include=*.md .
 ```
 
-Expected: no hits outside this plan file and the design spec (which document the *old* names as history — leave those two doc files alone).
+Expected: no hits in any `.py` file. `.md` hits are expected and fine —
+this plan file, the design spec, and pre-existing historical docs
+(`docs/superpowers/plans/2026-09-07-*`, `docs/model.md`, `docs/logs.md`,
+`docs/overview.md`, `data/data.md`, `plans/26-09-18-*`) reference the
+*old* names/architecture; none of those are touched by this plan
+(`docs/model.md`/`docs/logs.md` were already stale relative to the
+current code before this change — e.g. `docs/model.md` references
+metrics like `F1/val` that don't exist in `model/metric.py` today — so
+bringing them in sync is a separate, larger cleanup, out of scope here).
 
 - [ ] **Step 8: Commit**
 
 ```bash
-git add model/model.py model/metric.py files.py model/config.py
+git add model/model.py model/metric.py files.py model/config.py tools/print_model_params.py
 git commit -m "$(cat <<'EOF'
 Delete dead ColorEmbedding/ColorCritic/CondColorCritic and their
 constants/metrics/checkpoints, now fully replaced by Critic
