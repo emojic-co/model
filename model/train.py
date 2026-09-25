@@ -422,17 +422,17 @@ class LitColorGAN(pl.LightningModule):
 
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
-        opt_critic = optim.SGD(self.critic.parameters(), lr=LR_GAN_COND_CRITIC)
+        # opt_critic = optim.SGD(self.critic.parameters(), lr=LR_GAN_COND_CRITIC)
 
         # opt_gen = optim.Adam(
         #     self.gen.parameters(),
         #     lr=LR_GAN_GEN,
         #     betas=(0.5, 0.999))
 
-        # opt_critic = optim.Adam(
-        #     self.critic.parameters(),
-        #     lr=LR_GAN_COND_CRITIC,
-        #     betas=(0.5, 0.999))
+        opt_critic = optim.Adam(
+            self.critic.parameters(),
+            lr=LR_GAN_COND_CRITIC,
+            betas=(0.5, 0.999))
 
         return [opt_gen, opt_critic]
 
@@ -449,11 +449,13 @@ class LitCondCriticProbe(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         loss, auroc_shuf, auroc_rand = self._step(batch)
         self.log(
-            named_metric(LogStage.COND, Source.COLOR, Metric.AUROC_SHUF, Split.TRAIN),
+            named_metric(LogStage.COND, Source.COLOR,
+                         Metric.AUROC_SHUF, Split.TRAIN),
             auroc_shuf, on_step=False, on_epoch=True, prog_bar=True,
         )
         self.log(
-            named_metric(LogStage.COND, Source.COLOR, Metric.AUROC_RAND, Split.TRAIN),
+            named_metric(LogStage.COND, Source.COLOR,
+                         Metric.AUROC_RAND, Split.TRAIN),
             auroc_rand, on_step=False, on_epoch=True, prog_bar=True,
         )
         return loss
