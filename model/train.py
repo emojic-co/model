@@ -66,7 +66,7 @@ from model.config import (
     LOSS_WEIGHT_EMOJI,
     LOSS_WEIGHT_STYLE,
     LR_ENCODER,
-    LR_GAN_COND_CRITIC,
+    LR_GAN_CRITIC,
     LR_GAN_GEN,
     SAMPLING_RATE_MAX,
     SAMPLING_RATE_MIN,
@@ -422,17 +422,17 @@ class LitColorGAN(pl.LightningModule):
 
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
-        # opt_critic = optim.SGD(self.critic.parameters(), lr=LR_GAN_COND_CRITIC)
+        opt_critic = optim.SGD(self.critic.parameters(), lr=LR_GAN_CRITIC)
 
         # opt_gen = optim.Adam(
         #     self.gen.parameters(),
         #     lr=LR_GAN_GEN,
         #     betas=(0.5, 0.999))
 
-        opt_critic = optim.Adam(
-            self.critic.parameters(),
-            lr=LR_GAN_COND_CRITIC,
-            betas=(0.5, 0.999))
+        # opt_critic = optim.Adam(
+        #     self.critic.parameters(),
+        #     lr=LR_GAN_COND_CRITIC,
+        #     betas=(0.5, 0.999))
 
         return [opt_gen, opt_critic]
 
@@ -472,7 +472,7 @@ class LitCondCriticProbe(pl.LightningModule):
         )
 
     def configure_optimizers(self):
-        return optim.SGD(self.critic.parameters(), lr=LR_GAN_COND_CRITIC)
+        return optim.SGD(self.critic.parameters(), lr=LR_GAN_CRITIC)
 
 
 def _load(mod: nn.Module, path: Path) -> nn.Module:
