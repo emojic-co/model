@@ -6,6 +6,7 @@ from torch.nn.utils import spectral_norm as sn
 
 from model.color import COLOR_SHIFT
 from model.config import (
+    CRITIC_HIDDEN_SIZE,
     DROPOUT,
     EMBED_SIZE_CHAR,
     EMBED_SIZE_COLOR,
@@ -198,3 +199,20 @@ class CondColorCritic(nn.Module):
         t = self.text_embedding(cond)
 
         return (t * color_embedding).sum(dim=-1, keepdim=True)
+
+
+class Critic(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.net = nn.Sequential(
+            *cblk(EMBED_SIZE_TEXT + COLOR_DIM, CRITIC_HIDDEN_SIZE),
+            *cblk(CRITIC_HIDDEN_SIZE, CRITIC_HIDDEN_SIZE),
+            *cblk(CRITIC_HIDDEN_SIZE, CRITIC_HIDDEN_SIZE),
+            sn(nn.Linear(CRITIC_HIDDEN_SIZE, 1)))
+
+    def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
+        assert torch.all((colors >= -COLOR_SHIFT) & (colors <= COLOR_SHIFT)), \
+            f"colors must be in [-{COLOR_SHIFT}, {COLOR_SHIFT}], " \
+            f"got min={colors.min().item()} max={colors.max().item()}"
+        return self.net(torch.cat([cond, colors], dim=-1))
