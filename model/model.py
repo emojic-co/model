@@ -1,9 +1,7 @@
 
 import torch
 from torch import nn
-from torch.nn.functional import (
-    tanh,
-)
+from torch.nn.functional import normalize, tanh
 from torch.nn.utils import spectral_norm as sn
 
 from model.color import COLOR_SHIFT
@@ -144,8 +142,8 @@ class ColorGen(nn.Module):
             f"z must have shape (*cond.shape[:-1], {Z_SIZE}), " \
             f"got cond={cond.shape} and z={z.shape}"
 
-        # z = normalize(z, dim=-1)
-        # cond = normalize(cond, dim=-1)
+        z = normalize(z, dim=-1)
+        cond = normalize(cond, dim=-1)
 
         seed = torch.cat([cond, z], dim=-1)
 
