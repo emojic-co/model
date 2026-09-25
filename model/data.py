@@ -62,8 +62,9 @@ def sample_colors_tensor(colors: list[list[str]]) -> torch.Tensor:
     return colors2tensor(colors[i])
 
 
-def rnd_color_tensor() -> torch.Tensor:
-    return torch.randint(0, 256, (COLOR_DIM,), dtype=torch.float32) - 127.5
+def rnd_color_tensor(n: int, device=None) -> torch.Tensor:
+    return torch.randint(
+        0, 256, (n, COLOR_DIM), device=device, dtype=torch.float32) - 127.5
 
 
 def normalize(text: str) -> str:
