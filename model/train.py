@@ -473,45 +473,37 @@ class LitColorGAN(pl.LightningModule):
 class LitCondCriticProbe(pl.LightningModule):
     def __init__(self):
         super().__init__()
-        self.critic = CondColorCritic()
-        self.color_embed = ColorEmbedding()
+        self.critic = Critic()
 
     def _step(self, batch: tuple[torch.Tensor, torch.Tensor]):
         cond, colors = batch
-        perm = torch.randperm(colors.shape[0], device=colors.device)
-        fake = colors[perm]
-
-        pair = torch.cat([colors, fake], dim=0)
-        cond_pair = torch.cat([cond, cond], dim=0)
-        score = self.critic(cond_pair, self.color_embed(pair))
-        real, fake_score = score.chunk(2, dim=0)
-
-        loss = relu(1 - real).mean() + relu(1 + fake_score).mean()
-
-        n = colors.shape[0]
-        target = torch.cat([score.new_ones(n), score.new_zeros(n)])
-        auroc = binary_auroc(score.detach().squeeze(-1), target.long())
-        return loss, auroc
+        return _critic_probe_step(self.critic, cond, colors)
 
     def training_step(self, batch, batch_idx):
-        loss, auroc = self._step(batch)
+        loss, auroc_shuf, auroc_rand = self._step(batch)
         self.log(
-            named_metric(LogStage.COND, Source.COLOR, Metric.AUROC, Split.TRAIN),
-            auroc, on_step=False, on_epoch=True, prog_bar=True,
+            named_metric(LogStage.COND, Source.COLOR, Metric.AUROC_SHUF, Split.TRAIN),
+            auroc_shuf, on_step=False, on_epoch=True, prog_bar=True,
+        )
+        self.log(
+            named_metric(LogStage.COND, Source.COLOR, Metric.AUROC_RAND, Split.TRAIN),
+            auroc_rand, on_step=False, on_epoch=True, prog_bar=True,
         )
         return loss
 
     def validation_step(self, batch, batch_idx):
-        _, auroc = self._step(batch)
+        _, auroc_shuf, auroc_rand = self._step(batch)
         self.log(
-            named_metric(LogStage.COND, Source.COLOR, Metric.AUROC, Split.VAL),
-            auroc, on_step=False, on_epoch=True, prog_bar=True,
+            named_metric(LogStage.COND, Source.COLOR, Metric.AUROC_SHUF, Split.VAL),
+            auroc_shuf, on_step=False, on_epoch=True, prog_bar=True,
+        )
+        self.log(
+            named_metric(LogStage.COND, Source.COLOR, Metric.AUROC_RAND, Split.VAL),
+            auroc_rand, on_step=False, on_epoch=True, prog_bar=True,
         )
 
     def configure_optimizers(self):
-        params = list(self.critic.parameters()) + \
-            list(self.color_embed.parameters())
-        return optim.SGD(params, lr=LR_GAN_COND_CRITIC)
+        return optim.SGD(self.critic.parameters(), lr=LR_GAN_COND_CRITIC)
 
 
 def _load(mod: nn.Module, path: Path) -> nn.Module:

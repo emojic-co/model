@@ -43,6 +43,14 @@ def test_critic_probe_step_shapes():
     assert auroc_rand.shape == ()
 
 
+def test_litcondcriticprobe_builds():
+    m = T.LitCondCriticProbe()
+    assert hasattr(m, "critic")
+    assert not hasattr(m, "color_embed")
+    opt = m.configure_optimizers()
+    assert isinstance(opt, torch.optim.SGD)
+
+
 def _stub_runners():
     calls = {}
     T._run_local = lambda *a, **k: calls.setdefault("local", (a, k))
@@ -138,6 +146,7 @@ def main() -> None:
     test_litencoder_builds_all_heads()
     test_colorcritic_forward_shape()
     test_critic_probe_step_shapes()
+    test_litcondcriticprobe_builds()
     test_cli_help_ok()
     test_cli_bad_stage_aborts()
     test_cli_gan_dispatches_local()
