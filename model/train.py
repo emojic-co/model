@@ -55,14 +55,15 @@ from model.config import (
     EPOCHS_GAN,
     EPOCHS_TASK,
     GAN_BATCH_SIZE,
+    GAN_LOSS_COLOR,
+    GAN_LOSS_COND,
+    GAN_LOSS_ENERGY,
     GRAD_CLIP_CRITIC,
     GRAD_CLIP_GEN,
     INFONCE_TEMP_EMOJI,
     INFONCE_TEMP_STYLE,
     LOSS_WEIGHT_COLOR,
-    LOSS_WEIGHT_COND,
     LOSS_WEIGHT_EMOJI,
-    LOSS_WEIGHT_ENERGY,
     LOSS_WEIGHT_STYLE,
     LR_ENCODER,
     LR_GAN_COND_CRITIC,
@@ -392,9 +393,9 @@ class LitColorGAN(pl.LightningModule):
         loss_gen_color_critic = -gen_color_score.mean()
 
         loss_gen = \
-            LOSS_WEIGHT_COND * loss_gen_critic \
-            + LOSS_WEIGHT_ENERGY * loss_energy \
-            + LOSS_WEIGHT_COLOR * loss_gen_color_critic
+            GAN_LOSS_COND * loss_gen_critic \
+            + GAN_LOSS_ENERGY * loss_energy \
+            + GAN_LOSS_COLOR * loss_gen_color_critic
 
         opt_gen.zero_grad()
 

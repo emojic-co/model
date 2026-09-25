@@ -77,7 +77,7 @@ for `bg1`, `bg2`, `text_color`. Output stays in sRGB; the browser
 | --- | --- |
 | style, emoji | multi-positive Log-Sum-Exp InfoNCE (`lse_infonce`) |
 | ColorCritic | hinge loss on `(color_score, cond_score)`, weighted by `LOSS_WEIGHT_COND_COLOR`; real palettes vs. generator samples |
-| ColorGen | negative critic score (both branches) blended with OKLab `energy_distance` via `LOSS_WEIGHT_ENERGY` |
+| ColorGen | negative critic score (both branches) blended with OKLab `energy_distance` via `GAN_LOSS_ENERGY` |
 
 `loss/emoji` trains `EmojiHead`; `loss/style` trains `StyleHead`.
 
