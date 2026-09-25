@@ -54,7 +54,7 @@ from model.config import (
     EPOCHS_GAN,
     EPOCHS_TASK,
     GAN_BATCH_SIZE,
-    GAN_LOSS_COND,
+    GAN_LOSS_CRITIC,
     GAN_LOSS_ENERGY,
     GRAD_CLIP_CRITIC,
     GRAD_CLIP_GEN,
@@ -370,7 +370,7 @@ class LitColorGAN(pl.LightningModule):
         loss_gen_critic = -gen_score.mean()
 
         loss_gen = \
-            GAN_LOSS_COND * loss_gen_critic \
+            GAN_LOSS_CRITIC * loss_gen_critic \
             + GAN_LOSS_ENERGY * loss_energy
 
         opt_gen.zero_grad()
