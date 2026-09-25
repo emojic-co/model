@@ -44,6 +44,8 @@ from files import (
 )
 from model.color import COLOR_SHIFT, energy_distance, rgb_to_oklab
 from model.config import (
+    BATCH_SIZE_GAN,
+    BATCH_SIZE_TEXT_ENCODER,
     CONFIG_NAME,
     EARLY_STOP_MIN_DELTA_GAN,
     EARLY_STOP_PATIENCE_ENCODER,
@@ -53,7 +55,6 @@ from model.config import (
     EPOCHS_COND_PROBE,
     EPOCHS_GAN,
     EPOCHS_TASK,
-    GAN_BATCH_SIZE,
     GAN_LOSS_CRITIC,
     GAN_LOSS_ENERGY,
     GRAD_CLIP_CRITIC,
@@ -70,7 +71,6 @@ from model.config import (
     SAMPLING_RATE_MIN,
     SAMPLING_SOURCES,
     SEED,
-    TASK_BATCH_SIZE,
     VAL_CHECK_INTERVAL,
 )
 from model.data import (
@@ -518,7 +518,7 @@ def _pt_files_ok(pt_dir: Path) -> bool:
 
 
 def _train_encoder(ds, out_dir: Path) -> LitEncoder:
-    dl = train_data_loader(data_set=ds, batch_size=TASK_BATCH_SIZE)
+    dl = train_data_loader(data_set=ds, batch_size=BATCH_SIZE_TEXT_ENCODER)
     val_dl = eval_data_loader()
 
     no_bar = _no_progress_bar()
@@ -574,7 +574,7 @@ def _train_gan(
 
     gan_dl = DataLoader(
         _CondColorDataset(train_cond, ds.colors),
-        batch_size=GAN_BATCH_SIZE,
+        batch_size=BATCH_SIZE_GAN,
         shuffle=True,
         drop_last=True,
     )
@@ -648,12 +648,12 @@ def _encode_texts(enc: TextEncoder, text: torch.Tensor) -> torch.Tensor:
         "cuda") if torch.cuda.is_available() else torch.device("cpu")
     enc.to(device)
     chunks = []
-    starts = range(0, text.shape[0], GAN_BATCH_SIZE)
+    starts = range(0, text.shape[0], BATCH_SIZE_GAN)
     with torch.no_grad():
         for i in tqdm(
             starts, desc="encoding text", disable=_no_progress_bar()
         ):
-            chunks.append(enc(text[i:i + GAN_BATCH_SIZE].to(device)).cpu())
+            chunks.append(enc(text[i:i + BATCH_SIZE_GAN].to(device)).cpu())
     return torch.cat(chunks)
 
 
@@ -708,7 +708,7 @@ def _run_cond() -> None:
 
     train_dl = DataLoader(
         _CondColorDataset(train_cond, ds.colors),
-        batch_size=GAN_BATCH_SIZE,
+        batch_size=BATCH_SIZE_GAN,
         shuffle=True,
         drop_last=True,
     )

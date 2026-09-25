@@ -90,13 +90,13 @@ ENERGY_VAL_SAMPLE_SIZE = 1024
 
 # LR
 LR_ENCODER = 0.01
-LR_GAN_GEN = 0.01
+LR_GAN_GEN = 0.005
 LR_GAN_CRITIC = 0.01
 
 # TRAINING
 SEED = 42
-TASK_BATCH_SIZE = 1024
-GAN_BATCH_SIZE = 1024
+BATCH_SIZE_TEXT_ENCODER = 1024
+BATCH_SIZE_GAN = 1024
 RELU_SLOPE = 0.1
 
 gan_str = " ".join([
@@ -141,8 +141,8 @@ train_str = " ".join(
         str(p)
         for p in (
             SEED,
-            TASK_BATCH_SIZE,
-            GAN_BATCH_SIZE,
+            BATCH_SIZE_TEXT_ENCODER,
+            BATCH_SIZE_GAN,
             RELU_SLOPE,
             LR_ENCODER,
             GRAD_CLIP_GEN,
@@ -246,7 +246,7 @@ def _stats() -> list[tuple[str, object]]:
         ("PARAM_COUNT (enc + heads)",
          f"{enc + style_head + emoji_head:,}"),
         ("TASK_BATCH_SIZE / GAN_BATCH_SIZE",
-         f"{TASK_BATCH_SIZE} / {GAN_BATCH_SIZE}"),
+         f"{BATCH_SIZE_TEXT_ENCODER} / {BATCH_SIZE_GAN}"),
         ("EPOCHS_TASK / EPOCHS_GAN", f"{EPOCHS_TASK} / {EPOCHS_GAN}"),
         ("Z_WEIGHT", Z_WEIGHT),
     ]
