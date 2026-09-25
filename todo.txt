@@ -1,2 +1,8 @@
-Done:
-Rename TB run name to <time>-<sha>/<enc|gan|cond> and remove any other info from the name.
+Create a unified Critic module that replaces both ColorEmbedding, ColorCritic and CondColorCritic.
+During the text encoder training it should get:
+1/3 real (text, color) pairs
+1/3 shuffled (text, color) pairs
+1/3 (real text, random color) pairs
+It should log both
+- real vs shuffled auroc
+- real vs random auroc
