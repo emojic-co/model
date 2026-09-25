@@ -5,6 +5,7 @@ from torch.nn.functional import (
     normalize,
     tanh,
 )
+from torch.nn.utils import spectral_norm as sn
 
 from model.color import COLOR_SHIFT
 from model.config import (
@@ -153,14 +154,9 @@ class ColorGen(nn.Module):
         return tanh(colors) * COLOR_SHIFT
 
 
-# def cblk(i: int, o: int):
-#     return [
-#         sn(nn.Linear(i, o)),
-#         nn.LeakyReLU(RELU_SLOPE)]
-
 def cblk(i: int, o: int):
     return [
-        nn.Linear(i, o, bias=False),
+        sn(nn.Linear(i, o, bias=False)),
         nn.LayerNorm(o),
         nn.LeakyReLU(RELU_SLOPE)]
 
@@ -183,8 +179,8 @@ class ColorCritic(nn.Module):
         super().__init__()
 
         self.color_critic = nn.Sequential(
-            # sn(nn.Linear(EMBED_SIZE_COLOR, 1))
-            nn.Linear(EMBED_SIZE_COLOR, 1)
+            sn(nn.Linear(EMBED_SIZE_COLOR, 1))
+            # nn.Linear(EMBED_SIZE_COLOR, 1)
         )
 
     def forward(self, color_embedding: torch.Tensor):
