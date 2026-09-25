@@ -45,6 +45,7 @@ from files import (
 from model.color import energy_distance, rgb_to_oklab
 from model.config import (
     COND_CRITIC_MISMATCH_WEIGHT,
+    COND_CRITIC_RANDOM_WEIGHT,
     CONFIG_NAME,
     EARLY_STOP_MIN_DELTA_GAN,
     EARLY_STOP_PATIENCE_ENCODER,
@@ -55,7 +56,6 @@ from model.config import (
     EPOCHS_GAN,
     EPOCHS_TASK,
     GAN_BATCH_SIZE,
-    GAN_LOSS_COLOR,
     GAN_LOSS_COND,
     GAN_LOSS_ENERGY,
     GRAD_CLIP_CRITIC,
@@ -67,7 +67,6 @@ from model.config import (
     LOSS_WEIGHT_STYLE,
     LR_ENCODER,
     LR_GAN_COND_CRITIC,
-    LR_GAN_CRITIC,
     LR_GAN_GEN,
     SAMPLING_RATE_MAX,
     SAMPLING_RATE_MIN,
@@ -87,10 +86,7 @@ from model.data import (
 from model.export_onnx import export
 from model.metric import GanMetric, LogStage, Metric, Source, Split, named_metric
 from model.model import (
-    ColorCritic,
-    ColorEmbedding,
     ColorGen,
-    CondColorCritic,
     Critic,
     EmojiHead,
     StyleHead,
@@ -302,14 +298,11 @@ class LitEncoder(pl.LightningModule):
 
 
 class LitColorGAN(pl.LightningModule):
-    def __init__(self, critic: CondColorCritic, color_embed: ColorEmbedding):
+    def __init__(self, critic: Critic):
         super().__init__()
 
         self.gen = ColorGen()
         self.critic = critic
-        self.color_embed = color_embed
-        self.color_critic = ColorCritic()
-        self.color_critic_embed = ColorEmbedding()
 
         self.automatic_optimization = False
         self._val_cond: list[torch.Tensor] = []
@@ -345,22 +338,23 @@ class LitColorGAN(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         cond, colors = batch
-        opt_gen, opt_critic, opt_color_critic = self.optimizers()  # type: ignore
+        opt_gen, opt_critic = self.optimizers()  # type: ignore
 
         fake = self.gen(cond)
 
         # CRITIC
-        color_embed_real = self.color_embed(colors)
-        color_embed_fake = self.color_embed(fake.detach())
+        random_colors = rnd_color_tensor(colors.shape[0], device=colors.device)
         cond_wrong = cond[torch.randperm(cond.shape[0], device=cond.device)]
 
-        real = self.critic(cond, color_embed_real)
-        fake_score = self.critic(cond, color_embed_fake)
-        wrong_score = self.critic(cond_wrong, color_embed_real)
+        real = self.critic(cond, colors)
+        fake_score = self.critic(cond, fake.detach())
+        wrong_score = self.critic(cond_wrong, colors)
+        random_score = self.critic(cond, random_colors)
 
         loss_critic = relu(1 - real).mean() \
             + COND_CRITIC_MISMATCH_WEIGHT * relu(1 + fake_score).mean() \
-            + (1 - COND_CRITIC_MISMATCH_WEIGHT) * relu(1 + wrong_score).mean()
+            + (1 - COND_CRITIC_MISMATCH_WEIGHT) * relu(1 + wrong_score).mean() \
+            + COND_CRITIC_RANDOM_WEIGHT * relu(1 + random_score).mean()
 
         n = colors.shape[0]
         auroc_target = torch.cat([real.new_ones(n), real.new_zeros(n)])
@@ -369,6 +363,9 @@ class LitColorGAN(pl.LightningModule):
             auroc_target.long())
         auroc_shuf = binary_auroc(
             torch.cat([real, wrong_score], dim=0).detach().squeeze(-1),
+            auroc_target.long())
+        auroc_rand = binary_auroc(
+            torch.cat([real, random_score], dim=0).detach().squeeze(-1),
             auroc_target.long())
 
         opt_critic.zero_grad()
@@ -380,40 +377,17 @@ class LitColorGAN(pl.LightningModule):
 
         opt_critic.step()
 
-        # COLOR CRITIC (unconditional)
-        pair = torch.cat([colors, fake.detach()], dim=0)
-        color_score = self.color_critic(self.color_critic_embed(pair))
-        color_real, color_fake_score = color_score.chunk(2, dim=0)
-
-        loss_color_critic = \
-            relu(1 - color_real).mean() + relu(1 + color_fake_score).mean()
-
-        color_auroc = binary_auroc(
-            color_score.detach().squeeze(-1), auroc_target.long())
-
-        opt_color_critic.zero_grad()
-        self.manual_backward(loss_color_critic)
-        self.clip_gradients(
-            opt_color_critic,  # type: ignore
-            gradient_clip_val=GRAD_CLIP_CRITIC,
-            gradient_clip_algorithm="norm")
-
-        opt_color_critic.step()
-
         # GENERATOR
-        gen_score = self.critic(cond, self.color_embed(fake))
-        gen_color_score = self.color_critic(self.color_critic_embed(fake))
+        gen_score = self.critic(cond, fake)
         loss_energy = energy_distance(
             rgb_to_oklab(_energy_subsample(fake, ENERGY_TRAIN_SAMPLE_SIZE)),
             rgb_to_oklab(_energy_subsample(colors, ENERGY_TRAIN_SAMPLE_SIZE)))
 
         loss_gen_critic = -gen_score.mean()
-        loss_gen_color_critic = -gen_color_score.mean()
 
         loss_gen = \
             GAN_LOSS_COND * loss_gen_critic \
-            + GAN_LOSS_ENERGY * loss_energy \
-            + GAN_LOSS_COLOR * loss_gen_color_critic
+            + GAN_LOSS_ENERGY * loss_energy
 
         opt_gen.zero_grad()
 
@@ -428,6 +402,7 @@ class LitColorGAN(pl.LightningModule):
         self.log(GanMetric.COND_LOSS, loss_critic, prog_bar=True)
         self.log(GanMetric.COND_AUROC_GEN, auroc_gen, prog_bar=True)
         self.log(GanMetric.COND_AUROC_SHUF, auroc_shuf, prog_bar=True)
+        self.log(GanMetric.COND_AUROC_RAND, auroc_rand, prog_bar=True)
         self.log(
             GanMetric.COND_MEAN_SCORE_REAL,
             real.detach().mean(), prog_bar=False)
@@ -437,25 +412,17 @@ class LitColorGAN(pl.LightningModule):
         self.log(
             GanMetric.COND_MEAN_SCORE_WRONG,
             wrong_score.detach().mean(), prog_bar=False)
-        self.log(GanMetric.COLOR_LOSS, loss_color_critic, prog_bar=True)
-        self.log(GanMetric.COLOR_AUROC, color_auroc, prog_bar=True)
+        self.log(
+            GanMetric.COND_MEAN_SCORE_RANDOM,
+            random_score.detach().mean(), prog_bar=False)
         self.log(
             GanMetric.GEN_LOSS_COND,
             loss_gen_critic, prog_bar=True)
-        self.log(
-            GanMetric.GEN_LOSS_COLOR,
-            loss_gen_color_critic, prog_bar=True)
         self.log(GanMetric.ENERGY_TRAIN, loss_energy, prog_bar=True)
 
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
-        opt_critic = optim.SGD(
-            list(self.critic.parameters()) + list(self.color_embed.parameters()),
-            lr=LR_GAN_COND_CRITIC)
-        opt_color_critic = optim.SGD(
-            list(self.color_critic.parameters())
-            + list(self.color_critic_embed.parameters()),
-            lr=LR_GAN_CRITIC)
+        opt_critic = optim.SGD(self.critic.parameters(), lr=LR_GAN_COND_CRITIC)
 
         # opt_gen = optim.Adam(
         #     self.gen.parameters(),
@@ -464,10 +431,10 @@ class LitColorGAN(pl.LightningModule):
 
         # opt_critic = optim.Adam(
         #     self.critic.parameters(),
-        #     lr=LR_GAN_CRITIC,
+        #     lr=LR_GAN_COND_CRITIC,
         #     betas=(0.5, 0.999))
 
-        return [opt_gen, opt_critic, opt_color_critic]
+        return [opt_gen, opt_critic]
 
 
 class LitCondCriticProbe(pl.LightningModule):
@@ -517,24 +484,20 @@ def _no_progress_bar() -> bool:
     return os.environ.get("EMOJIC_NO_PROGRESS_BAR") == "1"
 
 
-def _load_cond_critic(pt_dir: Path) -> tuple[CondColorCritic, ColorEmbedding]:
-    critic_path = PtFile.COND_CRITIC.in_dir(pt_dir)
-    embed_path = PtFile.COND_COLOR_EMBED.in_dir(pt_dir)
-    critic = CondColorCritic()
-    color_embed = ColorEmbedding()
-    if not critic_path.exists() or not embed_path.exists():
-        return critic, color_embed
+def _load_critic(pt_dir: Path) -> Critic:
+    critic_path = PtFile.CRITIC.in_dir(pt_dir)
+    critic = Critic()
+    if not critic_path.exists():
+        return critic
     try:
-        _load(critic, critic_path)  # type: ignore
-        _load(color_embed, embed_path)  # type: ignore
-        return critic, color_embed
+        return _load(critic, critic_path)  # type: ignore
     except Exception:
         print(
-            f"{critic_path}: does not match CondColorCritic/ColorEmbedding, "
+            f"{critic_path}: does not match Critic, "
             "falling back to a fresh critic",
             flush=True,
         )
-        return CondColorCritic(), ColorEmbedding()
+        return Critic()
 
 
 def _pt_files_ok(pt_dir: Path) -> bool:
@@ -596,18 +559,14 @@ def _train_encoder(ds, out_dir: Path) -> LitEncoder:
     save_pt(mod.style.state_dict(), PtFile.STYLE.in_dir(out_dir), stage="enc")
     save_pt(mod.emoji.state_dict(), PtFile.EMOJI.in_dir(out_dir), stage="enc")
     save_pt(
-        mod.cond_critic.state_dict(),
-        PtFile.COND_CRITIC.in_dir(out_dir), stage="enc")
-    save_pt(
-        mod.color_embed.state_dict(),
-        PtFile.COND_COLOR_EMBED.in_dir(out_dir), stage="enc")
+        mod.critic.state_dict(),
+        PtFile.CRITIC.in_dir(out_dir), stage="enc")
 
     return mod
 
 
 def _train_gan(
-    enc: TextEncoder, enc_path: Path, critic: CondColorCritic,
-    color_embed: ColorEmbedding,
+    enc: TextEncoder, enc_path: Path, critic: Critic,
     ds, val_ds, out_dir: Path,
 ) -> LitColorGAN:
     enc.requires_grad_(False)
@@ -659,13 +618,12 @@ def _train_gan(
         ],
     )
 
-    gan = LitColorGAN(critic, color_embed)
+    gan = LitColorGAN(critic)
     trainer.fit(gan, gan_dl, val_dl)
 
     if ckpt.best_model_path:
         gan = LitColorGAN.load_from_checkpoint(
-            ckpt.best_model_path, critic=CondColorCritic(),
-            color_embed=ColorEmbedding(),
+            ckpt.best_model_path, critic=Critic(),
         )
 
     save_pt(gan.gen.state_dict(), PtFile.GEN.in_dir(out_dir), stage="gan")
@@ -800,9 +758,9 @@ def _run_local(stage: Stage | None) -> None:
         if _pt_files_ok(_DEFAULT_PT):
             enc_path = PtFile.ENC.in_dir(_DEFAULT_PT)
             enc = _load(TextEncoder(), enc_path)
-            critic, color_embed = _load_cond_critic(_DEFAULT_PT)
+            critic = _load_critic(_DEFAULT_PT)
             _train_gan(
-                enc, enc_path, critic, color_embed,  # type: ignore
+                enc, enc_path, critic,  # type: ignore
                 train_ds(mix_sources=False),
                 eval_ds(),
                 _DEFAULT_PT,
@@ -825,9 +783,9 @@ def _run_local(stage: Stage | None) -> None:
     ds = train_ds()
     mod = _train_encoder(ds, _DEFAULT_PT)
 
-    critic, color_embed = _load_cond_critic(_DEFAULT_PT)
+    critic = _load_critic(_DEFAULT_PT)
     _train_gan(
-        mod.enc, PtFile.ENC.in_dir(_DEFAULT_PT), critic, color_embed,
+        mod.enc, PtFile.ENC.in_dir(_DEFAULT_PT), critic,
         train_ds(mix_sources=False),
         eval_ds(),
         _DEFAULT_PT,
@@ -1101,9 +1059,10 @@ def cli(
         "(enc.pt, style.pt, emoji.pt in pt/); always runs locally. "
         "encoder = train only the text encoder + heads, on Modal unless "
         "--local. "
-        "cond = probe whether CondColorCritic has capacity to learn the "
+        "cond = probe whether the color Critic has capacity to learn the "
         "conditional color distribution, training it on cached text "
-        "encodings against shuffled (mismatched) real pairs; always local. "
+        "encodings against shuffled (mismatched) and random-color pairs; "
+        "always local. "
         "Omit to train the encoder (Modal unless --local), then the GAN, "
         "which always trains locally.",
     ),

@@ -51,6 +51,16 @@ def test_litcondcriticprobe_builds():
     assert isinstance(opt, torch.optim.SGD)
 
 
+def test_litcolorgan_builds():
+    from model.model import Critic
+
+    m = T.LitColorGAN(Critic())
+    assert hasattr(m, "gen") and hasattr(m, "critic")
+    assert not hasattr(m, "color_critic")
+    opts = m.configure_optimizers()
+    assert len(opts) == 2
+
+
 def _stub_runners():
     calls = {}
     T._run_local = lambda *a, **k: calls.setdefault("local", (a, k))
@@ -147,6 +157,7 @@ def main() -> None:
     test_colorcritic_forward_shape()
     test_critic_probe_step_shapes()
     test_litcondcriticprobe_builds()
+    test_litcolorgan_builds()
     test_cli_help_ok()
     test_cli_bad_stage_aborts()
     test_cli_gan_dispatches_local()
