@@ -73,7 +73,7 @@ style_str = " ".join([
 
 # GAN
 Z_WEIGHT = 0.3
-HIDDEN_SIZE_GEN = 64
+HIDDEN_SIZE_GEN = 96
 HIDDEN_SIZE_CRITIC = 128
 
 
