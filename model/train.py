@@ -79,6 +79,7 @@ from model.config import (
 from model.data import (
     eval_data_loader,
     eval_ds,
+    rnd_color_tensor,
     sample_colors_tensor,
     train_data_loader,
     train_ds,
@@ -90,6 +91,7 @@ from model.model import (
     ColorEmbedding,
     ColorGen,
     CondColorCritic,
+    Critic,
     EmojiHead,
     StyleHead,
     TextEncoder,
@@ -118,6 +120,31 @@ def lse_infonce(
     row_loss = all_lse - pos_lse
 
     return row_loss[has_pos].mean()
+
+
+def _critic_probe_step(
+    critic: Critic, cond: torch.Tensor, colors: torch.Tensor,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    n = colors.shape[0]
+    shuffled = colors[torch.randperm(n, device=colors.device)]
+    random_colors = rnd_color_tensor(n, device=colors.device)
+
+    pair = torch.cat([colors, shuffled, random_colors], dim=0)
+    cond_pair = torch.cat([cond, cond, cond], dim=0)
+    score = critic(cond_pair, pair)
+    real, shuf_score, rand_score = score.chunk(3, dim=0)
+
+    loss = relu(1 - real).mean() \
+        + relu(1 + shuf_score).mean() \
+        + relu(1 + rand_score).mean()
+
+    target = torch.cat([score.new_ones(n), score.new_zeros(n)])
+    auroc_shuf = binary_auroc(
+        torch.cat([real, shuf_score], dim=0).detach().squeeze(-1), target.long())
+    auroc_rand = binary_auroc(
+        torch.cat([real, rand_score], dim=0).detach().squeeze(-1), target.long())
+
+    return loss, auroc_shuf, auroc_rand
 
 
 def mrr(logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
@@ -156,8 +183,7 @@ class LitEncoder(pl.LightningModule):
         self.enc = TextEncoder()
         self.style = StyleHead()
         self.emoji = EmojiHead()
-        self.cond_critic = CondColorCritic()
-        self.color_embed = ColorEmbedding()
+        self.critic = Critic()
 
         self.train_dataset = None
 
@@ -221,31 +247,24 @@ class LitEncoder(pl.LightningModule):
                         n,
                     )
 
-        loss_cond_critic = enc.new_zeros(())
+        loss_critic = enc.new_zeros(())
         n_c = int(has_color.sum())
         if n_c > 1:
             cond_c = enc[has_color]
             colors_c = colors[has_color]
-            perm = torch.randperm(n_c, device=colors_c.device)
-            fake = colors_c[perm]
-
-            pair = torch.cat([colors_c, fake], dim=0)
-            cond_pair = torch.cat([cond_c, cond_c], dim=0)
-            score = self.cond_critic(cond_pair, self.color_embed(pair))
-            real, fake_score = score.chunk(2, dim=0)
-
-            loss_cond_critic = relu(1 - real).mean() + relu(1 + fake_score).mean()
-
-            target = torch.cat([score.new_ones(n_c), score.new_zeros(n_c)])
-            auroc = binary_auroc(score.detach().squeeze(-1), target.long())
+            loss_critic, auroc_shuf, auroc_rand = _critic_probe_step(
+                self.critic, cond_c, colors_c)
             self._log(
-                named_metric(LogStage.ENC, Source.COLOR, Metric.AUROC, split),
-                auroc, n_c)
+                named_metric(LogStage.ENC, Source.COLOR, Metric.AUROC_SHUF, split),
+                auroc_shuf, n_c)
+            self._log(
+                named_metric(LogStage.ENC, Source.COLOR, Metric.AUROC_RAND, split),
+                auroc_rand, n_c)
 
         return (
             loss_style
             + loss_emoji
-            + LOSS_WEIGHT_COLOR * loss_cond_critic
+            + LOSS_WEIGHT_COLOR * loss_critic
         )
 
     def on_train_epoch_start(self):
@@ -277,8 +296,7 @@ class LitEncoder(pl.LightningModule):
             list(self.enc.parameters())
             + list(self.style.parameters())
             + list(self.emoji.parameters())
-            + list(self.cond_critic.parameters())
-            + list(self.color_embed.parameters())
+            + list(self.critic.parameters())
         )
         return optim.Adam(params, lr=LR_ENCODER)
 
