@@ -2,7 +2,6 @@
 import torch
 from torch import nn
 from torch.nn.functional import (
-    normalize,
     tanh,
 )
 from torch.nn.utils import spectral_norm as sn
@@ -145,8 +144,8 @@ class ColorGen(nn.Module):
             f"z must have shape (*cond.shape[:-1], {Z_SIZE}), " \
             f"got cond={cond.shape} and z={z.shape}"
 
-        z = normalize(z, dim=-1)
-        cond = normalize(cond, dim=-1)
+        # z = normalize(z, dim=-1)
+        # cond = normalize(cond, dim=-1)
 
         seed = torch.cat([cond, z], dim=-1)
 
@@ -180,7 +179,6 @@ class ColorCritic(nn.Module):
 
         self.color_critic = nn.Sequential(
             sn(nn.Linear(EMBED_SIZE_COLOR, 1))
-            # nn.Linear(EMBED_SIZE_COLOR, 1)
         )
 
     def forward(self, color_embedding: torch.Tensor):
