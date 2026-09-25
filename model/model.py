@@ -167,6 +167,9 @@ class ColorEmbedding(nn.Module):
             *cblk(EMBED_SIZE_COLOR, EMBED_SIZE_COLOR))
 
     def forward(self, colors: torch.Tensor) -> torch.Tensor:
+        assert torch.all((colors >= -COLOR_SHIFT) & (colors <= COLOR_SHIFT)), \
+            f"colors must be in [-{COLOR_SHIFT}, {COLOR_SHIFT}], " \
+            f"got min={colors.min().item()} max={colors.max().item()}"
         # colors = rgb_to_oklab(colors)
         return self.net(colors)
 
