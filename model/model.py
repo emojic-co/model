@@ -9,7 +9,6 @@ from model.config import (
     CRITIC_HIDDEN_SIZE,
     DROPOUT,
     EMBED_SIZE_CHAR,
-    EMBED_SIZE_COLOR,
     EMBED_SIZE_EMOJI,
     EMBED_SIZE_STYLE,
     EMBED_SIZE_TEXT,
@@ -157,48 +156,6 @@ def cblk(i: int, o: int):
         sn(nn.Linear(i, o, bias=False)),
         nn.LayerNorm(o),
         nn.LeakyReLU(RELU_SLOPE)]
-
-
-class ColorEmbedding(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-        self.net = nn.Sequential(
-            *cblk(COLOR_DIM, EMBED_SIZE_COLOR),
-            *cblk(EMBED_SIZE_COLOR, EMBED_SIZE_COLOR))
-
-    def forward(self, colors: torch.Tensor) -> torch.Tensor:
-        assert torch.all((colors >= -COLOR_SHIFT) & (colors <= COLOR_SHIFT)), \
-            f"colors must be in [-{COLOR_SHIFT}, {COLOR_SHIFT}], " \
-            f"got min={colors.min().item()} max={colors.max().item()}"
-        # colors = rgb_to_oklab(colors)
-        return self.net(colors)
-
-
-class ColorCritic(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-        self.color_critic = nn.Sequential(
-            sn(nn.Linear(EMBED_SIZE_COLOR, 1))
-        )
-
-    def forward(self, color_embedding: torch.Tensor):
-
-        return self.color_critic(color_embedding)
-
-
-class CondColorCritic(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-        self.text_embedding = nn.Sequential(
-            *cblk(EMBED_SIZE_TEXT, EMBED_SIZE_COLOR))
-
-    def forward(self, cond: torch.Tensor, color_embedding: torch.Tensor):
-        t = self.text_embedding(cond)
-
-        return (t * color_embedding).sum(dim=-1, keepdim=True)
 
 
 class Critic(nn.Module):
