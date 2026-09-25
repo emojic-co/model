@@ -44,8 +44,6 @@ from files import (
 )
 from model.color import COLOR_SHIFT, energy_distance, rgb_to_oklab
 from model.config import (
-    COND_CRITIC_MISMATCH_WEIGHT,
-    COND_CRITIC_RANDOM_WEIGHT,
     CONFIG_NAME,
     EARLY_STOP_MIN_DELTA_GAN,
     EARLY_STOP_PATIENCE_ENCODER,
@@ -121,6 +119,26 @@ def lse_infonce(
 def _dequantize(colors: torch.Tensor) -> torch.Tensor:
     return (colors + (torch.rand_like(colors) - 0.5)).clamp(
         -COLOR_SHIFT, COLOR_SHIFT)
+
+
+def _critic_shuf_step(
+    critic: Critic, cond: torch.Tensor, colors: torch.Tensor,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    n = colors.shape[0]
+    shuffled = colors[torch.randperm(n, device=colors.device)]
+
+    pair = _dequantize(torch.cat([colors, shuffled], dim=0))
+    cond_pair = torch.cat([cond, cond], dim=0)
+    score = critic(cond_pair, pair)
+    real, shuf_score = score.chunk(2, dim=0)
+
+    loss = relu(1 - real).mean() + relu(1 + shuf_score).mean()
+
+    target = torch.cat([score.new_ones(n), score.new_zeros(n)])
+    auroc_shuf = binary_auroc(
+        torch.cat([real, shuf_score], dim=0).detach().squeeze(-1), target.long())
+
+    return loss, auroc_shuf
 
 
 def _critic_probe_step(
@@ -253,14 +271,11 @@ class LitEncoder(pl.LightningModule):
         if n_c > 1:
             cond_c = enc[has_color]
             colors_c = colors[has_color]
-            loss_critic, auroc_shuf, auroc_rand = _critic_probe_step(
+            loss_critic, auroc_shuf = _critic_shuf_step(
                 self.critic, cond_c, colors_c)
             self._log(
                 named_metric(LogStage.ENC, Source.COLOR, Metric.AUROC_SHUF, split),
                 auroc_shuf, n_c)
-            self._log(
-                named_metric(LogStage.ENC, Source.COLOR, Metric.AUROC_RAND, split),
-                auroc_rand, n_c)
 
         return (
             loss_style
@@ -348,29 +363,15 @@ class LitColorGAN(pl.LightningModule):
         fake = self.gen(cond)
 
         # CRITIC
-        random_colors = rnd_color_tensor(colors.shape[0], device=colors.device)
-        cond_wrong = cond[torch.randperm(cond.shape[0], device=cond.device)]
-
         real = self.critic(cond, _dequantize(colors))
         fake_score = self.critic(cond, fake.detach())
-        wrong_score = self.critic(cond_wrong, _dequantize(colors))
-        random_score = self.critic(cond, _dequantize(random_colors))
 
-        loss_critic = relu(1 - real).mean() \
-            + COND_CRITIC_MISMATCH_WEIGHT * relu(1 + fake_score).mean() \
-            + (1 - COND_CRITIC_MISMATCH_WEIGHT) * relu(1 + wrong_score).mean() \
-            + COND_CRITIC_RANDOM_WEIGHT * relu(1 + random_score).mean()
+        loss_critic = relu(1 - real).mean() + relu(1 + fake_score).mean()
 
         n = colors.shape[0]
         auroc_target = torch.cat([real.new_ones(n), real.new_zeros(n)])
         auroc_gen = binary_auroc(
             torch.cat([real, fake_score], dim=0).detach().squeeze(-1),
-            auroc_target.long())
-        auroc_shuf = binary_auroc(
-            torch.cat([real, wrong_score], dim=0).detach().squeeze(-1),
-            auroc_target.long())
-        auroc_rand = binary_auroc(
-            torch.cat([real, random_score], dim=0).detach().squeeze(-1),
             auroc_target.long())
 
         opt_critic.zero_grad()
@@ -406,20 +407,12 @@ class LitColorGAN(pl.LightningModule):
 
         self.log(GanMetric.COND_LOSS, loss_critic, prog_bar=True)
         self.log(GanMetric.COND_AUROC_GEN, auroc_gen, prog_bar=True)
-        self.log(GanMetric.COND_AUROC_SHUF, auroc_shuf, prog_bar=True)
-        self.log(GanMetric.COND_AUROC_RAND, auroc_rand, prog_bar=True)
         self.log(
             GanMetric.COND_MEAN_SCORE_REAL,
             real.detach().mean(), prog_bar=False)
         self.log(
             GanMetric.COND_MEAN_SCORE_FAKE,
             fake_score.detach().mean(), prog_bar=False)
-        self.log(
-            GanMetric.COND_MEAN_SCORE_WRONG,
-            wrong_score.detach().mean(), prog_bar=False)
-        self.log(
-            GanMetric.COND_MEAN_SCORE_RANDOM,
-            random_score.detach().mean(), prog_bar=False)
         self.log(
             GanMetric.GEN_LOSS_COND,
             loss_gen_critic, prog_bar=True)

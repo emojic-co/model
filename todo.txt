@@ -1,10 +1,4 @@
-Update the gab log names:
-gan/gen_loss
-gan/critic_loss
-gan/critic_gen_auroc
-gan/critic_shuf_auroc
-gan/critic_rand_auroc
-gan/energy/train
-gan/energy/val
-
-Nothing else expect the above.
+During GAN training do not use shuffled (text, color) pairs and do not use random  colors to train the critic.
+During GAN training the critic only gets:
+1/2 real (text, color) pairs
+1/2 fake (text, color) pairs
