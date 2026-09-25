@@ -44,8 +44,6 @@ from files import (
 )
 from model.color import energy_distance, rgb_to_oklab
 from model.config import (
-    COND_CRITIC_MISMATCH_WEIGHT,
-    COND_CRITIC_RANDOM_WEIGHT,
     CONFIG_NAME,
     EARLY_STOP_MIN_DELTA_GAN,
     EARLY_STOP_PATIENCE_ENCODER,
@@ -343,29 +341,15 @@ class LitColorGAN(pl.LightningModule):
         fake = self.gen(cond)
 
         # CRITIC
-        random_colors = rnd_color_tensor(colors.shape[0], device=colors.device)
-        cond_wrong = cond[torch.randperm(cond.shape[0], device=cond.device)]
-
         real = self.critic(cond, colors)
         fake_score = self.critic(cond, fake.detach())
-        wrong_score = self.critic(cond_wrong, colors)
-        random_score = self.critic(cond, random_colors)
 
-        loss_critic = relu(1 - real).mean() \
-            + COND_CRITIC_MISMATCH_WEIGHT * relu(1 + fake_score).mean() \
-            + (1 - COND_CRITIC_MISMATCH_WEIGHT) * relu(1 + wrong_score).mean() \
-            + COND_CRITIC_RANDOM_WEIGHT * relu(1 + random_score).mean()
+        loss_critic = relu(1 - real).mean() + relu(1 + fake_score).mean()
 
         n = colors.shape[0]
         auroc_target = torch.cat([real.new_ones(n), real.new_zeros(n)])
         auroc_gen = binary_auroc(
             torch.cat([real, fake_score], dim=0).detach().squeeze(-1),
-            auroc_target.long())
-        auroc_shuf = binary_auroc(
-            torch.cat([real, wrong_score], dim=0).detach().squeeze(-1),
-            auroc_target.long())
-        auroc_rand = binary_auroc(
-            torch.cat([real, random_score], dim=0).detach().squeeze(-1),
             auroc_target.long())
 
         opt_critic.zero_grad()
@@ -401,20 +385,12 @@ class LitColorGAN(pl.LightningModule):
 
         self.log(GanMetric.COND_LOSS, loss_critic, prog_bar=True)
         self.log(GanMetric.COND_AUROC_GEN, auroc_gen, prog_bar=True)
-        self.log(GanMetric.COND_AUROC_SHUF, auroc_shuf, prog_bar=True)
-        self.log(GanMetric.COND_AUROC_RAND, auroc_rand, prog_bar=True)
         self.log(
             GanMetric.COND_MEAN_SCORE_REAL,
             real.detach().mean(), prog_bar=False)
         self.log(
             GanMetric.COND_MEAN_SCORE_FAKE,
             fake_score.detach().mean(), prog_bar=False)
-        self.log(
-            GanMetric.COND_MEAN_SCORE_WRONG,
-            wrong_score.detach().mean(), prog_bar=False)
-        self.log(
-            GanMetric.COND_MEAN_SCORE_RANDOM,
-            random_score.detach().mean(), prog_bar=False)
         self.log(
             GanMetric.GEN_LOSS_COND,
             loss_gen_critic, prog_bar=True)
