@@ -6,7 +6,6 @@ from torch.nn.utils import spectral_norm as sn
 
 from model.color import COLOR_SHIFT
 from model.config import (
-    CRITIC_HIDDEN_SIZE,
     DROPOUT,
     EMBED_SIZE_CHAR,
     EMBED_SIZE_EMOJI,
@@ -15,7 +14,8 @@ from model.config import (
     ENCODER_CHANNELS,
     ENCODER_DILATION,
     ENCODER_KERNEL_SIZE,
-    GEN_HIDDEN_SIZE,
+    HIDDEN_SIZE_CRITIC,
+    HIDDEN_SIZE_GEN,
     RELU_SLOPE,
     Z_WEIGHT,
 )
@@ -124,12 +124,12 @@ class ColorGen(nn.Module):
         super().__init__()
 
         self.text_proj = nn.Sequential(
-            *gblk(EMBED_SIZE_TEXT, GEN_HIDDEN_SIZE))
+            *gblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_GEN))
 
         self.net = nn.Sequential(
-            *gblk(GEN_HIDDEN_SIZE, GEN_HIDDEN_SIZE),
+            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
             # *gblk(GEN_HIDDEN_SIZE, GEN_HIDDEN_SIZE),
-            nn.Linear(GEN_HIDDEN_SIZE, COLOR_DIM))
+            nn.Linear(HIDDEN_SIZE_GEN, COLOR_DIM))
 
     def forward(
         self,
@@ -138,7 +138,7 @@ class ColorGen(nn.Module):
     ) -> torch.Tensor:
         if z is None:
             z = torch.randn(
-                *cond.shape[:-1], GEN_HIDDEN_SIZE,
+                *cond.shape[:-1], HIDDEN_SIZE_GEN,
                 device=cond.device, dtype=cond.dtype)
 
         z = normalize(z, dim=-1)
@@ -160,15 +160,15 @@ class Critic(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.text_net = nn.Sequential(*cblk(EMBED_SIZE_TEXT, CRITIC_HIDDEN_SIZE))
+        self.text_net = nn.Sequential(*cblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_CRITIC))
 
         self.color_net = nn.Sequential(
-            *cblk(COLOR_DIM, CRITIC_HIDDEN_SIZE),
-            *cblk(CRITIC_HIDDEN_SIZE, CRITIC_HIDDEN_SIZE))
+            *cblk(COLOR_DIM, HIDDEN_SIZE_CRITIC),
+            *cblk(HIDDEN_SIZE_CRITIC, HIDDEN_SIZE_CRITIC))
 
         self.mlp = nn.Sequential(
-            *cblk(CRITIC_HIDDEN_SIZE, CRITIC_HIDDEN_SIZE),
-            sn(nn.Linear(CRITIC_HIDDEN_SIZE, 1)))
+            *cblk(HIDDEN_SIZE_CRITIC, HIDDEN_SIZE_CRITIC),
+            sn(nn.Linear(HIDDEN_SIZE_CRITIC, 1)))
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
         assert torch.all((colors >= -COLOR_SHIFT) & (colors <= COLOR_SHIFT)), \

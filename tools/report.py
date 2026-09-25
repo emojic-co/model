@@ -1,3 +1,42 @@
+from model.runmeta import load_pt, run_meta
+from model.pred import predict as _predict
+from model.model import (
+    ColorGen,
+    EmojiHead,
+    StyleHead,
+    TextEncoder,
+)
+from model.kwtokens import word_count
+from model.export_onnx import CONST_Z
+from model.data import normalize as norm_text
+from model.data import EVAL_PATH, TRAIN_PATH, read, text_to_tensor
+from model.config import (
+    EMOJIS,
+    ENCODER_CHANNELS,
+    ENCODER_DILATION,
+    ENCODER_KERNEL_SIZE,
+    HIDDEN_SIZE_GEN,
+    MAX_TEXT_LEN,
+    SEED,
+    STYLES,
+)
+from model.color import COLOR_SHIFT, energy_distance, rgb_to_oklab
+from files import (
+    CLDR_BASELINE_JSON,
+    COLORS_JSONL,
+    DATA_JSONL,
+    GOALS_YML,
+    GROUP_JSON,
+    II_JSON,
+    KEYWORDS_JSONL,
+    REPORT_DIR,
+    TERMS_JSONL,
+    PtFile,
+)
+from torch import nn
+import yaml
+import typer
+import torch
 import html
 import json
 import random
@@ -12,46 +51,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-import torch
-import typer
-import yaml
-from torch import nn
-
-from files import (
-    CLDR_BASELINE_JSON,
-    COLORS_JSONL,
-    DATA_JSONL,
-    GOALS_YML,
-    GROUP_JSON,
-    II_JSON,
-    KEYWORDS_JSONL,
-    REPORT_DIR,
-    TERMS_JSONL,
-    PtFile,
-)
-from model.color import COLOR_SHIFT, energy_distance, rgb_to_oklab
-from model.config import (
-    EMOJIS,
-    ENCODER_CHANNELS,
-    ENCODER_DILATION,
-    ENCODER_KERNEL_SIZE,
-    GEN_HIDDEN_SIZE,
-    MAX_TEXT_LEN,
-    SEED,
-    STYLES,
-)
-from model.data import EVAL_PATH, TRAIN_PATH, read, text_to_tensor
-from model.data import normalize as norm_text
-from model.export_onnx import CONST_Z
-from model.kwtokens import word_count
-from model.model import (
-    ColorGen,
-    EmojiHead,
-    StyleHead,
-    TextEncoder,
-)
-from model.pred import predict as _predict
-from model.runmeta import load_pt, run_meta
 
 DATA_PATH = DATA_JSONL
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -383,7 +382,8 @@ def _section_style_dist(enc, style_head, eval_records) -> dict:
     gt_counts = Counter(s for r in rows for s in r.styles)
     n = len(rows)
     dist = [
-        {"style": s, "gt": gt_counts.get(s, 0) / n, "pred": pred_counts.get(s, 0) / n}
+        {"style": s, "gt": gt_counts.get(
+            s, 0) / n, "pred": pred_counts.get(s, 0) / n}
         for s in STYLES
     ]
     dist.sort(key=lambda d: d["gt"], reverse=True)
@@ -713,7 +713,8 @@ def _section_status(report) -> dict:
             for k, v in vc["groups"].items()
             if v["score"] is not None and v["target"] is not None
         )[:4]
-        weak = " · weakest: " + ", ".join(f"{k} {d:+.2f}" for d, k in worst) if worst else ""
+        weak = " · weakest: " + \
+            ", ".join(f"{k} {d:+.2f}" for d, k in worst) if worst else ""
         if higher_open:
             status, note = "na", "deferred — lower priority than open goals above · " + frac
         else:
@@ -853,8 +854,10 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
         emb = enc(ids)
         elog = emoji_head(emb)
         slog = style_head(emb)
-        cond = emb[:, None, :].expand(-1, CONST_Z.shape[0], -1).reshape(-1, emb.shape[-1])
-        z = CONST_Z[None, :, :].expand(len(rows), -1, -1).reshape(-1, CONST_Z.shape[-1])
+        cond = emb[:, None, :].expand(-1, CONST_Z.shape[0], -
+                                      1).reshape(-1, emb.shape[-1])
+        z = CONST_Z[None, :, :].expand(
+            len(rows), -1, -1).reshape(-1, CONST_Z.shape[-1])
         palettes = gen(cond, z).reshape(len(rows), CONST_Z.shape[0], 9)
     emoji_acc = [_acc_at_k(elog, etgt, k).mean().item() for k in EMOJI_KS]
     style_acc = [_acc_at_k(slog, stgt, k).mean().item() for k in EMOJI_KS]
@@ -1066,7 +1069,7 @@ def _section_lang_consistency(enc, emoji_head, style_head, gen) -> dict:
         emoji_he = emoji_head(enc_he)
         style_en, style_he = style_head(enc_en), style_head(enc_he)
         zeros = torch.zeros(
-            *enc_en.shape[:-1], GEN_HIDDEN_SIZE,
+            *enc_en.shape[:-1], HIDDEN_SIZE_GEN,
             device=enc_en.device, dtype=enc_en.dtype
         )
         color_en, color_he = gen(enc_en, zeros), gen(enc_he, zeros)
@@ -1119,7 +1122,8 @@ def _section_lang_consistency(enc, emoji_head, style_head, gen) -> dict:
             sum(r["color_dist"] for r in agree) / len(agree) if agree else None
         ),
         "color_dist_mean_disagree": (
-            sum(r["color_dist"] for r in disagree) / len(disagree) if disagree else None
+            sum(r["color_dist"] for r in disagree) /
+            len(disagree) if disagree else None
         ),
         "rows": rows,
     }
@@ -1208,7 +1212,8 @@ def build_report(pt: Path, only: str = "", out: Path = REPORT_DIR) -> Path:
             style_head, err = _load(StyleHead(), style_pt)
             if err:
                 prov["issues"].append(f"{style_pt} could not load: {err}")
-    gen_wanted = {"cards", "gen_sensitivity", "color_keywords", "lang_consistency"} & want
+    gen_wanted = {"cards", "gen_sensitivity",
+                  "color_keywords", "lang_consistency"} & want
     if enc is not None and gen_wanted and gen_pt.exists():
         gen, err = _load(ColorGen(), gen_pt)
         if err:
@@ -1240,7 +1245,8 @@ def build_report(pt: Path, only: str = "", out: Path = REPORT_DIR) -> Path:
         report["keyword"] = _section_keyword_probe(enc, emoji_head)
         report["term"] = _section_term_probe(enc, emoji_head)
     if "cards" in want:
-        report["cards"] = _section_cards(enc, style_head, emoji_head, gen, gold_rows)
+        report["cards"] = _section_cards(
+            enc, style_head, emoji_head, gen, gold_rows)
     if "gen_sensitivity" in want:
         report["gen_sensitivity"] = _section_gen_sensitivity(enc, gen, gold_rows)
     if "color_keywords" in want:
@@ -1387,7 +1393,7 @@ def _block_color(i: int) -> str:
 def _block_bg(i: int, amount: float = 0.8) -> str:
     hx = _block_color(i).lstrip("#")
     mixed = (
-        round(int(hx[j : j + 2], 16) + (255 - int(hx[j : j + 2], 16)) * amount)
+        round(int(hx[j: j + 2], 16) + (255 - int(hx[j: j + 2], 16)) * amount)
         for j in (0, 2, 4)
     )
     return "#" + "".join(f"{v:02x}" for v in mixed)
@@ -1403,7 +1409,7 @@ def _fnum(n) -> str:
 
 def _hex_to_offsets(hx: str) -> list[float]:
     hx = hx.lstrip("#")
-    return [int(hx[i : i + 2], 16) - COLOR_SHIFT for i in (0, 2, 4)]
+    return [int(hx[i: i + 2], 16) - COLOR_SHIFT for i in (0, 2, 4)]
 
 
 def _offsets_to_hex(vals) -> str:
@@ -1434,7 +1440,8 @@ def _pure_threshold(color: str) -> float:
 def _pure_distance(pred9, color: str) -> float:
     p = rgb_to_oklab(torch.tensor(pred9, dtype=torch.float32)).reshape(3, 3)
     bg = p[:2].mean(dim=0)
-    pure = rgb_to_oklab(torch.tensor(_hex_to_offsets(PURE_HEX[color]), dtype=torch.float32))
+    pure = rgb_to_oklab(torch.tensor(
+        _hex_to_offsets(PURE_HEX[color]), dtype=torch.float32))
     if color in ("dark", "bright"):
         return (bg[0] - pure[0]).abs().item()
     return (bg - pure).norm().item()
@@ -1576,7 +1583,8 @@ def _status_html(status) -> str:
             cur_txt = f"{cur:.3f}"
         else:
             cur_txt = _fnum(cur)
-        note = f'<div class="gnote">{_esc(g["note"])}</div>' if g.get("note") else ""
+        note = f'<div class="gnote">{_esc(g["note"])}</div>' if g.get(
+            "note") else ""
         rows.append(
             f'<tr class="sc-{g["status"]}"><td>{_esc(g["goal"])}{note}</td>'
             f'<td class="n">{_esc(g["target"])}</td>'
@@ -1587,7 +1595,8 @@ def _status_html(status) -> str:
         '<h2 class="status-h">Goal status</h2>'
         '<table class="scorecard"><tr><th>Goal — priority order</th>'
         '<th class="n">Target</th>'
-        '<th class="n">Current value</th><th>Status</th></tr>' + "".join(rows) + "</table>"
+        '<th class="n">Current value</th><th>Status</th></tr>' +
+        "".join(rows) + "</table>"
     ]
     vc = status.get("vocab_coverage") or {}
     if vc.get("measurable"):
@@ -1609,7 +1618,8 @@ def _status_html(status) -> str:
             "</summary>"
             '<table class="scorecard"><tr><th>Unicode group</th>'
             '<th class="n">In vocab</th><th class="n">Score</th>'
-            '<th class="n">Target</th></tr>' + "".join(grp_rows) + "</table></details>"
+            '<th class="n">Target</th></tr>' +
+            "".join(grp_rows) + "</table></details>"
         )
     return "".join(out)
 
@@ -1638,7 +1648,8 @@ def _data_html(d) -> str:
     )
     dist = d["length_distribution"]
     maxv = max((v for _, v in dist), default=1)
-    bars = _bars([[str(length), count] for length, count in dist], maxv, rotated=True)
+    bars = _bars([[str(length), count]
+                 for length, count in dist], maxv, rotated=True)
     kw_dist = d["keywords_length_distribution"]
     kw_maxv = max((v for _, v in kw_dist), default=1)
     kw_bars = _bars(
@@ -1693,7 +1704,8 @@ def _emoji_html(d) -> str:
             "<code>bun run regen</code> to write "
             "<code>data/cldr-baseline.json</code>.</p>"
         )
-        out.append(f"<h3>Performance on eval.jsonl ({e['n']} rows)</h3>{chart}{note}")
+        out.append(
+            f"<h3>Performance on eval.jsonl ({e['n']} rows)</h3>{chart}{note}")
     return "".join(out)
 
 
@@ -1741,7 +1753,6 @@ def _keyword_fails_html(d) -> str:
         "<table><tr><th>Keyword</th><th>Src</th><th>Target</th>"
         '<th>Predicted</th><th class="n">Rank</th></tr>' + trows + "</table>"
     )
-
 
 
 def _cards_html(d) -> str:
@@ -1896,6 +1907,7 @@ def _color_keywords_html(d) -> str:
             '<p class="note">Unavailable — needs enc.pt / gen.pt and '
             "goals.yml color generator.energy distance targets.</p>"
         )
+
     def _vtxt(r) -> str:
         return "–" if r["value"] is None else f"{r['value']:.3f}"
 
@@ -1941,7 +1953,7 @@ def _color_keyword_examples_html(rows) -> str:
             continue
         cells = []
         for i in range(0, len(examples), 2):
-            pair = examples[i : i + 2]
+            pair = examples[i: i + 2]
             cells += [_kw_cell("gt", ex) for ex in pair]
             cells += [_kw_cell("pred", ex) for ex in pair]
         out.append(
@@ -2249,7 +2261,7 @@ def _eval_samples_html(d) -> str:
         for r in rows
     ]
     docs = _render_cards(gt_cards + mo_cards)
-    gt_docs, mo_docs = docs[: len(rows)], docs[len(rows) :]
+    gt_docs, mo_docs = docs[: len(rows)], docs[len(rows):]
     cells = []
     for i in range(0, len(rows) - 1, 2):
         cells += [gt_docs[i], gt_docs[i + 1], mo_docs[i], mo_docs[i + 1]]
@@ -2294,7 +2306,8 @@ def _inject_toc_ids(html_body: str) -> tuple[str, list[tuple[str, str]]]:
 def _toc_html(items: list[tuple[str, str]]) -> str:
     if not items:
         return ""
-    lis = "".join(f'<li><a href="#{slug}">{_esc(title)}</a></li>' for slug, title in items)
+    lis = "".join(
+        f'<li><a href="#{slug}">{_esc(title)}</a></li>' for slug, title in items)
     return f'<nav class="toc"><div class="toc-h">On this page</div><ul>{lis}</ul></nav>'
 
 
@@ -2330,7 +2343,8 @@ def _render_html(report) -> str:
         )
     if "term" in report:
         body.append(
-            _acc_chart_html("Model — Term accuracy", "data/terms.jsonl", report["term"])
+            _acc_chart_html("Model — Term accuracy",
+                            "data/terms.jsonl", report["term"])
         )
     if "cards" in report:
         body.append(_cards_html(report["cards"]))

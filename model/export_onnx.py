@@ -19,7 +19,7 @@ from files import (
     STYLE_PT,
     WEB_PUBLIC_DIR,
 )
-from model.config import EMOJIS, GEN_HIDDEN_SIZE, MAX_TEXT_LEN, SEED, STYLES
+from model.config import EMOJIS, HIDDEN_SIZE_GEN, MAX_TEXT_LEN, SEED, STYLES
 from model.data import CHARS, PAD_IDX
 from model.model import (
     ColorGen,
@@ -39,7 +39,7 @@ COLOR_SAMPLES = 5
 CONST_Z = normalize(
     torch.randn(
         COLOR_SAMPLES,
-        GEN_HIDDEN_SIZE,
+        HIDDEN_SIZE_GEN,
         generator=torch.Generator().manual_seed(SEED),
     ),
     dim=-1,
