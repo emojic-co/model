@@ -17,7 +17,7 @@ from model.config import (
     ENCODER_KERNEL_SIZE,
     GEN_HIDDEN_SIZE,
     RELU_SLOPE,
-    Z_SIZE,
+    Z_WEIGHT,
 )
 from model.data import COLOR_DIM, EMOJIS, PAD_IDX, STYLES, VOCAB_SIZE
 
@@ -123,8 +123,11 @@ class ColorGen(nn.Module):
     def __init__(self):
         super().__init__()
 
+        self.text_proj = nn.Sequential(
+            *gblk(EMBED_SIZE_TEXT, GEN_HIDDEN_SIZE))
+
         self.net = nn.Sequential(
-            *gblk(EMBED_SIZE_TEXT + Z_SIZE, GEN_HIDDEN_SIZE),
+            *gblk(GEN_HIDDEN_SIZE, GEN_HIDDEN_SIZE),
             *gblk(GEN_HIDDEN_SIZE, GEN_HIDDEN_SIZE),
             nn.Linear(GEN_HIDDEN_SIZE, COLOR_DIM))
 
@@ -135,17 +138,12 @@ class ColorGen(nn.Module):
     ) -> torch.Tensor:
         if z is None:
             z = torch.randn(
-                *cond.shape[:-1], Z_SIZE,
+                *cond.shape[:-1], GEN_HIDDEN_SIZE,
                 device=cond.device, dtype=cond.dtype)
 
-        assert cond.shape[:-1] == z.shape[:-1] and z.shape[-1] == Z_SIZE, \
-            f"z must have shape (*cond.shape[:-1], {Z_SIZE}), " \
-            f"got cond={cond.shape} and z={z.shape}"
-
         z = normalize(z, dim=-1)
-        cond = normalize(cond, dim=-1)
-
-        seed = torch.cat([cond, z], dim=-1)
+        cond = normalize(self.text_proj(cond), dim=-1)
+        seed = (1 - Z_WEIGHT) * cond + Z_WEIGHT * z
 
         colors = self.net(seed)
         return tanh(colors) * COLOR_SHIFT
