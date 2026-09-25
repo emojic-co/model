@@ -5,7 +5,6 @@ from torch.nn.functional import (
     normalize,
     tanh,
 )
-from torch.nn.utils.parametrizations import spectral_norm as sn
 
 from model.color import COLOR_SHIFT
 from model.config import (
@@ -184,7 +183,9 @@ class ColorCritic(nn.Module):
         super().__init__()
 
         self.color_critic = nn.Sequential(
-            sn(nn.Linear(EMBED_SIZE_COLOR, 1)))
+            # sn(nn.Linear(EMBED_SIZE_COLOR, 1))
+            nn.Linear(EMBED_SIZE_COLOR, 1)
+        )
 
     def forward(self, color_embedding: torch.Tensor):
 
