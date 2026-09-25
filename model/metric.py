@@ -28,6 +28,8 @@ class Metric(StrEnum):
     MRR = "mrr"
     R2 = "r2"
     AUROC = "auroc"
+    AUROC_SHUF = "auroc_shuf"
+    AUROC_RAND = "auroc_rand"
     LOSS = "loss"
 
 
@@ -48,8 +50,10 @@ class GanMetric:
     COND_LOSS = "gan/cond_loss"
     COND_AUROC_GEN = "gan/cond_auroc_gen"
     COND_AUROC_SHUF = "gan/cond_auroc_shuf"
+    COND_AUROC_RAND = "gan/cond_auroc_rand"
     COND_MEAN_SCORE_REAL = "gan/cond_mean_score_real"
     COND_MEAN_SCORE_FAKE = "gan/cond_mean_score_fake"
     COND_MEAN_SCORE_WRONG = "gan/cond_mean_score_wrong"
+    COND_MEAN_SCORE_RANDOM = "gan/cond_mean_score_random"
     COLOR_LOSS = "gan/color_loss"
     COLOR_AUROC = "gan/color_auroc"
