@@ -50,9 +50,13 @@ Three call sites in `model/train.py`:
 
 ## New `Critic` module
 
-`model/model.py`, replacing all three classes. No dual-tower
-dot-product: concatenate the text embedding and the raw color vector
-into one vector and run it through a single deep net down to a scalar.
+`model/model.py`, replacing all three classes. Mid-fusion: a text
+tower and a color tower each project to the same width, fused by an
+elementwise product, then an MLP reduces that fused vector to a
+scalar. (An earlier revision of this spec used early fusion —
+concatenate text and color into one vector before any net — but the
+module was changed to this mid-fusion form after this spec was first
+implemented; the code below is current.)
 
 ```python
 CRITIC_HIDDEN_SIZE = 128  # model/config.py
@@ -61,9 +65,12 @@ CRITIC_HIDDEN_SIZE = 128  # model/config.py
 class Critic(nn.Module):
     def __init__(self):
         super().__init__()
-        self.net = nn.Sequential(
-            *cblk(EMBED_SIZE_TEXT + COLOR_DIM, CRITIC_HIDDEN_SIZE),
-            *cblk(CRITIC_HIDDEN_SIZE, CRITIC_HIDDEN_SIZE),
+
+        self.text_net = nn.Sequential(*cblk(EMBED_SIZE_TEXT, CRITIC_HIDDEN_SIZE))
+        self.color_net = nn.Sequential(
+            *cblk(COLOR_DIM, CRITIC_HIDDEN_SIZE),
+            *cblk(CRITIC_HIDDEN_SIZE, CRITIC_HIDDEN_SIZE))
+        self.mlp = nn.Sequential(
             *cblk(CRITIC_HIDDEN_SIZE, CRITIC_HIDDEN_SIZE),
             sn(nn.Linear(CRITIC_HIDDEN_SIZE, 1)))
 
@@ -71,28 +78,29 @@ class Critic(nn.Module):
         assert torch.all((colors >= -COLOR_SHIFT) & (colors <= COLOR_SHIFT)), \
             f"colors must be in [-{COLOR_SHIFT}, {COLOR_SHIFT}], " \
             f"got min={colors.min().item()} max={colors.max().item()}"
-        return self.net(torch.cat([cond, colors], dim=-1))
+        fused = self.text_net(cond) * self.color_net(colors)
+        return self.mlp(fused)
 ```
 
-Three `cblk` blocks (spectral-norm linear + LayerNorm + LeakyReLU,
-same block style the old critics used) then a spectral-norm linear
-readout — "deep" relative to the old two-block towers, since the net
-now has to do the text/color interaction work that used to be a dot
-product. `CRITIC_HIDDEN_SIZE` is a new `model/config.py` constant.
-`EMBED_SIZE_COLOR` (only ever used by the three deleted classes — not
-by `ColorGen`, which sizes off `Z_SIZE`/`GEN_HIDDEN_SIZE`/`COLOR_DIM`
-directly) becomes dead and is deleted along with them.
+`text_net` is one `cblk` block (mirrors the old `CondColorCritic`'s
+single-block text projection); `color_net` is two blocks (mirrors the
+old `ColorEmbedding`); `mlp` is one block plus a spectral-norm linear
+readout. All three share `CRITIC_HIDDEN_SIZE` rather than introducing
+separate width constants per branch. `EMBED_SIZE_COLOR` (only ever
+used by the three deleted classes — not by `ColorGen`, which sizes off
+`Z_SIZE`/`GEN_HIDDEN_SIZE`/`COLOR_DIM` directly) becomes dead and is
+deleted along with them.
 
 There's no more separate `embed`/`score` split: `forward` is the only
-entry point, and every score requires a full forward pass over the
-concatenated vector — a call site can no longer compute one color
-embedding once and cheaply re-score it against two different `cond`s.
-`LitColorGAN`'s `real`/`wrong_score` reuse (see below) loses that
-reuse and calls `self.critic(...)` twice instead. There is also no
-separate unconditional scalar head — realism judgment is folded into
-the same score by training it against random-color negatives, which is
-what makes this module a genuine replacement for `ColorCritic` rather
-than just a rename of `CondColorCritic`.
+entry point, and every score requires a full forward pass over both
+towers — a call site can no longer compute one color embedding once
+and cheaply re-score it against two different `cond`s. `LitColorGAN`'s
+`real`/`wrong_score` reuse (see below) loses that reuse and calls
+`self.critic(...)` twice instead. There is also no separate
+unconditional scalar head — realism judgment is folded into the same
+score by training it against random-color negatives, which is what
+makes this module a genuine replacement for `ColorCritic` rather than
+just a rename of `CondColorCritic`.
 
 ## Random-color negative
 

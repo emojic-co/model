@@ -162,9 +162,11 @@ class Critic(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.net = nn.Sequential(
-            *cblk(EMBED_SIZE_TEXT + COLOR_DIM, CRITIC_HIDDEN_SIZE),
-            *cblk(CRITIC_HIDDEN_SIZE, CRITIC_HIDDEN_SIZE),
+        self.text_net = nn.Sequential(*cblk(EMBED_SIZE_TEXT, CRITIC_HIDDEN_SIZE))
+        self.color_net = nn.Sequential(
+            *cblk(COLOR_DIM, CRITIC_HIDDEN_SIZE),
+            *cblk(CRITIC_HIDDEN_SIZE, CRITIC_HIDDEN_SIZE))
+        self.mlp = nn.Sequential(
             *cblk(CRITIC_HIDDEN_SIZE, CRITIC_HIDDEN_SIZE),
             sn(nn.Linear(CRITIC_HIDDEN_SIZE, 1)))
 
@@ -172,4 +174,5 @@ class Critic(nn.Module):
         assert torch.all((colors >= -COLOR_SHIFT) & (colors <= COLOR_SHIFT)), \
             f"colors must be in [-{COLOR_SHIFT}, {COLOR_SHIFT}], " \
             f"got min={colors.min().item()} max={colors.max().item()}"
-        return self.net(torch.cat([cond, colors], dim=-1))
+        fused = self.text_net(cond) * self.color_net(colors)
+        return self.mlp(fused)
