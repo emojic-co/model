@@ -1,7 +1,6 @@
 
 import torch
 from torch import nn
-from torch.nn.functional import normalize, tanh
 from torch.nn.utils import spectral_norm as sn
 
 from model.color import COLOR_SHIFT
@@ -17,6 +16,7 @@ from model.config import (
     HIDDEN_SIZE_CRITIC,
     HIDDEN_SIZE_GEN,
     RELU_SLOPE,
+    Z_WEIGHT,
 )
 from model.data import COLOR_DIM, EMOJIS, PAD_IDX, STYLES, VOCAB_SIZE
 
@@ -133,18 +133,17 @@ class ColorGen(nn.Module):
         )
 
         self.mlp = nn.Sequential(
-            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
+            # *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
             nn.Linear(HIDDEN_SIZE_GEN, COLOR_DIM))
 
     def forward(self, cond: torch.Tensor) -> torch.Tensor:
         z = torch.randn_like(cond, device=cond.device, dtype=cond.dtype)
-        z = normalize(z, dim=-1)
 
         z = self.z_net(z)
         t = self.text_net(cond)
 
-        colors = self.mlp(t + z)
-        return tanh(colors) * COLOR_SHIFT
+        colors = self.mlp(t + Z_WEIGHT * z)
+        return colors.clamp(min=-COLOR_SHIFT, max=COLOR_SHIFT)
 
 
 def cblk(i: int, o: int):
