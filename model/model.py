@@ -114,7 +114,7 @@ class EmojiHead(nn.Module):
 def gblk(i: int, o: int):
     return [
         nn.Linear(i, o, bias=False),
-        # nn.LayerNorm(o),
+        nn.LayerNorm(o),
         nn.LeakyReLU(RELU_SLOPE)]
 
 
