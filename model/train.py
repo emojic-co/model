@@ -46,6 +46,7 @@ from model.color import COLOR_SHIFT, energy_distance, rgb_to_oklab
 from model.config import (
     BATCH_SIZE_GAN,
     BATCH_SIZE_TEXT_ENCODER,
+    COLOR_ENERGY_KEYWORDS,
     CONFIG_NAME,
     EARLY_STOP_MIN_DELTA_GAN,
     EARLY_STOP_PATIENCE_ENCODER,
@@ -185,6 +186,22 @@ def _energy_subsample(x: torch.Tensor, n: int) -> torch.Tensor:
     return x[:n]
 
 
+def _color_keyword_masks(
+    text_str: list[str], colors: list[list],
+) -> dict[str, torch.Tensor]:
+    return {
+        keyword: torch.tensor(
+            [
+                i for i, (text, c)
+                in enumerate(zip(text_str, colors, strict=True))
+                if c and keyword.lower() in text
+            ],
+            dtype=torch.long,
+        )
+        for keyword in COLOR_ENERGY_KEYWORDS
+    }
+
+
 _DEFAULT_PT = PT_DIR
 
 
@@ -318,11 +335,12 @@ class LitEncoder(pl.LightningModule):
 
 
 class LitColorGAN(pl.LightningModule):
-    def __init__(self, critic: Critic):
+    def __init__(self, critic: Critic, keyword_masks: dict[str, torch.Tensor]):
         super().__init__()
 
         self.gen = ColorGen()
         self.critic = critic
+        self.keyword_masks = keyword_masks
 
         self.automatic_optimization = False
         self._val_cond: list[torch.Tensor] = []
@@ -355,6 +373,19 @@ class LitColorGAN(pl.LightningModule):
                 rgb_to_oklab(_energy_subsample(colors, ENERGY_VAL_SAMPLE_SIZE)),
                 rgb_to_oklab(_energy_subsample(fake, ENERGY_VAL_SAMPLE_SIZE)))
             self.log(GanMetric.ENERGY_VAL, val_energy, prog_bar=True)
+
+            kw_values = []
+            for idx in self.keyword_masks.values():
+                if idx.numel() == 0:
+                    continue
+                idx = idx.to(colors.device)
+                kw_values.append(energy_distance(
+                    rgb_to_oklab(colors[idx]), rgb_to_oklab(fake[idx])))
+
+            energy_keyword_avg = (
+                torch.stack(kw_values).mean() if kw_values else val_energy)
+            self.log(
+                GanMetric.ENERGY_KEYWORD_AVG, energy_keyword_avg, prog_bar=True)
 
     def training_step(self, batch, batch_idx):
         cond, colors = batch
@@ -571,6 +602,7 @@ def _train_gan(
 ) -> LitColorGAN:
     enc.requires_grad_(False)
     train_cond, val_cond = _encoded_texts(enc, enc_path, ds, val_ds)
+    keyword_masks = _color_keyword_masks(val_ds.text_str, val_ds.colors)
 
     gan_dl = DataLoader(
         _CondColorDataset(train_cond, ds.colors),
@@ -587,7 +619,7 @@ def _train_gan(
     no_bar = _no_progress_bar()
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
-    monitor = GanMetric.ENERGY_VAL
+    monitor = GanMetric.ENERGY_KEYWORD_AVG
     ckpt = ModelCheckpoint(
         monitor=monitor, mode="min", save_top_k=1,
         filename="best-gan-{step}"
@@ -618,12 +650,12 @@ def _train_gan(
         ],
     )
 
-    gan = LitColorGAN(critic)
+    gan = LitColorGAN(critic, keyword_masks)
     trainer.fit(gan, gan_dl, val_dl)
 
     if ckpt.best_model_path:
         gan = LitColorGAN.load_from_checkpoint(
-            ckpt.best_model_path, critic=Critic(),
+            ckpt.best_model_path, critic=Critic(), keyword_masks=keyword_masks,
         )
 
     save_pt(gan.gen.state_dict(), PtFile.GEN.in_dir(out_dir), stage="gan")

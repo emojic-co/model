@@ -195,6 +195,7 @@ class EmojiDataset(Dataset):
         mix_sources: bool = False,
     ):
         self.text = torch.stack([text_to_tensor(r.text) for r in records])
+        self.text_str = [r.text for r in records]
         self.emoji_lists = [r.emojis for r in records]
         self.style = torch.stack([styles_to_tensor(r.styles) for r in records])
         self.colors = [r.colors for r in records]

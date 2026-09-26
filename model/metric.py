@@ -44,6 +44,7 @@ def named_metric(
 class GanMetric:
     ENERGY_TRAIN = "gan/energy/train"
     ENERGY_VAL = "gan/energy/val"
+    ENERGY_KEYWORD_AVG = "gan/energy/keyword_avg"
     GEN_LOSS_COND = "gan/gen_loss"
     COND_LOSS = "gan/critic_loss"
     COND_AUROC_GEN = "gan/critic_gen_auroc"

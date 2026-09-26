@@ -128,7 +128,7 @@ class ColorGen(nn.Module):
 
         self.net = nn.Sequential(
             *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
-            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
+            # *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
             nn.Linear(HIDDEN_SIZE_GEN, COLOR_DIM))
 
     def forward(
@@ -160,7 +160,8 @@ class Critic(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.text_net = nn.Sequential(*cblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_CRITIC))
+        self.text_net = nn.Sequential(
+            *cblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_CRITIC))
 
         self.color_net = nn.Sequential(
             *cblk(COLOR_DIM, HIDDEN_SIZE_CRITIC),

@@ -6,7 +6,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from files import KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
+import yaml
+
+from files import GOALS_YML, KEYWORDS_JSONL, LABELS_JSON, TERMS_JSONL
 from model.metric import LogStage, Metric, Source, named_metric
 
 # from files import FLAGS_JSONL
@@ -73,7 +75,7 @@ style_str = " ".join([
 
 # GAN
 Z_WEIGHT = 0.3
-HIDDEN_SIZE_GEN = 96
+HIDDEN_SIZE_GEN = 64
 HIDDEN_SIZE_CRITIC = 128
 
 
@@ -81,12 +83,16 @@ GRAD_CLIP_GEN = 1
 GRAD_CLIP_CRITIC = 1
 
 # GAN LOSS WEIGHTS
-GAN_LOSS_ENERGY = 10
+GAN_LOSS_ENERGY = 0
 GAN_LOSS_CRITIC = 1
 
 # ENERGY
 ENERGY_TRAIN_SAMPLE_SIZE = 128
 ENERGY_VAL_SAMPLE_SIZE = 1024
+
+_COLOR_GEN_GOALS = yaml.safe_load(
+    GOALS_YML.read_text(encoding="utf-8"))["goals"]["color generator"]
+COLOR_ENERGY_KEYWORDS = list(_COLOR_GEN_GOALS["energy distance"])
 
 # LR
 LR_ENCODER = 0.01

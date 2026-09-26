@@ -1,4 +1,18 @@
-During GAN training do not use shuffled (text, color) pairs and do not use random  colors to train the critic.
-During GAN training the critic only gets:
-1/2 real (text, color) pairs
-1/2 fake (text, color) pairs
+During GAN training, add and tracks TB logs of the 
+  color generator:
+    energy distance:
+      coffee: 0.1
+      chocolate: 0.1
+      lemon: 0.1
+
+      dark: 0.1
+      bright: 0.1
+
+      green: 0.1
+      blue: 0.1
+      gold: 0.1
+      " red ": 0.1
+
+Select the best model by the lowest avg energy distance across all colors.
+Notes:
+- Just add the avg energy distance to the TB logs.
