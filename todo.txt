@@ -1,18 +1,8 @@
-During GAN training, add and tracks TB logs of the 
-  color generator:
-    energy distance:
-      coffee: 0.1
-      chocolate: 0.1
-      lemon: 0.1
+Done:
 
-      dark: 0.1
-      bright: 0.1
-
-      green: 0.1
-      blue: 0.1
-      gold: 0.1
-      " red ": 0.1
-
-Select the best model by the lowest avg energy distance across all colors.
-Notes:
-- Just add the avg energy distance to the TB logs.
+Updated the regen script to:
+Extract the keyword based color records into a data/<name>.jsonl file (git ignored)
+Each record should have additional field keyword.
+Use this file to:
+1. Evaluate keyword energy during the eval step.
+2. Sample from it to generate the final report.

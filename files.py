@@ -25,6 +25,7 @@ EMOJI_POPULARITY_JSON = DATA_DIR / "emoji_popularity.json"
 GROUP_JSON = DATA_DIR / "group.json"
 COLORS_JSONL = DATA_DIR / "colors.jsonl"
 COLOR_TERMS_JSONL = DATA_DIR / "color_terms.jsonl"
+COLOR_KEYWORDS_JSONL = DATA_DIR / "color_keywords.jsonl"
 COLOR_NAMES_SOURCE_JSON = DATA_DIR / "color-names-source.json"
 PRED_JSONL = DATA_DIR / "pred.jsonl"
 

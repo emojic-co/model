@@ -26,6 +26,7 @@ from torchmetrics.functional.classification import binary_auroc
 from tqdm import tqdm
 
 from files import (
+    COLOR_KEYWORDS_JSONL,
     DATA_JSONL,
     EVAL_JSONL,
     FLAGS_JSONL,
@@ -75,10 +76,13 @@ from model.config import (
     VAL_CHECK_INTERVAL,
 )
 from model.data import (
+    colors2tensor,
     eval_data_loader,
     eval_ds,
+    read_color_keywords,
     rnd_color_tensor,
     sample_colors_tensor,
+    text_to_tensor,
     train_data_loader,
     train_ds,
 )
@@ -186,20 +190,22 @@ def _energy_subsample(x: torch.Tensor, n: int) -> torch.Tensor:
     return x[:n]
 
 
-def _color_keyword_masks(
-    text_str: list[str], colors: list[list],
-) -> dict[str, torch.Tensor]:
-    return {
-        keyword: torch.tensor(
-            [
-                i for i, (text, c)
-                in enumerate(zip(text_str, colors, strict=True))
-                if c and keyword.lower() in text
-            ],
-            dtype=torch.long,
-        )
-        for keyword in COLOR_ENERGY_KEYWORDS
-    }
+def _color_keyword_data(
+    enc: TextEncoder, path: Path,
+) -> dict[str, tuple[torch.Tensor, torch.Tensor]]:
+    by_keyword: dict[str, list] = {}
+    for keyword, r in read_color_keywords(path):
+        by_keyword.setdefault(keyword, []).append(r)
+
+    out: dict[str, tuple[torch.Tensor, torch.Tensor]] = {}
+    for keyword in COLOR_ENERGY_KEYWORDS:
+        recs = by_keyword.get(keyword, [])[:ENERGY_VAL_SAMPLE_SIZE]
+        if not recs:
+            continue
+        text = torch.stack([text_to_tensor(r.text) for r in recs])
+        gt9 = torch.stack([colors2tensor(r.colors[0]) for r in recs])
+        out[keyword] = (_encode_texts(enc, text), gt9)
+    return out
 
 
 _DEFAULT_PT = PT_DIR
@@ -335,12 +341,16 @@ class LitEncoder(pl.LightningModule):
 
 
 class LitColorGAN(pl.LightningModule):
-    def __init__(self, critic: Critic, keyword_masks: dict[str, torch.Tensor]):
+    def __init__(
+        self,
+        critic: Critic,
+        keyword_data: dict[str, tuple[torch.Tensor, torch.Tensor]],
+    ):
         super().__init__()
 
         self.gen = ColorGen()
         self.critic = critic
-        self.keyword_masks = keyword_masks
+        self.keyword_data = keyword_data
 
         self.automatic_optimization = False
         self._val_cond: list[torch.Tensor] = []
@@ -372,12 +382,12 @@ class LitColorGAN(pl.LightningModule):
             self.log(GanMetric.ENERGY_VAL, val_energy, prog_bar=True)
 
             kw_values = []
-            for idx in self.keyword_masks.values():
-                if idx.numel() == 0:
-                    continue
-                idx = idx.to(colors.device)
+            for kw_cond, kw_gt9 in self.keyword_data.values():
+                kw_cond = kw_cond.to(cond.device)
+                kw_gt9 = kw_gt9.to(cond.device)
+                kw_fake = self.gen(kw_cond)
                 kw_values.append(energy_distance(
-                    rgb_to_oklab(colors[idx]), rgb_to_oklab(fake[idx])))
+                    rgb_to_oklab(kw_gt9), rgb_to_oklab(kw_fake)))
 
             energy_keyword_avg = (
                 torch.stack(kw_values).mean() if kw_values else val_energy)
@@ -599,7 +609,7 @@ def _train_gan(
 ) -> LitColorGAN:
     enc.requires_grad_(False)
     train_cond, val_cond = _encoded_texts(enc, enc_path, ds, val_ds)
-    keyword_masks = _color_keyword_masks(val_ds.text_str, val_ds.colors)
+    keyword_data = _color_keyword_data(enc, COLOR_KEYWORDS_JSONL)
 
     gan_dl = DataLoader(
         _CondColorDataset(train_cond, ds.colors),
@@ -647,12 +657,12 @@ def _train_gan(
         ],
     )
 
-    gan = LitColorGAN(critic, keyword_masks)
+    gan = LitColorGAN(critic, keyword_data)
     trainer.fit(gan, gan_dl, val_dl)
 
     if ckpt.best_model_path:
         gan = LitColorGAN.load_from_checkpoint(
-            ckpt.best_model_path, critic=Critic(), keyword_masks=keyword_masks,
+            ckpt.best_model_path, critic=Critic(), keyword_data=keyword_data,
         )
 
     save_pt(gan.gen.state_dict(), PtFile.GEN.in_dir(out_dir), stage="gan")

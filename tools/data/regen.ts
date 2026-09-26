@@ -159,6 +159,7 @@ import { existsSync } from "node:fs"
 import {
   CLDR_BASELINE_JSON as BASELINE,
   CLDR_JSONL as CLDR,
+  COLOR_KEYWORDS_JSONL,
   DATA_JSONL as DATA,
   EMOJILIB_JSONL as EMOJILIB,
   EVAL_JSONL as EVAL,
@@ -171,6 +172,7 @@ import {
   WA_KEYWORDS_JSON as WA,
 } from "../../files.ts"
 import { runBaseline } from "../analysis/cldr-baseline.ts"
+import { writeColorKeywords } from "./color-keywords.ts"
 import { MAX_TEXT_LEN, SEED, STYLES } from "./config"
 import { readJsonl, writeFileAtomic } from "./io.ts"
 import { writeKeywordsAndTerms } from "./keywords.ts"
@@ -370,6 +372,8 @@ if (import.meta.main) {
   await writeFileAtomic(EVAL, held.map(toLine).join("\n") + "\n")
   await writeFileAtomic(TRAIN, rest.map(toLine).join("\n") + "\n")
 
+  const colorKeywords = await writeColorKeywords(records)
+
   const labels = {
     langs: [...LANGS],
     styles: [...STYLES],
@@ -416,6 +420,7 @@ if (import.meta.main) {
     `-> ${LABELS}    : ${labels.langs.length} langs, ${labels.styles.length} styles, ${labels.emojis.length} emojis`,
   )
   console.log(kwLine)
+  console.log(`-> ${COLOR_KEYWORDS_JSONL} : ${colorKeywords.length}`)
   console.log(baselineLine)
   process.exit(0)
 }

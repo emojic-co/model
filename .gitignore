@@ -45,6 +45,10 @@ data/terms.jsonl
 data/flags.jsonl
 data/linkedin.jsonl
 
+# Extracted from data/data.jsonl by `bun run regen`; one row per (energy-distance
+# keyword in goals.yml, matching color-bearing record).
+data/color_keywords.jsonl
+
 # regen writes these via writeFileAtomic (path.tmp then rename); a crash leaves them.
 data/train.jsonl.tmp
 data/eval.jsonl.tmp
@@ -54,6 +58,7 @@ data/cldr-baseline.json.tmp
 data/keywords.jsonl.tmp
 data/terms.jsonl.tmp
 data/flags.jsonl.tmp
+data/color_keywords.jsonl.tmp
 
 pt/*.pt
 history/

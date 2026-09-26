@@ -1,42 +1,3 @@
-from model.runmeta import load_pt, run_meta
-from model.pred import predict as _predict
-from model.model import (
-    ColorGen,
-    EmojiHead,
-    StyleHead,
-    TextEncoder,
-)
-from model.kwtokens import word_count
-from model.export_onnx import CONST_Z
-from model.data import normalize as norm_text
-from model.data import EVAL_PATH, TRAIN_PATH, read, text_to_tensor
-from model.config import (
-    EMOJIS,
-    ENCODER_CHANNELS,
-    ENCODER_DILATION,
-    ENCODER_KERNEL_SIZE,
-    HIDDEN_SIZE_GEN,
-    MAX_TEXT_LEN,
-    SEED,
-    STYLES,
-)
-from model.color import COLOR_SHIFT, energy_distance, rgb_to_oklab
-from files import (
-    CLDR_BASELINE_JSON,
-    COLORS_JSONL,
-    DATA_JSONL,
-    GOALS_YML,
-    GROUP_JSON,
-    II_JSON,
-    KEYWORDS_JSONL,
-    REPORT_DIR,
-    TERMS_JSONL,
-    PtFile,
-)
-from torch import nn
-import yaml
-import typer
-import torch
 import html
 import json
 import random
@@ -48,6 +9,55 @@ from datetime import datetime
 from functools import cache
 from itertools import accumulate
 from pathlib import Path
+
+import torch
+import typer
+import yaml
+from torch import nn
+
+from files import (
+    CLDR_BASELINE_JSON,
+    COLOR_KEYWORDS_JSONL,
+    COLORS_JSONL,
+    DATA_JSONL,
+    GOALS_YML,
+    GROUP_JSON,
+    II_JSON,
+    KEYWORDS_JSONL,
+    REPORT_DIR,
+    TERMS_JSONL,
+    PtFile,
+)
+from model.color import COLOR_SHIFT, energy_distance, rgb_to_oklab
+from model.config import (
+    EMOJIS,
+    ENCODER_CHANNELS,
+    ENCODER_DILATION,
+    ENCODER_KERNEL_SIZE,
+    HIDDEN_SIZE_GEN,
+    MAX_TEXT_LEN,
+    SEED,
+    STYLES,
+)
+from model.data import (
+    EVAL_PATH,
+    TRAIN_PATH,
+    colors2tensor,
+    read,
+    read_color_keywords,
+    text_to_tensor,
+)
+from model.data import normalize as norm_text
+from model.export_onnx import CONST_Z
+from model.kwtokens import word_count
+from model.model import (
+    ColorGen,
+    EmojiHead,
+    StyleHead,
+    TextEncoder,
+)
+from model.pred import predict as _predict
+from model.runmeta import load_pt, run_meta
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -989,16 +999,13 @@ def _section_color_keywords(enc, gen) -> dict:
     targets = cg_goals.get("energy distance") or {}
     if enc is None or gen is None or not targets:
         return {}
-    rows = _rows(DATA_PATH)
+    by_keyword: dict[str, list] = {}
+    for keyword, r in read_color_keywords(COLOR_KEYWORDS_JSONL):
+        by_keyword.setdefault(keyword, []).append(r)
+
     out = []
     for keyword in sorted(targets):
-        matched = [
-            r
-            for r in rows
-            if r.get("colors")
-            and 0 < len(norm_text(str(r.get("text", "")))) <= MAX_TEXT_LEN
-            and keyword.lower() in str(r["text"]).lower()
-        ]
+        matched = by_keyword.get(keyword, [])
         rng = random.Random(f"{SEED}:color_keyword:{keyword}")
         sample = rng.sample(matched, min(COLOR_KEYWORD_SAMPLE_N, len(matched)))
         target = targets[keyword]
@@ -1014,28 +1021,21 @@ def _section_color_keywords(enc, gen) -> dict:
                 }
             )
             continue
-        ids = torch.stack([text_to_tensor(norm_text(r["text"])) for r in sample])
-        gt9 = torch.tensor(
-            [
-                _hex_to_offsets(r["colors"][0]["bg"][0])
-                + _hex_to_offsets(r["colors"][0]["bg"][1])
-                + _hex_to_offsets(r["colors"][0]["fg"])
-                for r in sample
-            ],
-            dtype=torch.float32,
-        )
+        ids = torch.stack([text_to_tensor(r.text) for r in sample])
+        gt9 = torch.stack([colors2tensor(r.colors[0]) for r in sample])
         with torch.no_grad():
             fake9 = gen(enc(ids))
         value = energy_distance(rgb_to_oklab(fake9), rgb_to_oklab(gt9)).item()
         examples = []
         for i in range(min(COLOR_KEYWORD_EXAMPLE_N, len(sample))):
             flat = fake9[i].tolist()
+            bg1, bg2, fg = sample[i].colors[0]
             examples.append(
                 {
-                    "text": sample[i]["text"],
-                    "gt_bg1": sample[i]["colors"][0]["bg"][0],
-                    "gt_bg2": sample[i]["colors"][0]["bg"][1],
-                    "gt_fg": sample[i]["colors"][0]["fg"],
+                    "text": sample[i].text,
+                    "gt_bg1": bg1,
+                    "gt_bg2": bg2,
+                    "gt_fg": fg,
                     "pred_bg1": _offsets_to_hex(flat[0:3]),
                     "pred_bg2": _offsets_to_hex(flat[3:6]),
                     "pred_fg": _offsets_to_hex(flat[6:9]),

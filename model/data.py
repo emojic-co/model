@@ -138,6 +138,23 @@ def read(path: Path):
             yield r
 
 
+def read_color_keywords(path: Path) -> list[tuple[str, record]]:
+    out: list[tuple[str, record]] = []
+    try:
+        with path.open(encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                d = json.loads(line)
+                r = _parse_record({**d, "emojis": "", "styles": []})
+                if r is not None and r.colors:
+                    out.append((d["keyword"], r))
+    except FileNotFoundError:
+        pass
+    return out
+
+
 _Pool = tuple[torch.Tensor, list[list[str]], torch.Tensor]
 
 
