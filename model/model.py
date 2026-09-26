@@ -170,12 +170,12 @@ class Critic(nn.Module):
         )
 
         self.color_class = nn.Sequential(
-            *cblk(HIDDEN_SIZE_CRITIC, HIDDEN_SIZE_CRITIC),
+            # *cblk(HIDDEN_SIZE_CRITIC, HIDDEN_SIZE_CRITIC),
             sn(nn.Linear(HIDDEN_SIZE_CRITIC, 1)),
         )
 
         self.text_color_class = nn.Sequential(
-            *cblk(HIDDEN_SIZE_CRITIC, HIDDEN_SIZE_CRITIC),
+            # *cblk(HIDDEN_SIZE_CRITIC, HIDDEN_SIZE_CRITIC),
             sn(nn.Linear(HIDDEN_SIZE_CRITIC, 1))
         )
 
