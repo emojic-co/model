@@ -107,7 +107,6 @@ RELU_SLOPE = 0.1
 gan_str = " ".join([
     str(p)
     for p in (
-        Z_WEIGHT,
         HIDDEN_SIZE_GEN,
         HIDDEN_SIZE_CRITIC,
         LR_GAN_GEN,
@@ -253,7 +252,6 @@ def _stats() -> list[tuple[str, object]]:
         ("TASK_BATCH_SIZE / GAN_BATCH_SIZE",
          f"{BATCH_SIZE_TEXT_ENCODER} / {BATCH_SIZE_GAN}"),
         ("EPOCHS_TASK / EPOCHS_GAN", f"{EPOCHS_TASK} / {EPOCHS_GAN}"),
-        ("Z_WEIGHT", Z_WEIGHT),
     ]
 
 
