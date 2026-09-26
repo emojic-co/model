@@ -114,7 +114,7 @@ class EmojiHead(nn.Module):
 def gblk(i: int, o: int):
     return [
         nn.Linear(i, o, bias=False),
-        nn.LayerNorm(o),
+        # nn.LayerNorm(o),
         nn.LeakyReLU(RELU_SLOPE)]
 
 
@@ -124,16 +124,14 @@ class ColorGen(nn.Module):
 
         self.z_net = nn.Sequential(
             *gblk(Z_DIM, HIDDEN_SIZE_GEN),
-            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
         )
 
         self.text_net = nn.Sequential(
             *gblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_GEN),
-            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
         )
 
         self.mlp = nn.Sequential(
-            *gblk(HIDDEN_SIZE_GEN * 2, HIDDEN_SIZE_GEN),
+            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
             nn.Linear(HIDDEN_SIZE_GEN, COLOR_DIM)
         )
 
@@ -146,7 +144,7 @@ class ColorGen(nn.Module):
         z = self.z_net(z)
         t = self.text_net(cond)
 
-        colors = self.mlp(torch.cat([z, t], dim=-1))
+        colors = self.mlp(z + t)
         return tanh(colors) * COLOR_SHIFT
 
 
