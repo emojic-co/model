@@ -74,7 +74,7 @@ style_str = " ".join([
     for p in (EMBED_SIZE_STYLE, EMBED_SIZE_TEXT)])
 
 # GAN
-HIDDEN_SIZE_GEN = 128
+HIDDEN_SIZE_GEN = 64
 HIDDEN_SIZE_CRITIC = 128
 
 
