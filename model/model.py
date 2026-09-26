@@ -1,7 +1,7 @@
 
 import torch
 from torch import nn
-from torch.nn.functional import tanh
+from torch.nn.functional import normalize, tanh
 from torch.nn.utils import spectral_norm as sn
 
 from model.color import COLOR_SHIFT
@@ -138,6 +138,7 @@ class ColorGen(nn.Module):
 
     def forward(self, cond: torch.Tensor) -> torch.Tensor:
         z = torch.randn_like(cond, device=cond.device, dtype=cond.dtype)
+        z = normalize(z, dim=-1)
 
         z = self.z_net(z)
         t = self.text_net(cond)
