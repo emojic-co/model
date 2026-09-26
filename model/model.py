@@ -1,7 +1,7 @@
 
 import torch
 from torch import nn
-from torch.nn.functional import normalize, tanh
+from torch.nn.functional import tanh
 from torch.nn.utils import spectral_norm as sn
 
 from model.color import COLOR_SHIFT
@@ -17,7 +17,6 @@ from model.config import (
     HIDDEN_SIZE_CRITIC,
     HIDDEN_SIZE_GEN,
     RELU_SLOPE,
-    Z_WEIGHT,
 )
 from model.data import COLOR_DIM, EMOJIS, PAD_IDX, STYLES, VOCAB_SIZE
 
@@ -123,11 +122,14 @@ class ColorGen(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.text_proj = nn.Sequential(
+        self.text_net = nn.Sequential(
             *gblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_GEN))
 
-        self.net = nn.Sequential(
-            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
+        self.z_net = nn.Sequential(
+            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN))
+
+        self.mlp = nn.Sequential(
+            # *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
             # *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
             nn.Linear(HIDDEN_SIZE_GEN, COLOR_DIM))
 
@@ -141,11 +143,10 @@ class ColorGen(nn.Module):
                 *cond.shape[:-1], HIDDEN_SIZE_GEN,
                 device=cond.device, dtype=cond.dtype)
 
-        z = normalize(z, dim=-1)
-        cond = normalize(self.text_proj(cond), dim=-1)
-        seed = (1 - Z_WEIGHT) * cond + Z_WEIGHT * z
+        z = self.z_net(z)
+        t = self.text_net(cond)
 
-        colors = self.net(seed)
+        colors = self.mlp(t + z)
         return tanh(colors) * COLOR_SHIFT
 
 
