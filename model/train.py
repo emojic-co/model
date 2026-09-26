@@ -67,6 +67,7 @@ from model.config import (
     LR_ENCODER,
     LR_GAN_CRITIC,
     LR_GAN_GEN,
+    MAX_AUROC,
     MIN_AUROC,
     SAMPLING_RATE_MAX,
     SAMPLING_RATE_MIN,
@@ -411,14 +412,17 @@ class LitColorGAN(pl.LightningModule):
             torch.cat([real, fake_score], dim=0).detach().squeeze(-1),
             auroc_target.long())
 
-        opt_critic.zero_grad()
-        self.manual_backward(loss_critic)
-        self.clip_gradients(
-            opt_critic,  # type: ignore
-            gradient_clip_val=GRAD_CLIP_CRITIC,
-            gradient_clip_algorithm="norm")
+        if auroc_gen <= MAX_AUROC:
+            opt_critic.zero_grad()
+            self.manual_backward(loss_critic)
+            self.clip_gradients(
+                opt_critic,  # type: ignore
+                gradient_clip_val=GRAD_CLIP_CRITIC,
+                gradient_clip_algorithm="norm")
 
-        opt_critic.step()
+            opt_critic.step()
+
+            self.log(GanMetric.COND_LOSS, loss_critic, prog_bar=True)
 
         # GENERATOR
         if auroc_gen >= MIN_AUROC:
@@ -446,7 +450,6 @@ class LitColorGAN(pl.LightningModule):
             self.log(GanMetric.GEN_LOSS_COND, loss_gen_critic, prog_bar=True)
             self.log(GanMetric.ENERGY_TRAIN, loss_energy, prog_bar=True)
 
-        self.log(GanMetric.COND_LOSS, loss_critic, prog_bar=True)
         self.log(GanMetric.COND_AUROC_GEN, auroc_gen, prog_bar=True)
         self.log(
             GanMetric.COND_MEAN_SCORE_REAL,
