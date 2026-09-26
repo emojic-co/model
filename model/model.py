@@ -180,6 +180,7 @@ class Critic(nn.Module):
 
         t = self.text_net(cond)
         c = self.color_net(colors)
+
         return \
             self.color_class(c) + \
             self.text_color_class(t * c)

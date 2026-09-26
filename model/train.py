@@ -719,7 +719,7 @@ def _run_cond() -> None:
             f"{enc_path}: missing -- run `train --local` first to produce "
             "a trained encoder"
         )
-    enc = _load(TextEncoder(), enc_path)  # type: ignore
+    enc = _load(TextEncoder(), enc_path)
     enc.requires_grad_(False)
 
     ds = train_ds(mix_sources=False)
