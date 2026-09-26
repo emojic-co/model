@@ -16,6 +16,7 @@ from model.config import (
     HIDDEN_SIZE_CRITIC,
     HIDDEN_SIZE_GEN,
     RELU_SLOPE,
+    Z_DIM,
     Z_WEIGHT,
 )
 from model.data import COLOR_DIM, EMOJIS, PAD_IDX, STYLES, VOCAB_SIZE
@@ -122,14 +123,14 @@ class ColorGen(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.text_net = nn.Sequential(
-            *gblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_GEN),
-            # *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
+        self.z_net = nn.Sequential(
+            *gblk(Z_DIM, HIDDEN_SIZE_GEN),
+            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
         )
 
-        self.z_net = nn.Sequential(
+        self.text_net = nn.Sequential(
             *gblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_GEN),
-            # *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
+            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
         )
 
         self.mlp = nn.Sequential(
@@ -138,7 +139,10 @@ class ColorGen(nn.Module):
         )
 
     def forward(self, cond: torch.Tensor) -> torch.Tensor:
-        z = torch.randn_like(cond, device=cond.device, dtype=cond.dtype)
+        z = torch.randn(
+            (len(cond), Z_DIM),
+            device=cond.device,
+            dtype=cond.dtype)
 
         z = self.z_net(z)
         t = self.text_net(cond)
