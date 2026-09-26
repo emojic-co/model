@@ -8,7 +8,6 @@ from pathlib import Path
 import torch
 import typer
 from torch import nn
-from torch.nn.functional import normalize
 
 from files import (
     ANDROID_ASSETS_DIR,
@@ -19,7 +18,7 @@ from files import (
     STYLE_PT,
     WEB_PUBLIC_DIR,
 )
-from model.config import EMOJIS, HIDDEN_SIZE_GEN, MAX_TEXT_LEN, SEED, STYLES
+from model.config import EMOJIS, MAX_TEXT_LEN, STYLES
 from model.data import CHARS, PAD_IDX
 from model.model import (
     ColorGen,
@@ -35,15 +34,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 WEB_PUBLIC = WEB_PUBLIC_DIR
 ONNX_OPSET = 18
 COLOR_SAMPLES = 5
-
-CONST_Z = normalize(
-    torch.randn(
-        COLOR_SAMPLES,
-        HIDDEN_SIZE_GEN,
-        generator=torch.Generator().manual_seed(SEED),
-    ),
-    dim=-1,
-)
 
 
 def _load(mod: nn.Module, path: Path) -> nn.Module:
@@ -75,7 +65,6 @@ class ExportWrapper(nn.Module):
         self.style = style
         self.emoji = emoji
         self.gen = gen
-        self.register_buffer("z", CONST_Z)
 
     def forward(
         self, x: torch.Tensor
@@ -83,8 +72,8 @@ class ExportWrapper(nn.Module):
         emb = self.enc(x)
         style_logits = self.style(emb)
         emoji_logits = self.emoji(emb)
-        cond = emb.expand(self.z.shape[0], -1)  # type: ignore
-        color = self.gen(cond, self.z) + 127.5
+        cond = emb.expand(COLOR_SAMPLES, -1)
+        color = self.gen(cond) + 127.5
         return style_logits, emoji_logits, color
 
 

@@ -126,20 +126,13 @@ class ColorGen(nn.Module):
             *gblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_GEN))
 
         self.z_net = nn.Sequential(
-            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN))
+            *gblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_GEN))
 
         self.mlp = nn.Sequential(
             nn.Linear(HIDDEN_SIZE_GEN, COLOR_DIM))
 
-    def forward(
-        self,
-        cond: torch.Tensor,
-        z: torch.Tensor | None = None,
-    ) -> torch.Tensor:
-        if z is None:
-            z = torch.randn(
-                *cond.shape[:-1], HIDDEN_SIZE_GEN,
-                device=cond.device, dtype=cond.dtype)
+    def forward(self, cond: torch.Tensor) -> torch.Tensor:
+        z = torch.randn_like(cond, device=cond.device, dtype=cond.dtype)
 
         z = self.z_net(z)
         t = self.text_net(cond)

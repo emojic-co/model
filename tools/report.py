@@ -48,7 +48,7 @@ from model.data import (
     text_to_tensor,
 )
 from model.data import normalize as norm_text
-from model.export_onnx import CONST_Z
+from model.export_onnx import COLOR_SAMPLES
 from model.kwtokens import word_count
 from model.model import (
     ColorGen,
@@ -864,11 +864,9 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
         emb = enc(ids)
         elog = emoji_head(emb)
         slog = style_head(emb)
-        cond = emb[:, None, :].expand(-1, CONST_Z.shape[0], -
+        cond = emb[:, None, :].expand(-1, COLOR_SAMPLES, -
                                       1).reshape(-1, emb.shape[-1])
-        z = CONST_Z[None, :, :].expand(
-            len(rows), -1, -1).reshape(-1, CONST_Z.shape[-1])
-        palettes = gen(cond, z).reshape(len(rows), CONST_Z.shape[0], 9)
+        palettes = gen(cond).reshape(len(rows), COLOR_SAMPLES, 9)
     emoji_acc = [_acc_at_k(elog, etgt, k).mean().item() for k in EMOJI_KS]
     style_acc = [_acc_at_k(slog, stgt, k).mean().item() for k in EMOJI_KS]
     out_rows = []
@@ -934,6 +932,19 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
     }
 
 
+def _paired_palettes(emb: torch.Tensor, gen, k: int, seed: int) -> torch.Tensor:
+    m = emb.shape[0]
+    cols = []
+    for kk in range(k):
+        rows = []
+        for i in range(m):
+            with torch.random.fork_rng():
+                torch.manual_seed(seed + kk)
+                rows.append(gen(emb[i : i + 1]))
+        cols.append(torch.cat(rows, dim=0))
+    return torch.stack(cols, dim=1)
+
+
 def _section_gen_sensitivity(enc, gen, gold_rows) -> dict:
     if enc is None or gen is None or not gold_rows:
         return {}
@@ -941,15 +952,13 @@ def _section_gen_sensitivity(enc, gen, gold_rows) -> dict:
     texts = sorted({norm_text(r["text"]) for r in gold_rows})
     texts = rng.sample(texts, min(SENS_TEXT_N, len(texts)))
     m = len(texts)
-    k = CONST_Z.shape[0]
+    k = COLOR_SAMPLES
     if m < 2:
         return {}
     ids = torch.stack([text_to_tensor(t) for t in texts])
     with torch.no_grad():
         emb = enc(ids)
-        cond = emb[:, None, :].expand(-1, k, -1).reshape(-1, emb.shape[-1])
-        z = CONST_Z[None, :, :].expand(m, -1, -1).reshape(-1, CONST_Z.shape[-1])
-        palettes = gen(cond, z).reshape(m, k, 9)
+        palettes = _paired_palettes(emb, gen, k, SEED)
     pts = rgb_to_oklab(palettes)
 
     mode = "donot_use_mm_for_euclid_dist"
@@ -1855,8 +1864,9 @@ def _gen_sensitivity_html(d) -> str:
         "<h2>Model — Generator sensitivity (text vs. noise)</h2>",
         '<p class="note">Takes '
         f"{d['n_texts']} texts sampled from the gold set and runs every one "
-        f"through all {d['n_z']} fixed noise seeds (CONST_Z — the same seeds "
-        "the shipped web app renders as its card variants), then compares two "
+        f"through all {d['n_z']} fixed noise seeds (re-seeded per slot so the "
+        "same seed is reused across texts; the shipped web app instead "
+        "samples a fresh seed per card variant), then compares two "
         "things: how far the output moves when only the noise seed changes "
         "(same text), against how far it moves when only the text changes "
         "(same seed). Distances are mean pairwise Oklab distance over the "
