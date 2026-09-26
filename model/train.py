@@ -49,9 +49,7 @@ from model.config import (
     BATCH_SIZE_TEXT_ENCODER,
     COLOR_ENERGY_KEYWORDS,
     CONFIG_NAME,
-    EARLY_STOP_MIN_DELTA_GAN,
     EARLY_STOP_PATIENCE_ENCODER,
-    EARLY_STOP_PATIENCE_GAN,
     ENERGY_TRAIN_SAMPLE_SIZE,
     ENERGY_VAL_SAMPLE_SIZE,
     EPOCHS_COND_PROBE,
@@ -626,11 +624,6 @@ def _train_gan(
     no_bar = _no_progress_bar()
     bar_cbs = [] if no_bar else [TQDMProgressBar()]
 
-    monitor = GanMetric.ENERGY_KEYWORD_AVG
-    ckpt = ModelCheckpoint(
-        monitor=monitor, mode="min", save_top_k=1,
-        filename="best-gan-{step}"
-    )
     trainer = pl.Trainer(
         devices="auto",
         accelerator="auto",
@@ -645,13 +638,6 @@ def _train_gan(
         enable_progress_bar=not no_bar,
         val_check_interval=min(VAL_CHECK_INTERVAL, len(ds)),
         callbacks=[
-            ckpt,
-            EarlyStopping(
-                monitor=monitor,
-                mode="min",
-                patience=EARLY_STOP_PATIENCE_GAN,
-                min_delta=EARLY_STOP_MIN_DELTA_GAN),
-
             *bar_cbs,
             ModelSummary(),
         ],
@@ -659,11 +645,6 @@ def _train_gan(
 
     gan = LitColorGAN(critic, keyword_data)
     trainer.fit(gan, gan_dl, val_dl)
-
-    if ckpt.best_model_path:
-        gan = LitColorGAN.load_from_checkpoint(
-            ckpt.best_model_path, critic=Critic(), keyword_data=keyword_data,
-        )
 
     save_pt(gan.gen.state_dict(), PtFile.GEN.in_dir(out_dir), stage="gan")
     return gan

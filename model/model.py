@@ -159,21 +159,28 @@ class Critic(nn.Module):
         super().__init__()
 
         self.text_net = nn.Sequential(
-            *cblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_CRITIC))
+            *cblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_CRITIC)
+        )
 
         self.color_net = nn.Sequential(
             *cblk(COLOR_DIM, HIDDEN_SIZE_CRITIC),
-            # *cblk(HIDDEN_SIZE_CRITIC, HIDDEN_SIZE_CRITIC)
         )
 
-        self.mlp = nn.Sequential(
-            *cblk(HIDDEN_SIZE_CRITIC, HIDDEN_SIZE_CRITIC),
-            sn(nn.Linear(HIDDEN_SIZE_CRITIC, 1)))
+        self.color_class = nn.Sequential(
+            sn(nn.Linear(HIDDEN_SIZE_CRITIC, 1)),
+        )
+
+        self.text_color_class = nn.Sequential(
+            sn(nn.Linear(HIDDEN_SIZE_CRITIC, 1))
+        )
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
         assert torch.all((colors >= -COLOR_SHIFT) & (colors <= COLOR_SHIFT)), \
             f"colors must be in [-{COLOR_SHIFT}, {COLOR_SHIFT}], " \
             f"got min={colors.min().item()} max={colors.max().item()}"
 
-        fused = self.text_net(cond) * self.color_net(colors)
-        return self.mlp(fused)
+        t = self.text_net(cond)
+        c = self.color_net(colors)
+        return \
+            self.color_class(c) + \
+            self.text_color_class(t * c)
