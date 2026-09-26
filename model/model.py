@@ -123,10 +123,12 @@ class ColorGen(nn.Module):
         super().__init__()
 
         self.text_net = nn.Sequential(
-            *gblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_GEN))
+            *gblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_GEN),
+            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN))
 
         self.z_net = nn.Sequential(
-            *gblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_GEN))
+            *gblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_GEN),
+            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN))
 
         self.mlp = nn.Sequential(
             *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
