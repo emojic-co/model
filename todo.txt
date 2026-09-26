@@ -1,8 +1,0 @@
-Done:
-
-Updated the regen script to:
-Extract the keyword based color records into a data/<name>.jsonl file (git ignored)
-Each record should have additional field keyword.
-Use this file to:
-1. Evaluate keyword energy during the eval step.
-2. Sample from it to generate the final report.
