@@ -167,7 +167,7 @@ class Critic(nn.Module):
         )
 
         self.mlp = nn.Sequential(
-            # *cblk(HIDDEN_SIZE_CRITIC, HIDDEN_SIZE_CRITIC),
+            *cblk(HIDDEN_SIZE_CRITIC, HIDDEN_SIZE_CRITIC),
             sn(nn.Linear(HIDDEN_SIZE_CRITIC, 1)))
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
