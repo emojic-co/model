@@ -124,16 +124,16 @@ class ColorGen(nn.Module):
 
         self.text_net = nn.Sequential(
             *gblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_GEN),
-            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN))
+            # *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
+        )
 
         self.z_net = nn.Sequential(
             *gblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_GEN),
-            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN))
+            # *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
+        )
 
         self.mlp = nn.Sequential(
-            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
-            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
-            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
+            # *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
             nn.Linear(HIDDEN_SIZE_GEN, COLOR_DIM))
 
     def forward(self, cond: torch.Tensor) -> torch.Tensor:
@@ -162,10 +162,11 @@ class Critic(nn.Module):
 
         self.color_net = nn.Sequential(
             *cblk(COLOR_DIM, HIDDEN_SIZE_CRITIC),
-            *cblk(HIDDEN_SIZE_CRITIC, HIDDEN_SIZE_CRITIC))
+            # *cblk(HIDDEN_SIZE_CRITIC, HIDDEN_SIZE_CRITIC)
+        )
 
         self.mlp = nn.Sequential(
-            *cblk(HIDDEN_SIZE_CRITIC, HIDDEN_SIZE_CRITIC),
+            # *cblk(HIDDEN_SIZE_CRITIC, HIDDEN_SIZE_CRITIC),
             sn(nn.Linear(HIDDEN_SIZE_CRITIC, 1)))
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
