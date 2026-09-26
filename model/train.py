@@ -346,9 +346,6 @@ class LitColorGAN(pl.LightningModule):
         self._val_cond: list[torch.Tensor] = []
         self._val_real: list[torch.Tensor] = []
 
-    def on_train_epoch_start(self):
-        self.gen.net[0].eval()
-
     def on_validation_epoch_start(self):
         self._val_cond.clear()
         self._val_real.clear()
