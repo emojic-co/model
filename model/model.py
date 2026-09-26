@@ -150,7 +150,7 @@ class ColorGen(nn.Module):
 def cblk(i: int, o: int):
     return [
         sn(nn.Linear(i, o, bias=False)),
-        # nn.LayerNorm(o),
+        nn.LayerNorm(o),
         nn.LeakyReLU(RELU_SLOPE)]
 
 
