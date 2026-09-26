@@ -129,6 +129,7 @@ class ColorGen(nn.Module):
             *gblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_GEN))
 
         self.mlp = nn.Sequential(
+            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
             nn.Linear(HIDDEN_SIZE_GEN, COLOR_DIM))
 
     def forward(self, cond: torch.Tensor) -> torch.Tensor:

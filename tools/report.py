@@ -34,7 +34,6 @@ from model.config import (
     ENCODER_CHANNELS,
     ENCODER_DILATION,
     ENCODER_KERNEL_SIZE,
-    HIDDEN_SIZE_GEN,
     MAX_TEXT_LEN,
     SEED,
     STYLES,
@@ -1077,11 +1076,7 @@ def _section_lang_consistency(enc, emoji_head, style_head, gen) -> dict:
         emoji_en = emoji_head(enc_en)
         emoji_he = emoji_head(enc_he)
         style_en, style_he = style_head(enc_en), style_head(enc_he)
-        zeros = torch.zeros(
-            *enc_en.shape[:-1], HIDDEN_SIZE_GEN,
-            device=enc_en.device, dtype=enc_en.dtype
-        )
-        color_en, color_he = gen(enc_en, zeros), gen(enc_he, zeros)
+        color_en, color_he = gen(enc_en), gen(enc_he)
     ok_en, ok_he = rgb_to_oklab(color_en), rgb_to_oklab(color_he)
 
     rows = []
