@@ -133,8 +133,9 @@ class ColorGen(nn.Module):
         )
 
         self.mlp = nn.Sequential(
-            # *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
-            nn.Linear(HIDDEN_SIZE_GEN, COLOR_DIM))
+            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
+            nn.Linear(HIDDEN_SIZE_GEN, COLOR_DIM)
+        )
 
     def forward(self, cond: torch.Tensor) -> torch.Tensor:
         z = torch.randn_like(cond, device=cond.device, dtype=cond.dtype)
