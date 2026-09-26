@@ -17,7 +17,6 @@ from model.config import (
     HIDDEN_SIZE_GEN,
     RELU_SLOPE,
     Z_DIM,
-    Z_WEIGHT,
 )
 from model.data import COLOR_DIM, EMOJIS, PAD_IDX, STYLES, VOCAB_SIZE
 
@@ -134,7 +133,7 @@ class ColorGen(nn.Module):
         )
 
         self.mlp = nn.Sequential(
-            *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
+            *gblk(HIDDEN_SIZE_GEN * 2, HIDDEN_SIZE_GEN),
             nn.Linear(HIDDEN_SIZE_GEN, COLOR_DIM)
         )
 
@@ -147,7 +146,7 @@ class ColorGen(nn.Module):
         z = self.z_net(z)
         t = self.text_net(cond)
 
-        colors = self.mlp(t + Z_WEIGHT * z)
+        colors = self.mlp(torch.cat([z, t], dim=-1))
         return tanh(colors) * COLOR_SHIFT
 
 
