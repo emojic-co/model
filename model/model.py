@@ -1,6 +1,6 @@
 
 import torch
-from torch import nn
+from torch import nn, tanh
 from torch.nn.utils import spectral_norm as sn
 
 from model.color import COLOR_SHIFT
@@ -143,7 +143,7 @@ class ColorGen(nn.Module):
         t = self.text_net(cond)
 
         colors = self.mlp(t + Z_WEIGHT * z)
-        return colors.clamp(min=-COLOR_SHIFT, max=COLOR_SHIFT)
+        return tanh(colors) * COLOR_SHIFT
 
 
 def cblk(i: int, o: int):
