@@ -1,6 +1,7 @@
 
 import torch
 from torch import nn, tanh
+from torch.nn.functional import normalize
 from torch.nn.utils import spectral_norm as sn
 
 from model.color import COLOR_SHIFT
@@ -17,6 +18,7 @@ from model.config import (
     HIDDEN_SIZE_GEN,
     RELU_SLOPE,
     Z_DIM,
+    Z_WEIGHT,
 )
 from model.data import COLOR_DIM, EMOJIS, PAD_IDX, STYLES, VOCAB_SIZE
 
@@ -147,7 +149,10 @@ class ColorGen(nn.Module):
         self.last_norm_z = z.detach().norm(dim=-1).mean()
         self.last_norm_t = t.detach().norm(dim=-1).mean()
 
-        colors = self.mlp(z + t)
+        z = normalize(z, dim=-1)
+        t = normalize(t, dim=-1)
+
+        colors = self.mlp(t + Z_WEIGHT * z)
         return tanh(colors) * COLOR_SHIFT
 
 
