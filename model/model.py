@@ -4,7 +4,7 @@ from torch import nn, tanh
 from torch.nn.functional import normalize
 from torch.nn.utils import spectral_norm as sn
 
-from model.color import COLOR_SHIFT
+from model.color import COLOR_SHIFT, rgb_to_oklab
 from model.config import (
     DROPOUT,
     EMBED_SIZE_CHAR,
@@ -191,7 +191,7 @@ class Critic(nn.Module):
             f"got min={colors.min().item()} max={colors.max().item()}"
 
         t = self.text_net(cond)
-        c = self.color_net(colors)
+        c = self.color_net(rgb_to_oklab(colors))
 
         return \
             self.color_class(c) + \
