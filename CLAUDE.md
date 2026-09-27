@@ -12,7 +12,7 @@ Goals/status/plan (source of truth, not summarized here):
 - `report/<newest>/report.html` — current measured state, written by `tools/report.py`.
 - `plans/<newest>/plan.md` — derived plan.
 
-Architecture (read the code, not this file): `model/model.py` (encoder + classifier heads + GAN), `model/color.py` (color-space math: `rgb_to_oklab`, `energy_distance`, used by the GAN loss), `model/train.py` (training/loss), `tools/data/regen.ts` (corpus → vocab/split), `tools/data/keywords.ts` (CLDR+EmojiLib+wa-keywords merge → `data/keywords.jsonl`/`data/terms.jsonl`/`data/flags.jsonl` split).
+Architecture (read the code, not this file): `model/model.py` (encoder + classifier heads + GAN), `model/color.py` (`energy_distance`, used by the GAN loss, computed directly on RGB), `model/train.py` (training/loss), `tools/data/regen.ts` (corpus → vocab/split), `tools/data/keywords.ts` (CLDR+EmojiLib+wa-keywords merge → `data/keywords.jsonl`/`data/terms.jsonl`/`data/flags.jsonl` split).
 
 ## Project structure
 

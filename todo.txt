@@ -1,4 +1,1 @@
 For the critic, should we reshape the input colors into a 3x3 matrix and project it using a 1d conv layer?
-
-Done:
-Make the generator output the color directly in the OKLAB space.

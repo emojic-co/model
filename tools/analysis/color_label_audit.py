@@ -1,4 +1,4 @@
-import math
+import colorsys
 import sys
 from pathlib import Path
 
@@ -7,8 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 import torch
 import typer
 
-from model.color import rgb_to_oklab
-from tools.report import PURE_HEX, _hex_to_offsets, _valid_color_rows
+from tools.report import PURE_HEX, _hex_to_rgb, _valid_color_rows
 
 HUE_COLORS = ("red", "green", "blue")
 LIGHTNESS_COLORS = ("dark", "bright")
@@ -16,15 +15,19 @@ CHROMA_FLOOR = 0.02
 L_MID = 0.5
 
 
-def _bg_oklab(row: dict) -> torch.Tensor:
-    bg1 = torch.tensor(_hex_to_offsets(row["bg"][0]), dtype=torch.float32)
-    bg2 = torch.tensor(_hex_to_offsets(row["bg"][1]), dtype=torch.float32)
-    return rgb_to_oklab(torch.stack([bg1, bg2])).mean(dim=0)
+def _bg_hls(row: dict) -> tuple[float, float, float]:
+    """Mean of the two bg swatches' RGB, as (hue_deg, lightness, saturation)."""
+    bg1 = torch.tensor(_hex_to_rgb(row["bg"][0]), dtype=torch.float32)
+    bg2 = torch.tensor(_hex_to_rgb(row["bg"][1]), dtype=torch.float32)
+    r, g, b = ((torch.stack([bg1, bg2]).mean(dim=0) + 1.0) / 2.0).tolist()
+    h, lightness, s = colorsys.rgb_to_hls(r, g, b)
+    return h * 360.0, lightness, s
 
 
 def _hue_deg(hx: str) -> float:
-    ok = rgb_to_oklab(torch.tensor(_hex_to_offsets(hx), dtype=torch.float32))
-    return math.degrees(math.atan2(ok[2].item(), ok[1].item()))
+    r, g, b = ((torch.tensor(_hex_to_rgb(hx)) + 1.0) / 2.0).tolist()
+    h, _, _ = colorsys.rgb_to_hls(r, g, b)
+    return h * 360.0
 
 
 def _hue_dist(a: float, b: float) -> float:
@@ -36,15 +39,12 @@ def _audit(rows: list[dict]) -> list[dict]:
     out = []
     for r in rows:
         label = r.get("color")
-        bg = _bg_oklab(r)
-        light_l = bg[0].item()
-        chroma = (bg[1] ** 2 + bg[2] ** 2).sqrt().item()
+        hue, light_l, chroma = _bg_hls(r)
 
         if label in HUE_COLORS:
             if chroma < CHROMA_FLOOR:
                 nearest, note = "(desaturated)", "no hue signal"
             else:
-                hue = math.degrees(math.atan2(bg[2].item(), bg[1].item()))
                 nearest = min(HUE_COLORS, key=lambda c: _hue_dist(hue, hue_ref[c]))
                 note = "wrong hue family" if nearest != label else ""
         elif label in LIGHTNESS_COLORS:

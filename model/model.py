@@ -152,11 +152,7 @@ class ColorGen(nn.Module):
         t = normalize(t, dim=-1)
 
         raw = self.mlp(t + Z_WEIGHT * z)
-        # Output directly in OKLab space: L bounded to [0, 1], a/b unbounded.
-        shape = raw.shape
-        raw = raw.reshape(*shape[:-1], -1, 3)
-        colors = torch.cat([raw[..., :1].sigmoid(), raw[..., 1:]], dim=-1)
-        return colors.reshape(shape)
+        return torch.tanh(raw)
 
 
 def cblk(i: int, o: int):
@@ -189,8 +185,8 @@ class Critic(nn.Module):
         )
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
-        """`colors` is expected in OKLab space (see `ColorGen.forward` /
-        `model.color.rgb_to_oklab`)."""
+        """`colors` is RGB in [-1, 1] (see `ColorGen.forward` /
+        `model.data.colors2tensor`)."""
         t = self.text_net(cond)
         c = self.color_net(colors)
 

@@ -28,7 +28,7 @@ from files import (
     TERMS_JSONL,
     PtFile,
 )
-from model.color import COLOR_SHIFT, energy_distance, rgb_to_oklab
+from model.color import energy_distance
 from model.config import (
     EMOJIS,
     ENCODER_CHANNELS,
@@ -870,12 +870,11 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
     style_acc = [_acc_at_k(slog, stgt, k).mean().item() for k in EMOJI_KS]
     out_rows = []
     for i, r in enumerate(rows):
-        gold9_rgb = (
-            _hex_to_offsets(r["bg"][0])
-            + _hex_to_offsets(r["bg"][1])
-            + _hex_to_offsets(r["fg"])
+        gold9 = (
+            _hex_to_rgb(r["bg"][0])
+            + _hex_to_rgb(r["bg"][1])
+            + _hex_to_rgb(r["fg"])
         )
-        gold9 = rgb_to_oklab(torch.tensor(gold9_rgb, dtype=torch.float32)).tolist()
         dp = min(
             _pure_distance(palettes[i, k].tolist(), r["color"])
             for k in range(palettes.shape[1])
@@ -889,9 +888,9 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
                 "text": r["text"],
                 "emoji": EMOJIS[int(elog[i].argmax())],
                 "style": STYLES[int(slog[i].argmax())],
-                "bg1": _lab_to_css(flat[0:3]),
-                "bg2": _lab_to_css(flat[3:6]),
-                "text_color": _lab_to_css(flat[6:9]),
+                "bg1": _rgb_to_hex(flat[0:3]),
+                "bg2": _rgb_to_hex(flat[3:6]),
+                "text_color": _rgb_to_hex(flat[6:9]),
                 "gt_emoji": " ".join(str(r["emojis"]).split()),
                 "gt_style": " · ".join(r["styles"]),
                 "gt_bg1": r["bg"][0],
@@ -985,8 +984,8 @@ def _section_gen_sensitivity(enc, gen, gold_rows) -> dict:
             flat = palettes[i, kk].tolist()
             cards.append(
                 {
-                    "bg1": _lab_to_css(flat[0:3]),
-                    "bg2": _lab_to_css(flat[3:6]),
+                    "bg1": _rgb_to_hex(flat[0:3]),
+                    "bg2": _rgb_to_hex(flat[3:6]),
                 }
             )
         swatches.append({"text": texts[i], "cards": cards})
@@ -1045,9 +1044,9 @@ def _section_color_keywords(enc, gen) -> dict:
                     "gt_bg1": bg1,
                     "gt_bg2": bg2,
                     "gt_fg": fg,
-                    "pred_bg1": _lab_to_css(flat[0:3]),
-                    "pred_bg2": _lab_to_css(flat[3:6]),
-                    "pred_fg": _lab_to_css(flat[6:9]),
+                    "pred_bg1": _rgb_to_hex(flat[0:3]),
+                    "pred_bg2": _rgb_to_hex(flat[3:6]),
+                    "pred_fg": _rgb_to_hex(flat[6:9]),
                 }
             )
         out.append(
@@ -1100,12 +1099,12 @@ def _section_lang_consistency(enc, emoji_head, style_head, gen) -> dict:
                 "style_he": STYLES[s_he],
                 "style_match": s_en == s_he,
                 "color_dist": (color_en[i] - color_he[i]).norm().item(),
-                "en_bg1": _lab_to_css(flat_en[0:3]),
-                "en_bg2": _lab_to_css(flat_en[3:6]),
-                "en_fg": _lab_to_css(flat_en[6:9]),
-                "he_bg1": _lab_to_css(flat_he[0:3]),
-                "he_bg2": _lab_to_css(flat_he[3:6]),
-                "he_fg": _lab_to_css(flat_he[6:9]),
+                "en_bg1": _rgb_to_hex(flat_en[0:3]),
+                "en_bg2": _rgb_to_hex(flat_en[3:6]),
+                "en_fg": _rgb_to_hex(flat_en[6:9]),
+                "he_bg1": _rgb_to_hex(flat_he[0:3]),
+                "he_bg2": _rgb_to_hex(flat_he[3:6]),
+                "he_fg": _rgb_to_hex(flat_he[6:9]),
             }
         )
     rows.sort(key=lambda r: -r["color_dist"])
@@ -1411,19 +1410,20 @@ def _fnum(n) -> str:
     return f"{n:,}"
 
 
-def _hex_to_offsets(hx: str) -> list[float]:
+def _hex_to_rgb(hx: str) -> list[float]:
     hx = hx.lstrip("#")
-    return [int(hx[i: i + 2], 16) - COLOR_SHIFT for i in (0, 2, 4)]
+    return [int(hx[i: i + 2], 16) / 127.5 - 1.0 for i in (0, 2, 4)]
 
 
-def _lab_to_css(lab3) -> str:
-    lightness, a, b = lab3
-    return f"oklab({lightness:.4f} {a:.4f} {b:.4f})"
+def _rgb_to_hex(rgb3) -> str:
+    ints = [max(0, min(255, round((v + 1.0) * 127.5))) for v in rgb3]
+    return "#" + "".join(f"{v:02x}" for v in ints)
 
 
-def _l_chroma(lab9) -> tuple[float, float]:
-    lab = torch.tensor(lab9, dtype=torch.float32).reshape(3, 3)
-    return lab[:, 0].mean().item(), lab[:, 1:3].norm(dim=-1).mean().item()
+def _l_chroma(rgb9) -> tuple[float, float]:
+    rgb = torch.tensor(rgb9, dtype=torch.float32).reshape(3, 3)
+    mean = rgb.mean(dim=-1, keepdim=True)
+    return mean.mean().item(), (rgb - mean).norm(dim=-1).mean().item()
 
 
 PURE_HEX = {
@@ -1444,10 +1444,9 @@ def _pure_threshold(color: str) -> float:
 def _pure_distance(pred9, color: str) -> float:
     p = torch.tensor(pred9, dtype=torch.float32).reshape(3, 3)
     bg = p[:2].mean(dim=0)
-    pure = rgb_to_oklab(torch.tensor(
-        _hex_to_offsets(PURE_HEX[color]), dtype=torch.float32))
+    pure = torch.tensor(_hex_to_rgb(PURE_HEX[color]), dtype=torch.float32)
     if color in ("dark", "bright"):
-        return (bg[0] - pure[0]).abs().item()
+        return (bg.mean() - pure.mean()).abs().item()
     return (bg - pure).norm().item()
 
 
@@ -1797,7 +1796,7 @@ def _cards_html(d) -> str:
         '<p class="note">Pure acc: dP &lt; '
         f"{d['pure_threshold_rgb']:.3f} (r/g/b), &lt; {d['pure_threshold_l']:.2f} "
         "(|&Delta;L|, dark/bright) between the model's single top output and the "
-        "category's pure hue. &Delta;L/&Delta;chroma: mean Oklab lightness/chroma "
+        "category's pure hue. &Delta;L/&Delta;chroma: mean RGB brightness/chroma "
         "of the model's single top output minus gold (from data/colors.jsonl), "
         "signed — positive means the model runs lighter/more saturated than "
         "gold.</p>"
@@ -1864,7 +1863,7 @@ def _gen_sensitivity_html(d) -> str:
         "samples a fresh seed per card variant), then compares two "
         "things: how far the output moves when only the noise seed changes "
         "(same text), against how far it moves when only the text changes "
-        "(same seed). Distances are mean pairwise Oklab distance over the "
+        "(same seed). Distances are mean pairwise RGB distance over the "
         "full 9-dim card vector, matching model/color.py:energy_distance's "
         "unit.</p>",
         "<table><tr><th>Metric</th><th class=\"n\">Value</th></tr>"
@@ -1932,7 +1931,7 @@ def _color_keywords_html(d) -> str:
         "keyword are sampled (deterministic, seeded), one ground-truth colour "
         "kept per row, and one generated palette drawn per row with fresh "
         "random generator noise. Energy distance is model/color.py:"
-        "energy_distance between the two sets, in the same Oklab 9-dim card "
+        "energy_distance between the two sets, in the same RGB 9-dim card "
         "vector unit used elsewhere in this report.</p>"
         '<table class="scorecard"><tr><th>Keyword</th><th class="n">N sampled</th>'
         '<th class="n">Energy distance</th><th class="n">Target</th>'
@@ -2042,7 +2041,7 @@ def _lang_consistency_html(d) -> str:
         "separately and compared: cosine similarity of the raw TextEncoder "
         f"embedding, Jaccard overlap of the top-{d['topk']} EmojiHead "
         "predictions, StyleHead top-1 agreement, and ColorGen output distance "
-        "(Oklab, zero noise vector so only text conditioning is compared, "
+        "(RGB, zero noise vector so only text conditioning is compared, "
         "same 9-dim card unit as elsewhere in this report). Rows sorted by "
         "color distance, worst first. ⚠ flags a pair whose emoji "
         f"predictions agree (Jaccard &ge; {d['agree_thresh']}) but whose "
