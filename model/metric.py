@@ -9,7 +9,8 @@ class Split(StrEnum):
 class LogStage(StrEnum):
     ENC = "enc"
     GAN = "gan"
-    COND = "cond"
+    GEN = "gen"
+    CRITIC = "critic"
 
 
 class Source(StrEnum):
@@ -50,3 +51,9 @@ class GanMetric:
     COND_AUROC_GEN = "gan/critic_gen_auroc"
     COND_MEAN_SCORE_REAL = "gan/cond_mean_score_real"
     COND_MEAN_SCORE_FAKE = "gan/cond_mean_score_fake"
+
+
+class GenMetric:
+    ENERGY_TRAIN = "gen/energy/train"
+    ENERGY_VAL = "gen/energy/val"
+    ENERGY_KEYWORD = "gen/energy_keyword"

@@ -43,8 +43,8 @@ def test_critic_probe_step_shapes():
     assert auroc_rand.shape == ()
 
 
-def test_litcondcriticprobe_builds():
-    m = T.LitCondCriticProbe()
+def test_litcriticprobe_builds():
+    m = T.LitCriticProbe()
     assert hasattr(m, "critic")
     assert not hasattr(m, "color_embed")
     opt = m.configure_optimizers()
@@ -156,7 +156,7 @@ def main() -> None:
     test_litencoder_builds_all_heads()
     test_colorcritic_forward_shape()
     test_critic_probe_step_shapes()
-    test_litcondcriticprobe_builds()
+    test_litcriticprobe_builds()
     test_litcolorgan_builds()
     test_cli_help_ok()
     test_cli_bad_stage_aborts()
