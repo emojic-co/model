@@ -435,30 +435,31 @@ class LitColorGAN(pl.LightningModule):
             self.log(GanMetric.COND_LOSS, loss_critic, prog_bar=True)
 
         # GENERATOR
+        loss_energy = energy_distance(
+            rgb_to_oklab(_energy_subsample(fake, ENERGY_TRAIN_SAMPLE_SIZE)),
+            rgb_to_oklab(_energy_subsample(colors, ENERGY_TRAIN_SAMPLE_SIZE)))
+
         if auroc_gen >= MIN_AUROC:
             gen_score = self.critic(cond, fake)
-            loss_energy = energy_distance(
-                rgb_to_oklab(_energy_subsample(fake, ENERGY_TRAIN_SAMPLE_SIZE)),
-                rgb_to_oklab(_energy_subsample(colors, ENERGY_TRAIN_SAMPLE_SIZE)))
-
             loss_gen_critic = -gen_score.mean()
-
             loss_gen = \
                 GAN_LOSS_CRITIC * loss_gen_critic \
                 + GAN_LOSS_ENERGY * loss_energy
-
-            opt_gen.zero_grad()
-
-            self.manual_backward(loss_gen)
-            self.clip_gradients(
-                opt_gen,  # type: ignore
-                gradient_clip_val=GRAD_CLIP_GEN,
-                gradient_clip_algorithm="norm")
-
-            opt_gen.step()
-
             self.log(GanMetric.GEN_LOSS_COND, loss_gen_critic, prog_bar=True)
-            self.log(GanMetric.ENERGY_TRAIN, loss_energy, prog_bar=True)
+        else:
+            loss_gen = loss_energy
+
+        opt_gen.zero_grad()
+
+        self.manual_backward(loss_gen)
+        self.clip_gradients(
+            opt_gen,  # type: ignore
+            gradient_clip_val=GRAD_CLIP_GEN,
+            gradient_clip_algorithm="norm")
+
+        opt_gen.step()
+
+        self.log(GanMetric.ENERGY_TRAIN, loss_energy, prog_bar=True)
 
         self.log(GanMetric.COND_AUROC_GEN, auroc_gen, prog_bar=True)
         self.log(
