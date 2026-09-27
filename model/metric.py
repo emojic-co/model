@@ -57,3 +57,5 @@ class GenMetric:
     ENERGY_TRAIN = "gen/energy/train"
     ENERGY_VAL = "gen/energy/val"
     ENERGY_KEYWORD = "gen/energy_keyword"
+    NORM_Z = "gen/norm_z"
+    NORM_T = "gen/norm_t"

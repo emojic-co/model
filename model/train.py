@@ -545,6 +545,8 @@ class LitColorGenEnergy(pl.LightningModule):
             rgb_to_oklab(_energy_subsample(fake, ENERGY_TRAIN_SAMPLE_SIZE)),
             rgb_to_oklab(_energy_subsample(colors, ENERGY_TRAIN_SAMPLE_SIZE)))
         self.log(GenMetric.ENERGY_TRAIN, loss, prog_bar=True)
+        self.log(GenMetric.NORM_Z, self.gen.last_norm_z)
+        self.log(GenMetric.NORM_T, self.gen.last_norm_t)
 
         return loss
 

@@ -144,6 +144,9 @@ class ColorGen(nn.Module):
         z = self.z_net(z)
         t = self.text_net(cond)
 
+        self.last_norm_z = z.detach().norm(dim=-1).mean()
+        self.last_norm_t = t.detach().norm(dim=-1).mean()
+
         colors = self.mlp(z + t)
         return tanh(colors) * COLOR_SHIFT
 
