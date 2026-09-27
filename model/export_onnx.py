@@ -73,7 +73,7 @@ class ExportWrapper(nn.Module):
         style_logits = self.style(emb)
         emoji_logits = self.emoji(emb)
         cond = emb.expand(COLOR_SAMPLES, -1)
-        color = self.gen(cond) * 255
+        color = self.gen(cond) + 127.5
         return style_logits, emoji_logits, color
 
 

@@ -1,8 +1,9 @@
 
 import torch
-from torch import nn, sigmoid
+from torch import nn, tanh
 from torch.nn.utils import spectral_norm as sn
 
+from model.color import COLOR_SHIFT
 from model.config import (
     DROPOUT,
     EMBED_SIZE_CHAR,
@@ -144,7 +145,7 @@ class ColorGen(nn.Module):
         t = self.text_net(cond)
 
         colors = self.mlp(z + t)
-        return sigmoid(colors)
+        return tanh(colors) * COLOR_SHIFT
 
 
 def cblk(i: int, o: int):
@@ -177,8 +178,8 @@ class Critic(nn.Module):
         )
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
-        assert torch.all((colors >= 0) & (colors <= 1)), \
-            "colors must be in [0, 1], " \
+        assert torch.all((colors >= -COLOR_SHIFT) & (colors <= COLOR_SHIFT)), \
+            f"colors must be in [-{COLOR_SHIFT}, {COLOR_SHIFT}], " \
             f"got min={colors.min().item()} max={colors.max().item()}"
 
         t = self.text_net(cond)

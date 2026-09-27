@@ -23,7 +23,7 @@ from model.runmeta import load_pt
 def rgb_to_hex(rgb: torch.Tensor) -> list[str]:
     assert rgb.shape == (9,), "Input tensor must be of shape (9,)"
 
-    ints = (rgb * 255).clamp(0, 255).to(torch.int32).cpu().tolist()
+    ints = (rgb + 127.5).clamp(0, 255).to(torch.int32).cpu().tolist()
 
     def f2h(val: int) -> str:
         return f"{val:02x}"
