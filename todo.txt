@@ -1,3 +1,4 @@
 Done:
-- Also rename the `train cond` command to `train critic` and also renamed
-  its log names.
+- Update the models data and train code: normalize the colors to [0, 1],
+  the generator output is also in [0, 1], and colors are scaled back to
+  [0, 255] for display in the web/Android apps.

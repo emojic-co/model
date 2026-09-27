@@ -52,7 +52,7 @@ def hex2rgb(h: str) -> tuple[int, int, int]:
 
 def colors2tensor(colors: list[str]) -> torch.Tensor:
     vals = [c for h in colors for c in hex2rgb(h)]
-    return torch.tensor(vals, dtype=torch.float32) - 127.5
+    return torch.tensor(vals, dtype=torch.float32) / 255.0
 
 
 def sample_colors_tensor(colors: list[list[str]]) -> torch.Tensor:
@@ -64,7 +64,7 @@ def sample_colors_tensor(colors: list[list[str]]) -> torch.Tensor:
 
 def rnd_color_tensor(n: int, device=None) -> torch.Tensor:
     return torch.randint(
-        0, 256, (n, COLOR_DIM), device=device, dtype=torch.float32) - 127.5
+        0, 256, (n, COLOR_DIM), device=device, dtype=torch.float32) / 255.0
 
 
 def normalize(text: str) -> str:

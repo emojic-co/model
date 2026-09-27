@@ -43,7 +43,7 @@ from files import (
     WEB_PUBLIC_DIR,
     PtFile,
 )
-from model.color import COLOR_SHIFT, energy_distance, rgb_to_oklab
+from model.color import energy_distance, rgb_to_oklab
 from model.config import (
     BATCH_SIZE_GAN,
     BATCH_SIZE_TEXT_ENCODER,
@@ -131,8 +131,7 @@ def lse_infonce(
 
 
 def _dequantize(colors: torch.Tensor) -> torch.Tensor:
-    return (colors + (torch.rand_like(colors) - 0.5)).clamp(
-        -COLOR_SHIFT, COLOR_SHIFT)
+    return (colors + (torch.rand_like(colors) - 0.5) / 255.0).clamp(0.0, 1.0)
 
 
 def _critic_shuf_step(

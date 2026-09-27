@@ -28,7 +28,7 @@ from files import (
     TERMS_JSONL,
     PtFile,
 )
-from model.color import COLOR_SHIFT, energy_distance, rgb_to_oklab
+from model.color import energy_distance, rgb_to_oklab
 from model.config import (
     EMOJIS,
     ENCODER_CHANNELS,
@@ -1413,11 +1413,11 @@ def _fnum(n) -> str:
 
 def _hex_to_offsets(hx: str) -> list[float]:
     hx = hx.lstrip("#")
-    return [int(hx[i: i + 2], 16) - COLOR_SHIFT for i in (0, 2, 4)]
+    return [int(hx[i: i + 2], 16) / 255.0 for i in (0, 2, 4)]
 
 
 def _offsets_to_hex(vals) -> str:
-    ints = [max(0, min(255, round(v + COLOR_SHIFT))) for v in vals]
+    ints = [max(0, min(255, round(v * 255))) for v in vals]
     return "#" + "".join(f"{v:02x}" for v in ints)
 
 

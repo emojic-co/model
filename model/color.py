@@ -1,7 +1,5 @@
 import torch
 
-COLOR_SHIFT = 127.5
-
 _LIN_TO_LMS = torch.tensor([
     [0.4122214708, 0.5363325363, 0.0514459929],
     [0.2119034982, 0.6806995451, 0.1073969566],
@@ -21,7 +19,7 @@ def _srgb_to_linear(c: torch.Tensor) -> torch.Tensor:
 
 def rgb_to_oklab(rgb: torch.Tensor) -> torch.Tensor:
     shape = rgb.shape
-    c = ((rgb + COLOR_SHIFT) / 255.0).clamp(0.0, 1.0).reshape(*shape[:-1], -1, 3)
+    c = rgb.clamp(0.0, 1.0).reshape(*shape[:-1], -1, 3)
     lms = _srgb_to_linear(c) @ _LIN_TO_LMS.to(c).t()
     lms_ = lms.sign() * lms.abs().clamp(min=1e-12) ** (1 / 3)
     return (lms_ @ _LMS_TO_LAB.to(c).t()).reshape(shape)
