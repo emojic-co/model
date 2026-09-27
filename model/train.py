@@ -468,6 +468,8 @@ class LitColorGAN(pl.LightningModule):
         self.log(
             GanMetric.COND_MEAN_SCORE_FAKE,
             fake_score.detach().mean(), prog_bar=False)
+        self.log(GenMetric.NORM_Z, self.gen.last_norm_z)
+        self.log(GenMetric.NORM_T, self.gen.last_norm_t)
 
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
