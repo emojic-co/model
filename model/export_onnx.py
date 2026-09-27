@@ -18,6 +18,7 @@ from files import (
     STYLE_PT,
     WEB_PUBLIC_DIR,
 )
+from model.color import oklab_to_rgb
 from model.config import EMOJIS, MAX_TEXT_LEN, STYLES
 from model.data import CHARS, PAD_IDX
 from model.model import (
@@ -73,7 +74,7 @@ class ExportWrapper(nn.Module):
         style_logits = self.style(emb)
         emoji_logits = self.emoji(emb)
         cond = emb.expand(COLOR_SAMPLES, -1)
-        color = self.gen(cond) + 127.5
+        color = oklab_to_rgb(self.gen(cond)) + 127.5
         return style_logits, emoji_logits, color
 
 

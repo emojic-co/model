@@ -8,6 +8,7 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 
 from files import EVAL_JSONL, TRAIN_JSONL
+from model.color import rgb_to_oklab
 from model.config import (
     EMOJIS,
     MAX_TEXT_LEN,
@@ -52,7 +53,8 @@ def hex2rgb(h: str) -> tuple[int, int, int]:
 
 def colors2tensor(colors: list[str]) -> torch.Tensor:
     vals = [c for h in colors for c in hex2rgb(h)]
-    return torch.tensor(vals, dtype=torch.float32) - 127.5
+    rgb = torch.tensor(vals, dtype=torch.float32) - 127.5
+    return rgb_to_oklab(rgb)
 
 
 def sample_colors_tensor(colors: list[list[str]]) -> torch.Tensor:
@@ -63,8 +65,9 @@ def sample_colors_tensor(colors: list[list[str]]) -> torch.Tensor:
 
 
 def rnd_color_tensor(n: int, device=None) -> torch.Tensor:
-    return torch.randint(
+    rgb = torch.randint(
         0, 256, (n, COLOR_DIM), device=device, dtype=torch.float32) - 127.5
+    return rgb_to_oklab(rgb)
 
 
 def normalize(text: str) -> str:

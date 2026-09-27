@@ -27,6 +27,25 @@ def rgb_to_oklab(rgb: torch.Tensor) -> torch.Tensor:
     return (lms_ @ _LMS_TO_LAB.to(c).t()).reshape(shape)
 
 
+_LMS_TO_LAB_INV = torch.linalg.inv(_LMS_TO_LAB)
+_LIN_TO_LMS_INV = torch.linalg.inv(_LIN_TO_LMS)
+
+
+def _linear_to_srgb(c: torch.Tensor) -> torch.Tensor:
+    c = c.clamp(min=0.0)
+    return torch.where(c <= 0.0031308, c * 12.92, 1.055 * c ** (1 / 2.4) - 0.055)
+
+
+def oklab_to_rgb(lab: torch.Tensor) -> torch.Tensor:
+    """Inverse of `rgb_to_oklab`: oklab -> shifted RGB (same [-SHIFT, SHIFT] convention)."""
+    shape = lab.shape
+    lab = lab.reshape(*shape[:-1], -1, 3)
+    lms_ = lab @ _LMS_TO_LAB_INV.to(lab).t()
+    lms = lms_.sign() * lms_.abs() ** 3
+    c = _linear_to_srgb(lms @ _LIN_TO_LMS_INV.to(lab).t())
+    return (c.clamp(0.0, 1.0) * 255.0 - COLOR_SHIFT).reshape(shape)
+
+
 def energy_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     mode = "donot_use_mm_for_euclid_dist"
     xy = torch.cdist(x, y, compute_mode=mode).mean()

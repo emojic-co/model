@@ -1,10 +1,9 @@
 
 import torch
-from torch import nn, tanh
+from torch import nn
 from torch.nn.functional import normalize
 from torch.nn.utils import spectral_norm as sn
 
-from model.color import COLOR_SHIFT, rgb_to_oklab
 from model.config import (
     DROPOUT,
     EMBED_SIZE_CHAR,
@@ -152,8 +151,12 @@ class ColorGen(nn.Module):
         z = normalize(z, dim=-1)
         t = normalize(t, dim=-1)
 
-        colors = self.mlp(t + Z_WEIGHT * z)
-        return tanh(colors) * COLOR_SHIFT
+        raw = self.mlp(t + Z_WEIGHT * z)
+        # Output directly in OKLab space: L bounded to [0, 1], a/b unbounded.
+        shape = raw.shape
+        raw = raw.reshape(*shape[:-1], -1, 3)
+        colors = torch.cat([raw[..., :1].sigmoid(), raw[..., 1:]], dim=-1)
+        return colors.reshape(shape)
 
 
 def cblk(i: int, o: int):
@@ -186,12 +189,10 @@ class Critic(nn.Module):
         )
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
-        assert torch.all((colors >= -COLOR_SHIFT) & (colors <= COLOR_SHIFT)), \
-            f"colors must be in [-{COLOR_SHIFT}, {COLOR_SHIFT}], " \
-            f"got min={colors.min().item()} max={colors.max().item()}"
-
+        """`colors` is expected in OKLab space (see `ColorGen.forward` /
+        `model.color.rgb_to_oklab`)."""
         t = self.text_net(cond)
-        c = self.color_net(rgb_to_oklab(colors))
+        c = self.color_net(colors)
 
         return \
             self.color_class(c) + \

@@ -20,15 +20,11 @@ from model.model import (
 from model.runmeta import load_pt
 
 
-def rgb_to_hex(rgb: torch.Tensor) -> list[str]:
-    assert rgb.shape == (9,), "Input tensor must be of shape (9,)"
+def colors_to_oklab(colors: torch.Tensor) -> list[list[float]]:
+    assert colors.shape == (9,), "Input tensor must be of shape (9,)"
 
-    ints = (rgb + 127.5).clamp(0, 255).to(torch.int32).cpu().tolist()
-
-    def f2h(val: int) -> str:
-        return f"{val:02x}"
-
-    return [f"#{f2h(ints[i])}{f2h(ints[i + 1])}{f2h(ints[i + 2])}" for i in range(0, 9, 3)]
+    flat = colors.cpu().tolist()
+    return [flat[i:i + 3] for i in range(0, 9, 3)]
 
 
 def _load(mod: torch.nn.Module, path: Path) -> torch.nn.Module:
@@ -89,15 +85,14 @@ def predict(
             emoji_logits = emoji(emb)
             emojis = top_labels(emoji_logits, EMOJIS, min_k=1, max_k=1)
 
-            colors = gen(emb).squeeze(0)
-            hexes = rgb_to_hex(colors)
+            oklab = colors_to_oklab(gen(emb).squeeze(0))
 
             record = {
                 "text": text,
                 "emojis": " ".join(emojis),
                 "styles": styles,
-                "bg": hexes[:2],
-                "fg": hexes[2],
+                "bg": oklab[:2],
+                "fg": oklab[2],
             }
             records.append(record)
     return records

@@ -870,11 +870,12 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
     style_acc = [_acc_at_k(slog, stgt, k).mean().item() for k in EMOJI_KS]
     out_rows = []
     for i, r in enumerate(rows):
-        gold9 = (
+        gold9_rgb = (
             _hex_to_offsets(r["bg"][0])
             + _hex_to_offsets(r["bg"][1])
             + _hex_to_offsets(r["fg"])
         )
+        gold9 = rgb_to_oklab(torch.tensor(gold9_rgb, dtype=torch.float32)).tolist()
         dp = min(
             _pure_distance(palettes[i, k].tolist(), r["color"])
             for k in range(palettes.shape[1])
@@ -888,9 +889,9 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
                 "text": r["text"],
                 "emoji": EMOJIS[int(elog[i].argmax())],
                 "style": STYLES[int(slog[i].argmax())],
-                "bg1": _offsets_to_hex(flat[0:3]),
-                "bg2": _offsets_to_hex(flat[3:6]),
-                "text_color": _offsets_to_hex(flat[6:9]),
+                "bg1": _lab_to_css(flat[0:3]),
+                "bg2": _lab_to_css(flat[3:6]),
+                "text_color": _lab_to_css(flat[6:9]),
                 "gt_emoji": " ".join(str(r["emojis"]).split()),
                 "gt_style": " · ".join(r["styles"]),
                 "gt_bg1": r["bg"][0],
@@ -958,7 +959,7 @@ def _section_gen_sensitivity(enc, gen, gold_rows) -> dict:
     with torch.no_grad():
         emb = enc(ids)
         palettes = _paired_palettes(emb, gen, k, SEED)
-    pts = rgb_to_oklab(palettes)
+    pts = palettes
 
     mode = "donot_use_mm_for_euclid_dist"
     mask_k = (~torch.eye(k, dtype=torch.bool)).reshape(-1)
@@ -984,8 +985,8 @@ def _section_gen_sensitivity(enc, gen, gold_rows) -> dict:
             flat = palettes[i, kk].tolist()
             cards.append(
                 {
-                    "bg1": _offsets_to_hex(flat[0:3]),
-                    "bg2": _offsets_to_hex(flat[3:6]),
+                    "bg1": _lab_to_css(flat[0:3]),
+                    "bg2": _lab_to_css(flat[3:6]),
                 }
             )
         swatches.append({"text": texts[i], "cards": cards})
@@ -1033,7 +1034,7 @@ def _section_color_keywords(enc, gen) -> dict:
         gt9 = torch.stack([colors2tensor(r.colors[0]) for r in sample])
         with torch.no_grad():
             fake9 = gen(enc(ids))
-        value = energy_distance(rgb_to_oklab(fake9), rgb_to_oklab(gt9)).item()
+        value = energy_distance(fake9, gt9).item()
         examples = []
         for i in range(min(COLOR_KEYWORD_EXAMPLE_N, len(sample))):
             flat = fake9[i].tolist()
@@ -1044,9 +1045,9 @@ def _section_color_keywords(enc, gen) -> dict:
                     "gt_bg1": bg1,
                     "gt_bg2": bg2,
                     "gt_fg": fg,
-                    "pred_bg1": _offsets_to_hex(flat[0:3]),
-                    "pred_bg2": _offsets_to_hex(flat[3:6]),
-                    "pred_fg": _offsets_to_hex(flat[6:9]),
+                    "pred_bg1": _lab_to_css(flat[0:3]),
+                    "pred_bg2": _lab_to_css(flat[3:6]),
+                    "pred_fg": _lab_to_css(flat[6:9]),
                 }
             )
         out.append(
@@ -1077,7 +1078,6 @@ def _section_lang_consistency(enc, emoji_head, style_head, gen) -> dict:
         emoji_he = emoji_head(enc_he)
         style_en, style_he = style_head(enc_en), style_head(enc_he)
         color_en, color_he = gen(enc_en), gen(enc_he)
-    ok_en, ok_he = rgb_to_oklab(color_en), rgb_to_oklab(color_he)
 
     rows = []
     for i, (en, he) in enumerate(LANG_PAIRS):
@@ -1099,13 +1099,13 @@ def _section_lang_consistency(enc, emoji_head, style_head, gen) -> dict:
                 "style_en": STYLES[s_en],
                 "style_he": STYLES[s_he],
                 "style_match": s_en == s_he,
-                "color_dist": (ok_en[i] - ok_he[i]).norm().item(),
-                "en_bg1": _offsets_to_hex(flat_en[0:3]),
-                "en_bg2": _offsets_to_hex(flat_en[3:6]),
-                "en_fg": _offsets_to_hex(flat_en[6:9]),
-                "he_bg1": _offsets_to_hex(flat_he[0:3]),
-                "he_bg2": _offsets_to_hex(flat_he[3:6]),
-                "he_fg": _offsets_to_hex(flat_he[6:9]),
+                "color_dist": (color_en[i] - color_he[i]).norm().item(),
+                "en_bg1": _lab_to_css(flat_en[0:3]),
+                "en_bg2": _lab_to_css(flat_en[3:6]),
+                "en_fg": _lab_to_css(flat_en[6:9]),
+                "he_bg1": _lab_to_css(flat_he[0:3]),
+                "he_bg2": _lab_to_css(flat_he[3:6]),
+                "he_fg": _lab_to_css(flat_he[6:9]),
             }
         )
     rows.sort(key=lambda r: -r["color_dist"])
@@ -1416,13 +1416,13 @@ def _hex_to_offsets(hx: str) -> list[float]:
     return [int(hx[i: i + 2], 16) - COLOR_SHIFT for i in (0, 2, 4)]
 
 
-def _offsets_to_hex(vals) -> str:
-    ints = [max(0, min(255, round(v + COLOR_SHIFT))) for v in vals]
-    return "#" + "".join(f"{v:02x}" for v in ints)
+def _lab_to_css(lab3) -> str:
+    lightness, a, b = lab3
+    return f"oklab({lightness:.4f} {a:.4f} {b:.4f})"
 
 
-def _l_chroma(vals9) -> tuple[float, float]:
-    lab = rgb_to_oklab(torch.tensor(vals9, dtype=torch.float32)).reshape(3, 3)
+def _l_chroma(lab9) -> tuple[float, float]:
+    lab = torch.tensor(lab9, dtype=torch.float32).reshape(3, 3)
     return lab[:, 0].mean().item(), lab[:, 1:3].norm(dim=-1).mean().item()
 
 
@@ -1442,7 +1442,7 @@ def _pure_threshold(color: str) -> float:
 
 
 def _pure_distance(pred9, color: str) -> float:
-    p = rgb_to_oklab(torch.tensor(pred9, dtype=torch.float32)).reshape(3, 3)
+    p = torch.tensor(pred9, dtype=torch.float32).reshape(3, 3)
     bg = p[:2].mean(dim=0)
     pure = rgb_to_oklab(torch.tensor(
         _hex_to_offsets(PURE_HEX[color]), dtype=torch.float32))

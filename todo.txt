@@ -1,2 +1,4 @@
+For the critic, should we reshape the input colors into a 3x3 matrix and project it using a 1d conv layer?
+
 Done:
-Update the GAN train: When critic auroc drops below MIN_AUROC only update the generator with the energy loss.
+Make the generator output the color directly in the OKLAB space.

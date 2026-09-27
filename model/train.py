@@ -43,7 +43,7 @@ from files import (
     WEB_PUBLIC_DIR,
     PtFile,
 )
-from model.color import COLOR_SHIFT, energy_distance, rgb_to_oklab
+from model.color import energy_distance
 from model.config import (
     BATCH_SIZE_GAN,
     BATCH_SIZE_TEXT_ENCODER,
@@ -130,18 +130,13 @@ def lse_infonce(
     return row_loss[has_pos].mean()
 
 
-def _dequantize(colors: torch.Tensor) -> torch.Tensor:
-    return (colors + (torch.rand_like(colors) - 0.5)).clamp(
-        -COLOR_SHIFT, COLOR_SHIFT)
-
-
 def _critic_shuf_step(
     critic: Critic, cond: torch.Tensor, colors: torch.Tensor,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     n = colors.shape[0]
     shuffled = colors[torch.randperm(n, device=colors.device)]
 
-    pair = _dequantize(torch.cat([colors, shuffled], dim=0))
+    pair = torch.cat([colors, shuffled], dim=0)
     cond_pair = torch.cat([cond, cond], dim=0)
     score = critic(cond_pair, pair)
     real, shuf_score = score.chunk(2, dim=0)
@@ -162,7 +157,7 @@ def _critic_probe_step(
     shuffled = colors[torch.randperm(n, device=colors.device)]
     random_colors = rnd_color_tensor(n, device=colors.device)
 
-    pair = _dequantize(torch.cat([colors, shuffled, random_colors], dim=0))
+    pair = torch.cat([colors, shuffled, random_colors], dim=0)
     cond_pair = torch.cat([cond, cond, cond], dim=0)
     score = critic(cond_pair, pair)
     real, shuf_score, rand_score = score.chunk(3, dim=0)
@@ -387,8 +382,8 @@ class LitColorGAN(pl.LightningModule):
             fake = self.gen(cond)
 
             val_energy = energy_distance(
-                rgb_to_oklab(_energy_subsample(colors, ENERGY_VAL_SAMPLE_SIZE)),
-                rgb_to_oklab(_energy_subsample(fake, ENERGY_VAL_SAMPLE_SIZE)))
+                _energy_subsample(colors, ENERGY_VAL_SAMPLE_SIZE),
+                _energy_subsample(fake, ENERGY_VAL_SAMPLE_SIZE))
             self.log(GanMetric.ENERGY_VAL, val_energy, prog_bar=True)
 
             kw_values = []
@@ -396,8 +391,7 @@ class LitColorGAN(pl.LightningModule):
                 kw_cond = kw_cond.to(cond.device)
                 kw_gt9 = kw_gt9.to(cond.device)
                 kw_fake = self.gen(kw_cond)
-                kw_values.append(energy_distance(
-                    rgb_to_oklab(kw_gt9), rgb_to_oklab(kw_fake)))
+                kw_values.append(energy_distance(kw_gt9, kw_fake))
 
             energy_keyword_avg = (
                 torch.stack(kw_values).mean() if kw_values else val_energy)
@@ -411,7 +405,7 @@ class LitColorGAN(pl.LightningModule):
         fake = self.gen(cond)
 
         # CRITIC
-        real = self.critic(cond, _dequantize(colors))
+        real = self.critic(cond, colors)
         fake_score = self.critic(cond, fake.detach())
 
         loss_critic = relu(1 - real).mean() + relu(1 + fake_score).mean()
@@ -436,8 +430,8 @@ class LitColorGAN(pl.LightningModule):
 
         # GENERATOR
         loss_energy = energy_distance(
-            rgb_to_oklab(_energy_subsample(fake, ENERGY_TRAIN_SAMPLE_SIZE)),
-            rgb_to_oklab(_energy_subsample(colors, ENERGY_TRAIN_SAMPLE_SIZE)))
+            _energy_subsample(fake, ENERGY_TRAIN_SAMPLE_SIZE),
+            _energy_subsample(colors, ENERGY_TRAIN_SAMPLE_SIZE))
 
         if auroc_gen >= MIN_AUROC:
             gen_score = self.critic(cond, fake)
@@ -522,8 +516,8 @@ class LitColorGenEnergy(pl.LightningModule):
             fake = self.gen(cond)
 
             val_energy = energy_distance(
-                rgb_to_oklab(_energy_subsample(colors, ENERGY_VAL_SAMPLE_SIZE)),
-                rgb_to_oklab(_energy_subsample(fake, ENERGY_VAL_SAMPLE_SIZE)))
+                _energy_subsample(colors, ENERGY_VAL_SAMPLE_SIZE),
+                _energy_subsample(fake, ENERGY_VAL_SAMPLE_SIZE))
             self.log(GenMetric.ENERGY_VAL, val_energy, prog_bar=True)
 
             kw_values = []
@@ -531,8 +525,7 @@ class LitColorGenEnergy(pl.LightningModule):
                 kw_cond = kw_cond.to(cond.device)
                 kw_gt9 = kw_gt9.to(cond.device)
                 kw_fake = self.gen(kw_cond)
-                kw_values.append(energy_distance(
-                    rgb_to_oklab(kw_gt9), rgb_to_oklab(kw_fake)))
+                kw_values.append(energy_distance(kw_gt9, kw_fake))
 
             energy_keyword_avg = (
                 torch.stack(kw_values).mean() if kw_values else val_energy)
@@ -544,8 +537,8 @@ class LitColorGenEnergy(pl.LightningModule):
         fake = self.gen(cond)
 
         loss = energy_distance(
-            rgb_to_oklab(_energy_subsample(fake, ENERGY_TRAIN_SAMPLE_SIZE)),
-            rgb_to_oklab(_energy_subsample(colors, ENERGY_TRAIN_SAMPLE_SIZE)))
+            _energy_subsample(fake, ENERGY_TRAIN_SAMPLE_SIZE),
+            _energy_subsample(colors, ENERGY_TRAIN_SAMPLE_SIZE))
         self.log(GenMetric.ENERGY_TRAIN, loss, prog_bar=True)
         self.log(GenMetric.NORM_Z, self.gen.last_norm_z)
         self.log(GenMetric.NORM_T, self.gen.last_norm_t)
