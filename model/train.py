@@ -414,8 +414,6 @@ class LitColorGAN(pl.LightningModule):
         real = self.critic(cond, _dequantize(colors))
         fake_score = self.critic(cond, fake.detach())
 
-        loss_critic = relu(1 - real).mean() + relu(1 + fake_score).mean()
-
         n = colors.shape[0]
         auroc_target = torch.cat([real.new_ones(n), real.new_zeros(n)])
         auroc_gen = binary_auroc(
@@ -423,6 +421,8 @@ class LitColorGAN(pl.LightningModule):
             auroc_target.long())
 
         if auroc_gen <= MAX_AUROC:
+            loss_critic = fake_score.mean() - real.mean()
+
             opt_critic.zero_grad()
             self.manual_backward(loss_critic)
             self.clip_gradients(
