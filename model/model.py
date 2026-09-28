@@ -123,7 +123,7 @@ class ColorGen(nn.Module):
 
         self.to_scale_shift = nn.Linear(EMBED_SIZE_TEXT, Z_DIM * 2)
         self.mlp = nn.Sequential(
-            *gblk(Z_DIM, HIDDEN_SIZE_GEN),  # ✅ Corrected input dimension to Z_DIM
+            *gblk(Z_DIM, HIDDEN_SIZE_GEN),
             *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
             nn.Linear(HIDDEN_SIZE_GEN, COLOR_DIM)
         )
