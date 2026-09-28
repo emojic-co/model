@@ -9,9 +9,15 @@ import {
   decodeColorList,
   srgbToOklab,
   oklabToSrgb,
+  hexToOklab,
+  toCssOklab,
   contrastRatio,
   fixContrast,
+  mixColors,
+  patternTint,
   CONTRAST_MIN,
+  BLACK,
+  WHITE,
 } from './model'
 
 const CHARS = '·abcdefghijklmnopqrstuvwxyz0123456789!?:()@$%&* '
@@ -46,40 +52,43 @@ describe('encode', () => {
 })
 
 describe('decodeColors', () => {
-  it('splits a 9-vector of 0..255 values into bg1/bg2/text_color hex', () => {
-    expect(decodeColors([255, 0, 0, 0, 127.5, 255, 16, 16, 16])).toEqual({
-      bg1: '#ff0000',
-      bg2: '#0080ff',
-      text_color: '#101010',
-    })
+  it('maps unit -1/1 to black/white OKLab triples', () => {
+    const decoded = decodeColors([1, 0, 0, -1, 0, 0, 1, 0, 0])
+    expect(decoded.bg1).toEqual([1, 0, 0])
+    expect(decoded.bg2).toEqual([0, 0, 0])
+    expect(decoded.text_color).toEqual([1, 0, 0])
   })
-  it('clamps values outside 0..255', () => {
-    expect(decodeColors([300, -5, 128, 300, 300, 300, 0, 0, 0])).toEqual({
-      bg1: '#ff0080',
-      bg2: '#ffffff',
-      text_color: '#000000',
-    })
+  it('maps unit 0 to the neutral midpoint L=0.5, a=0, b=0', () => {
+    const decoded = decodeColors([0, 0, 0, 0, 0, 0, 0, 0, 0])
+    expect(decoded.bg1).toEqual([0.5, 0, 0])
+  })
+  it('scales a/b by the given ab_range', () => {
+    const decoded = decodeColors([0, 1, -1, 0, 0, 0, 0, 0, 0], 0.3)
+    expect(decoded.bg1[0]).toBeCloseTo(0.5, 10)
+    expect(decoded.bg1[1]).toBeCloseTo(0.3, 10)
+    expect(decoded.bg1[2]).toBeCloseTo(-0.3, 10)
   })
 })
 
 describe('decodeColorList', () => {
-  const hex = /^#[0-9a-f]{6}$/
-
   it('chunks a flat 45-value buffer into 5 palettes', () => {
     const list = decodeColorList(new Float32Array(45).fill(0))
     expect(list).toHaveLength(5)
     for (const p of list) {
-      expect(p.bg1).toMatch(hex)
-      expect(p.bg2).toMatch(hex)
-      expect(p.text_color).toMatch(hex)
+      expect(p.bg1).toEqual([0.5, 0, 0])
+      expect(p.bg2).toEqual([0.5, 0, 0])
+      expect(p.text_color).toEqual([0.5, 0, 0])
     }
   })
-
   it('decodes each chunk independently', () => {
-    const flat = [...Array(9).fill(0), ...Array(9).fill(255)]
+    const swatch = (n) => [n, 0, 0]
+    const flat = [
+      ...swatch(-1), ...swatch(-1), ...swatch(-1),
+      ...swatch(1), ...swatch(1), ...swatch(1),
+    ]
     expect(decodeColorList(flat)).toEqual([
-      { bg1: '#000000', bg2: '#000000', text_color: '#000000' },
-      { bg1: '#ffffff', bg2: '#ffffff', text_color: '#ffffff' },
+      { bg1: [0, 0, 0], bg2: [0, 0, 0], text_color: [0, 0, 0] },
+      { bg1: [1, 0, 0], bg2: [1, 0, 0], text_color: [1, 0, 0] },
     ])
   })
 })
@@ -104,27 +113,45 @@ describe('oklab', () => {
   })
 })
 
+describe('hexToOklab / toCssOklab', () => {
+  it('converts white and black hex to their exact OKLab triples', () => {
+    expect(hexToOklab('#ffffff')[0]).toBeCloseTo(1, 5)
+    expect(hexToOklab('#000000')).toEqual([0, 0, 0])
+  })
+  it('formats an OKLab triple as a CSS oklab() string', () => {
+    expect(toCssOklab([0.6, -0.05, 0.12])).toBe('oklab(60.00% -0.0500 0.1200)')
+  })
+})
+
 describe('contrastRatio', () => {
   it('is 21 for black on white and 1 for a colour on itself', () => {
-    expect(contrastRatio('#000000', '#ffffff')).toBeCloseTo(21, 5)
-    expect(contrastRatio('#3a7bd5', '#3a7bd5')).toBeCloseTo(1, 5)
+    expect(contrastRatio(BLACK, WHITE)).toBeCloseTo(21, 4)
+    const c = hexToOklab('#3a7bd5')
+    expect(contrastRatio(c, c)).toBeCloseTo(1, 5)
   })
   it('is symmetric', () => {
-    expect(contrastRatio('#123456', '#abcdef')).toBeCloseTo(
-      contrastRatio('#abcdef', '#123456'),
-      10,
-    )
+    const a = hexToOklab('#123456')
+    const b = hexToOklab('#abcdef')
+    expect(contrastRatio(a, b)).toBeCloseTo(contrastRatio(b, a), 10)
   })
 })
 
 describe('fixContrast', () => {
   it('leaves a readable palette untouched (same object)', () => {
-    const p = { bg1: '#a8e2f4', bg2: '#78c9f4', text_color: '#282e36' }
+    const p = {
+      bg1: hexToOklab('#a8e2f4'),
+      bg2: hexToOklab('#78c9f4'),
+      text_color: hexToOklab('#282e36'),
+    }
     expect(fixContrast(p)).toBe(p)
   })
 
   it('repairs a low-contrast palette so both stops clear the threshold', () => {
-    const p = { bg1: '#2b2b2b', bg2: '#3a3a3a', text_color: '#444444' }
+    const p = {
+      bg1: hexToOklab('#2b2b2b'),
+      bg2: hexToOklab('#3a3a3a'),
+      text_color: hexToOklab('#444444'),
+    }
     const fixed = fixContrast(p)
     expect(fixed.text_color).not.toBe(p.text_color)
     expect(fixed.bg1).toBe(p.bg1)
@@ -134,17 +161,24 @@ describe('fixContrast', () => {
   })
 
   it('nudges lightness while roughly preserving hue', () => {
-    const p = { bg1: '#c94f4f', bg2: '#d46b4b', text_color: '#b84a3a' }
+    const p = {
+      bg1: hexToOklab('#c94f4f'),
+      bg2: hexToOklab('#d46b4b'),
+      text_color: hexToOklab('#b84a3a'),
+    }
     const fixed = fixContrast(p)
-    const [, a0, b0] = srgbToOklab([0xb8, 0x4a, 0x3a])
-    const n = parseInt(fixed.text_color.slice(1), 16)
-    const [, a1, b1] = srgbToOklab([(n >> 16) & 255, (n >> 8) & 255, n & 255])
+    const [, a0, b0] = p.text_color
+    const [, a1, b1] = fixed.text_color
     expect(Math.sign(a1)).toBe(Math.sign(a0))
     expect(Math.sign(b1)).toBe(Math.sign(b0))
   })
 
   it('respects a custom threshold', () => {
-    const p = { bg1: '#ffffff', bg2: '#f4f4f4', text_color: '#8a8a8a' }
+    const p = {
+      bg1: hexToOklab('#ffffff'),
+      bg2: hexToOklab('#f4f4f4'),
+      text_color: hexToOklab('#8a8a8a'),
+    }
     const fixed = fixContrast(p, 4.5)
     expect(minOf(fixed)).toBeGreaterThanOrEqual(4.5)
   })
@@ -153,6 +187,29 @@ describe('fixContrast', () => {
 function minOf({ bg1, bg2, text_color }) {
   return Math.min(contrastRatio(text_color, bg1), contrastRatio(text_color, bg2))
 }
+
+describe('mixColors', () => {
+  it('at t=0 returns the first color, at t=1 the second', () => {
+    const a = hexToOklab('#ff0000')
+    const b = hexToOklab('#0000ff')
+    expect(mixColors(a, b, 0)).toEqual(a)
+    expect(mixColors(a, b, 1)).toEqual(b)
+  })
+  it('at t=0.5 is the midpoint on each channel', () => {
+    expect(mixColors([0, 0, 0], [1, 0.4, -0.4], 0.5)).toEqual([0.5, 0.2, -0.2])
+  })
+})
+
+describe('patternTint', () => {
+  it('floors lightness at 0.94 while keeping hue', () => {
+    const tint = patternTint([0.5, 0.1, -0.1], [0.5, 0.1, -0.1])
+    expect(tint).toEqual([0.94, 0.1, -0.1])
+  })
+  it('keeps lightness above 0.94 if the mix is already lighter', () => {
+    const tint = patternTint([0.98, 0.05, 0], [0.98, 0.05, 0])
+    expect(tint[0]).toBeCloseTo(0.98, 10)
+  })
+})
 
 describe('argmax / softmax', () => {
   it('argmax returns the index of the max', () => {

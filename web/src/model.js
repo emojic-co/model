@@ -16,36 +16,11 @@ export function encode(text, meta, char2idx) {
   return BigInt64Array.from(ids, BigInt)
 }
 
-export function decodeColors(color) {
-  const b = (v) =>
-    Math.max(0, Math.min(255, Math.round(v)))
-      .toString(16)
-      .padStart(2, '0')
-  return {
-    bg1: '#' + b(color[0]) + b(color[1]) + b(color[2]),
-    bg2: '#' + b(color[3]) + b(color[4]) + b(color[5]),
-    text_color: '#' + b(color[6]) + b(color[7]) + b(color[8]),
-  }
-}
-
-export function decodeColorList(flat) {
-  const arr = Array.from(flat)
-  const out = []
-  for (let i = 0; i + 9 <= arr.length; i += 9) out.push(decodeColors(arr.slice(i, i + 9)))
-  return out
-}
+export const AB_RANGE = 0.4
 
 function hexToRgb(hex) {
   const n = parseInt(hex.slice(1), 16)
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
-}
-
-function rgbToHex([r, g, b]) {
-  const h = (v) =>
-    Math.max(0, Math.min(255, Math.round(v)))
-      .toString(16)
-      .padStart(2, '0')
-  return '#' + h(r) + h(g) + h(b)
 }
 
 function srgbToLinear(c) {
@@ -82,6 +57,33 @@ export function oklabToSrgb([L, a, b]) {
   ]
 }
 
+export function hexToOklab(hex) {
+  return srgbToOklab(hexToRgb(hex))
+}
+
+export function toCssOklab([L, a, b]) {
+  return `oklab(${(L * 100).toFixed(2)}% ${a.toFixed(4)} ${b.toFixed(4)})`
+}
+
+function decodeColor([n0, n1, n2], abRange) {
+  return [(n0 + 1) / 2, n1 * abRange, n2 * abRange]
+}
+
+export function decodeColors(color, abRange = AB_RANGE) {
+  return {
+    bg1: decodeColor([color[0], color[1], color[2]], abRange),
+    bg2: decodeColor([color[3], color[4], color[5]], abRange),
+    text_color: decodeColor([color[6], color[7], color[8]], abRange),
+  }
+}
+
+export function decodeColorList(flat, abRange = AB_RANGE) {
+  const arr = Array.from(flat)
+  const out = []
+  for (let i = 0; i + 9 <= arr.length; i += 9) out.push(decodeColors(arr.slice(i, i + 9), abRange))
+  return out
+}
+
 function relLuminance([r, g, b]) {
   return (
     0.2126 * srgbToLinear(r / 255) +
@@ -90,13 +92,15 @@ function relLuminance([r, g, b]) {
   )
 }
 
-export function contrastRatio(hexA, hexB) {
-  const la = relLuminance(hexToRgb(hexA))
-  const lb = relLuminance(hexToRgb(hexB))
+export function contrastRatio(oklabA, oklabB) {
+  const la = relLuminance(oklabToSrgb(oklabA))
+  const lb = relLuminance(oklabToSrgb(oklabB))
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05)
 }
 
 export const CONTRAST_MIN = 3
+export const BLACK = [0, 0, 0]
+export const WHITE = [1, 0, 0]
 
 function minMargin(fg, bg1, bg2) {
   return Math.min(contrastRatio(fg, bg1), contrastRatio(fg, bg2))
@@ -107,13 +111,13 @@ export function fixContrast(palette, minContrast = CONTRAST_MIN) {
   const ok = (fg) => minMargin(fg, bg1, bg2) >= minContrast
   if (ok(text_color)) return palette
 
-  const [L0, a, b] = srgbToOklab(hexToRgb(text_color))
+  const [L0, a, b] = text_color
   const STEP = 0.02
   let best = null
   let bestCost = Infinity
   for (const dir of [-1, 1]) {
     for (let L = L0 + dir * STEP; L >= 0 && L <= 1; L += dir * STEP) {
-      const cand = rgbToHex(oklabToSrgb([L, a, b]))
+      const cand = [L, a, b]
       if (ok(cand)) {
         if (Math.abs(L - L0) < bestCost) {
           best = cand
@@ -124,22 +128,20 @@ export function fixContrast(palette, minContrast = CONTRAST_MIN) {
     }
   }
   if (!best) {
-    best = minMargin('#000000', bg1, bg2) >= minMargin('#ffffff', bg1, bg2)
-      ? '#000000'
-      : '#ffffff'
+    best = minMargin(BLACK, bg1, bg2) >= minMargin(WHITE, bg1, bg2) ? BLACK : WHITE
   }
   return { bg1, bg2, text_color: best }
 }
 
-export function mixColors(hexA, hexB, t = 0.5) {
-  const [L1, a1, b1] = srgbToOklab(hexToRgb(hexA))
-  const [L2, a2, b2] = srgbToOklab(hexToRgb(hexB))
-  return rgbToHex(oklabToSrgb([L1 + (L2 - L1) * t, a1 + (a2 - a1) * t, b1 + (b2 - b1) * t]))
+export function mixColors(a, b, t = 0.5) {
+  const [L1, a1, b1] = a
+  const [L2, a2, b2] = b
+  return [L1 + (L2 - L1) * t, a1 + (a2 - a1) * t, b1 + (b2 - b1) * t]
 }
 
 export function patternTint(bg1, bg2) {
-  const [L, a, b] = srgbToOklab(hexToRgb(mixColors(bg1, bg2)))
-  return rgbToHex(oklabToSrgb([Math.max(0.94, L), a, b]))
+  const [L, a, b] = mixColors(bg1, bg2)
+  return [Math.max(0.94, L), a, b]
 }
 
 export function argmax(arr) {
