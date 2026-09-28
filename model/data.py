@@ -127,12 +127,6 @@ def sample_colors_tensor(colors: list[list[str]]) -> torch.Tensor:
     return colors2tensor(colors[i])
 
 
-def rnd_color_tensor(n: int, device=None) -> torch.Tensor:
-    """Uniform random points in the model's unit color cube -- used only as
-    negative/adversarial samples for the critic, not as real colors."""
-    return torch.rand((n, COLOR_DIM), device=device) * 2.0 - 1.0
-
-
 def normalize(text: str) -> str:
     text = re.sub(r"\s+", " ", text.lower()).strip()
     text = re.sub(r'(.)\1{2,}', r'\1\1', text)

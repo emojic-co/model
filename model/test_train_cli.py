@@ -29,18 +29,16 @@ def test_colorcritic_forward_shape():
     assert score.shape == (5, 1)
 
 
-def test_critic_probe_step_shapes():
-    from model.data import rnd_color_tensor
+def test_critic_shuf_step_shapes():
     from model.model import Critic
-    from model.train import _critic_probe_step
+    from model.train import _critic_shuf_step
 
     critic = Critic()
     cond = torch.randn(6, EMBED_SIZE_TEXT)
-    colors = rnd_color_tensor(6)
-    loss, auroc_shuf, auroc_rand = _critic_probe_step(critic, cond, colors)
+    colors = torch.randn(6, 9)
+    loss, auroc_shuf = _critic_shuf_step(critic, cond, colors)
     assert loss.shape == ()
     assert auroc_shuf.shape == ()
-    assert auroc_rand.shape == ()
 
 
 def test_litcriticprobe_builds():
@@ -155,7 +153,7 @@ def main() -> None:
     """Run the train.py CLI assertion checks."""
     test_litencoder_builds_all_heads()
     test_colorcritic_forward_shape()
-    test_critic_probe_step_shapes()
+    test_critic_shuf_step_shapes()
     test_litcriticprobe_builds()
     test_litcolorgan_builds()
     test_cli_help_ok()

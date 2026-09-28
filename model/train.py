@@ -81,7 +81,6 @@ from model.data import (
     eval_data_loader,
     eval_ds,
     read_color_keywords,
-    rnd_color_tensor,
     sample_colors_tensor,
     text_to_tensor,
     train_data_loader,
@@ -148,31 +147,6 @@ def _critic_shuf_step(
         torch.cat([real, shuf_score], dim=0).detach().squeeze(-1), target.long())
 
     return loss, auroc_shuf
-
-
-def _critic_probe_step(
-    critic: Critic, cond: torch.Tensor, colors: torch.Tensor,
-) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    n = colors.shape[0]
-    shuffled = colors[torch.randperm(n, device=colors.device)]
-    random_colors = rnd_color_tensor(n, device=colors.device)
-
-    pair = torch.cat([colors, shuffled, random_colors], dim=0)
-    cond_pair = torch.cat([cond, cond, cond], dim=0)
-    score = critic(cond_pair, pair)
-    real, shuf_score, rand_score = score.chunk(3, dim=0)
-
-    loss = relu(1 - real).mean() \
-        + relu(1 + shuf_score).mean() \
-        + relu(1 + rand_score).mean()
-
-    target = torch.cat([score.new_ones(n), score.new_zeros(n)])
-    auroc_shuf = binary_auroc(
-        torch.cat([real, shuf_score], dim=0).detach().squeeze(-1), target.long())
-    auroc_rand = binary_auroc(
-        torch.cat([real, rand_score], dim=0).detach().squeeze(-1), target.long())
-
-    return loss, auroc_shuf, auroc_rand
 
 
 def mrr(logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
@@ -552,33 +526,23 @@ class LitCriticProbe(pl.LightningModule):
 
     def _step(self, batch: tuple[torch.Tensor, torch.Tensor]):
         cond, colors = batch
-        return _critic_probe_step(self.critic, cond, colors)
+        return _critic_shuf_step(self.critic, cond, colors)
 
     def training_step(self, batch, batch_idx):
-        loss, auroc_shuf, auroc_rand = self._step(batch)
+        loss, auroc_shuf = self._step(batch)
         self.log(
             named_metric(LogStage.CRITIC, Source.COLOR,
                          Metric.AUROC_SHUF, Split.TRAIN),
             auroc_shuf, on_step=False, on_epoch=True, prog_bar=True,
         )
-        self.log(
-            named_metric(LogStage.CRITIC, Source.COLOR,
-                         Metric.AUROC_RAND, Split.TRAIN),
-            auroc_rand, on_step=False, on_epoch=True, prog_bar=True,
-        )
         return loss
 
     def validation_step(self, batch, batch_idx):
-        _, auroc_shuf, auroc_rand = self._step(batch)
+        _, auroc_shuf = self._step(batch)
         self.log(
             named_metric(LogStage.CRITIC, Source.COLOR,
                          Metric.AUROC_SHUF, Split.VAL),
             auroc_shuf, on_step=False, on_epoch=True, prog_bar=True,
-        )
-        self.log(
-            named_metric(LogStage.CRITIC, Source.COLOR,
-                         Metric.AUROC_RAND, Split.VAL),
-            auroc_rand, on_step=False, on_epoch=True, prog_bar=True,
         )
 
     def configure_optimizers(self):

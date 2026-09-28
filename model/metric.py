@@ -29,7 +29,6 @@ class Metric(StrEnum):
     MRR = "mrr"
     R2 = "r2"
     AUROC_SHUF = "auroc_shuf"
-    AUROC_RAND = "auroc_rand"
     LOSS = "loss"
 
 
