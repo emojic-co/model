@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from files import PtFile
 from model.config import MAX_TEXT_LEN, SEED
-from model.data import EMOJIS, STYLES, normalize, text_to_tensor
+from model.data import EMOJIS, STYLES, color_tensor_to_hexes, normalize, text_to_tensor
 from model.model import (
     ColorGen,
     EmojiHead,
@@ -18,17 +18,6 @@ from model.model import (
     TextEncoder,
 )
 from model.runmeta import load_pt
-
-
-def rgb_to_hex(rgb: torch.Tensor) -> list[str]:
-    assert rgb.shape == (9,), "Input tensor must be of shape (9,)"
-
-    ints = ((rgb + 1.0) * 127.5).clamp(0, 255).to(torch.int32).cpu().tolist()
-
-    def f2h(val: int) -> str:
-        return f"{val:02x}"
-
-    return [f"#{f2h(ints[i])}{f2h(ints[i + 1])}{f2h(ints[i + 2])}" for i in range(0, 9, 3)]
 
 
 def _load(mod: torch.nn.Module, path: Path) -> torch.nn.Module:
@@ -89,7 +78,7 @@ def predict(
             emoji_logits = emoji(emb)
             emojis = top_labels(emoji_logits, EMOJIS, min_k=1, max_k=1)
 
-            hexes = rgb_to_hex(gen(emb).squeeze(0))
+            hexes = color_tensor_to_hexes(gen(emb).squeeze(0))
 
             record = {
                 "text": text,
