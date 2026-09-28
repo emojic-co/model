@@ -39,9 +39,12 @@ from model.config import (
     STYLES,
 )
 from model.data import (
+    AB_RANGE,
     EVAL_PATH,
     TRAIN_PATH,
+    color_unit_to_hex,
     colors2tensor,
+    hex_to_color_unit,
     read,
     read_color_keywords,
     text_to_tensor,
@@ -66,7 +69,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 EMOJI_KS = list(range(1, 11))
 ACC_K_INDEX = {"acc@1": 0, "acc@5": 4, "acc@10": 9}
-CARD_PURE_THRESHOLD_RGB = 0.251
+CARD_PURE_THRESHOLD_OKLAB = 0.251
 CARD_PURE_THRESHOLD_L = 0.6
 CARD_COLORS = ("red", "green", "blue", "dark", "bright")
 GOLD_PER_COLOR = 25
@@ -871,9 +874,9 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
     out_rows = []
     for i, r in enumerate(rows):
         gold9 = (
-            _hex_to_rgb(r["bg"][0])
-            + _hex_to_rgb(r["bg"][1])
-            + _hex_to_rgb(r["fg"])
+            list(hex_to_color_unit(r["bg"][0]))
+            + list(hex_to_color_unit(r["bg"][1]))
+            + list(hex_to_color_unit(r["fg"]))
         )
         dp = min(
             _pure_distance(palettes[i, k].tolist(), r["color"])
@@ -888,9 +891,9 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
                 "text": r["text"],
                 "emoji": EMOJIS[int(elog[i].argmax())],
                 "style": STYLES[int(slog[i].argmax())],
-                "bg1": _rgb_to_hex(flat[0:3]),
-                "bg2": _rgb_to_hex(flat[3:6]),
-                "text_color": _rgb_to_hex(flat[6:9]),
+                "bg1": color_unit_to_hex(tuple(flat[0:3])),
+                "bg2": color_unit_to_hex(tuple(flat[3:6])),
+                "text_color": color_unit_to_hex(tuple(flat[6:9])),
                 "gt_emoji": " ".join(str(r["emojis"]).split()),
                 "gt_style": " · ".join(r["styles"]),
                 "gt_bg1": r["bg"][0],
@@ -922,7 +925,7 @@ def _section_cards(enc, style_head, emoji_head, gen, gold_rows):
     per_color["all"] = _stats(list(range(len(out_rows))))
     return {
         "n": len(rows),
-        "pure_threshold_rgb": CARD_PURE_THRESHOLD_RGB,
+        "pure_threshold_oklab": CARD_PURE_THRESHOLD_OKLAB,
         "pure_threshold_l": CARD_PURE_THRESHOLD_L,
         "emoji_acc_at_k": emoji_acc,
         "style_acc_at_k": style_acc,
@@ -984,8 +987,8 @@ def _section_gen_sensitivity(enc, gen, gold_rows) -> dict:
             flat = palettes[i, kk].tolist()
             cards.append(
                 {
-                    "bg1": _rgb_to_hex(flat[0:3]),
-                    "bg2": _rgb_to_hex(flat[3:6]),
+                    "bg1": color_unit_to_hex(tuple(flat[0:3])),
+                    "bg2": color_unit_to_hex(tuple(flat[3:6])),
                 }
             )
         swatches.append({"text": texts[i], "cards": cards})
@@ -1044,9 +1047,9 @@ def _section_color_keywords(enc, gen) -> dict:
                     "gt_bg1": bg1,
                     "gt_bg2": bg2,
                     "gt_fg": fg,
-                    "pred_bg1": _rgb_to_hex(flat[0:3]),
-                    "pred_bg2": _rgb_to_hex(flat[3:6]),
-                    "pred_fg": _rgb_to_hex(flat[6:9]),
+                    "pred_bg1": color_unit_to_hex(tuple(flat[0:3])),
+                    "pred_bg2": color_unit_to_hex(tuple(flat[3:6])),
+                    "pred_fg": color_unit_to_hex(tuple(flat[6:9])),
                 }
             )
         out.append(
@@ -1099,12 +1102,12 @@ def _section_lang_consistency(enc, emoji_head, style_head, gen) -> dict:
                 "style_he": STYLES[s_he],
                 "style_match": s_en == s_he,
                 "color_dist": (color_en[i] - color_he[i]).norm().item(),
-                "en_bg1": _rgb_to_hex(flat_en[0:3]),
-                "en_bg2": _rgb_to_hex(flat_en[3:6]),
-                "en_fg": _rgb_to_hex(flat_en[6:9]),
-                "he_bg1": _rgb_to_hex(flat_he[0:3]),
-                "he_bg2": _rgb_to_hex(flat_he[3:6]),
-                "he_fg": _rgb_to_hex(flat_he[6:9]),
+                "en_bg1": color_unit_to_hex(tuple(flat_en[0:3])),
+                "en_bg2": color_unit_to_hex(tuple(flat_en[3:6])),
+                "en_fg": color_unit_to_hex(tuple(flat_en[6:9])),
+                "he_bg1": color_unit_to_hex(tuple(flat_he[0:3])),
+                "he_bg2": color_unit_to_hex(tuple(flat_he[3:6])),
+                "he_fg": color_unit_to_hex(tuple(flat_he[6:9])),
             }
         )
     rows.sort(key=lambda r: -r["color_dist"])
@@ -1410,20 +1413,17 @@ def _fnum(n) -> str:
     return f"{n:,}"
 
 
-def _hex_to_rgb(hx: str) -> list[float]:
-    hx = hx.lstrip("#")
-    return [int(hx[i: i + 2], 16) / 127.5 - 1.0 for i in (0, 2, 4)]
-
-
-def _rgb_to_hex(rgb3) -> str:
-    ints = [max(0, min(255, round((v + 1.0) * 127.5))) for v in rgb3]
-    return "#" + "".join(f"{v:02x}" for v in ints)
-
-
 def _l_chroma(rgb9) -> tuple[float, float]:
-    rgb = torch.tensor(rgb9, dtype=torch.float32).reshape(3, 3)
-    mean = rgb.mean(dim=-1, keepdim=True)
-    return mean.mean().item(), (rgb - mean).norm(dim=-1).mean().item()
+    flat = torch.tensor(rgb9, dtype=torch.float32).reshape(3, 3)
+    ls, chromas = [], []
+    for row in flat.tolist():
+        n0, n1, n2 = row
+        L = (n0 + 1) / 2
+        a = n1 * AB_RANGE
+        b = n2 * AB_RANGE
+        ls.append(L)
+        chromas.append((a ** 2 + b ** 2) ** 0.5)
+    return sum(ls) / len(ls), sum(chromas) / len(chromas)
 
 
 PURE_HEX = {
@@ -1438,13 +1438,13 @@ PURE_HEX = {
 def _pure_threshold(color: str) -> float:
     if color in ("dark", "bright"):
         return CARD_PURE_THRESHOLD_L
-    return CARD_PURE_THRESHOLD_RGB
+    return CARD_PURE_THRESHOLD_OKLAB
 
 
 def _pure_distance(pred9, color: str) -> float:
     p = torch.tensor(pred9, dtype=torch.float32).reshape(3, 3)
     bg = p[:2].mean(dim=0)
-    pure = torch.tensor(_hex_to_rgb(PURE_HEX[color]), dtype=torch.float32)
+    pure = torch.tensor(hex_to_color_unit(PURE_HEX[color]), dtype=torch.float32)
     if color in ("dark", "bright"):
         return (bg.mean() - pure.mean()).abs().item()
     return (bg - pure).norm().item()
@@ -1794,9 +1794,9 @@ def _cards_html(d) -> str:
     out.append(
         "<h3>Colour distance — d(model, pure)</h3>"
         '<p class="note">Pure acc: dP &lt; '
-        f"{d['pure_threshold_rgb']:.3f} (r/g/b), &lt; {d['pure_threshold_l']:.2f} "
+        f"{d['pure_threshold_oklab']:.3f} (OKLAB), &lt; {d['pure_threshold_l']:.2f} "
         "(|&Delta;L|, dark/bright) between the model's single top output and the "
-        "category's pure hue. &Delta;L/&Delta;chroma: mean RGB brightness/chroma "
+        "category's pure hue. &Delta;L/&Delta;chroma: mean OKLAB lightness/chroma "
         "of the model's single top output minus gold (from data/colors.jsonl), "
         "signed — positive means the model runs lighter/more saturated than "
         "gold.</p>"

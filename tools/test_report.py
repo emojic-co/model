@@ -316,6 +316,31 @@ def test_status_html_colors_rows():
     assert "0.500" in h and "800" in h and "n/a" in h
 
 
+def test_l_chroma_decodes_real_oklab_values():
+    from tools.report import _l_chroma
+
+    # unit (1,0,0) three times -> real OKLAB L=1, a=b=0 -> chroma 0
+    L, chroma = _l_chroma([1, 0, 0, 1, 0, 0, 1, 0, 0])
+    assert abs(L - 1.0) < 1e-6
+    assert abs(chroma - 0.0) < 1e-6
+
+    # unit (-1, 1, 0) -> L=0, a=AB_RANGE, b=0 -> chroma = AB_RANGE
+    L, chroma = _l_chroma([-1, 1, 0, -1, 1, 0, -1, 1, 0])
+    assert abs(L - 0.0) < 1e-6
+    assert abs(chroma - 0.4) < 1e-6
+
+
+def test_pure_distance_uses_oklab_unit_space():
+    # a palette that's exactly pure red in both bg slots should have 0
+    # distance from the "red" pure reference.
+    from model.data import hex_to_color_unit
+    from tools.report import _pure_distance
+
+    red_unit = hex_to_color_unit("#ff0000")
+    pred9 = [*red_unit, *red_unit, 0, 0, 0]
+    assert _pure_distance(pred9, "red") < 1e-6
+
+
 _app = typer.Typer(
     add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
@@ -338,6 +363,8 @@ def main() -> None:
     test_vocab_coverage_shape()
     test_status_vocab_coverage_gate()
     test_status_html_colors_rows()
+    test_l_chroma_decodes_real_oklab_values()
+    test_pure_distance_uses_oklab_unit_space()
     print("ok")
 
 
