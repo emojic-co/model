@@ -133,8 +133,9 @@ class ColorGen(nn.Module):
             device=cond.device,
             dtype=cond.dtype)
 
-        raw = self.mlp(torch.cat([cond, z], dim=-1))
-        return torch.tanh(raw)
+        z = z / cond.sum(dim=-1, keepdim=True).clamp(min=1e-8)
+        out = self.mlp(torch.cat([cond, z], dim=-1))
+        return torch.tanh(out)
 
 
 def cblk(i: int, o: int):
