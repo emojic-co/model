@@ -23,6 +23,8 @@ fun encode(text: String, meta: Meta, char2idx: Map<Char, Int>): LongArray {
 
 data class Palette(val bg1: String, val bg2: String, val textColor: String)
 
+private const val DEFAULT_AB_RANGE = 0.4
+
 private fun clampByte(v: Double): Int = max(0.0, min(255.0, Math.round(v).toDouble())).toInt()
 
 private fun toHex(r: Double, g: Double, b: Double): String {
@@ -30,17 +32,26 @@ private fun toHex(r: Double, g: Double, b: Double): String {
     return "#${h(r)}${h(g)}${h(b)}"
 }
 
-fun decodeColors(c: FloatArray): Palette = Palette(
-    bg1 = toHex(c[0].toDouble(), c[1].toDouble(), c[2].toDouble()),
-    bg2 = toHex(c[3].toDouble(), c[4].toDouble(), c[5].toDouble()),
-    textColor = toHex(c[6].toDouble(), c[7].toDouble(), c[8].toDouble()),
+private fun unitToOklab(n0: Double, n1: Double, n2: Double, abRange: Double): Triple<Double, Double, Double> =
+    Triple((n0 + 1.0) / 2.0, n1 * abRange, n2 * abRange)
+
+private fun decodeSwatch(c: FloatArray, offset: Int, abRange: Double): String {
+    val (l, a, b) = unitToOklab(c[offset].toDouble(), c[offset + 1].toDouble(), c[offset + 2].toDouble(), abRange)
+    val (r, g, bch) = oklabToSrgb(Triple(l, a, b))
+    return toHex(r, g, bch)
+}
+
+fun decodeColors(c: FloatArray, abRange: Double = DEFAULT_AB_RANGE): Palette = Palette(
+    bg1 = decodeSwatch(c, 0, abRange),
+    bg2 = decodeSwatch(c, 3, abRange),
+    textColor = decodeSwatch(c, 6, abRange),
 )
 
-fun decodeColorList(flat: FloatArray): List<Palette> {
+fun decodeColorList(flat: FloatArray, abRange: Double = DEFAULT_AB_RANGE): List<Palette> {
     val out = mutableListOf<Palette>()
     var i = 0
     while (i + 9 <= flat.size) {
-        out.add(decodeColors(flat.copyOfRange(i, i + 9)))
+        out.add(decodeColors(flat.copyOfRange(i, i + 9), abRange))
         i += 9
     }
     return out

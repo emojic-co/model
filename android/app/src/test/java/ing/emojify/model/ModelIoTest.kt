@@ -28,13 +28,23 @@ class ModelIoTest {
     }
 
     @Test
-    fun `decodeColorList chunks flat floats into 9-value palettes`() {
-        val flat = floatArrayOf(255f, 0f, 0f, 0f, 255f, 0f, 0f, 0f, 0f)
+    fun `decodeColorList interprets floats as OKLAB-unit, not raw RGB bytes`() {
+        // unit (1,0,0) -> white; unit (-1,0,0) -> black; unit (1,0,0) again -> white
+        val flat = floatArrayOf(1f, 0f, 0f, -1f, 0f, 0f, 1f, 0f, 0f)
         val palettes = decodeColorList(flat)
         assertEquals(1, palettes.size)
-        assertEquals("#ff0000", palettes[0].bg1)
-        assertEquals("#00ff00", palettes[0].bg2)
-        assertEquals("#000000", palettes[0].textColor)
+        assertEquals("#ffffff", palettes[0].bg1)
+        assertEquals("#000000", palettes[0].bg2)
+        assertEquals("#ffffff", palettes[0].textColor)
+    }
+
+    @Test
+    fun `decodeColorList respects a custom ab_range`() {
+        val flat = floatArrayOf(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f)
+        val palettes = decodeColorList(flat, abRange = 0.3)
+        // unit 0 always maps to L=0.5, a=0, b=0 regardless of ab_range;
+        // gamma-corrected midpoint sRGB is 99 (0x63), not a naive 128 (0x80)
+        assertEquals("#636363", palettes[0].bg1)
     }
 
     @Test

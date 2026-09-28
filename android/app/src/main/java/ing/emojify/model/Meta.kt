@@ -21,6 +21,7 @@ data class Meta(
     val styles: List<String>,
     val exported_at: String? = null,
     val model_meta: ModelMetaInfo? = null,
+    val color_ab_range: Double = 0.4,
 )
 
 @Serializable

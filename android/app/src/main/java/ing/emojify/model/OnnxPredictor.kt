@@ -36,7 +36,7 @@ class OnnxPredictor(modelBytes: ByteArray, meta: Meta) : AutoCloseable {
                     row.copyInto(colorFlat, offset)
                     offset += row.size
                 }
-                return Prediction(emojiLogits, styleLogits, decodeColorList(colorFlat), ms)
+                return Prediction(emojiLogits, styleLogits, decodeColorList(colorFlat, meta.color_ab_range), ms)
             }
         }
     }
