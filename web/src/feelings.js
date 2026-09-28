@@ -1,6 +1,11 @@
 import { scriptForLang, fontForScript, LATIN } from './scriptFonts'
+import { hexToOklab } from './model'
 
-export const DEFAULT_COLORS = { bg1: '#a8e2f4', bg2: '#78c9f4', text_color: '#282e36' }
+export const DEFAULT_COLORS = {
+  bg1: hexToOklab('#a8e2f4'),
+  bg2: hexToOklab('#78c9f4'),
+  text_color: hexToOklab('#282e36'),
+}
 
 const SANS = 'system-ui, sans-serif'
 const SERIF = 'Georgia, serif'

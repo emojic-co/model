@@ -65,6 +65,14 @@ export function toCssOklab([L, a, b]) {
   return `oklab(${(L * 100).toFixed(2)}% ${a.toFixed(4)} ${b.toFixed(4)})`
 }
 
+// hero-patterns (see patterns.js) only accepts hex fill colors -- it strips
+// everything before a literal "#" and inlines the rest unescaped into a
+// pre-encoded SVG data URI, so an oklab() string corrupts the encoding.
+export function toHexColor([L, a, b]) {
+  const clamp = (v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')
+  return '#' + oklabToSrgb([L, a, b]).map(clamp).join('')
+}
+
 function decodeColor([n0, n1, n2], abRange) {
   return [(n0 + 1) / 2, n1 * abRange, n2 * abRange]
 }

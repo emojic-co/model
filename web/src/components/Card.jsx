@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useFitText } from '../hooks/useFitText'
 import { resolveFeeling } from '../feelings'
-import { contrastRatio, patternTint } from '../model'
+import { contrastRatio, patternTint, toCssOklab, toHexColor, BLACK, WHITE } from '../model'
 import { patternLayers, patternSizeCss } from '../patterns'
 
 function watermarkInk(bg) {
-  return contrastRatio('#000000', bg) >= contrastRatio('#ffffff', bg) ? '#000000' : '#ffffff'
+  return contrastRatio(BLACK, bg) >= contrastRatio(WHITE, bg) ? '#000000' : '#ffffff'
 }
 
 const FADE_MS = 150
@@ -47,14 +47,14 @@ export function Card({ text, emoji, feeling, lang, colors, loading, onCopy, onSh
   const style =
     !loading && colors && r
       ? (() => {
-          const layers = patternLayers(shown.feeling, patternTint(colors.bg1, colors.bg2))
+          const layers = patternLayers(shown.feeling, toHexColor(patternTint(colors.bg1, colors.bg2)))
           return {
             backgroundImage: [
               ...layers.map((l) => l.image),
-              `linear-gradient(135deg, ${colors.bg1}, ${colors.bg2})`,
+              `linear-gradient(135deg, ${toCssOklab(colors.bg1)}, ${toCssOklab(colors.bg2)})`,
             ].join(', '),
             backgroundSize: [...patternSizeCss(layers), 'auto'].join(', '),
-            color: colors.text_color,
+            color: toCssOklab(colors.text_color),
             fontFamily: r.font,
             ...r.vars,
           }

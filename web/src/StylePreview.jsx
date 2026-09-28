@@ -1,21 +1,25 @@
 import { useEffect, useState } from 'react'
 import { parse } from 'yaml'
 import { useFitText } from './hooks/useFitText'
-import { contrastRatio, fixContrast, patternTint } from './model'
+import { contrastRatio, fixContrast, patternTint, hexToOklab, toCssOklab, BLACK, WHITE } from './model'
 
 function watermarkInk(bg) {
-  return contrastRatio('#000000', bg) >= contrastRatio('#ffffff', bg) ? '#000000' : '#ffffff'
+  return contrastRatio(BLACK, bg) >= contrastRatio(WHITE, bg) ? '#000000' : '#ffffff'
 }
 
 function PreviewCard({ name, lang, entry, sample, globalSettings, patterns }) {
-  const colors = fixContrast(sample.colors)
+  const colors = fixContrast({
+    bg1: hexToOklab(sample.colors.bg1),
+    bg2: hexToOklab(sample.colors.bg2),
+    text_color: hexToOklab(sample.colors.text_color),
+  })
   const displayText = sample.text.trim() ? sample.text : "What's on your mind?"
   const textRef = useFitText(displayText, {
     min: globalSettings.textMinRatio * 100,
     max: globalSettings.textMaxRatio * 100,
     key: name,
   })
-  const tint = patternTint(colors.bg1, colors.bg2)
+  const tint = toCssOklab(patternTint(colors.bg1, colors.bg2))
   const maskUrl = `url("data:image/svg+xml,${encodeURIComponent(patterns[entry.pattern.name])}")`
 
   return (
@@ -24,8 +28,8 @@ function PreviewCard({ name, lang, entry, sample, globalSettings, patterns }) {
         className="card"
         dir={lang === 'he' ? 'rtl' : 'ltr'}
         style={{
-          background: `linear-gradient(135deg, ${colors.bg1}, ${colors.bg2})`,
-          color: colors.text_color,
+          background: `linear-gradient(135deg, ${toCssOklab(colors.bg1)}, ${toCssOklab(colors.bg2)})`,
+          color: toCssOklab(colors.text_color),
           fontFamily: `"${entry.font}", sans-serif`,
         }}
       >

@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { fitCanvasFont, wrapLines } from '../fit'
 import { resolveFeeling } from '../feelings'
-import { contrastRatio, patternTint } from '../model'
+import { contrastRatio, patternTint, toCssOklab, toHexColor, BLACK, WHITE } from '../model'
 import { patternLayers } from '../patterns'
 import { ensureScriptFontsLoaded, scriptForLang } from '../scriptFonts'
 
@@ -93,12 +93,12 @@ async function render({ text, emoji, feeling, lang, colors }) {
   ctx.scale(scale, scale)
 
   const grad = ctx.createLinearGradient(0, 0, S, S)
-  grad.addColorStop(0, colors.bg1)
-  grad.addColorStop(1, colors.bg2)
+  grad.addColorStop(0, toCssOklab(colors.bg1))
+  grad.addColorStop(1, toCssOklab(colors.bg2))
   ctx.fillStyle = grad
   ctx.fillRect(0, 0, S, S)
 
-  const layers = patternLayers(feeling, patternTint(colors.bg1, colors.bg2))
+  const layers = patternLayers(feeling, toHexColor(patternTint(colors.bg1, colors.bg2)))
   for (const layer of layers) {
     const img = await loadImage(patternUrl(layer.image))
     const tile = scaledTile(img, layer.w * S, layer.h * S)
@@ -106,7 +106,7 @@ async function render({ text, emoji, feeling, lang, colors }) {
     ctx.fillRect(0, 0, S, S)
   }
 
-  ctx.fillStyle = colors.text_color
+  ctx.fillStyle = toCssOklab(colors.text_color)
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
 
@@ -154,7 +154,7 @@ async function render({ text, emoji, feeling, lang, colors }) {
   ctx.textBaseline = 'alphabetic'
   ctx.font = `700 ${WATERMARK_PX}px "Caveat", ui-sans-serif, sans-serif`
   ctx.fillStyle =
-    contrastRatio('#000000', colors.bg2) >= contrastRatio('#ffffff', colors.bg2)
+    contrastRatio(BLACK, colors.bg2) >= contrastRatio(WHITE, colors.bg2)
       ? '#000000'
       : '#ffffff'
   ctx.globalAlpha = RATIOS.watermarkOpacity

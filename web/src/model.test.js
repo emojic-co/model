@@ -11,6 +11,7 @@ import {
   oklabToSrgb,
   hexToOklab,
   toCssOklab,
+  toHexColor,
   contrastRatio,
   fixContrast,
   mixColors,
@@ -120,6 +121,14 @@ describe('hexToOklab / toCssOklab', () => {
   })
   it('formats an OKLab triple as a CSS oklab() string', () => {
     expect(toCssOklab([0.6, -0.05, 0.12])).toBe('oklab(60.00% -0.0500 0.1200)')
+  })
+})
+
+describe('toHexColor', () => {
+  it('round-trips hex through hexToOklab back to the same hex', () => {
+    for (const hex of ['#ffffff', '#000000', '#a8e2f4', '#c94f4f']) {
+      expect(toHexColor(hexToOklab(hex))).toBe(hex)
+    }
   })
 })
 

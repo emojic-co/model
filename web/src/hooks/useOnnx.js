@@ -50,7 +50,7 @@ export function useOnnx() {
     return {
       feeling: out.style_logits.data,
       emoji: out.emoji_logits.data,
-      palettes: decodeColorList(out.color.data),
+      palettes: decodeColorList(out.color.data, m.color_ab_range),
       ms,
     }
   }, [])

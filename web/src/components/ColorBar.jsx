@@ -1,3 +1,5 @@
+import { toCssOklab } from '../model'
+
 export function ColorBar({ palettes, active, onPick, ready = true, count = 5 }) {
   const items = ready && palettes.length ? palettes.slice(0, count) : null
   return (
@@ -9,12 +11,12 @@ export function ColorBar({ palettes, active, onPick, ready = true, count = 5 }) 
               key={i}
               type="button"
               className={i === active ? 'active' : undefined}
-              style={{ backgroundImage: `linear-gradient(135deg, ${c.bg1}, ${c.bg2})` }}
+              style={{ backgroundImage: `linear-gradient(135deg, ${toCssOklab(c.bg1)}, ${toCssOklab(c.bg2)})` }}
               aria-label={`color ${i + 1}`}
               aria-pressed={i === active}
               onClick={() => onPick(i)}
             >
-              <span aria-hidden="true" style={{ color: c.text_color }}>
+              <span aria-hidden="true" style={{ color: toCssOklab(c.text_color) }}>
                 Aa
               </span>
             </button>
