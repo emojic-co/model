@@ -1,6 +1,1 @@
-During text encoder train the critic should only see 
-real (text, color)
-shuffled (text, color)
-
-Nothing more.
-Is that the current status?
+summarize very shortly what happens during the text encoder train step.

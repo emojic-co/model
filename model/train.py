@@ -30,6 +30,7 @@ from files import (
     DATA_JSONL,
     EVAL_JSONL,
     FLAGS_JSONL,
+    GOALS_YML,
     KEYWORDS_JSONL,
     LABELS_JSON,
     MODEL_DIR,
@@ -955,6 +956,7 @@ DEP_FILES = [Path(p) for p in ("pyproject.toml", "uv.lock",
                                ".python-version", "README.md")]
 CODE_FILES = [
     Path("files.py"),
+    GOALS_YML,
     MODEL_DIR / "__init__.py",
     MODEL_DIR / "color.py",
     MODEL_DIR / "config.py",
