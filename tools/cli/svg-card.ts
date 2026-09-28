@@ -2,7 +2,7 @@ import { openSync } from "fontkit"
 
 import { resolveFeeling } from "../../web/src/feelings.js"
 import { fitCanvasFont, wrapLines } from "../../web/src/fit.js"
-import { patternTint } from "../../web/src/model.js"
+import { hexToOklab, patternTint, toHexColor } from "../../web/src/model.js"
 import { patternLayers } from "../../web/src/patterns.js"
 import type { FontCache } from "./fonts.ts"
 import { resolveEmojiSvg } from "./emoji-svg.ts"
@@ -82,7 +82,8 @@ export function cardSvg(row: Row, resolution: number, fonts: FontCache): string 
 
   const palette = row.colors[0]
   const colors = { bg1: palette.bg[0], bg2: palette.bg[1], text_color: palette.fg }
-  const layers = patternLayers(feeling, patternTint(colors.bg1, colors.bg2))
+  const tint = toHexColor(patternTint(hexToOklab(colors.bg1), hexToOklab(colors.bg2)))
+  const layers = patternLayers(feeling, tint)
 
   const fontPath = fonts.fileFor(family, fontWeight, fontStyle)
   const widthAt = widthAtFn(fontPath, (px) => letterSpacingEm * px)

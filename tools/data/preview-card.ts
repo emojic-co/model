@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises"
 import { resolveFeeling } from "../../web/src/feelings.js"
-import { patternTint } from "../../web/src/model.js"
+import { hexToOklab, patternTint, toHexColor } from "../../web/src/model.js"
 import { patternLayers, patternSizeCss } from "../../web/src/patterns.js"
 
 export type Colors = { bg1: string; bg2: string; text_color: string }
@@ -28,7 +28,8 @@ export function cardHtml({ text, emoji, feeling, colors, lang }: CardData): stri
   const r = resolveFeeling(feeling, lang)
   const placeholder = !text.trim()
   const displayText = placeholder ? "What's on your mind?" : text
-  const layers = patternLayers(feeling, patternTint(colors.bg1, colors.bg2))
+  const tint = toHexColor(patternTint(hexToOklab(colors.bg1), hexToOklab(colors.bg2)))
+  const layers = patternLayers(feeling, tint)
   const backgroundImage = [
     ...layers.map((l) => l.image),
     `linear-gradient(135deg, ${colors.bg1}, ${colors.bg2})`,
