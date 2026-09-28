@@ -19,7 +19,7 @@ from files import (
     WEB_PUBLIC_DIR,
 )
 from model.config import EMOJIS, MAX_TEXT_LEN, STYLES
-from model.data import CHARS, PAD_IDX
+from model.data import AB_RANGE, CHARS, PAD_IDX
 from model.model import (
     ColorGen,
     EmojiHead,
@@ -73,7 +73,7 @@ class ExportWrapper(nn.Module):
         style_logits = self.style(emb)
         emoji_logits = self.emoji(emb)
         cond = emb.expand(COLOR_SAMPLES, -1)
-        color = (self.gen(cond) + 1.0) * 127.5
+        color = self.gen(cond)
         return style_logits, emoji_logits, color
 
 
@@ -110,6 +110,7 @@ def export_web(wrapper: nn.Module) -> None:
         "max_text_len": MAX_TEXT_LEN,
         "emojis": EMOJIS,
         "styles": STYLES,
+        "color_ab_range": AB_RANGE,
         "exported_at": datetime.now(UTC).isoformat(timespec="minutes"),
         "model_meta": getattr(wrapper.enc, "_pt_meta", None),
     }
