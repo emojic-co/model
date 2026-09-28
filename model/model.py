@@ -121,8 +121,9 @@ class ColorGen(nn.Module):
     def __init__(self):
         super().__init__()
 
+        self.to_scale_shift = nn.Linear(EMBED_SIZE_TEXT, Z_DIM * 2)
         self.mlp = nn.Sequential(
-            *gblk(EMBED_SIZE_TEXT + Z_DIM, HIDDEN_SIZE_GEN),
+            *gblk(Z_DIM, HIDDEN_SIZE_GEN),  # ✅ Corrected input dimension to Z_DIM
             *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
             nn.Linear(HIDDEN_SIZE_GEN, COLOR_DIM)
         )
@@ -133,8 +134,10 @@ class ColorGen(nn.Module):
             device=cond.device,
             dtype=cond.dtype)
 
-        z = z / cond.sum(dim=-1, keepdim=True).clamp(min=1e-8)
-        out = self.mlp(torch.cat([cond, z], dim=-1))
+        scale, shift = self.to_scale_shift(cond).chunk(2, dim=-1)
+        z_modulated = z * (1 + scale) + shift
+
+        out = self.mlp(z_modulated)
         return torch.tanh(out)
 
 
