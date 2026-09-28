@@ -462,8 +462,6 @@ class LitColorGAN(pl.LightningModule):
         self.log(
             GanMetric.COND_MEAN_SCORE_FAKE,
             fake_score.detach().mean(), prog_bar=False)
-        self.log(GenMetric.NORM_Z, self.gen.last_norm_z)
-        self.log(GenMetric.NORM_T, self.gen.last_norm_t)
 
     def configure_optimizers(self):
         opt_gen = optim.SGD(self.gen.parameters(), lr=LR_GAN_GEN)
@@ -540,8 +538,6 @@ class LitColorGenEnergy(pl.LightningModule):
             _energy_subsample(fake, ENERGY_TRAIN_SAMPLE_SIZE),
             _energy_subsample(colors, ENERGY_TRAIN_SAMPLE_SIZE))
         self.log(GenMetric.ENERGY_TRAIN, loss, prog_bar=True)
-        self.log(GenMetric.NORM_Z, self.gen.last_norm_z)
-        self.log(GenMetric.NORM_T, self.gen.last_norm_t)
 
         return loss
 
@@ -575,11 +571,13 @@ class LitCriticProbe(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         _, auroc_shuf, auroc_rand = self._step(batch)
         self.log(
-            named_metric(LogStage.CRITIC, Source.COLOR, Metric.AUROC_SHUF, Split.VAL),
+            named_metric(LogStage.CRITIC, Source.COLOR,
+                         Metric.AUROC_SHUF, Split.VAL),
             auroc_shuf, on_step=False, on_epoch=True, prog_bar=True,
         )
         self.log(
-            named_metric(LogStage.CRITIC, Source.COLOR, Metric.AUROC_RAND, Split.VAL),
+            named_metric(LogStage.CRITIC, Source.COLOR,
+                         Metric.AUROC_RAND, Split.VAL),
             auroc_rand, on_step=False, on_epoch=True, prog_bar=True,
         )
 

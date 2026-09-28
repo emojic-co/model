@@ -75,7 +75,6 @@ style_str = " ".join([
 
 # GAN
 Z_DIM = 8
-Z_WEIGHT = 0.5
 HIDDEN_SIZE_GEN = 32
 HIDDEN_SIZE_CRITIC = 48
 

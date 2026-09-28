@@ -1,7 +1,6 @@
 
 import torch
 from torch import nn
-from torch.nn.functional import normalize
 from torch.nn.utils import spectral_norm as sn
 
 from model.config import (
@@ -17,7 +16,6 @@ from model.config import (
     HIDDEN_SIZE_GEN,
     RELU_SLOPE,
     Z_DIM,
-    Z_WEIGHT,
 )
 from model.data import COLOR_DIM, EMOJIS, PAD_IDX, STYLES, VOCAB_SIZE
 
@@ -123,15 +121,8 @@ class ColorGen(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.z_net = nn.Sequential(
-            *gblk(Z_DIM, HIDDEN_SIZE_GEN),
-        )
-
-        self.text_net = nn.Sequential(
-            *gblk(EMBED_SIZE_TEXT, HIDDEN_SIZE_GEN),
-        )
-
         self.mlp = nn.Sequential(
+            *gblk(EMBED_SIZE_TEXT + Z_DIM, HIDDEN_SIZE_GEN),
             *gblk(HIDDEN_SIZE_GEN, HIDDEN_SIZE_GEN),
             nn.Linear(HIDDEN_SIZE_GEN, COLOR_DIM)
         )
@@ -142,16 +133,7 @@ class ColorGen(nn.Module):
             device=cond.device,
             dtype=cond.dtype)
 
-        z = self.z_net(z)
-        t = self.text_net(cond)
-
-        self.last_norm_z = z.detach().norm(dim=-1).mean()
-        self.last_norm_t = t.detach().norm(dim=-1).mean()
-
-        z = normalize(z, dim=-1)
-        t = normalize(t, dim=-1)
-
-        raw = self.mlp(t + Z_WEIGHT * z)
+        raw = self.mlp(torch.cat([cond, z], dim=-1))
         return torch.tanh(raw)
 
 
