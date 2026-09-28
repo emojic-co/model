@@ -1,1 +1,15 @@
-For the critic, should we reshape the input colors into a 3x3 matrix and project it using a 1d conv layer?
+Discussion:
+I want to switch from RGB to OKLAB color space.
+Models should represent a color using 3x[-1, 1]
+translation to OKLAB is:
+L = (c[0] + 1) / 2
+a = c[1] * 0.4
+b = c[2] * 0.4
+
+When loading colors from the dataset in RGB we should rgb2lab and clamp tha a and b channels to [-0.4, 0.4] and then translate to [-1, 1] range.
+
+If using OKLAB then this color space should be use across the project (web app, css oklab, android app, etc...) and the only place where we use RGB is in the raw dataset.
+Once the dataset is loaded it is converted to OKLAB and then the rest of the project uses OKLAB.
+
+
+Tell me what do you think about it?
