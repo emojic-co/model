@@ -40,6 +40,7 @@ style2idx = {s: i for i, s in enumerate(STYLES)}
 emoji2idx = {e: i for i, e in enumerate(EMOJIS)}
 
 COLOR_DIM = 9
+AB_RANGE = 0.4
 
 
 def hex2rgb(h: str) -> tuple[int, int, int]:
@@ -50,9 +51,73 @@ def hex2rgb(h: str) -> tuple[int, int, int]:
         int(h[4:6], 16))
 
 
+def _srgb_to_linear(c: float) -> float:
+    return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+
+def _linear_to_srgb(c: float) -> float:
+    v = 12.92 * c if c <= 0.0031308 else 1.055 * max(c, 0.0) ** (1 / 2.4) - 0.055
+    return v * 255
+
+
+def srgb_to_oklab(rgb: tuple[int, int, int]) -> tuple[float, float, float]:
+    r = _srgb_to_linear(rgb[0] / 255)
+    g = _srgb_to_linear(rgb[1] / 255)
+    b = _srgb_to_linear(rgb[2] / 255)
+    l_ = (0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b) ** (1 / 3)
+    m_ = (0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b) ** (1 / 3)
+    s_ = (0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b) ** (1 / 3)
+    return (
+        0.2104542553 * l_ + 0.793617785 * m_ - 0.0040720468 * s_,
+        1.9779984951 * l_ - 2.428592205 * m_ + 0.4505937099 * s_,
+        0.0259040371 * l_ + 0.7827717662 * m_ - 0.808675766 * s_,
+    )
+
+
+def oklab_to_srgb(lab: tuple[float, float, float]) -> tuple[float, float, float]:
+    L, a, b = lab
+    l_ = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3
+    m_ = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3
+    s_ = (L - 0.0894841775 * a - 1.291485548 * b) ** 3
+    return (
+        _linear_to_srgb(4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699292 * s_),
+        _linear_to_srgb(-1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_),
+        _linear_to_srgb(-0.0041960863 * l_ - 0.7034186147 * m_ + 1.707614701 * s_),
+    )
+
+
+def hex_to_color_unit(h: str) -> tuple[float, float, float]:
+    """sRGB hex -> model-space unit triple: rgb2oklab, clamp a/b to
+    +/-AB_RANGE, map to [-1, 1] (L = 2*L-1, a/b = v/AB_RANGE)."""
+    L, a, b = srgb_to_oklab(hex2rgb(h))
+    a = max(-AB_RANGE, min(AB_RANGE, a))
+    b = max(-AB_RANGE, min(AB_RANGE, b))
+    return (2 * L - 1, a / AB_RANGE, b / AB_RANGE)
+
+
+def color_unit_to_hex(unit: tuple[float, float, float]) -> str:
+    """Model-space unit triple -> sRGB hex (see Critic.forward / ColorGen)."""
+    n0, n1, n2 = unit
+    L = (n0 + 1) / 2
+    a = n1 * AB_RANGE
+    b = n2 * AB_RANGE
+    r, g, b_ = oklab_to_srgb((L, a, b))
+
+    def clamp(v: float) -> int:
+        return max(0, min(255, round(v)))
+
+    return f"#{clamp(r):02x}{clamp(g):02x}{clamp(b_):02x}"
+
+
 def colors2tensor(colors: list[str]) -> torch.Tensor:
-    vals = [c for h in colors for c in hex2rgb(h)]
-    return torch.tensor(vals, dtype=torch.float32) / 127.5 - 1.0
+    vals = [v for h in colors for v in hex_to_color_unit(h)]
+    return torch.tensor(vals, dtype=torch.float32)
+
+
+def color_tensor_to_hexes(vec9: torch.Tensor) -> list[str]:
+    assert vec9.shape == (9,), "Input tensor must be of shape (9,)"
+    flat = vec9.tolist()
+    return [color_unit_to_hex(tuple(flat[i:i + 3])) for i in range(0, 9, 3)]
 
 
 def sample_colors_tensor(colors: list[list[str]]) -> torch.Tensor:
@@ -63,6 +128,8 @@ def sample_colors_tensor(colors: list[list[str]]) -> torch.Tensor:
 
 
 def rnd_color_tensor(n: int, device=None) -> torch.Tensor:
+    """Uniform random points in the model's unit color cube -- used only as
+    negative/adversarial samples for the critic, not as real colors."""
     return torch.rand((n, COLOR_DIM), device=device) * 2.0 - 1.0
 
 

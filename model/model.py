@@ -167,8 +167,8 @@ class Critic(nn.Module):
         )
 
     def forward(self, cond: torch.Tensor, colors: torch.Tensor) -> torch.Tensor:
-        """`colors` is RGB in [-1, 1] (see `ColorGen.forward` /
-        `model.data.colors2tensor`)."""
+        """`colors` is OKLAB-unit-encoded in [-1, 1] (see `ColorGen.forward` /
+        `model.data.colors2tensor` / `model.data.AB_RANGE`)."""
         t = self.text_net(cond)
         c = self.color_net(colors)
 
