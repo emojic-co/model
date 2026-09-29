@@ -184,7 +184,7 @@ class GifEncoder(private val file: File, private val size: Int, private val dela
 
     private companion object {
         const val HASH = 8209
-        const val DITHER = 5f
+        const val DITHER = 0.125f
         val BAYER = FloatArray(64).also { m ->
             val b = intArrayOf(
                 0, 32, 8, 40, 2, 34, 10, 42, 48, 16, 56, 24, 50, 18, 58, 26,
