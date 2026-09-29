@@ -268,191 +268,6 @@ h1 .tld {
   }
 }
 
-@keyframes entrance-slam {
-  0% {
-    opacity: 0;
-    transform: scale(1.25);
-  }
-
-  60% {
-    opacity: 1;
-    transform: scale(0.94);
-  }
-
-  75% {
-    transform: scale(1.03) translateX(-3px);
-  }
-
-  85% {
-    transform: scale(1) translateX(3px);
-  }
-
-  100% {
-    transform: scale(1) translateX(0);
-  }
-}
-
-@keyframes entrance-pop {
-  0% {
-    opacity: 0;
-    transform: scale(0.5) translateY(12px);
-  }
-
-  70% {
-    opacity: 1;
-    transform: scale(1.08) translateY(-4px);
-  }
-
-  100% {
-    transform: scale(1) translateY(0);
-  }
-}
-
-@keyframes entrance-spin {
-  0% {
-    opacity: 0;
-    transform: rotate(-12deg) scale(0.6);
-  }
-
-  70% {
-    opacity: 1;
-    transform: rotate(4deg) scale(1.05);
-  }
-
-  100% {
-    transform: rotate(0) scale(1);
-  }
-}
-
-@keyframes entrance-settle {
-  0% {
-    opacity: 0;
-    transform: scale(1.03);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes entrance-drop {
-  0% {
-    opacity: 0;
-    transform: translateY(-18px);
-  }
-
-  70% {
-    opacity: 1;
-    transform: translateY(6px);
-  }
-
-  100% {
-    transform: translateY(0);
-  }
-}
-
-@keyframes entrance-jitter {
-  0% {
-    opacity: 0;
-    transform: translate(0, 0);
-  }
-
-  20% {
-    opacity: 0.6;
-    transform: translate(-3px, 2px);
-  }
-
-  40% {
-    transform: translate(3px, -2px);
-  }
-
-  60% {
-    opacity: 1;
-    transform: translate(-2px, 1px);
-  }
-
-  80% {
-    transform: translate(2px, -1px);
-  }
-
-  100% {
-    transform: translate(0, 0);
-  }
-}
-
-@keyframes entrance-bloom {
-  0% {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes entrance-rise {
-  0% {
-    opacity: 0;
-    transform: translateY(18px);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes entrance-fadeTilt {
-  0% {
-    opacity: 0;
-    transform: rotate(-2deg) translateY(6px);
-  }
-
-  100% {
-    opacity: 1;
-    transform: rotate(0) translateY(0);
-  }
-}
-
-@keyframes entrance-droop {
-  0% {
-    opacity: 0;
-    transform: translateY(-10px) scaleY(1.06);
-  }
-
-  60% {
-    opacity: 1;
-    transform: translateY(4px) scaleY(0.97);
-  }
-
-  100% {
-    transform: translateY(0) scaleY(1);
-  }
-}
-
-@keyframes entrance-shrinkBack {
-  0% {
-    opacity: 0;
-    transform: scale(1.12);
-  }
-
-  40% {
-    opacity: 1;
-    transform: scale(0.9);
-  }
-
-  70% {
-    transform: scale(0.97) rotate(-2deg);
-  }
-
-  100% {
-    transform: scale(1) rotate(0);
-  }
-}
-
 @keyframes emoji-shake {
 
   0%,
@@ -622,58 +437,6 @@ h1 .tld {
   animation: drift var(--drift-sec, 16s) ease-in-out infinite;
 }
 
-.card-text {
-  animation-duration: var(--entrance-dur, 650ms);
-  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-  animation-iteration-count: 1;
-  animation-fill-mode: both;
-}
-
-.card[data-entrance="slam"] .card-text {
-  animation-name: entrance-slam;
-  animation-timing-function: cubic-bezier(0.36, 0.07, 0.19, 0.97);
-}
-
-.card[data-entrance="pop"] .card-text {
-  animation-name: entrance-pop;
-}
-
-.card[data-entrance="spin"] .card-text {
-  animation-name: entrance-spin;
-}
-
-.card[data-entrance="settle"] .card-text {
-  animation-name: entrance-settle;
-}
-
-.card[data-entrance="drop"] .card-text {
-  animation-name: entrance-drop;
-}
-
-.card[data-entrance="jitter"] .card-text {
-  animation-name: entrance-jitter;
-}
-
-.card[data-entrance="bloom"] .card-text {
-  animation-name: entrance-bloom;
-}
-
-.card[data-entrance="rise"] .card-text {
-  animation-name: entrance-rise;
-}
-
-.card[data-entrance="fadeTilt"] .card-text {
-  animation-name: entrance-fadeTilt;
-}
-
-.card[data-entrance="droop"] .card-text {
-  animation-name: entrance-droop;
-}
-
-.card[data-entrance="shrinkBack"] .card-text {
-  animation-name: entrance-shrinkBack;
-}
-
 .card-emoji {
   animation-duration: var(--emoji-dur, 2400ms);
   animation-timing-function: ease-in-out;
@@ -833,6 +596,19 @@ h1 .tld {
   font-weight: 600;
   word-break: break-word;
   overflow-wrap: anywhere;
+}
+
+.tw {
+  display: inline;
+}
+
+.tw-nowrap {
+  white-space: nowrap;
+}
+
+.tc {
+  display: inline-block;
+  white-space: pre;
 }
 
 .card-text-placeholder {
@@ -1196,4 +972,18 @@ h1 .tld {
   font-size: 0.8em;
   letter-spacing: 0.05em;
   opacity: 0.7;
+}
+
+.style-preview-motif {
+  opacity: 0.7;
+}
+
+.style-preview-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 0.9em;
 }

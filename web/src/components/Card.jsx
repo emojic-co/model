@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatedEmoji } from './AnimatedEmoji'
+import { CharText } from './CharText'
 import { useFitText } from '../hooks/useFitText'
 import { resolveFeeling } from '../feelings'
 import { contrastRatio, patternTint, toCssOklab, toHexColor, BLACK, WHITE } from '../model'
@@ -68,20 +69,21 @@ export function Card({ text, emoji, feeling, lang, colors, loading, onCopy, onSh
       className="card"
       data-feeling={shown.feeling || undefined}
       data-cluster={r?.cluster || undefined}
-      data-entrance={r?.entrance || undefined}
       data-emoji={r?.emoji || undefined}
       data-phase={phase}
       style={style}
     >
       <AnimatedEmoji emoji={shown.emoji} />
       <div className="card-text-box" ref={textRef}>
-        <p
+        <CharText
           className={'card-text' + (placeholder ? ' card-text-placeholder' : '')}
           style={r?.style}
           dir="auto"
-        >
-          {displayText}
-        </p>
+          text={displayText}
+          motif={r?.entrance}
+          feeling={shown.feeling}
+          replayKey={shown}
+        />
       </div>
       <button className="share-btn" type="button" aria-label="Share link" onClick={onShare}>
         share

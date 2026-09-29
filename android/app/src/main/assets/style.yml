@@ -1,4 +1,4 @@
-exportedAt: 2026-09-21T16:19:01.977Z
+exportedAt: 2026-09-29T14:31:24.521Z
 global:
   referencePx: 600
   maxPatternOpacity: 0.14
@@ -15,6 +15,291 @@ global:
   watermarkPxRatio: 0.044
   watermarkOpacity: 0.28
   watermarkMarginRatio: 0.055
+textAnimations:
+  timing:
+    maxTotalMs: 2200
+  motifs:
+    slam:
+      durationMs: 380
+      staggerMs: 45
+      order: forward
+      jitterMs: 0
+      alternate: false
+      easing:
+        - 0.36
+        - 0.07
+        - 0.19
+        - 0.97
+      keyframes:
+        - at: 0
+          opacity: 0
+          scale: 1.8
+          y: -0.3
+        - at: 0.55
+          opacity: 1
+          scale: 0.92
+          y: 0
+        - at: 0.75
+          scale: 1.05
+          x: -0.04
+        - at: 0.88
+          scale: 1
+          x: 0.04
+        - at: 1
+          x: 0
+    pop:
+      durationMs: 480
+      staggerMs: 55
+      order: forward
+      jitterMs: 0
+      alternate: false
+      easing:
+        - 0.22
+        - 1
+        - 0.36
+        - 1
+      keyframes:
+        - at: 0
+          opacity: 0
+          scale: 0.3
+          y: 0.4
+        - at: 0.65
+          opacity: 1
+          scale: 1.18
+          y: -0.12
+        - at: 1
+          scale: 1
+          y: 0
+    spin:
+      durationMs: 560
+      staggerMs: 60
+      order: forward
+      jitterMs: 0
+      alternate: true
+      easing:
+        - 0.22
+        - 1
+        - 0.36
+        - 1
+      keyframes:
+        - at: 0
+          opacity: 0
+          rotate: -140
+          scale: 0.3
+        - at: 0.7
+          opacity: 1
+          rotate: 12
+          scale: 1.1
+        - at: 1
+          rotate: 0
+          scale: 1
+    settle:
+      durationMs: 900
+      staggerMs: 70
+      order: forward
+      jitterMs: 0
+      alternate: false
+      easing:
+        - 0.22
+        - 1
+        - 0.36
+        - 1
+      keyframes:
+        - at: 0
+          opacity: 0
+          y: 0.15
+          scale: 1.15
+        - at: 1
+          opacity: 1
+          y: 0
+          scale: 1
+    drop:
+      durationMs: 900
+      staggerMs: 90
+      order: reverse
+      jitterMs: 0
+      alternate: false
+      easing:
+        - 0.22
+        - 1
+        - 0.36
+        - 1
+      keyframes:
+        - at: 0
+          opacity: 0
+          y: -0.9
+        - at: 0.7
+          opacity: 1
+          y: 0.12
+        - at: 1
+          y: 0
+    jitter:
+      durationMs: 320
+      staggerMs: 25
+      order: random
+      jitterMs: 140
+      alternate: false
+      easing:
+        - 0.4
+        - 0
+        - 0.6
+        - 1
+      keyframes:
+        - at: 0
+          opacity: 0
+          x: 0
+          y: 0
+        - at: 0.15
+          opacity: 0.7
+          x: -0.08
+          y: 0.05
+        - at: 0.3
+          x: 0.08
+          y: -0.05
+        - at: 0.45
+          opacity: 1
+          x: -0.05
+          y: 0
+        - at: 0.6
+          x: 0.05
+          y: 0.03
+        - at: 0.8
+          x: -0.02
+          y: 0
+        - at: 1
+          x: 0
+          y: 0
+    bloom:
+      durationMs: 800
+      staggerMs: 80
+      order: center
+      jitterMs: 0
+      alternate: false
+      easing:
+        - 0.22
+        - 1
+        - 0.36
+        - 1
+      keyframes:
+        - at: 0
+          opacity: 0
+          scale: 0.5
+        - at: 0.6
+          opacity: 1
+          scale: 1.08
+        - at: 1
+          scale: 1
+    rise:
+      durationMs: 600
+      staggerMs: 55
+      order: forward
+      jitterMs: 0
+      alternate: false
+      easing:
+        - 0.22
+        - 1
+        - 0.36
+        - 1
+      keyframes:
+        - at: 0
+          opacity: 0
+          y: 0.8
+        - at: 1
+          opacity: 1
+          y: 0
+    fadeTilt:
+      durationMs: 700
+      staggerMs: 50
+      order: forward
+      jitterMs: 0
+      alternate: false
+      easing:
+        - 0.22
+        - 1
+        - 0.36
+        - 1
+      keyframes:
+        - at: 0
+          opacity: 0
+          rotate: -8
+          y: 0.25
+        - at: 1
+          opacity: 1
+          rotate: 0
+          y: 0
+    droop:
+      durationMs: 800
+      staggerMs: 80
+      order: forward
+      jitterMs: 0
+      alternate: false
+      easing:
+        - 0.3
+        - 0
+        - 0.5
+        - 1
+      keyframes:
+        - at: 0
+          opacity: 0
+          y: -0.4
+          scaleY: 1.15
+        - at: 0.55
+          opacity: 1
+          y: 0.1
+          scaleY: 0.9
+        - at: 1
+          y: 0
+          scaleY: 1
+    shrinkBack:
+      durationMs: 480
+      staggerMs: 40
+      order: random
+      jitterMs: 0
+      alternate: false
+      easing:
+        - 0.22
+        - 1
+        - 0.36
+        - 1
+      keyframes:
+        - at: 0
+          opacity: 0
+          scale: 1.5
+        - at: 0.35
+          opacity: 1
+          scale: 0.85
+        - at: 0.65
+          scale: 0.97
+          rotate: -4
+        - at: 1
+          scale: 1
+          rotate: 0
+  styles:
+    Furious:
+      staggerMs: 30
+      durationMs: 320
+    Irritated:
+      staggerMs: 38
+    Excited:
+      staggerMs: 35
+    Serene:
+      staggerMs: 110
+      durationMs: 1100
+    Wistful:
+      staggerMs: 130
+      durationMs: 1200
+    Melancholy:
+      staggerMs: 120
+    Tense:
+      staggerMs: 18
+    Sarcastic:
+      staggerMs: 60
+      jitterMs: 180
+    Deadpan:
+      staggerMs: 140
+      durationMs: 1000
+    Startled:
+      staggerMs: 30
 patterns:
   stripes: <svg width="40" height="1" viewBox="0 0 40 1"
     xmlns="http://www.w3.org/2000/svg"><title>stripes</title><path d="M0

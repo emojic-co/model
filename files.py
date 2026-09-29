@@ -49,6 +49,8 @@ CRITIC_PT = PtFile.CRITIC.in_dir(PT_DIR)
 TEXT_ENC_CACHE_PT = PT_DIR / "text_enc_cache.pt"
 
 WEB_PUBLIC_DIR = Path("web/public")
+WEB_SRC_DIR = Path("web/src")
+TEXT_ANIMATIONS_YML = WEB_SRC_DIR / "textAnimations.yml"
 ANDROID_ASSETS_DIR = Path("android/app/src/main/assets")
 REPORT_DIR = Path("report")
 RUNS_DIR = Path("runs")

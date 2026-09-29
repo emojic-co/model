@@ -9,6 +9,7 @@ import {
   resolveFeeling,
   topFeelings,
 } from './feelings'
+import { TEXT_ANIMATIONS } from './textAnimation'
 
 const readJson = (rel) =>
   JSON.parse(readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8'))
@@ -93,11 +94,9 @@ describe('topFeelings', () => {
 })
 
 describe('css motif contract', () => {
-  it('every entrance motif has a keyframe and a selector', () => {
-    for (const m of ENTRANCE_MOTIFS) {
-      expect(css, m).toContain(`@keyframes entrance-${m}`)
-      expect(css, m).toContain(`[data-entrance="${m}"]`)
-    }
+  it('every entrance motif is defined in textAnimations.yml', () => {
+    for (const m of ENTRANCE_MOTIFS) expect(TEXT_ANIMATIONS.motifs[m], m).toBeDefined()
+    for (const s of Object.keys(TEXT_ANIMATIONS.styles)) expect(FEELINGS[s], s).toBeDefined()
   })
   it('every emoji motif has a keyframe and a selector', () => {
     for (const m of EMOJI_MOTIFS) {
@@ -106,9 +105,8 @@ describe('css motif contract', () => {
     }
   })
   it('no keyframe references an unknown motif', () => {
-    const names = [...css.matchAll(/@keyframes (entrance|emoji)-([a-zA-Z]+)/g)].map((x) => `${x[1]}:${x[2]}`)
+    const names = [...css.matchAll(/@keyframes (emoji)-([a-zA-Z]+)/g)].map((x) => `${x[1]}:${x[2]}`)
     const known = new Set([
-      ...ENTRANCE_MOTIFS.map((m) => `entrance:${m}`),
       ...EMOJI_MOTIFS.map((m) => `emoji:${m}`),
     ])
     for (const n of names) expect(known.has(n), n).toBe(true)

@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
 import { parse } from 'yaml'
 import { useFitText } from './hooks/useFitText'
+import { AnimatedEmoji } from './components/AnimatedEmoji'
+import { CharText } from './components/CharText'
 import { contrastRatio, fixContrast, patternTint, hexToOklab, toCssOklab, BLACK, WHITE } from './model'
 
 function watermarkInk(bg) {
   return contrastRatio(BLACK, bg) >= contrastRatio(WHITE, bg) ? '#000000' : '#ffffff'
 }
 
-function PreviewCard({ name, lang, entry, sample, globalSettings, patterns }) {
+function PreviewCard({ name, lang, entry, sample, globalSettings, patterns, anim, tick }) {
+  const [own, setOwn] = useState(0)
   const colors = fixContrast({
     bg1: hexToOklab(sample.colors.bg1),
     bg2: hexToOklab(sample.colors.bg2),
@@ -26,11 +29,16 @@ function PreviewCard({ name, lang, entry, sample, globalSettings, patterns }) {
     <figure className="style-preview-card">
       <div
         className="card"
+        data-cluster={entry.cluster}
+        data-emoji={entry.emoji}
+        onClick={() => setOwn((n) => n + 1)}
         dir={lang === 'he' ? 'rtl' : 'ltr'}
         style={{
           background: `linear-gradient(135deg, ${toCssOklab(colors.bg1)}, ${toCssOklab(colors.bg2)})`,
           color: toCssOklab(colors.text_color),
           fontFamily: `"${entry.font}", sans-serif`,
+          '--emoji-dur': `${entry.emojiMs}ms`,
+          cursor: 'pointer',
         }}
       >
         <div
@@ -48,11 +56,9 @@ function PreviewCard({ name, lang, entry, sample, globalSettings, patterns }) {
             opacity: globalSettings.maxPatternOpacity,
           }}
         />
-        <span className="card-emoji" style={{ position: 'relative' }}>
-          {sample.emoji}
-        </span>
+        <AnimatedEmoji emoji={sample.emoji} />
         <div className="card-text-box" ref={textRef} style={{ position: 'relative' }}>
-          <p
+          <CharText
             className="card-text"
             dir="auto"
             style={{
@@ -62,9 +68,12 @@ function PreviewCard({ name, lang, entry, sample, globalSettings, patterns }) {
               letterSpacing: entry.letterSpacingEm != null ? `${entry.letterSpacingEm}em` : undefined,
               opacity: entry.opacity,
             }}
-          >
-            {displayText}
-          </p>
+            text={displayText}
+            anim={anim}
+            motif={entry.entrance}
+            feeling={name}
+            replayKey={`${tick}-${own}`}
+          />
         </div>
         <span
           className="card-watermark"
@@ -76,6 +85,7 @@ function PreviewCard({ name, lang, entry, sample, globalSettings, patterns }) {
       </div>
       <figcaption>
         {name} <span className="style-preview-lang">{lang}</span>
+        <span className="style-preview-motif"> · {entry.entrance}</span>
       </figcaption>
     </figure>
   )
@@ -85,6 +95,14 @@ const BASE = import.meta.env.BASE_URL
 
 export function StylePreview() {
   const [state, setState] = useState({ status: 'loading' })
+  const [tick, setTick] = useState(0)
+  const [auto, setAuto] = useState(true)
+
+  useEffect(() => {
+    if (!auto) return
+    const t = setInterval(() => setTick((n) => n + 1), 6000)
+    return () => clearInterval(t)
+  }, [auto])
 
   useEffect(() => {
     Promise.all([
@@ -114,6 +132,15 @@ export function StylePreview() {
           {new Date(style.exportedAt).toLocaleString()}) — the same file the Android app syncs and renders from,
           so this page shows exactly what both apps ship.
         </p>
+        <div className="style-preview-controls">
+          <button type="button" onClick={() => setTick((n) => n + 1)}>
+            Replay all
+          </button>
+          <label>
+            <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} /> loop every 6s
+          </label>
+          <span>Click a card to replay it.</span>
+        </div>
       </header>
       <div className="style-preview-grid">
         {names.flatMap((name) =>
@@ -126,6 +153,8 @@ export function StylePreview() {
               sample={samples[name][lang]}
               globalSettings={style.global}
               patterns={style.patterns}
+              anim={style.textAnimations}
+              tick={tick}
             />
           )),
         )}

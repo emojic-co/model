@@ -49,6 +49,7 @@ data class StyleEntry(
 data class StyleFile(
     val exportedAt: String,
     val global: GlobalSettings,
+    val textAnimations: TextAnimations? = null,
     val patterns: Map<String, String>,
     val styles: Map<String, StyleEntry>,
 )

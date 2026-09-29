@@ -54,16 +54,19 @@ class MainActivity : ComponentActivity() {
         val predictor = OnnxPredictor(modelBytes, meta)
 
         val styleUpdater = StyleUpdater(applicationContext)
-        val styleYaml = if (styleUpdater.hasCachedStyle()) {
+        // A downloaded style.yml only wins if it is newer than the one bundled in this build,
+        // so a stale cache can never hide features the installed app ships with.
+        val bundledStyle = parseStyleFile(loadBundledStyle(assets))
+        val cachedStyle = if (styleUpdater.hasCachedStyle()) {
             try {
-                styleUpdater.cachedStyleFile.readText()
+                parseStyleFile(styleUpdater.cachedStyleFile.readText())
             } catch (_: Exception) {
-                loadBundledStyle(assets)
+                null
             }
         } else {
-            loadBundledStyle(assets)
+            null
         }
-        Styles.init(parseStyleFile(styleYaml))
+        Styles.init(if (cachedStyle != null && cachedStyle.exportedAt > bundledStyle.exportedAt) cachedStyle else bundledStyle)
 
         val prefs = getSharedPreferences(ModelUpdatePrefs.FILE, Context.MODE_PRIVATE)
         val wifiOnly = prefs.getBoolean(ModelUpdatePrefs.KEY_WIFI_ONLY, ModelUpdatePrefs.DEFAULT_WIFI_ONLY)

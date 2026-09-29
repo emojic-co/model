@@ -1,0 +1,168 @@
+# GROUND TRUTH for the per-character text entrance animations.
+# Web (web/src/textAnimation.js) plays this directly; tools/data/export-style.ts copies it
+# verbatim into style.yml under `textAnimations` so Android renders from the same numbers.
+# Edit here, then `bun run export-style`. Nothing else may hard-code motion values.
+#
+# Semantics (both platforms must follow exactly):
+#  * Units: the text is split into words on whitespace. Each word is split into grapheme
+#    clusters (Intl.Segmenter / BreakIterator.CHARACTER_INSTANCE). Words in connected scripts
+#    (Arabic, Devanagari, Thai) are one unit, so joining is never broken. Whitespace is not
+#    animated. Non-space units are numbered i = 0..n-1 in logical (reading) order.
+#  * hash(i) = ((imul32(i + 1, 2654435761) as uint32) % 1000) / 1000.
+#  * rank(i) by `order`: forward = i; reverse = n-1-i; center = |i - (n-1)/2|; random = hash(i) * (n-1).
+#  * The style's motif comes from style.yml `entrance`; `styles.<Name>` overrides motif fields
+#    (durationMs, staggerMs, order, jitterMs).
+#  * delay(i) = rank(i) * s + jitterMs * hash(i), where s = min(staggerMs, (maxTotalMs - durationMs - jitterMs) / maxRank),
+#    maxRank = max rank over units (s = staggerMs when maxRank = 0), and s is never below 0.
+#  * Each unit animates once: progress p = easing(t / durationMs), easing = cubic-bezier(a,b,c,d) applied to
+#    the WHOLE animation; keyframes are then linearly interpolated over p by `at`.
+#    Before its delay the unit shows the first keyframe; afterwards it holds the last keyframe.
+#  * Keyframe fields (missing = carried from the previous keyframe; defaults opacity 1, x 0, y 0,
+#    scale 1, scaleY 1, rotate 0): opacity 0..1; x, y in em of the unit's font size (+y is down, +x is right);
+#    scale uniform; scaleY extra vertical scale; rotate degrees clockwise. Transform origin: unit centre.
+#    Transform = translate(x, y) · rotate · scale(scale, scale * scaleY).
+#  * alternate: true mirrors x and rotate (sign flip) on odd i.
+#  * Reduced-motion: show the final state immediately, no animation.
+
+timing:
+  maxTotalMs: 2200
+
+motifs:
+  slam:
+    durationMs: 380
+    staggerMs: 45
+    order: forward
+    jitterMs: 0
+    alternate: false
+    easing: [0.36, 0.07, 0.19, 0.97]
+    keyframes:
+      - { at: 0, opacity: 0, scale: 1.8, y: -0.3 }
+      - { at: 0.55, opacity: 1, scale: 0.92, y: 0 }
+      - { at: 0.75, scale: 1.05, x: -0.04 }
+      - { at: 0.88, scale: 1, x: 0.04 }
+      - { at: 1, x: 0 }
+  pop:
+    durationMs: 480
+    staggerMs: 55
+    order: forward
+    jitterMs: 0
+    alternate: false
+    easing: [0.22, 1, 0.36, 1]
+    keyframes:
+      - { at: 0, opacity: 0, scale: 0.3, y: 0.4 }
+      - { at: 0.65, opacity: 1, scale: 1.18, y: -0.12 }
+      - { at: 1, scale: 1, y: 0 }
+  spin:
+    durationMs: 560
+    staggerMs: 60
+    order: forward
+    jitterMs: 0
+    alternate: true
+    easing: [0.22, 1, 0.36, 1]
+    keyframes:
+      - { at: 0, opacity: 0, rotate: -140, scale: 0.3 }
+      - { at: 0.7, opacity: 1, rotate: 12, scale: 1.1 }
+      - { at: 1, rotate: 0, scale: 1 }
+  settle:
+    durationMs: 900
+    staggerMs: 70
+    order: forward
+    jitterMs: 0
+    alternate: false
+    easing: [0.22, 1, 0.36, 1]
+    keyframes:
+      - { at: 0, opacity: 0, y: 0.15, scale: 1.15 }
+      - { at: 1, opacity: 1, y: 0, scale: 1 }
+  drop:
+    durationMs: 900
+    staggerMs: 90
+    order: reverse
+    jitterMs: 0
+    alternate: false
+    easing: [0.22, 1, 0.36, 1]
+    keyframes:
+      - { at: 0, opacity: 0, y: -0.9 }
+      - { at: 0.7, opacity: 1, y: 0.12 }
+      - { at: 1, y: 0 }
+  jitter:
+    durationMs: 320
+    staggerMs: 25
+    order: random
+    jitterMs: 140
+    alternate: false
+    easing: [0.4, 0, 0.6, 1]
+    keyframes:
+      - { at: 0, opacity: 0, x: 0, y: 0 }
+      - { at: 0.15, opacity: 0.7, x: -0.08, y: 0.05 }
+      - { at: 0.3, x: 0.08, y: -0.05 }
+      - { at: 0.45, opacity: 1, x: -0.05, y: 0 }
+      - { at: 0.6, x: 0.05, y: 0.03 }
+      - { at: 0.8, x: -0.02, y: 0 }
+      - { at: 1, x: 0, y: 0 }
+  bloom:
+    durationMs: 800
+    staggerMs: 80
+    order: center
+    jitterMs: 0
+    alternate: false
+    easing: [0.22, 1, 0.36, 1]
+    keyframes:
+      - { at: 0, opacity: 0, scale: 0.5 }
+      - { at: 0.6, opacity: 1, scale: 1.08 }
+      - { at: 1, scale: 1 }
+  rise:
+    durationMs: 600
+    staggerMs: 55
+    order: forward
+    jitterMs: 0
+    alternate: false
+    easing: [0.22, 1, 0.36, 1]
+    keyframes:
+      - { at: 0, opacity: 0, y: 0.8 }
+      - { at: 1, opacity: 1, y: 0 }
+  fadeTilt:
+    durationMs: 700
+    staggerMs: 50
+    order: forward
+    jitterMs: 0
+    alternate: false
+    easing: [0.22, 1, 0.36, 1]
+    keyframes:
+      - { at: 0, opacity: 0, rotate: -8, y: 0.25 }
+      - { at: 1, opacity: 1, rotate: 0, y: 0 }
+  droop:
+    durationMs: 800
+    staggerMs: 80
+    order: forward
+    jitterMs: 0
+    alternate: false
+    easing: [0.3, 0, 0.5, 1]
+    keyframes:
+      - { at: 0, opacity: 0, y: -0.4, scaleY: 1.15 }
+      - { at: 0.55, opacity: 1, y: 0.1, scaleY: 0.9 }
+      - { at: 1, y: 0, scaleY: 1 }
+  shrinkBack:
+    durationMs: 480
+    staggerMs: 40
+    order: random
+    jitterMs: 0
+    alternate: false
+    easing: [0.22, 1, 0.36, 1]
+    keyframes:
+      - { at: 0, opacity: 0, scale: 1.5 }
+      - { at: 0.35, opacity: 1, scale: 0.85 }
+      - { at: 0.65, scale: 0.97, rotate: -4 }
+      - { at: 1, scale: 1, rotate: 0 }
+
+# Per-style tuning on top of the motif (only fields that differ).
+styles:
+  Furious: { staggerMs: 30, durationMs: 320 }
+  Irritated: { staggerMs: 38 }
+  Excited: { staggerMs: 35 }
+  Serene: { staggerMs: 110, durationMs: 1100 }
+  Wistful: { staggerMs: 130, durationMs: 1200 }
+  Melancholy: { staggerMs: 120 }
+  Tense: { staggerMs: 18 }
+  Sarcastic: { staggerMs: 60, jitterMs: 180 }
+  Deadpan: { staggerMs: 140, durationMs: 1000 }
+  Startled: { staggerMs: 30 }

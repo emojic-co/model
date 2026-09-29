@@ -1,5 +1,6 @@
 package ing.emojify.ui.components
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -22,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -82,8 +84,14 @@ fun Card(
     val fontFamily = FontFamily(Font(googleFont = GoogleFont(style.fontName), fontProvider = fontProvider))
     val displayText = if (style.uppercase) text.uppercase() else text
     val graphicsLayer = rememberGraphicsLayer()
+    val textClock = remember { Animatable(0f) }
     LaunchedEffect(onCaptureReady) {
-        onCaptureReady?.invoke { graphicsLayer.toImageBitmap().asAndroidBitmap() }
+        onCaptureReady?.invoke {
+            // Shared images stay static: finish the text entrance and let a frame draw before capturing.
+            textClock.snapTo(TEXT_ANIM_DONE)
+            androidx.compose.runtime.withFrameNanos { }
+            graphicsLayer.toImageBitmap().asAndroidBitmap()
+        }
     }
 
     val global = Styles.file.global
@@ -166,18 +174,26 @@ fun Card(
                                     minSp = textMinSp,
                                     maxSp = textMaxSp,
                                 )
-                                Text(
+                                AnimatedCharText(
                                     text = displayText.ifBlank { "What's on your mind?" },
-                                    style = TextStyle(textDirection = TextDirection.Content),
+                                    textStyle = TextStyle(
+                                        textDirection = TextDirection.Content,
+                                        textAlign = TextAlign.Center,
+                                        fontFamily = fontFamily,
+                                        fontSize = fitSp.sp,
+                                        lineHeight = (fitSp * 1.2f).sp,
+                                        fontWeight = FontWeight(style.fontWeight),
+                                        fontStyle = if (style.italic) FontStyle.Italic else FontStyle.Normal,
+                                        letterSpacing = style.letterSpacingEm?.let { TextUnit(it, TextUnitType.Em) } ?: TextUnit.Unspecified,
+                                    ),
                                     color = textColor,
-                                    textAlign = TextAlign.Center,
-                                    fontFamily = fontFamily,
-                                    fontSize = fitSp.sp,
-                                    lineHeight = (fitSp * 1.2f).sp,
-                                    fontWeight = FontWeight(style.fontWeight),
-                                    fontStyle = if (style.italic) FontStyle.Italic else FontStyle.Normal,
-                                    letterSpacing = style.letterSpacingEm?.let { TextUnit(it, TextUnitType.Em) } ?: TextUnit.Unspecified,
-                                    modifier = Modifier.fillMaxWidth(),
+                                    maxWidthPx = maxWidthPx,
+                                    animations = Styles.file.textAnimations,
+                                    motif = style.entranceMotif,
+                                    feeling = feeling,
+                                    replayKey = Triple(feeling, emoji, lang),
+                                    clock = textClock,
+                                    frozen = lottieProgress != null,
                                 )
                             }
                         }

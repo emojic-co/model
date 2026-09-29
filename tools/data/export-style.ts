@@ -1,8 +1,8 @@
-import { mkdirSync, writeFileSync } from "node:fs"
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname } from "node:path"
-import { stringify } from "yaml"
+import { parse, stringify } from "yaml"
 
-import { ANDROID_ASSETS_DIR, STYLE_YML } from "../../files.ts"
+import { ANDROID_ASSETS_DIR, STYLE_YML, TEXT_ANIMATIONS_YML } from "../../files.ts"
 import { CLUSTERS, FEELINGS } from "../../web/src/feelings.js"
 import { MAX_OPACITY, PATTERN_FNS, PATTERN_NAMES, REFERENCE_PX } from "../../web/src/patterns.js"
 import { RATIOS } from "../../web/src/hooks/useCardImage.js"
@@ -66,6 +66,7 @@ export function buildStyleFile() {
       maxPatternOpacity: MAX_OPACITY,
       ...RATIOS,
     },
+    textAnimations: parse(readFileSync(TEXT_ANIMATIONS_YML, "utf-8")),
     patterns,
     styles,
   }
