@@ -1,2 +1,2 @@
 Android app:
-- Switch the preview to animated emojis using the lottie compose.
+- Add a button to export the card as an animated webm. Make sure to keep the static share button as well.

@@ -19,15 +19,17 @@ fun rememberEntranceScale(motif: String, durationMs: Int, key: Any?): State<Floa
     return anim.asState()
 }
 
+private fun bounceAmplitude(motif: String) = when (motif) {
+    "hop", "lift" -> 6f
+    "shake", "tremor" -> 3f
+    "breathe" -> 2f
+    else -> 0f
+}
+
 @Composable
 fun rememberEmojiBounce(motif: String, durationMs: Int): State<Float> {
     val transition = rememberInfiniteTransition(label = "emoji-$motif")
-    val amplitude = when (motif) {
-        "hop", "lift" -> 6f
-        "shake", "tremor" -> 3f
-        "breathe" -> 2f
-        else -> 0f
-    }
+    val amplitude = bounceAmplitude(motif)
     return transition.animateFloat(
         initialValue = -amplitude,
         targetValue = amplitude,

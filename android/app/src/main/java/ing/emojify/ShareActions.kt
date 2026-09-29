@@ -23,3 +23,15 @@ fun shareCard(context: Context, bitmap: Bitmap) {
     }
     context.startActivity(Intent.createChooser(intent, null))
 }
+
+fun cardGifFile(context: Context): File = File(File(context.cacheDir, "cards").apply { mkdirs() }, "card.gif")
+
+fun shareCardGif(context: Context, file: File) {
+    val uri = FileProvider.getUriForFile(context, "ing.emojify.fileprovider", file)
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "image/gif"
+        putExtra(Intent.EXTRA_STREAM, uri)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    context.startActivity(Intent.createChooser(intent, null))
+}

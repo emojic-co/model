@@ -3,19 +3,21 @@ package ing.emojify.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -68,6 +69,10 @@ fun Card(
     onEmojiCycle: (Int) -> Unit,
     onFeelingCycle: (Int) -> Unit,
     onCaptureReady: ((suspend () -> android.graphics.Bitmap) -> Unit)? = null,
+    // Frame-stepped export: when set, the emoji animation is pinned to this progress.
+    lottieProgress: Float? = null,
+    exportState: ExportState = ExportState.Disabled,
+    onExportGif: () -> Unit = {},
 ) {
     val bg1 = Color(android.graphics.Color.parseColor(colors.bg1))
     val bg2 = Color(android.graphics.Color.parseColor(colors.bg2))
@@ -135,14 +140,12 @@ fun Card(
                         .fillMaxSize()
                         .padding(cardPadding),
                 ) {
-                    val emojiBounce = rememberEmojiBounce(style.emojiMotif, style.emojiMs)
-                    val entranceScale = rememberEntranceScale(style.entranceMotif, style.entranceMs, key = text)
                     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                         AnimatedEmoji(
                             emoji = emoji,
                             fontSize = emojiSizeSp.sp,
                             color = textColor,
-                            modifier = Modifier.offset(y = emojiBounce.value.dp),
+                            progress = lottieProgress,
                         )
                         Box(
                             modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -174,31 +177,62 @@ fun Card(
                                     fontWeight = FontWeight(style.fontWeight),
                                     fontStyle = if (style.italic) FontStyle.Italic else FontStyle.Normal,
                                     letterSpacing = style.letterSpacingEm?.let { TextUnit(it, TextUnitType.Em) } ?: TextUnit.Unspecified,
-                                    modifier = Modifier.fillMaxWidth().scale(entranceScale.value),
+                                    modifier = Modifier.fillMaxWidth(),
                                 )
                             }
                         }
                     }
                 }
             }
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(14.dp)
-                    .shadow(elevation = 3.dp, shape = CircleShape, clip = false)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.85f))
-                    .clickable(onClick = onShare)
-                    .size(40.dp),
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.align(Alignment.TopEnd).padding(14.dp),
             ) {
-                Icon(
-                    Icons.Filled.Share,
-                    contentDescription = "Share",
-                    tint = Color.Black.copy(alpha = 0.85f),
-                    modifier = Modifier.size(20.dp),
+                CardActionButton(Icons.Filled.Share, "Share", onClick = onShare)
+                CardActionButton(
+                    Icons.Filled.PlayArrow,
+                    "Share as animated GIF",
+                    enabled = exportState == ExportState.Ready,
+                    busy = exportState == ExportState.Busy,
+                    onClick = onExportGif,
                 )
             }
+        }
+    }
+}
+
+enum class ExportState { Disabled, Ready, Busy }
+
+@Composable
+private fun CardActionButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    description: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    busy: Boolean = false,
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .shadow(elevation = 3.dp, shape = CircleShape, clip = false)
+            .clip(CircleShape)
+            .background(Color.White.copy(alpha = 0.85f))
+            .clickable(enabled = enabled, onClick = onClick)
+            .size(40.dp),
+    ) {
+        if (busy) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                strokeWidth = 2.dp,
+                color = Color.Black.copy(alpha = 0.85f),
+            )
+        } else {
+            Icon(
+                icon,
+                contentDescription = description,
+                tint = Color.Black.copy(alpha = if (enabled) 0.85f else 0.3f),
+                modifier = Modifier.size(20.dp),
+            )
         }
     }
 }

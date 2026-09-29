@@ -7,6 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -18,14 +19,15 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import ing.emojify.model.NotoLottie
 
-// The static glyph always renders (keeps layout, and is the fallback); the Lottie clone is
-// overlaid once loaded. Preview only: the shared card image is captured as a static frame.
+// The static glyph always takes up space (keeps layout, and is the fallback); once the Lottie
+// clone has loaded it is drawn over the glyph, which turns transparent. Preview only: the shared card image is captured as a static frame.
 @Composable
 fun AnimatedEmoji(
     emoji: String,
     fontSize: TextUnit,
     color: Color,
     modifier: Modifier = Modifier,
+    progress: Float? = null,
 ) {
     val context = LocalContext.current
     val animate = remember {
@@ -35,15 +37,21 @@ fun AnimatedEmoji(
     val composition by rememberLottieComposition(
         if (path != null) LottieCompositionSpec.Asset(path) else LottieCompositionSpec.JsonString("{}"),
     )
+    val live = path != null && composition != null
     Box(modifier = modifier) {
-        Text(text = emoji, fontSize = fontSize, color = color)
-        if (path != null && composition != null) {
+        Text(text = emoji, fontSize = fontSize, color = if (live) Color.Transparent else color)
+        if (live) {
             val side = with(LocalDensity.current) { fontSize.toDp() }
-            LottieAnimation(
-                composition = composition,
-                iterations = LottieConstants.IterateForever,
-                modifier = Modifier.size(side),
-            )
+            val lottieModifier = Modifier.align(Alignment.Center).size(side)
+            if (progress != null) {
+                LottieAnimation(composition = composition, progress = { progress }, modifier = lottieModifier)
+            } else {
+                LottieAnimation(
+                    composition = composition,
+                    iterations = LottieConstants.IterateForever,
+                    modifier = lottieModifier,
+                )
+            }
         }
     }
 }

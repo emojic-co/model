@@ -33,6 +33,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
+import ing.emojify.cardGifFile
+import ing.emojify.shareCardGif
+import ing.emojify.model.NotoLottie
+import ing.emojify.model.GifEncoder
+import ing.emojify.ui.components.ExportState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -86,6 +94,8 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
     var colorOverride by remember { mutableStateOf(0) }
     var lang by remember { mutableStateOf("en") }
     var capture by remember { mutableStateOf<(suspend () -> android.graphics.Bitmap)?>(null) }
+    var exportProgress by remember { mutableStateOf<Float?>(null) }
+    var exporting by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val emojiListState = rememberLazyListState()
@@ -165,6 +175,30 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                 onEmojiCycle = { dir -> override = override.copy(emoji = cycle(emojiTop.map { it.emoji }, shownEmoji, dir)) },
                 onFeelingCycle = { dir -> override = override.copy(feeling = cycle(feelingOptions, shownFeeling, dir)) },
                 onCaptureReady = { capture = it },
+                lottieProgress = exportProgress,
+                exportState = when {
+                    exporting -> ExportState.Busy
+                    shownEmoji != null && NotoLottie.assetPath(context, shownEmoji) != null -> ExportState.Ready
+                    else -> ExportState.Disabled
+                },
+                onExportGif = {
+                    val emoji = shownEmoji
+                    val grab = capture
+                    if (emoji != null && grab != null && !exporting) {
+                        exporting = true
+                        scope.launch {
+                            try {
+                                exportCardGif(context, emoji, grab) { p -> exportProgress = p }
+                            } catch (e: Exception) {
+                                android.util.Log.e("emojify", "gif export failed", e)
+                                android.widget.Toast.makeText(context, "Export failed", android.widget.Toast.LENGTH_SHORT).show()
+                            } finally {
+                                exportProgress = null
+                                exporting = false
+                            }
+                        }
+                    }
+                },
             )
             Spacer(modifier = Modifier.height(16.dp))
             val clearButton: @Composable () -> Unit = {
@@ -235,4 +269,33 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
             Icon(Icons.Default.Settings, contentDescription = "Settings")
         }
     }
+}
+
+private const val EXPORT_FPS = 20
+private const val GIF_SIZE_PX = 480
+
+// Steps the card through one Lottie loop: sets the progress, waits for two composed frames,
+// captures the card layer, then encodes a looping GIF and opens the share sheet.
+private suspend fun exportCardGif(
+    context: Context,
+    emoji: String,
+    capture: suspend () -> android.graphics.Bitmap,
+    setProgress: (Float) -> Unit,
+) {
+    val path = NotoLottie.assetPath(context, emoji) ?: return
+    val durationMs = withContext(Dispatchers.IO) {
+        com.airbnb.lottie.LottieCompositionFactory.fromAssetSync(context, path).value?.duration
+    } ?: return
+    val frames = kotlin.math.ceil(durationMs * EXPORT_FPS / 1000f).toInt().coerceAtLeast(1)
+    val file = cardGifFile(context)
+    val encoder = GifEncoder(file, GIF_SIZE_PX, delayCs = 100 / EXPORT_FPS)
+    for (i in 0 until frames) {
+        setProgress((i * 1000f / EXPORT_FPS / durationMs).coerceIn(0f, 0.999f))
+        withFrameNanos { }
+        withFrameNanos { }
+        val bitmap = capture()
+        withContext(Dispatchers.Default) { encoder.addFrame(bitmap) }
+    }
+    withContext(Dispatchers.Default) { encoder.finish() }
+    shareCardGif(context, file)
 }
