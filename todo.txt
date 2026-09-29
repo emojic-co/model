@@ -1,8 +1,2 @@
-Discussion:
-Can we use the animated emojis in the web app preview?
-Use this git repo for the collection of animated emojis:
-https://saeedtahmtan.github.io/telemoji/
-
-Let mw know what do you think about it.
-How many of the emojis this repo covers?
-Can we fallback to static emojis if no animated clone exists?
+Android app:
+- Switch the preview to animated emojis using the lottie compose.

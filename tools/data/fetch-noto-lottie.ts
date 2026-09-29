@@ -1,9 +1,9 @@
 // Downloads Google's animated Noto emoji (Lottie, CC BY 4.0) for every emoji in the label vocab
 // into web/public/noto/, plus index.json mapping emoji -> file stem. Emojis without an
-// animated clone are simply absent; the web preview falls back to the static glyph.
-import { mkdirSync, writeFileSync } from "node:fs"
+// animated clone are simply absent; the web preview and Android app fall back to the static glyph.
+import { cpSync, mkdirSync, writeFileSync } from "node:fs"
 
-import { LABELS_JSON, NOTO_LOTTIE_DIR } from "../../files.ts"
+import { ANDROID_ASSETS_DIR, LABELS_JSON, NOTO_LOTTIE_DIR } from "../../files.ts"
 
 const BASE = "https://fonts.gstatic.com/s/e/notoemoji/latest"
 const VS16 = 0xfe0f
@@ -47,4 +47,5 @@ writeFileSync(
   `${NOTO_LOTTIE_DIR}/LICENSE.txt`,
   "Animated emoji by Google (Noto Emoji Animation), licensed CC BY 4.0: https://creativecommons.org/licenses/by/4.0/\nSource: https://googlefonts.github.io/noto-emoji-animation/\n",
 )
+cpSync(NOTO_LOTTIE_DIR, `${ANDROID_ASSETS_DIR}/noto`, { recursive: true })
 console.log(`noto lottie: ${Object.keys(sorted).length}/${emojis.length} emojis`)

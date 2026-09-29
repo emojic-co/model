@@ -138,8 +138,8 @@ fun Card(
                     val emojiBounce = rememberEmojiBounce(style.emojiMotif, style.emojiMs)
                     val entranceScale = rememberEntranceScale(style.entranceMotif, style.entranceMs, key = text)
                     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = emoji,
+                        AnimatedEmoji(
+                            emoji = emoji,
                             fontSize = emojiSizeSp.sp,
                             color = textColor,
                             modifier = Modifier.offset(y = emojiBounce.value.dp),
