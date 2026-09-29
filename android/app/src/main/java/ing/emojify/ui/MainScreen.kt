@@ -281,9 +281,22 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
 private const val EXPORT_FPS = 20
 private const val GIF_SIZE_PX = 480
 
-// Steps the card through the text entrance followed by one emoji loop (the shimmer plays one pass
-// over that loop): poses each frame, waits for two composed frames, captures the card layer, then
-// encodes a looping GIF and opens the share sheet.
+// The emoji loops until it has animated for about this long, within [MIN_EMOJI_LOOPS, MAX_EMOJI_LOOPS].
+// Short Noto clips repeat more; long ones don't bloat the file.
+private const val TARGET_EMOJI_MS = 3000f
+private const val MIN_EMOJI_LOOPS = 2
+private const val MAX_EMOJI_LOOPS = 6
+
+// Viewers that pause a GIF show frame 0, so it is the finished card, held briefly before the entrance.
+private const val POSTER_HOLD_CS = 60
+
+internal fun emojiLoops(durationMs: Float): Int =
+    kotlin.math.ceil(TARGET_EMOJI_MS / durationMs).toInt().coerceIn(MIN_EMOJI_LOOPS, MAX_EMOJI_LOOPS)
+
+// Frame 0 is the finished card (text fully shown, no shimmer). Then the text entrance plays once,
+// the emoji loops emojiLoops() times, and the shimmer sweeps once over the first loop after the
+// entrance. Each frame is posed, waits for two composed frames, and the card layer is captured;
+// the frames are encoded into a looping GIF and the share sheet opens.
 private suspend fun exportCardGif(
     context: Context,
     emoji: String,
@@ -295,23 +308,36 @@ private suspend fun exportCardGif(
     val durationMs = withContext(Dispatchers.IO) {
         com.airbnb.lottie.LottieCompositionFactory.fromAssetSync(context, path).value?.duration
     } ?: return
-    val totalMs = entranceMs + durationMs
+    val totalMs = entranceMs + durationMs * emojiLoops(durationMs)
     val frames = kotlin.math.ceil(totalMs * EXPORT_FPS / 1000f).toInt().coerceAtLeast(1)
     val file = cardGifFile(context)
-    val encoder = GifEncoder(file, GIF_SIZE_PX, delayCs = 100 / EXPORT_FPS)
-    for (i in 0 until frames) {
-        val t = i * 1000f / EXPORT_FPS
-        setPose(
-            ing.emojify.ui.components.ExportPose(
-                lottie = ((t % durationMs) / durationMs).coerceIn(0f, 0.999f),
-                textMs = t,
-                shimmerPass = if (t >= entranceMs) ((t - entranceMs) / durationMs).coerceIn(0f, 1f) else null,
-            ),
-        )
+    val frameDelayCs = 100 / EXPORT_FPS
+    val encoder = GifEncoder(file, GIF_SIZE_PX, delayCs = frameDelayCs)
+
+    suspend fun grab(pose: ing.emojify.ui.components.ExportPose, delayCs: Int) {
+        setPose(pose)
         withFrameNanos { }
         withFrameNanos { }
         val bitmap = capture()
-        withContext(Dispatchers.Default) { encoder.addFrame(bitmap) }
+        withContext(Dispatchers.Default) { encoder.addFrame(bitmap, delayCs) }
+    }
+
+    grab(
+        ing.emojify.ui.components.ExportPose(lottie = 0f, textMs = ing.emojify.ui.components.TEXT_ANIM_DONE, shimmerPass = null),
+        POSTER_HOLD_CS,
+    )
+    for (i in 0 until frames) {
+        val t = i * 1000f / EXPORT_FPS
+        val phase = (((t - entranceMs) % durationMs) + durationMs) % durationMs
+        val firstLoop = t >= entranceMs && t < entranceMs + durationMs
+        grab(
+            ing.emojify.ui.components.ExportPose(
+                lottie = (phase / durationMs).coerceIn(0f, 0.999f),
+                textMs = t,
+                shimmerPass = if (firstLoop) ((t - entranceMs) / durationMs).coerceIn(0f, 1f) else null,
+            ),
+            frameDelayCs,
+        )
     }
     withContext(Dispatchers.Default) { encoder.finish() }
     shareCardGif(context, file)

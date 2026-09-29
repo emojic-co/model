@@ -9,8 +9,9 @@ import java.io.OutputStream
 // stable across frames, so static areas (gradient, pattern) don't shimmer.
 class GifEncoder(private val file: File, private val size: Int, private val delayCs: Int) {
     private val frames = ArrayList<IntArray>()
+    private val delays = ArrayList<Int>()
 
-    fun addFrame(bitmap: Bitmap) {
+    fun addFrame(bitmap: Bitmap, frameDelayCs: Int = delayCs) {
         val readable = if (bitmap.config == Bitmap.Config.HARDWARE) bitmap.copy(Bitmap.Config.ARGB_8888, false) else bitmap
         val scaled = Bitmap.createScaledBitmap(readable, size, size, true)
         val px = IntArray(size * size)
@@ -18,6 +19,7 @@ class GifEncoder(private val file: File, private val size: Int, private val dela
         if (scaled !== readable) scaled.recycle()
         if (readable !== bitmap) readable.recycle()
         frames.add(px)
+        delays.add(frameDelayCs)
     }
 
     fun finish() {
@@ -25,10 +27,11 @@ class GifEncoder(private val file: File, private val size: Int, private val dela
         val lut = buildLut(palette)
         file.outputStream().buffered().use { out ->
             writeHeader(out, palette)
-            for (px in frames) writeFrame(out, indexFrame(px, lut))
+            for ((i, px) in frames.withIndex()) writeFrame(out, indexFrame(px, lut), delays[i])
             out.write(0x3B)
         }
         frames.clear()
+        delays.clear()
     }
 
     private fun buildPalette(): IntArray {
@@ -123,9 +126,9 @@ class GifEncoder(private val file: File, private val size: Int, private val dela
         out.write(byteArrayOf(0x21, 0xFF.toByte(), 0x0B) + "NETSCAPE2.0".toByteArray() + byteArrayOf(3, 1, 0, 0, 0))
     }
 
-    private fun writeFrame(out: OutputStream, indices: ByteArray) {
+    private fun writeFrame(out: OutputStream, indices: ByteArray, frameDelayCs: Int) {
         out.write(byteArrayOf(0x21, 0xF9.toByte(), 4, 0x04)) // graphic control: dispose = do not dispose
-        out.writeShort(delayCs); out.write(0); out.write(0)
+        out.writeShort(frameDelayCs); out.write(0); out.write(0)
         out.write(0x2C)
         out.writeShort(0); out.writeShort(0); out.writeShort(size); out.writeShort(size)
         out.write(0)
