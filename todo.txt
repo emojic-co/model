@@ -1,1 +1,8 @@
-On the android app add a setting for the max numbers of emojis to show, default is 20, min is 10, max 100.
+Discussion:
+Can we use the animated emojis in the web app preview?
+Use this git repo for the collection of animated emojis:
+https://saeedtahmtan.github.io/telemoji/
+
+Let mw know what do you think about it.
+How many of the emojis this repo covers?
+Can we fallback to static emojis if no animated clone exists?
