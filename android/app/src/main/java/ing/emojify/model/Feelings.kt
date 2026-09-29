@@ -59,3 +59,7 @@ fun resolveFeeling(feeling: String?, lang: String? = "en"): FeelingStyle {
     val script = scriptForLang(lang)
     return if (script == LATIN) base else base.copy(fontName = fontForScript(script, base.cluster))
 }
+
+/** The string a card shows: upper-cased for uppercase styles, with the placeholder when blank. */
+fun cardDisplayText(text: String, style: FeelingStyle): String =
+    (if (style.uppercase) text.uppercase() else text).ifBlank { "What's on your mind?" }

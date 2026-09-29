@@ -45,4 +45,12 @@ class ShimmerTest {
         assertEquals(0xCCFFFFFF.toInt(), parseShimmerColor("#FFFFFFCC"))
         assertEquals(0x00FF3B00, parseShimmerColor("#FF3B0000"))
     }
+
+    @Test
+    fun `export pass spans the whole sweep in one loop`() {
+        val p = ShimmerPlayer(resolveShimmer(spec, "drive", "Hopeful"), 0.0)
+        assertEquals(-0.2f, p.poseAtPass(0.0).c, 1e-4f)
+        assertEquals(1.2f, p.poseAtPass(1.0).c, 1e-4f)
+        assertTrue(p.poseAtPass(0.5).c in 0.3f..0.9f)
+    }
 }

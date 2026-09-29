@@ -26,6 +26,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import ing.emojify.R
 import ing.emojify.model.Palette
 import ing.emojify.model.Styles
+import ing.emojify.model.cardDisplayText
 import ing.emojify.model.entranceTotalMs
 import ing.emojify.model.patternTint
 import ing.emojify.model.resolveFeeling
@@ -75,8 +77,8 @@ fun Card(
     onEmojiCycle: (Int) -> Unit,
     onFeelingCycle: (Int) -> Unit,
     onCaptureReady: ((suspend () -> android.graphics.Bitmap) -> Unit)? = null,
-    // Frame-stepped export: when set, the emoji animation is pinned to this progress.
-    lottieProgress: Float? = null,
+    // Frame-stepped GIF export: when set, emoji, text entrance and shimmer are pinned to this pose.
+    export: ExportPose? = null,
     exportState: ExportState = ExportState.Disabled,
     onExportGif: () -> Unit = {},
 ) {
@@ -86,21 +88,27 @@ fun Card(
     val style = resolveFeeling(feeling, lang)
     val tint = Color(android.graphics.Color.parseColor(patternTint(colors.bg1, colors.bg2)))
     val fontFamily = FontFamily(Font(googleFont = GoogleFont(style.fontName), fontProvider = fontProvider))
-    val displayText = if (style.uppercase) text.uppercase() else text
+    val displayText = cardDisplayText(text, style)
     val graphicsLayer = rememberGraphicsLayer()
     val textClock = remember { Animatable(0f) }
     var shimmerOn by remember { mutableStateOf(true) }
+    val exporting by rememberUpdatedState(export != null)
     LaunchedEffect(onCaptureReady) {
         onCaptureReady?.invoke {
-            // Shared images stay static: finish the text entrance, hide the shimmer, let a frame draw.
-            textClock.snapTo(TEXT_ANIM_DONE)
-            shimmerOn = false
-            androidx.compose.runtime.withFrameNanos { }
-            androidx.compose.runtime.withFrameNanos { }
-            try {
+            if (exporting) {
+                // GIF frame: the caller already posed the emoji, text and shimmer for this frame.
                 graphicsLayer.toImageBitmap().asAndroidBitmap()
-            } finally {
-                shimmerOn = true
+            } else {
+                // Shared images stay static: finish the text entrance, hide the shimmer, let a frame draw.
+                textClock.snapTo(TEXT_ANIM_DONE)
+                shimmerOn = false
+                androidx.compose.runtime.withFrameNanos { }
+                androidx.compose.runtime.withFrameNanos { }
+                try {
+                    graphicsLayer.toImageBitmap().asAndroidBitmap()
+                } finally {
+                    shimmerOn = true
+                }
             }
         }
     }
@@ -158,14 +166,10 @@ fun Card(
                     spec = Styles.file.shimmer,
                     cluster = style.cluster,
                     feeling = feeling,
-                    entranceMs = entranceTotalMs(
-                        Styles.file.textAnimations,
-                        style.entranceMotif,
-                        feeling,
-                        displayText.ifBlank { "What's on your mind?" },
-                    ),
+                    entranceMs = entranceTotalMs(Styles.file.textAnimations, style.entranceMotif, feeling, displayText),
                     replayKey = Triple(feeling, emoji, lang),
-                    enabled = shimmerOn && lottieProgress == null,
+                    enabled = shimmerOn && (export == null || export.shimmerPass != null),
+                    exportProgress = export?.shimmerPass,
                     modifier = Modifier.matchParentSize(),
                 )
                 Box(
@@ -178,7 +182,7 @@ fun Card(
                             emoji = emoji,
                             fontSize = emojiSizeSp.sp,
                             color = textColor,
-                            progress = lottieProgress,
+                            progress = export?.lottie,
                         )
                         Box(
                             modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -189,7 +193,7 @@ fun Card(
                                 val maxWidthPx = with(density) { maxWidth.toPx() }.toInt()
                                 val maxHeightPx = with(density) { maxHeight.toPx() }.toInt()
                                 val fitSp = rememberFitFontSizeSp(
-                                    text = displayText.ifBlank { "What's on your mind?" },
+                                    text = displayText,
                                     fontFamily = fontFamily,
                                     fontWeight = FontWeight(style.fontWeight),
                                     fontStyle = if (style.italic) FontStyle.Italic else FontStyle.Normal,
@@ -200,7 +204,7 @@ fun Card(
                                     maxSp = textMaxSp,
                                 )
                                 AnimatedCharText(
-                                    text = displayText.ifBlank { "What's on your mind?" },
+                                    text = displayText,
                                     textStyle = TextStyle(
                                         textDirection = TextDirection.Content,
                                         textAlign = TextAlign.Center,
@@ -218,7 +222,7 @@ fun Card(
                                     feeling = feeling,
                                     replayKey = Triple(feeling, emoji, lang),
                                     clock = textClock,
-                                    frozen = lottieProgress != null,
+                                    exportMs = export?.textMs,
                                 )
                             }
                         }
@@ -241,6 +245,9 @@ fun Card(
         }
     }
 }
+
+/** One GIF frame: emoji loop progress, ms into the text entrance, and shimmer pass progress (null before it starts). */
+data class ExportPose(val lottie: Float, val textMs: Float, val shimmerPass: Float?)
 
 enum class ExportState { Disabled, Ready, Busy }
 

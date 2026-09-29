@@ -44,6 +44,8 @@ fun CardShimmer(
     entranceMs: Double,
     replayKey: Any?,
     enabled: Boolean,
+    // GIF export: draw exactly one pass, spread over the loop (null = live, clock-driven).
+    exportProgress: Float? = null,
     modifier: Modifier = Modifier,
 ) {
     if (spec == null || !enabled) return
@@ -58,13 +60,15 @@ fun CardShimmer(
     val blend = remember(effect) { blendModeFor(effect.blend) }
     var elapsedMs by remember(replayKey) { mutableLongStateOf(0L) }
 
-    LaunchedEffect(replayKey) {
+    LaunchedEffect(replayKey, exportProgress == null) {
+        if (exportProgress != null) return@LaunchedEffect
         val start = androidx.compose.runtime.withFrameNanos { it }
         while (true) androidx.compose.runtime.withFrameNanos { elapsedMs = (it - start) / 1_000_000 }
     }
 
     Canvas(modifier) {
-        val pose = player.poseAt(elapsedMs.toDouble()) ?: return@Canvas
+        val pose = (if (exportProgress != null) player.poseAtPass(exportProgress.toDouble()) else player.poseAt(elapsedMs.toDouble()))
+            ?: return@Canvas
         val w = size.width
         val h = size.height
         val brush = shimmerBrush(effect, stops, pose.c, w, h) ?: return@Canvas

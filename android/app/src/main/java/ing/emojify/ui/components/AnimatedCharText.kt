@@ -50,7 +50,8 @@ fun AnimatedCharText(
     feeling: String?,
     replayKey: Any?,
     clock: Animatable<Float, *>,
-    frozen: Boolean = false,
+    // GIF export: pin the entrance clock to this many ms (null = live playback).
+    exportMs: Float? = null,
     modifier: Modifier = Modifier,
 ) {
     val measurer = rememberTextMeasurer()
@@ -64,9 +65,13 @@ fun AnimatedCharText(
     }
     val scheduleState by rememberUpdatedState(schedule)
 
-    LaunchedEffect(replayKey, frozen) {
+    LaunchedEffect(exportMs) {
+        if (exportMs != null) clock.snapTo(exportMs)
+    }
+    LaunchedEffect(replayKey, exportMs == null) {
+        if (exportMs != null) return@LaunchedEffect
         val s = scheduleState
-        if (frozen || s == null) {
+        if (s == null) {
             clock.snapTo(TEXT_ANIM_DONE)
             return@LaunchedEffect
         }

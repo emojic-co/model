@@ -63,7 +63,11 @@ class ShimmerPlayer(val effect: ShimmerEffect, private val startMs: Double) {
         val t = elapsedMs - startMs
         if (t < 0.0) return null
         val u = (t % cycleMs) / effect.durationMs
-        if (u >= 1.0) return null
+        return if (u >= 1.0) null else poseAtPass(u)
+    }
+
+    /** The pose at pass progress [u] in 0..1 (used directly by the GIF export, one pass per loop). */
+    fun poseAtPass(u: Double): ShimmerPose {
         var hi = keyframes.indexOfFirst { it.first >= u }
         if (hi < 0) hi = keyframes.lastIndex
         val a = if (hi > 0) keyframes[hi - 1] else keyframes[0]

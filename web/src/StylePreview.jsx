@@ -106,11 +106,11 @@ const BASE = import.meta.env.BASE_URL
 export function StylePreview() {
   const [state, setState] = useState({ status: 'loading' })
   const [tick, setTick] = useState(0)
-  const [auto, setAuto] = useState(false)
+  const [auto, setAuto] = useState(true)
 
   useEffect(() => {
     if (!auto) return
-    const t = setInterval(() => setTick((n) => n + 1), 15000)
+    const t = setInterval(() => setTick((n) => n + 1), 9000)
     return () => clearInterval(t)
   }, [auto])
 
@@ -147,7 +147,7 @@ export function StylePreview() {
             Replay all
           </button>
           <label>
-            <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} /> replay every 15s
+            <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} /> replay every 9s
           </label>
           <span>Click a card to replay it.</span>
         </div>

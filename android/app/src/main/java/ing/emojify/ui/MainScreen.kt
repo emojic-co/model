@@ -94,7 +94,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
     var colorOverride by remember { mutableStateOf(0) }
     var lang by remember { mutableStateOf("en") }
     var capture by remember { mutableStateOf<(suspend () -> android.graphics.Bitmap)?>(null) }
-    var exportProgress by remember { mutableStateOf<Float?>(null) }
+    var exportPose by remember { mutableStateOf<ing.emojify.ui.components.ExportPose?>(null) }
     var exporting by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -175,7 +175,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                 onEmojiCycle = { dir -> override = override.copy(emoji = cycle(emojiTop.map { it.emoji }, shownEmoji, dir)) },
                 onFeelingCycle = { dir -> override = override.copy(feeling = cycle(feelingOptions, shownFeeling, dir)) },
                 onCaptureReady = { capture = it },
-                lottieProgress = exportProgress,
+                export = exportPose,
                 exportState = when {
                     exporting -> ExportState.Busy
                     shownEmoji != null && NotoLottie.assetPath(context, shownEmoji) != null -> ExportState.Ready
@@ -188,12 +188,19 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                         exporting = true
                         scope.launch {
                             try {
-                                exportCardGif(context, emoji, grab) { p -> exportProgress = p }
+                                val cardStyle = ing.emojify.model.resolveFeeling(shownFeeling, lang)
+                                val entranceMs = ing.emojify.model.entranceTotalMs(
+                                    ing.emojify.model.Styles.file.textAnimations,
+                                    cardStyle.entranceMotif,
+                                    shownFeeling,
+                                    ing.emojify.model.cardDisplayText(text, cardStyle),
+                                ).toFloat()
+                                exportCardGif(context, emoji, grab, entranceMs) { p -> exportPose = p }
                             } catch (e: Exception) {
                                 android.util.Log.e("emojify", "gif export failed", e)
                                 android.widget.Toast.makeText(context, "Export failed", android.widget.Toast.LENGTH_SHORT).show()
                             } finally {
-                                exportProgress = null
+                                exportPose = null
                                 exporting = false
                             }
                         }
@@ -274,23 +281,33 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
 private const val EXPORT_FPS = 20
 private const val GIF_SIZE_PX = 480
 
-// Steps the card through one Lottie loop: sets the progress, waits for two composed frames,
-// captures the card layer, then encodes a looping GIF and opens the share sheet.
+// Steps the card through the text entrance followed by one emoji loop (the shimmer plays one pass
+// over that loop): poses each frame, waits for two composed frames, captures the card layer, then
+// encodes a looping GIF and opens the share sheet.
 private suspend fun exportCardGif(
     context: Context,
     emoji: String,
     capture: suspend () -> android.graphics.Bitmap,
-    setProgress: (Float) -> Unit,
+    entranceMs: Float,
+    setPose: (ing.emojify.ui.components.ExportPose) -> Unit,
 ) {
     val path = NotoLottie.assetPath(context, emoji) ?: return
     val durationMs = withContext(Dispatchers.IO) {
         com.airbnb.lottie.LottieCompositionFactory.fromAssetSync(context, path).value?.duration
     } ?: return
-    val frames = kotlin.math.ceil(durationMs * EXPORT_FPS / 1000f).toInt().coerceAtLeast(1)
+    val totalMs = entranceMs + durationMs
+    val frames = kotlin.math.ceil(totalMs * EXPORT_FPS / 1000f).toInt().coerceAtLeast(1)
     val file = cardGifFile(context)
     val encoder = GifEncoder(file, GIF_SIZE_PX, delayCs = 100 / EXPORT_FPS)
     for (i in 0 until frames) {
-        setProgress((i * 1000f / EXPORT_FPS / durationMs).coerceIn(0f, 0.999f))
+        val t = i * 1000f / EXPORT_FPS
+        setPose(
+            ing.emojify.ui.components.ExportPose(
+                lottie = ((t % durationMs) / durationMs).coerceIn(0f, 0.999f),
+                textMs = t,
+                shimmerPass = if (t >= entranceMs) ((t - entranceMs) / durationMs).coerceIn(0f, 1f) else null,
+            ),
+        )
         withFrameNanos { }
         withFrameNanos { }
         val bitmap = capture()
