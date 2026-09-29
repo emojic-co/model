@@ -196,7 +196,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                 export = exportPose,
                 exportState = when {
                     exporting -> ExportState.Busy
-                    shownEmoji != null && NotoLottie.assetPath(context, shownEmoji) != null -> ExportState.Ready
+                    shownEmoji != null -> ExportState.Ready
                     else -> ExportState.Disabled
                 },
                 onExportGif = {
@@ -322,10 +322,15 @@ private suspend fun exportCardGif(
     entranceMs: Float,
     setPose: (ing.emojify.ui.components.ExportPose) -> Unit,
 ) {
-    val path = NotoLottie.assetPath(context, emoji) ?: return
-    val durationMs = withContext(Dispatchers.IO) {
-        com.airbnb.lottie.LottieCompositionFactory.fromAssetSync(context, path).value?.duration
-    } ?: return
+    val path = NotoLottie.assetPath(context, emoji)
+    // Without a Lottie clone the emoji plays the fallback spring once, at the start of the entrance.
+    val durationMs = if (path == null) {
+        ing.emojify.ui.components.SPRING_MS * 1.5f
+    } else {
+        withContext(Dispatchers.IO) {
+            com.airbnb.lottie.LottieCompositionFactory.fromAssetSync(context, path).value?.duration
+        } ?: return
+    }
     val totalMs = entranceMs + durationMs * emojiLoops(durationMs)
     val frames = kotlin.math.ceil(totalMs * EXPORT_FPS / 1000f).toInt().coerceAtLeast(1)
     val file = cardGifFile(context)
@@ -341,16 +346,17 @@ private suspend fun exportCardGif(
     }
 
     grab(
-        ing.emojify.ui.components.ExportPose(lottie = 0f, textMs = ing.emojify.ui.components.TEXT_ANIM_DONE, shimmerPass = null),
+        ing.emojify.ui.components.ExportPose(lottie = if (path == null) 1f else 0f, textMs = ing.emojify.ui.components.TEXT_ANIM_DONE, shimmerPass = null),
         POSTER_HOLD_CS,
     )
     for (i in 0 until frames) {
         val t = i * 1000f / EXPORT_FPS
         val phase = (((t - entranceMs) % durationMs) + durationMs) % durationMs
+        val lottie = if (path == null) (t / ing.emojify.ui.components.SPRING_MS).coerceAtMost(1f) else (phase / durationMs).coerceIn(0f, 0.999f)
         val firstLoop = t >= entranceMs && t < entranceMs + durationMs
         grab(
             ing.emojify.ui.components.ExportPose(
-                lottie = (phase / durationMs).coerceIn(0f, 0.999f),
+                lottie = lottie,
                 textMs = t,
                 shimmerPass = if (firstLoop) ((t - entranceMs) / durationMs).coerceIn(0f, 1f) else null,
             ),

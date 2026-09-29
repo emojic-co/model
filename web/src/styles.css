@@ -569,6 +569,26 @@ h1 .tld {
   visibility: hidden;
 }
 
+/* No Lottie clone: a subtle spring scale on the glyph, played once per emoji. */
+@keyframes glyph-spring {
+  0% { transform: scale(0.88); }
+  30% { transform: scale(1.05); }
+  55% { transform: scale(0.98); }
+  78% { transform: scale(1.01); }
+  100% { transform: scale(1); }
+}
+
+.card-emoji-glyph[data-spring] {
+  display: inline-block;
+  animation: glyph-spring 900ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-emoji-glyph[data-spring] {
+    animation: none;
+  }
+}
+
 /* The Lottie clone brings its own motion; drop the per-style CSS motion. */
 .card .card-emoji[data-animated] {
   animation: none;

@@ -1,2 +1,4 @@
-Debounce both web and android app, wait for 600ms without user input before rendering the card.
-On Android add a setting to allow users to adjust the debounce time, with a default of 600ms.
+When no emoji lottie animation available fallback to a simple subtle spring scale animation for both web app and Android app.
+On Android also use this animation with the exported GIF.
+Note: the GIF export button should not be disabled now.
+push to my phone when ready
