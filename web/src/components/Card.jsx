@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { AnimatedEmoji } from './AnimatedEmoji'
 import { useFitText } from '../hooks/useFitText'
 import { resolveFeeling } from '../feelings'
 import { contrastRatio, patternTint, toCssOklab, toHexColor, BLACK, WHITE } from '../model'
@@ -72,7 +73,7 @@ export function Card({ text, emoji, feeling, lang, colors, loading, onCopy, onSh
       data-phase={phase}
       style={style}
     >
-      <span className="card-emoji">{shown.emoji}</span>
+      <AnimatedEmoji emoji={shown.emoji} />
       <div className="card-text-box" ref={textRef}>
         <p
           className={'card-text' + (placeholder ? ' card-text-placeholder' : '')}

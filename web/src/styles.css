@@ -793,6 +793,22 @@ h1 .tld {
   flex: none;
   transform: translateY(6.5cqw);
   transition: opacity 150ms ease;
+  position: relative;
+}
+
+.card-emoji-lottie {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.card-emoji[data-animated] .card-emoji-glyph {
+  visibility: hidden;
+}
+
+/* The Lottie clone brings its own motion; drop the per-style CSS motion. */
+.card .card-emoji[data-animated] {
+  animation: none;
 }
 
 .card-text-box {
