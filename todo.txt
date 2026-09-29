@@ -1,8 +1,2 @@
-Now, for each style also add a Shimmer Effect.
-Same flow as the text animation:
-1. first implement the web and update the styles preview page.
-2. when I confirm also implement on Android.
-
-Notes:
-1. As with the text animation there should be a single file for the shimmer effect definitions so web and android are always in sync.
-2. Use different effects for different style clusters.
+Debounce both web and android app, wait for 600ms without user input before rendering the card.
+On Android add a setting to allow users to adjust the debounce time, with a default of 600ms.

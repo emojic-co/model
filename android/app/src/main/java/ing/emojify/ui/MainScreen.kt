@@ -51,6 +51,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
+import ing.emojify.model.DebouncePrefs
 import ing.emojify.model.EmojiCountPrefs
 import ing.emojify.model.EmojiScore
 import ing.emojify.model.Meta
@@ -73,7 +74,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private const val MIN_CHARS = 3
-private const val DEBOUNCE_MS = 250L
 private const val FEELING_COUNT = 5
 
 private val DEFAULT_PALETTE = Palette(bg1 = "#a8e2f4", bg2 = "#78c9f4", textColor = "#282e36")
@@ -106,6 +106,24 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
             .coerceIn(EmojiCountPrefs.MIN_MAX_EMOJIS, EmojiCountPrefs.MAX_MAX_EMOJIS)
     }
 
+    // The card and the prediction both wait for this much idle time after the last keystroke.
+    val debounceMs = remember {
+        context.getSharedPreferences(DebouncePrefs.FILE, Context.MODE_PRIVATE)
+            .getInt(DebouncePrefs.KEY_DEBOUNCE_MS, DebouncePrefs.DEFAULT_DEBOUNCE_MS)
+            .coerceIn(DebouncePrefs.MIN_DEBOUNCE_MS, DebouncePrefs.MAX_DEBOUNCE_MS)
+            .toLong()
+    }
+    var cardText by remember { mutableStateOf("") }
+
+    LaunchedEffect(text) {
+        if (text.isEmpty()) {
+            cardText = ""
+        } else {
+            delay(debounceMs)
+            cardText = text
+        }
+    }
+
     LaunchedEffect(text) {
         emojiListState.scrollToItem(0)
         feelingBarState.scrollToItem(0)
@@ -122,7 +140,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
             lang = "en"
             return@LaunchedEffect
         }
-        delay(DEBOUNCE_MS)
+        delay(debounceMs)
         lang = langForText(text)
         val result = predictor.predict(text, meta)
         emojiTop = pickEmojiList(result.emojiLogits, meta.emojis, maxEmojis)
@@ -166,7 +184,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                 .padding(16.dp),
         ) {
             Card(
-                text = text,
+                text = cardText,
                 emoji = shownEmoji ?: "🙂",
                 feeling = shownFeeling,
                 lang = lang,
@@ -193,7 +211,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                                     ing.emojify.model.Styles.file.textAnimations,
                                     cardStyle.entranceMotif,
                                     shownFeeling,
-                                    ing.emojify.model.cardDisplayText(text, cardStyle),
+                                    ing.emojify.model.cardDisplayText(cardText, cardStyle),
                                 ).toFloat()
                                 exportCardGif(context, emoji, grab, entranceMs) { p -> exportPose = p }
                             } catch (e: Exception) {

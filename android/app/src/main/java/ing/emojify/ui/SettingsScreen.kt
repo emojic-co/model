@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import ing.emojify.model.DebouncePrefs
 import ing.emojify.model.EmojiCountPrefs
 import ing.emojify.model.ModelUpdatePrefs
 import ing.emojify.model.ModelUpdater
@@ -62,6 +63,13 @@ fun SettingsScreen(onBack: () -> Unit) {
         mutableStateOf(
             emojiCountPrefs.getInt(EmojiCountPrefs.KEY_MAX_EMOJIS, EmojiCountPrefs.DEFAULT_MAX_EMOJIS)
                 .coerceIn(EmojiCountPrefs.MIN_MAX_EMOJIS, EmojiCountPrefs.MAX_MAX_EMOJIS),
+        )
+    }
+    val debouncePrefs = remember { context.getSharedPreferences(DebouncePrefs.FILE, Context.MODE_PRIVATE) }
+    var debounceMs by remember {
+        mutableStateOf(
+            debouncePrefs.getInt(DebouncePrefs.KEY_DEBOUNCE_MS, DebouncePrefs.DEFAULT_DEBOUNCE_MS)
+                .coerceIn(DebouncePrefs.MIN_DEBOUNCE_MS, DebouncePrefs.MAX_DEBOUNCE_MS),
         )
     }
     var status by remember { mutableStateOf(statusText(updater)) }
@@ -117,6 +125,19 @@ fun SettingsScreen(onBack: () -> Unit) {
                 },
                 valueRange = EmojiCountPrefs.MIN_MAX_EMOJIS.toFloat()..EmojiCountPrefs.MAX_MAX_EMOJIS.toFloat(),
                 steps = EmojiCountPrefs.MAX_MAX_EMOJIS - EmojiCountPrefs.MIN_MAX_EMOJIS - 1,
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Text("Typing delay before card updates: $debounceMs ms")
+            Slider(
+                value = debounceMs.toFloat(),
+                onValueChange = {
+                    debounceMs = (it / DebouncePrefs.STEP_MS).roundToInt() * DebouncePrefs.STEP_MS
+                },
+                onValueChangeFinished = {
+                    debouncePrefs.edit().putInt(DebouncePrefs.KEY_DEBOUNCE_MS, debounceMs).apply()
+                },
+                valueRange = DebouncePrefs.MIN_DEBOUNCE_MS.toFloat()..DebouncePrefs.MAX_DEBOUNCE_MS.toFloat(),
+                steps = (DebouncePrefs.MAX_DEBOUNCE_MS - DebouncePrefs.MIN_DEBOUNCE_MS) / DebouncePrefs.STEP_MS - 1,
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(status)

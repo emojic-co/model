@@ -15,7 +15,8 @@ import { Toast } from './components/Toast'
 import { useMediaQuery } from './hooks/useMediaQuery'
 
 const MIN_CHARS = 3
-const DEBOUNCE_MS = 250
+// Idle time after the last keystroke before the card (and prediction) update.
+const DEBOUNCE_MS = 600
 const CONTRAST_FIX_KEY = 'contrastFix'
 
 export function pickEmojiList(scores, meta, slots) {
@@ -64,6 +65,7 @@ export function App() {
   const colorCount = mobile ? 4 : 5
   const [text, setText] = useState(() => hashToText(window.location.hash))
   const [modelText, setModelText] = useState('')
+  const [cardText, setCardText] = useState(text)
   const [lang, setLang] = useState('en')
   const [scores, setScores] = useState(null)
   const [pending, setPending] = useState(false)
@@ -101,6 +103,15 @@ export function App() {
     if (window.location.hash !== hash) {
       window.history.replaceState(null, '', window.location.pathname + window.location.search + hash)
     }
+  }, [text])
+
+  useEffect(() => {
+    if (!text) {
+      setCardText('')
+      return
+    }
+    const timer = setTimeout(() => setCardText(text), DEBOUNCE_MS)
+    return () => clearTimeout(timer)
   }, [text])
 
   useEffect(() => {
@@ -284,7 +295,7 @@ export function App() {
         />
         <Card
           ref={cardRef}
-          text={text}
+          text={cardText}
           emoji={displayEmoji}
           feeling={displayFeeling}
           lang={lang}
