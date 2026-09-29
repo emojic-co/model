@@ -200,3 +200,10 @@ fun cubicBezier(x1: Double, y1: Double, x2: Double, y2: Double): (Double) -> Dou
         coord((lo + hi) / 2, y1, y2)
     }
 }
+
+/** Time until every unit has finished its entrance (0 when there is nothing to animate). */
+fun entranceTotalMs(anim: TextAnimations?, motif: String, feeling: String?, text: String): Double {
+    val n = splitTextUnits(text).sumOf { it.size }
+    if (anim == null || n == 0) return 0.0
+    return textScheduleFor(anim, motif, feeling, n).totalMs
+}

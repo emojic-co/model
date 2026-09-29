@@ -23,7 +23,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,6 +54,7 @@ import androidx.compose.ui.unit.sp
 import ing.emojify.R
 import ing.emojify.model.Palette
 import ing.emojify.model.Styles
+import ing.emojify.model.entranceTotalMs
 import ing.emojify.model.patternTint
 import ing.emojify.model.resolveFeeling
 
@@ -85,12 +89,19 @@ fun Card(
     val displayText = if (style.uppercase) text.uppercase() else text
     val graphicsLayer = rememberGraphicsLayer()
     val textClock = remember { Animatable(0f) }
+    var shimmerOn by remember { mutableStateOf(true) }
     LaunchedEffect(onCaptureReady) {
         onCaptureReady?.invoke {
-            // Shared images stay static: finish the text entrance and let a frame draw before capturing.
+            // Shared images stay static: finish the text entrance, hide the shimmer, let a frame draw.
             textClock.snapTo(TEXT_ANIM_DONE)
+            shimmerOn = false
             androidx.compose.runtime.withFrameNanos { }
-            graphicsLayer.toImageBitmap().asAndroidBitmap()
+            androidx.compose.runtime.withFrameNanos { }
+            try {
+                graphicsLayer.toImageBitmap().asAndroidBitmap()
+            } finally {
+                shimmerOn = true
+            }
         }
     }
 
@@ -142,6 +153,20 @@ fun Card(
                     opacity = global.maxPatternOpacity,
                     tileWidthPx = patternTileWidthPx,
                     tileHeightPx = patternTileHeightPx,
+                )
+                CardShimmer(
+                    spec = Styles.file.shimmer,
+                    cluster = style.cluster,
+                    feeling = feeling,
+                    entranceMs = entranceTotalMs(
+                        Styles.file.textAnimations,
+                        style.entranceMotif,
+                        feeling,
+                        displayText.ifBlank { "What's on your mind?" },
+                    ),
+                    replayKey = Triple(feeling, emoji, lang),
+                    enabled = shimmerOn && lottieProgress == null,
+                    modifier = Modifier.matchParentSize(),
                 )
                 Box(
                     modifier = Modifier
