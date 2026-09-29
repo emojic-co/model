@@ -1,9 +1,8 @@
-Create a (cross web/android) text animation for each style.
-First implement for the web and update the page to show all text animations:
-http://localhost:5173/style-preview.html
-also update this page to use the animated emojis when possible.
-Text animation should generally be char based staggered, but use your own judgment for the best effect matches the target style. 
+Now, for each style also add a Shimmer Effect.
+Same flow as the text animation:
+1. first implement the web and update the styles preview page.
+2. when I confirm also implement on Android.
 
-Yes, one important note before implementing:
-There should be a ground truth file that defines the animations so the web preview and android app are always in sync.
-Note: do not implement the android yet until I approve the animations.
+Notes:
+1. As with the text animation there should be a single file for the shimmer effect definitions so web and android are always in sync.
+2. Use different effects for different style clusters.

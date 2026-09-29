@@ -1,6 +1,7 @@
 package ing.emojify.model
 
 import com.charleskorn.kaml.Yaml
+import com.charleskorn.kaml.YamlConfiguration
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -54,4 +55,7 @@ data class StyleFile(
     val styles: Map<String, StyleEntry>,
 )
 
-fun parseStyleFile(yaml: String): StyleFile = Yaml.default.decodeFromString(StyleFile.serializer(), yaml)
+// Lenient so a style.yml with sections this build doesn't know yet (e.g. `shimmer`) still loads.
+private val styleYaml = Yaml(configuration = YamlConfiguration(strictMode = false))
+
+fun parseStyleFile(yaml: String): StyleFile = styleYaml.decodeFromString(StyleFile.serializer(), yaml)

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatedEmoji } from './AnimatedEmoji'
+import { CardShimmer } from './CardShimmer'
 import { CharText } from './CharText'
 import { useFitText } from '../hooks/useFitText'
 import { resolveFeeling } from '../feelings'
@@ -73,6 +74,13 @@ export function Card({ text, emoji, feeling, lang, colors, loading, onCopy, onSh
       data-phase={phase}
       style={style}
     >
+      <CardShimmer
+        cluster={r?.cluster}
+        feeling={shown.feeling}
+        motif={r?.entrance}
+        text={displayText}
+        replayKey={shown}
+      />
       <AnimatedEmoji emoji={shown.emoji} />
       <div className="card-text-box" ref={textRef}>
         <CharText

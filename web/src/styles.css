@@ -987,3 +987,23 @@ h1 .tld {
   color: var(--muted);
   font-size: 0.9em;
 }
+
+@property --shimmer-c {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+.card-shimmer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.card > .card-text-box,
+.card > .card-emoji {
+  position: relative;
+  z-index: 1;
+}

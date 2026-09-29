@@ -53,6 +53,13 @@ export function scheduleFor(anim, motif, feeling, n) {
   }
 }
 
+// Time until every unit has finished its entrance (0 when there is nothing to animate).
+export function entranceTotalMs(anim, motif, feeling, n) {
+  if (n === 0 || prefersReducedMotion()) return 0
+  const { motif: m, delays } = scheduleFor(anim, motif, feeling, n)
+  return Math.max(...delays) + m.durationMs
+}
+
 const DEFAULTS = { opacity: 1, x: 0, y: 0, scale: 1, scaleY: 1, rotate: 0 }
 
 // Web Animations keyframes for unit i (carry-forward of missing fields, mirrored when alternate).
