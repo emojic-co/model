@@ -1,5 +1,6 @@
 package ing.emojify.ui
 
+import android.content.Context
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -42,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
+import ing.emojify.model.EmojiCountPrefs
 import ing.emojify.model.EmojiScore
 import ing.emojify.model.Meta
 import ing.emojify.ui.components.SWATCH_MAX_SIZE
@@ -64,7 +66,6 @@ import kotlinx.coroutines.launch
 
 private const val MIN_CHARS = 3
 private const val DEBOUNCE_MS = 250L
-private const val EMOJI_SLOTS = 10
 private const val FEELING_COUNT = 5
 
 private val DEFAULT_PALETTE = Palette(bg1 = "#a8e2f4", bg2 = "#78c9f4", textColor = "#282e36")
@@ -89,6 +90,11 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
     val scope = rememberCoroutineScope()
     val emojiListState = rememberLazyListState()
     val feelingBarState = rememberLazyListState()
+    val maxEmojis = remember {
+        context.getSharedPreferences(EmojiCountPrefs.FILE, Context.MODE_PRIVATE)
+            .getInt(EmojiCountPrefs.KEY_MAX_EMOJIS, EmojiCountPrefs.DEFAULT_MAX_EMOJIS)
+            .coerceIn(EmojiCountPrefs.MIN_MAX_EMOJIS, EmojiCountPrefs.MAX_MAX_EMOJIS)
+    }
 
     LaunchedEffect(text) {
         emojiListState.scrollToItem(0)
@@ -109,7 +115,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
         delay(DEBOUNCE_MS)
         lang = langForText(text)
         val result = predictor.predict(text, meta)
-        emojiTop = pickEmojiList(result.emojiLogits, meta.emojis, EMOJI_SLOTS)
+        emojiTop = pickEmojiList(result.emojiLogits, meta.emojis, maxEmojis)
         val feelingIdx = ing.emojify.model.argmax(result.styleLogits)
         predictedFeeling = meta.styles[feelingIdx]
         feelingScores = result.styleLogits

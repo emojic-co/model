@@ -16,6 +16,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,8 +29,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import ing.emojify.model.EmojiCountPrefs
 import ing.emojify.model.ModelUpdatePrefs
 import ing.emojify.model.ModelUpdater
+import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -47,12 +50,19 @@ private fun statusText(updater: ModelUpdater): String {
 fun SettingsScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences(ModelUpdatePrefs.FILE, Context.MODE_PRIVATE) }
+    val emojiCountPrefs = remember { context.getSharedPreferences(EmojiCountPrefs.FILE, Context.MODE_PRIVATE) }
     val updater = remember { ModelUpdater(context) }
     var autoUpdate by remember {
         mutableStateOf(prefs.getBoolean(ModelUpdatePrefs.KEY_AUTO_UPDATE, ModelUpdatePrefs.DEFAULT_AUTO_UPDATE))
     }
     var wifiOnly by remember {
         mutableStateOf(prefs.getBoolean(ModelUpdatePrefs.KEY_WIFI_ONLY, ModelUpdatePrefs.DEFAULT_WIFI_ONLY))
+    }
+    var maxEmojis by remember {
+        mutableStateOf(
+            emojiCountPrefs.getInt(EmojiCountPrefs.KEY_MAX_EMOJIS, EmojiCountPrefs.DEFAULT_MAX_EMOJIS)
+                .coerceIn(EmojiCountPrefs.MIN_MAX_EMOJIS, EmojiCountPrefs.MAX_MAX_EMOJIS),
+        )
     }
     var status by remember { mutableStateOf(statusText(updater)) }
     var checking by remember { mutableStateOf(false) }
@@ -97,6 +107,17 @@ fun SettingsScreen(onBack: () -> Unit) {
                     },
                 )
             }
+            Spacer(modifier = Modifier.height(24.dp))
+            Text("Max emojis shown: $maxEmojis")
+            Slider(
+                value = maxEmojis.toFloat(),
+                onValueChange = { maxEmojis = it.roundToInt() },
+                onValueChangeFinished = {
+                    emojiCountPrefs.edit().putInt(EmojiCountPrefs.KEY_MAX_EMOJIS, maxEmojis).apply()
+                },
+                valueRange = EmojiCountPrefs.MIN_MAX_EMOJIS.toFloat()..EmojiCountPrefs.MAX_MAX_EMOJIS.toFloat(),
+                steps = EmojiCountPrefs.MAX_MAX_EMOJIS - EmojiCountPrefs.MIN_MAX_EMOJIS - 1,
+            )
             Spacer(modifier = Modifier.height(12.dp))
             Text(status)
             Spacer(modifier = Modifier.height(12.dp))

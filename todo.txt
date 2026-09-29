@@ -1,1 +1,1 @@
-summarize very shortly what happens during the text encoder train step.
+On the android app add a setting for the max numbers of emojis to show, default is 20, min is 10, max 100.
