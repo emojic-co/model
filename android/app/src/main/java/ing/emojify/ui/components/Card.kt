@@ -8,19 +8,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -66,6 +66,8 @@ private val fontProvider = GoogleFont.Provider(
     certificates = R.array.com_google_android_gms_fonts_certs,
 )
 
+private val watermarkFont = FontFamily(Font(googleFont = GoogleFont("Caveat"), fontProvider = fontProvider))
+
 @Composable
 fun Card(
     text: String,
@@ -73,14 +75,15 @@ fun Card(
     feeling: String?,
     lang: String?,
     colors: Palette,
-    onShare: () -> Unit,
+    onShare: (ShareFormat) -> Unit,
     onEmojiCycle: (Int) -> Unit,
     onFeelingCycle: (Int) -> Unit,
     onCaptureReady: ((suspend () -> android.graphics.Bitmap) -> Unit)? = null,
     // Frame-stepped GIF export: when set, emoji, text entrance and shimmer are pinned to this pose.
     export: ExportPose? = null,
-    exportState: ExportState = ExportState.Disabled,
-    onExportGif: () -> Unit = {},
+    // Null while idle; the format being exported while busy (all share buttons are disabled meanwhile).
+    busyFormat: ShareFormat? = null,
+    shareEnabled: Boolean = true,
 ) {
     val bg1 = Color(android.graphics.Color.parseColor(colors.bg1))
     val bg2 = Color(android.graphics.Color.parseColor(colors.bg2))
@@ -92,6 +95,7 @@ fun Card(
     val graphicsLayer = rememberGraphicsLayer()
     val textClock = remember { Animatable(0f) }
     var shimmerOn by remember { mutableStateOf(true) }
+    var staticEmoji by remember { mutableStateOf(false) }
     val exporting by rememberUpdatedState(export != null)
     LaunchedEffect(onCaptureReady) {
         onCaptureReady?.invoke {
@@ -99,15 +103,17 @@ fun Card(
                 // GIF frame: the caller already posed the emoji, text and shimmer for this frame.
                 graphicsLayer.toImageBitmap().asAndroidBitmap()
             } else {
-                // Shared images stay static: finish the text entrance, hide the shimmer, let a frame draw.
+                // Shared images stay static: finish the text entrance, hide the shimmer, show the plain emoji glyph, let a frame draw.
                 textClock.snapTo(TEXT_ANIM_DONE)
                 shimmerOn = false
+                staticEmoji = true
                 androidx.compose.runtime.withFrameNanos { }
                 androidx.compose.runtime.withFrameNanos { }
                 try {
                     graphicsLayer.toImageBitmap().asAndroidBitmap()
                 } finally {
                     shimmerOn = true
+                    staticEmoji = false
                 }
             }
         }
@@ -175,20 +181,32 @@ fun Card(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(cardPadding),
+                        .padding(start = cardPadding, top = cardPadding, end = cardPadding, bottom = maxOf(cardPadding, SHARE_BAR_CLEARANCE)),
                 ) {
-                    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                    ) {
                         AnimatedEmoji(
                             emoji = emoji,
                             fontSize = emojiSizeSp.sp,
                             color = textColor,
                             progress = export?.lottie,
+                            static = staticEmoji,
+                            modifier = Modifier.offset(y = cardWidthDp * global.emojiDyRatio),
                         )
+                        Spacer(Modifier.height(cardWidthDp * global.gapRatio))
                         Box(
-                            modifier = Modifier.weight(1f).fillMaxWidth(),
+                            modifier = Modifier.weight(1f, fill = false).fillMaxWidth(),
                             contentAlignment = Alignment.Center,
                         ) {
-                            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                            BoxWithConstraints(
+                                modifier = Modifier.fillMaxWidth().padding(
+                                    horizontal = cardWidthDp * global.textBoxPadXRatio,
+                                    vertical = cardWidthDp * global.textBoxPadYRatio,
+                                ),
+                            ) {
                                 val density = LocalDensity.current
                                 val maxWidthPx = with(density) { maxWidth.toPx() }.toInt()
                                 val maxHeightPx = with(density) { maxHeight.toPx() }.toInt()
@@ -202,6 +220,7 @@ fun Card(
                                     maxHeightPx = maxHeightPx,
                                     minSp = textMinSp,
                                     maxSp = textMaxSp,
+                                    lineHeightMultiplier = global.textLineHeight,
                                 )
                                 AnimatedCharText(
                                     text = displayText,
@@ -210,7 +229,7 @@ fun Card(
                                         textAlign = TextAlign.Center,
                                         fontFamily = fontFamily,
                                         fontSize = fitSp.sp,
-                                        lineHeight = (fitSp * 1.2f).sp,
+                                        lineHeight = (fitSp * global.textLineHeight).sp,
                                         fontWeight = FontWeight(style.fontWeight),
                                         fontStyle = if (style.italic) FontStyle.Italic else FontStyle.Normal,
                                         letterSpacing = style.letterSpacingEm?.let { TextUnit(it, TextUnitType.Em) } ?: TextUnit.Unspecified,
@@ -228,59 +247,68 @@ fun Card(
                         }
                     }
                 }
-            }
-            Column(
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.align(Alignment.TopEnd).padding(14.dp),
-            ) {
-                CardActionButton(Icons.Filled.Share, "Share", onClick = onShare)
-                CardActionButton(
-                    Icons.Filled.PlayArrow,
-                    "Share as animated GIF",
-                    enabled = exportState == ExportState.Ready,
-                    busy = exportState == ExportState.Busy,
-                    onClick = onExportGif,
+                // Watermark lives inside the captured layer so jpg/gif/mp4 all carry it.
+                Text(
+                    text = "emojify.ing",
+                    color = (if (bg2.luminance() > 0.5f) Color.Black else Color.White).copy(alpha = global.watermarkOpacity),
+                    fontFamily = watermarkFont,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = (cardWidthDp.value * global.watermarkPxRatio).sp,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = cardWidthDp * global.watermarkMarginRatio, bottom = cardWidthDp * global.watermarkMarginRatio),
                 )
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.align(Alignment.BottomCenter).padding(14.dp),
+            ) {
+                for (format in ShareFormat.entries) {
+                    ShareButton(
+                        label = format.label,
+                        enabled = shareEnabled && busyFormat == null,
+                        busy = busyFormat == format,
+                        onClick = { onShare(format) },
+                    )
+                }
             }
         }
     }
 }
 
+/** Space reserved at the card bottom so text never sits under the share buttons (14dp inset + 36dp button + breathing room). */
+private val SHARE_BAR_CLEARANCE = 58.dp
+
 /** One GIF frame: emoji loop progress, ms into the text entrance, and shimmer pass progress (null before it starts). */
 data class ExportPose(val lottie: Float, val textMs: Float, val shimmerPass: Float?)
 
-enum class ExportState { Disabled, Ready, Busy }
+enum class ShareFormat(val label: String) { Jpg("jpg"), Gif("gif"), Mp4("mp4") }
 
 @Composable
-private fun CardActionButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    description: String,
+private fun ShareButton(
+    label: String,
     onClick: () -> Unit,
-    enabled: Boolean = true,
-    busy: Boolean = false,
+    enabled: Boolean,
+    busy: Boolean,
 ) {
+    val shape = RoundedCornerShape(12.dp)
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .shadow(elevation = 3.dp, shape = CircleShape, clip = false)
-            .clip(CircleShape)
+            .shadow(elevation = 3.dp, shape = shape, clip = false)
+            .clip(shape)
             .background(Color.White.copy(alpha = 0.85f))
             .clickable(enabled = enabled, onClick = onClick)
-            .size(40.dp),
+            .size(width = 56.dp, height = 36.dp),
     ) {
         if (busy) {
             CircularProgressIndicator(
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(18.dp),
                 strokeWidth = 2.dp,
                 color = Color.Black.copy(alpha = 0.85f),
             )
         } else {
-            Icon(
-                icon,
-                contentDescription = description,
-                tint = Color.Black.copy(alpha = if (enabled) 0.85f else 0.3f),
-                modifier = Modifier.size(20.dp),
-            )
+            Text(label, color = Color.Black.copy(alpha = if (enabled) 0.85f else 0.3f), fontWeight = FontWeight.SemiBold)
         }
     }
 }

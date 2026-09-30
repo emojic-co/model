@@ -13,18 +13,28 @@ const EMOJI_STACK = '"Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", 
 // which bakes these into style.yml for the Android app to mirror.
 export const RATIOS = {
   padRatio: 0.07,
-  gapRatio: 0.03,
+  gapRatio: 0.06,
   emojiRatio: 0.32,
   emojiDyRatio: 0.065,
   textBoxPadXRatio: 0.03,
   textBoxPadYRatio: 0.05,
   textLineHeight: 1.5,
   textMinRatio: 0.05,
-  textMaxRatio: 0.13,
+  textMaxRatio: 0.21,
   maxLines: 10,
   watermarkPxRatio: 0.044,
   watermarkOpacity: 0.28,
   watermarkMarginRatio: 0.055,
+}
+
+// CSS custom properties for the live DOM card, derived from the same ratios (see .card in styles.css).
+export const CARD_CSS_VARS = {
+  '--card-pad': `${RATIOS.padRatio * 100}%`,
+  '--card-gap': `${RATIOS.gapRatio * 100}%`,
+  '--card-emoji': `${RATIOS.emojiRatio * 100}cqw`,
+  '--card-emoji-dy': `${RATIOS.emojiDyRatio * 100}cqw`,
+  '--card-text-box-pad': `${RATIOS.textBoxPadYRatio * 100}% ${RATIOS.textBoxPadXRatio * 100}%`,
+  '--card-text-box-max-h': `${(1 - 2 * RATIOS.padRatio - RATIOS.emojiRatio - RATIOS.gapRatio) * 100}cqw`,
 }
 
 const WATERMARK_PX = Math.round(RATIOS.watermarkPxRatio * S)
@@ -110,16 +120,9 @@ async function render({ text, emoji, feeling, lang, colors }) {
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
 
-  const emojiBoxBottom = PAD + EMOJI_PX
-  const emojiCenterY = PAD + EMOJI_PX / 2 + EMOJI_DY
-  const textBoxTop = emojiBoxBottom + GAP
-  const textBoxBottom = S - PAD
-  const textCenterY = (textBoxTop + textBoxBottom) / 2
+  const textBoxTop = PAD + EMOJI_PX + GAP
   const maxWidth = S - 2 * PAD - 2 * TEXT_BOX_PAD_X
-  const maxHeight = textBoxBottom - textBoxTop - 2 * TEXT_BOX_PAD_Y
-
-  ctx.font = `${EMOJI_PX}px ${EMOJI_STACK}`
-  ctx.fillText(emoji, S / 2, emojiCenterY)
+  const maxHeight = S - PAD - textBoxTop - 2 * TEXT_BOX_PAD_Y
 
   const widthAt = (str, px) => {
     ctx.font = `${fitalic}${fw} ${px}px ${stack}`
@@ -138,6 +141,14 @@ async function render({ text, emoji, feeling, lang, colors }) {
 
   ctx.font = `${fitalic}${fw} ${fpx}px ${stack}`
   const lines = wrapLines((str) => ctx.measureText(str).width, headline, maxWidth, MAX_LINES)
+  // Emoji + text form one group, centered vertically on the card.
+  const blockH = lines.length * fpx * TEXT_LINE_HEIGHT
+  const top = (S - (EMOJI_PX + GAP + 2 * TEXT_BOX_PAD_Y + blockH)) / 2
+  const emojiCenterY = top + EMOJI_PX / 2 + EMOJI_DY
+  const textCenterY = top + EMOJI_PX + GAP + TEXT_BOX_PAD_Y + blockH / 2
+  ctx.font = `${EMOJI_PX}px ${EMOJI_STACK}`
+  ctx.fillText(emoji, S / 2, emojiCenterY)
+  ctx.font = `${fitalic}${fw} ${fpx}px ${stack}`
   let ty = textCenterY - ((lines.length - 1) * fpx * TEXT_LINE_HEIGHT) / 2
   ctx.globalAlpha = st.opacity ?? 1
   if ('direction' in ctx) ctx.direction = lang === 'he' ? 'rtl' : 'ltr'

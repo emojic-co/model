@@ -38,7 +38,7 @@ import ing.emojify.cardGifFile
 import ing.emojify.shareCardGif
 import ing.emojify.model.NotoLottie
 import ing.emojify.model.GifEncoder
-import ing.emojify.ui.components.ExportState
+import ing.emojify.ui.components.ShareFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
@@ -51,6 +51,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
+import ing.emojify.model.ColorCountPrefs
 import ing.emojify.model.DebouncePrefs
 import ing.emojify.model.EmojiCountPrefs
 import ing.emojify.model.EmojiScore
@@ -64,7 +65,10 @@ import ing.emojify.model.fixContrast
 import ing.emojify.model.langForText
 import ing.emojify.model.pickEmojiList
 import ing.emojify.model.topFeelings
-import ing.emojify.shareCard
+import ing.emojify.shareCardJpg
+import ing.emojify.shareCardMp4
+import ing.emojify.cardMp4File
+import ing.emojify.model.Mp4Encoder
 import ing.emojify.ui.components.Card
 import ing.emojify.ui.components.ColorBar
 import ing.emojify.ui.components.EmojiList
@@ -81,6 +85,18 @@ private val DEFAULT_PALETTE = Palette(bg1 = "#a8e2f4", bg2 = "#78c9f4", textColo
 private val BACKGROUND_INK = Color(0xFF3A3A3A)
 private val BACKGROUND_GRADIENT_COLORS = listOf(Color(0xFFFFE8D6), Color(0xFFFFD3E0), Color(0xFFAEE3F7))
 
+// The model emits a fixed handful of palettes per run and samples fresh noise each time,
+// so more runs are appended until there are `count` of them.
+private suspend fun collectPalettes(first: List<Palette>, count: Int, more: suspend () -> List<Palette>): List<Palette> {
+    val all = first.toMutableList()
+    while (all.isNotEmpty() && all.size < count) {
+        val extra = more()
+        if (extra.isEmpty()) break
+        all += extra
+    }
+    return all.take(count)
+}
+
 private data class Override(val emoji: String? = null, val feeling: String? = null)
 
 @Composable
@@ -95,7 +111,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
     var lang by remember { mutableStateOf("en") }
     var capture by remember { mutableStateOf<(suspend () -> android.graphics.Bitmap)?>(null) }
     var exportPose by remember { mutableStateOf<ing.emojify.ui.components.ExportPose?>(null) }
-    var exporting by remember { mutableStateOf(false) }
+    var exporting by remember { mutableStateOf<ShareFormat?>(null) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val emojiListState = rememberLazyListState()
@@ -104,6 +120,12 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
         context.getSharedPreferences(EmojiCountPrefs.FILE, Context.MODE_PRIVATE)
             .getInt(EmojiCountPrefs.KEY_MAX_EMOJIS, EmojiCountPrefs.DEFAULT_MAX_EMOJIS)
             .coerceIn(EmojiCountPrefs.MIN_MAX_EMOJIS, EmojiCountPrefs.MAX_MAX_EMOJIS)
+    }
+
+    val colorCount = remember {
+        context.getSharedPreferences(ColorCountPrefs.FILE, Context.MODE_PRIVATE)
+            .getInt(ColorCountPrefs.KEY_COLOR_COUNT, ColorCountPrefs.DEFAULT_COLOR_COUNT)
+            .coerceIn(ColorCountPrefs.MIN_COLOR_COUNT, ColorCountPrefs.MAX_COLOR_COUNT)
     }
 
     // The card and the prediction both wait for this much idle time after the last keystroke.
@@ -147,7 +169,9 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
         val feelingIdx = ing.emojify.model.argmax(result.styleLogits)
         predictedFeeling = meta.styles[feelingIdx]
         feelingScores = result.styleLogits
-        palettes = result.palettes.ifEmpty { listOf(DEFAULT_PALETTE) }
+        palettes = collectPalettes(result.palettes, colorCount) {
+            withContext(Dispatchers.Default) { predictor.predict(text, meta).palettes }
+        }.ifEmpty { listOf(DEFAULT_PALETTE) }
         override = Override()
         colorOverride = 0
     }
@@ -189,41 +213,41 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                 feeling = shownFeeling,
                 lang = lang,
                 colors = colors,
-                onShare = { scope.launch { capture?.invoke()?.let { shareCard(context, it) } } },
-                onEmojiCycle = { dir -> override = override.copy(emoji = cycle(emojiTop.map { it.emoji }, shownEmoji, dir)) },
-                onFeelingCycle = { dir -> override = override.copy(feeling = cycle(feelingOptions, shownFeeling, dir)) },
-                onCaptureReady = { capture = it },
-                export = exportPose,
-                exportState = when {
-                    exporting -> ExportState.Busy
-                    shownEmoji != null -> ExportState.Ready
-                    else -> ExportState.Disabled
-                },
-                onExportGif = {
+                onShare = { format ->
                     val emoji = shownEmoji
                     val grab = capture
-                    if (emoji != null && grab != null && !exporting) {
-                        exporting = true
+                    if (emoji != null && grab != null && exporting == null) {
+                        exporting = format
                         scope.launch {
                             try {
-                                val cardStyle = ing.emojify.model.resolveFeeling(shownFeeling, lang)
-                                val entranceMs = ing.emojify.model.entranceTotalMs(
-                                    ing.emojify.model.Styles.file.textAnimations,
-                                    cardStyle.entranceMotif,
-                                    shownFeeling,
-                                    ing.emojify.model.cardDisplayText(cardText, cardStyle),
-                                ).toFloat()
-                                exportCardGif(context, emoji, grab, entranceMs) { p -> exportPose = p }
+                                if (format == ShareFormat.Jpg) {
+                                    shareCardJpg(context, grab(), exportSizePx(context))
+                                } else {
+                                    val cardStyle = ing.emojify.model.resolveFeeling(shownFeeling, lang)
+                                    val entranceMs = ing.emojify.model.entranceTotalMs(
+                                        ing.emojify.model.Styles.file.textAnimations,
+                                        cardStyle.entranceMotif,
+                                        shownFeeling,
+                                        ing.emojify.model.cardDisplayText(cardText, cardStyle),
+                                    ).toFloat()
+                                    exportCardAnimation(context, format, emoji, grab, entranceMs) { p -> exportPose = p }
+                                }
                             } catch (e: Exception) {
-                                android.util.Log.e("emojify", "gif export failed", e)
+                                android.util.Log.e("emojify", "${format.label} export failed", e)
                                 android.widget.Toast.makeText(context, "Export failed", android.widget.Toast.LENGTH_SHORT).show()
                             } finally {
                                 exportPose = null
-                                exporting = false
+                                exporting = null
                             }
                         }
                     }
                 },
+                onEmojiCycle = { dir -> override = override.copy(emoji = cycle(emojiTop.map { it.emoji }, shownEmoji, dir)) },
+                onFeelingCycle = { dir -> override = override.copy(feeling = cycle(feelingOptions, shownFeeling, dir)) },
+                onCaptureReady = { capture = it },
+                export = exportPose,
+                busyFormat = exporting,
+                shareEnabled = shownEmoji != null,
             )
             Spacer(modifier = Modifier.height(16.dp))
             val clearButton: @Composable () -> Unit = {
@@ -296,6 +320,10 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
     }
 }
 
+private fun exportSizePx(context: Context): Int =
+    context.getSharedPreferences(ing.emojify.model.ExportSizePrefs.FILE, Context.MODE_PRIVATE)
+        .getInt(ing.emojify.model.ExportSizePrefs.KEY_SIZE_PX, ing.emojify.model.ExportSizePrefs.DEFAULT_SIZE_PX)
+
 private const val EXPORT_FPS = 20
 private const val GIF_SIZE_PX = 480
 
@@ -314,9 +342,10 @@ internal fun emojiLoops(durationMs: Float): Int =
 // Frame 0 is the finished card (text fully shown, no shimmer). Then the text entrance plays once,
 // the emoji loops emojiLoops() times, and the shimmer sweeps once over the first loop after the
 // entrance. Each frame is posed, waits for two composed frames, and the card layer is captured;
-// the frames are encoded into a looping GIF and the share sheet opens.
-private suspend fun exportCardGif(
+// the frames are encoded into a looping GIF or MP4 and the share sheet opens.
+private suspend fun exportCardAnimation(
     context: Context,
+    format: ShareFormat,
     emoji: String,
     capture: suspend () -> android.graphics.Bitmap,
     entranceMs: Float,
@@ -333,16 +362,21 @@ private suspend fun exportCardGif(
     }
     val totalMs = entranceMs + durationMs * emojiLoops(durationMs)
     val frames = kotlin.math.ceil(totalMs * EXPORT_FPS / 1000f).toInt().coerceAtLeast(1)
-    val file = cardGifFile(context)
     val frameDelayCs = 100 / EXPORT_FPS
-    val encoder = GifEncoder(file, GIF_SIZE_PX, delayCs = frameDelayCs)
+    val gifFile = cardGifFile(context)
+    val mp4File = cardMp4File(context)
+    val gif = if (format == ShareFormat.Gif) GifEncoder(gifFile, GIF_SIZE_PX, delayCs = frameDelayCs) else null
+    val mp4 = if (format == ShareFormat.Mp4) Mp4Encoder(mp4File, exportSizePx(context), EXPORT_FPS) else null
 
     suspend fun grab(pose: ing.emojify.ui.components.ExportPose, delayCs: Int) {
         setPose(pose)
         withFrameNanos { }
         withFrameNanos { }
         val bitmap = capture()
-        withContext(Dispatchers.Default) { encoder.addFrame(bitmap, delayCs) }
+        withContext(Dispatchers.Default) {
+            gif?.addFrame(bitmap, delayCs)
+            mp4?.addFrame(bitmap, delayCs * 10)
+        }
     }
 
     grab(
@@ -363,6 +397,9 @@ private suspend fun exportCardGif(
             frameDelayCs,
         )
     }
-    withContext(Dispatchers.Default) { encoder.finish() }
-    shareCardGif(context, file)
+    withContext(Dispatchers.Default) {
+        gif?.finish()
+        mp4?.finish()
+    }
+    if (format == ShareFormat.Gif) shareCardGif(context, gifFile) else shareCardMp4(context, mp4File)
 }

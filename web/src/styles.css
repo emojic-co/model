@@ -243,12 +243,12 @@ h1 .tld {
   max-width: var(--card-w);
   aspect-ratio: 1;
   border-radius: 1.25em;
-  padding: 7%;
+  padding: var(--card-pad, 7%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3%;
+  gap: var(--card-gap, 6%);
   text-align: center;
   overflow: hidden;
   background: linear-gradient(135deg, #dedede, #bebebe);
@@ -551,10 +551,10 @@ h1 .tld {
 
 .card-emoji {
   font-family: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
-  font-size: 32cqw;
+  font-size: var(--card-emoji, 32cqw);
   line-height: 1;
   flex: none;
-  transform: translateY(6.5cqw);
+  transform: translateY(var(--card-emoji-dy, 6.5cqw));
   transition: opacity 150ms ease;
   position: relative;
 }
@@ -595,10 +595,11 @@ h1 .tld {
 }
 
 .card-text-box {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 0;
+  max-height: var(--card-text-box-max-h, 48cqw);
   width: 100%;
-  padding: 5% 3%;
+  padding: var(--card-text-box-pad, 5% 3%);
   display: flex;
   align-items: center;
   justify-content: center;

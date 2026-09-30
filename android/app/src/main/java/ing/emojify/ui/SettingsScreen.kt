@@ -1,6 +1,10 @@
 package ing.emojify.ui
 
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -29,6 +34,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import ing.emojify.model.ColorCountPrefs
+import ing.emojify.model.ExportSizePrefs
 import ing.emojify.model.DebouncePrefs
 import ing.emojify.model.EmojiCountPrefs
 import ing.emojify.model.ModelUpdatePrefs
@@ -44,6 +51,20 @@ private fun statusText(updater: ModelUpdater): String {
         updater.pendingVersion() != null -> "Update available, waiting for Wi-Fi"
         installed != null -> "Model updated ${installed.substringBefore("T")}"
         else -> "Using bundled model"
+    }
+}
+
+private fun openStoreListing(context: Context) {
+    val id = context.packageName
+    val market = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$id"))
+    val web = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$id"))
+    try {
+        context.startActivity(market)
+    } catch (_: ActivityNotFoundException) {
+        try {
+            context.startActivity(web)
+        } catch (_: ActivityNotFoundException) {
+        }
     }
 }
 
@@ -64,6 +85,17 @@ fun SettingsScreen(onBack: () -> Unit) {
             emojiCountPrefs.getInt(EmojiCountPrefs.KEY_MAX_EMOJIS, EmojiCountPrefs.DEFAULT_MAX_EMOJIS)
                 .coerceIn(EmojiCountPrefs.MIN_MAX_EMOJIS, EmojiCountPrefs.MAX_MAX_EMOJIS),
         )
+    }
+    val colorCountPrefs = remember { context.getSharedPreferences(ColorCountPrefs.FILE, Context.MODE_PRIVATE) }
+    var colorCount by remember {
+        mutableStateOf(
+            colorCountPrefs.getInt(ColorCountPrefs.KEY_COLOR_COUNT, ColorCountPrefs.DEFAULT_COLOR_COUNT)
+                .coerceIn(ColorCountPrefs.MIN_COLOR_COUNT, ColorCountPrefs.MAX_COLOR_COUNT),
+        )
+    }
+    val exportSizePrefs = remember { context.getSharedPreferences(ExportSizePrefs.FILE, Context.MODE_PRIVATE) }
+    var exportSize by remember {
+        mutableStateOf(exportSizePrefs.getInt(ExportSizePrefs.KEY_SIZE_PX, ExportSizePrefs.DEFAULT_SIZE_PX))
     }
     val debouncePrefs = remember { context.getSharedPreferences(DebouncePrefs.FILE, Context.MODE_PRIVATE) }
     var debounceMs by remember {
@@ -127,6 +159,29 @@ fun SettingsScreen(onBack: () -> Unit) {
                 steps = EmojiCountPrefs.MAX_MAX_EMOJIS - EmojiCountPrefs.MIN_MAX_EMOJIS - 1,
             )
             Spacer(modifier = Modifier.height(24.dp))
+            Text("Number of colors to show: $colorCount")
+            Slider(
+                value = colorCount.toFloat(),
+                onValueChange = { colorCount = it.roundToInt() },
+                onValueChangeFinished = {
+                    colorCountPrefs.edit().putInt(ColorCountPrefs.KEY_COLOR_COUNT, colorCount).apply()
+                },
+                valueRange = ColorCountPrefs.MIN_COLOR_COUNT.toFloat()..ColorCountPrefs.MAX_COLOR_COUNT.toFloat(),
+                steps = ColorCountPrefs.MAX_COLOR_COUNT - ColorCountPrefs.MIN_COLOR_COUNT - 1,
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Text("jpg / mp4 export resolution")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                for (option in ExportSizePrefs.OPTIONS) {
+                    val pick = {
+                        exportSize = option
+                        exportSizePrefs.edit().putInt(ExportSizePrefs.KEY_SIZE_PX, option).apply()
+                    }
+                    if (option == exportSize) Button(onClick = pick) { Text("${option}x$option") }
+                    else OutlinedButton(onClick = pick) { Text("${option}x$option") }
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
             Text("Typing delay before card updates: $debounceMs ms")
             Slider(
                 value = debounceMs.toFloat(),
@@ -154,6 +209,10 @@ fun SettingsScreen(onBack: () -> Unit) {
                 },
             ) {
                 Text(if (checking) "Checking…" else "Check now")
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+            OutlinedButton(onClick = { openStoreListing(context) }) {
+                Text("Rate this app")
             }
         }
     }

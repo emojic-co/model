@@ -5,9 +5,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,11 +21,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ing.emojify.model.Palette
 
+private val SWATCH_SIZE = 48.dp
+
 @Composable
 fun ColorBar(palettes: List<Palette>, active: Int, onPick: (Int) -> Unit) {
     if (palettes.size <= 1) return
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        palettes.forEachIndexed { index, palette ->
+    LazyRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        itemsIndexed(palettes) { index, palette ->
             val isActive = index == active
             val bg1 = Color(android.graphics.Color.parseColor(palette.bg1))
             val bg2 = Color(android.graphics.Color.parseColor(palette.bg2))
@@ -32,8 +35,7 @@ fun ColorBar(palettes: List<Palette>, active: Int, onPick: (Int) -> Unit) {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .weight(1f)
-                    .aspectRatio(1f)
+                    .size(SWATCH_SIZE)
                     .clickable { onPick(index) }
                     .background(Brush.linearGradient(listOf(bg1, bg2)), RoundedCornerShape(12.dp))
                     .border(

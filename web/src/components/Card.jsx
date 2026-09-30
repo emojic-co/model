@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { CARD_CSS_VARS, RATIOS } from '../hooks/useCardImage'
 import { AnimatedEmoji } from './AnimatedEmoji'
 import { CardShimmer } from './CardShimmer'
 import { CharText } from './CharText'
@@ -45,7 +46,7 @@ export function Card({ text, emoji, feeling, lang, colors, loading, onCopy, onSh
 
   const placeholder = !text.trim()
   const displayText = placeholder ? "What's on your mind?" : text
-  const textRef = useFitText(displayText, { min: 5, max: 13, key: shown.feeling })
+  const textRef = useFitText(displayText, { min: RATIOS.textMinRatio * 100, max: RATIOS.textMaxRatio * 100, key: shown.feeling })
   const r = shown.feeling ? resolveFeeling(shown.feeling, shown.lang) : null
   const style =
     !loading && colors && r
@@ -72,7 +73,7 @@ export function Card({ text, emoji, feeling, lang, colors, loading, onCopy, onSh
       data-cluster={r?.cluster || undefined}
       data-emoji={r?.emoji || undefined}
       data-phase={phase}
-      style={style}
+      style={{ ...CARD_CSS_VARS, ...style }}
     >
       <CardShimmer
         cluster={r?.cluster}

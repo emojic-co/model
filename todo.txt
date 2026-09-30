@@ -1,4 +1,10 @@
-When no emoji lottie animation available fallback to a simple subtle spring scale animation for both web app and Android app.
-On Android also use this animation with the exported GIF.
-Note: the GIF export button should not be disabled now.
-push to my phone when ready
+TODO:
+Done:
+- Make sure all exported assets (jpg, gif, mp4) have the emojify.ing watermark (both android and web).
+- Android app: larger card text (max size x1.6), emoji + text vertically centered with more spacing; tried on 'מזל טוב' and pushed to phone.
+- Android app: add jpg/mp4 export resolution setting (512x512 default, 768x768, 1024x1024).
+- Android app: move the share buttons to the bottom of the image and update them to jpg (512x512) / gif / mp4 (loop, 512x512) rounded rectangles.
+- Android app: remove the color refresh button, instead, add to the settings something like "number of colors to show" min is 5 max 20 default is 10.
+- Android app: when exporting a static image (share on Android), always use the static emoji image (do not take a snapshot of the animation).
+- Android app: fix "back" from settings hiding the app instead of returning to the previous screen.
+- Android app: allow refreshing the colors.

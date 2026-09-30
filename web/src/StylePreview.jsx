@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { parse } from 'yaml'
+import { CARD_CSS_VARS } from './hooks/useCardImage'
 import { useFitText } from './hooks/useFitText'
 import { AnimatedEmoji } from './components/AnimatedEmoji'
 import { CardShimmer } from './components/CardShimmer'
@@ -38,6 +39,7 @@ function PreviewCard({ name, lang, entry, sample, globalSettings, patterns, anim
           background: `linear-gradient(135deg, ${toCssOklab(colors.bg1)}, ${toCssOklab(colors.bg2)})`,
           color: toCssOklab(colors.text_color),
           fontFamily: `"${entry.font}", sans-serif`,
+          ...CARD_CSS_VARS,
           '--emoji-dur': `${entry.emojiMs}ms`,
           cursor: 'pointer',
         }}

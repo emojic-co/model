@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.AssetManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -77,6 +78,7 @@ class MainActivity : ComponentActivity() {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     var showSettings by remember { mutableStateOf(false) }
+                    BackHandler(enabled = showSettings) { showSettings = false }
                     if (showSettings) {
                         SettingsScreen(onBack = { showSettings = false })
                     } else {

@@ -2,6 +2,8 @@ package ing.emojify.ui.components
 
 import android.provider.Settings
 import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.animation.core.Animatable
@@ -40,7 +42,7 @@ fun springScale(tMs: Float): Float {
 }
 
 // The static glyph always takes up space (keeps layout, and is the fallback); once the Lottie
-// clone has loaded it is drawn over the glyph, which turns transparent. Preview only: the shared card image is captured as a static frame.
+// clone has loaded it is drawn over the glyph, which turns transparent. Preview only: the shared card image is captured with [static] set.
 @Composable
 fun AnimatedEmoji(
     emoji: String,
@@ -48,6 +50,8 @@ fun AnimatedEmoji(
     color: Color,
     modifier: Modifier = Modifier,
     progress: Float? = null,
+    // Draw only the plain glyph (no Lottie frame, no spring scale); used when capturing the shared still image.
+    static: Boolean = false,
 ) {
     val context = LocalContext.current
     val animate = remember {
@@ -57,7 +61,7 @@ fun AnimatedEmoji(
     val composition by rememberLottieComposition(
         if (path != null) LottieCompositionSpec.Asset(path) else LottieCompositionSpec.JsonString("{}"),
     )
-    val live = path != null && composition != null
+    val live = !static && path != null && composition != null
     // No Lottie clone for this emoji: the glyph does a small spring scale instead.
     val spring = animate && path == null
     val springMs = remember { Animatable(SPRING_MS) }
@@ -68,12 +72,12 @@ fun AnimatedEmoji(
         }
     }
     val scale = when {
-        !spring -> 1f
+        static || !spring -> 1f
         progress != null -> springScale(progress * SPRING_MS)
         else -> springScale(springMs.value)
     }
     Box(modifier = modifier) {
-        Text(text = emoji, fontSize = fontSize, color = if (live) Color.Transparent else color, modifier = Modifier.scale(scale))
+        Text(text = emoji, fontSize = fontSize, lineHeight = fontSize, style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false)), color = if (live) Color.Transparent else color, modifier = Modifier.scale(scale))
         if (live) {
             val side = with(LocalDensity.current) { fontSize.toDp() }
             val lottieModifier = Modifier.align(Alignment.Center).size(side)
