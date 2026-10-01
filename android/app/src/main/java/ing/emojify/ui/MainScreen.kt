@@ -19,6 +19,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.draw.alpha
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
@@ -112,6 +114,9 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
     var capture by remember { mutableStateOf<(suspend () -> android.graphics.Bitmap)?>(null) }
     var exportPose by remember { mutableStateOf<ing.emojify.ui.components.ExportPose?>(null) }
     var exporting by remember { mutableStateOf<ShareFormat?>(null) }
+    var exportProgress by remember { mutableFloatStateOf(0f) }
+    var exportJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+    val idle = exporting == null
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val emojiListState = rememberLazyListState()
@@ -218,7 +223,8 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                     val grab = capture
                     if (emoji != null && grab != null && exporting == null) {
                         exporting = format
-                        scope.launch {
+                        exportProgress = 0f
+                        exportJob = scope.launch {
                             try {
                                 if (format == ShareFormat.Jpg) {
                                     shareCardJpg(context, grab(), exportSizePx(context))
@@ -230,20 +236,25 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                                         shownFeeling,
                                         ing.emojify.model.cardDisplayText(cardText, cardStyle),
                                     ).toFloat()
-                                    exportCardAnimation(context, format, emoji, grab, entranceMs) { p -> exportPose = p }
+                                    exportCardAnimation(context, format, emoji, grab, entranceMs, { exportProgress = it }) { p -> exportPose = p }
                                 }
+                            } catch (e: kotlinx.coroutines.CancellationException) {
+                                throw e
                             } catch (e: Exception) {
                                 android.util.Log.e("emojify", "${format.label} export failed", e)
                                 android.widget.Toast.makeText(context, "Export failed", android.widget.Toast.LENGTH_SHORT).show()
                             } finally {
                                 exportPose = null
                                 exporting = null
+                                exportJob = null
                             }
                         }
                     }
                 },
-                onEmojiCycle = { dir -> override = override.copy(emoji = cycle(emojiTop.map { it.emoji }, shownEmoji, dir)) },
-                onFeelingCycle = { dir -> override = override.copy(feeling = cycle(feelingOptions, shownFeeling, dir)) },
+                onCancelExport = { exportJob?.cancel() },
+                exportProgress = exportProgress,
+                onEmojiCycle = { dir -> if (idle) override = override.copy(emoji = cycle(emojiTop.map { it.emoji }, shownEmoji, dir)) },
+                onFeelingCycle = { dir -> if (idle) override = override.copy(feeling = cycle(feelingOptions, shownFeeling, dir)) },
                 onCaptureReady = { capture = it },
                 export = exportPose,
                 busyFormat = exporting,
@@ -252,7 +263,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
             Spacer(modifier = Modifier.height(16.dp))
             val clearButton: @Composable () -> Unit = {
                 if (text.isNotEmpty()) {
-                    IconButton(onClick = { text = "" }) {
+                    IconButton(onClick = { text = "" }, enabled = idle) {
                         Icon(Icons.Default.Clear, contentDescription = "Clear text")
                     }
                 }
@@ -261,6 +272,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
             TextField(
                 value = text,
                 onValueChange = { text = it },
+                enabled = idle,
                 placeholder = { Text("type at least 3 characters…") },
                 textStyle = LocalTextStyle.current.copy(textDirection = TextDirection.Content),
                 leadingIcon = if (isHebrew) clearButton else null,
@@ -286,11 +298,15 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             )
             Spacer(modifier = Modifier.height(16.dp))
-            EmojiList(items = emojiTop.ifEmpty { null }, active = shownEmoji, state = emojiListState) { picked ->
-                override = override.copy(emoji = picked)
+            Box(modifier = Modifier.alpha(if (idle) 1f else 0.4f)) {
+                EmojiList(items = emojiTop.ifEmpty { null }, active = shownEmoji, state = emojiListState) { picked ->
+                    if (idle) override = override.copy(emoji = picked)
+                }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            ColorBar(palettes = displayPalettes, active = colorOverride) { colorOverride = it }
+            Box(modifier = Modifier.alpha(if (idle) 1f else 0.4f)) {
+                ColorBar(palettes = displayPalettes, active = colorOverride) { if (idle) colorOverride = it }
+            }
             Spacer(modifier = Modifier.height(16.dp))
             Column(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 BoxWithConstraints(
@@ -298,8 +314,10 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                     contentAlignment = Alignment.Center,
                 ) {
                     val swatchSize = (maxHeight - 8.dp).coerceIn(SWATCH_MIN_SIZE, SWATCH_MAX_SIZE)
-                    FeelingBar(feelings = feelingOptions, active = shownFeeling, swatchSize = swatchSize, state = feelingBarState) { picked ->
-                        override = override.copy(feeling = picked)
+                    Box(modifier = Modifier.alpha(if (idle) 1f else 0.4f)) {
+                        FeelingBar(feelings = feelingOptions, active = shownFeeling, swatchSize = swatchSize, state = feelingBarState) { picked ->
+                            if (idle) override = override.copy(feeling = picked)
+                        }
                     }
                 }
                 Text(
@@ -311,6 +329,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
         }
         IconButton(
             onClick = onSettingsClick,
+            enabled = idle,
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .windowInsetsPadding(WindowInsets.safeDrawing.exclude(WindowInsets.ime)),
@@ -349,6 +368,7 @@ private suspend fun exportCardAnimation(
     emoji: String,
     capture: suspend () -> android.graphics.Bitmap,
     entranceMs: Float,
+    onProgress: (Float) -> Unit,
     setPose: (ing.emojify.ui.components.ExportPose) -> Unit,
 ) {
     val path = NotoLottie.assetPath(context, emoji)
@@ -384,6 +404,7 @@ private suspend fun exportCardAnimation(
         POSTER_HOLD_CS,
     )
     for (i in 0 until frames) {
+        onProgress(i / frames.toFloat())
         val t = i * 1000f / EXPORT_FPS
         val phase = (((t - entranceMs) % durationMs) + durationMs) % durationMs
         val lottie = if (path == null) (t / ing.emojify.ui.components.SPRING_MS).coerceAtMost(1f) else (phase / durationMs).coerceIn(0f, 0.999f)

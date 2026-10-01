@@ -1,10 +1,11 @@
-import { useCallback } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { fitCanvasFont, wrapLines } from '../fit'
 import { resolveFeeling } from '../feelings'
 import { contrastRatio, patternTint, toCssOklab, toHexColor, BLACK, WHITE } from '../model'
 import { lineUnits, shimmerTimeline, textTimeline } from '../cardAnim'
 import { patternLayers } from '../patterns'
 import { downloadBlob, renderGif } from '../cardGif'
+import { mp4Supported, renderMp4 } from '../cardMp4'
 import { ensureScriptFontsLoaded, scriptForLang } from '../scriptFonts'
 
 const S = 512
@@ -264,19 +265,41 @@ export function useCardImage(cardData, showToast) {
   }, [cardData, showToast])
 }
 
-export function useCardGif(cardData, showToast) {
-  return useCallback(async () => {
-    if (!cardData) {
-      showToast('nothing to save yet')
-      return
-    }
-    try {
-      showToast('making gif…')
-      downloadBlob(await renderGif(cardData), 'emojify.gif')
-      showToast('gif saved ✓')
-    } catch (err) {
-      console.error(err)
-      showToast('gif failed')
-    }
-  }, [cardData, showToast])
+// GIF/MP4 export with progress and cancel. `busy` is the format being made (null when idle).
+export function useCardExport(cardData, showToast) {
+  const [state, setState] = useState({ busy: null, progress: 0 })
+  const abort = useRef(null)
+
+  const start = useCallback(
+    async (format) => {
+      if (!cardData || abort.current) return
+      const ctl = new AbortController()
+      abort.current = ctl
+      setState({ busy: format, progress: 0 })
+      const render = format === 'gif' ? renderGif : renderMp4
+      try {
+        const blob = await render(cardData, {
+          signal: ctl.signal,
+          onProgress: (progress) => setState({ busy: format, progress }),
+        })
+        downloadBlob(blob, `emojify.${format}`)
+        showToast(`${format} saved ✓`)
+      } catch (err) {
+        if (err?.name === 'AbortError') showToast('cancelled')
+        else {
+          console.error(err)
+          showToast(`${format} failed`)
+        }
+      } finally {
+        abort.current = null
+        setState({ busy: null, progress: 0 })
+      }
+    },
+    [cardData, showToast],
+  )
+
+  const cancel = useCallback(() => abort.current?.abort(), [])
+  return { ...state, saveGif: useCallback(() => start('gif'), [start]), saveMp4: useCallback(() => start('mp4'), [start]), cancel }
 }
+
+export { mp4Supported }

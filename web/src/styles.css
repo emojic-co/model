@@ -536,6 +536,37 @@ h1 .tld {
   cursor: default;
 }
 
+.share-progress {
+  align-self: center;
+  width: 9em;
+  height: 0.4em;
+  appearance: none;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  overflow: hidden;
+  opacity: 0.55;
+}
+
+.share-progress::-webkit-progress-bar {
+  background: transparent;
+}
+
+.share-progress::-webkit-progress-value {
+  background: currentColor;
+}
+
+.share-progress::-moz-progress-bar {
+  background: currentColor;
+}
+
+main[data-exporting] .input,
+main[data-exporting] .emoji-list,
+main[data-exporting] .feelings-col {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 .card-watermark {
   position: absolute;
   right: 5.5%;

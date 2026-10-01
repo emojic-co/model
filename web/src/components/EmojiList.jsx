@@ -1,4 +1,4 @@
-export function EmojiList({ items, active, onPick, slots = 10 }) {
+export function EmojiList({ items, active, onPick, slots = 10, disabled = false }) {
   const ready = !!items
   const top = ready ? items : []
   return (
@@ -10,7 +10,7 @@ export function EmojiList({ items, active, onPick, slots = 10 }) {
             <button
               type="button"
               className={item && item.emoji === active ? 'active' : undefined}
-              disabled={!item}
+              disabled={!item || disabled}
               aria-hidden={item ? undefined : 'true'}
               tabIndex={item ? undefined : -1}
               onClick={item ? () => onPick(item.emoji) : undefined}

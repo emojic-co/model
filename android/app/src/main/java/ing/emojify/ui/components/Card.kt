@@ -18,8 +18,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.runtime.Composable
@@ -85,6 +87,9 @@ fun Card(
     // Null while idle; the format being exported while busy (all share buttons are disabled meanwhile).
     busyFormat: ShareFormat? = null,
     shareEnabled: Boolean = true,
+    // 0..1 while exporting; the share buttons give way to a progress bar and a cancel button.
+    exportProgress: Float = 0f,
+    onCancelExport: () -> Unit = {},
 ) {
     val bg1 = Color(android.graphics.Color.parseColor(colors.bg1))
     val bg2 = Color(android.graphics.Color.parseColor(colors.bg2))
@@ -264,14 +269,24 @@ fun Card(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.align(Alignment.BottomCenter).padding(14.dp),
             ) {
-                for (format in ShareFormat.entries) {
-                    ShareButton(
-                        label = format.label,
-                        enabled = shareEnabled && busyFormat == null,
-                        busy = busyFormat == format,
-                        ink = textColor,
-                        onClick = { onShare(format) },
+                if (busyFormat == null) {
+                    for (format in ShareFormat.entries) {
+                        ShareButton(
+                            label = format.label,
+                            enabled = shareEnabled,
+                            busy = false,
+                            onClick = { onShare(format) },
+                            ink = textColor,
+                        )
+                    }
+                } else {
+                    LinearProgressIndicator(
+                        progress = { exportProgress.coerceIn(0f, 1f) },
+                        color = textColor,
+                        trackColor = textColor.copy(alpha = 0.25f),
+                        modifier = Modifier.align(Alignment.CenterVertically).width(140.dp),
                     )
+                    ShareButton(label = "cancel", enabled = true, busy = false, onClick = onCancelExport, ink = textColor)
                 }
             }
         }

@@ -14,7 +14,7 @@ function watermarkInk(bg) {
 
 const FADE_MS = 150
 
-export function Card({ text, emoji, feeling, lang, colors, loading, onJpg, onGif, onMp4, ref }) {
+export function Card({ text, emoji, feeling, lang, colors, loading, onJpg, onGif, onMp4, exporting, progress = 0, onCancel, ref }) {
   const [shown, setShown] = useState({ emoji, feeling, lang })
   const [phase, setPhase] = useState('in')
   const prev = useRef({ emoji, feeling, lang })
@@ -95,15 +95,26 @@ export function Card({ text, emoji, feeling, lang, colors, loading, onJpg, onGif
         />
       </div>
       <div className="share-bar">
-        <button type="button" aria-label="Copy card as jpg" onClick={onJpg}>
-          jpg
-        </button>
-        <button type="button" aria-label="Save card as gif" onClick={onGif} disabled={!onGif}>
-          gif
-        </button>
-        <button type="button" aria-label="Save card as mp4" onClick={onMp4} disabled={!onMp4}>
-          mp4
-        </button>
+        {exporting ? (
+          <>
+            <progress className="share-progress" max="1" value={progress} aria-label={`Making ${exporting}`} />
+            <button type="button" aria-label="Cancel export" onClick={onCancel}>
+              cancel
+            </button>
+          </>
+        ) : (
+          <>
+            <button type="button" aria-label="Copy card as jpg" onClick={onJpg}>
+              jpg
+            </button>
+            <button type="button" aria-label="Save card as gif" onClick={onGif} disabled={!onGif}>
+              gif
+            </button>
+            <button type="button" aria-label="Save card as mp4" onClick={onMp4} disabled={!onMp4}>
+              mp4
+            </button>
+          </>
+        )}
       </div>
       <span
         className="card-watermark"

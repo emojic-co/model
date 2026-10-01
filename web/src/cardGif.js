@@ -11,7 +11,7 @@ const SPRING_MS = 800
 
 // Emoji layer: the Noto Lottie clone rendered to an offscreen canvas (looping over the timeline),
 // or, for emojis without a clone, a small scale bounce at the start (mirrors the live card's spring).
-async function emojiLayer(emoji) {
+export async function emojiLayer(emoji) {
   const stem = (await loadNotoIndex())[emoji]
   if (stem) {
     const [{ default: lottie }, data] = await Promise.all([
@@ -73,7 +73,7 @@ function sharedPalette(frames) {
   return quantize(sample, 256)
 }
 
-const tick = () => new Promise((r) => setTimeout(r))
+export const tick = () => new Promise((r) => setTimeout(r))
 
 // Encodes the card as a looping animated GIF. onProgress gets 0..1; aborting `signal` rejects with AbortError.
 export async function renderGif(cardData, { onProgress, signal } = {}) {
@@ -92,12 +92,16 @@ export async function renderGif(cardData, { onProgress, signal } = {}) {
   }
 }
 
-async function encode(cardData, emoji, size, onProgress, signal) {
-  const paint = await createPainter(cardData, size / 512)
-  // Timeline: text entrance, then one full shimmer cycle (pass + pause); at least one emoji loop.
+// Timeline: text entrance, then one full shimmer cycle (pass + pause); at least one emoji loop.
+export function clipDurationMs(paint, emoji) {
   const { text, shimmer } = paint.motion()
   const wanted = text.totalMs + shimmer.startDelayMs + shimmer.cycleMs
-  const durationMs = Math.min(MAX_MS, Math.max(wanted, emoji.loopMs))
+  return Math.min(MAX_MS, Math.max(wanted, emoji.loopMs))
+}
+
+async function encode(cardData, emoji, size, onProgress, signal) {
+  const paint = await createPainter(cardData, size / 512)
+  const durationMs = clipDurationMs(paint, emoji)
   const count = Math.max(1, Math.round((durationMs * FPS) / 1000))
   // Pass 1: render every frame. Pass 2: encode with ONE shared palette (per-frame palettes make the
   // soft shimmer gradient band and flicker) plus ordered dithering to hide the banding.

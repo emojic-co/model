@@ -10,7 +10,7 @@ import { FeelingBar } from './components/FeelingBar'
 import { ColorBar } from './components/ColorBar'
 import { EmojiList } from './components/EmojiList'
 import { KeyHints } from './components/KeyHints'
-import { useCardGif, useCardImage } from './hooks/useCardImage'
+import { mp4Supported, useCardExport, useCardImage } from './hooks/useCardImage'
 import { Toast } from './components/Toast'
 import { useMediaQuery } from './hooks/useMediaQuery'
 
@@ -179,10 +179,14 @@ export function App() {
         }
       : null
   const copyCard = useCardImage(cardData, showToast)
-  const saveGif = useCardGif(cardData, showToast)
+  const exporter = useCardExport(cardData, showToast)
+  const exporting = !!exporter.busy
+  const exportingRef = useRef(false)
+  exportingRef.current = exporting
 
   useEffect(() => {
     const onKey = (e) => {
+      if (exportingRef.current) return
       if (e.key === 'Escape') {
         setText('')
         inputRef.current?.focus()
@@ -234,7 +238,7 @@ export function App() {
   const displayFeeling = shownFeeling ?? 'Neutral'
 
   return (
-    <main>
+    <main data-exporting={exporting || undefined}>
       <div className="stage">
         <div className="head">
           <div className="head-top">
@@ -254,6 +258,7 @@ export function App() {
             maxLength={maxLen || undefined}
             placeholder="type at least 3 characters…"
             value={text}
+            disabled={exporting}
             onChange={(e) => setText(e.target.value)}
           />
           <div className="input-meta">
@@ -273,6 +278,7 @@ export function App() {
           items={scores ? emojiTop : null}
           active={shownEmoji}
           slots={emojiSlots}
+          disabled={exporting}
           onPick={(e) => setOverride((o) => ({ ...o, emoji: e }))}
         />
         <Card
@@ -284,10 +290,14 @@ export function App() {
           colors={colors}
           loading={pending}
           onJpg={copyCard}
-          onGif={saveGif}
+          onGif={exporter.saveGif}
+          onMp4={mp4Supported() ? exporter.saveMp4 : undefined}
+          exporting={exporter.busy}
+          progress={exporter.progress}
+          onCancel={exporter.cancel}
         />
         <KeyHints />
-        <div className="feelings-col">
+        <div className="feelings-col" inert={exporting || undefined}>
           <ColorBar
             palettes={palettes}
             active={override.color}
