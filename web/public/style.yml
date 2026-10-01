@@ -1,4 +1,4 @@
-exportedAt: 2026-09-30T07:38:24.705Z
+exportedAt: 2026-10-01T11:39:02.680Z
 global:
   referencePx: 600
   maxPatternOpacity: 0.14
@@ -582,6 +582,17 @@ shimmer:
       pauseMs: 9000
     Serene:
       pauseMs: 4000
+clip:
+  minEmojiLoops: 2
+  maxClipMs: 12000
+  posterHoldMs: 600
+  gifFps: 12
+  mp4Fps: 20
+  spring:
+    durationMs: 900
+    from: 0.88
+    zeta: 0.4
+    omega: 14
 patterns:
   stripes: <svg width="40" height="1" viewBox="0 0 40 1"
     xmlns="http://www.w3.org/2000/svg"><title>stripes</title><path d="M0

@@ -1,0 +1,28 @@
+# GROUND TRUTH for the shared preview/export clip. Web (web/src/clip.js) reads this directly;
+# tools/data/export-style.ts copies it verbatim into style.yml under `clip` for Android.
+# Edit here, then `bun run export-style`.
+#
+# Semantics (both platforms must follow exactly):
+#  * Clip time t runs 0..L and loops. The text entrance starts at t=0; the shimmer starts at
+#    entranceTotal + shimmers.startDelayMs and runs one cycle (pass + pause); the emoji Lottie loops
+#    from t=0 with period loopMs (phase = (t mod loopMs) / loopMs).
+#  * needed = ceil((entranceTotal + startDelayMs + shimmerCycle) / loopMs).
+#    loops = max(needed, minEmojiLoops); then, while loops > needed and loops * loopMs > maxClipMs,
+#    loops -= 1. L = loops * loopMs. maxClipMs never cuts the entrance or the shimmer.
+#  * Emoji without a Lottie clone (loopMs = 0): L = entranceTotal + startDelayMs + shimmerCycle and the
+#    emoji plays the spring once from t=0 (scale(t), see `spring`), then rests at scale 1.
+#  * spring: scale(t) = 1 - (1 - from) * exp(-zeta*omega*t) * (cos(wd*t) + zeta*omega/wd * sin(wd*t)),
+#    t in seconds, wd = omega * sqrt(1 - zeta^2); scale = 1 for t >= durationMs.
+#  * Export only: the first frame is a poster (finished card text, no shimmer, emoji Lottie at progress 0
+#    or, for the spring, at rest) held posterHoldMs, then the clip samples t = i * 1000 / fps for
+#    i = 0 until ceil(L * fps / 1000), at gifFps (GIF) or mp4Fps (MP4).
+minEmojiLoops: 2
+maxClipMs: 12000
+posterHoldMs: 600
+gifFps: 12
+mp4Fps: 20
+spring:
+  durationMs: 900
+  from: 0.88
+  zeta: 0.4
+  omega: 14

@@ -27,7 +27,8 @@ reads it too, like `textAnimations`. It holds rules only, never per-card numbers
 
 - Clip length `L` = text entrance total + shimmer `startDelayMs` + one shimmer cycle (pass + pause), rounded up to a
   whole number of emoji loops, with at least `minEmojiLoops` (2) loops, so the loop is seamless.
-- `maxClipMs`: safety cap; if exceeded, use the fewest loops that fit.
+- `maxClipMs` only trims the extra `minEmojiLoops` padding; it never cuts the entrance or shimmer.
+- Spring parameters (`spring`) live in `clip.yml` so web and Android use one formula (they differed before: sine bounce vs damped spring).
 - No Lottie clone for the emoji: the fallback spring plays once at t=0; `L` is the text + shimmer length.
 - `posterHoldMs` (600): export-only first frame showing the finished card. Not part of the looping preview.
 - Export frame rates: `gifFps` 12, `mp4Fps` 20.

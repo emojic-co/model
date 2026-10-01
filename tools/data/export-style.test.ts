@@ -9,10 +9,11 @@ import { buildStyleFile } from "./export-style.ts"
 test("style.yml matches what web/src/feelings.js and patterns.js currently produce", () => {
   const fresh = buildStyleFile()
   const onDisk = parse(readFileSync(STYLE_YML, "utf-8"))
-  expect({ global: onDisk.global, textAnimations: onDisk.textAnimations, shimmer: onDisk.shimmer, patterns: onDisk.patterns, styles: onDisk.styles }).toEqual({
+  expect({ global: onDisk.global, textAnimations: onDisk.textAnimations, shimmer: onDisk.shimmer, clip: onDisk.clip, patterns: onDisk.patterns, styles: onDisk.styles }).toEqual({
     global: fresh.global,
     textAnimations: fresh.textAnimations,
     shimmer: fresh.shimmer,
+    clip: fresh.clip,
     patterns: fresh.patterns,
     styles: fresh.styles,
   })
@@ -24,6 +25,7 @@ test("the android asset copy is in sync with the web copy", () => {
   expect(android.global).toEqual(web.global)
   expect(android.textAnimations).toEqual(web.textAnimations)
   expect(android.shimmer).toEqual(web.shimmer)
+  expect(android.clip).toEqual(web.clip)
   expect(android.patterns).toEqual(web.patterns)
   expect(android.styles).toEqual(web.styles)
 })
