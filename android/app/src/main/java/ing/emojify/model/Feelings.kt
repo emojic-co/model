@@ -19,6 +19,9 @@ data class FeelingStyle(
     val italic: Boolean = false,
     val uppercase: Boolean = false,
     val letterSpacingEm: Float? = null,
+    // The face actually requested from the font provider (web loads exactly these from Google Fonts).
+    val faceWeight: Int = 400,
+    val faceItalic: Boolean = false,
     val entranceMs: Int,
     val emojiMs: Int,
     val entranceMotif: String,
@@ -44,6 +47,8 @@ private fun StyleEntry.toFeelingStyle(patterns: Map<String, String>) = FeelingSt
     italic = italic,
     uppercase = uppercase,
     letterSpacingEm = letterSpacingEm,
+    faceWeight = fontWeight,
+    faceItalic = italic,
     entranceMs = entranceMs,
     emojiMs = emojiMs,
     entranceMotif = entrance,
@@ -57,7 +62,9 @@ fun resolveFeeling(feeling: String?, lang: String? = "en"): FeelingStyle {
     val entry = Styles.file.styles[feeling] ?: Styles.file.styles.getValue("Neutral")
     val base = entry.toFeelingStyle(Styles.file.patterns)
     val script = scriptForLang(lang)
-    return if (script == LATIN) base else base.copy(fontName = fontForScript(script, base.cluster))
+    if (script == LATIN) return base
+    val face = fontSpecForScript(script, base.cluster)
+    return base.copy(fontName = face?.family ?: FALLBACK_FONT_FAMILY, faceWeight = face?.weight ?: 400, faceItalic = face?.italic ?: false)
 }
 
 /** The string a card shows: upper-cased for uppercase styles, with the placeholder when blank. */

@@ -4,7 +4,6 @@
 import { TEXT_ANIMATIONS, scheduleFor } from './textAnimation'
 import { SHIMMERS, resolveShimmer } from './shimmer'
 
-const CONNECTED_RE = /[\p{Script=Arabic}\p{Script=Devanagari}\p{Script=Thai}]/u
 const segmenter = typeof Intl !== 'undefined' && Intl.Segmenter ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }) : null
 
 // Animation units of one line as [start, end) string offsets (same unit rules as splitWords).
@@ -12,7 +11,7 @@ export function lineUnits(line) {
   const units = []
   for (const m of line.matchAll(/\S+/g)) {
     const word = m[0]
-    if (!segmenter || CONNECTED_RE.test(word)) {
+    if (!segmenter) {
       units.push([m.index, m.index + word.length])
       continue
     }

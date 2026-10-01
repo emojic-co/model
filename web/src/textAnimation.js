@@ -5,19 +5,18 @@ import raw from './textAnimations.yml?raw'
 
 export const TEXT_ANIMATIONS = parse(raw)
 
-const CONNECTED_RE = /[\p{Script=Arabic}\p{Script=Devanagari}\p{Script=Thai}]/u
 const LONG_WORD = 14
 
 export function hash(i) {
   return ((Math.imul(i + 1, 2654435761) >>> 0) % 1000) / 1000
 }
 
-// Words -> animation units. Connected scripts stay whole so letters keep joining.
+// Words -> animation units. Each word splits into graphemes.
 export function splitWords(text) {
   const words = text.split(/\s+/).filter(Boolean)
   if (typeof Intl === 'undefined' || !Intl.Segmenter) return words.map((w) => [...w])
   const seg = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
-  return words.map((w) => (CONNECTED_RE.test(w) ? [w] : [...seg.segment(w)].map((s) => s.segment)))
+  return words.map((w) => [...seg.segment(w)].map((s) => s.segment))
 }
 
 export function countUnits(words) {

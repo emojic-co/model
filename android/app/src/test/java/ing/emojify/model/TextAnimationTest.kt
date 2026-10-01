@@ -17,9 +17,9 @@ class TextAnimationTest {
     }
 
     @Test
-    fun `splits words into graphemes and keeps connected scripts whole`() {
-        val units = splitTextUnits("hi שלום مرحبا")
-        assertEquals(listOf(2, 4, 1), units.map { it.size })
+    fun `splits words into graphemes`() {
+        val units = splitTextUnits("hi שלום")
+        assertEquals(listOf(2, 4), units.map { it.size })
         assertEquals(TextUnitRange(0, 1), units[0][0])
     }
 

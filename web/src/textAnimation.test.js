@@ -6,9 +6,6 @@ describe('splitWords', () => {
     expect(splitWords('hi 👨‍👩‍👧')).toEqual([['h', 'i'], ['👨‍👩‍👧']])
     expect(splitWords('שלום עולם')[0]).toHaveLength(4)
   })
-  it('keeps connected scripts whole', () => {
-    expect(splitWords('مرحبا')).toEqual([['مرحبا']])
-  })
 })
 
 describe('scheduleFor', () => {

@@ -3,19 +3,7 @@ import raw from './fonts.yml?raw'
 export const LATIN = 'latin'
 
 export const LANG_SCRIPT = {
-  ar: 'arabic',
-  bg: 'cyrillic',
-  el: 'greek',
   he: 'hebrew',
-  hi: 'devanagari',
-  mr: 'devanagari',
-  ja: 'japanese',
-  ko: 'korean',
-  ru: 'cyrillic',
-  th: 'thai',
-  uk: 'cyrillic',
-  zh: 'chinese',
-  'zh-Hant': 'chinese',
 }
 
 export function scriptForLang(lang) {

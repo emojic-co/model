@@ -62,13 +62,13 @@ describe('feelings coverage', () => {
     expect(new Set(families).size).toBe(labels.length)
   })
 
-  it('a non-latin language swaps the font but not the cluster or motifs', () => {
+  it('a Hebrew swaps the font but not the cluster or motifs', () => {
     const en = resolveFeeling('Joyful', 'en')
-    const ja = resolveFeeling('Joyful', 'ja')
-    expect(ja.font).not.toBe(en.font)
-    expect(ja.cluster).toBe(en.cluster)
-    expect(ja.entrance).toBe(en.entrance)
-    expect(ja.emoji).toBe(en.emoji)
+    const he = resolveFeeling('Joyful', 'he')
+    expect(he.font).not.toBe(en.font)
+    expect(he.cluster).toBe(en.cluster)
+    expect(he.entrance).toBe(en.entrance)
+    expect(he.emoji).toBe(en.emoji)
   })
 
   it('lang defaults to english when omitted', () => {

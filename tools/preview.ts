@@ -105,28 +105,12 @@ async function renderStyles(all: boolean): Promise<string> {
 
 const SAMPLE_LANGS: Record<string, string> = {
   latin: "en",
-  cyrillic: "ru",
-  greek: "el",
-  arabic: "ar",
   hebrew: "he",
-  devanagari: "hi",
-  thai: "th",
-  japanese: "ja",
-  korean: "ko",
-  chinese: "zh",
 }
 
 const SAMPLE_TEXT: Record<string, string> = {
   en: "this makes me so happy",
-  ru: "мне так грустно сегодня",
-  el: "είμαι πολύ χαρούμενος",
-  ar: "أنا سعيد جدا اليوم",
   he: "אני כל כך שמח היום",
-  hi: "मुझे आज बहुत खुशी है",
-  th: "วันนี้ฉันมีความสุขมาก",
-  ja: "今日はとても嬉しいです",
-  ko: "오늘 정말 행복해요",
-  zh: "我今天很开心",
 }
 
 const CLUSTER_EMOJI: Record<string, string> = {

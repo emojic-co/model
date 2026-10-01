@@ -1,1 +1,3 @@
-When using the web app, downloading GIF and upload it to WA web it seems blurry and does not animate.
+Localized the android and web apps, supported languages are English and Hebrew.
+Use a single file for the localization so web and android apps are in sync.
+On android add a language selector to the settings screen, on the web add a language selector to the footer of the page (save it as a cookie).

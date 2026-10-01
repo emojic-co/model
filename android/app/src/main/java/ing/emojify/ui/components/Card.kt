@@ -74,7 +74,7 @@ private val fontProvider = GoogleFont.Provider(
 )
 
 // Fonts the Google provider doesn't serve ship in assets/fonts/<Family_Name>.ttf and win over it.
-private fun cardFontFamily(context: android.content.Context, name: String): FontFamily {
+private fun cardFontFamily(context: android.content.Context, name: String, weight: Int, italic: Boolean): FontFamily {
     val file = "fonts/${name.replace(' ', '_')}.ttf"
     val bundled = try {
         context.assets.open(file).close()
@@ -82,8 +82,16 @@ private fun cardFontFamily(context: android.content.Context, name: String): Font
     } catch (_: java.io.IOException) {
         false
     }
-    return if (bundled) FontFamily(androidx.compose.ui.text.font.Font(file, context.assets))
-    else FontFamily(Font(googleFont = GoogleFont(name), fontProvider = fontProvider))
+    val fontStyle = if (italic) FontStyle.Italic else FontStyle.Normal
+    return if (bundled) FontFamily(androidx.compose.ui.text.font.Font(file, context.assets, FontWeight(weight), fontStyle))
+    else FontFamily(
+        Font(
+            googleFont = GoogleFont(name),
+            fontProvider = fontProvider,
+            weight = FontWeight(weight),
+            style = fontStyle,
+        ),
+    )
 }
 
 private val watermarkFont = FontFamily(Font(googleFont = GoogleFont("Caveat"), fontProvider = fontProvider))
@@ -114,7 +122,7 @@ fun Card(
     val style = resolveFeeling(feeling, lang)
     val tint = Color(android.graphics.Color.parseColor(patternTint(colors.bg1, colors.bg2)))
     val context = LocalContext.current
-    val fontFamily = remember(style.fontName) { cardFontFamily(context, style.fontName) }
+    val fontFamily = remember(style.fontName, style.faceWeight, style.faceItalic) { cardFontFamily(context, style.fontName, style.faceWeight, style.faceItalic) }
     val displayText = cardDisplayText(text, style)
     val graphicsLayer = rememberGraphicsLayer()
     // Shared still image capture: finished card, no shimmer, plain emoji glyph.

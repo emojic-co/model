@@ -67,7 +67,7 @@ data class UnitPose(
     val rotate: Float,
 )
 
-/** One animated unit: a grapheme (or a whole connected-script word) as a UTF-16 range. */
+/** One animated unit: a grapheme as a UTF-16 range. */
 data class TextUnitRange(val start: Int, val end: Int)
 
 class TextSchedule(
@@ -109,12 +109,7 @@ class TextSchedule(
 
 fun textHash(i: Int): Double = (((i + 1) * 2654435761L and 0xFFFFFFFFL) % 1000L) / 1000.0
 
-private fun isConnectedScript(cp: Int): Boolean = when (Character.UnicodeScript.of(cp)) {
-    Character.UnicodeScript.ARABIC, Character.UnicodeScript.DEVANAGARI, Character.UnicodeScript.THAI -> true
-    else -> false
-}
-
-/** Words split on whitespace; graphemes within a word, except connected-script words stay whole. */
+/** Words split on whitespace; graphemes within a word. */
 fun splitTextUnits(text: String): List<List<TextUnitRange>> {
     val words = ArrayList<List<TextUnitRange>>()
     var i = 0
@@ -124,21 +119,17 @@ fun splitTextUnits(text: String): List<List<TextUnitRange>> {
         val start = i
         while (i < text.length && !Character.isWhitespace(text[i])) i++
         val word = text.substring(start, i)
-        if (word.codePoints().anyMatch { isConnectedScript(it) }) {
-            words.add(listOf(TextUnitRange(start, i)))
-        } else {
-            val bi = BreakIterator.getCharacterInstance()
-            bi.setText(word)
-            val units = ArrayList<TextUnitRange>()
-            var s = bi.first()
-            var e = bi.next()
-            while (e != BreakIterator.DONE) {
-                units.add(TextUnitRange(start + s, start + e))
-                s = e
-                e = bi.next()
-            }
-            words.add(units)
+        val bi = BreakIterator.getCharacterInstance()
+        bi.setText(word)
+        val units = ArrayList<TextUnitRange>()
+        var s = bi.first()
+        var e = bi.next()
+        while (e != BreakIterator.DONE) {
+            units.add(TextUnitRange(start + s, start + e))
+            s = e
+            e = bi.next()
         }
+        words.add(units)
     }
     return words
 }
