@@ -47,12 +47,28 @@ data class StyleEntry(
 )
 
 @Serializable
+data class FontSpec(
+    val family: String,
+    val generic: String,
+    val weight: Int? = null,
+    val italic: Boolean = false,
+)
+
+@Serializable
+data class FontsFile(
+    val fallback: FontSpec,
+    val latin: Map<String, FontSpec>,
+    val scripts: Map<String, Map<String, FontSpec>>,
+)
+
+@Serializable
 data class StyleFile(
     val exportedAt: String,
     val global: GlobalSettings,
     val textAnimations: TextAnimations? = null,
     val shimmer: ShimmerSpec? = null,
     val clip: ClipSpec? = null,
+    val fonts: FontsFile? = null,
     val patterns: Map<String, String>,
     val styles: Map<String, StyleEntry>,
 )

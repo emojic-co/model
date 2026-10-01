@@ -93,19 +93,35 @@ fun AnimatedCharText(
 
 private class UnitShape(val path: Path, val pivot: androidx.compose.ui.geometry.Offset)
 
+// Each line is tiled by its units' boxes (split at the midpoints between neighbours, outer edges
+// extended by an em), so glyph overhang — common in handwritten fonts — always belongs to some unit
+// instead of being left drawn, un-animated, outside every clip box.
 private fun unitPaths(text: String, layout: TextLayoutResult, fontSizePx: Float): List<UnitShape> {
-    val pad = fontSizePx * 0.05f
-    return splitTextUnits(text).flatten().map { u ->
-        val perLine = LinkedHashMap<Int, Rect>()
+    val pad = fontSizePx * 0.15f
+    val units = splitTextUnits(text).flatten()
+    // line -> (unit index, tight box), then widened per line below.
+    val perLine = HashMap<Int, MutableList<Pair<Int, Rect>>>()
+    val pivots = arrayOfNulls<androidx.compose.ui.geometry.Offset>(units.size)
+    units.forEachIndexed { i, u ->
+        val boxes = LinkedHashMap<Int, Rect>()
         for (o in u.start until u.end) {
             val box = layout.getBoundingBox(o)
             val line = layout.getLineForOffset(o)
-            perLine[line] = perLine[line]?.let {
+            boxes[line] = boxes[line]?.let {
                 Rect(minOf(it.left, box.left), minOf(it.top, box.top), maxOf(it.right, box.right), maxOf(it.bottom, box.bottom))
             } ?: box
         }
-        val path = Path()
-        perLine.values.forEach { path.addRect(Rect(it.left, it.top - pad, it.right, it.bottom + pad)) }
-        UnitShape(path, perLine.values.first().center)
+        pivots[i] = boxes.values.first().center
+        boxes.forEach { (line, box) -> perLine.getOrPut(line) { ArrayList() }.add(i to box) }
     }
+    val paths = List(units.size) { Path() }
+    perLine.values.forEach { entries ->
+        entries.sortBy { it.second.left }
+        entries.forEachIndexed { k, (i, box) ->
+            val left = if (k == 0) box.left - fontSizePx else (entries[k - 1].second.right + box.left) / 2
+            val right = if (k == entries.lastIndex) box.right + fontSizePx else (box.right + entries[k + 1].second.left) / 2
+            paths[i].addRect(Rect(left, box.top - pad, right, box.bottom + pad))
+        }
+    }
+    return units.indices.map { UnitShape(paths[it], pivots[it]!!) }
 }

@@ -73,6 +73,19 @@ private val fontProvider = GoogleFont.Provider(
     certificates = R.array.com_google_android_gms_fonts_certs,
 )
 
+// Fonts the Google provider doesn't serve ship in assets/fonts/<Family_Name>.ttf and win over it.
+private fun cardFontFamily(context: android.content.Context, name: String): FontFamily {
+    val file = "fonts/${name.replace(' ', '_')}.ttf"
+    val bundled = try {
+        context.assets.open(file).close()
+        true
+    } catch (_: java.io.IOException) {
+        false
+    }
+    return if (bundled) FontFamily(androidx.compose.ui.text.font.Font(file, context.assets))
+    else FontFamily(Font(googleFont = GoogleFont(name), fontProvider = fontProvider))
+}
+
 private val watermarkFont = FontFamily(Font(googleFont = GoogleFont("Caveat"), fontProvider = fontProvider))
 
 @Composable
@@ -100,13 +113,13 @@ fun Card(
     val textColor = Color(android.graphics.Color.parseColor(colors.textColor))
     val style = resolveFeeling(feeling, lang)
     val tint = Color(android.graphics.Color.parseColor(patternTint(colors.bg1, colors.bg2)))
-    val fontFamily = FontFamily(Font(googleFont = GoogleFont(style.fontName), fontProvider = fontProvider))
+    val context = LocalContext.current
+    val fontFamily = remember(style.fontName) { cardFontFamily(context, style.fontName) }
     val displayText = cardDisplayText(text, style)
     val graphicsLayer = rememberGraphicsLayer()
     // Shared still image capture: finished card, no shimmer, plain emoji glyph.
     var stillCapture by remember { mutableStateOf(false) }
     val exporting by rememberUpdatedState(pose != null)
-    val context = LocalContext.current
     val clipSpec = Styles.file.clip!!
     val animationsOff = remember {
         Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f

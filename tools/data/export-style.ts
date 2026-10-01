@@ -5,11 +5,8 @@ import { parse, stringify } from "yaml"
 import { ANDROID_ASSETS_DIR, CLIP_YML, SHIMMERS_YML, STYLE_YML, TEXT_ANIMATIONS_YML } from "../../files.ts"
 import { CLUSTERS, FEELINGS } from "../../web/src/feelings.js"
 import { MAX_OPACITY, PATTERN_FNS, PATTERN_NAMES, REFERENCE_PX } from "../../web/src/patterns.js"
+import { FONTS } from "../../web/src/scriptFonts.js"
 import { RATIOS } from "../../web/src/hooks/useCardImage.js"
-
-function primaryFamily(fontStack: string): string {
-  return fontStack.match(/^"([^"]+)"/)?.[1] ?? fontStack.split(",")[0].trim()
-}
 
 function patternSvg(feeling: string): { name: string; svg: string; widthRatio: number; heightRatio: number } {
   const entry = PATTERN_FNS[feeling] ?? PATTERN_FNS.Neutral
@@ -43,7 +40,7 @@ export function buildStyleFile() {
         name,
         {
           cluster: f.cluster,
-          font: primaryFamily(f.font),
+          font: FONTS.latin[name].family,
           fontWeight: st.fontWeight ?? 400,
           italic: st.fontStyle === "italic",
           uppercase: st.textTransform === "uppercase",
@@ -69,6 +66,7 @@ export function buildStyleFile() {
     textAnimations: parse(readFileSync(TEXT_ANIMATIONS_YML, "utf-8")),
     shimmer: parse(readFileSync(SHIMMERS_YML, "utf-8")),
     clip: parse(readFileSync(CLIP_YML, "utf-8")),
+    fonts: FONTS,
     patterns,
     styles,
   }

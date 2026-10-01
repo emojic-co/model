@@ -1,0 +1,119 @@
+# Single source of truth for every font the web and Android apps render.
+# Web builds CSS stacks + Google Fonts queries from this; export-style copies it into style.yml for Android.
+
+fallback: {family: Noto Sans, generic: sans-serif}
+
+latin:
+  Joyful: {family: Fredoka, generic: sans-serif}
+  Excited: {family: Chewy, generic: sans-serif}
+  Hopeful: {family: Poppins, generic: sans-serif}
+  Serene: {family: Quicksand, generic: sans-serif}
+  Tender: {family: Caveat, generic: cursive}
+  Playful: {family: Bungee, generic: sans-serif}
+  Whimsical: {family: Gochi Hand, generic: cursive}
+  Awed: {family: Luckiest Guy, generic: sans-serif}
+  Earnest: {family: Shadows Into Light, generic: cursive}
+  Determined: {family: Barlow Condensed, generic: sans-serif}
+  Proud: {family: Rubik, generic: sans-serif}
+  Wistful: {family: Spectral, generic: serif}
+  Melancholy: {family: Playfair Display, generic: serif}
+  Anxious: {family: Shantell Sans, generic: sans-serif}
+  Tense: {family: Oswald, generic: sans-serif}
+  Furious: {family: Anton, generic: sans-serif}
+  Irritated: {family: Archivo Black, generic: sans-serif}
+  Disgusted: {family: Griffy, generic: cursive}
+  Startled: {family: Schoolbell, generic: cursive}
+  Sarcastic: {family: Bitter, generic: serif}
+  Deadpan: {family: Inter, generic: sans-serif}
+  Neutral: {family: Work Sans, generic: sans-serif}
+scripts:
+  cyrillic:
+    anger: {family: Russo One, generic: sans-serif}
+    joy: {family: M PLUS Rounded 1c, generic: sans-serif, weight: 700}
+    play: {family: Pacifico, generic: cursive}
+    calm: {family: Comfortaa, generic: sans-serif, weight: 500}
+    tender: {family: Marck Script, generic: cursive}
+    drive: {family: Unbounded, generic: sans-serif, weight: 700}
+    sad: {family: Cormorant Garamond, generic: serif, weight: 500, italic: true}
+    anxiety: {family: Amatic SC, generic: cursive, weight: 400}
+    reflective: {family: PT Serif, generic: serif, weight: 400}
+  greek:
+    anger: {family: Tektur, generic: sans-serif, weight: 700}
+    joy: {family: Arima, generic: sans-serif, weight: 600}
+    play: {family: Mansalva, generic: cursive}
+    calm: {family: Comfortaa, generic: sans-serif, weight: 500}
+    tender: {family: Mynerve, generic: cursive}
+    drive: {family: Syne, generic: sans-serif, weight: 700}
+    sad: {family: Cardo, generic: serif, weight: 400, italic: true}
+    anxiety: {family: Fira Sans Extra Condensed, generic: sans-serif, weight: 300}
+    reflective: {family: Noto Sans, generic: sans-serif, weight: 400}
+  arabic:
+    anger: {family: Blaka, generic: cursive}
+    joy: {family: Marhey, generic: sans-serif, weight: 500}
+    play: {family: Lemonada, generic: sans-serif, weight: 600}
+    calm: {family: Mada, generic: sans-serif, weight: 400}
+    tender: {family: Playpen Sans Arabic, generic: cursive, weight: 400}
+    drive: {family: Alexandria, generic: sans-serif, weight: 700}
+    sad: {family: Amiri, generic: serif, weight: 400, italic: true}
+    anxiety: {family: Jomhuria, generic: cursive}
+    reflective: {family: Noto Sans Arabic, generic: sans-serif, weight: 400}
+  hebrew:
+    anger: {family: Suez One, generic: serif}
+    joy: {family: Varela Round, generic: sans-serif}
+    play: {family: Gveret Levin, generic: cursive}
+    calm: {family: M PLUS Rounded 1c, generic: sans-serif, weight: 400}
+    tender: {family: Secular One, generic: sans-serif}
+    drive: {family: Miriam Libre, generic: sans-serif, weight: 700}
+    sad: {family: Frank Ruhl Libre, generic: serif, weight: 300}
+    anxiety: {family: Amatic SC, generic: cursive, weight: 400}
+    reflective: {family: Heebo, generic: sans-serif, weight: 400}
+  devanagari:
+    anger: {family: Bakbak One, generic: sans-serif}
+    joy: {family: Modak, generic: cursive}
+    play: {family: Ranga, generic: cursive, weight: 700}
+    calm: {family: Palanquin, generic: sans-serif, weight: 400}
+    tender: {family: Kalam, generic: cursive, weight: 400}
+    drive: {family: Rajdhani, generic: sans-serif, weight: 600}
+    sad: {family: Tiro Devanagari Hindi, generic: serif, weight: 400, italic: true}
+    anxiety: {family: Khand, generic: sans-serif, weight: 500}
+    reflective: {family: Noto Sans Devanagari, generic: sans-serif, weight: 400}
+  thai:
+    anger: {family: Srisakdi, generic: sans-serif, weight: 700}
+    joy: {family: Chonburi, generic: cursive}
+    play: {family: Itim, generic: cursive}
+    calm: {family: Mitr, generic: sans-serif, weight: 400}
+    tender: {family: Charmonman, generic: cursive, weight: 400}
+    drive: {family: Chakra Petch, generic: sans-serif, weight: 600}
+    sad: {family: Taviraj, generic: serif, weight: 400, italic: true}
+    anxiety: {family: Sriracha, generic: cursive}
+    reflective: {family: Sarabun, generic: sans-serif, weight: 400}
+  japanese:
+    anger: {family: Dela Gothic One, generic: sans-serif}
+    joy: {family: Kosugi Maru, generic: sans-serif}
+    play: {family: Hachi Maru Pop, generic: cursive}
+    calm: {family: Zen Maru Gothic, generic: sans-serif, weight: 400}
+    tender: {family: Klee One, generic: cursive, weight: 400}
+    drive: {family: RocknRoll One, generic: sans-serif}
+    sad: {family: Shippori Mincho, generic: serif, weight: 500}
+    anxiety: {family: DotGothic16, generic: sans-serif}
+    reflective: {family: Noto Sans JP, generic: sans-serif, weight: 400}
+  korean:
+    anger: {family: Black Han Sans, generic: sans-serif}
+    joy: {family: Jua, generic: sans-serif}
+    play: {family: Gaegu, generic: cursive, weight: 400}
+    calm: {family: Gowun Dodum, generic: sans-serif}
+    tender: {family: Nanum Pen Script, generic: cursive}
+    drive: {family: Do Hyeon, generic: sans-serif}
+    sad: {family: Nanum Myeongjo, generic: serif, weight: 400}
+    anxiety: {family: Single Day, generic: cursive}
+    reflective: {family: Gothic A1, generic: sans-serif, weight: 400}
+  chinese:
+    anger: {family: WDXL Lubrifont SC, generic: sans-serif}
+    joy: {family: ZCOOL KuaiLe, generic: sans-serif}
+    play: {family: Liu Jian Mao Cao, generic: cursive}
+    calm: {family: ZCOOL XiaoWei, generic: sans-serif}
+    tender: {family: Zhi Mang Xing, generic: cursive}
+    drive: {family: ZCOOL QingKe HuangYou, generic: sans-serif}
+    sad: {family: Noto Serif SC, generic: serif, weight: 300}
+    anxiety: {family: Long Cang, generic: cursive}
+    reflective: {family: Noto Sans SC, generic: sans-serif, weight: 400}

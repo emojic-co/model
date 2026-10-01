@@ -1,7 +1,1 @@
-Just for the experiment, I would like you to create another .csv file that list all the emojis from the data/labels.json file and for each emoji, mark where it has an animated version.
-i.e. each row is an emoji and each column is an animation source, first column is the emoji itself, then the Noto animation package, and so on.
-Then, select a single complex emoji that does not have a Noto animation but does have animated version in another source and transfer the animation to the Noto version.
-Show me the final result:
-- Noto static emoji 
-- Noto animated emoji
-- Original animated emoji from another source
+When using the web app, downloading GIF and upload it to WA web it seems blurry and does not animate.

@@ -1,4 +1,4 @@
-import { scriptForLang, fontForScript, LATIN } from './scriptFonts'
+import { scriptForLang, fontForScript, latinFont, LATIN } from './scriptFonts'
 import { hexToOklab } from './model'
 
 export const DEFAULT_COLORS = {
@@ -6,10 +6,6 @@ export const DEFAULT_COLORS = {
   bg2: hexToOklab('#78c9f4'),
   text_color: hexToOklab('#282e36'),
 }
-
-const SANS = 'system-ui, sans-serif'
-const SERIF = 'Georgia, serif'
-const HAND = '"Segoe Script", cursive'
 
 export const CLUSTERS = {
   anger: { entrance: 'slam', emoji: 'shake', driftSec: 10 },
@@ -28,28 +24,28 @@ export const EMOJI_MOTIFS = ['shake', 'hop', 'wobble', 'breathe', 'sink', 'tremo
 export const MOTIF_DEFAULT_MS = { entrance: 650, emoji: 2400 }
 
 export const FEELINGS = {
-  Joyful: { cluster: 'joy', font: `"Fredoka", ${SANS}`, style: { fontWeight: 600 }, dur: { entrance: 560, emoji: 900 } },
-  Excited: { cluster: 'joy', font: `"Chewy", ${SANS}`, style: { textTransform: 'uppercase', letterSpacing: '0.05em' }, dur: { entrance: 460, emoji: 380 } },
-  Hopeful: { cluster: 'drive', font: `"Poppins", ${SANS}`, style: { fontWeight: 500 }, dur: { entrance: 780, emoji: 3000 } },
-  Serene: { cluster: 'calm', font: `"Quicksand", ${SANS}`, style: { fontWeight: 500 }, dur: { entrance: 900, emoji: 4200 } },
-  Tender: { cluster: 'tender', font: `"Caveat", ${HAND}`, style: { fontWeight: 700 }, dur: { entrance: 700, emoji: 1300 } },
-  Playful: { cluster: 'play', font: `"Bungee", ${SANS}`, style: {}, dur: { entrance: 600, emoji: 1100 } },
-  Whimsical: { cluster: 'play', font: `"Gochi Hand", ${HAND}`, style: { letterSpacing: '0.02em' }, dur: { entrance: 640, emoji: 1500 } },
-  Awed: { cluster: 'reflective', font: `"Luckiest Guy", ${SANS}`, style: { letterSpacing: '0.04em' }, dur: { entrance: 520, emoji: 2600 } },
-  Earnest: { cluster: 'tender', font: `"Shadows Into Light", ${HAND}`, style: { letterSpacing: '0.01em' }, dur: { entrance: 720, emoji: 1600 } },
-  Determined: { cluster: 'drive', font: `"Barlow Condensed", ${SANS}`, style: { textTransform: 'uppercase', fontWeight: 700 }, dur: { entrance: 560, emoji: 1400 } },
-  Proud: { cluster: 'drive', font: `"Rubik", ${SANS}`, style: { textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }, dur: { entrance: 700, emoji: 2600 } },
-  Wistful: { cluster: 'sad', font: `"Spectral", ${SERIF}`, style: { fontStyle: 'italic', letterSpacing: '0.05em', opacity: 0.9 }, dur: { entrance: 1050, emoji: 4200 } },
-  Melancholy: { cluster: 'sad', font: `"Playfair Display", ${SERIF}`, style: { fontStyle: 'italic' }, dur: { entrance: 1000, emoji: 3200 } },
-  Anxious: { cluster: 'anxiety', font: `"Shantell Sans", ${SANS}`, style: {}, dur: { entrance: 560, emoji: 220 } },
-  Tense: { cluster: 'anxiety', font: `"Oswald", ${SANS}`, style: { letterSpacing: '-0.01em' }, dur: { entrance: 500, emoji: 420 } },
-  Furious: { cluster: 'anger', font: `"Anton", ${SANS}`, style: { textTransform: 'uppercase', letterSpacing: '0.06em' }, dur: { entrance: 420, emoji: 450 } },
-  Irritated: { cluster: 'anger', font: `"Archivo Black", ${SANS}`, style: { textTransform: 'uppercase' }, dur: { entrance: 520, emoji: 600 } },
-  Disgusted: { cluster: 'anger', font: `"Griffy", ${HAND}`, style: { fontStyle: 'italic', letterSpacing: '0.03em' }, dur: { entrance: 480, emoji: 700 } },
-  Startled: { cluster: 'play', font: `"Schoolbell", ${HAND}`, entrance: 'shrinkBack', emoji: 'shrinkBack', style: {}, dur: { entrance: 420, emoji: 2600 } },
-  Sarcastic: { cluster: 'reflective', font: `"Bitter", ${SERIF}`, style: { fontStyle: 'italic' }, dur: { entrance: 800, emoji: 4200 } },
-  Deadpan: { cluster: 'reflective', font: `"Inter", ${SANS}`, entrance: 'droop', emoji: 'droop', style: {}, dur: { entrance: 700, emoji: 6000 } },
-  Neutral: { cluster: 'reflective', font: `"Work Sans", ${SANS}`, style: { fontWeight: 600 }, dur: { entrance: 650, emoji: 3200 } },
+  Joyful: { cluster: 'joy', style: { fontWeight: 600 }, dur: { entrance: 560, emoji: 900 } },
+  Excited: { cluster: 'joy', style: { textTransform: 'uppercase', letterSpacing: '0.05em' }, dur: { entrance: 460, emoji: 380 } },
+  Hopeful: { cluster: 'drive', style: { fontWeight: 500 }, dur: { entrance: 780, emoji: 3000 } },
+  Serene: { cluster: 'calm', style: { fontWeight: 500 }, dur: { entrance: 900, emoji: 4200 } },
+  Tender: { cluster: 'tender', style: { fontWeight: 700 }, dur: { entrance: 700, emoji: 1300 } },
+  Playful: { cluster: 'play', style: {}, dur: { entrance: 600, emoji: 1100 } },
+  Whimsical: { cluster: 'play', style: { letterSpacing: '0.02em' }, dur: { entrance: 640, emoji: 1500 } },
+  Awed: { cluster: 'reflective', style: { letterSpacing: '0.04em' }, dur: { entrance: 520, emoji: 2600 } },
+  Earnest: { cluster: 'tender', style: { letterSpacing: '0.01em' }, dur: { entrance: 720, emoji: 1600 } },
+  Determined: { cluster: 'drive', style: { textTransform: 'uppercase', fontWeight: 700 }, dur: { entrance: 560, emoji: 1400 } },
+  Proud: { cluster: 'drive', style: { textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }, dur: { entrance: 700, emoji: 2600 } },
+  Wistful: { cluster: 'sad', style: { fontStyle: 'italic', letterSpacing: '0.05em', opacity: 0.9 }, dur: { entrance: 1050, emoji: 4200 } },
+  Melancholy: { cluster: 'sad', style: { fontStyle: 'italic' }, dur: { entrance: 1000, emoji: 3200 } },
+  Anxious: { cluster: 'anxiety', style: {}, dur: { entrance: 560, emoji: 220 } },
+  Tense: { cluster: 'anxiety', style: { letterSpacing: '-0.01em' }, dur: { entrance: 500, emoji: 420 } },
+  Furious: { cluster: 'anger', style: { textTransform: 'uppercase', letterSpacing: '0.06em' }, dur: { entrance: 420, emoji: 450 } },
+  Irritated: { cluster: 'anger', style: { textTransform: 'uppercase' }, dur: { entrance: 520, emoji: 600 } },
+  Disgusted: { cluster: 'anger', style: { fontStyle: 'italic', letterSpacing: '0.03em' }, dur: { entrance: 480, emoji: 700 } },
+  Startled: { cluster: 'play', entrance: 'shrinkBack', emoji: 'shrinkBack', style: {}, dur: { entrance: 420, emoji: 2600 } },
+  Sarcastic: { cluster: 'reflective', style: { fontStyle: 'italic' }, dur: { entrance: 800, emoji: 4200 } },
+  Deadpan: { cluster: 'reflective', entrance: 'droop', emoji: 'droop', style: {}, dur: { entrance: 700, emoji: 6000 } },
+  Neutral: { cluster: 'reflective', style: { fontWeight: 600 }, dur: { entrance: 650, emoji: 3200 } },
 }
 
 export function resolveFeeling(feeling, lang = 'en') {
@@ -58,7 +54,7 @@ export function resolveFeeling(feeling, lang = 'en') {
   const script = scriptForLang(lang)
   return {
     cluster: f.cluster,
-    font: script === LATIN ? f.font : fontForScript(script, f.cluster),
+    font: script === LATIN ? latinFont(feeling in FEELINGS ? feeling : 'Neutral') : fontForScript(script, f.cluster),
     entrance: f.entrance ?? c.entrance,
     emoji: f.emoji ?? c.emoji,
     style: f.style ?? {},
