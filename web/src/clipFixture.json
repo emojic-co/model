@@ -1,0 +1,700 @@
+[
+  {
+    "motif": "slam",
+    "feeling": "Angry",
+    "cluster": "anger",
+    "unitCount": 5,
+    "loopMs": 1500,
+    "durationMs": 4500,
+    "loops": 3,
+    "samples": [
+      {
+        "t": 0,
+        "unit0": {
+          "opacity": 0,
+          "x": 0,
+          "y": -0.3,
+          "scale": 1.8,
+          "scaleY": 1,
+          "rotate": 0,
+          "at": 0
+        },
+        "unitLast": {
+          "opacity": 0,
+          "x": 0,
+          "y": -0.3,
+          "scale": 1.8,
+          "scaleY": 1,
+          "rotate": 0,
+          "at": 0
+        },
+        "shimmer": null,
+        "spring": null
+      },
+      {
+        "t": 250,
+        "unit0": {
+          "opacity": 1,
+          "x": 0.028637253276018515,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 0.29493208515111957,
+          "x": 0,
+          "y": -0.21152037445466412,
+          "scale": 1.5404597650670149,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": null,
+        "spring": null
+      },
+      {
+        "t": 700,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": null,
+        "spring": null
+      },
+      {
+        "t": 900,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": {
+          "c": -0.12263913284734872,
+          "opacity": 1
+        },
+        "spring": null
+      },
+      {
+        "t": 1100,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": {
+          "c": 0.3303028749474052,
+          "opacity": 1
+        },
+        "spring": null
+      },
+      {
+        "t": 1300,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": {
+          "c": 1.0484343649032155,
+          "opacity": 1
+        },
+        "spring": null
+      },
+      {
+        "t": 1500,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": null,
+        "spring": null
+      },
+      {
+        "t": 1900,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": null,
+        "spring": null
+      },
+      {
+        "t": 2600,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": null,
+        "spring": null
+      },
+      {
+        "t": 3300,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": null,
+        "spring": null
+      }
+    ]
+  },
+  {
+    "motif": "settle",
+    "feeling": "Serene",
+    "cluster": "reflective",
+    "unitCount": 12,
+    "loopMs": 2400,
+    "durationMs": 9600,
+    "loops": 4,
+    "samples": [
+      {
+        "t": 0,
+        "unit0": {
+          "opacity": 0,
+          "x": 0,
+          "y": 0.15,
+          "scale": 1.15,
+          "scaleY": 1,
+          "rotate": 0,
+          "at": 0
+        },
+        "unitLast": {
+          "opacity": 0,
+          "x": 0,
+          "y": 0.15,
+          "scale": 1.15,
+          "scaleY": 1,
+          "rotate": 0,
+          "at": 0
+        },
+        "shimmer": null,
+        "spring": null
+      },
+      {
+        "t": 250,
+        "unit0": {
+          "opacity": 0.7268189887211289,
+          "x": 0,
+          "y": 0.04097715169183065,
+          "scale": 1.0409771516918307,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 0,
+          "x": 0,
+          "y": 0.15,
+          "scale": 1.15,
+          "scaleY": 1,
+          "rotate": 0,
+          "at": 0
+        },
+        "shimmer": null,
+        "spring": null
+      },
+      {
+        "t": 700,
+        "unit0": {
+          "opacity": 0.9884987517492347,
+          "x": 0,
+          "y": 0.001725187237614778,
+          "scale": 1.0017251872376147,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 0,
+          "x": 0,
+          "y": 0.15,
+          "scale": 1.15,
+          "scaleY": 1,
+          "rotate": 0,
+          "at": 0
+        },
+        "shimmer": null,
+        "spring": null
+      },
+      {
+        "t": 900,
+        "unit0": {
+          "opacity": 0.9989201499141521,
+          "x": 0,
+          "y": 0.00016197751287719275,
+          "scale": 1.0001619775128772,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 0,
+          "x": 0,
+          "y": 0.15,
+          "scale": 1.15,
+          "scaleY": 1,
+          "rotate": 0,
+          "at": 0
+        },
+        "shimmer": null,
+        "spring": null
+      },
+      {
+        "t": 1100,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 0,
+          "x": 0,
+          "y": 0.15,
+          "scale": 1.15,
+          "scaleY": 1,
+          "rotate": 0,
+          "at": 0
+        },
+        "shimmer": null,
+        "spring": null
+      },
+      {
+        "t": 1300,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 0.6339792543695622,
+          "x": 0,
+          "y": 0.05490311184456567,
+          "scale": 1.0549031118445655,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": null,
+        "spring": null
+      },
+      {
+        "t": 1500,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 0.8923379597398607,
+          "x": 0,
+          "y": 0.0161493060390209,
+          "scale": 1.0161493060390208,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": null,
+        "spring": null
+      },
+      {
+        "t": 1900,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 0.9958231363717465,
+          "x": 0,
+          "y": 0.0006265295442380303,
+          "scale": 1.000626529544238,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": null,
+        "spring": null
+      },
+      {
+        "t": 2600,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": {
+          "c": -0.13548190996368945,
+          "opacity": 1
+        },
+        "spring": null
+      },
+      {
+        "t": 3300,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": {
+          "c": 0.61043747021728,
+          "opacity": 1
+        },
+        "spring": null
+      }
+    ]
+  },
+  {
+    "motif": "jitter",
+    "feeling": "Sarcastic",
+    "cluster": "drive",
+    "unitCount": 9,
+    "loopMs": 0,
+    "durationMs": 4721.42,
+    "loops": 0,
+    "samples": [
+      {
+        "t": 0,
+        "unit0": {
+          "opacity": 0,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0,
+          "at": 0
+        },
+        "unitLast": {
+          "opacity": 0,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0,
+          "at": 0
+        },
+        "shimmer": null,
+        "spring": 0.88
+      },
+      {
+        "t": 250,
+        "unit0": {
+          "opacity": 0,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0,
+          "at": 0
+        },
+        "unitLast": {
+          "opacity": 0.003983869470837844,
+          "x": -0.0004552993680957536,
+          "y": 0.000284562105059846,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": null,
+        "spring": 1.0303812691368828
+      },
+      {
+        "t": 700,
+        "unit0": {
+          "opacity": 1,
+          "x": 0.018256669392572006,
+          "y": 0.01639571545395943,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": null,
+        "spring": 1.0017058152519593
+      },
+      {
+        "t": 900,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": null,
+        "spring": 1
+      },
+      {
+        "t": 1100,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": null,
+        "spring": 1
+      },
+      {
+        "t": 1300,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": {
+          "c": -0.173213796137122,
+          "opacity": 1
+        },
+        "spring": 1
+      },
+      {
+        "t": 1500,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": {
+          "c": 0.35068569313448367,
+          "opacity": 1
+        },
+        "spring": 1
+      },
+      {
+        "t": 1900,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": {
+          "c": 1.1451372816031042,
+          "opacity": 1
+        },
+        "spring": 1
+      },
+      {
+        "t": 2600,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": null,
+        "spring": 1
+      },
+      {
+        "t": 3300,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": null,
+        "spring": 1
+      }
+    ]
+  }
+]

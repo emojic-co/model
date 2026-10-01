@@ -110,9 +110,9 @@ export function shimmerTimeline(cluster, feeling, anim = SHIMMERS) {
   const ease = cubicBezier(...e.easing)
   const cycleMs = e.durationMs + e.pauseMs
   const colors = e.stops.map((s) => [s.at, rgba(s.color)])
-  const draw = (ctx, S, t) => {
+  const pose = (t) => {
     const u = (t % cycleMs) / e.durationMs
-    if (t < 0 || u >= 1) return
+    if (t < 0 || u >= 1) return null
     // Eased progress per segment, then lerp c/opacity.
     let k = frames[frames.length - 1]
     for (let i = 1; i < frames.length; i++) {
@@ -124,6 +124,11 @@ export function shimmerTimeline(cluster, feeling, anim = SHIMMERS) {
         break
       }
     }
+    return k
+  }
+  const draw = (ctx, S, t) => {
+    const k = pose(t)
+    if (!k) return
     let fill
     if (e.kind === 'radial') {
       const r = k.c * e.radiusFrac * S
@@ -142,5 +147,5 @@ export function shimmerTimeline(cluster, feeling, anim = SHIMMERS) {
     ctx.fillRect(0, 0, S, S)
     ctx.restore()
   }
-  return { cycleMs, startDelayMs: anim.startDelayMs, draw }
+  return { cycleMs, startDelayMs: anim.startDelayMs, draw, pose }
 }
