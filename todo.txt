@@ -1,9 +1,9 @@
 Web APP:
-- For now disable the gif and mp4 buttons and only enable the jpg button.
-- Use the same layout as in the Android app, but keep the style of the web app buttons (the semi transparent look) and also use this style in the Android app (push to my phone).
-- Implement the gif button, generate a gif using the gif.js (or a better one if available) library and allow users to download it.
 - Implement the mp4 button, generate an mp4 video using a suitable library (like ffmpeg.wasm) and allow users to download it.
 - When generating the gif or mp4 files show a progress bar and allow users to cancel the operation, disable any other buttons (both in the web and android apps). 
 
 Done:
+- Implement the gif button, generate a gif using the gif.js (or a better one if available) library and allow users to download it.
+- Use the same layout as in the Android app, but keep the style of the web app buttons (the semi transparent look) and also use this style in the Android app (push to my phone).
+- For now disable the gif and mp4 buttons and only enable the jpg button.
 - replace the "share" and "copy" buttons with jpg, gif, mp4 as in the Android app.

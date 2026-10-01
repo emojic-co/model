@@ -10,7 +10,7 @@ import { FeelingBar } from './components/FeelingBar'
 import { ColorBar } from './components/ColorBar'
 import { EmojiList } from './components/EmojiList'
 import { KeyHints } from './components/KeyHints'
-import { useCardImage } from './hooks/useCardImage'
+import { useCardGif, useCardImage } from './hooks/useCardImage'
 import { Toast } from './components/Toast'
 import { useMediaQuery } from './hooks/useMediaQuery'
 
@@ -179,6 +179,7 @@ export function App() {
         }
       : null
   const copyCard = useCardImage(cardData, showToast)
+  const saveGif = useCardGif(cardData, showToast)
 
   useEffect(() => {
     const onKey = (e) => {
@@ -283,6 +284,7 @@ export function App() {
           colors={colors}
           loading={pending}
           onJpg={copyCard}
+          onGif={saveGif}
         />
         <KeyHints />
         <div className="feelings-col">

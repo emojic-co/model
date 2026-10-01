@@ -2,7 +2,9 @@ import { useCallback } from 'react'
 import { fitCanvasFont, wrapLines } from '../fit'
 import { resolveFeeling } from '../feelings'
 import { contrastRatio, patternTint, toCssOklab, toHexColor, BLACK, WHITE } from '../model'
+import { lineUnits, shimmerTimeline, textTimeline } from '../cardAnim'
 import { patternLayers } from '../patterns'
+import { downloadBlob, renderGif } from '../cardGif'
 import { ensureScriptFontsLoaded, scriptForLang } from '../scriptFonts'
 
 const S = 512
@@ -86,7 +88,9 @@ function scaledTile(img, w, h) {
   return tile
 }
 
-async function render({ text, emoji, feeling, lang, colors }) {
+// Lays the card out once and returns paint(drawEmoji): draws the static background, text and watermark,
+// with the emoji drawn by the callback (default: the plain glyph) so animated exports can vary it per frame.
+export async function createPainter({ text, emoji, feeling, lang, colors }, scale = 2) {
   ensureScriptFontsLoaded(scriptForLang(lang))
   const stack = resolveFeeling(feeling, lang).font
   const st = resolveFeeling(feeling, lang).style
@@ -95,7 +99,6 @@ async function render({ text, emoji, feeling, lang, colors }) {
   const headline = st.textTransform === 'uppercase' ? text.toUpperCase() : text
   await ensureFonts(stack, emoji)
 
-  const scale = 2
   const canvas = document.createElement('canvas')
   canvas.width = S * scale
   canvas.height = S * scale
@@ -116,64 +119,131 @@ async function render({ text, emoji, feeling, lang, colors }) {
     ctx.fillRect(0, 0, S, S)
   }
 
-  ctx.fillStyle = toCssOklab(colors.text_color)
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
+  const bg = canvas
+  const out = document.createElement('canvas')
+  out.width = canvas.width
+  out.height = canvas.height
+  const octx = out.getContext('2d')
 
-  const textBoxTop = PAD + EMOJI_PX + GAP
-  const maxWidth = S - 2 * PAD - 2 * TEXT_BOX_PAD_X
-  const maxHeight = S - PAD - textBoxTop - 2 * TEXT_BOX_PAD_Y
+  // Animated export state: built on first animated paint, once the text has been laid out.
+  let motion = null
 
-  const widthAt = (str, px) => {
-    ctx.font = `${fitalic}${fw} ${px}px ${stack}`
-    return ctx.measureText(str).width
+  const paint = (drawEmoji, opts) => {
+    octx.setTransform(1, 0, 0, 1, 0, 0)
+    octx.clearRect(0, 0, out.width, out.height)
+    octx.drawImage(bg, 0, 0)
+    octx.scale(scale, scale)
+    paintContent(octx, drawEmoji, opts)
+    return out
   }
-  if ('letterSpacing' in ctx) ctx.letterSpacing = st.letterSpacing ?? '0px'
-  const fpx = fitCanvasFont({
-    text: headline,
-    maxWidth,
-    maxHeight,
-    min: TEXT_MIN_PX,
-    max: TEXT_MAX_PX,
-    lineHeight: TEXT_LINE_HEIGHT,
-    widthAt,
-  })
-
-  ctx.font = `${fitalic}${fw} ${fpx}px ${stack}`
-  const lines = wrapLines((str) => ctx.measureText(str).width, headline, maxWidth, MAX_LINES)
-  // Emoji + text form one group, centered vertically on the card.
-  const blockH = lines.length * fpx * TEXT_LINE_HEIGHT
-  const top = (S - (EMOJI_PX + GAP + 2 * TEXT_BOX_PAD_Y + blockH)) / 2
-  const emojiCenterY = top + EMOJI_PX / 2 + EMOJI_DY
-  const textCenterY = top + EMOJI_PX + GAP + TEXT_BOX_PAD_Y + blockH / 2
-  ctx.font = `${EMOJI_PX}px ${EMOJI_STACK}`
-  ctx.fillText(emoji, S / 2, emojiCenterY)
-  ctx.font = `${fitalic}${fw} ${fpx}px ${stack}`
-  let ty = textCenterY - ((lines.length - 1) * fpx * TEXT_LINE_HEIGHT) / 2
-  ctx.globalAlpha = st.opacity ?? 1
-  if ('direction' in ctx) ctx.direction = lang === 'he' ? 'rtl' : 'ltr'
-  for (const line of lines) {
-    ctx.fillText(line, S / 2, ty)
-    ty += fpx * TEXT_LINE_HEIGHT
+  // Timings of the entrance + shimmer for the laid-out text (needs one paint to measure).
+  paint.size = { width: canvas.width, height: canvas.height }
+  paint.motion = () => {
+    if (!motion) paint(null, { animate: true, timeMs: 0 })
+    return motion
   }
-  if ('direction' in ctx) ctx.direction = 'ltr'
-  ctx.globalAlpha = 1
-  if ('letterSpacing' in ctx) ctx.letterSpacing = '0px'
 
-  ctx.save()
-  ctx.textAlign = 'right'
-  ctx.textBaseline = 'alphabetic'
-  ctx.font = `700 ${WATERMARK_PX}px "Caveat", ui-sans-serif, sans-serif`
-  ctx.fillStyle =
-    contrastRatio(BLACK, colors.bg2) >= contrastRatio(WHITE, colors.bg2)
-      ? '#000000'
-      : '#ffffff'
-  ctx.globalAlpha = RATIOS.watermarkOpacity
-  ctx.fillText(WATERMARK, S - RATIOS.watermarkMarginRatio * S, S - RATIOS.watermarkMarginRatio * S)
-  ctx.restore()
+  const paintContent = (ctx, drawEmoji, opts) => {
+    ctx.fillStyle = toCssOklab(colors.text_color)
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
 
+    const textBoxTop = PAD + EMOJI_PX + GAP
+    const maxWidth = S - 2 * PAD - 2 * TEXT_BOX_PAD_X
+    const maxHeight = S - PAD - textBoxTop - 2 * TEXT_BOX_PAD_Y
+
+    const widthAt = (str, px) => {
+      ctx.font = `${fitalic}${fw} ${px}px ${stack}`
+      return ctx.measureText(str).width
+    }
+    if ('letterSpacing' in ctx) ctx.letterSpacing = st.letterSpacing ?? '0px'
+    const fpx = fitCanvasFont({
+      text: headline,
+      maxWidth,
+      maxHeight,
+      min: TEXT_MIN_PX,
+      max: TEXT_MAX_PX,
+      lineHeight: TEXT_LINE_HEIGHT,
+      widthAt,
+    })
+
+    ctx.font = `${fitalic}${fw} ${fpx}px ${stack}`
+    const lines = wrapLines((str) => ctx.measureText(str).width, headline, maxWidth, MAX_LINES)
+    // Emoji + text form one group, centered vertically on the card.
+    const blockH = lines.length * fpx * TEXT_LINE_HEIGHT
+    const top = (S - (EMOJI_PX + GAP + 2 * TEXT_BOX_PAD_Y + blockH)) / 2
+    const emojiCenterY = top + EMOJI_PX / 2 + EMOJI_DY
+    const textCenterY = top + EMOJI_PX + GAP + TEXT_BOX_PAD_Y + blockH / 2
+    const animate = !!opts?.animate
+    let unitLines = null
+    if (animate) {
+      unitLines = lines.map(lineUnits)
+      if (!motion) {
+        const n = unitLines.reduce((k, u) => k + u.length, 0)
+        const r = resolveFeeling(feeling, lang)
+        const text = textTimeline(r.entrance, feeling, n)
+        const shimmer = shimmerTimeline(r.cluster, feeling)
+        motion = { text, shimmer, shimmerStartMs: text.totalMs + shimmer.startDelayMs }
+      }
+      motion.shimmer.draw(ctx, S, opts.timeMs - motion.shimmerStartMs)
+    }
+    if (drawEmoji) drawEmoji(ctx, S / 2, emojiCenterY, EMOJI_PX)
+    else {
+      ctx.font = `${EMOJI_PX}px ${EMOJI_STACK}`
+      ctx.fillText(emoji, S / 2, emojiCenterY)
+    }
+    ctx.font = `${fitalic}${fw} ${fpx}px ${stack}`
+    let ty = textCenterY - ((lines.length - 1) * fpx * TEXT_LINE_HEIGHT) / 2
+    ctx.globalAlpha = st.opacity ?? 1
+    if ('direction' in ctx) ctx.direction = lang === 'he' ? 'rtl' : 'ltr'
+    const rtl = lang === 'he'
+    let unitIndex = 0
+    for (let li = 0; li < lines.length; li++) {
+      const line = lines[li]
+      if (!animate) {
+        ctx.fillText(line, S / 2, ty)
+      } else {
+        // Each unit is drawn at its natural position in the line, posed by the entrance animation.
+        const width = ctx.measureText(line).width
+        for (const [a, b] of unitLines[li]) {
+          const mid = (ctx.measureText(line.slice(0, a)).width + ctx.measureText(line.slice(0, b)).width) / 2
+          const cx = rtl ? S / 2 + width / 2 - mid : S / 2 - width / 2 + mid
+          const p = motion.text.pose(unitIndex++, opts.timeMs)
+          ctx.save()
+          ctx.translate(cx + p.x * fpx, ty + p.y * fpx)
+          ctx.rotate((p.rotate * Math.PI) / 180)
+          ctx.scale(p.scale, p.scale * p.scaleY)
+          ctx.globalAlpha = (st.opacity ?? 1) * p.opacity
+          ctx.fillText(line.slice(a, b), 0, 0)
+          ctx.restore()
+        }
+      }
+      ty += fpx * TEXT_LINE_HEIGHT
+    }
+    if ('direction' in ctx) ctx.direction = 'ltr'
+    ctx.globalAlpha = 1
+    if ('letterSpacing' in ctx) ctx.letterSpacing = '0px'
+
+    ctx.save()
+    ctx.textAlign = 'right'
+    ctx.textBaseline = 'alphabetic'
+    ctx.font = `700 ${WATERMARK_PX}px "Caveat", ui-sans-serif, sans-serif`
+    ctx.fillStyle =
+      contrastRatio(BLACK, colors.bg2) >= contrastRatio(WHITE, colors.bg2)
+        ? '#000000'
+        : '#ffffff'
+    ctx.globalAlpha = RATIOS.watermarkOpacity
+    ctx.fillText(WATERMARK, S - RATIOS.watermarkMarginRatio * S, S - RATIOS.watermarkMarginRatio * S)
+    ctx.restore()
+  }
+
+  return paint
+}
+
+async function render(data) {
+  const out = (await createPainter(data))()
   return new Promise((resolve, reject) => {
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('toBlob failed'))), 'image/png')
+    out.toBlob((b) => (b ? resolve(b) : reject(new Error('toBlob failed'))), 'image/png')
   })
 }
 
@@ -190,6 +260,23 @@ export function useCardImage(cardData, showToast) {
     } catch (err) {
       console.error(err)
       showToast('copy failed')
+    }
+  }, [cardData, showToast])
+}
+
+export function useCardGif(cardData, showToast) {
+  return useCallback(async () => {
+    if (!cardData) {
+      showToast('nothing to save yet')
+      return
+    }
+    try {
+      showToast('making gif…')
+      downloadBlob(await renderGif(cardData), 'emojify.gif')
+      showToast('gif saved ✓')
+    } catch (err) {
+      console.error(err)
+      showToast('gif failed')
     }
   }, [cardData, showToast])
 }

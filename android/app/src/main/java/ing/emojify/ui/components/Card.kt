@@ -2,6 +2,7 @@ package ing.emojify.ui.components
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -30,9 +31,9 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
@@ -268,6 +269,7 @@ fun Card(
                         label = format.label,
                         enabled = shareEnabled && busyFormat == null,
                         busy = busyFormat == format,
+                        ink = textColor,
                         onClick = { onShare(format) },
                     )
                 }
@@ -276,7 +278,7 @@ fun Card(
     }
 }
 
-/** Space reserved at the card bottom so text never sits under the share buttons (14dp inset + 36dp button + breathing room). */
+/** Space reserved at the card bottom so text never sits under the share buttons (14dp inset + ~30dp button + breathing room). */
 private val SHARE_BAR_CLEARANCE = 58.dp
 
 /** One GIF frame: emoji loop progress, ms into the text entrance, and shimmer pass progress (null before it starts). */
@@ -290,25 +292,28 @@ private fun ShareButton(
     onClick: () -> Unit,
     enabled: Boolean,
     busy: Boolean,
+    ink: Color,
 ) {
-    val shape = RoundedCornerShape(12.dp)
+    // Mirrors the web .share-bar button: translucent white pill, 1px ink border, uppercase spaced label.
+    val shape = RoundedCornerShape(percent = 50)
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .shadow(elevation = 3.dp, shape = shape, clip = false)
+            .alpha(if (enabled || busy) 0.55f else 0.3f)
             .clip(shape)
-            .background(Color.White.copy(alpha = 0.85f))
+            .background(Color.White.copy(alpha = 0.18f))
+            .border(1.dp, ink, shape)
             .clickable(enabled = enabled, onClick = onClick)
-            .size(width = 56.dp, height = 36.dp),
+            .padding(horizontal = 12.dp, vertical = 6.dp),
     ) {
         if (busy) {
             CircularProgressIndicator(
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(14.dp),
                 strokeWidth = 2.dp,
-                color = Color.Black.copy(alpha = 0.85f),
+                color = ink,
             )
         } else {
-            Text(label, color = Color.Black.copy(alpha = if (enabled) 0.85f else 0.3f), fontWeight = FontWeight.SemiBold)
+            Text(label.uppercase(), color = ink, fontSize = 12.sp, letterSpacing = 1.7.sp)
         }
     }
 }
