@@ -52,6 +52,7 @@ data class StyleFile(
     val global: GlobalSettings,
     val textAnimations: TextAnimations? = null,
     val shimmer: ShimmerSpec? = null,
+    val clip: ClipSpec? = null,
     val patterns: Map<String, String>,
     val styles: Map<String, StyleEntry>,
 )
