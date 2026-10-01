@@ -22,6 +22,7 @@ Architecture (read the code, not this file): `model/model.py` (encoder + classif
 - `pt/` — `.pt` checkpoints, gitignored. `best/`, `exp/`, `history/` hold other checkpoint snapshots (also gitignored).
 - `data/` — data files; `files.py`/`files.ts` list which are committed vs. gitignored-derived. `archive/` holds gzipped historical snapshots of `data/data.jsonl`.
 - `eval/` — color-conditioned eval jsonl sets. `pred/` — prediction output jsonl.
+- `web/src/clip.yml` — shared preview/export clip rules (ground truth, copied into `style.yml`); mirrored by `web/src/clip.js` and `android/.../model/Clip.kt`, kept in sync by `web/src/clipFixture.json` (regenerate with `UPDATE_CLIP_FIXTURE=1` in `web/`).
 - `files.py` / `files.ts` — source of truth for every data/model/pt/goals path (kept as parallel Python/TS mirrors, not perfectly identical — check both when adding a path). Add paths here first.
 - `report/`, `plans/`, `runs/`, `preview/`, `pr/`, `docs/`, `web/` — generated reports, derived plans, TensorBoard logs, previews, marketing, prose docs, web app.
 - `play/` — Google Play publishing: `publish.md` (checklist), `assets/` (store listing graphics), plus gitignored signing/service-account files.
