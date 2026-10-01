@@ -1,9 +1,10 @@
 import { ArrayBufferTarget, Muxer } from 'mp4-muxer'
-import { clipDurationMs, emojiLayer, tick } from './cardGif'
+import { emojiLayer, frameCount, tick } from './cardGif'
+import { CLIP } from './clip'
 import { createPainter } from './hooks/useCardImage'
 
 const SIZE = 1024
-const FPS = 30
+const FPS = CLIP.mp4Fps
 const BITRATE = 6_000_000
 const CODEC = 'avc1.640028' // High profile, level 4.0 (1024x1024 exceeds level 3.x)
 
@@ -32,13 +33,17 @@ export async function renderMp4(cardData, { onProgress, signal } = {}) {
     })
     encoder.configure(config)
 
-    const count = Math.max(1, Math.round((clipDurationMs(paint, emoji) * FPS) / 1000))
+    const tl = paint.timeline(emoji.loopMs)
+    const count = frameCount(tl.durationMs, FPS)
+    const poster = new VideoFrame(paint.poster(emoji), { timestamp: 0, duration: CLIP.posterHoldMs * 1000 })
+    encoder.encode(poster, { keyFrame: true })
+    poster.close()
     for (let i = 0; i < count; i++) {
       if (signal?.aborted) throw new DOMException('aborted', 'AbortError')
       if (failure) throw failure
       const timeMs = (i * 1000) / FPS
-      const canvas = paint((ctx, x, y, px) => emoji.draw(timeMs, ctx, x, y, px), { animate: true, timeMs })
-      const frame = new VideoFrame(canvas, { timestamp: Math.round(timeMs * 1000), duration: Math.round(1e6 / FPS) })
+      const canvas = paint.frame(tl, emoji, timeMs)
+      const frame = new VideoFrame(canvas, { timestamp: Math.round((CLIP.posterHoldMs + timeMs) * 1000), duration: Math.round(1e6 / FPS) })
       encoder.encode(frame, { keyFrame: i % FPS === 0 })
       frame.close()
       onProgress?.((i + 1) / count)

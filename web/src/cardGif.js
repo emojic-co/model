@@ -1,16 +1,14 @@
 import { GIFEncoder, quantize, applyPalette } from 'gifenc'
 import { createPainter } from './hooks/useCardImage'
 import { loadNotoIndex, notoUrl } from './notoLottie'
+import { CLIP, springScale } from './clip'
 
 // Output sizes tried in order until the file fits TARGET_BYTES (the last one is kept regardless).
 const SIZES = [320, 256, 208, 160]
 const TARGET_BYTES = 500 * 1024
-const FPS = 12
-const MAX_MS = 6000
-const SPRING_MS = 800
 
 // Emoji layer: the Noto Lottie clone rendered to an offscreen canvas (looping over the timeline),
-// or, for emojis without a clone, a small scale bounce at the start (mirrors the live card's spring).
+// or, for emojis without a clone, the spring scale at the start. `restMs` is the time the poster frame shows.
 export async function emojiLayer(emoji) {
   const stem = (await loadNotoIndex())[emoji]
   if (stem) {
@@ -32,6 +30,7 @@ export async function emojiLayer(emoji) {
     const loopMs = (frames / (data.fr || 30)) * 1000
     return {
       loopMs,
+      restMs: 0,
       draw(timeMs, ctx, x, y, px) {
         anim.goToAndStop(data.ip + ((timeMs % loopMs) / loopMs) * (frames - 1), true)
         ctx.drawImage(canvas, x - px / 2, y - px / 2, px, px)
@@ -41,14 +40,16 @@ export async function emojiLayer(emoji) {
   }
   return {
     loopMs: 0,
+    restMs: CLIP.spring.durationMs,
     draw(timeMs, ctx, x, y, px) {
-      const k = 1 + 0.12 * Math.sin(Math.min(1, timeMs / SPRING_MS) * Math.PI)
-      ctx.font = `${px * k}px "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif`
+      ctx.font = `${px * springScale(timeMs)}px "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif`
       ctx.fillText(emoji, x, y)
     },
     destroy() {},
   }
 }
+
+export const frameCount = (durationMs, fps) => Math.max(1, Math.ceil((durationMs * fps) / 1000))
 
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 const DITHER = 5
@@ -92,38 +93,31 @@ export async function renderGif(cardData, { onProgress, signal } = {}) {
   }
 }
 
-// Timeline: text entrance, then one full shimmer cycle (pass + pause); at least one emoji loop.
-export function clipDurationMs(paint, emoji) {
-  const { text, shimmer } = paint.motion()
-  const wanted = text.totalMs + shimmer.startDelayMs + shimmer.cycleMs
-  return Math.min(MAX_MS, Math.max(wanted, emoji.loopMs))
-}
+const grabPixels = (c) => c.getContext('2d').getImageData(0, 0, c.width, c.height).data
 
 async function encode(cardData, emoji, size, onProgress, signal) {
   const paint = await createPainter(cardData, size / 512)
-  const durationMs = clipDurationMs(paint, emoji)
-  const count = Math.max(1, Math.round((durationMs * FPS) / 1000))
-  // Pass 1: render every frame. Pass 2: encode with ONE shared palette (per-frame palettes make the
-  // soft shimmer gradient band and flicker) plus ordered dithering to hide the banding.
-  const frames = []
+  const tl = paint.timeline(emoji.loopMs)
+  const count = frameCount(tl.durationMs, CLIP.gifFps)
+  // Pass 1: render every frame (poster first). Pass 2: encode with ONE shared palette (per-frame palettes make
+  // the soft shimmer gradient band and flicker) plus ordered dithering to hide the banding.
+  const frames = [grabPixels(paint.poster(emoji))]
   for (let i = 0; i < count; i++) {
     if (signal?.aborted) throw new DOMException('aborted', 'AbortError')
-    const timeMs = (i * 1000) / FPS
-    const canvas = paint((ctx, x, y, px) => emoji.draw(timeMs, ctx, x, y, px), { animate: true, timeMs })
-    frames.push(canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data)
+    frames.push(grabPixels(paint.frame(tl, emoji, (i * 1000) / CLIP.gifFps)))
     onProgress?.(((i + 1) / count) * 0.8)
     await tick()
   }
   const palette = sharedPalette(frames)
   const { width, height } = paint.size
   const gif = GIFEncoder()
-  const delay = Math.round(1000 / FPS)
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < frames.length; i++) {
     if (signal?.aborted) throw new DOMException('aborted', 'AbortError')
     dither(frames[i], width)
+    const delay = i === 0 ? CLIP.posterHoldMs : Math.round(1000 / CLIP.gifFps)
     gif.writeFrame(applyPalette(frames[i], palette), width, height, { palette, delay })
     frames[i] = null
-    onProgress?.(0.8 + ((i + 1) / count) * 0.2)
+    onProgress?.(0.8 + ((i + 1) / frames.length) * 0.2)
     await tick()
   }
   gif.finish()
