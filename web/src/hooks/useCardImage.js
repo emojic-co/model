@@ -92,7 +92,7 @@ function scaledTile(img, w, h) {
 
 // Lays the card out once and returns paint(drawEmoji): draws the static background, text and watermark,
 // with the emoji drawn by the callback (default: the plain glyph) so animated exports can vary it per frame.
-export async function createPainter({ text, emoji, feeling, lang, colors }, scale = 2) {
+export async function createPainter({ text, emoji, feeling, lang, colors, dim }, scale = 2) {
   ensureScriptFontsLoaded(scriptForLang(lang))
   const stack = resolveFeeling(feeling, lang).font
   const st = resolveFeeling(feeling, lang).style
@@ -211,7 +211,8 @@ export async function createPainter({ text, emoji, feeling, lang, colors }, scal
     }
     ctx.font = `${fitalic}${fw} ${fpx}px ${stack}`
     let ty = textCenterY - ((lines.length - 1) * fpx * TEXT_LINE_HEIGHT) / 2
-    ctx.globalAlpha = st.opacity ?? 1
+    const textAlpha = (st.opacity ?? 1) * (dim ? 0.6 : 1)
+    ctx.globalAlpha = textAlpha
     if ('direction' in ctx) ctx.direction = rtl ? 'rtl' : 'ltr'
     let unitIndex = 0
     for (let li = 0; li < lines.length; li++) {
@@ -225,7 +226,7 @@ export async function createPainter({ text, emoji, feeling, lang, colors }, scal
           ctx.translate(unitCx[li][k] + p.x * fpx, ty + p.y * fpx)
           ctx.rotate((p.rotate * Math.PI) / 180)
           ctx.scale(p.scale, p.scale * p.scaleY)
-          ctx.globalAlpha = (st.opacity ?? 1) * p.opacity
+          ctx.globalAlpha = textAlpha * p.opacity
           ctx.fillText(line.slice(ua, ub), 0, 0)
           ctx.restore()
         })

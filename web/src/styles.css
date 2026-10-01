@@ -640,8 +640,18 @@ main[data-exporting] .feelings-col {
 }
 
 .card[data-phase="out"] .card-emoji,
-.card[data-phase="out"] .card-text-box {
+.card[data-phase="out"] .card-text-box,
+.card[data-phase="out"] .card-canvas {
   opacity: 0;
+}
+
+.card-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  transition: opacity 150ms ease;
 }
 
 .card-text {
