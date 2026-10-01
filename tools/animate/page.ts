@@ -1,0 +1,42 @@
+// Generates web/public/emoji-animation.html: static Noto art next to the animation we generated,
+// for emojis that had no animation before. Needs to be served over http (Lottie files are fetched).
+import { writeFileSync } from "node:fs"
+
+import { EMOJI_ANIMATION_HTML } from "../../files.ts"
+import { resolveEmojiSvg } from "../cli/emoji-svg.ts"
+import { readRows } from "./csv.ts"
+
+const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;")
+
+export function writePage(): number {
+  const rows = readRows().filter((r) => r.lottie)
+  const cards = rows.map((r) => {
+    const svg = resolveEmojiSvg(r.emoji)
+    return `<div class="card"><div class="pair">
+<div class="cell"><svg viewBox="0 0 128 128">${svg?.body ?? ""}</svg><span>static</span></div>
+<div class="cell"><div class="lot" data-src="noto/${r.lottie}.json"></div><span>animated</span></div></div>
+<div class="meta"><b>${esc(r.emoji)}</b> ${esc(r.codepoints)} · complexity ${esc(r.complexity)} · ${esc(r.model)} · ${esc(r.animated_at)}</div></div>`
+  })
+  writeFileSync(EMOJI_ANIMATION_HTML, `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Generated emoji animations</title>
+<style>
+:root{--ink:#1b1f24;--dim:#656b73;--line:#e2e5e9;--panel:#f5f6f8}
+@media(prefers-color-scheme:dark){:root{--ink:#e8eaed;--dim:#9aa0a6;--line:#2c3036;--panel:#1c1f24}body{background:#121417}}
+*{box-sizing:border-box}body{font:15px/1.5 system-ui,sans-serif;color:var(--ink);margin:0;background:#fff}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px 80px}h1{font-size:24px;margin:0 0 4px}.sub{color:var(--dim);margin:0 0 24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cell{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--dim);font-size:12px}
+.cell svg,.lot{width:100%;aspect-ratio:1}.meta{margin-top:8px;font-size:12px;color:var(--dim)}.meta b{font-size:18px}
+</style></head><body><div class="wrap">
+<h1>Generated emoji animations</h1>
+<p class="sub">${rows.length} emoji that had no Noto animation. Left: original static Noto art. Right: LLM-designed Lottie (see <code>emoji_animation.csv</code>).</p>
+<div class="grid">${cards.join("\n")}</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+<script>document.querySelectorAll('.lot').forEach(el=>lottie.loadAnimation({container:el,renderer:'svg',loop:true,autoplay:true,path:el.dataset.src}))</script>
+</body></html>
+`)
+  return rows.length
+}

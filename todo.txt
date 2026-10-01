@@ -1,6 +1,14 @@
-Web/Android apps:
-    1. Whenever the user update the card by selecting a different emoji/style/colors run the full animation from start.
-    2. Unified the web/android animation so they should export the same (as much as possible) media and look the same.
-    3. Web and Android preview should be the same (as much as possible).
-    4. Make sure the export media is the same (as much as possible) as the preview.
+This is great!
+1. Make a list all emojis with no lottie animation and for each emoji estimate the complexity, save the list into emoji_animation.csv.
+2. Make a tool that automate this process:
+    - pick an emoji from the list (with lowest complexity first)
+    - animate it using an external LLM (use the AI gateway API, choose the best model for this task)
+    - add the animated emoji to the existing animated emoji collection.
+    - update the emoji_animation.csv (add a column for the animated emoji).
 
+3. Make a web page where I can see the original static emojis and their animated version.
+
+Notes:
+- For now, the tool only picks a single emoji to animate at a time.
+- Web page should only show emoji that did not have an animation before and now have an animation.
+- the emoji_animation.csv should include all emojis from data/labels.json that do not have an animation.

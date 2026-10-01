@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Generated emoji animations</title>
+<style>
+:root{--ink:#1b1f24;--dim:#656b73;--line:#e2e5e9;--panel:#f5f6f8}
+@media(prefers-color-scheme:dark){:root{--ink:#e8eaed;--dim:#9aa0a6;--line:#2c3036;--panel:#1c1f24}body{background:#121417}}
+*{box-sizing:border-box}body{font:15px/1.5 system-ui,sans-serif;color:var(--ink);margin:0;background:#fff}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px 80px}h1{font-size:24px;margin:0 0 4px}.sub{color:var(--dim);margin:0 0 24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cell{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--dim);font-size:12px}
+.cell svg,.lot{width:100%;aspect-ratio:1}.meta{margin-top:8px;font-size:12px;color:var(--dim)}.meta b{font-size:18px}
+</style></head><body><div class="wrap">
+<h1>Generated emoji animations</h1>
+<p class="sub">1 emoji that had no Noto animation. Left: original static Noto art. Right: LLM-designed Lottie (see <code>emoji_animation.csv</code>).</p>
+<div class="grid"><div class="card"><div class="pair">
+<div class="cell"><svg viewBox="0 0 128 128"><path fill="#546E7A" d="m104.83 8.35l-67.47 9.81a3.23 3.23 0 0 0-2.76 3.19v68.19c-5.33-.63-11.21 2.79-14.63 6.38c-6.43 6.75-7.55 16.14-2.48 20.97c5.06 4.83 14.39 3.26 20.82-3.49c2.75-2.89 5.31-7.72 5.71-12.34h.07V41.65l54.28-7.89v48.02c-5.37-.73-11.34 2.72-14.8 6.36c-6.43 6.75-7.54 16.14-2.48 20.97c5.07 4.83 14.39 3.26 20.82-3.49c2.84-2.98 5.49-8.04 5.76-12.8h.02v-82c0-1.53-1.35-2.69-2.86-2.47"/></svg><span>static</span></div>
+<div class="cell"><div class="lot" data-src="noto/1f3b5.json"></div><span>animated</span></div></div>
+<div class="meta"><b>🎵</b> 1f3b5 · complexity 2 · anthropic/claude-opus-5.5 · 2026-10-01</div></div></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+<script>document.querySelectorAll('.lot').forEach(el=>lottie.loadAnimation({container:el,renderer:'svg',loop:true,autoplay:true,path:el.dataset.src}))</script>
+</body></html>

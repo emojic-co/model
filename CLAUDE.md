@@ -17,7 +17,7 @@ Architecture (read the code, not this file): `model/model.py` (encoder + classif
 ## Project structure
 
 - `model/` — trainable model stack (Python): `model.py`, `train.py`, `config.py`, `data.py`, `color.py`, `pred.py`, `export_onnx.py`, `runmeta.py`, `metrics.py` (just `r2_score`), `metric.py` (metric-key enums used for logging — distinct file from `metrics.py`, easy to confuse), `kwtokens.py`. `test_*.py` files exist here (no CI gate, see Conventions).
-- `tools/` — tooling (Python + TS): `report.py`, `test_report.py`, `preview.ts`, `print_model_params.py`, `block_capacity.py`, `analysis/` (coverage/audit scripts), `cli/` (image/font/card generation), `social/` (Pinterest), `data/` (corpus growth, annotation, regen, keyword/color extraction — see files there, e.g. `annotate.ts` for LLM-based annotation).
+- `tools/` — tooling (Python + TS): `report.py`, `test_report.py`, `preview.ts`, `print_model_params.py`, `block_capacity.py`, `analysis/` (coverage/audit scripts), `cli/` (image/font/card generation), `animate/` (LLM-generated Lottie for emojis with no Noto animation, see `animate.ts`; state in `emoji_animation.csv`), `social/` (Pinterest), `data/` (corpus growth, annotation, regen, keyword/color extraction — see files there, e.g. `annotate.ts` for LLM-based annotation).
 - `android/` — native app consuming the exported ONNX model + style assets; `StyleUpdater.kt` OTA-refreshes `app/src/main/assets/style.yml`.
 - `pt/` — `.pt` checkpoints, gitignored. `best/`, `exp/`, `history/` hold other checkpoint snapshots (also gitignored).
 - `data/` — data files; `files.py`/`files.ts` list which are committed vs. gitignored-derived. `archive/` holds gzipped historical snapshots of `data/data.jsonl`.
