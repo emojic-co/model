@@ -40,6 +40,12 @@ import ing.emojify.cardGifFile
 import ing.emojify.shareCardGif
 import ing.emojify.model.NotoLottie
 import ing.emojify.model.GifEncoder
+import ing.emojify.model.ClipTimeline
+import ing.emojify.model.Styles
+import ing.emojify.model.cardDisplayText
+import ing.emojify.model.clipFrameCount
+import ing.emojify.model.loadEmojiLoopMs
+import ing.emojify.model.splitTextUnits
 import ing.emojify.ui.components.ShareFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -112,7 +118,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
     var colorOverride by remember { mutableStateOf(0) }
     var lang by remember { mutableStateOf("en") }
     var capture by remember { mutableStateOf<(suspend () -> android.graphics.Bitmap)?>(null) }
-    var exportPose by remember { mutableStateOf<ing.emojify.ui.components.ExportPose?>(null) }
+    var exportPose by remember { mutableStateOf<ing.emojify.ui.components.ClipPose?>(null) }
     var exporting by remember { mutableStateOf<ShareFormat?>(null) }
     var exportProgress by remember { mutableFloatStateOf(0f) }
     var exportJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
@@ -230,13 +236,12 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                                     shareCardJpg(context, grab(), exportSizePx(context))
                                 } else {
                                     val cardStyle = ing.emojify.model.resolveFeeling(shownFeeling, lang)
-                                    val entranceMs = ing.emojify.model.entranceTotalMs(
-                                        ing.emojify.model.Styles.file.textAnimations,
-                                        cardStyle.entranceMotif,
-                                        shownFeeling,
-                                        ing.emojify.model.cardDisplayText(cardText, cardStyle),
-                                    ).toFloat()
-                                    exportCardAnimation(context, format, emoji, grab, entranceMs, { exportProgress = it }) { p -> exportPose = p }
+                                    val unitCount = splitTextUnits(cardDisplayText(cardText, cardStyle)).sumOf { it.size }
+                                    val timeline = ClipTimeline(
+                                        Styles.file, cardStyle.entranceMotif, shownFeeling, cardStyle.cluster, unitCount,
+                                        loadEmojiLoopMs(context, emoji),
+                                    )
+                                    exportCardAnimation(context, format, grab, timeline, { exportProgress = it }) { p -> exportPose = p }
                                 }
                             } catch (e: kotlinx.coroutines.CancellationException) {
                                 throw e
@@ -256,7 +261,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                 onEmojiCycle = { dir -> if (idle) override = override.copy(emoji = cycle(emojiTop.map { it.emoji }, shownEmoji, dir)) },
                 onFeelingCycle = { dir -> if (idle) override = override.copy(feeling = cycle(feelingOptions, shownFeeling, dir)) },
                 onCaptureReady = { capture = it },
-                export = exportPose,
+                pose = exportPose,
                 busyFormat = exporting,
                 shareEnabled = shownEmoji != null,
             )
@@ -343,80 +348,44 @@ private fun exportSizePx(context: Context): Int =
     context.getSharedPreferences(ing.emojify.model.ExportSizePrefs.FILE, Context.MODE_PRIVATE)
         .getInt(ing.emojify.model.ExportSizePrefs.KEY_SIZE_PX, ing.emojify.model.ExportSizePrefs.DEFAULT_SIZE_PX)
 
-private const val EXPORT_FPS = 20
 private const val GIF_SIZE_PX = 480
 
-// The emoji loops until it has animated for about this long, within [MIN_EMOJI_LOOPS, MAX_EMOJI_LOOPS].
-// Short Noto clips repeat more; long ones don't bloat the file.
-private const val TARGET_EMOJI_MS = 3000f
-private const val MIN_EMOJI_LOOPS = 2
-private const val MAX_EMOJI_LOOPS = 6
-
-// Viewers that pause a GIF show frame 0, so it is the finished card, held briefly before the entrance.
-private const val POSTER_HOLD_CS = 60
-
-internal fun emojiLoops(durationMs: Float): Int =
-    kotlin.math.ceil(TARGET_EMOJI_MS / durationMs).toInt().coerceIn(MIN_EMOJI_LOOPS, MAX_EMOJI_LOOPS)
-
-// Frame 0 is the finished card (text fully shown, no shimmer). Then the text entrance plays once,
-// the emoji loops emojiLoops() times, and the shimmer sweeps once over the first loop after the
-// entrance. Each frame is posed, waits for two composed frames, and the card layer is captured;
-// the frames are encoded into a looping GIF or MP4 and the share sheet opens.
+// Frame 0 is the poster (finished card, no shimmer, emoji at rest), held for ClipSpec.posterHoldMs so viewers
+// that pause a GIF show a finished card. Then the shared clip (model/Clip.kt) is sampled at the format's fps.
+// Each frame is posed, waits for two composed frames, and the card layer is captured; the frames are encoded
+// into a looping GIF or MP4 and the share sheet opens.
 private suspend fun exportCardAnimation(
     context: Context,
     format: ShareFormat,
-    emoji: String,
     capture: suspend () -> android.graphics.Bitmap,
-    entranceMs: Float,
+    timeline: ClipTimeline,
     onProgress: (Float) -> Unit,
-    setPose: (ing.emojify.ui.components.ExportPose) -> Unit,
+    setPose: (ing.emojify.ui.components.ClipPose) -> Unit,
 ) {
-    val path = NotoLottie.assetPath(context, emoji)
-    // Without a Lottie clone the emoji plays the fallback spring once, at the start of the entrance.
-    val durationMs = if (path == null) {
-        ing.emojify.ui.components.SPRING_MS * 1.5f
-    } else {
-        withContext(Dispatchers.IO) {
-            com.airbnb.lottie.LottieCompositionFactory.fromAssetSync(context, path).value?.duration
-        } ?: return
-    }
-    val totalMs = entranceMs + durationMs * emojiLoops(durationMs)
-    val frames = kotlin.math.ceil(totalMs * EXPORT_FPS / 1000f).toInt().coerceAtLeast(1)
-    val frameDelayCs = 100 / EXPORT_FPS
+    val spec = timeline.spec
+    val fps = if (format == ShareFormat.Gif) spec.gifFps else spec.mp4Fps
+    val frames = clipFrameCount(timeline.durationMs, fps)
     val gifFile = cardGifFile(context)
     val mp4File = cardMp4File(context)
-    val gif = if (format == ShareFormat.Gif) GifEncoder(gifFile, GIF_SIZE_PX, delayCs = frameDelayCs) else null
-    val mp4 = if (format == ShareFormat.Mp4) Mp4Encoder(mp4File, exportSizePx(context), EXPORT_FPS) else null
+    // GIF delays are whole centiseconds (8 cs at 12 fps).
+    val gif = if (format == ShareFormat.Gif) GifEncoder(gifFile, GIF_SIZE_PX, delayCs = 100 / fps) else null
+    val mp4 = if (format == ShareFormat.Mp4) Mp4Encoder(mp4File, exportSizePx(context), fps) else null
 
-    suspend fun grab(pose: ing.emojify.ui.components.ExportPose, delayCs: Int) {
+    suspend fun grab(pose: ing.emojify.ui.components.ClipPose, delayMs: Int) {
         setPose(pose)
         withFrameNanos { }
         withFrameNanos { }
         val bitmap = capture()
         withContext(Dispatchers.Default) {
-            gif?.addFrame(bitmap, delayCs)
-            mp4?.addFrame(bitmap, delayCs * 10)
+            gif?.addFrame(bitmap, delayMs / 10)
+            mp4?.addFrame(bitmap, delayMs)
         }
     }
 
-    grab(
-        ing.emojify.ui.components.ExportPose(lottie = if (path == null) 1f else 0f, textMs = ing.emojify.ui.components.TEXT_ANIM_DONE, shimmerPass = null),
-        POSTER_HOLD_CS,
-    )
+    grab(ing.emojify.ui.components.ClipPose(0f, poster = true), spec.posterHoldMs)
     for (i in 0 until frames) {
         onProgress(i / frames.toFloat())
-        val t = i * 1000f / EXPORT_FPS
-        val phase = (((t - entranceMs) % durationMs) + durationMs) % durationMs
-        val lottie = if (path == null) (t / ing.emojify.ui.components.SPRING_MS).coerceAtMost(1f) else (phase / durationMs).coerceIn(0f, 0.999f)
-        val firstLoop = t >= entranceMs && t < entranceMs + durationMs
-        grab(
-            ing.emojify.ui.components.ExportPose(
-                lottie = lottie,
-                textMs = t,
-                shimmerPass = if (firstLoop) ((t - entranceMs) / durationMs).coerceIn(0f, 1f) else null,
-            ),
-            frameDelayCs,
-        )
+        grab(ing.emojify.ui.components.ClipPose(i * 1000f / fps), 1000 / fps)
     }
     withContext(Dispatchers.Default) {
         gif?.finish()

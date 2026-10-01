@@ -1,24 +1,16 @@
 package ing.emojify.ui.components
 
-import android.provider.Settings
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import ing.emojify.model.ClipTimeline
 import ing.emojify.model.ShimmerEffect
-import ing.emojify.model.ShimmerPlayer
-import ing.emojify.model.ShimmerSpec
 import ing.emojify.model.parseShimmerColor
-import ing.emojify.model.resolveShimmer
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
@@ -32,46 +24,24 @@ private fun blendModeFor(name: String) = when (name) {
 }
 
 /**
- * Background shimmer overlay (drawn above the card background/pattern, below emoji and text).
- * Starts [entranceMs] + spec.startDelayMs after [replayKey] changes, i.e. only once the text is
- * fully visible. Does nothing when [enabled] is false (share/GIF capture) or animations are off.
+ * Background shimmer overlay (drawn above the card background/pattern, below emoji and text), posed from the
+ * shared clip: [timeMs] (draw phase only) is ms into the clip, null = nothing drawn.
  */
 @Composable
 fun CardShimmer(
-    spec: ShimmerSpec?,
-    cluster: String,
-    feeling: String?,
-    entranceMs: Double,
-    replayKey: Any?,
-    enabled: Boolean,
-    // GIF export: draw exactly one pass, spread over the loop (null = live, clock-driven).
-    exportProgress: Float? = null,
+    timeline: ClipTimeline?,
+    timeMs: () -> Float?,
     modifier: Modifier = Modifier,
 ) {
-    if (spec == null || !enabled) return
-    val context = LocalContext.current
-    val animationsOff = remember {
-        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
-    }
-    if (animationsOff) return
-    val effect = remember(spec, cluster, feeling) { resolveShimmer(spec, cluster, feeling) }
-    val player = remember(effect, entranceMs) { ShimmerPlayer(effect, entranceMs + spec.startDelayMs) }
+    if (timeline == null) return
+    val effect = timeline.shimmerEffect
     val stops = remember(effect) { effect.stops.map { it.at.toFloat() to Color(parseShimmerColor(it.color)) } }
     val blend = remember(effect) { blendModeFor(effect.blend) }
-    var elapsedMs by remember(replayKey) { mutableLongStateOf(0L) }
-
-    LaunchedEffect(replayKey, exportProgress == null) {
-        if (exportProgress != null) return@LaunchedEffect
-        val start = androidx.compose.runtime.withFrameNanos { it }
-        while (true) androidx.compose.runtime.withFrameNanos { elapsedMs = (it - start) / 1_000_000 }
-    }
 
     Canvas(modifier) {
-        val pose = (if (exportProgress != null) player.poseAtPass(exportProgress.toDouble()) else player.poseAt(elapsedMs.toDouble()))
-            ?: return@Canvas
-        val w = size.width
-        val h = size.height
-        val brush = shimmerBrush(effect, stops, pose.c, w, h) ?: return@Canvas
+        val t = timeMs() ?: return@Canvas
+        val pose = timeline.shimmerPoseAt(t.toDouble()) ?: return@Canvas
+        val brush = shimmerBrush(effect, stops, pose.c, size.width, size.height) ?: return@Canvas
         drawRect(brush, alpha = pose.opacity.coerceIn(0f, 1f), blendMode = blend)
     }
 }

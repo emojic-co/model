@@ -1,6 +1,6 @@
 package ing.emojify.ui.components
 
-import androidx.compose.animation.core.Animatable
+import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -42,6 +43,7 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -59,7 +61,9 @@ import ing.emojify.R
 import ing.emojify.model.Palette
 import ing.emojify.model.Styles
 import ing.emojify.model.cardDisplayText
-import ing.emojify.model.entranceTotalMs
+import ing.emojify.model.ClipTimeline
+import ing.emojify.model.loadEmojiLoopMs
+import ing.emojify.model.splitTextUnits
 import ing.emojify.model.patternTint
 import ing.emojify.model.resolveFeeling
 
@@ -82,8 +86,8 @@ fun Card(
     onEmojiCycle: (Int) -> Unit,
     onFeelingCycle: (Int) -> Unit,
     onCaptureReady: ((suspend () -> android.graphics.Bitmap) -> Unit)? = null,
-    // Frame-stepped GIF export: when set, emoji, text entrance and shimmer are pinned to this pose.
-    export: ExportPose? = null,
+    // Frame-stepped GIF/MP4 export: when set, the card is pinned to this clip pose instead of looping live.
+    pose: ClipPose? = null,
     // Null while idle; the format being exported while busy (all share buttons are disabled meanwhile).
     busyFormat: ShareFormat? = null,
     shareEnabled: Boolean = true,
@@ -99,27 +103,51 @@ fun Card(
     val fontFamily = FontFamily(Font(googleFont = GoogleFont(style.fontName), fontProvider = fontProvider))
     val displayText = cardDisplayText(text, style)
     val graphicsLayer = rememberGraphicsLayer()
-    val textClock = remember { Animatable(0f) }
-    var shimmerOn by remember { mutableStateOf(true) }
-    var staticEmoji by remember { mutableStateOf(false) }
-    val exporting by rememberUpdatedState(export != null)
+    // Shared still image capture: finished card, no shimmer, plain emoji glyph.
+    var stillCapture by remember { mutableStateOf(false) }
+    val exporting by rememberUpdatedState(pose != null)
+    val context = LocalContext.current
+    val clipSpec = Styles.file.clip!!
+    val animationsOff = remember {
+        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    }
+    // The preview loops the same clip the exports sample (see model/Clip.kt); it restarts from t=0 on any card change.
+    var loopMs by remember(emoji) { mutableStateOf<Double?>(null) }
+    LaunchedEffect(emoji) { loopMs = loadEmojiLoopMs(context, emoji) }
+    val unitCount = remember(displayText) { splitTextUnits(displayText).sumOf { it.size } }
+    val timeline = remember(loopMs, style.entranceMotif, feeling, style.cluster, unitCount) {
+        loopMs?.let { ClipTimeline(Styles.file, style.entranceMotif, feeling, style.cluster, unitCount, it) }
+    }
+    var previewMs by remember { mutableFloatStateOf(0f) }
+    val restartKey = listOf(emoji, feeling, lang, displayText, colors)
+    LaunchedEffect(timeline, restartKey, animationsOff, pose == null) {
+        val tl = timeline ?: return@LaunchedEffect
+        if (animationsOff || pose != null) return@LaunchedEffect
+        previewMs = 0f
+        val start = androidx.compose.runtime.withFrameNanos { it }
+        while (true) androidx.compose.runtime.withFrameNanos { previewMs = ((it - start) / 1_000_000f) % tl.durationMs.toFloat() }
+    }
+    // Poster = finished card text, no shimmer, emoji at rest. Shown until the clip is ready, with animations off, and for stills.
+    val poster = pose?.poster == true || stillCapture || timeline == null || (pose == null && animationsOff)
+    val restEmojiMs = if ((loopMs ?: 0.0) > 0.0) 0f else clipSpec.spring.durationMs.toFloat()
+    val clipMs: () -> Float = { pose?.tMs ?: previewMs }
+    val textMsFn: () -> Float = { if (poster) TEXT_ANIM_DONE else clipMs() }
+    val shimmerMsFn: () -> Float? = { if (poster) null else clipMs() }
+    val emojiMsFn: () -> Float? = { if (poster) restEmojiMs else clipMs() }
     LaunchedEffect(onCaptureReady) {
         onCaptureReady?.invoke {
             if (exporting) {
-                // GIF frame: the caller already posed the emoji, text and shimmer for this frame.
+                // Clip frame: the caller already posed the card for this frame.
                 graphicsLayer.toImageBitmap().asAndroidBitmap()
             } else {
-                // Shared images stay static: finish the text entrance, hide the shimmer, show the plain emoji glyph, let a frame draw.
-                textClock.snapTo(TEXT_ANIM_DONE)
-                shimmerOn = false
-                staticEmoji = true
+                // Shared images stay static: finished card, no shimmer, plain emoji glyph; let a frame draw.
+                stillCapture = true
                 androidx.compose.runtime.withFrameNanos { }
                 androidx.compose.runtime.withFrameNanos { }
                 try {
                     graphicsLayer.toImageBitmap().asAndroidBitmap()
                 } finally {
-                    shimmerOn = true
-                    staticEmoji = false
+                    stillCapture = false
                 }
             }
         }
@@ -175,13 +203,8 @@ fun Card(
                     tileHeightPx = patternTileHeightPx,
                 )
                 CardShimmer(
-                    spec = Styles.file.shimmer,
-                    cluster = style.cluster,
-                    feeling = feeling,
-                    entranceMs = entranceTotalMs(Styles.file.textAnimations, style.entranceMotif, feeling, displayText),
-                    replayKey = Triple(feeling, emoji, lang),
-                    enabled = shimmerOn && (export == null || export.shimmerPass != null),
-                    exportProgress = export?.shimmerPass,
+                    timeline = timeline,
+                    timeMs = shimmerMsFn,
                     modifier = Modifier.matchParentSize(),
                 )
                 Box(
@@ -198,8 +221,10 @@ fun Card(
                             emoji = emoji,
                             fontSize = emojiSizeSp.sp,
                             color = textColor,
-                            progress = export?.lottie,
-                            static = staticEmoji,
+                            spring = clipSpec.spring,
+                            loopMs = (loopMs ?: 0.0).toFloat(),
+                            emojiMs = emojiMsFn,
+                            static = stillCapture,
                             modifier = Modifier.offset(y = cardWidthDp * global.emojiDyRatio),
                         )
                         Spacer(Modifier.height(cardWidthDp * global.gapRatio))
@@ -245,9 +270,7 @@ fun Card(
                                     animations = Styles.file.textAnimations,
                                     motif = style.entranceMotif,
                                     feeling = feeling,
-                                    replayKey = Triple(feeling, emoji, lang),
-                                    clock = textClock,
-                                    exportMs = export?.textMs,
+                                    textMs = textMsFn,
                                 )
                             }
                         }
@@ -296,8 +319,8 @@ fun Card(
 /** Space reserved at the card bottom so text never sits under the share buttons (14dp inset + ~30dp button + breathing room). */
 private val SHARE_BAR_CLEARANCE = 58.dp
 
-/** One GIF frame: emoji loop progress, ms into the text entrance, and shimmer pass progress (null before it starts). */
-data class ExportPose(val lottie: Float, val textMs: Float, val shimmerPass: Float?)
+/** One export frame: ms into the shared clip, or the poster (finished card, no shimmer, emoji at rest). */
+data class ClipPose(val tMs: Float, val poster: Boolean = false)
 
 enum class ShareFormat(val label: String) { Jpg("jpg"), Gif("gif"), Mp4("mp4") }
 

@@ -1,16 +1,10 @@
 package ing.emojify.ui.components
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.ClipOp
@@ -36,8 +30,8 @@ const val TEXT_ANIM_DONE = 1_000_000f
 
 /**
  * Draws [text] with the style's per-character entrance. Each unit is the full text layout clipped
- * to that unit's box and transformed on its own, so shaping/kerning stay exact. [clock] holds the
- * elapsed ms; the effect replays whenever [replayKey] changes. Plain text edits do not replay.
+ * to that unit's box and transformed on its own, so shaping/kerning stay exact. [textMs] is read in
+ * the draw phase only: ms into the clip's text entrance ([TEXT_ANIM_DONE] = finished).
  */
 @Composable
 fun AnimatedCharText(
@@ -48,10 +42,7 @@ fun AnimatedCharText(
     animations: TextAnimations?,
     motif: String,
     feeling: String?,
-    replayKey: Any?,
-    clock: Animatable<Float, *>,
-    // GIF export: pin the entrance clock to this many ms (null = live playback).
-    exportMs: Float? = null,
+    textMs: () -> Float,
     modifier: Modifier = Modifier,
 ) {
     val measurer = rememberTextMeasurer()
@@ -63,27 +54,11 @@ fun AnimatedCharText(
     val schedule: TextSchedule? = remember(animations, motif, feeling, units.size) {
         if (animations == null || units.isEmpty()) null else textScheduleFor(animations, motif, feeling, units.size)
     }
-    val scheduleState by rememberUpdatedState(schedule)
-
-    LaunchedEffect(exportMs) {
-        if (exportMs != null) clock.snapTo(exportMs)
-    }
-    LaunchedEffect(replayKey, exportMs == null) {
-        if (exportMs != null) return@LaunchedEffect
-        val s = scheduleState
-        if (s == null) {
-            clock.snapTo(TEXT_ANIM_DONE)
-            return@LaunchedEffect
-        }
-        clock.snapTo(0f)
-        clock.animateTo(s.totalMs.toFloat(), tween(s.totalMs.toInt().coerceAtLeast(1), easing = LinearEasing))
-        clock.snapTo(TEXT_ANIM_DONE)
-    }
 
     val widthDp = with(density) { maxWidthPx.toDp() }
     val heightDp = with(density) { layout.size.height.toDp() }
     Canvas(modifier.width(widthDp).height(heightDp).semantics { contentDescription = text }) {
-        val elapsed = clock.value.toDouble()
+        val elapsed = textMs().toDouble()
         val s = schedule
         if (s == null || elapsed >= TEXT_ANIM_DONE) {
             drawText(layout, color = color)
