@@ -18,7 +18,7 @@ emoji,codepoints,complexity,parts,nodes,unsupported,lottie,model,animated_at,not
 💤,1f4a4,4.6,2,51,,,,,
 💊,1f48a,5.1,4,21,,1f48a,anthropic/claude-opus-5.5,2026-10-01,
 🥊,1f94a,5.1,3,41,,,,,
-🦷,1f9b7,5.1,3,41,,,,,failed: the model did not produce a valid animation in 3 tries
+🦷,1f9b7,5.1,3,41,,1f9b7,anthropic/claude-opus-5.5,2026-10-01,
 ⛔,26d4,5.3,4,25,,,,,
 📍,1f4cd,5.4,4,28,,,,,
 ➗,2797,5.7,3,54,,,,,
