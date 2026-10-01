@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test"
 
 import { resolveEmojiSvg } from "../cli/emoji-svg.ts"
-import { compose } from "./lottie.ts"
+import { prepare } from "./lottie.ts"
 import { parsePath } from "./path.ts"
 import { complexity, parseScene } from "./svg.ts"
 
@@ -19,12 +19,13 @@ test("unsupported constructs make an emoji too complex to animate", () => {
   expect(complexity(masked)).toBeGreaterThan(1000)
 })
 
-test("composes the model's layers with the original parts", () => {
-  const scene = parseScene(resolveEmojiSvg("🌙")!.body)
-  const refs = scene.parts.map((p) => ({ ref: p.id }))
-  const l = compose(scene, { frames: 60, layers: refs }, "moon")
-  expect(l.layers).toHaveLength(scene.parts.length + 1) // + root scale layer
-  expect(() => compose(scene, { frames: 60, layers: [{ ref: "nope" }] }, "x")).toThrow()
-  expect(() => compose(scene, { frames: 60, layers: refs.slice(1) }, "x")).toThrow(/not used/)
-  expect(() => compose(scene, { frames: 60, layers: [...refs, { ty: 0 }] }, "x")).toThrow()
+test("prepare scales the model's canvas to 1024 and checks syntax only", () => {
+  const doc = { w: 128, h: 128, op: 60, layers: [{ ind: 1, ty: 4, shapes: [] }] }
+  const l = prepare(doc, "x")
+  expect(l.w).toBe(1024)
+  expect(l.layers).toHaveLength(2) // + root scale layer
+  expect(l.layers[0].parent).toBe(9999)
+  expect(() => prepare({ ...doc, layers: [] }, "x")).toThrow()
+  expect(() => prepare({ ...doc, w: "a" }, "x")).toThrow()
+  expect(() => prepare({ ...doc, layers: [{ ks: { x: "wiggle(2,3)" } }] }, "x")).toThrow(/expression/)
 })

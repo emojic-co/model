@@ -18,6 +18,7 @@
     "show-labels": "bun run tools/data/show-labels.ts",
     "emoji-coverage": "bun run tools/analysis/emoji-coverage.ts",
     "fetch-noto-lottie": "bun run tools/data/fetch-noto-lottie.ts",
+    "animate-neighbors": "uv run python -m tools.animate_neighbors",
     "animate-list": "bun run tools/animate/animate.ts list",
     "animate": "bun run tools/animate/animate.ts run",
     "animate-sources": "bun run tools/animate/sources.ts",

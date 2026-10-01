@@ -28,6 +28,9 @@ COLOR_TERMS_JSONL = DATA_DIR / "color_terms.jsonl"
 COLOR_KEYWORDS_JSONL = DATA_DIR / "color_keywords.jsonl"
 COLOR_NAMES_SOURCE_JSON = DATA_DIR / "color-names-source.json"
 PRED_JSONL = DATA_DIR / "pred.jsonl"
+ANIMATION_NEIGHBORS_JSON = DATA_DIR / "animation_neighbors.json"
+EMOJI_ANIMATION_CSV = Path("emoji_animation.csv")
+NOTO_LOTTIE_INDEX_JSON = Path("web/public/noto/index.json")
 
 
 class PtFile(StrEnum):

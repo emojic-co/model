@@ -23,6 +23,7 @@ export const II_JSON = `${DATA_DIR}/ii.json`
 export const EMOJI_POPULARITY_JSON = `${DATA_DIR}/emoji_popularity.json`
 export const GROUP_JSON = `${DATA_DIR}/group.json`
 export const PRED_JSONL = `${DATA_DIR}/pred.jsonl`
+export const ANIMATION_NEIGHBORS_JSON = `${DATA_DIR}/animation_neighbors.json`
 
 export const WEB_PUBLIC_DIR = "web/public"
 export const WEB_SRC_DIR = "web/src"

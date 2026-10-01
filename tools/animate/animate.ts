@@ -11,9 +11,10 @@ import { cac } from "cac"
 import { ANDROID_ASSETS_DIR, NOTO_LOTTIE_DIR } from "../../files.ts"
 import { resolveEmojiSvg } from "../cli/emoji-svg.ts"
 import { indexKeys, refreshRows, stemOf, writeRows } from "./csv.ts"
-import { compose, type Doc } from "./lottie.ts"
+import { exampleText } from "./example.ts"
+import { prepare } from "./lottie.ts"
 import { contextText, emojiMeta, labelParts } from "./context.ts"
-import { design, MODEL, refine } from "./llm.ts"
+import { describe, design, DESIGN_TASK, MODEL, refine, SYSTEM, userText } from "./llm.ts"
 import { writePage } from "./page.ts"
 import { sheetPng, staticPng } from "./render.ts"
 import { parseScene } from "./svg.ts"
@@ -31,13 +32,21 @@ cli.command("list", "rebuild emoji_animation.csv").action(() => {
 cli.command("page", "rebuild the review page").action(() => console.log(`${writePage()} animations on page`))
 
 cli
-  .command("run", "animate one emoji")
-  .option("--emoji <emoji>", "animate this emoji instead of the least complex")
-  .option("--refine <n>", "vision review rounds", { default: 1 })
-  .option("--no-context", "skip the emoji metadata and the LLM label for every part (default: both go into the prompt)")
-  .option("--out <json>", "write the Lottie here and stop (nothing is added to the collection)")
-  .option("--dry", "do not write anything")
-  .action(async (o: { emoji?: string; refine: number; context?: boolean; out?: string; dry?: boolean }) => {
+  .command("run", "animate one emoji with an LLM and add it to the animated-emoji collection")
+  .usage("[options]   (via package.json: bun run animate [options])")
+  .option("--emoji <emoji>", "emoji to animate (default: the least complex one with no animation yet)")
+  .option("--refine <n>", "review rounds after the first design: the model sees a contact sheet of its own animation and improves it; 0 skips (default: 1)")
+  .option("--labels", "add more context to the prompt: the emoji's category and keywords plus an LLM-written label for every SVG part; costs one extra model call (default: only the emoji name)")
+  .option("--no-example", "leave out the example: the full SVG + Noto Lottie of the nearest originally animated emoji, from data/animation_neighbors.json")
+  .option("--print-prompt", "print the full design prompt (system + user message) and stop; no animation call (add --labels and it still makes the labelling call)")
+  .option("--out <json>", "write the Lottie to this file and stop; the collection, CSV and assets are not touched")
+  .option("--dry", "run everything but write nothing")
+  .example("bun run animate --emoji 💦 --print-prompt     # inspect the prompt, no model call")
+  .example("bun run animate --emoji 💦 --out /tmp/x.json  # try it, keep the result out of the collection")
+  .example("bun run animate --emoji 💦                    # animate and add to the collection")
+  .example("bun run animate --refine 0 --labels           # next emoji, no review round, with the extra context")
+  .example("MODEL: set ANIMATE_MODEL=<gateway model id> to change the model (default anthropic/claude-opus-5.5); ANIMATE_USAGE=1 prints token usage")
+  .action(async (o: { emoji?: string; refine: number; labels?: boolean; example?: boolean; out?: string; dry?: boolean; printPrompt?: boolean }) => {
     const rows = refreshRows()
     const row = o.emoji
       ? rows.find((r) => r.emoji === o.emoji)
@@ -46,26 +55,36 @@ cli
     if (row.unsupported) throw new Error(`${row.emoji} uses unsupported SVG features: ${row.unsupported}`)
     const svg = resolveEmojiSvg(row.emoji)!
     const scene = parseScene(svg.body, svg.width)
+    const svgText = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${svg.width} ${svg.height}">${svg.body}</svg>`
     console.log(`${row.emoji} complexity ${row.complexity} (${scene.parts.length} parts) with ${MODEL}`)
 
     try {
       const png = await staticPng(svg.body)
-      let ctx: string | undefined
-      if (o.context !== false) {
+      let ctx: string | undefined = emojiMeta(row.emoji).split("\n")[0] || undefined // always: "Name: ..."
+      if (o.labels) {
         const labels = await labelParts(row.emoji, scene, svg.body, emojiMeta(row.emoji))
-        ctx = contextText(emojiMeta(row.emoji), labels)
+        ctx = `${contextText(emojiMeta(row.emoji), labels)}\n\nParts (in drawing order, p0 first):\n${describe(scene)}`
         console.log(ctx)
       }
-      // The model's Lottie is composed with the original parts and checked in Chrome; problems go back to it.
+      if (o.example !== false) {
+        const ex = exampleText(row.emoji)
+        if (ex) ctx = [ctx, ex].filter(Boolean).join("\n\n")
+      }
+      if (o.printPrompt) {
+        console.log(`=== SYSTEM ===\n${SYSTEM}\n\n=== USER (plus the static emoji image) ===\n${userText(row.emoji, svgText, DESIGN_TASK, ctx)}`)
+        return
+      }
+      // The model's Lottie is checked (syntax, then a render in Chrome); problems go back to it.
       const build = async (ask: (fix?: { doc: unknown; errors: string[] }) => Promise<unknown>) => {
         let fix: { doc: unknown; errors: string[] } | undefined
         for (let n = 0; n < 3; n++) {
-          const doc = await ask(fix)
+          let doc: unknown
           let errors: string[]
           try {
-            const lottie = compose(scene, doc, row.emoji)
-            errors = await validate(svg.body, lottie)
-            if (!errors.length) return { doc: doc as Doc, lottie }
+            doc = await ask(fix)
+            const lottie = prepare(doc, row.emoji)
+            errors = await validate(lottie)
+            if (!errors.length) return { doc, lottie }
           } catch (e) {
             errors = [(e as Error).message]
           }
@@ -74,18 +93,18 @@ cli
         }
         return undefined
       }
-      let cur = await build((fix) => design(row.emoji, scene, png, ctx, fix))
+      let cur = await build((fix) => design(row.emoji, svgText, png, ctx, fix))
       if (!cur) throw new Error("the model did not produce a valid animation in 3 tries")
-      let spec = cur.doc
-      let lottie = cur.lottie
       for (let n = 0; n < Number(o.refine); n++) {
         console.log(`refine round ${n + 1}`)
         const prev = cur
-        const next = await build((fix) => sheetPng(svg.body, prev.lottie, prev.doc.frames).then((sheet) => refine(row.emoji, scene, prev.doc, sheet, ctx, fix)))
-        if (next) { cur = next; spec = next.doc; lottie = next.lottie } else console.log("refinement rejected; keeping the previous version")
+        const next = await build((fix) => sheetPng(svg.body, prev.lottie, prev.lottie.op).then((sheet) => refine(row.emoji, svgText, prev.doc, sheet, ctx, fix)))
+        if (next) cur = next
+        else console.log("refinement rejected; keeping the previous version")
       }
+      const lottie = cur.lottie
       const stem = stemOf(row.emoji)
-      console.log(`${spec.frames} frames, ${spec.layers.length} layers, ${JSON.stringify(lottie).length} bytes`)
+      console.log(`${lottie.op} frames, ${lottie.layers.length - 1} layers, ${JSON.stringify(lottie).length} bytes`)
       if (o.out) writeFileSync(o.out, JSON.stringify(lottie))
       if (o.dry || o.out) return
       const json = JSON.stringify(lottie)
