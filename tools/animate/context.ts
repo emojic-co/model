@@ -51,12 +51,12 @@ const Labels = z.object({
   parts: z.array(z.object({
     id: z.string(),
     role: z.string().describe("what this part is, e.g. 'head', 'left arm', 'tongue', 'shadow under the object'"),
-    note: z.string().nullable().describe("only if useful for animating: fused objects (e.g. 'legs and torso in one shape'), what it attaches to, where it hinges"),
+    note: z.string().optional().describe("only if useful for animating: fused objects (e.g. 'legs and torso in one shape'), what it attaches to, where it hinges"),
   })),
 })
 
 /** One vision call: every part on its own (over a faint ghost of the whole emoji) -> role per part. */
-export async function labelParts(emoji: string, scene: Scene, staticBody: string, meta: string): Promise<{ id: string; role: string; note: string | null }[]> {
+export async function labelParts(emoji: string, scene: Scene, staticBody: string, meta: string): Promise<{ id: string; role: string; note?: string }[]> {
   const ghost = scene.parts.map((p) => partPaths(p, 0.12)).join("")
   const sheet = await partsPng(scene.parts.map((p) => ({ body: ghost + partPaths(p), label: p.id })))
   const res = await guardedGenerate({
@@ -75,6 +75,5 @@ export async function labelParts(emoji: string, scene: Scene, staticBody: string
   return res.output.parts
 }
 
-export const contextText = (meta: string, labels?: Awaited<ReturnType<typeof labelParts>>) =>
-  `About this emoji:\n${meta}` +
-  (labels ? `\n\nWhat each part is:\n${labels.map((l) => `${l.id}: ${l.role}${l.note ? ` (${l.note})` : ""}`).join("\n")}` : "")
+export const contextText = (meta: string, labels: Awaited<ReturnType<typeof labelParts>>) =>
+  `About this emoji:\n${meta}\n\nWhat each part is:\n${labels.map((l) => `${l.id}: ${l.role}${l.note ? ` (${l.note})` : ""}`).join("\n")}`

@@ -50,20 +50,3 @@ export function partsPng(cells: { body: string; label: string }[]): Promise<Buff
   const rows = Math.ceil(cells.length / cols)
   return shoot(page(cells.map((c) => svgCell(c.body, c.label)).join(""), "", cols), cols * (CELL + 4), rows * (CELL + 24))
 }
-
-/** Opens `html` in headless Chrome and returns the final DOM (a page script puts its result in the DOM). */
-export async function dumpDom(html: string): Promise<string> {
-  if (!CHROME) throw new Error("no Chrome/Chromium found (set CHROME=/path/to/chrome)")
-  const dir = mkdtempSync(join(tmpdir(), "emoji-anim-"))
-  const page = join(dir, "check.html")
-  writeFileSync(page, html)
-  const p = Bun.spawn(
-    [CHROME, "--headless=new", "--no-sandbox", "--disable-gpu", "--allow-file-access-from-files", "--virtual-time-budget=8000", "--dump-dom", `file://${page}`],
-    { stdout: "pipe", stderr: "ignore" },
-  )
-  const out = await new Response(p.stdout).text()
-  await p.exited
-  return out
-}
-
-export const lottieJs = () => readFileSync(LOTTIE_JS, "utf8")

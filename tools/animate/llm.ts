@@ -1,23 +1,27 @@
-// Asks an LLM (via the Vercel AI Gateway, key AI_GATEWAY_API_KEY) to write a Lottie animation for one emoji.
+// Asks an LLM (via the Vercel AI Gateway, key AI_GATEWAY_API_KEY) to design the motion for one emoji.
 import { existsSync, readFileSync, writeFileSync } from "node:fs"
 
-import { generateText } from "ai"
+import { generateText, Output } from "ai"
 
 import { ANIMATE_USAGE_JSON } from "../../files.ts"
 import type { Scene } from "./svg.ts"
+import { Spec } from "./spec.ts"
+import type { z } from "zod"
 
 // Best fit for this task: strong spatial reasoning over coordinates + vision (to check the contact
 // sheet) + structured output. Override with ANIMATE_MODEL.
 export const MODEL = process.env.ANIMATE_MODEL ?? "anthropic/claude-opus-5.5"
 
 // Guardrails against runaway spend. Env overrides: ANIMATE_MAX_RUN_CALLS, ANIMATE_MAX_DAY_CALLS,
-// ANIMATE_MAX_DAY_TOKENS, ANIMATE_MAX_OUTPUT_TOKENS, ANIMATE_TIMEOUT_S.
+// ANIMATE_MAX_DAY_TOKENS, ANIMATE_MAX_OUTPUT_TOKENS, ANIMATE_TIMEOUT_S, ANIMATE_REASONING.
 const num = (k: string, d: number) => (Number(process.env[k]) > 0 ? Number(process.env[k]) : d)
 export const MAX_REFINE = 3
 const MAX_RUN_CALLS = num("ANIMATE_MAX_RUN_CALLS", 8)
 const MAX_DAY_CALLS = num("ANIMATE_MAX_DAY_CALLS", 60)
 const MAX_DAY_TOKENS = num("ANIMATE_MAX_DAY_TOKENS", 3_000_000)
-const MAX_OUTPUT_TOKENS = num("ANIMATE_MAX_OUTPUT_TOKENS", 32_000)
+const MAX_OUTPUT_TOKENS = num("ANIMATE_MAX_OUTPUT_TOKENS", 128_000)
+// Thinking effort (none|minimal|low|medium|high|xhigh|provider-default); less thinking = faster and cheaper.
+const REASONING = (process.env.ANIMATE_REASONING ?? "provider-default") as "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "provider-default"
 const TIMEOUT_MS = num("ANIMATE_TIMEOUT_S", 300) * 1000
 
 type Ledger = { day: string; calls: number; tokens: number }
@@ -32,15 +36,24 @@ function readLedger(): Ledger {
   return { day: today(), calls: 0, tokens: 0 }
 }
 let runCalls = 0
-const run = { start: Date.now(), modelMs: 0, inTok: 0, outTok: 0 }
+const run = { start: Date.now(), modelMs: 0, inTok: 0, outTok: 0, thinkTok: 0, cacheReadTok: 0 }
 const secs = (ms: number) => `${(ms / 1000).toFixed(1)}s`
 const k = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${n}`)
 
 /** One-line recap of the whole run: wall time, time spent waiting on the model, calls and tokens. */
 export const runSummary = () =>
-  `run: ${secs(Date.now() - run.start)} total, ${secs(run.modelMs)} in the model; ${runCalls} call${runCalls === 1 ? "" : "s"}, ${k(run.inTok)} in / ${k(run.outTok)} out tokens`
+  `run: ${secs(Date.now() - run.start)} total, ${secs(run.modelMs)} in the model; ${runCalls} call${runCalls === 1 ? "" : "s"}, ${k(run.inTok)} in${run.cacheReadTok ? ` (${k(run.cacheReadTok)} cached)` : ""} / ${k(run.outTok)} out${run.thinkTok ? ` (${k(run.thinkTok)} thinking)` : ""} tokens`
 
 type GenArgs = Parameters<typeof generateText>[0]
+
+/** Text size and attached images of a request, e.g. "system 1.1k chars, user 119.8k chars (~40.0k tokens), 2 images". */
+function describeRequest(args: GenArgs): string {
+  const parts = ((args as { messages?: { content: unknown }[] }).messages ?? []).flatMap((m) => (Array.isArray(m.content) ? m.content : [m.content])) as { type?: string; text?: string; data?: Buffer }[]
+  const text = parts.reduce((n, p) => n + (p.text?.length ?? 0), 0)
+  const imgs = parts.filter((p) => p.type === "file")
+  const sys = typeof (args as { system?: unknown }).system === "string" ? (args as { system: string }).system.length : 0
+  return `system ${k(sys)} chars, user ${k(text)} chars (~${k(Math.round((sys + text) / 3))} tokens), ${imgs.length} image${imgs.length === 1 ? "" : "s"}${imgs.length ? ` (${imgs.map((i) => `${Math.round((i.data?.length ?? 0) / 1024)} KB`).join(", ")})` : ""}`
+}
 
 /** Every model call goes through here: per-run and per-day limits, output cap, timeout, no hidden SDK retries.
  *  The ledger is bumped before the call so a crash or timeout still counts. */
@@ -53,34 +66,67 @@ export async function guardedGenerate<T extends GenArgs>(args: T, tag: string): 
   l.calls++
   writeFileSync(ANIMATE_USAGE_JSON, JSON.stringify(l))
   console.log(`-> ${tag} (call ${runCalls}/${MAX_RUN_CALLS}, today ${l.calls}/${MAX_DAY_CALLS}) ...`)
+  console.log(`   request: ${MODEL}, reasoning ${REASONING}, output cap ${k(MAX_OUTPUT_TOKENS)}, timeout ${secs(TIMEOUT_MS)}; ${describeRequest(args)}`)
   const t0 = Date.now()
+  // Running clock: rewritten in place every second on a terminal, a line every 15 s otherwise (logs, pipes).
+  const tty = process.stdout.isTTY
+  const clock = setInterval(() => {
+    const t = secs(Date.now() - t0)
+    if (tty) process.stdout.write(`\r\x1b[2K   waiting for the model ${t}`)
+    else if (Math.round((Date.now() - t0) / 1000) % 15 === 0) console.log(`   waiting for the model ${t}`)
+  }, 1000)
+  const stopClock = () => {
+    clearInterval(clock)
+    if (tty) process.stdout.write("\r\x1b[2K")
+  }
   try {
-    const res = await generateText({ ...args, maxRetries: 0, maxOutputTokens: MAX_OUTPUT_TOKENS, abortSignal: AbortSignal.timeout(TIMEOUT_MS) })
-    const inT = res.usage.inputTokens ?? 0, outT = res.usage.outputTokens ?? 0
+    const res = await generateText({ ...args, maxRetries: 0, reasoning: REASONING, maxOutputTokens: MAX_OUTPUT_TOKENS, abortSignal: AbortSignal.timeout(TIMEOUT_MS) })
+    stopClock()
+    const u = res.usage
+    const inT = u.inputTokens ?? 0, outT = u.outputTokens ?? 0
+    const think = u.outputTokenDetails?.reasoningTokens ?? 0, text = u.outputTokenDetails?.textTokens
+    const { noCacheTokens: fresh, cacheReadTokens: cacheRead = 0, cacheWriteTokens: cacheWrite = 0 } = u.inputTokenDetails ?? {}
     l.tokens += inT + outT
     run.inTok += inT
     run.outTok += outT
+    run.thinkTok += think
+    run.cacheReadTok += cacheRead ?? 0
     writeFileSync(ANIMATE_USAGE_JSON, JSON.stringify(l))
-    console.log(`<- ${tag}: ${secs(Date.now() - t0)}, ${k(inT)} in / ${k(outT)} out tokens (today ${k(l.tokens)}/${k(MAX_DAY_TOKENS)}), finish: ${res.finishReason}`)
+    const ms = Date.now() - t0
+    console.log(`<- ${tag}: ${secs(ms)}, finish: ${res.finishReason}${res.warnings?.length ? `, warnings: ${JSON.stringify(res.warnings)}` : ""}`)
+    console.log(`   input  ${k(inT)}: ${fresh === undefined ? "n/a" : `${k(fresh)} uncached`}, ${k(cacheRead ?? 0)} cache read, ${k(cacheWrite ?? 0)} cache write`)
+    console.log(`   output ${k(outT)}: ${text === undefined ? "n/a" : `${k(text)} answer`}, ${k(think)} thinking; ${outT ? Math.round(outT / (ms / 1000)) : 0} tokens/s; answer ${k(res.text.length)} chars`)
+    console.log(`   today ${l.calls}/${MAX_DAY_CALLS} calls, ${k(l.tokens)}/${k(MAX_DAY_TOKENS)} tokens`)
+    if (process.env.ANIMATE_USAGE) console.log(`   raw usage: ${JSON.stringify(u.raw)}`)
     return res
   } catch (e) {
+    stopClock()
     console.log(`<- ${tag}: failed after ${secs(Date.now() - t0)}`)
     throw e
   } finally {
+    clearInterval(clock)
     run.modelMs += Date.now() - t0
   }
 }
 
-export const SYSTEM = `Your task is to generate a Lottie animation for a static emoji.
-The emoji is given to you as a static SVG file (viewBox 0 0 128 128) and you should return a Lottie JSON animation that animates the emoji.
+const SYSTEM = `You are a motion designer for tiny looping emoji animations (like Google's animated Noto emoji).
+You do NOT draw: the emoji art is fixed and given as numbered parts (p0, p1, ... in back-to-front order,
+128x128 grid, y down). You only decide how parts move.
 
-- Make an animation that fits the emoji and what it depicts: lively, readable at small size. You decide what moves; you
-  may change, add or remove shapes as long as everything relates to the original emoji.
-- The first frame or the last frame must show the static emoji exactly as given.
-- Use a 128x128 canvas (w = h = 128) so SVG coordinates can be used as they are. 60 fps, 60-240 frames.
-- Shape layers only, no expressions, images or precomps.
-
-Return only the Lottie JSON.`
+Rules
+- Loop length 60-240 frames at 60 fps; typical 90-150. The loop must be seamless: every track ends where it starts.
+- Frame 0 is the poster frame: every group must be at rest there (rotation 0, move [0,0], scale [1,1], opacity 1).
+- Motion must suit the thing the emoji depicts (a flame flickers, a pendulum swings, a bell rings, a drop falls, a
+  heart pulses). Keep it charming and subtle: rotations under ~15deg, moves under ~6 grid units, scales 0.9-1.12.
+- Everything must stay inside the 128x128 grid; parts must not tear apart (parts that touch should share a group or
+  move by matching amounts). Put the pivot where the real object would hinge (a hanging thing: its attachment point;
+  a bouncing thing: its bottom centre).
+- Group parts that move together (list their ids); parts you leave out stay still. Prefer 1-4 groups. Do not
+  animate every part separately unless it clearly helps.
+- Optional extras (max 6): small circles/4-point stars (sparkles, bubbles, dust) with their own tracks, for an
+  accent. Use colours from the emoji's palette or a soft white/yellow. Skip extras if they add nothing.
+- Keyframes: each track needs at least 2 keys {t, v}; t in frames. v shapes: rotation [deg], move [dx,dy],
+  scale [sx,sy], opacity [0..1].`
 
 export function describe(scene: Scene): string {
   const col = (p: Scene["parts"][number]["fill"]) =>
@@ -92,39 +138,27 @@ export function describe(scene: Scene): string {
 
 type Img = { data: Buffer; label: string }
 
-function parseDoc(text: string): unknown {
-  const i = text.indexOf("{"), j = text.lastIndexOf("}")
-  if (i < 0 || j < i) throw new Error("the answer contained no JSON object")
-  return JSON.parse(text.slice(i, j + 1))
-}
-
-export const userText = (emoji: string, svg: string, text: string, context?: string) =>
-  `Emoji: ${emoji}\n\n${context ? `${context}\n\n` : ""}Static SVG:\n${svg}\n\n${text}`
-
-async function ask(tag: string, emoji: string, svg: string, images: Img[], text: string, context?: string): Promise<unknown> {
+async function ask(tag: string, emoji: string, scene: Scene, images: Img[], text: string, context?: string): Promise<z.infer<typeof Spec>> {
   const res = await guardedGenerate({
     model: MODEL,
     system: SYSTEM,
+    output: Output.object({ schema: Spec }),
     messages: [{
       role: "user",
       content: [
-        { type: "text", text: userText(emoji, svg, text, context) },
+        { type: "text", text: `Emoji: ${emoji}\n\n${context ? `${context}\n\n` : ""}Parts:\n${describe(scene)}\n\n${text}` },
         ...images.flatMap((i) => [{ type: "text" as const, text: i.label }, { type: "file" as const, data: i.data, mediaType: "image/png" }]),
       ],
     }],
   }, tag)
-  return parseDoc(res.text)
+  return res.output
 }
 
-type Fix = { doc: unknown; errors: string[] }
-const fixNote = (fix?: Fix) =>
-  fix ? `\n\nYour previous answer was rejected:\n${JSON.stringify(fix.doc)}\n\nProblems:\n- ${fix.errors.join("\n- ")}\nReturn the full corrected JSON.` : ""
+export const design = (emoji: string, scene: Scene, staticImg: Buffer, context?: string) =>
+  ask("design", emoji, scene, [{ data: staticImg, label: "The static emoji:" }], "Design the motion spec for this emoji.", context)
 
-export const DESIGN_TASK = "Animate this emoji."
-
-export const design = (emoji: string, svg: string, staticImg: Buffer, context?: string, fix?: Fix) =>
-  ask(`design${fix ? " (fix)" : ""}`, emoji, svg, [{ data: staticImg, label: "The static emoji:" }], `${DESIGN_TASK}${fixNote(fix)}`, context)
-
-export const refine = (emoji: string, svg: string, doc: unknown, sheet: Buffer, context?: string, fix?: Fix) =>
-  ask(`refine${fix ? " (fix)" : ""}`, emoji, svg, [{ data: sheet, label: "Original (top-left) and frames of your animation, evenly spaced over its length:" }],
-    `Here is the animation you produced:\n${JSON.stringify(doc)}\n\nReview the frames and improve the animation where it is broken, weak or overdone. Return the full JSON.${fixNote(fix)}`, context)
+export const refine = (emoji: string, scene: Scene, spec: z.infer<typeof Spec>, sheet: Buffer, context?: string) =>
+  ask("refine", emoji, scene, [{ data: sheet, label: "Original (top-left) and frames of your animation, evenly spaced over the loop:" }],
+    `Here is the spec you produced:\n${JSON.stringify(spec)}\n\nReview the frames critically: parts tearing apart or leaving gaps, motion leaving the 128 grid,
+wrong pivots, motion too weak/violent, extras that look odd or hide the emoji. Return the improved full spec
+(identical if it is already good).`, context)
