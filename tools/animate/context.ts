@@ -2,10 +2,10 @@
 // numbered SVG part is (a vision pass over every part rendered on its own).
 import { readFileSync } from "node:fs"
 
-import { generateText, Output } from "ai"
+import { Output } from "ai"
 import { z } from "zod"
 
-import { describe, MODEL } from "./llm.ts"
+import { describe, guardedGenerate, MODEL } from "./llm.ts"
 import { partsPng, staticPng } from "./render.ts"
 import type { Part, Scene } from "./svg.ts"
 
@@ -59,7 +59,7 @@ const Labels = z.object({
 export async function labelParts(emoji: string, scene: Scene, staticBody: string, meta: string): Promise<{ id: string; role: string; note: string | null }[]> {
   const ghost = scene.parts.map((p) => partPaths(p, 0.12)).join("")
   const sheet = await partsPng(scene.parts.map((p) => ({ body: ghost + partPaths(p), label: p.id })))
-  const res = await generateText({
+  const res = await guardedGenerate({
     model: MODEL,
     system: "You identify the parts of a flat emoji illustration so a motion designer can animate them. Be concrete and brief.",
     output: Output.object({ schema: Labels }),
@@ -71,8 +71,7 @@ export async function labelParts(emoji: string, scene: Scene, staticBody: string
         { type: "file", data: sheet, mediaType: "image/png" },
       ],
     }],
-  })
-  if (process.env.ANIMATE_USAGE) console.log(`usage: ${res.usage.inputTokens} in / ${res.usage.outputTokens} out (labels)`)
+  }, "label parts")
   return res.output.parts
 }
 

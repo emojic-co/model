@@ -90,3 +90,4 @@ play/*.keystore
 tmp.txt
 
 *.zip
+.animate-usage.json
