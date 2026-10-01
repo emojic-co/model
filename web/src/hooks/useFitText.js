@@ -24,12 +24,18 @@ export function useFitText(text, { min = 5, max = 20, key } = {}) {
     fit()
     const ro = new ResizeObserver(fit)
     ro.observe(el)
-    if (document.fonts && document.fonts.status !== 'loaded') {
-      document.fonts.ready.then(() => {
-        if (ref.current) fit()
-      })
+    // Style fonts load lazily on first use, after this fit ran with the fallback font's
+    // metrics; re-fit whenever any font finishes loading.
+    const onFonts = () => {
+      if (ref.current) fit()
     }
-    return () => ro.disconnect()
+    const fonts = document.fonts
+    fonts?.addEventListener?.('loadingdone', onFonts)
+    fonts?.ready?.then(onFonts)
+    return () => {
+      ro.disconnect()
+      fonts?.removeEventListener?.('loadingdone', onFonts)
+    }
   }, [text, min, max, key])
 
   return ref
