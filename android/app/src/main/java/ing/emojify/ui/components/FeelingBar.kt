@@ -64,8 +64,9 @@ private fun FeelingSwatch(feeling: String, isActive: Boolean, swatchSize: androi
         letterSpacing = style.letterSpacingEm?.let { TextUnit(it, TextUnitType.Em) } ?: TextUnit.Unspecified,
         maxWidthPx = innerPx,
         maxHeightPx = innerPx,
-        minSp = 9f,
-        maxSp = 18f,
+        // Hebrew glyphs run smaller than Latin at the same size.
+        minSp = if (strings.lang == "he") 11f else 9f,
+        maxSp = if (strings.lang == "he") 23f else 18f,
     )
     Box(
         contentAlignment = Alignment.Center,

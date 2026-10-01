@@ -10,7 +10,7 @@ class I18nTest {
     private val en = Strings("en", table)
     private val he = Strings("he", table)
 
-    private fun placeholders(s: String) = Regex("\\{(\\w+)}").findAll(s).map { it.groupValues[1] }.sorted().toList()
+    private fun placeholders(s: String) = Regex("\\{(\\w+)\\}").findAll(s).map { it.groupValues[1] }.sorted().toList()
 
     @Test
     fun `en and he have identical keys and placeholders`() {

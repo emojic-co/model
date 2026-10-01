@@ -1089,3 +1089,14 @@ html[dir='rtl'] .keys dd,
 html[dir='rtl'] .contrast-toggle,
 html[dir='rtl'] .input-meta,
 html[dir='rtl'] .toast { direction: rtl; }
+
+/* Hebrew glyphs run smaller than Latin at the same size; scale the swatch labels up. */
+html[lang='he'] .feeling-bar button {
+  font-size: 3cqw;
+}
+
+@media (max-width: 56.25em) {
+  html[lang='he'] .feeling-bar button {
+    font-size: 5.6cqw;
+  }
+}
