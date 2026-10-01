@@ -10,7 +10,7 @@ import { cac } from "cac"
 
 import { ANDROID_ASSETS_DIR, NOTO_LOTTIE_DIR } from "../../files.ts"
 import { resolveEmojiSvg } from "../cli/emoji-svg.ts"
-import { refreshRows, stemOf, writeRows } from "./csv.ts"
+import { indexKeys, refreshRows, stemOf, writeRows } from "./csv.ts"
 import { buildLottie } from "./lottie.ts"
 import { design, MODEL, refine } from "./llm.ts"
 import { writePage } from "./page.ts"
@@ -57,9 +57,7 @@ cli
       if (o.dry) return
       const json = JSON.stringify(lottie)
       const idx: Record<string, string> = JSON.parse(readFileSync(`${NOTO_LOTTIE_DIR}/index.json`, "utf8"))
-      idx[row.emoji] = stem
-      idx[row.emoji.replace(/️/g, "")] = stem
-      idx[`${row.emoji.replace(/️/g, "")}️`] ??= stem
+      for (const k of indexKeys(row.emoji)) idx[k] ??= stem
       const sorted = JSON.stringify(Object.fromEntries(Object.entries(idx).sort(([a], [b]) => a.localeCompare(b))))
       for (const dir of [NOTO_LOTTIE_DIR, `${ANDROID_ASSETS_DIR}/noto`]) {
         writeFileSync(`${dir}/${stem}.json`, json)

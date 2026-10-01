@@ -42,6 +42,12 @@ export function writeRows(rows: Row[]): void {
 export const stemOf = (emoji: string) =>
   [...emoji].map((c) => c.codePointAt(0)!).filter((cp) => cp !== 0xfe0f).map((cp) => cp.toString(16)).join("_")
 
+/** index.json keys for an emoji: as labelled, without VS16, and with VS16. */
+export const indexKeys = (emoji: string): string[] => {
+  const bare = emoji.replace(/\uFE0F/g, "")
+  return [...new Set([emoji, bare, `${bare}\uFE0F`])]
+}
+
 export function measure(emoji: string): Pick<Row, "complexity" | "parts" | "nodes" | "unsupported"> {
   const svg = resolveEmojiSvg(emoji)
   if (!svg) return { complexity: "", parts: "", nodes: "", unsupported: "no-svg" }

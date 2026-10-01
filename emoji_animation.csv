@@ -114,7 +114,7 @@ emoji,codepoints,complexity,parts,nodes,unsupported,lottie,model,animated_at,not
 🥚,1f95a,11,9,39,,,,,
 🪪,1faaa,11.1,6,72,,,,,
 🧢,1f9e2,11.2,7,53,,,,,
-🐶,1f436,11.3,7,86,,,,,
+🐶,1f436,11.3,7,86,,1f436,anthropic/claude-opus-5.5,2026-10-01,
 🏅,1f3c5,11.4,8,67,,,,,
 🧴,1f9f4,11.4,8,67,,,,,
 🔙,1f519,11.5,4,150,,,,,
