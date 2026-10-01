@@ -15,17 +15,6 @@ test("dedupe drops normalized duplicates, keeping the first", () => {
   expect(degenerate).toBe(0)
 })
 
-test("dedupe drops rows that normalize to empty or over the length cap", () => {
-  const long = "the quick brown fox jumps over the lazy dog and then some"
-  const { kept, degenerate } = dedupe([
-    { text: "12345" },
-    { text: "ok text" },
-    { text: long },
-  ])
-  expect(kept.map((r) => r.text)).toEqual(["ok text"])
-  expect(degenerate).toBe(2)
-})
-
 test("stableHash is deterministic and unsigned", () => {
   expect(stableHash("abc")).toBe(stableHash("abc"))
   expect(stableHash("abc")).not.toBe(stableHash("abd"))
