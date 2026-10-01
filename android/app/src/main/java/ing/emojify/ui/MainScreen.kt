@@ -63,6 +63,7 @@ import ing.emojify.model.ColorCountPrefs
 import ing.emojify.model.DebouncePrefs
 import ing.emojify.model.EmojiCountPrefs
 import ing.emojify.model.EmojiScore
+import ing.emojify.model.LocalStrings
 import ing.emojify.model.Meta
 import ing.emojify.ui.components.SWATCH_MAX_SIZE
 import ing.emojify.ui.components.SWATCH_MIN_SIZE
@@ -109,6 +110,7 @@ private data class Override(val emoji: String? = null, val feeling: String? = nu
 
 @Composable
 fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit) {
+    val strings = LocalStrings.current
     var text by remember { mutableStateOf("") }
     var emojiTop by remember { mutableStateOf<List<EmojiScore>>(emptyList()) }
     var predictedFeeling by remember { mutableStateOf<String?>(null) }
@@ -247,7 +249,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                                 throw e
                             } catch (e: Exception) {
                                 android.util.Log.e("emojify", "${format.label} export failed", e)
-                                android.widget.Toast.makeText(context, "Export failed", android.widget.Toast.LENGTH_SHORT).show()
+                                android.widget.Toast.makeText(context, strings.t("main.exportFailed"), android.widget.Toast.LENGTH_SHORT).show()
                             } finally {
                                 exportPose = null
                                 exporting = null
@@ -269,7 +271,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
             val clearButton: @Composable () -> Unit = {
                 if (text.isNotEmpty()) {
                     IconButton(onClick = { text = "" }, enabled = idle) {
-                        Icon(Icons.Default.Clear, contentDescription = "Clear text")
+                        Icon(Icons.Default.Clear, contentDescription = strings.t("main.clearText"))
                     }
                 }
             }
@@ -278,7 +280,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                 value = text,
                 onValueChange = { text = it },
                 enabled = idle,
-                placeholder = { Text("type at least 3 characters…") },
+                placeholder = { Text(strings.t("input.placeholder")) },
                 textStyle = LocalTextStyle.current.copy(textDirection = TextDirection.Content),
                 leadingIcon = if (isHebrew) clearButton else null,
                 trailingIcon = if (isHebrew) null else clearButton,
@@ -326,7 +328,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                     }
                 }
                 Text(
-                    "made with ❤️ by Gilad",
+                    strings.t("footer.madeBy"),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -339,7 +341,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
                 .align(Alignment.BottomStart)
                 .windowInsetsPadding(WindowInsets.safeDrawing.exclude(WindowInsets.ime)),
         ) {
-            Icon(Icons.Default.Settings, contentDescription = "Settings")
+            Icon(Icons.Default.Settings, contentDescription = strings.t("main.settings"))
         }
     }
 }

@@ -69,6 +69,7 @@ data class StyleFile(
     val shimmer: ShimmerSpec? = null,
     val clip: ClipSpec? = null,
     val fonts: FontsFile? = null,
+    val i18n: Map<String, Map<String, String>>? = null,
     val patterns: Map<String, String>,
     val styles: Map<String, StyleEntry>,
 )

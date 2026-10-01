@@ -1,9 +1,10 @@
 import { resolveFeeling } from '../feelings'
+import { useI18n } from '../i18n'
 import { patternLayers, patternSizeCss } from '../patterns'
 
 const SWATCH_PATTERN_TINT = '#33312e'
 
-function FeelingButton({ feeling, active, style, onPick }) {
+function FeelingButton({ feeling, label, active, style, onPick }) {
   return (
     <button
       type="button"
@@ -11,7 +12,7 @@ function FeelingButton({ feeling, active, style, onPick }) {
       style={style}
       onClick={() => onPick(feeling)}
     >
-      {feeling}
+      {label}
     </button>
   )
 }
@@ -24,6 +25,7 @@ export function FeelingBar({
   hidden = false,
   count = 5,
 }) {
+  const { lang, feeling: feelingLabel } = useI18n()
   const items = ready && feelings.length ? feelings : null
   return (
     <div className="feeling-bar-container">
@@ -33,7 +35,7 @@ export function FeelingBar({
       >
         {items
           ? items.map((f) => {
-            const r = resolveFeeling(f)
+            const r = resolveFeeling(f, lang)
             const layers = patternLayers(f, SWATCH_PATTERN_TINT)
             const style = {
               fontFamily: r.font,
@@ -45,6 +47,7 @@ export function FeelingBar({
               <FeelingButton
                 key={f}
                 feeling={f}
+                label={feelingLabel(f)}
                 active={f === active}
                 style={style}
                 onPick={onPick}

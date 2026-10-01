@@ -9,15 +9,19 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import ing.emojify.model.LanguagePrefs
+import ing.emojify.model.LocalStrings
 import ing.emojify.model.Meta
 import ing.emojify.model.ModelUpdatePrefs
 import ing.emojify.model.ModelUpdater
 import ing.emojify.model.OnnxPredictor
+import ing.emojify.model.Strings
 import ing.emojify.model.Styles
 import ing.emojify.model.StyleUpdater
 import ing.emojify.model.parseStyleFile
@@ -67,7 +71,11 @@ class MainActivity : ComponentActivity() {
         } else {
             null
         }
-        Styles.init(if (cachedStyle != null && cachedStyle.exportedAt > bundledStyle.exportedAt) cachedStyle else bundledStyle)
+        val chosenStyle = if (cachedStyle != null && cachedStyle.exportedAt > bundledStyle.exportedAt) cachedStyle else bundledStyle
+        Styles.init(chosenStyle)
+        // A cached style.yml from before the i18n section existed falls back to the bundled strings.
+        val i18n = (chosenStyle.i18n ?: bundledStyle.i18n)!!
+        val langPrefs = getSharedPreferences(LanguagePrefs.FILE, Context.MODE_PRIVATE)
 
         val prefs = getSharedPreferences(ModelUpdatePrefs.FILE, Context.MODE_PRIVATE)
         val wifiOnly = prefs.getBoolean(ModelUpdatePrefs.KEY_WIFI_ONLY, ModelUpdatePrefs.DEFAULT_WIFI_ONLY)
@@ -77,12 +85,30 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    var showSettings by remember { mutableStateOf(false) }
-                    BackHandler(enabled = showSettings) { showSettings = false }
-                    if (showSettings) {
-                        SettingsScreen(onBack = { showSettings = false })
-                    } else {
-                        MainScreen(meta = meta, predictor = predictor, onSettingsClick = { showSettings = true })
+                    var lang by remember {
+                        mutableStateOf(
+                            LanguagePrefs.resolve(
+                                langPrefs.getString(LanguagePrefs.KEY_LANG, null),
+                                java.util.Locale.getDefault().language,
+                            ),
+                        )
+                    }
+                    val strings = remember(lang) { Strings(lang, i18n) }
+                    CompositionLocalProvider(LocalStrings provides strings) {
+                        var showSettings by remember { mutableStateOf(false) }
+                        BackHandler(enabled = showSettings) { showSettings = false }
+                        if (showSettings) {
+                            SettingsScreen(
+                                onBack = { showSettings = false },
+                                lang = lang,
+                                onLangChange = {
+                                    lang = it
+                                    langPrefs.edit().putString(LanguagePrefs.KEY_LANG, it).apply()
+                                },
+                            )
+                        } else {
+                            MainScreen(meta = meta, predictor = predictor, onSettingsClick = { showSettings = true })
+                        }
                     }
                 }
             }

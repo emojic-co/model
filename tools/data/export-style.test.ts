@@ -9,11 +9,12 @@ import { buildStyleFile } from "./export-style.ts"
 test("style.yml matches what web/src/feelings.js and patterns.js currently produce", () => {
   const fresh = buildStyleFile()
   const onDisk = parse(readFileSync(STYLE_YML, "utf-8"))
-  expect({ global: onDisk.global, textAnimations: onDisk.textAnimations, shimmer: onDisk.shimmer, clip: onDisk.clip, patterns: onDisk.patterns, styles: onDisk.styles }).toEqual({
+  expect({ global: onDisk.global, textAnimations: onDisk.textAnimations, shimmer: onDisk.shimmer, clip: onDisk.clip, i18n: onDisk.i18n, patterns: onDisk.patterns, styles: onDisk.styles }).toEqual({
     global: fresh.global,
     textAnimations: fresh.textAnimations,
     shimmer: fresh.shimmer,
     clip: fresh.clip,
+    i18n: fresh.i18n,
     patterns: fresh.patterns,
     styles: fresh.styles,
   })
@@ -26,6 +27,7 @@ test("the android asset copy is in sync with the web copy", () => {
   expect(android.textAnimations).toEqual(web.textAnimations)
   expect(android.shimmer).toEqual(web.shimmer)
   expect(android.clip).toEqual(web.clip)
+  expect(android.i18n).toEqual(web.i18n)
   expect(android.patterns).toEqual(web.patterns)
   expect(android.styles).toEqual(web.styles)
 })
@@ -34,4 +36,10 @@ test("every style used by the model has an entry in style.yml", () => {
   const built = buildStyleFile()
   for (const s of STYLES) expect(built.styles[s]).toBeDefined()
   expect(built.styles.Neutral).toBeDefined()
+})
+
+test("style.yml carries both languages with identical keys", () => {
+  const built = buildStyleFile()
+  expect(Object.keys(built.i18n).sort()).toEqual(["en", "he"])
+  expect(Object.keys(built.i18n.he).sort()).toEqual(Object.keys(built.i18n.en).sort())
 })

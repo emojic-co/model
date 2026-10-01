@@ -3,10 +3,12 @@ import { CARD_CSS_VARS } from '../hooks/useCardImage'
 import { CardCanvas } from './CardCanvas'
 import { resolveFeeling } from '../feelings'
 import { toCssOklab } from '../model'
+import { useI18n } from '../i18n'
 
 const FADE_MS = 150
 
 export function Card({ text, emoji, feeling, lang, colors, loading, onJpg, onGif, onMp4, exporting, progress = 0, onCancel, ref }) {
+  const { t } = useI18n()
   const [shown, setShown] = useState({ emoji, feeling, lang })
   const [phase, setPhase] = useState('in')
   const prev = useRef({ emoji, feeling, lang })
@@ -61,20 +63,20 @@ export function Card({ text, emoji, feeling, lang, colors, loading, onJpg, onGif
       <div className="share-bar">
         {exporting ? (
           <>
-            <progress className="share-progress" max="1" value={progress} aria-label={`Making ${exporting}`} />
-            <button type="button" aria-label="Cancel export" onClick={onCancel}>
-              cancel
+            <progress className="share-progress" max="1" value={progress} aria-label={t('card.making', { format: exporting })} />
+            <button type="button" aria-label={t('card.cancelAria')} onClick={onCancel}>
+              {t('card.cancel')}
             </button>
           </>
         ) : (
           <>
-            <button type="button" aria-label="Copy card as jpg" onClick={onJpg}>
+            <button type="button" aria-label={t('card.copyJpg')} onClick={onJpg}>
               jpg
             </button>
-            <button type="button" aria-label="Save card as gif" onClick={onGif} disabled={!onGif}>
+            <button type="button" aria-label={t('card.saveGif')} onClick={onGif} disabled={!onGif}>
               gif
             </button>
-            <button type="button" aria-label="Save card as mp4" onClick={onMp4} disabled={!onMp4}>
+            <button type="button" aria-label={t('card.saveMp4')} onClick={onMp4} disabled={!onMp4}>
               mp4
             </button>
           </>

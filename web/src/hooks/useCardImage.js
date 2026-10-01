@@ -260,25 +260,25 @@ async function render(data) {
   })
 }
 
-export function useCardImage(cardData, showToast) {
+export function useCardImage(cardData, showToast, t) {
   return useCallback(async () => {
     if (!cardData) {
-      showToast('nothing to copy yet')
+      showToast(t('toast.nothing'))
       return
     }
     try {
       const blob = await render(cardData)
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-      showToast('copied to clipboard ✓')
+      showToast(t('toast.copied'))
     } catch (err) {
       console.error(err)
-      showToast('copy failed')
+      showToast(t('toast.copyFailed'))
     }
-  }, [cardData, showToast])
+  }, [cardData, showToast, t])
 }
 
 // GIF/MP4 export with progress and cancel. `busy` is the format being made (null when idle).
-export function useCardExport(cardData, showToast) {
+export function useCardExport(cardData, showToast, t) {
   const [state, setState] = useState({ busy: null, progress: 0 })
   const abort = useRef(null)
 
@@ -295,19 +295,19 @@ export function useCardExport(cardData, showToast) {
           onProgress: (progress) => setState({ busy: format, progress }),
         })
         downloadBlob(blob, `emojify.${format}`)
-        showToast(`${format} saved ✓`)
+        showToast(t('toast.saved', { format }))
       } catch (err) {
-        if (err?.name === 'AbortError') showToast('cancelled')
+        if (err?.name === 'AbortError') showToast(t('toast.cancelled'))
         else {
           console.error(err)
-          showToast(`${format} failed`)
+          showToast(t('toast.failed', { format }))
         }
       } finally {
         abort.current = null
         setState({ busy: null, progress: 0 })
       }
     },
-    [cardData, showToast],
+    [cardData, showToast, t],
   )
 
   const cancel = useCallback(() => abort.current?.abort(), [])

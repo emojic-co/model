@@ -1,14 +1,17 @@
+import { useI18n } from '../i18n'
+
 const HINTS = [
-  { keys: ['↑', '↓'], label: 'emoji' },
-  { keys: ['Alt', '↑', '↓'], label: 'color' },
-  { keys: ['Ctrl', '↑', '↓'], label: 'feeling' },
-  { keys: ['Enter'], label: 'copy image' },
-  { keys: ['Esc'], label: 'clear text' },
+  { keys: ['↑', '↓'], label: 'keys.emoji' },
+  { keys: ['Alt', '↑', '↓'], label: 'keys.color' },
+  { keys: ['Ctrl', '↑', '↓'], label: 'keys.feeling' },
+  { keys: ['Enter'], label: 'keys.copy' },
+  { keys: ['Esc'], label: 'keys.clear' },
 ]
 
 export function KeyHints() {
+  const { t } = useI18n()
   return (
-    <aside className="keys" aria-label="Keyboard shortcuts">
+    <aside className="keys" aria-label={t('keys.aria')}>
       <dl>
         {HINTS.map((h) => (
           <div key={h.label}>
@@ -17,7 +20,7 @@ export function KeyHints() {
                 <kbd key={k}>{k}</kbd>
               ))}
             </dt>
-            <dd>{h.label}</dd>
+            <dd>{t(h.label)}</dd>
           </div>
         ))}
       </dl>

@@ -30,6 +30,7 @@ export const ANDROID_ASSETS_DIR = "android/app/src/main/assets"
 export const TEXT_ANIMATIONS_YML = `${WEB_SRC_DIR}/textAnimations.yml`
 export const SHIMMERS_YML = `${WEB_SRC_DIR}/shimmers.yml`
 export const CLIP_YML = `${WEB_SRC_DIR}/clip.yml`
+export const I18N_YML = `${WEB_SRC_DIR}/i18n.yml`
 export const STYLE_YML = `${WEB_PUBLIC_DIR}/style.yml`
 export const NOTO_LOTTIE_DIR = `${WEB_PUBLIC_DIR}/noto`
 export const EMOJI_ANIMATION_CSV = "emoji_animation.csv"

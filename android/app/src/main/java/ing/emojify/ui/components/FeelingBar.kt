@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ing.emojify.R
+import ing.emojify.model.LocalStrings
 import ing.emojify.model.resolveFeeling
 
 private val SWATCH_BG = Color(0xFFE7E4DF)
@@ -46,9 +47,11 @@ private val feelingFontProvider = GoogleFont.Provider(
 
 @Composable
 private fun FeelingSwatch(feeling: String, isActive: Boolean, swatchSize: androidx.compose.ui.unit.Dp, onPick: (String) -> Unit) {
-    val style = resolveFeeling(feeling)
+    val strings = LocalStrings.current
+    val style = resolveFeeling(feeling, strings.lang)
     val fontFamily = FontFamily(Font(googleFont = GoogleFont(style.fontName), fontProvider = feelingFontProvider))
-    val displayText = if (style.uppercase) feeling.uppercase() else feeling
+    val label = strings.feeling(feeling)
+    val displayText = if (style.uppercase) label.uppercase() else label
     val density = LocalDensity.current
     val innerPx = with(density) { (swatchSize - SWATCH_PADDING * 2).toPx() }.toInt()
     val patternTileWidthPx = with(density) { (swatchSize * style.patternWidthRatio).toPx() }.toInt().coerceAtLeast(1)

@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ing.emojify.R
+import ing.emojify.model.LocalStrings
 import ing.emojify.model.Palette
 import ing.emojify.model.Styles
 import ing.emojify.model.cardDisplayText
@@ -330,7 +331,7 @@ fun Card(
                         trackColor = textColor.copy(alpha = 0.25f),
                         modifier = Modifier.align(Alignment.CenterVertically).width(140.dp),
                     )
-                    ShareButton(label = "cancel", enabled = true, busy = false, onClick = onCancelExport, ink = textColor)
+                    ShareButton(label = LocalStrings.current.t("card.cancel"), enabled = true, busy = false, onClick = onCancelExport, ink = textColor)
                 }
             }
         }

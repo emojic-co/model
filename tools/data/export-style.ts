@@ -2,7 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname } from "node:path"
 import { parse, stringify } from "yaml"
 
-import { ANDROID_ASSETS_DIR, CLIP_YML, SHIMMERS_YML, STYLE_YML, TEXT_ANIMATIONS_YML } from "../../files.ts"
+import { ANDROID_ASSETS_DIR, CLIP_YML, I18N_YML, SHIMMERS_YML, STYLE_YML, TEXT_ANIMATIONS_YML } from "../../files.ts"
 import { CLUSTERS, FEELINGS } from "../../web/src/feelings.js"
 import { MAX_OPACITY, PATTERN_FNS, PATTERN_NAMES, REFERENCE_PX } from "../../web/src/patterns.js"
 import { FONTS } from "../../web/src/scriptFonts.js"
@@ -66,6 +66,7 @@ export function buildStyleFile() {
     textAnimations: parse(readFileSync(TEXT_ANIMATIONS_YML, "utf-8")),
     shimmer: parse(readFileSync(SHIMMERS_YML, "utf-8")),
     clip: parse(readFileSync(CLIP_YML, "utf-8")),
+    i18n: parse(readFileSync(I18N_YML, "utf-8")),
     fonts: FONTS,
     patterns,
     styles,

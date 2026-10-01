@@ -53,6 +53,7 @@ WEB_SRC_DIR = Path("web/src")
 TEXT_ANIMATIONS_YML = WEB_SRC_DIR / "textAnimations.yml"
 SHIMMERS_YML = WEB_SRC_DIR / "shimmers.yml"
 CLIP_YML = WEB_SRC_DIR / "clip.yml"
+I18N_YML = WEB_SRC_DIR / "i18n.yml"
 ANDROID_ASSETS_DIR = Path("android/app/src/main/assets")
 REPORT_DIR = Path("report")
 RUNS_DIR = Path("runs")

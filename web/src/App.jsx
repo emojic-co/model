@@ -13,6 +13,7 @@ import { KeyHints } from './components/KeyHints'
 import { mp4Supported, useCardExport, useCardImage } from './hooks/useCardImage'
 import { Toast } from './components/Toast'
 import { useMediaQuery } from './hooks/useMediaQuery'
+import { useI18n, LANGS, LANG_NAMES } from './i18n'
 
 const MIN_CHARS = 3
 // Idle time after the last keystroke before the card (and prediction) update.
@@ -59,6 +60,7 @@ function formatDate(iso) {
 
 export function App() {
   const { meta, config, ready, predict } = useOnnx()
+  const { lang: uiLang, setLang: setUiLang, t } = useI18n()
   const mobile = useMediaQuery('(max-width: 56.25em)')
   const emojiSlots = mobile ? 9 : 10
   const feelingCount = mobile ? 4 : 5
@@ -178,8 +180,8 @@ export function App() {
           colors,
         }
       : null
-  const copyCard = useCardImage(cardData, showToast)
-  const exporter = useCardExport(cardData, showToast)
+  const copyCard = useCardImage(cardData, showToast, t)
+  const exporter = useCardExport(cardData, showToast, t)
   const exporting = !!exporter.busy
   const exportingRef = useRef(false)
   exportingRef.current = exporting
@@ -256,17 +258,17 @@ export function App() {
             autoFocus
             ref={inputRef}
             maxLength={maxLen || undefined}
-            placeholder="type at least 3 characters…"
+            placeholder={t('input.placeholder')}
             value={text}
             disabled={exporting}
             onChange={(e) => setText(e.target.value)}
           />
           <div className="input-meta">
             <p className={'warn' + (text.trim() && tooShort ? '' : ' is-hidden')}>
-              text is too short — showing a default card
+              {t('warn.tooShort')}
             </p>
             <span className={'timing' + (scores ? '' : ' is-hidden')}>
-              model ran in {formatMs(scores?.ms)}
+              {t('timing.ran', { ms: formatMs(scores?.ms) })}
             </span>
             <div className={'counter' + (maxLen && text.length >= maxLen ? ' full' : '')}>
               {text.length}
@@ -319,13 +321,13 @@ export function App() {
                 checked={contrastFix}
                 onChange={(e) => setContrastFix(e.target.checked)}
               />
-              fix low-contrast palettes
+              {t('contrast.label')}
             </label>
           </div>
           <footer className="footer">
             <div className="footer-col">
               <span>
-                model updated <span>{formatDate(meta?.exported_at)}</span>
+                {t('footer.modelUpdated', { date: formatDate(meta?.exported_at) })}
               </span>
               <span>
                 <a
@@ -333,24 +335,36 @@ export function App() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  about this model
+                  {t('footer.about')}
                 </a>
               </span>
               <span>
                 <a href="/emoji-coverage.html" target="_blank" rel="noopener noreferrer">
-                  emoji coverage
+                  {t('footer.coverage')}
                 </a>
               </span>
               <span>
                 <a href="/style-preview.html" target="_blank" rel="noopener noreferrer">
-                  style preview
+                  {t('footer.stylePreview')}
                 </a>
               </span>
             </div>
             <div className="footer-col">
-              <span>made with ❤️ by Gilad</span>
+              <span className="lang-select">
+                <label>
+                  {t('footer.language')}{' '}
+                  <select value={uiLang} onChange={(e) => setUiLang(e.target.value)}>
+                    {LANGS.map((l) => (
+                      <option key={l} value={l}>
+                        {LANG_NAMES[l]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </span>
+              <span>{t('footer.madeBy')}</span>
               <span>
-                background patterns by{' '}
+                {t('footer.patternsBy')}{' '}
                 <a href="https://heropatterns.com/" target="_blank" rel="noopener noreferrer">
                   Hero Patterns
                 </a>
