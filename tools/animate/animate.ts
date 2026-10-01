@@ -45,7 +45,9 @@ cli
     console.log(`${row.emoji} complexity ${row.complexity} (${scene.parts.length} parts) with ${MODEL}`)
 
     try {
-      let spec = await design(row.emoji, scene, await staticPng(svg.body))
+      const png = await staticPng(svg.body)
+      // Structured output occasionally misses the schema; one retry is enough in practice.
+      let spec = await design(row.emoji, scene, png).catch(() => design(row.emoji, scene, png))
       let lottie = buildLottie(scene, spec, row.emoji)
       for (let n = 0; n < Number(o.refine); n++) {
         console.log(`refine round ${n + 1}`)
