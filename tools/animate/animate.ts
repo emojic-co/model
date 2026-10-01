@@ -11,12 +11,13 @@ import { cac } from "cac"
 import { ANDROID_ASSETS_DIR, NOTO_LOTTIE_DIR } from "../../files.ts"
 import { resolveEmojiSvg } from "../cli/emoji-svg.ts"
 import { indexKeys, refreshRows, stemOf, writeRows } from "./csv.ts"
-import { buildLottie } from "./lottie.ts"
+import { compose, type Doc } from "./lottie.ts"
 import { contextText, emojiMeta, labelParts } from "./context.ts"
 import { design, MODEL, refine } from "./llm.ts"
 import { writePage } from "./page.ts"
 import { sheetPng, staticPng } from "./render.ts"
 import { parseScene } from "./svg.ts"
+import { validate } from "./validate.ts"
 
 const cli = cac("animate")
 
@@ -55,16 +56,36 @@ cli
         ctx = contextText(emojiMeta(row.emoji), labels)
         console.log(ctx)
       }
-      // Structured output occasionally misses the schema; one retry is enough in practice.
-      let spec = await design(row.emoji, scene, png, ctx).catch(() => design(row.emoji, scene, png, ctx))
-      let lottie = buildLottie(scene, spec, row.emoji)
+      // The model's Lottie is composed with the original parts and checked in Chrome; problems go back to it.
+      const build = async (ask: (fix?: { doc: unknown; errors: string[] }) => Promise<unknown>) => {
+        let fix: { doc: unknown; errors: string[] } | undefined
+        for (let n = 0; n < 3; n++) {
+          const doc = await ask(fix)
+          let errors: string[]
+          try {
+            const lottie = compose(scene, doc, row.emoji)
+            errors = await validate(svg.body, lottie)
+            if (!errors.length) return { doc: doc as Doc, lottie }
+          } catch (e) {
+            errors = [(e as Error).message]
+          }
+          console.log(`rejected: ${errors.join("; ")}`)
+          fix = { doc, errors }
+        }
+        return undefined
+      }
+      let cur = await build((fix) => design(row.emoji, scene, png, ctx, fix))
+      if (!cur) throw new Error("the model did not produce a valid animation in 3 tries")
+      let spec = cur.doc
+      let lottie = cur.lottie
       for (let n = 0; n < Number(o.refine); n++) {
         console.log(`refine round ${n + 1}`)
-        spec = await refine(row.emoji, scene, spec, await sheetPng(svg.body, lottie, spec.frames), ctx)
-        lottie = buildLottie(scene, spec, row.emoji)
+        const prev = cur
+        const next = await build((fix) => sheetPng(svg.body, prev.lottie, prev.doc.frames).then((sheet) => refine(row.emoji, scene, prev.doc, sheet, ctx, fix)))
+        if (next) { cur = next; spec = next.doc; lottie = next.lottie } else console.log("refinement rejected; keeping the previous version")
       }
       const stem = stemOf(row.emoji)
-      console.log(`${spec.frames} frames, ${spec.groups.length} groups, ${spec.extras.length} extras, ${JSON.stringify(lottie).length} bytes`)
+      console.log(`${spec.frames} frames, ${spec.layers.length} layers, ${JSON.stringify(lottie).length} bytes`)
       if (o.out) writeFileSync(o.out, JSON.stringify(lottie))
       if (o.dry || o.out) return
       const json = JSON.stringify(lottie)

@@ -1,31 +1,34 @@
 // Asks an LLM (via the Vercel AI Gateway, key AI_GATEWAY_API_KEY) to design the motion for one emoji.
 import { generateText, Output } from "ai"
 import type { Scene } from "./svg.ts"
-import { Spec } from "./spec.ts"
-import type { z } from "zod"
 
 // Best fit for this task: strong spatial reasoning over coordinates + vision (to check the contact
 // sheet) + structured output. Override with ANIMATE_MODEL.
 export const MODEL = process.env.ANIMATE_MODEL ?? "anthropic/claude-opus-5.5"
 
-const SYSTEM = `You are a motion designer for tiny looping emoji animations (like Google's animated Noto emoji).
-You do NOT draw: the emoji art is fixed and given as numbered parts (p0, p1, ... in back-to-front order,
-128x128 grid, y down). You only decide how parts move.
+const SYSTEM = `You are a motion designer for tiny emoji animations (like Google's animated Noto emoji).
+You write the animation as Lottie JSON. The emoji art is given as numbered parts (p0, p1, ... in back-to-front
+order) on a 128x128 grid, y down. You are free to animate the parts, hide them, rebuild them, or draw anything
+new, as long as it relates to the original emoji and its meaning. Decide for yourself what motion tells the story
+best; make it lively and readable at small size.
 
-Rules
-- Loop length 60-240 frames at 60 fps; typical 90-150. The loop must be seamless: every track ends where it starts.
-- Frame 0 is the poster frame: every group must be at rest there (rotation 0, move [0,0], scale [1,1], opacity 1).
-- Motion must suit the thing the emoji depicts (a flame flickers, a pendulum swings, a bell rings, a drop falls, a
-  heart pulses). Keep it charming and subtle: rotations under ~15deg, moves under ~6 grid units, scales 0.9-1.12.
-- Everything must stay inside the 128x128 grid; parts must not tear apart (parts that touch should share a group or
-  move by matching amounts). Put the pivot where the real object would hinge (a hanging thing: its attachment point;
-  a bouncing thing: its bottom centre).
-- Group parts that move together (list their ids); parts you leave out stay still. Prefer 1-4 groups. Do not
-  animate every part separately unless it clearly helps.
-- Optional extras (max 6): small circles/4-point stars (sparkles, bubbles, dust) with their own tracks, for an
-  accent. Use colours from the emoji's palette or a soft white/yellow. Skip extras if they add nothing.
-- Keyframes: each track needs at least 2 keys {t, v}; t in frames. v shapes: rotation [deg], move [dx,dy],
-  scale [sx,sy], opacity [0..1].`
+Guidelines
+- Either the first frame or the last frame must show the original emoji exactly (every part, unmoved). Everything
+  in between is up to you. 60-240 frames at 60 fps.
+- Stay inside the 128x128 grid.
+- Use only shape layers (ty 4) and null layers (ty 3), no expressions, no images or precomps.
+
+Answer with a single JSON object and nothing else: {"frames": N, "layers": [...]}. Layers are listed back to front
+(like the parts, so the first layer is drawn first and the last one on top) and use grid coordinates (the file is scaled up for you).
+- A layer with "ref": "pK" shows the original part pK; do not write its shapes. Reference every part.
+- Any other shape layer carries your own "shapes" (Lottie groups "gr" with "el"/"rc"/"sh" paths, "fl"/"st"/"gf"
+  paints, "tr" transform, optional "tm" trim paths). Colours are [r,g,b,a] in 0..1.
+- Each layer may have "ind" (a number) and "parent" (another layer's ind) to build rigs, and Lottie transform "ks"
+  with o (opacity 0-100), r (rotation deg), p (position), a (anchor), s (scale %). Defaults are identity.
+  Rotation and scale act around the anchor: to rotate about a point P, set a = P and p = P (animate p by adding
+  offsets to P).
+- Animated properties are {"a":1,"k":[{"t":frame,"s":[value],"i":{"x":[..],"y":[..]},"o":{"x":[..],"y":[..]}}, ...]}
+  (the last key has only t and s; i/o are the usual Lottie easing handles); static ones are {"a":0,"k":value}.`
 
 export function describe(scene: Scene): string {
   const col = (p: Scene["parts"][number]["fill"]) =>
@@ -37,11 +40,16 @@ export function describe(scene: Scene): string {
 
 type Img = { data: Buffer; label: string }
 
-async function ask(emoji: string, scene: Scene, images: Img[], text: string, context?: string): Promise<z.infer<typeof Spec>> {
+function parseDoc(text: string): unknown {
+  const i = text.indexOf("{"), j = text.lastIndexOf("}")
+  if (i < 0 || j < i) throw new Error("the answer contained no JSON object")
+  return JSON.parse(text.slice(i, j + 1))
+}
+
+async function ask(emoji: string, scene: Scene, images: Img[], text: string, context?: string): Promise<unknown> {
   const res = await generateText({
     model: MODEL,
     system: SYSTEM,
-    output: Output.object({ schema: Spec }),
     messages: [{
       role: "user",
       content: [
@@ -51,14 +59,17 @@ async function ask(emoji: string, scene: Scene, images: Img[], text: string, con
     }],
   })
   if (process.env.ANIMATE_USAGE) console.log(`usage: ${res.usage.inputTokens} in / ${res.usage.outputTokens} out`)
-  return res.output
+  return parseDoc(res.text)
 }
 
-export const design = (emoji: string, scene: Scene, staticImg: Buffer, context?: string) =>
-  ask(emoji, scene, [{ data: staticImg, label: "The static emoji:" }], "Design the motion spec for this emoji.", context)
+const fixNote = (fix?: { doc: unknown; errors: string[] }) =>
+  fix ? `\n\nYour previous answer was rejected:\n${JSON.stringify(fix.doc)}\n\nProblems:\n- ${fix.errors.join("\n- ")}\nReturn the full corrected JSON.` : ""
 
-export const refine = (emoji: string, scene: Scene, spec: z.infer<typeof Spec>, sheet: Buffer, context?: string) =>
-  ask(emoji, scene, [{ data: sheet, label: "Original (top-left) and frames of your animation, evenly spaced over the loop:" }],
-    `Here is the spec you produced:\n${JSON.stringify(spec)}\n\nReview the frames critically: parts tearing apart or leaving gaps, motion leaving the 128 grid,
-wrong pivots, motion too weak/violent, extras that look odd or hide the emoji. Return the improved full spec
-(identical if it is already good).`, context)
+export const design = (emoji: string, scene: Scene, staticImg: Buffer, context?: string, fix?: { doc: unknown; errors: string[] }) =>
+  ask(emoji, scene, [{ data: staticImg, label: "The static emoji:" }], `Design the animation for this emoji.${fixNote(fix)}`, context)
+
+export const refine = (emoji: string, scene: Scene, doc: unknown, sheet: Buffer, context?: string, fix?: { doc: unknown; errors: string[] }) =>
+  ask(emoji, scene, [{ data: sheet, label: "Original (top-left) and frames of your animation, evenly spaced over its length:" }],
+    `Here is the animation you produced:\n${JSON.stringify(doc)}\n\nReview the frames critically as a motion designer: does it look alive and fit the emoji? Fix anything broken
+(parts tearing apart, gaps, leaving the 128 grid, wrong pivots, odd or distracting drawing) and anything weak or
+overdone. Return the improved full JSON.${fixNote(fix)}`, context)

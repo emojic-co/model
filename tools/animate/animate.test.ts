@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test"
 
 import { resolveEmojiSvg } from "../cli/emoji-svg.ts"
-import { buildLottie, normalizeTrack } from "./lottie.ts"
+import { compose } from "./lottie.ts"
 import { parsePath } from "./path.ts"
 import { complexity, parseScene } from "./svg.ts"
 
@@ -13,24 +13,18 @@ test("arcs and quadratics become cubics ending at the target", () => {
   expect(q.v.at(-1)).toEqual([10, 0])
 })
 
-test("tracks are made loop-safe with a rest pose at frame 0", () => {
-  const t = normalizeTrack({ keys: [{ t: 30, v: [5] }, { t: 60, v: [-5] }] }, 120, [0])!
-  expect(t.keys.map((k) => [k.t, k.v[0]])).toEqual([[0, 0], [30, 5], [60, -5], [120, 0]])
-})
-
 test("unsupported constructs make an emoji too complex to animate", () => {
   const masked = parseScene('<mask id="m"><path d="M0 0L1 1"/></mask><path fill="#fff" d="M0 0L1 1"/>')
   expect(masked.unsupported).toContain("<mask>")
   expect(complexity(masked)).toBeGreaterThan(1000)
 })
 
-test("builds a valid lottie for a real emoji", () => {
+test("composes the model's layers with the original parts", () => {
   const scene = parseScene(resolveEmojiSvg("🌙")!.body)
-  const l = buildLottie(scene, {
-    frames: 60,
-    groups: [{ name: "all", parts: ["p0", "p1"], pivot: [64, 64], rotation: { keys: [{ t: 0, v: [0] }, { t: 30, v: [5] }, { t: 60, v: [0] }] } }],
-    extras: [],
-  }, "moon")
-  expect(l.layers).toHaveLength(2)
-  expect(() => buildLottie(scene, { frames: 60, groups: [{ name: "x", parts: ["nope"], pivot: [0, 0] }], extras: [] }, "x")).toThrow()
+  const refs = scene.parts.map((p) => ({ ref: p.id }))
+  const l = compose(scene, { frames: 60, layers: refs }, "moon")
+  expect(l.layers).toHaveLength(scene.parts.length + 1) // + root scale layer
+  expect(() => compose(scene, { frames: 60, layers: [{ ref: "nope" }] }, "x")).toThrow()
+  expect(() => compose(scene, { frames: 60, layers: refs.slice(1) }, "x")).toThrow(/not used/)
+  expect(() => compose(scene, { frames: 60, layers: [...refs, { ty: 0 }] }, "x")).toThrow()
 })
