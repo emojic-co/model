@@ -14,7 +14,7 @@ function watermarkInk(bg) {
 
 const FADE_MS = 150
 
-export function Card({ text, emoji, feeling, lang, colors, loading, onCopy, onShare, ref }) {
+export function Card({ text, emoji, feeling, lang, colors, loading, onJpg, onGif, onMp4, ref }) {
   const [shown, setShown] = useState({ emoji, feeling, lang })
   const [phase, setPhase] = useState('in')
   const prev = useRef({ emoji, feeling, lang })
@@ -94,12 +94,17 @@ export function Card({ text, emoji, feeling, lang, colors, loading, onCopy, onSh
           replayKey={shown}
         />
       </div>
-      <button className="share-btn" type="button" aria-label="Share link" onClick={onShare}>
-        share
-      </button>
-      <button className="copy-btn" type="button" aria-label="Copy card as image" onClick={onCopy}>
-        copy
-      </button>
+      <div className="share-bar">
+        <button type="button" aria-label="Copy card as jpg" onClick={onJpg}>
+          jpg
+        </button>
+        <button type="button" aria-label="Save card as gif" onClick={onGif} disabled={!onGif}>
+          gif
+        </button>
+        <button type="button" aria-label="Save card as mp4" onClick={onMp4} disabled={!onMp4}>
+          mp4
+        </button>
+      </div>
       <span
         className="card-watermark"
         aria-hidden="true"

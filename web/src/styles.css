@@ -499,10 +499,16 @@ h1 .tld {
   animation: none !important;
 }
 
-.copy-btn,
-.share-btn {
+.share-bar {
   position: absolute;
-  top: 1em;
+  bottom: 1.5em;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.75em;
+}
+
+.share-bar button {
   padding: 0.375em 0.75em;
   font: inherit;
   font-size: 0.75em;
@@ -519,20 +525,15 @@ h1 .tld {
   backdrop-filter: blur(4px);
 }
 
-.copy-btn {
-  right: 1em;
-}
-
-.share-btn {
-  left: 1em;
-}
-
-.copy-btn:hover,
-.copy-btn:focus-visible,
-.share-btn:hover,
-.share-btn:focus-visible {
+.share-bar button:hover:not(:disabled),
+.share-bar button:focus-visible {
   opacity: 1;
   outline: none;
+}
+
+.share-bar button:disabled {
+  opacity: 0.3;
+  cursor: default;
 }
 
 .card-watermark {

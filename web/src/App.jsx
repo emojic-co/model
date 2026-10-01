@@ -180,25 +180,6 @@ export function App() {
       : null
   const copyCard = useCardImage(cardData, showToast)
 
-  const shareUrl = useCallback(async () => {
-    const url = window.location.href
-    if (navigator.share) {
-      try {
-        await navigator.share({ url })
-        return
-      } catch (err) {
-        if (err?.name === 'AbortError') return
-      }
-    }
-    try {
-      await navigator.clipboard.writeText(url)
-      showToast('link copied ✓')
-    } catch (err) {
-      console.error(err)
-      showToast('copy failed')
-    }
-  }, [showToast])
-
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === 'Escape') {
@@ -301,8 +282,7 @@ export function App() {
           lang={lang}
           colors={colors}
           loading={pending}
-          onCopy={copyCard}
-          onShare={shareUrl}
+          onJpg={copyCard}
         />
         <KeyHints />
         <div className="feelings-col">
