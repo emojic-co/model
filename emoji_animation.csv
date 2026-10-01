@@ -9,7 +9,7 @@ emoji,codepoints,complexity,parts,nodes,unsupported,lottie,model,animated_at,not
 🟢,1f7e2,3.8,3,16,,1f7e2,anthropic/claude-opus-5.5,2026-10-01,
 🟣,1f7e3,3.8,3,16,,,,,failed: No object generated: response did not match schema.
 🟤,1f7e4,3.8,3,16,,1f7e4,anthropic/claude-opus-5.5,2026-10-01,
-💦,1f4a6,4.1,2,41,,,,,
+💦,1f4a6,4.1,2,41,,1f4a6,anthropic/claude-opus-5.5,2026-10-01,
 🟥,1f7e5,4.3,3,26,,,,,
 🟦,1f7e6,4.3,3,26,,,,,
 🟨,1f7e8,4.3,3,26,,,,,
