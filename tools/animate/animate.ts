@@ -12,6 +12,7 @@ import { ANDROID_ASSETS_DIR, NOTO_LOTTIE_DIR } from "../../files.ts"
 import { resolveEmojiSvg } from "../cli/emoji-svg.ts"
 import { indexKeys, refreshRows, stemOf, writeRows } from "./csv.ts"
 import { buildLottie } from "./lottie.ts"
+import { contextText, emojiMeta, labelParts } from "./context.ts"
 import { design, MODEL, refine } from "./llm.ts"
 import { writePage } from "./page.ts"
 import { sheetPng, staticPng } from "./render.ts"
@@ -32,8 +33,10 @@ cli
   .command("run", "animate one emoji")
   .option("--emoji <emoji>", "animate this emoji instead of the least complex")
   .option("--refine <n>", "vision review rounds", { default: 1 })
+  .option("--no-context", "skip the emoji metadata and the LLM label for every part (default: both go into the prompt)")
+  .option("--out <json>", "write the Lottie here and stop (nothing is added to the collection)")
   .option("--dry", "do not write anything")
-  .action(async (o: { emoji?: string; refine: number; dry?: boolean }) => {
+  .action(async (o: { emoji?: string; refine: number; context?: boolean; out?: string; dry?: boolean }) => {
     const rows = refreshRows()
     const row = o.emoji
       ? rows.find((r) => r.emoji === o.emoji)
@@ -46,17 +49,24 @@ cli
 
     try {
       const png = await staticPng(svg.body)
+      let ctx: string | undefined
+      if (o.context !== false) {
+        const labels = await labelParts(row.emoji, scene, svg.body, emojiMeta(row.emoji))
+        ctx = contextText(emojiMeta(row.emoji), labels)
+        console.log(ctx)
+      }
       // Structured output occasionally misses the schema; one retry is enough in practice.
-      let spec = await design(row.emoji, scene, png).catch(() => design(row.emoji, scene, png))
+      let spec = await design(row.emoji, scene, png, ctx).catch(() => design(row.emoji, scene, png, ctx))
       let lottie = buildLottie(scene, spec, row.emoji)
       for (let n = 0; n < Number(o.refine); n++) {
         console.log(`refine round ${n + 1}`)
-        spec = await refine(row.emoji, scene, spec, await sheetPng(svg.body, lottie, spec.frames))
+        spec = await refine(row.emoji, scene, spec, await sheetPng(svg.body, lottie, spec.frames), ctx)
         lottie = buildLottie(scene, spec, row.emoji)
       }
       const stem = stemOf(row.emoji)
       console.log(`${spec.frames} frames, ${spec.groups.length} groups, ${spec.extras.length} extras, ${JSON.stringify(lottie).length} bytes`)
-      if (o.dry) return
+      if (o.out) writeFileSync(o.out, JSON.stringify(lottie))
+      if (o.dry || o.out) return
       const json = JSON.stringify(lottie)
       const idx: Record<string, string> = JSON.parse(readFileSync(`${NOTO_LOTTIE_DIR}/index.json`, "utf8"))
       for (const k of indexKeys(row.emoji)) idx[k] ??= stem

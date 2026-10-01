@@ -366,7 +366,7 @@ emoji,codepoints,complexity,parts,nodes,unsupported,lottie,model,animated_at,not
 🏊,1f3ca,37.1,25,241,,,,,
 📇,1f4c7,37.1,21,232,,,,,
 📖,1f4d6,37.3,15,295,,,,,
-🕺,1f57a,38,22,320,,,,,
+🕺,1f57a,38,22,320,,1f57a,anthropic/claude-opus-5.5,2026-10-01,
 🧱,1f9f1,38.6,18,411,,,,,
 🖼️,1f5bc fe0f,38.7,23,224,,,,,
 🚶,1f6b6,38.8,18,206,,,,,

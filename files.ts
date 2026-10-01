@@ -45,3 +45,5 @@ export const EMOJI_COVERAGE_HTML = `${WEB_PUBLIC_DIR}/emoji-coverage.html`
 
 export const SOCIAL_DIR = `${TOOLS_DIR}/social`
 export const PINTEREST_STATE_JSON = `${SOCIAL_DIR}/pinterest-published.json`
+
+export const ANIMATION_SOURCES_CSV = "emoji_animation_sources.csv"

@@ -1,14 +1,7 @@
-This is great!
-1. Make a list all emojis with no lottie animation and for each emoji estimate the complexity, save the list into emoji_animation.csv.
-2. Make a tool that automate this process:
-    - pick an emoji from the list (with lowest complexity first)
-    - animate it using an external LLM (use the AI gateway API, choose the best model for this task)
-    - add the animated emoji to the existing animated emoji collection.
-    - update the emoji_animation.csv (add a column for the animated emoji).
-
-3. Make a web page where I can see the original static emojis and their animated version.
-
-Notes:
-- For now, the tool only picks a single emoji to animate at a time.
-- Web page should only show emoji that did not have an animation before and now have an animation.
-- the emoji_animation.csv should include all emojis from data/labels.json that do not have an animation.
+Just for the experiment, I would like you to create another .csv file that list all the emojis from the data/labels.json file and for each emoji, mark where it has an animated version.
+i.e. each row is an emoji and each column is an animation source, first column is the emoji itself, then the Noto animation package, and so on.
+Then, select a single complex emoji that does not have a Noto animation but does have animated version in another source and transfer the animation to the Noto version.
+Show me the final result:
+- Noto static emoji 
+- Noto animated emoji
+- Original animated emoji from another source

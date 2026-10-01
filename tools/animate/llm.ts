@@ -37,7 +37,7 @@ export function describe(scene: Scene): string {
 
 type Img = { data: Buffer; label: string }
 
-async function ask(emoji: string, scene: Scene, images: Img[], text: string): Promise<z.infer<typeof Spec>> {
+async function ask(emoji: string, scene: Scene, images: Img[], text: string, context?: string): Promise<z.infer<typeof Spec>> {
   const res = await generateText({
     model: MODEL,
     system: SYSTEM,
@@ -45,19 +45,20 @@ async function ask(emoji: string, scene: Scene, images: Img[], text: string): Pr
     messages: [{
       role: "user",
       content: [
-        { type: "text", text: `Emoji: ${emoji}\n\nParts:\n${describe(scene)}\n\n${text}` },
+        { type: "text", text: `Emoji: ${emoji}\n\n${context ? `${context}\n\n` : ""}Parts:\n${describe(scene)}\n\n${text}` },
         ...images.flatMap((i) => [{ type: "text" as const, text: i.label }, { type: "file" as const, data: i.data, mediaType: "image/png" }]),
       ],
     }],
   })
+  if (process.env.ANIMATE_USAGE) console.log(`usage: ${res.usage.inputTokens} in / ${res.usage.outputTokens} out`)
   return res.output
 }
 
-export const design = (emoji: string, scene: Scene, staticImg: Buffer) =>
-  ask(emoji, scene, [{ data: staticImg, label: "The static emoji:" }], "Design the motion spec for this emoji.")
+export const design = (emoji: string, scene: Scene, staticImg: Buffer, context?: string) =>
+  ask(emoji, scene, [{ data: staticImg, label: "The static emoji:" }], "Design the motion spec for this emoji.", context)
 
-export const refine = (emoji: string, scene: Scene, spec: z.infer<typeof Spec>, sheet: Buffer) =>
+export const refine = (emoji: string, scene: Scene, spec: z.infer<typeof Spec>, sheet: Buffer, context?: string) =>
   ask(emoji, scene, [{ data: sheet, label: "Original (top-left) and frames of your animation, evenly spaced over the loop:" }],
     `Here is the spec you produced:\n${JSON.stringify(spec)}\n\nReview the frames critically: parts tearing apart or leaving gaps, motion leaving the 128 grid,
 wrong pivots, motion too weak/violent, extras that look odd or hide the emoji. Return the improved full spec
-(identical if it is already good).`)
+(identical if it is already good).`, context)

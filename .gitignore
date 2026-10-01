@@ -88,3 +88,5 @@ play/*.keystore
 
 
 tmp.txt
+
+*.zip

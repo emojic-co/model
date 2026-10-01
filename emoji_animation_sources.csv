@@ -1,0 +1,912 @@
+emoji,name,noto,telegram,fluent,telegram_file,fluent_file
+🌊,water wave,1,,1,,assets/Water wave/animated/water_wave_animated.png
+🌙,crescent moon,,,,,
+🔥,fire,1,1,1,Animals and Nature/Fire.webp,assets/Fire/animated/fire_animated.png
+🚌,bus,1,,1,,assets/Bus/animated/bus_animated.png
+☀️,sun,,1,1,Animals and Nature/Sun.webp,assets/Sun/animated/sun_animated.png
+⏳,hourglass not done,1,1,1,Objects/Hourglass Not Done.webp,assets/Hourglass not done/animated/hourglass_not_done_animated.png
+🙃,upside-down face,1,1,1,Smileys/Upside Down Face.webp,assets/Upside-down face/animated/upside-down_face_animated.png
+☕,hot beverage,1,1,1,Food and Drink/Hot Beverage.webp,assets/Hot beverage/animated/hot_beverage_animated.png
+🎉,party popper,1,1,1,Activity/Party Popper.webp,assets/Party popper/animated/party_popper_animated.png
+😴,sleeping face,1,1,1,Smileys/Sleeping Face.webp,assets/Sleeping face/animated/sleeping_face_animated.png
+🌧️,cloud with rain,1,1,1,Animals and Nature/Cloud With Rain.webp,assets/Cloud with rain/animated/cloud_with_rain_animated.png
+🚗,automobile,1,1,1,Travel and Places/Automobile.webp,assets/Automobile/animated/automobile_animated.png
+✅,check mark button,1,1,,Symbols/Check Mark Button.webp,
+🙄,face with rolling eyes,1,1,1,Smileys/Face With Rolling Eyes.webp,assets/Face with rolling eyes/animated/face_with_rolling_eyes_animated.png
+⏰,alarm clock,1,,1,,assets/Alarm clock/animated/alarm_clock_animated.png
+📞,telephone receiver,,1,1,Objects/Telephone Receiver.webp,assets/Telephone receiver/animated/telephone_receiver_animated.png
+📚,books,1,1,,Objects/Books.webp,
+🍽️,fork and knife with plate,1,1,,Food and Drink/Fork And Knife With Plate.webp,
+📅,calendar,,,,,
+📱,mobile phone,,1,,Objects/Mobile Phone.webp,
+👶,baby,,1,,People/Baby.webp,
+📝,memo,,1,,Objects/Memo.webp,
+🚪,door,,,,,
+🌅,sunrise,1,,,,
+😤,face with steam from nose,1,1,1,Smileys/Face With Steam From Nose.webp,assets/Face with steam from nose/animated/face_with_steam_from_nose_animated.png
+🏠,house,1,1,,Travel and Places/House.webp,
+✨,sparkles,1,1,,Activity/Sparkles.webp,
+🌿,herb,1,1,,Animals and Nature/Herb.webp,
+📦,package,1,,,,
+📄,page facing up,,,,,
+💧,droplet,1,,1,,assets/Droplet/animated/droplet_animated.png
+🪑,chair,,,,,
+🏃,person running,,,,,
+🤝,handshake,1,1,,People/Handshake.webp,
+🍲,pot of food,,,,,
+🎶,musical notes,1,1,1,Objects/Musical Notes.webp,assets/Musical notes/animated/musical_notes_animated.png
+🎬,clapper board,1,1,,Objects/Clapper Board.webp,
+🧺,basket,,,,,
+🛠️,hammer and wrench,1,,,,
+🏆,trophy,1,1,,Activity/Trophy.webp,
+👕,t-shirt,,,,,
+💬,speech balloon,1,1,,Symbols/Speech Balloon.webp,
+🗓️,spiral calendar,,,1,,assets/Spiral calendar/animated/spiral_calendar_animated.png
+🧊,ice,,,,,
+🛒,shopping cart,1,1,,Objects/Shopping Cart.webp,
+🪟,window,,,,,
+💻,laptop,1,1,,Objects/Laptop.webp,
+🧥,coat,,,,,
+🚶,person walking,,,,,
+🔧,wrench,,,,,
+🔄,counterclockwise arrows button,,,,,
+💡,light bulb,1,1,,Objects/Light Bulb.webp,
+🤫,shushing face,1,1,1,Smileys/Shushing Face.webp,assets/Shushing face/animated/shushing_face_animated.png
+📺,television,1,1,,Objects/Television.webp,
+🎨,artist palette,,1,,Activity/Artist Palette.webp,
+🏋️,person lifting weights,,,,,
+🛏️,bed,,,,,
+🌳,deciduous tree,,1,,Animals and Nature/Deciduous Tree.webp,
+🏢,office building,,,,,
+🏫,school,,,,,
+⚠️,warning,1,,,,
+🔊,speaker high volume,,,,,
+🗺️,world map,,,,,
+🤢,nauseated face,1,1,1,Smileys/Nauseated Face.webp,assets/Nauseated face/animated/nauseated_face_animated.png
+🎵,musical note,,1,,Objects/Musical Note.webp,
+🐈,cat,,1,1,Animals and Nature/Cat.webp,assets/Cat/animated/cat_animated.png
+🎤,microphone,,1,,Objects/Microphone.webp,
+🌱,seedling,1,1,,Animals and Nature/Seedling.webp,
+🧹,broom,1,,,,
+📍,round pushpin,,,,,
+💼,briefcase,,1,,Objects/Briefcase.webp,
+👥,busts in silhouette,,1,1,People/Busts In Silhouette.webp,assets/Busts in silhouette/animated/busts_in_silhouette_animated.png
+🩺,stethoscope,1,1,,Objects/Stethoscope.webp,
+⏱️,stopwatch,,,1,,assets/Stopwatch/animated/stopwatch_animated.png
+🍰,shortcake,,1,,Food and Drink/Shortcake.webp,
+📊,bar chart,1,1,,Objects/Bar Chart.webp,
+❤️,red heart,1,1,1,Symbols/Red Heart.webp,assets/Red heart/animated/red_heart_animated.png
+🔌,electric plug,1,,,,
+😲,astonished face,1,1,1,Smileys/Astonished Face.webp,assets/Astonished face/animated/astonished_face_animated.png
+📸,camera with flash,1,,1,,assets/Camera with flash/animated/camera_with_flash_animated.png
+🥶,cold face,1,1,1,Smileys/Cold Face.webp,assets/Cold face/animated/cold_face_animated.png
+❄️,snowflake,1,1,1,Animals and Nature/Snowflake.webp,assets/Snowflake/animated/snowflake_animated.png
+💸,money with wings,1,1,,Objects/Money With Wings.webp,
+🧾,receipt,,,,,
+🎭,performing arts,1,1,,Activity/Performing Arts.webp,
+🔑,key,,1,,Objects/Key.webp,
+🛍️,shopping bags,,1,,Objects/Shopping Bags.webp,
+🚆,train,,,,,
+🍳,cooking,1,1,,Food and Drink/Cooking.webp,
+🙏,folded hands,1,1,,People/Folded Hands.webp,
+🥾,hiking boot,,,,,
+🛣️,motorway,,,,,
+💰,money bag,,1,,Objects/Money Bag.webp,
+🍞,bread,1,,,,
+📖,open book,,1,,Objects/Open Book.webp,
+💪,flexed biceps,1,1,,People/Flexed Biceps.webp,
+👟,running shoe,1,,,,
+😔,pensive face,1,1,1,Smileys/Pensive Face.webp,assets/Pensive face/animated/pensive_face_animated.png
+🎮,video game,,1,,Activity/Video Game.webp,
+✈️,airplane,1,1,1,Travel and Places/Airplane.webp,assets/Airplane/animated/airplane_animated.png
+🚉,station,,,,,
+🚫,prohibited,,,,,
+🚲,bicycle,1,,,,
+😰,anxious face with sweat,1,1,1,Smileys/Anxious Face With Sweat.webp,assets/Anxious face with sweat/animated/anxious_face_with_sweat_animated.png
+🏖️,beach with umbrella,,1,,Travel and Places/Beach With Umbrella.webp,
+😩,weary face,1,1,1,Smileys/Weary Face.webp,assets/Weary face/animated/weary_face_animated.png
+🐕,dog,1,,1,,assets/Dog/animated/dog_animated.png
+👀,eyes,1,1,1,People/Eyes.webp,assets/Eyes/animated/eyes_animated.png
+🌬️,wind face,1,,1,,assets/Wind face/animated/wind_face_animated.png
+🧳,luggage,,1,,Objects/Luggage.webp,
+🏷️,label,,,,,
+⚡,high voltage,1,1,1,Animals and Nature/High Voltage.webp,assets/High voltage/animated/high_voltage_animated.png
+🧪,test tube,,1,,Objects/Test Tube.webp,
+🎟️,admission tickets,1,1,,Activity/Admission Tickets.webp,
+🧱,brick,,,,,
+🖥️,desktop computer,,,,,
+🍪,cookie,1,1,,Food and Drink/Cookie.webp,
+🧦,socks,1,,,,
+🗑️,wastebasket,1,,,,
+🏥,hospital,,,,,
+🗣️,speaking head,1,1,1,People/Speaking Head.webp,assets/Speaking head/animated/speaking_head_animated.png
+🔍,magnifying glass tilted left,,1,,Objects/Magnifying Glass Tilted Left.webp,
+🧒,child,,,,,
+📋,clipboard,,,,,
+🔒,locked,1,,,,
+🖨️,printer,1,1,,Objects/Printer.webp,
+🔋,battery,1,,,,
+🥣,bowl with spoon,,,,,
+📶,antenna bars,,,,,
+🏙️,cityscape,,,,,
+🏞️,national park,1,,,,
+🕒,three o’clock,,,1,,assets/Three oclock/animated/three_oclock_animated.png
+🏟️,stadium,,,,,
+🪴,potted plant,,,,,
+🍵,teacup without handle,1,,1,,assets/Teacup without handle/animated/teacup_without_handle_animated.png
+🧼,soap,,1,,Objects/Soap.webp,
+🚰,potable water,,,,,
+🩹,adhesive bandage,,,,,
+💨,dashing away,,,,,
+😂,face with tears of joy,1,1,1,Smileys/Face With Tears Of Joy.webp,assets/Face with tears of joy/animated/face_with_tears_of_joy_animated.png
+🦵,leg,1,1,,People/Leg.webp,
+⚽,soccer ball,1,1,,Activity/Soccer Ball.webp,
+🧽,sponge,,1,,Objects/Sponge.webp,
+🍕,pizza,1,1,,Food and Drink/Pizza.webp,
+🧴,lotion bottle,,,,,
+🚚,delivery truck,1,,1,,assets/Delivery truck/animated/delivery_truck_animated.png
+🚨,police car light,1,,,,
+👵,old woman,,1,,People/Old Woman.webp,
+🪵,wood,,,1,,assets/Wood/animated/wood_animated.png
+🏛️,classical building,,1,,Travel and Places/Classical Building.webp,
+🚧,construction,1,,,,
+🫂,people hugging,1,1,1,People/People Hugging.webp,assets/People hugging/animated/people_hugging_animated.png
+🎓,graduation cap,1,1,,Objects/Graduation Cap.webp,
+😊,smiling face with smiling eyes,1,1,1,Smileys/Smiling Face With Smiling Eyes.webp,assets/Smiling face with smiling eyes/animated/smiling_face_with_smiling_eyes_animated.png
+😌,relieved face,1,1,1,Smileys/Relieved Face.webp,assets/Relieved face/animated/relieved_face_animated.png
+🧵,thread,,,,,
+🐶,dog face,,1,1,Animals and Nature/Dog Face.webp,assets/Dog face/animated/dog_face_animated.png
+❓,red question mark,1,,,,
+📰,newspaper,,1,,Objects/Newspaper.webp,
+📷,camera,1,,,,
+🎁,wrapped gift,1,,,,
+🛋️,couch and lamp,,,,,
+🕯️,candle,,,,,
+📏,straight ruler,,,,,
+🍿,popcorn,1,1,,Food and Drink/Popcorn.webp,
+🎂,birthday cake,1,1,1,Food and Drink/Birthday Cake.webp,assets/Birthday cake/animated/birthday_cake_animated.png
+🪜,ladder,,,,,
+👂,ear,1,1,,People/Ear.webp,
+🌶️,hot pepper,,,,,
+🤩,star-struck,1,1,1,Smileys/Star Struck.webp,assets/Star-struck/animated/star-struck_animated.png
+🛗,elevator,,,,,
+💳,credit card,,,,,
+📤,outbox tray,,1,,Objects/Outbox Tray.webp,
+🗄️,file cabinet,,,,,
+🅿️,P button,,,,,
+🔁,repeat button,,,,,
+🥤,cup with straw,,1,,Food and Drink/Cup With Straw.webp,
+💔,broken heart,1,1,1,Symbols/Broken Heart.webp,assets/Broken heart/animated/broken_heart_animated.png
+👜,handbag,,1,,Objects/Handbag.webp,
+📁,file folder,,1,,Objects/File Folder.webp,
+🔵,blue circle,,,,,
+🐦,bird,1,1,1,Animals and Nature/Bird.webp,assets/Bird/animated/bird_animated.png
+📈,chart increasing,1,1,,Objects/Chart Increasing.webp,
+🔔,bell,1,,,,
+☁️,cloud,1,1,1,Animals and Nature/Cloud.webp,assets/Cloud/animated/cloud_animated.png
+🌡️,thermometer,1,1,,Objects/Thermometer.webp,
+🔩,nut and bolt,,,,,
+🌾,sheaf of rice,,,,,
+🌲,evergreen tree,1,1,,Animals and Nature/Evergreen Tree.webp,
+⚓,anchor,1,,,,
+👃,nose,1,1,,People/Nose.webp,
+💊,pill,,1,,Objects/Pill.webp,
+🖼️,framed picture,,,,,
+🛡️,shield,,,,,
+🎒,backpack,,,,,
+🥛,glass of milk,,1,,Food and Drink/Glass Of Milk.webp,
+🌸,cherry blossom,1,1,,Animals and Nature/Cherry Blossom.webp,
+😠,angry face,1,1,1,Smileys/Angry Face.webp,assets/Angry face/animated/angry_face_animated.png
+👖,jeans,,,,,
+💤,ZZZ,,1,1,Symbols/Zzz.webp,assets/Zzz/animated/zzz_animated.png
+🍝,spaghetti,1,,,,
+🎧,headphone,,,,,
+😮‍💨,face exhaling,1,1,1,Smileys/Face Exhaling.webp,assets/Face exhaling/animated/face_exhaling_animated.png
+🍼,baby bottle,1,1,,Food and Drink/Baby Bottle.webp,
+🛌,person in bed,,,,,
+👗,dress,,,,,
+🏪,convenience store,,,,,
+👴,old man,,,,,
+🌆,cityscape at dusk,,,,,
+😢,crying face,1,1,1,Smileys/Crying Face.webp,assets/Crying face/animated/crying_face_animated.png
+🐾,paw prints,1,1,1,Animals and Nature/Paw Prints.webp,assets/Paw prints/animated/paw_prints_animated.png
+🍎,red apple,1,,,,
+😳,flushed face,1,1,1,Smileys/Flushed Face.webp,assets/Flushed face/animated/flushed_face_animated.png
+👋,waving hand,1,1,,People/Waving Hand.webp,
+🐟,fish,1,1,1,Animals and Nature/Fish.webp,assets/Fish/animated/fish_animated.png
+😬,grimacing face,1,1,1,Smileys/Grimacing Face.webp,assets/Grimacing face/animated/grimacing_face_animated.png
+🌤️,sun behind small cloud,,1,1,Animals and Nature/Sun Behind Small Cloud.webp,assets/Sun behind small cloud/animated/sun_behind_small_cloud_animated.png
+🧭,compass,,1,1,Travel and Places/Compass.webp,assets/Compass/animated/compass_animated.png
+🧶,yarn,,,,,
+😣,persevering face,1,1,1,Smileys/Persevering Face.webp,assets/Persevering face/animated/persevering_face_animated.png
+💥,collision,1,1,,Symbols/Collision.webp,
+🍀,four leaf clover,1,1,,Animals and Nature/Four Leaf Clover.webp,
+😟,worried face,1,1,1,Smileys/Worried Face.webp,assets/Worried face/animated/worried_face_animated.png
+🍬,candy,,,,,
+🌫️,fog,,,1,,assets/Fog/animated/fog_animated.png
+❌,cross mark,1,1,,Symbols/Cross Mark.webp,
+😮,face with open mouth,1,1,1,Smileys/Face With Open Mouth.webp,assets/Face with open mouth/animated/face_with_open_mouth_animated.png
+🏊,person swimming,,,,,
+🌀,cyclone,1,,1,,assets/Cyclone/animated/cyclone_animated.png
+🧤,gloves,,,,,
+🏗️,building construction,,,,,
+🏝️,desert island,,1,,Travel and Places/Desert Island.webp,
+✂️,scissors,1,,,,
+🤕,face with head-bandage,1,1,1,Smileys/Face With Head Bandage.webp,assets/Face with head-bandage/animated/face_with_head-bandage_animated.png
+⚙️,gear,1,,,,
+🧠,brain,1,,1,,assets/Brain/animated/brain_animated.png
+💾,floppy disk,,,,,
+🎸,guitar,1,,,,
+💵,dollar banknote,,,,,
+🥐,croissant,,,,,
+🍅,tomato,1,,,,
+🚦,vertical traffic light,1,,,,
+💃,woman dancing,1,1,,People/Woman Dancing.webp,
+✍️,writing hand,1,1,,People/Writing Hand.webp,
+🥪,sandwich,,1,,Food and Drink/Sandwich.webp,
+🏀,basketball,1,1,,Activity/Basketball.webp,
+🌍,globe showing Europe-Africa,1,,,,
+🎙️,studio microphone,,1,,Objects/Studio Microphone.webp,
+🧣,scarf,,,,,
+🔗,link,,,,,
+👔,necktie,,,,,
+🍱,bento box,,1,,Food and Drink/Bento Box.webp,
+🖊️,pen,,,,,
+💛,yellow heart,1,1,1,Symbols/Yellow Heart.webp,assets/Yellow heart/animated/yellow_heart_animated.png
+✉️,envelope,,,,,
+😄,grinning face with smiling eyes,1,1,1,Smileys/Grinning Face With Smiling Eyes.webp,assets/Grinning face with smiling eyes/animated/grinning_face_with_smiling_eyes_animated.png
+📧,e-mail,,,,,
+🫙,jar,,,,,
+🍋,lemon,1,,,,
+🥵,hot face,1,1,1,Smileys/Hot Face.webp,assets/Hot face/animated/hot_face_animated.png
+🕕,six o’clock,,,1,,assets/Six oclock/animated/six_oclock_animated.png
+🕛,twelve o’clock,,,1,,assets/Twelve oclock/animated/twelve_oclock_animated.png
+⛰️,mountain,,,,,
+🏔️,snow-capped mountain,,,,,
+⛈️,cloud with lightning and rain,,1,1,Animals and Nature/Cloud With Lightning And Rain.webp,assets/Cloud with lightning and rain/animated/cloud_with_lightning_and_rain_animated.png
+🧰,toolbox,,1,,Objects/Toolbox.webp,
+🥗,green salad,1,,,,
+🦶,foot,1,1,,People/Foot.webp,
+👏,clapping hands,1,1,,People/Clapping Hands.webp,
+🎯,bullseye,1,,,,
+🏁,chequered flag,1,1,1,Flags/Chequered Flag.webp,assets/Chequered flag/animated/chequered_flag_animated.png
+😞,disappointed face,1,1,1,Smileys/Disappointed Face.webp,assets/Disappointed face/animated/disappointed_face_animated.png
+🍜,steaming bowl,1,,,,
+🏡,house with garden,,,,,
+💭,thought balloon,,1,,Symbols/Thought Balloon.webp,
+⚖️,balance scale,1,,,,
+😡,enraged face,1,,,,
+🌹,rose,1,1,,Animals and Nature/Rose.webp,
+🧑‍🏫,teacher,,,,,
+👨,man,,,,,
+💎,gem stone,1,1,,Objects/Gem Stone.webp,
+📵,no mobile phones,,,,,
+🕳️,hole,1,,,,
+📣,megaphone,1,1,,Objects/Megaphone.webp,
+🥰,smiling face with hearts,1,1,1,Smileys/Smiling Face With Hearts.webp,assets/Smiling face with hearts/animated/smiling_face_with_hearts_animated.png
+⬆️,up arrow,,,,,
+💦,sweat droplets,,,,,
+♨️,hot springs,1,1,,Travel and Places/Hot Springs.webp,
+⚔️,crossed swords,,,,,
+☂️,umbrella,1,,1,,assets/Umbrella/animated/umbrella_animated.png
+😒,unamused face,1,1,1,Smileys/Unamused Face.webp,assets/Unamused face/animated/unamused_face_animated.png
+💍,ring,1,,,,
+🔇,muted speaker,,,,,
+🕊️,dove,1,1,1,Animals and Nature/Dove.webp,assets/Dove/animated/dove_animated.png
+🎥,movie camera,,,,,
+📩,envelope with arrow,,,,,
+🐛,bug,1,1,1,Animals and Nature/Bug.webp,assets/Bug/animated/bug_animated.png
+🏘️,houses,,,,,
+💌,love letter,1,1,1,Symbols/Love Letter.webp,assets/Love letter/animated/love_letter_animated.png
+🧘,person in lotus position,,,,,
+🧮,abacus,,1,,Objects/Abacus.webp,
+💺,seat,,,1,,assets/Seat/animated/seat_animated.png
+🚐,minibus,,,1,,assets/Minibus/animated/minibus_animated.png
+😵‍💫,face with spiral eyes,1,1,1,Smileys/Face With Spiral Eyes.webp,assets/Face with spiral eyes/animated/face_with_spiral_eyes_animated.png
+🪙,coin,1,1,,Objects/Coin.webp,
+🚕,taxi,1,1,1,Travel and Places/Taxi.webp,assets/Taxi/animated/taxi_animated.png
+🛁,bathtub,,,,,
+🫶,heart hands,1,1,,People/Heart Hands.webp,
+🤧,sneezing face,1,1,1,Smileys/Sneezing Face.webp,assets/Sneezing face/animated/sneezing_face_animated.png
+🌦️,sun behind rain cloud,,1,1,Animals and Nature/Sun Behind Rain Cloud.webp,assets/Sun behind rain cloud/animated/sun_behind_rain_cloud_animated.png
+🧂,salt,1,,,,
+🕗,eight o’clock,,,1,,assets/Eight oclock/animated/eight_oclock_animated.png
+🧩,puzzle piece,,,,,
+🧷,safety pin,,,,,
+📻,radio,,,,,
+🪪,identification card,,1,,Objects/Identification Card.webp,
+🍚,cooked rice,,,,,
+🍃,leaf fluttering in wind,1,,1,,assets/Leaf fluttering in wind/animated/leaf_fluttering_in_wind_animated.png
+🧻,roll of paper,,1,,Objects/Roll Of Paper.webp,
+☔,umbrella with rain drops,,,1,,assets/Umbrella with rain drops/animated/umbrella_with_rain_drops_animated.png
+✏️,pencil,1,1,,Objects/Pencil.webp,
+🧸,teddy bear,,,1,,assets/Teddy bear/animated/teddy_bear_animated.png
+🚿,shower,,,,,
+🔢,input numbers,,,,,
+🔨,hammer,,,,,
+🚀,rocket,1,1,1,Travel and Places/Rocket.webp,assets/Rocket/animated/rocket_animated.png
+🧢,billed cap,,,,,
+👨‍👩‍👧‍👦,"family: man, woman, girl, boy",,1,,People/Family Man Woman Girl Boy.webp,
+🌇,sunset,1,,,,
+🏅,sports medal,,1,,Activity/Sports Medal.webp,
+💉,syringe,,1,,Objects/Syringe.webp,
+👪,family,,,,,
+🧑‍💼,office worker,,,,,
+🥚,egg,,,,,
+🪨,rock,1,,,,
+😱,face screaming in fear,1,1,1,Smileys/Face Screaming In Fear.webp,assets/Face screaming in fear/animated/face_screaming_in_fear_animated.png
+🤗,smiling face with open hands,1,,,,
+📓,notebook,,,,,
+🩸,drop of blood,1,,,,
+😭,loudly crying face,1,1,1,Smileys/Loudly Crying Face.webp,assets/Loudly crying face/animated/loudly_crying_face_animated.png
+🤯,exploding head,1,1,1,Smileys/Exploding Head.webp,assets/Exploding head/animated/exploding_head_animated.png
+🦷,tooth,,1,1,People/Tooth.webp,assets/Tooth/animated/tooth_animated.png
+🍂,fallen leaf,1,,,,
+🦠,microbe,1,1,1,Animals and Nature/Microbe.webp,assets/Microbe/animated/microbe_animated.png
+💖,sparkling heart,1,1,1,Symbols/Sparkling Heart.webp,assets/Sparkling heart/animated/sparkling_heart_animated.png
+🔴,red circle,,,,,
+😨,fearful face,1,1,1,Smileys/Fearful Face.webp,assets/Fearful face/animated/fearful_face_animated.png
+🫖,teapot,1,,,,
+📎,paperclip,,,,,
+🆘,SOS button,1,,,,
+🪧,placard,,,,,
+⛺,tent,,,,,
+📥,inbox tray,,1,,Objects/Inbox Tray.webp,
+⌨️,keyboard,,1,,Objects/Keyboard.webp,
+📬,open mailbox with raised flag,,,,,
+👓,glasses,,,,,
+🛞,wheel,,,,,
+👩,woman,,,,,
+👧,girl,,,,,
+🍫,chocolate bar,,1,,Food and Drink/Chocolate Bar.webp,
+🏨,hotel,,,,,
+🤞,crossed fingers,1,1,,People/Crossed Fingers.webp,
+🤒,face with thermometer,1,1,1,Smileys/Face With Thermometer.webp,assets/Face with thermometer/animated/face_with_thermometer_animated.png
+🌉,bridge at night,,,,,
+💕,two hearts,1,1,1,Symbols/Two Hearts.webp,assets/Two hearts/animated/two_hearts_animated.png
+💐,bouquet,1,1,,Animals and Nature/Bouquet.webp,
+👣,footprints,1,1,1,People/Footprints.webp,assets/Footprints/animated/footprints_animated.png
+🍦,soft ice cream,1,1,,Food and Drink/Soft Ice Cream.webp,
+🕰️,mantelpiece clock,,,1,,assets/Mantelpiece clock/animated/mantelpiece_clock_animated.png
+⏸️,pause button,,,,,
+🍟,french fries,,1,,Food and Drink/French Fries.webp,
+👍,thumbs up,1,1,,People/Thumbs Up.webp,
+🐢,turtle,1,1,1,Animals and Nature/Turtle.webp,assets/Turtle/animated/turtle_animated.png
+🧑‍🤝‍🧑,people holding hands,,,,,
+🛑,stop sign,1,,,,
+🥞,pancakes,1,1,,Food and Drink/Pancakes.webp,
+🚽,toilet,,,,,
+🍣,sushi,,1,,Food and Drink/Sushi.webp,
+🏕️,camping,1,1,,Travel and Places/Camping.webp,
+😫,tired face,1,1,1,Smileys/Tired Face.webp,assets/Tired face/animated/tired_face_animated.png
+💇,person getting haircut,,,,,
+🤔,thinking face,1,1,1,Smileys/Thinking Face.webp,assets/Thinking face/animated/thinking_face_animated.png
+🍓,strawberry,1,1,,Food and Drink/Strawberry.webp,
+🔎,magnifying glass tilted right,1,1,,Objects/Magnifying Glass Tilted Right.webp,
+🏚️,derelict house,1,,,,
+🟢,green circle,,,,,
+👑,crown,1,1,,Objects/Crown.webp,
+🌼,blossom,1,1,,Animals and Nature/Blossom.webp,
+🦜,parrot,,1,1,Animals and Nature/Parrot.webp,assets/Parrot/animated/parrot_animated.png
+🏃‍♂️,man running,,,,,
+🧁,cupcake,,1,,Food and Drink/Cupcake.webp,
+💋,kiss mark,1,1,,Symbols/Kiss Mark.webp,
+🕖,seven o’clock,,,1,,assets/Seven oclock/animated/seven_oclock_animated.png
+🛖,hut,,,1,,assets/Hut/animated/hut_animated.png
+👻,ghost,1,1,1,Smileys/Ghost.webp,assets/Ghost/animated/ghost_animated.png
+🙂,slightly smiling face,1,1,1,Smileys/Slightly Smiling Face.webp,assets/Slightly smiling face/animated/slightly_smiling_face_animated.png
+📹,video camera,,,,,
+🪖,military helmet,,1,,Objects/Military Helmet.webp,
+🎫,ticket,,1,,Activity/Ticket.webp,
+🚋,tram car,,,1,,assets/Tram car/animated/tram_car_animated.png
+🔦,flashlight,,,,,
+🥄,spoon,,,,,
+⛪,church,,,,,
+💩,pile of poo,1,1,1,Smileys/Pile Of Poo.webp,assets/Pile of poo/animated/pile_of_poo_animated.png
+🥁,drum,1,,,,
+🏜️,desert,,,,,
+🥂,clinking glasses,1,1,1,Food and Drink/Clinking Glasses.webp,assets/Clinking glasses/animated/clinking_glasses_animated.png
+🥧,pie,1,1,,Food and Drink/Pie.webp,
+🌌,milky way,1,,1,,assets/Milky way/animated/milky_way_animated.png
+🐇,rabbit,1,1,1,Animals and Nature/Rabbit.webp,assets/Rabbit/animated/rabbit_animated.png
+🥒,cucumber,1,,,,
+🏭,factory,,,,,
+🐱,cat face,1,1,1,Animals and Nature/Cat Face.webp,assets/Cat face/animated/cat_face_animated.png
+♻️,recycling symbol,,,,,
+😷,face with medical mask,1,1,1,Smileys/Face With Medical Mask.webp,assets/Face with medical mask/animated/face_with_medical_mask_animated.png
+🎈,balloon,1,1,,Activity/Balloon.webp,
+🌴,palm tree,,1,,Animals and Nature/Palm Tree.webp,
+🐎,horse,1,1,1,Animals and Nature/Horse.webp,assets/Horse/animated/horse_animated.png
+🥕,carrot,1,,,,
+🛵,motor scooter,,,,,
+🚻,restroom,,,,,
+🧀,cheese wedge,1,,,,
+🗂️,card index dividers,,1,,Objects/Card Index Dividers.webp,
+🫓,flatbread,,,,,
+🖐️,hand with fingers splayed,1,1,,People/Hand With Fingers Splayed.webp,
+👛,purse,,1,,Objects/Purse.webp,
+👦,boy,,,,,
+🐌,snail,1,1,1,Animals and Nature/Snail.webp,assets/Snail/animated/snail_animated.png
+🐹,hamster,,1,1,Animals and Nature/Hamster.webp,assets/Hamster/animated/hamster_animated.png
+🌷,tulip,1,1,,Animals and Nature/Tulip.webp,
+🌮,taco,1,1,,Food and Drink/Taco.webp,
+🍩,doughnut,1,1,,Food and Drink/Doughnut.webp,
+🧆,falafel,,,,,
+🪚,carpentry saw,,,,,
+⛽,fuel pump,1,,,,
+🛕,hindu temple,,,,,
+🐠,tropical fish,,1,1,Animals and Nature/Tropical Fish.webp,assets/Tropical fish/animated/tropical_fish_animated.png
+🛴,kick scooter,,,,,
+😋,face savoring food,1,1,1,Smileys/Face Savoring Food.webp,assets/Face savoring food/animated/face_savoring_food_animated.png
+🕘,nine o’clock,,,1,,assets/Nine oclock/animated/nine_oclock_animated.png
+🤖,robot,1,1,1,Smileys/Robot.webp,assets/Robot/animated/robot_animated.png
+🍖,meat on bone,,1,,Food and Drink/Meat On Bone.webp,
+🎩,top hat,,1,,Objects/Top Hat.webp,
+🫒,olive,,,,,
+🏺,amphora,,,,,
+🪢,knot,,,,,
+🧃,beverage box,1,1,,Food and Drink/Beverage Box.webp,
+🫁,lungs,,,1,,assets/Lungs/animated/lungs_animated.png
+🚏,bus stop,,,,,
+🍴,fork and knife,,,,,
+🥬,leafy green,1,,,,
+🌃,night with stars,,,,,
+📉,chart decreasing,1,1,,Objects/Chart Decreasing.webp,
+🌑,new moon,,1,,Animals and Nature/New Moon.webp,
+🍷,wine glass,1,1,,Food and Drink/Wine Glass.webp,
+🏦,bank,,,,,
+🔤,input latin letters,,,,,
+🤸,person cartwheeling,,,,,
+🗿,moai,1,1,,Travel and Places/Moai.webp,
+🥖,baguette bread,,,,,
+🥫,canned food,,1,,Food and Drink/Canned Food.webp,
+🍌,banana,,1,,Food and Drink/Banana.webp,
+⛴️,ferry,,,1,,assets/Ferry/animated/ferry_animated.png
+📢,loudspeaker,,,,,
+🧅,onion,1,,,,
+🍔,hamburger,1,1,,Food and Drink/Hamburger.webp,
+⭐,star,1,1,1,Animals and Nature/Star.webp,assets/Star/animated/star_animated.png
+🇪🇺,flag: European Union,,,,,
+🦆,duck,,1,1,Animals and Nature/Duck.webp,assets/Duck/animated/duck_animated.png
+🟨,yellow square,,,,,
+🌵,cactus,1,1,,Animals and Nature/Cactus.webp,
+🌐,globe with meridians,,,,,
+🏋️‍♂️,man lifting weights,,,,,
+🟤,brown circle,,,,,
+🕙,ten o’clock,,,1,,assets/Ten oclock/animated/ten_oclock_animated.png
+🎾,tennis,1,,,,
+🪔,diya lamp,1,,,,
+🪏,shovel,1,,,,
+⬇️,down arrow,,,,,
+😾,pouting cat,1,1,,Smileys/Pouting Cat.webp,
+👚,woman’s clothes,,,,,
+4️⃣,keycap: 4,,,,,
+🇬🇧,flag: United Kingdom,,1,,Flags/Flag United Kingdom.webp,
+🐿️,chipmunk,1,,1,,assets/Chipmunk/animated/chipmunk_animated.png
+🎆,fireworks,1,1,,Activity/Fireworks.webp,
+🥇,1st place medal,1,1,,Activity/1st Place Medal.webp,
+🍑,peach,,,,,
+🔫,water pistol,,,,,
+🦂,scorpion,1,,1,,assets/Scorpion/animated/scorpion_animated.png
+🐝,honeybee,1,1,1,Animals and Nature/Honeybee.webp,assets/Honeybee/animated/honeybee_animated.png
+3️⃣,keycap: 3,,,,,
+💿,optical disk,1,,,,
+🫘,beans,1,,,,
+🏰,castle,,,,,
+🟣,purple circle,,,,,
+🇦🇺,flag: Australia,,,,,
+💯,hundred points,1,1,1,Symbols/Hundred Points.webp,assets/Hundred points/animated/hundred_points_animated.png
+🐬,dolphin,1,,1,,assets/Dolphin/animated/dolphin_animated.png
+🥅,goal net,,,,,
+🌈,rainbow,1,1,1,Animals and Nature/Rainbow.webp,assets/Rainbow/animated/rainbow_animated.png
+🔘,radio button,,,,,
+🦴,bone,1,1,1,People/Bone.webp,assets/Bone/animated/bone_animated.png
+🧈,butter,,,,,
+🛢️,oil drum,,,,,
+🚂,locomotive,1,1,1,Travel and Places/Locomotive.webp,assets/Locomotive/animated/locomotive_animated.png
+🐧,penguin,1,1,1,Animals and Nature/Penguin.webp,assets/Penguin/animated/penguin_animated.png
+🍡,dango,1,1,,Food and Drink/Dango.webp,
+♉,Taurus,1,1,,Symbols/Taurus.webp,
+🥜,peanuts,,,,,
+🙇,person bowing,,,,,
+🧑‍🍳,cook,,,,,
+🥯,bagel,,,,,
+🍸,cocktail glass,,1,1,Food and Drink/Cocktail Glass.webp,assets/Cocktail glass/animated/cocktail_glass_animated.png
+☎️,telephone,,1,,Objects/Telephone.webp,
+📐,triangular ruler,,,,,
+😏,smirking face,1,1,1,Smileys/Smirking Face.webp,assets/Smirking face/animated/smirking_face_animated.png
+🙉,hear-no-evil monkey,1,1,1,Smileys/Hear No Evil Monkey.webp,assets/Hear-no-evil monkey/animated/hear-no-evil_monkey_animated.png
+🐔,chicken,,1,1,Animals and Nature/Chicken.webp,assets/Chicken/animated/chicken_animated.png
+❗️,red exclamation mark,1,,,,
+🪷,lotus,1,,,,
+🎹,musical keyboard,,,,,
+🧓,older person,,,,,
+🍊,tangerine,1,,,,
+🟫,brown square,,,,,
+🎛️,control knobs,,,,,
+♊,Gemini,1,1,,Symbols/Gemini.webp,
+🤡,clown face,1,1,1,Smileys/Clown Face.webp,assets/Clown face/animated/clown_face_animated.png
+🦎,lizard,1,,1,,assets/Lizard/animated/lizard_animated.png
+🔬,microscope,,1,,Objects/Microscope.webp,
+🐙,octopus,1,1,1,Animals and Nature/Octopus.webp,assets/Octopus/animated/octopus_animated.png
+⛓️,chains,1,,,,
+🕉️,om,,,,,
+🥳,partying face,1,1,1,Smileys/Partying Face.webp,assets/Partying face/animated/partying_face_animated.png
+🇮🇪,flag: Ireland,,1,,Flags/Flag Ireland.webp,
+♎️,Libra,1,1,,Symbols/Libra.webp,
+🥑,avocado,1,,,,
+🔀,shuffle tracks button,,,,,
+🪶,feather,,,,,
+🦺,safety vest,,,,,
+🦉,owl,1,1,1,Animals and Nature/Owl.webp,assets/Owl/animated/owl_animated.png
+🪞,mirror,,,,,
+👄,mouth,,1,1,People/Mouth.webp,assets/Mouth/animated/mouth_animated.png
+🪭,folding hand fan,1,,,,
+🍋‍🟩,lime,,,,,
+🐀,rat,1,,1,,assets/Rat/animated/rat_animated.png
+🤲,palms up together,1,1,,People/Palms Up Together.webp,
+🎡,ferris wheel,1,,1,,assets/Ferris wheel/animated/ferris_wheel_animated.png
+♿,wheelchair symbol,,,,,
+🥱,yawning face,1,1,1,Smileys/Yawning Face.webp,assets/Yawning face/animated/yawning_face_animated.png
+🙊,speak-no-evil monkey,1,1,1,Smileys/Speak No Evil Monkey.webp,assets/Speak-no-evil monkey/animated/speak-no-evil_monkey_animated.png
+🖌️,paintbrush,,,,,
+🔪,kitchen knife,,,,,
+🏳️,white flag,1,1,1,Flags/White Flag.webp,assets/White flag/animated/white_flag_animated.png
+🛬,airplane arrival,1,,1,,assets/Airplane arrival/animated/airplane_arrival_animated.png
+🍹,tropical drink,1,1,1,Food and Drink/Tropical Drink.webp,assets/Tropical drink/animated/tropical_drink_animated.png
+🫨,shaking face,1,,1,,assets/Shaking face/animated/shaking_face_animated.png
+🛂,passport control,,1,,Symbols/Passport Control.webp,
+🐭,mouse face,,1,1,Animals and Nature/Mouse Face.webp,assets/Mouse face/animated/mouse_face_animated.png
+⌚,watch,,,1,,assets/Watch/animated/watch_animated.png
+👽,alien,1,1,1,Smileys/Alien.webp,assets/Alien/animated/alien_animated.png
+⛏️,pick,,,,,
+👁️,eye,1,,1,,assets/Eye/animated/eye_animated.png
+🥙,stuffed flatbread,,1,,Food and Drink/Stuffed Flatbread.webp,
+📴,mobile phone off,1,,,,
+🥟,dumpling,,,,,
+🐻,bear,1,1,1,Animals and Nature/Bear.webp,assets/Bear/animated/bear_animated.png
+💙,blue heart,1,1,1,Symbols/Blue Heart.webp,assets/Blue heart/animated/blue_heart_animated.png
+🍮,custard,,1,,Food and Drink/Custard.webp,
+🕍,synagogue,,,,,
+🃏,joker,,,,,
+🥢,chopsticks,1,,,,
+📼,videocassette,,,,,
+📽️,film projector,,,,,
+♏,Scorpio,1,1,,Symbols/Scorpio.webp,
+🖱️,computer mouse,,,,,
+🪡,sewing needle,,,,,
+🤍,white heart,1,1,1,Symbols/White Heart.webp,assets/White heart/animated/white_heart_animated.png
+📮,postbox,,,,,
+⛔,no entry,,,,,
+↩️,right arrow curving left,,,,,
+♑️,Capricorn,1,1,,Symbols/Capricorn.webp,
+🦸,superhero,,,,,
+🏐,volleyball,,,,,
+🤙,call me hand,1,1,,People/Call Me Hand.webp,
+🥺,pleading face,1,1,1,Smileys/Pleading Face.webp,assets/Pleading face/animated/pleading_face_animated.png
+🔭,telescope,,1,,Objects/Telescope.webp,
+🌥️,sun behind large cloud,,1,1,Animals and Nature/Sun Behind Large Cloud.webp,assets/Sun behind large cloud/animated/sun_behind_large_cloud_animated.png
+🥃,tumbler glass,,1,1,Food and Drink/Tumbler Glass.webp,assets/Tumbler glass/animated/tumbler_glass_animated.png
+🦗,cricket,1,1,1,Animals and Nature/Cricket.webp,assets/Cricket/animated/cricket_animated.png
+📨,incoming envelope,,1,,Objects/Incoming Envelope.webp,
+🐜,ant,1,1,1,Animals and Nature/Ant.webp,assets/Ant/animated/ant_animated.png
+‼️,double exclamation mark,1,1,,Symbols/Double Exclamation Mark.webp,
+🍯,honey pot,,,,,
+☝️,index pointing up,1,1,,People/Index Pointing Up.webp,
+🐖,pig,1,,1,,assets/Pig/animated/pig_animated.png
+🦀,crab,1,,1,,assets/Crab/animated/crab_animated.png
+😓,downcast face with sweat,1,1,1,Smileys/Downcast Face With Sweat.webp,assets/Downcast face with sweat/animated/downcast_face_with_sweat_animated.png
+🎪,circus tent,,,,,
+👨‍🍳,man cook,,,,,
+🛜,wireless,,,,,
+🏎️,racing car,1,,1,,assets/Racing car/animated/racing_car_animated.png
+🍛,curry rice,,,,,
+🔮,crystal ball,1,1,1,Activity/Crystal Ball.webp,assets/Crystal ball/animated/crystal_ball_animated.png
+🍒,cherries,1,,,,
+🌏,globe showing Asia-Australia,1,,,,
+✡️,star of David,,,,,
+👩‍🏫,woman teacher,,,,,
+💈,barber pole,,,1,,assets/Barber pole/animated/barber_pole_animated.png
+🍗,poultry leg,1,1,,Food and Drink/Poultry Leg.webp,
+📌,pushpin,,,,,
+⛲,fountain,,,1,,assets/Fountain/animated/fountain_animated.png
+👨‍👩‍👧,"family: man, woman, girl",,,,,
+🕓,four o’clock,,,1,,assets/Four oclock/animated/four_oclock_animated.png
+🤨,face with raised eyebrow,1,1,1,Smileys/Face With Raised Eyebrow.webp,assets/Face with raised eyebrow/animated/face_with_raised_eyebrow_animated.png
+🫀,anatomical heart,1,,1,,assets/Anatomical heart/animated/anatomical_heart_animated.png
+🪺,nest with eggs,,,,,
+🎻,violin,1,,,,
+🍠,roasted sweet potato,,,,,
+🎷,saxophone,1,,,,
+🧍,person standing,,,,,
+🫧,bubbles,1,,,,
+🇮🇳,flag: India,,1,,Flags/Flag India.webp,
+🎄,Christmas tree,,1,1,Activity/Christmas Tree.webp,assets/Christmas tree/animated/christmas_tree_animated.png
+🎊,confetti ball,1,1,,Activity/Confetti Ball.webp,
+🇨🇦,flag: Canada,,,,,
+😕,confused face,1,1,1,Smileys/Confused Face.webp,assets/Confused face/animated/confused_face_animated.png
+🎺,trumpet,1,,,,
+🐚,spiral shell,,,1,,assets/Spiral shell/animated/spiral_shell_animated.png
+🌄,sunrise over mountains,1,,,,
+🦌,deer,,1,1,Animals and Nature/Deer.webp,assets/Deer/animated/deer_animated.png
+🦁,lion,1,1,1,Animals and Nature/Lion.webp,assets/Lion/animated/lion_animated.png
+🐸,frog,1,1,1,Animals and Nature/Frog.webp,assets/Frog/animated/frog_animated.png
+🌨️,cloud with snow,,1,1,Animals and Nature/Cloud With Snow.webp,assets/Cloud with snow/animated/cloud_with_snow_animated.png
+😿,crying cat,1,1,1,Smileys/Crying Cat.webp,assets/Crying cat/animated/crying_cat_animated.png
+🕑,two o’clock,,,1,,assets/Two oclock/animated/two_oclock_animated.png
+🙌,raising hands,1,1,,People/Raising Hands.webp,
+🤐,zipper-mouth face,1,1,1,Smileys/Zipper Mouth Face.webp,assets/Zipper-mouth face/animated/zipper-mouth_face_animated.png
+🪗,accordion,,,,,
+🤱,breast-feeding,,,,,
+🔐,locked with key,,1,,Objects/Locked With Key.webp,
+🥩,cut of meat,,,,,
+😅,grinning face with sweat,1,1,1,Smileys/Grinning Face With Sweat.webp,assets/Grinning face with sweat/animated/grinning_face_with_sweat_animated.png
+🚴,person biking,,,,,
+🩴,thong sandal,,,,,
+🌟,glowing star,1,1,1,Animals and Nature/Glowing Star.webp,assets/Glowing star/animated/glowing_star_animated.png
+🚙,sport utility vehicle,,,1,,assets/Sport utility vehicle/animated/sport_utility_vehicle_animated.png
+💄,lipstick,,,,,
+🗼,Tokyo tower,,,,,
+👞,man’s shoe,,,,,
+🇰🇪,flag: Kenya,,,,,
+🛎️,bellhop bell,1,,,,
+🟡,yellow circle,,,,,
+📒,ledger,,,,,
+➗,divide,,,,,
+♈,Aries,1,1,,Symbols/Aries.webp,
+👐,open hands,1,1,,People/Open Hands.webp,
+♐,Sagittarius,1,1,,Symbols/Sagittarius.webp,
+♒️,Aquarius,1,1,,Symbols/Aquarius.webp,
+7️⃣,keycap: 7,,,,,
+🚶‍♂️,man walking,,,,,
+🪱,worm,1,,1,,assets/Worm/animated/worm_animated.png
+🗡️,dagger,,,,,
+🤘,sign of the horns,1,1,,People/Sign Of The Horns.webp,
+🍻,clinking beer mugs,1,,1,,assets/Clinking beer mugs/animated/clinking_beer_mugs_animated.png
+🐍,snake,1,1,1,Animals and Nature/Snake.webp,assets/Snake/animated/snake_animated.png
+🌭,hot dog,1,1,,Food and Drink/Hot Dog.webp,
+🍾,bottle with popping cork,1,1,1,Food and Drink/Bottle With Popping Cork.webp,assets/Bottle with popping cork/animated/bottle_with_popping_cork_animated.png
+⛵,sailboat,1,,1,,assets/Sailboat/animated/sailboat_animated.png
+🚶‍♀️,woman walking,,,,,
+🫗,pouring liquid,1,1,,Food and Drink/Pouring Liquid.webp,
+☕️,hot beverage,1,1,1,Food and Drink/Hot Beverage.webp,assets/Hot beverage/animated/hot_beverage_animated.png
+😜,winking face with tongue,1,1,1,Smileys/Winking Face With Tongue.webp,assets/Winking face with tongue/animated/winking_face_with_tongue_animated.png
+🏬,department store,,,,,
+🐁,mouse,,,1,,assets/Mouse/animated/mouse_animated.png
+🤏,pinching hand,1,1,,People/Pinching Hand.webp,
+🪠,plunger,,,,,
+🕌,mosque,,,,,
+🧑‍⚕️,health worker,,,,,
+💒,wedding,,,,,
+👩‍⚕️,woman health worker,,1,,People/Woman Health Worker.webp,
+🐄,cow,,1,1,Animals and Nature/Cow.webp,assets/Cow/animated/cow_animated.png
+🏮,red paper lantern,,,,,
+🚜,tractor,1,,1,,assets/Tractor/animated/tractor_animated.png
+🎣,fishing pole,1,,,,
+⛑️,rescue worker’s helmet,,,,,
+👼,baby angel,,,,,
+🎲,game die,1,,,,
+🦙,llama,,1,1,Animals and Nature/Llama.webp,assets/Llama/animated/llama_animated.png
+🌪️,tornado,1,,1,,assets/Tornado/animated/tornado_animated.png
+🧑‍🔧,mechanic,,,,,
+🍇,grapes,1,,,,
+♓,Pisces,1,1,,Symbols/Pisces.webp,
+🌺,hibiscus,,1,,Animals and Nature/Hibiscus.webp,
+🕔,five o’clock,,,1,,assets/Five oclock/animated/five_oclock_animated.png
+🎀,ribbon,,,,,
+👆️,backhand index pointing up,1,1,,People/Backhand Index Pointing Up.webp,
+⚗️,alembic,,,,,
+🐑,ewe,,,1,,assets/Ewe/animated/ewe_animated.png
+🌻,sunflower,,,,,
+🟦,blue square,,,,,
+🚇,metro,,,,,
+🍭,lollipop,,1,,Food and Drink/Lollipop.webp,
+🆕,NEW button,1,1,,Symbols/New Button.webp,
+♊️,Gemini,1,1,,Symbols/Gemini.webp,
+🦻,ear with hearing aid,1,1,,People/Ear With Hearing Aid.webp,
+🌕,full moon,,1,,Animals and Nature/Full Moon.webp,
+🦱,curly hair,,,,,
+☠️,skull and crossbones,,1,1,Smileys/Skull And Crossbones.webp,assets/Skull and crossbones/animated/skull_and_crossbones_animated.png
+🥭,mango,1,,,,
+🦋,butterfly,1,1,1,Animals and Nature/Butterfly.webp,assets/Butterfly/animated/butterfly_animated.png
+🎞️,film frames,1,,,,
+🇨🇳,flag: China,,1,,Flags/Flag China.webp,
+🧗,person climbing,,,,,
+🐘,elephant,,,1,,assets/Elephant/animated/elephant_animated.png
+🤪,zany face,1,1,1,Smileys/Zany Face.webp,assets/Zany face/animated/zany_face_animated.png
+🏊‍♂️,man swimming,,,,,
+👠,high-heeled shoe,1,1,,Objects/High Heeled Shoe.webp,
+🤤,drooling face,1,1,1,Smileys/Drooling Face.webp,assets/Drooling face/animated/drooling_face_animated.png
+🙅‍♂️,man gesturing NO,,,,,
+🔖,bookmark,,,,,
+🐐,goat,1,,1,,assets/Goat/animated/goat_animated.png
+🪮,hair pick,,,,,
+🐦‍⬛,black bird,1,,1,,assets/Black bird/animated/black_bird_animated.png
+⛎,Ophiuchus,1,1,,Symbols/Ophiuchus.webp,
+🪽,wing,,,1,,assets/Wing/animated/wing_animated.png
+🐒,monkey,1,,1,,assets/Monkey/animated/monkey_animated.png
+💚,green heart,1,1,1,Symbols/Green Heart.webp,assets/Green heart/animated/green_heart_animated.png
+🛟,ring buoy,1,,,,
+🤶,Mrs. Claus,,1,,People/Mrs Claus.webp,
+🍈,melon,1,,,,
+📜,scroll,,,,,
+🪛,screwdriver,,,,,
+🇯🇵,flag: Japan,,1,,Flags/Flag Japan.webp,
+🍄,mushroom,1,,,,
+🙅,person gesturing NO,,,,,
+🤿,diving mask,,,,,
+🌩️,cloud with lightning,1,1,1,Animals and Nature/Cloud With Lightning.webp,assets/Cloud with lightning/animated/cloud_with_lightning_animated.png
+🇫🇷,flag: France,,1,,Flags/Flag France.webp,
+👭,women holding hands,,,,,
+🍍,pineapple,1,,,,
+🌞,sun with face,1,1,1,Animals and Nature/Sun With Face.webp,assets/Sun with face/animated/sun_with_face_animated.png
+🥹,face holding back tears,1,1,1,Smileys/Face Holding Back Tears.webp,assets/Face holding back tears/animated/face_holding_back_tears_animated.png
+🍢,oden,1,1,,Food and Drink/Oden.webp,
+🗳️,ballot box with ballot,1,1,,Objects/Ballot Box With Ballot.webp,
+🫐,blueberries,1,,,,
+🐴,horse face,,1,1,Animals and Nature/Horse Face.webp,assets/Horse face/animated/horse_face_animated.png
+🦝,raccoon,1,1,1,Animals and Nature/Raccoon.webp,assets/Raccoon/animated/raccoon_animated.png
+🕎,menorah,,,,,
+🇮🇸,flag: Iceland,,,,,
+🕺,man dancing,,1,,People/Man Dancing.webp,
+⚫,black circle,,,,,
+🛶,canoe,1,,1,,assets/Canoe/animated/canoe_animated.png
+♾️,infinity,1,,,,
+🦖,T-Rex,1,1,1,Animals and Nature/T Rex.webp,assets/T-rex/animated/t-rex_animated.png
+🧘‍♀️,woman in lotus position,,,,,
+♀️,female sign,,,,,
+🦇,bat,1,1,1,Animals and Nature/Bat.webp,assets/Bat/animated/bat_animated.png
+🪁,kite,1,,,,
+👮,police officer,,,,,
+🛤️,railway track,,,,,
+👌,OK hand,1,1,,People/Ok Hand.webp,
+♌️,Leo,1,1,,Symbols/Leo.webp,
+✝️,latin cross,,,,,
+🚑,ambulance,,1,1,Travel and Places/Ambulance.webp,assets/Ambulance/animated/ambulance_animated.png
+👉️,backhand index pointing right,1,1,,People/Backhand Index Pointing Right.webp,
+🛝,playground slide,,,,,
+🐊,crocodile,1,,1,,assets/Crocodile/animated/crocodile_animated.png
+🌯,burrito,1,,,,
+🏹,bow and arrow,,,,,
+📡,satellite antenna,,,,,
+🚤,speedboat,,,1,,assets/Speedboat/animated/speedboat_animated.png
+🇩🇪,flag: Germany,,1,,Flags/Flag Germany.webp,
+🍺,beer mug,,,1,,assets/Beer mug/animated/beer_mug_animated.png
+🌎,globe showing Americas,1,,,,
+👷,construction worker,,,,,
+📫,closed mailbox with raised flag,,,,,
+🛥️,motor boat,,1,1,Travel and Places/Motor Boat.webp,assets/Motor boat/animated/motor_boat_animated.png
+👅,tongue,,1,1,People/Tongue.webp,assets/Tongue/animated/tongue_animated.png
+🪐,ringed planet,1,,1,,assets/Ringed planet/animated/ringed_planet_animated.png
+🍉,watermelon,1,,,,
+🐂,ox,1,1,1,Animals and Nature/Ox.webp,assets/Ox/animated/ox_animated.png
+⚧️,transgender symbol,,,,,
+🪣,bucket,,,,,
+⚾,baseball,1,,,,
+🔓,unlocked,,,,,
+🙈,see-no-evil monkey,1,1,1,Smileys/See No Evil Monkey.webp,assets/See-no-evil monkey/animated/see-no-evil_monkey_animated.png
+🍆,eggplant,,,,,
+😖,confounded face,1,1,1,Smileys/Confounded Face.webp,assets/Confounded face/animated/confounded_face_animated.png
+🇰🇷,flag: South Korea,,1,,Flags/Flag South Korea.webp,
+🥡,takeout box,,,,,
+🚢,ship,,,1,,assets/Ship/animated/ship_animated.png
+🩷,pink heart,1,,1,,assets/Pink heart/animated/pink_heart_animated.png
+🎼,musical score,,,,,
+🍐,pear,1,,,,
+🥘,shallow pan of food,,,,,
+🍘,rice cracker,,1,,Food and Drink/Rice Cracker.webp,
+🐤,baby chick,1,1,1,Animals and Nature/Baby Chick.webp,assets/Baby chick/animated/baby_chick_animated.png
+🆓,FREE button,1,1,,Symbols/Free Button.webp,
+🥔,potato,1,,,,
+🔉,speaker medium volume,,,,,
+🦒,giraffe,,1,1,Animals and Nature/Giraffe.webp,assets/Giraffe/animated/giraffe_animated.png
+💗,growing heart,1,1,1,Symbols/Growing Heart.webp,assets/Growing heart/animated/growing_heart_animated.png
+🕐,one o’clock,,,1,,assets/One oclock/animated/one_oclock_animated.png
+♂️,male sign,,,,,
+🚒,fire engine,,,1,,assets/Fire engine/animated/fire_engine_animated.png
+🟥,red square,,,,,
+🛻,pickup truck,,,,,
+⚪,white circle,,,,,
+🌰,chestnut,,,,,
+😵,face with crossed-out eyes,1,,,,
+🦟,mosquito,1,1,1,Animals and Nature/Mosquito.webp,assets/Mosquito/animated/mosquito_animated.png
+🧄,garlic,1,,,,
+🐣,hatching chick,1,1,1,Animals and Nature/Hatching Chick.webp,assets/Hatching chick/animated/hatching_chick_animated.png
+🫎,moose,,,1,,assets/Moose/animated/moose_animated.png
+👢,woman’s boot,,,,,
+🦍,gorilla,1,1,1,Animals and Nature/Gorilla.webp,assets/Gorilla/animated/gorilla_animated.png
+🐉,dragon,1,,1,,assets/Dragon/animated/dragon_animated.png
+♟️,chess pawn,1,,,,
+🖍️,crayon,,,,,
+6️⃣,keycap: 6,,,,,
+🕵️,detective,,,,,
+✋,raised hand,1,1,,People/Raised Hand.webp,
+🫠,melting face,1,1,1,Smileys/Melting Face.webp,assets/Melting face/animated/melting_face_animated.png
+🗝️,old key,,1,,Objects/Old Key.webp,
+🦊,fox,1,1,1,Animals and Nature/Fox.webp,assets/Fox/animated/fox_animated.png
+👹,ogre,1,1,1,Smileys/Ogre.webp,assets/Ogre/animated/ogre_animated.png
+✊,raised fist,1,1,,People/Raised Fist.webp,
+🪯,khanda,,,,,
+🚓,police car,,1,1,Travel and Places/Police Car.webp,assets/Police car/animated/police_car_animated.png
+🤦,person facepalming,,1,,People/Person Facepalming.webp,
+💘,heart with arrow,1,1,1,Symbols/Heart With Arrow.webp,assets/Heart with arrow/animated/heart_with_arrow_animated.png
+🇵🇹,flag: Portugal,,,,,
+🥦,broccoli,1,,,,
+😈,smiling face with horns,1,1,1,Smileys/Smiling Face With Horns.webp,assets/Smiling face with horns/animated/smiling_face_with_horns_animated.png
+🤷,person shrugging,,1,,People/Person Shrugging.webp,
+🙋,person raising hand,,,,,
+🍁,maple leaf,1,,,,
+📘,blue book,,,,,
+🕷️,spider,1,1,1,Animals and Nature/Spider.webp,assets/Spider/animated/spider_animated.png
+🪫,low battery,1,,,,
+🧋,bubble tea,1,1,,Food and Drink/Bubble Tea.webp,
+🌽,ear of corn,1,,,,
+1️⃣,keycap: 1,,,,,
+🛫,airplane departure,1,,1,,assets/Airplane departure/animated/airplane_departure_animated.png
+2️⃣,keycap: 2,,,,,
+🦐,shrimp,,1,1,Animals and Nature/Shrimp.webp,assets/Shrimp/animated/shrimp_animated.png
+🪤,mouse trap,1,,,,
+🪄,magic wand,1,1,,Activity/Magic Wand.webp,
+🍨,ice cream,1,,,,
+😑,expressionless face,1,1,,Smileys/Expressionless Face.webp,
+🔙,BACK arrow,,,,,
+🤵,person in tuxedo,,,,,
+📿,prayer beads,,,,,
+🍧,shaved ice,,,,,
+🌠,shooting star,,,1,,assets/Shooting star/animated/shooting_star_animated.png
+💜,purple heart,1,1,1,Symbols/Purple Heart.webp,assets/Purple heart/animated/purple_heart_animated.png
+🚡,aerial tramway,,,1,,assets/Aerial tramway/animated/aerial_tramway_animated.png
+♍️,Virgo,1,1,,Symbols/Virgo.webp,
+🐞,lady beetle,1,1,1,Animals and Nature/Lady Beetle.webp,assets/Lady beetle/animated/lady_beetle_animated.png
+🇬🇷,flag: Greece,,,,,
+🇳🇴,flag: Norway,,,,,
+💓,beating heart,1,1,1,Symbols/Beating Heart.webp,assets/Beating heart/animated/beating_heart_animated.png
+🟩,green square,,,,,
+🇹🇭,flag: Thailand,,,,,
+😍,smiling face with heart-eyes,1,,1,,assets/Smiling face with heart-eyes/animated/smiling_face_with_heart-eyes_animated.png
+🤥,lying face,1,1,1,Smileys/Lying Face.webp,assets/Lying face/animated/lying_face_animated.png
+👎️,thumbs down,1,1,,People/Thumbs Down.webp,
+🐈‍⬛,black cat,,1,1,Animals and Nature/Black Cat.webp,assets/Black cat/animated/black_cat_animated.png
+⁉️,exclamation question mark,1,1,,Symbols/Exclamation Question Mark.webp,
+🦭,seal,1,1,1,Animals and Nature/Seal.webp,assets/Seal/animated/seal_animated.png
+🖤,black heart,1,1,1,Symbols/Black Heart.webp,assets/Black heart/animated/black_heart_animated.png
+🐥,front-facing baby chick,1,1,1,Animals and Nature/Front Facing Baby Chick.webp,assets/Front-facing baby chick/animated/front-facing_baby_chick_animated.png
+⏩,fast-forward button,,,,,
+🐋,whale,,,1,,assets/Whale/animated/whale_animated.png
+🐺,wolf,1,,1,,assets/Wolf/animated/wolf_animated.png
+😎,smiling face with sunglasses,1,1,1,Smileys/Smiling Face With Sunglasses.webp,assets/Smiling face with sunglasses/animated/smiling_face_with_sunglasses_animated.png
+👾,alien monster,1,1,1,Smileys/Alien Monster.webp,assets/Alien monster/animated/alien_monster_animated.png
+🛸,flying saucer,1,,1,,assets/Flying saucer/animated/flying_saucer_animated.png
+🇮🇹,flag: Italy,,1,,Flags/Flag Italy.webp,
+🪇,maracas,1,,1,,assets/Maracas/animated/maracas_animated.png
+🎃,jack-o-lantern,1,1,1,Activity/Jack O Lantern.webp,assets/Jack-o-lantern/animated/jack-o-lantern_animated.png
+🔕,bell with slash,,,,,
+☸️,wheel of dharma,,,,,
+🌋,volcano,1,,,,
+♈️,Aries,1,1,,Symbols/Aries.webp,
+👬,men holding hands,,,,,
+🧛,vampire,,1,,People/Vampire.webp,
+😘,face blowing a kiss,1,1,1,Smileys/Face Blowing A Kiss.webp,assets/Face blowing a kiss/animated/face_blowing_a_kiss_animated.png
+👒,woman’s hat,,,,,
+♋️,Cancer,1,1,,Symbols/Cancer.webp,
+🐓,rooster,1,,1,,assets/Rooster/animated/rooster_animated.png
+🥼,lab coat,,,,,
+🫛,pea pod,1,,,,
+🦔,hedgehog,1,1,1,Animals and Nature/Hedgehog.webp,assets/Hedgehog/animated/hedgehog_animated.png
+🐷,pig face,,1,1,Animals and Nature/Pig Face.webp,assets/Pig face/animated/pig_face_animated.png
+🧚,fairy,,,,,
+💀,skull,1,1,1,Smileys/Skull.webp,assets/Skull/animated/skull_animated.png
+🫥,dotted line face,1,1,,Smileys/Dotted Line Face.webp,
+🖋️,fountain pen,,,,,
+🥿,flat shoe,,,,,
+🏏,cricket game,1,,,,
+🇧🇪,flag: Belgium,,1,,Flags/Flag Belgium.webp,
+🧟,zombie,,1,,People/Zombie.webp,
+🇩🇰,flag: Denmark,,,,,
+➡️,right arrow,,,,,
+🏍️,motorcycle,1,,1,,assets/Motorcycle/animated/motorcycle_animated.png
+💇‍♀️,woman getting haircut,,,,,
+🇳🇱,flag: Netherlands,,1,,Flags/Flag Netherlands.webp,
+📇,card index,,,,,
+🥊,boxing glove,,,,,
+🪩,mirror ball,1,1,,Activity/Mirror Ball.webp,

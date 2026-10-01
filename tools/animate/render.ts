@@ -43,3 +43,10 @@ export function sheetPng(body: string, lottie: object, frames: number, n = 11): 
   const rows = Math.ceil((n + 1) / cols)
   return shoot(page(svgCell(body, "original") + cells, script, cols), cols * (CELL + 4), rows * (CELL + 24))
 }
+
+/** Each part alone: cells of ready-made SVG bodies with a label. */
+export function partsPng(cells: { body: string; label: string }[]): Promise<Buffer> {
+  const cols = 6
+  const rows = Math.ceil(cells.length / cols)
+  return shoot(page(cells.map((c) => svgCell(c.body, c.label)).join(""), "", cols), cols * (CELL + 4), rows * (CELL + 24))
+}
