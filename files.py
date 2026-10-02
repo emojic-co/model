@@ -28,7 +28,6 @@ COLOR_TERMS_JSONL = DATA_DIR / "color_terms.jsonl"
 COLOR_KEYWORDS_JSONL = DATA_DIR / "color_keywords.jsonl"
 COLOR_NAMES_SOURCE_JSON = DATA_DIR / "color-names-source.json"
 PRED_JSONL = DATA_DIR / "pred.jsonl"
-ANIMATION_DIR = Path("animation")
 NOTO_LOTTIE_DIR = Path("web/public/noto")
 NOTO_LOTTIE_INDEX_JSON = NOTO_LOTTIE_DIR / "index.json"
 
