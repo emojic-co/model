@@ -18,6 +18,8 @@ dependencies = [
 train = "model.train:_app"
 pred = "model.pred:_app"
 report = "tools.report:_app"
+emoji-sheet = "tools.emoji_sheet:_app"
+sheet-to-webm = "tools.sheet_to_webm:_app"
 
 [build-system]
 requires = ["hatchling"]
@@ -48,7 +50,14 @@ torch = [
 ]
 
 [dependency-groups]
-dev = ["modal>=1.5.5", "onnx>=1.22.0", "onnxscript>=0.7.1", "ruff>=0.16.4"]
+dev = [
+    "modal>=1.5.5",
+    "onnx>=1.22.0",
+    "onnxscript>=0.7.1",
+    "pillow>=12.3.0",
+    "rlottie-python>=1.3.8",
+    "ruff>=0.16.4",
+]
 cpu = ["torch==2.13.0"]
 gpu = ["torch==2.13.0"]
 
