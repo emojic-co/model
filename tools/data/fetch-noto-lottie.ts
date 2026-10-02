@@ -3,7 +3,7 @@
 // animated clone are simply absent; the web preview and Android app fall back to the static glyph.
 import { cpSync, mkdirSync, writeFileSync } from "node:fs"
 
-import { indexKeys, readRows } from "../animate/csv.ts"
+import { hasLottie, indexKeys, readRows, stemOf } from "../animate/csv.ts"
 import { ANDROID_ASSETS_DIR, LABELS_JSON, NOTO_LOTTIE_DIR } from "../../files.ts"
 
 const BASE = "https://fonts.gstatic.com/s/e/notoemoji/latest"
@@ -43,7 +43,7 @@ await Promise.all(
 )
 
 // Keep the animations we generated ourselves (tools/animate); Google's set doesn't have them.
-for (const r of readRows().filter((r) => r.lottie)) for (const k of indexKeys(r.emoji)) index[k] ??= r.lottie
+for (const r of readRows().filter(hasLottie)) for (const k of indexKeys(r.emoji)) index[k] ??= stemOf(r.emoji)
 
 const sorted = Object.fromEntries(Object.entries(index).sort(([a], [b]) => a.localeCompare(b)))
 writeFileSync(`${NOTO_LOTTIE_DIR}/index.json`, JSON.stringify(sorted))

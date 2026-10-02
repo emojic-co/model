@@ -66,7 +66,7 @@ export async function guardedGenerate<T extends GenArgs>(args: T, tag: string): 
   l.calls++
   writeFileSync(ANIMATE_USAGE_JSON, JSON.stringify(l))
   console.log(`-> ${tag} (call ${runCalls}/${MAX_RUN_CALLS}, today ${l.calls}/${MAX_DAY_CALLS}) ...`)
-  console.log(`   request: ${MODEL}, reasoning ${REASONING}, output cap ${k(MAX_OUTPUT_TOKENS)}, timeout ${secs(TIMEOUT_MS)}; ${describeRequest(args)}`)
+  console.log(`   request: ${String(args.model ?? MODEL)}, reasoning ${REASONING}, output cap ${k(MAX_OUTPUT_TOKENS)}, timeout ${secs(TIMEOUT_MS)}; ${describeRequest(args)}`)
   const t0 = Date.now()
   // Running clock: rewritten in place every second on a terminal, a line every 15 s otherwise (logs, pipes).
   const tty = process.stdout.isTTY

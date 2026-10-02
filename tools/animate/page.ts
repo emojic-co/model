@@ -4,18 +4,18 @@ import { writeFileSync } from "node:fs"
 
 import { EMOJI_ANIMATION_HTML } from "../../files.ts"
 import { resolveEmojiSvg } from "../cli/emoji-svg.ts"
-import { readRows } from "./csv.ts"
+import { hasLottie, readRows, stemOf } from "./csv.ts"
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;")
 
 export function writePage(): number {
-  const rows = readRows().filter((r) => r.lottie)
+  const rows = readRows().filter(hasLottie)
   const cards = rows.map((r) => {
     const svg = resolveEmojiSvg(r.emoji)
     return `<div class="card"><div class="pair">
 <div class="cell"><svg viewBox="0 0 128 128">${svg?.body ?? ""}</svg><span>static</span></div>
-<div class="cell"><div class="lot" data-src="noto/${r.lottie}.json"></div><span>animated</span></div></div>
-<div class="meta"><b>${esc(r.emoji)}</b> ${esc(r.codepoints)} · complexity ${esc(r.complexity)} · ${esc(r.model)} · ${esc(r.animated_at)}</div></div>`
+<div class="cell"><div class="lot" data-src="noto/${stemOf(r.emoji)}.json"></div><span>animated</span></div></div>
+<div class="meta"><b>${esc(r.emoji)}</b> ${esc(r.name)} · complexity ${esc(r.complexity)}</div></div>`
   })
   writeFileSync(EMOJI_ANIMATION_HTML, `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -32,7 +32,7 @@ export function writePage(): number {
 .cell svg,.lot{width:100%;aspect-ratio:1}.meta{margin-top:8px;font-size:12px;color:var(--dim)}.meta b{font-size:18px}
 </style></head><body><div class="wrap">
 <h1>Generated emoji animations</h1>
-<p class="sub">${rows.length} emoji that had no Noto animation. Left: original static Noto art. Right: LLM-designed Lottie (see <code>emoji_animation.csv</code>).</p>
+<p class="sub">${rows.length} emoji that had no Noto animation. Left: original static Noto art. Right: LLM-designed Lottie (see <code>animation.csv</code>).</p>
 <div class="grid">${cards.join("\n")}</div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 <script>document.querySelectorAll('.lot').forEach(el=>lottie.loadAnimation({container:el,renderer:'svg',loop:true,autoplay:true,path:el.dataset.src}))</script>

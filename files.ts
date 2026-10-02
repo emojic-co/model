@@ -34,7 +34,7 @@ export const CLIP_YML = `${WEB_SRC_DIR}/clip.yml`
 export const I18N_YML = `${WEB_SRC_DIR}/i18n.yml`
 export const STYLE_YML = `${WEB_PUBLIC_DIR}/style.yml`
 export const NOTO_LOTTIE_DIR = `${WEB_PUBLIC_DIR}/noto`
-export const EMOJI_ANIMATION_CSV = "emoji_animation.csv"
+export const ANIMATION_CSV = "animation.csv" // one row per labelled emoji: Noto flag, animation-text brief for the LLM
 export const ANIMATE_USAGE_JSON = ".animate-usage.json" // gitignored per-day LLM call/token ledger
 export const EMOJI_ANIMATION_HTML = `${WEB_PUBLIC_DIR}/emoji-animation.html`
 export const STYLE_SAMPLES_JSON = `${WEB_PUBLIC_DIR}/style-samples.json`
@@ -49,4 +49,3 @@ export const EMOJI_COVERAGE_HTML = `${WEB_PUBLIC_DIR}/emoji-coverage.html`
 export const SOCIAL_DIR = `${TOOLS_DIR}/social`
 export const PINTEREST_STATE_JSON = `${SOCIAL_DIR}/pinterest-published.json`
 
-export const ANIMATION_SOURCES_CSV = "emoji_animation_sources.csv"

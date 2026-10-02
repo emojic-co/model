@@ -9,7 +9,7 @@ import torch
 import torch.nn.functional as F
 import typer
 
-from files import ANIMATION_NEIGHBORS_JSON, EMOJI_ANIMATION_CSV, EMOJI_PT, NOTO_LOTTIE_INDEX_JSON
+from files import ANIMATION_CSV, ANIMATION_NEIGHBORS_JSON, EMOJI_PT, NOTO_LOTTIE_INDEX_JSON
 from model.config import EMOJIS
 from model.model import EmojiHead
 from model.runmeta import load_pt
@@ -31,8 +31,8 @@ def main(min_sim: float = 0.3) -> None:
     emb = F.normalize(head.embed.weight.detach(), dim=1)
     pos = {bare(e): i for i, e in enumerate(EMOJIS)}
 
-    # emoji_animation.csv lists the emojis that had no Noto animation; the index holds Noto's own plus ours.
-    no_anim = [r["emoji"] for r in csv.DictReader(open(EMOJI_ANIMATION_CSV))]
+    # animation.csv marks the emojis Noto animates; the rest had none, and the index holds Noto's own plus ours.
+    no_anim = [r["emoji"] for r in csv.DictReader(open(ANIMATION_CSV)) if not r["noto"]]
     no_anim_bare = {bare(e) for e in no_anim}
     index: dict[str, str] = json.load(open(NOTO_LOTTIE_INDEX_JSON))
 

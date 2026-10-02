@@ -1,2 +1,8 @@
-Android APP:
-When user update the text scroll to the start the emojis, styles and colors.
+Now write a tool that given an emoji:
+1. reads the animation.csv file:
+    - if noto animation exists, print a warn and exit
+    - if our animation exists, print a warn and exit, unless the --force flag is provided
+    - if no textual description exists for the emoji, print a warn and exit
+2.  Now that the textual description exists, it generates an image for the emoji (noto svg -> png) and uses the image + textual description to generate a 5x5 sprite animation sheet.
+    Use gpt image 2 for this task.
+3.  Save the generated sprite under the sprite folder and make it git tracked.

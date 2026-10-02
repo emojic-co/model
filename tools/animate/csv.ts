@@ -1,12 +1,13 @@
-// emoji_animation.csv: every labelled emoji without a Noto animation, its animation complexity, and
-// (once generated) the Lottie file stem we made for it.
+// animation.csv: one row per labelled emoji. `noto` = Google ships an animation for it; for the rest,
+// `complexity`/`unsupported` say how animatable its SVG is and `animation_text` (tools/animate/describe.ts)
+// is the brief for the LLM. Whether we generated a Lottie is not stored: see hasLottie.
 import { existsSync, readFileSync, writeFileSync } from "node:fs"
 
-import { EMOJI_ANIMATION_CSV, LABELS_JSON, NOTO_LOTTIE_DIR } from "../../files.ts"
+import { ANIMATION_CSV, LABELS_JSON, NOTO_LOTTIE_DIR } from "../../files.ts"
 import { resolveEmojiSvg } from "../cli/emoji-svg.ts"
 import { complexity, parseScene } from "./svg.ts"
 
-export const COLUMNS = ["emoji", "codepoints", "complexity", "parts", "nodes", "unsupported", "lottie", "model", "animated_at", "note"] as const
+export const COLUMNS = ["emoji", "name", "noto", "complexity", "unsupported", "animation_text"] as const
 export type Row = Record<(typeof COLUMNS)[number], string>
 
 const q = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v)
@@ -26,8 +27,9 @@ function splitLine(line: string): string[] {
 }
 
 export function readRows(): Row[] {
-  if (!existsSync(EMOJI_ANIMATION_CSV)) return []
-  const [head, ...lines] = readFileSync(EMOJI_ANIMATION_CSV, "utf8").split("\n").filter(Boolean)
+  if (!existsSync(ANIMATION_CSV)) return []
+  const text = readFileSync(ANIMATION_CSV, "utf8")
+  const [head, ...lines] = splitRecords(text)
   const cols = splitLine(head)
   return lines.map((l) => {
     const v = splitLine(l)
@@ -35,12 +37,27 @@ export function readRows(): Row[] {
   })
 }
 
+/** Records are newline-separated, except inside quotes (animation_text may hold line breaks). */
+function splitRecords(text: string): string[] {
+  const out: string[] = []
+  let cur = "", quoted = false
+  for (const c of text) {
+    if (c === '"') quoted = !quoted
+    if (c === "\n" && !quoted) { out.push(cur); cur = "" } else cur += c
+  }
+  if (cur) out.push(cur)
+  return out.filter(Boolean)
+}
+
 export function writeRows(rows: Row[]): void {
-  writeFileSync(EMOJI_ANIMATION_CSV, [COLUMNS.join(","), ...rows.map((r) => COLUMNS.map((c) => q(r[c])).join(","))].join("\n") + "\n")
+  writeFileSync(ANIMATION_CSV, [COLUMNS.join(","), ...rows.map((r) => COLUMNS.map((c) => q(r[c])).join(","))].join("\n") + "\n")
 }
 
 export const stemOf = (emoji: string) =>
   [...emoji].map((c) => c.codePointAt(0)!).filter((cp) => cp !== 0xfe0f).map((cp) => cp.toString(16)).join("_")
+
+/** Did we generate a Lottie for this emoji? (the file's existence is the only record) */
+export const hasLottie = (r: Row) => !r.noto && existsSync(`${NOTO_LOTTIE_DIR}/${stemOf(r.emoji)}.json`)
 
 /** index.json keys for an emoji: as labelled, without VS16, and with VS16. */
 export const indexKeys = (emoji: string): string[] => {
@@ -48,30 +65,26 @@ export const indexKeys = (emoji: string): string[] => {
   return [...new Set([emoji, bare, `${bare}\uFE0F`])]
 }
 
-export function measure(emoji: string): Pick<Row, "complexity" | "parts" | "nodes" | "unsupported"> {
+export function measure(emoji: string): Pick<Row, "complexity" | "unsupported"> {
   const svg = resolveEmojiSvg(emoji)
-  if (!svg) return { complexity: "", parts: "", nodes: "", unsupported: "no-svg" }
+  if (!svg) return { complexity: "", unsupported: "no-svg" }
   const sc = parseScene(svg.body, svg.width)
-  return {
-    complexity: String(complexity(sc)),
-    parts: String(sc.parts.length),
-    nodes: String(sc.parts.reduce((n, p) => n + p.nodes, 0)),
-    unsupported: sc.unsupported.join(";"),
-  }
+  return { complexity: String(complexity(sc)), unsupported: sc.unsupported.join(";") }
 }
 
-/** Rebuilds the CSV: existing rows (keeps `lottie` etc.) + labelled emojis that still have no animation. */
+const bare = (e: string) => e.replace(/\uFE0F/g, "")
+
+/** Rebuilds the CSV from the label vocab. Keeps `noto` and `animation_text` of existing rows; a new emoji is Noto's if Noto's index has it. */
 export function refreshRows(): Row[] {
   const labels: { emojis: string[] } = JSON.parse(readFileSync(LABELS_JSON, "utf8"))
-  const noto: Record<string, string> = JSON.parse(readFileSync(`${NOTO_LOTTIE_DIR}/index.json`, "utf8"))
+  const index: Record<string, string> = JSON.parse(readFileSync(`${NOTO_LOTTIE_DIR}/index.json`, "utf8"))
+  const names: { emoji: string; label: string }[] = JSON.parse(readFileSync("node_modules/emojibase-data/en/data.json", "utf8"))
+  const nameOf = new Map(names.map((n) => [bare(n.emoji), n.label]))
   const old = new Map(readRows().map((r) => [r.emoji, r]))
-  const rows: Row[] = []
-  for (const emoji of labels.emojis) {
+  return labels.emojis.map((emoji) => {
     const prev = old.get(emoji)
-    if (!prev && emoji in noto) continue
-    const base = prev ?? (Object.fromEntries(COLUMNS.map((c) => [c, ""])) as Row)
-    rows.push({ ...base, emoji, codepoints: [...emoji].map((c) => c.codePointAt(0)!.toString(16)).join(" "), ...measure(emoji) })
-  }
-  rows.sort((a, b) => Number(a.complexity || 1e9) - Number(b.complexity || 1e9) || a.emoji.localeCompare(b.emoji))
-  return rows
+    const noto = prev ? prev.noto : indexKeys(emoji).some((k) => k in index) ? "1" : ""
+    const meta = noto ? { complexity: "", unsupported: "" } : measure(emoji)
+    return { emoji, name: nameOf.get(bare(emoji)) ?? "", noto, ...meta, animation_text: prev?.animation_text ?? "" }
+  })
 }
