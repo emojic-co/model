@@ -129,6 +129,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
     val scope = rememberCoroutineScope()
     val emojiListState = rememberLazyListState()
     val feelingBarState = rememberLazyListState()
+    val colorBarState = rememberLazyListState()
     val maxEmojis = remember {
         context.getSharedPreferences(EmojiCountPrefs.FILE, Context.MODE_PRIVATE)
             .getInt(EmojiCountPrefs.KEY_MAX_EMOJIS, EmojiCountPrefs.DEFAULT_MAX_EMOJIS)
@@ -162,6 +163,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
     LaunchedEffect(text) {
         emojiListState.scrollToItem(0)
         feelingBarState.scrollToItem(0)
+        colorBarState.scrollToItem(0)
     }
 
     LaunchedEffect(text) {
@@ -312,7 +314,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
             }
             Spacer(modifier = Modifier.height(16.dp))
             Box(modifier = Modifier.alpha(if (idle) 1f else 0.4f)) {
-                ColorBar(palettes = displayPalettes, active = colorOverride) { if (idle) colorOverride = it }
+                ColorBar(palettes = displayPalettes, active = colorOverride, state = colorBarState) { if (idle) colorOverride = it }
             }
             Spacer(modifier = Modifier.height(16.dp))
             Column(modifier = Modifier.weight(1f).fillMaxWidth()) {

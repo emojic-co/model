@@ -1,5 +1,2 @@
-Rewrite the prompt, make it much shorter try something like:
-
-Your task is to generate a lottie animation for a static emoji.
-The emoji is given to you as a static SVG file and you should return a Lottie JSON animation that animates the emoji.
-...
+Android APP:
+When user update the text scroll to the start the emojis, styles and colors.

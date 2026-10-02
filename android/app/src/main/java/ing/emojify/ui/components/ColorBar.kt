@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,9 +26,9 @@ import ing.emojify.model.Palette
 private val SWATCH_SIZE = 48.dp
 
 @Composable
-fun ColorBar(palettes: List<Palette>, active: Int, onPick: (Int) -> Unit) {
+fun ColorBar(palettes: List<Palette>, active: Int, state: LazyListState = rememberLazyListState(), onPick: (Int) -> Unit) {
     if (palettes.size <= 1) return
-    LazyRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    LazyRow(state = state, modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         itemsIndexed(palettes) { index, palette ->
             val isActive = index == active
             val bg1 = Color(android.graphics.Color.parseColor(palette.bg1))
