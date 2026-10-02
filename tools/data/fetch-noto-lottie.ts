@@ -1,9 +1,8 @@
 // Downloads Google's animated Noto emoji (Lottie, CC BY 4.0) for every emoji in the label vocab
 // into web/public/noto/, plus index.json mapping emoji -> file stem. Emojis without an
 // animated clone are simply absent; the web preview and Android app fall back to the static glyph.
-import { cpSync, mkdirSync, writeFileSync } from "node:fs"
+import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 
-import { hasLottie, indexKeys, readRows, stemOf } from "../animate/csv.ts"
 import { ANDROID_ASSETS_DIR, LABELS_JSON, NOTO_LOTTIE_DIR } from "../../files.ts"
 
 const BASE = "https://fonts.gstatic.com/s/e/notoemoji/latest"
@@ -42,8 +41,10 @@ await Promise.all(
   }),
 )
 
-// Keep the animations we generated ourselves (tools/animate); Google's set doesn't have them.
-for (const r of readRows().filter(hasLottie)) for (const k of indexKeys(r.emoji)) index[k] ??= stemOf(r.emoji)
+// Keep index entries for animations we added ourselves (their file is in the dir, Google's set doesn't have them).
+const INDEX = `${NOTO_LOTTIE_DIR}/index.json`
+const kept: Record<string, string> = existsSync(INDEX) ? JSON.parse(readFileSync(INDEX, "utf8")) : {}
+for (const [k, v] of Object.entries(kept)) if (existsSync(`${NOTO_LOTTIE_DIR}/${v}.json`)) index[k] ??= v
 
 const sorted = Object.fromEntries(Object.entries(index).sort(([a], [b]) => a.localeCompare(b)))
 writeFileSync(`${NOTO_LOTTIE_DIR}/index.json`, JSON.stringify(sorted))

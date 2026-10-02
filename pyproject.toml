@@ -18,8 +18,6 @@ dependencies = [
 train = "model.train:_app"
 pred = "model.pred:_app"
 report = "tools.report:_app"
-emoji-sheet = "tools.emoji_sheet:_app"
-sheet-to-webm = "tools.sheet_to_webm:_app"
 
 [build-system]
 requires = ["hatchling"]
