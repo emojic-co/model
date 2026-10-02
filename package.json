@@ -22,6 +22,7 @@
     "animate-list": "bun run tools/animate/animate.ts list",
     "animate": "bun run tools/animate/animate.ts run",
     "animate-describe": "bun run tools/animate/describe.ts",
+    "animate-sprite": "bun run tools/animate/sprite.ts",
     "animate-page": "bun run tools/animate/animate.ts page",
     "export-style": "bun run tools/data/export-style.ts",
     "export-style-samples": "bun run tools/data/export-style-samples.ts",

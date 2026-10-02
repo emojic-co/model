@@ -30,6 +30,7 @@ COLOR_NAMES_SOURCE_JSON = DATA_DIR / "color-names-source.json"
 PRED_JSONL = DATA_DIR / "pred.jsonl"
 ANIMATION_NEIGHBORS_JSON = DATA_DIR / "animation_neighbors.json"
 ANIMATION_CSV = Path("animation.csv")
+SPRITE_DIR = Path("sprites")
 NOTO_LOTTIE_DIR = Path("web/public/noto")
 NOTO_LOTTIE_INDEX_JSON = NOTO_LOTTIE_DIR / "index.json"
 

@@ -35,6 +35,7 @@ export const I18N_YML = `${WEB_SRC_DIR}/i18n.yml`
 export const STYLE_YML = `${WEB_PUBLIC_DIR}/style.yml`
 export const NOTO_LOTTIE_DIR = `${WEB_PUBLIC_DIR}/noto`
 export const ANIMATION_CSV = "animation.csv" // one row per labelled emoji: Noto flag, animation-text brief for the LLM
+export const SPRITE_DIR = "sprites" // git-tracked 5x5 sprite sheets from tools/animate/sprite.ts, one <stem>.png per emoji
 export const ANIMATE_USAGE_JSON = ".animate-usage.json" // gitignored per-day LLM call/token ledger
 export const EMOJI_ANIMATION_HTML = `${WEB_PUBLIC_DIR}/emoji-animation.html`
 export const STYLE_SAMPLES_JSON = `${WEB_PUBLIC_DIR}/style-samples.json`
