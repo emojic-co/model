@@ -8,75 +8,78 @@ export const FPS = 30
 export const WIDTH = 1080
 export const HEIGHT = 1350
 
-// Music: "Country Cue 1" by Audionautix (CC BY 4.0, https://audionautix.com).
-const MUSIC = staticFile('mp3/Country Cue 1 - Audionautix.mp3')
+// Music: "Doh De Oh" by Kevin MacLeod (incompetech.com), CC BY 4.0.
+const MUSIC = staticFile('mp3/Doh De Oh - Kevin MacLeod.mp3')
 const FADE_IN_S = 0.5
 const FADE_OUT_S = 1.5
 
 const CARDS = cards as CardData[]
 const CARD = 960 // card edge in px
 const FIRST_HOLD_S = 2.2
-const HOLD_S = 2.0
+const HOLD_S = 2.1
 const TRANS_S = 0.7
-const OUTRO_HOLD_S = 3.8
-const TRANSITIONS = ['push', 'slide', 'flip', 'slam', 'spin'] as const
-type Kind = (typeof TRANSITIONS)[number]
-const SLAM = TRANSITIONS.indexOf('slam')
+const OUTRO_HOLD_S = 2.9 // with the longer last hold this keeps the video at the music's length
+const LAST_EXTRA_HOLD_S = 1.5 // the last card lingers before cross-fading to the outro
+// Slides come in from a side (the old card is pushed out the opposite way); flips turn toward a side.
+type Dir = 'left' | 'right' | 'up' | 'down'
+type Transition = { type: 'slide'; from: Dir } | { type: 'flip'; to: Dir } | { type: 'fade' }
+const TRANSITIONS: Transition[] = [
+  { type: 'slide', from: 'right' },
+  { type: 'flip', to: 'left' },
+  { type: 'slide', from: 'down' },
+  { type: 'flip', to: 'up' },
+  { type: 'slide', from: 'left' },
+  { type: 'flip', to: 'right' },
+  { type: 'slide', from: 'up' },
+  { type: 'flip', to: 'down' },
+  { type: 'fade' }, // last card -> outro
+]
 
 // Transition j starts at transitionStart(j) and brings in card j+1 (the last one is the outro).
-const transitionStart = (j: number) => FIRST_HOLD_S + j * (HOLD_S + TRANS_S)
+const transitionStart = (j: number) =>
+  FIRST_HOLD_S + j * (HOLD_S + TRANS_S) + (j === TRANSITIONS.length - 1 ? LAST_EXTRA_HOLD_S : 0)
 export const DURATION_FRAMES = Math.ceil(
   (transitionStart(TRANSITIONS.length - 1) + TRANS_S + OUTRO_HOLD_S) * FPS,
 )
 
-type Pose = { x: number; y: number; scale: number; rotate: number; rotateY: number; opacity: number; blur: number }
-const REST: Pose = { x: 0, y: 0, scale: 1, rotate: 0, rotateY: 0, opacity: 1, blur: 0 }
+type Pose = { x: number; y: number; scale: number; rotateX: number; rotateY: number; opacity: number }
+const REST: Pose = { x: 0, y: 0, scale: 1, rotateX: 0, rotateY: 0, opacity: 1 }
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
 const ease = (p: number, e: (t: number) => number) => e(clamp01(p))
 
 // Poses of the outgoing and incoming card at transition progress p (0..1).
-function poses(kind: Kind, p: number): [Pose, Pose] {
-  switch (kind) {
-    case 'push': {
-      const e = ease(p, Easing.inOut(Easing.cubic))
-      const d = WIDTH + 80
-      return [{ ...REST, x: -e * d }, { ...REST, x: (1 - e) * d }]
-    }
+function poses(tr: Transition, p: number): [Pose, Pose] {
+  switch (tr.type) {
     case 'slide': {
-      const e = ease(p, Easing.out(Easing.back(1.6)))
-      const d = HEIGHT + 60
-      const inY = (1 - e) * d
-      return [{ ...REST, y: inY - d, scale: 1 - 0.1 * clamp01(p), opacity: 1 - 0.4 * clamp01(p) }, { ...REST, y: inY }]
+      const e = ease(p, Easing.inOut(Easing.cubic))
+      const horizontal = tr.from === 'left' || tr.from === 'right'
+      const d = horizontal ? WIDTH + 80 : HEIGHT + 60
+      const sign = tr.from === 'right' || tr.from === 'down' ? 1 : -1
+      const inPos = (1 - e) * d * sign
+      const axis = (v: number) => (horizontal ? { x: v } : { y: v })
+      return [{ ...REST, ...axis(inPos - d * sign) }, { ...REST, ...axis(inPos) }]
     }
     case 'flip': {
       const out = ease(p * 2, Easing.in(Easing.quad))
       const inn = ease(p * 2 - 1, Easing.out(Easing.back(1.2)))
+      const horizontal = tr.to === 'left' || tr.to === 'right'
+      const sign = tr.to === 'left' || tr.to === 'down' ? -1 : 1
+      const axis = (deg: number) => (horizontal ? { rotateY: deg } : { rotateX: deg })
       return [
-        { ...REST, rotateY: -90 * out, scale: 1 - 0.1 * out, opacity: p < 0.5 ? 1 : 0 },
-        { ...REST, rotateY: 90 * (1 - inn), scale: 0.9 + 0.1 * inn, opacity: p < 0.5 ? 0 : 1 },
+        { ...REST, ...axis(90 * sign * out), scale: 1 - 0.1 * out, opacity: p < 0.5 ? 1 : 0 },
+        { ...REST, ...axis(-90 * sign * (1 - inn)), scale: 0.9 + 0.1 * inn, opacity: p < 0.5 ? 0 : 1 },
       ]
     }
-    case 'slam': {
-      const e = ease(p, Easing.in(Easing.exp))
-      return [
-        { ...REST, scale: 1 - 0.45 * e, opacity: 1 - e, blur: 14 * e },
-        { ...REST, scale: 3.4 - 2.4 * e, opacity: clamp01(p * 6), blur: 10 * (1 - e) },
-      ]
-    }
-    case 'spin': {
-      const e = ease(p, Easing.inOut(Easing.cubic))
-      return [
-        { ...REST, rotate: 360 * e, scale: 1 - e, x: -200 * e, opacity: 1 - e * e },
-        { ...REST, rotate: -540 * (1 - e), scale: 0.15 + 0.85 * e, y: 120 * (1 - e) },
-      ]
+    case 'fade': {
+      const e = ease(p, Easing.inOut(Easing.quad))
+      return [{ ...REST, opacity: 1 - e }, { ...REST, scale: 0.96 + 0.04 * e, opacity: e }]
     }
   }
 }
 
 const poseStyle = (p: Pose): React.CSSProperties => ({
-  transform: `translate(${p.x}px, ${p.y}px) rotate(${p.rotate}deg) rotateY(${p.rotateY}deg) scale(${p.scale})`,
+  transform: `translate(${p.x}px, ${p.y}px) rotateX(${p.rotateX}deg) rotateY(${p.rotateY}deg) scale(${p.scale})`,
   opacity: p.opacity,
-  filter: p.blur > 0.1 ? `blur(${p.blur}px)` : undefined,
 })
 
 const hex = (c: number[]) => toHexColor(c)
@@ -128,12 +131,6 @@ export const Showcase: React.FC = () => {
   const k = transitioning ? j : cur - 1 // outgoing card index when transitioning
   const [outPose, inPose] = transitioning ? poses(TRANSITIONS[j], p) : [REST, REST]
 
-  // Impact shake after the zoom slam lands.
-  const sinceSlam = t - (transitionStart(SLAM) + TRANS_S * 0.9)
-  const shake = sinceSlam > 0 && sinceSlam < 0.4 ? Math.exp(-sinceSlam * 9) * Math.sin(sinceSlam * 70) * 22 : 0
-  const flash =
-    j === SLAM ? interpolate(p, [0.8, 0.92, 1], [0, 0.55, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }) : 0
-
   // Background: current card palette, darkened, crossfaded during transitions.
   const bgOf = (idx: number) => hex(CARDS[Math.min(idx, CARDS.length - 1)].bg2)
   const shown = transitioning ? j + 1 : cur
@@ -174,7 +171,7 @@ export const Showcase: React.FC = () => {
       <AbsoluteFill style={{ background: bgA }} />
       <AbsoluteFill style={{ background: bgB, opacity: transitioning ? p : 1 }} />
       <AbsoluteFill style={{ background: 'radial-gradient(circle at 50% 45%, rgba(0,0,0,0.05), rgba(0,0,0,0.6))' }} />
-      <AbsoluteFill style={{ transform: `translate(${shake}px, ${shake * 0.6}px)`, perspective: 2200 }}>
+      <AbsoluteFill style={{ perspective: 2200 }}>
         {transitioning ? (
           <>
             {layer(k, outPose, 1)}
@@ -185,7 +182,6 @@ export const Showcase: React.FC = () => {
         )}
       </AbsoluteFill>
       {outro && rainT > 0 ? <EmojiRain t={rainT} /> : null}
-      <AbsoluteFill style={{ background: '#fff', opacity: flash, pointerEvents: 'none' }} />
     </AbsoluteFill>
   )
 }

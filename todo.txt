@@ -1,12 +1,2 @@
-Update the remotion project to make a dynamic motion graphics animation of 5 animated cards transitioning one after another, 
-where each new card pushes the previous one out of the frame. 
-Each of the 5 transitions features a unique animation style (push, slide, flip, zoom slam, spin). 
-The animation concludes with a final outro card clearly displaying the text 'emojify.ing'.
-
-Notes:
-- No typewriting animation at all.
-- Each card should show an actual card according to the model.
-- Pick 5 engaging texts, run the model and pick the best card (emoji, style, colors) for each text (pre compute and save to a .json file).
-- For the final outro use the easter egg animation.
-- The video should be engaging and optimal for the google play store and social media posts.
-- Open the project in the Remotion studio.
+Only use slide (from all direction) and flip (to all 4 directions) animations.
+For the final card use cross fade animation.
