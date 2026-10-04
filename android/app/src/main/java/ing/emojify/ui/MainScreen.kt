@@ -357,10 +357,14 @@ private fun exportSizePx(context: Context): Int =
     context.getSharedPreferences(ing.emojify.model.ExportSizePrefs.FILE, Context.MODE_PRIVATE)
         .getInt(ing.emojify.model.ExportSizePrefs.KEY_SIZE_PX, ing.emojify.model.ExportSizePrefs.DEFAULT_SIZE_PX)
 
-private const val GIF_SIZE_PX = 480
-// When a GIF exceeds this, it is re-exported at the next lower fps; the resolution never changes.
-private const val GIF_TARGET_BYTES = 1_000_000L
-private val GIF_FPS_STEPS = listOf(10, 8, 6, 5, 4)
+private fun gifFps(context: Context): Int =
+    context.getSharedPreferences(ing.emojify.model.GifFpsPrefs.FILE, Context.MODE_PRIVATE)
+        .getInt(ing.emojify.model.GifFpsPrefs.KEY_FPS, ing.emojify.model.GifFpsPrefs.DEFAULT_FPS)
+
+// GIFs are the chosen size (Settings, GifSizePrefs) at the chosen fps (GifFpsPrefs), encoded once (no size-based re-encode).
+private fun gifSizePx(context: Context): Int =
+    context.getSharedPreferences(ing.emojify.model.GifSizePrefs.FILE, Context.MODE_PRIVATE)
+        .getInt(ing.emojify.model.GifSizePrefs.KEY_SIZE_PX, ing.emojify.model.GifSizePrefs.DEFAULT_SIZE_PX)
 
 // Frame 0 is the poster (finished card, no shimmer, emoji at rest), held for ClipSpec.posterHoldMs so viewers
 // that pause a GIF show a finished card. Then the shared clip (model/Clip.kt) is sampled at the format's fps.
@@ -375,11 +379,8 @@ private suspend fun exportCardAnimation(
     setPose: (ing.emojify.ui.components.ClipPose) -> Unit,
 ) {
     val spec = timeline.spec
-    val steps = if (format == ShareFormat.Gif) listOf(spec.gifFps) + GIF_FPS_STEPS.filter { it < spec.gifFps } else listOf(spec.mp4Fps)
-    for ((n, fps) in steps.withIndex()) {
-        val file = exportPass(context, format, fps, capture, timeline, { onProgress((n + it) / steps.size) }, setPose)
-        if (format == ShareFormat.Mp4 || file.length() <= GIF_TARGET_BYTES || n == steps.lastIndex) break
-    }
+    val fps = if (format == ShareFormat.Gif) gifFps(context) else spec.mp4Fps
+    exportPass(context, format, fps, capture, timeline, onProgress, setPose)
     if (format == ShareFormat.Gif) shareCardGif(context, cardGifFile(context)) else shareCardMp4(context, cardMp4File(context))
 }
 
@@ -397,7 +398,7 @@ private suspend fun exportPass(
     val gifFile = cardGifFile(context)
     val mp4File = cardMp4File(context)
     // GIF delays are whole centiseconds (8 cs at 12 fps).
-    val gif = if (format == ShareFormat.Gif) GifEncoder(gifFile, GIF_SIZE_PX, delayCs = 100 / fps) else null
+    val gif = if (format == ShareFormat.Gif) GifEncoder(gifFile, gifSizePx(context), delayCs = 100 / fps) else null
     val mp4 = if (format == ShareFormat.Mp4) Mp4Encoder(mp4File, exportSizePx(context), fps) else null
 
     suspend fun grab(pose: ing.emojify.ui.components.ClipPose, delayMs: Int) {

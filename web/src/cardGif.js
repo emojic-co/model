@@ -3,10 +3,8 @@ import { createPainter } from './hooks/useCardImage'
 import { loadNotoIndex, notoUrl } from './notoLottie'
 import { CLIP, springScale } from './clip'
 
-// Fixed output size. When the file exceeds TARGET_BYTES the frame rate is lowered, never the resolution.
+// Fixed output: SIZE px at CLIP.gifFps, encoded once (no size-based re-encode).
 const SIZE = 320
-const FPS_STEPS = [CLIP.gifFps, 10, 8, 6, 5, 4].filter((f, i, a) => f <= CLIP.gifFps && a.indexOf(f) === i)
-const TARGET_BYTES = 500 * 1024
 
 // Emoji layer: the Noto Lottie clone rendered to an offscreen canvas (looping over the timeline),
 // or, for emojis without a clone, the spring scale at the start. `restMs` is the time the poster frame shows.
@@ -81,12 +79,7 @@ export const tick = () => new Promise((r) => setTimeout(r))
 export async function renderGif(cardData, { onProgress, signal } = {}) {
   const emoji = await emojiLayer(cardData.emoji)
   try {
-    let blob
-    for (let a = 0; a < FPS_STEPS.length; a++) {
-      const report = (p) => onProgress?.((a + p) / FPS_STEPS.length)
-      blob = await encode(cardData, emoji, SIZE, FPS_STEPS[a], report, signal)
-      if (blob.size <= TARGET_BYTES) break
-    }
+    const blob = await encode(cardData, emoji, SIZE, CLIP.gifFps, onProgress, signal)
     onProgress?.(1)
     return blob
   } finally {

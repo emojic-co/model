@@ -42,7 +42,7 @@ part of `bun run regen`.
 - **`cldr.jsonl`** — CLDR (Unicode) annotation keywords per emoji, LLM-styled
   (style + palette) by `bun run build-cldr` (`tools/data/cldr.ts`), sourced from
   `node_modules/cldr-annotations(-derived)-full` + `emojibase-data`. Also the source for
-  `flags.jsonl` (see below) and for the CLDR-coverage comparison in `regen --analysis`.
+  `flags.jsonl` (see below).
 - **`emojilib.jsonl`** — same idea from the `emojilib` npm package's keyword lists,
   built by `bun run build-emojilib` (`tools/data/emojilib.ts`).
 - **`wa-keywords.json`** — `{emoji-name-ish key: [glyphs]}` keyword→emoji map (WhatsApp

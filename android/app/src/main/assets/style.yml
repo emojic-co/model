@@ -1,4 +1,4 @@
-exportedAt: 2026-10-01T16:16:21.527Z
+exportedAt: 2026-10-04T09:31:27.659Z
 global:
   referencePx: 600
   maxPatternOpacity: 0.14
@@ -635,6 +635,8 @@ i18n:
     settings.maxEmojis: "Max emojis shown: {n}"
     settings.colorCount: "Number of colors to show: {n}"
     settings.exportRes: jpg / mp4 export resolution
+    settings.gifRes: GIF export resolution
+    settings.gifFps: GIF FPS
     settings.debounce: "Typing delay before card updates: {ms} ms"
     settings.statusPending: Update available, waiting for Wi-Fi
     settings.statusUpdated: Model updated {date}
@@ -706,6 +708,8 @@ i18n:
     settings.maxEmojis: "מקסימום אימוג׳ים להצגה: {n}"
     settings.colorCount: "מספר צבעים להצגה: {n}"
     settings.exportRes: רזולוציית ייצוא jpg / mp4
+    settings.gifRes: רזולוציית ייצוא GIF
+    settings.gifFps: GIF FPS
     settings.debounce: "השהיה לפני עדכון הכרטיס: {ms} ms"
     settings.statusPending: קיים עדכון, ממתין ל־Wi-Fi
     settings.statusUpdated: המודל עודכן {date}

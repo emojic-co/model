@@ -166,7 +166,6 @@ import {
   FLAGS_JSONL,
   KEYWORDS_JSONL,
   LABELS_JSON as LABELS,
-  REGEN_MD,
   TERMS_JSONL,
   TRAIN_JSONL as TRAIN,
   WA_KEYWORDS_JSON as WA,
@@ -235,55 +234,6 @@ function printMatrix(records: Row[], useCldr: boolean): void {
   }
 }
 
-function byCodePoint(a: string, b: string): number {
-  return (a.codePointAt(0) ?? 0) - (b.codePointAt(0) ?? 0) || (a < b ? -1 : a > b ? 1 : 0)
-}
-
-function section(title: string, emojis: string[]): string {
-  return `## ${title}\n\n${emojis.length ? emojis.join(" ") : "_(none)_"}\n`
-}
-
-async function writeAnalysis(minCount: number, maxCount: number): Promise<void> {
-  const master = await readJsonl<unknown>(DATA)
-  const { counts } = greedyCap(shuffle(collapse(master)), maxCount)
-  const trainVocab = emojiVocab(counts, minCount)
-  const trainSet = new Set(trainVocab)
-
-  const cldrSet = new Set<string>()
-  for (const r of await readJsonl<{ emojis?: unknown }>(CLDR)) {
-    if (typeof r.emojis === "string") for (const e of splitEmojis(r.emojis)) cldrSet.add(e)
-  }
-
-  const both = trainVocab.filter((e) => cldrSet.has(e))
-  const trainOnly = trainVocab.filter((e) => !cldrSet.has(e))
-  const cldrOnly = [...cldrSet].filter((e) => !trainSet.has(e)).sort(byCodePoint)
-
-  const md =
-    [
-      "# regen analysis",
-      "",
-      `_generated ${new Date().toISOString().slice(0, 10)} · `
-      + `min-count ${minCount} · max-count ${maxCount} · `
-      + `train vocab simulated from ${DATA} (no cldr merge), CLDR set from ${CLDR}_`,
-      "",
-      "| section | count |",
-      "| --- | --- |",
-      `| in train set & in CLDR | ${both.length} |`,
-      `| in train set, not in CLDR | ${trainOnly.length} |`,
-      `| in CLDR, not in train set | ${cldrOnly.length} |`,
-      "",
-      section("Emojis in train set and in CLDR", both),
-      section("Emojis in train set but not in CLDR", trainOnly),
-      section("Emojis in CLDR but not in train set", cldrOnly),
-    ].join("\n") + "\n"
-
-  await writeFileAtomic(REGEN_MD, md)
-  console.log(
-    `-> ${REGEN_MD} : train∩cldr ${both.length}, `
-    + `train∖cldr ${trainOnly.length}, cldr∖train ${cldrOnly.length}`,
-  )
-}
-
 const cli = cac("regen")
 cli.usage("[options]")
 cli
@@ -295,10 +245,6 @@ cli
     "--matrix",
     "dry sweep: print kept-rows / emoji-vocab for a grid of min/max-count, write nothing",
   )
-  .option(
-    "--analysis",
-    `write ${REGEN_MD} (train-vocab vs CLDR emoji coverage) and nothing else`,
-  )
 cli.help()
 
 if (import.meta.main) {
@@ -307,15 +253,6 @@ if (import.meta.main) {
   const minCount = Number(options.minCount ?? MIN_COUNT)
   const maxCount = Number(options.maxCount ?? MAX_COUNT)
   const n = Number(options.n ?? EVAL_SIZE)
-
-  if (options.analysis) {
-    if (!existsSync(CLDR)) {
-      console.error(`${CLDR} is missing; run \`bun run build-cldr\` first`)
-      process.exit(1)
-    }
-    await writeAnalysis(minCount, maxCount)
-    process.exit(0)
-  }
 
   const useCldr = options.cldr !== false
   if (useCldr && !existsSync(CLDR)) {
