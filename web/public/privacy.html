@@ -21,7 +21,7 @@
 </head>
 <body>
   <h1>Privacy Policy — emojify.ing</h1>
-  <p>Last updated: September 16, 2026.</p>
+  <p>Last updated: October 4, 2026.</p>
 
   <p>emojify.ing (web app at <a href="https://emojify.ing/">emojify.ing</a> and
   the Android app, package <code>ing.emojify</code>) turns short text into an
@@ -32,8 +32,14 @@
   <p>Nothing. The model runs entirely on your device (in your browser via
   WebAssembly, or on-device in the Android app via ONNX Runtime). The text
   you type is never sent to a server — there is no backend for this app to
-  send it to. We don't use analytics, crash reporting, or advertising SDKs,
-  and the Android app requests no <code>INTERNET</code> permission.</p>
+  send it to. We don't use analytics, crash reporting, or advertising SDKs.</p>
+  <p>The Android app requests the <code>INTERNET</code> permission for one
+  purpose: to occasionally download an updated model and card-style files
+  from <a href="https://emojify.ing/">emojify.ing</a> (Wi-Fi only by default;
+  it can be turned off in Settings). These are plain file downloads — no text
+  you type, device identifier, or other personal data is sent with them. Like
+  any web request, our host (GitHub Pages) may see your IP address in its own
+  server logs.</p>
 
   <h2>Local storage</h2>
   <p>Your browser may cache the app's static files (including the model) for

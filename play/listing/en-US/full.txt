@@ -1,0 +1,9 @@
+emojify.ing turns a short phrase into a card: the emoji that fits, a one-word feeling, and a color palette to match — picked by a small model that runs entirely on your device.
+
+• Type anything — a mood, a sentence, a name.
+• See ranked emoji and feeling suggestions; tap or swipe to pick a different one if the top guess isn't quite it.
+• Every result comes with a generated color palette, matching font and animated emoji.
+• Share or copy the result as an image.
+• Available in English and Hebrew.
+
+No account, no ads, no tracking — nothing you type ever leaves your device. The app only checks emojify.ing now and then for an improved model (Wi-Fi only by default; you can turn it off in Settings).

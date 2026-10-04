@@ -18,7 +18,7 @@ This repo combines four systems:
 1. **Data generation and curation (TypeScript/Bun)**
 2. **Model training and inference (Python/PyTorch Lightning)**
 3. **Packaging for browser/mobile inference (ONNX export)**
-4. **Evaluation + reporting (HTML report, goals, plans)**
+4. **Evaluation + reporting (HTML report, goals)**
 
 It is not only a model repo; it is an end-to-end product/training loop.
 
@@ -83,7 +83,6 @@ It also copies model artifacts into Android assets.
 Planning/status files:
 
 - `goals.yml` (targets)
-- `plans/<timestamp>/plan.md` (derived next actions)
 - `report/<timestamp>/report.html` (current measured state)
 
 ---
@@ -157,7 +156,7 @@ A critical project invariant is that normalization in Python and web must stay e
 - `android/` — Android integration/assets
 - `pt/` — active checkpoints
 - `history/` — archived model artifacts
-- `report/`, `plans/`, `runs/` — generated outputs
+- `report/`, `runs/` — generated outputs
 
 ---
 

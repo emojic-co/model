@@ -44,7 +44,7 @@ training as regular text rows (`model/data.py:EmojiDataset(mix_sources=True)`),
 each source (`SAMPLING_SOURCES` in `model/config.py` — file, TB metric, and
 metric goal per source) sampled at a shared base rate that decays toward a
 shared floor as that source's own metric approaches its goal (updated in
-`LitEncoder.on_train_epoch_start` — see `docs/search.md`) rather than through
+`LitEncoder.on_train_epoch_start`) rather than through
 a separate lexical head — there is no `KWHead`/`FusionHead`/gate in the
 model, and no keyword lookup or fusion step in the web app; `EmojiHead` is
 queried directly on whatever text the user typed.

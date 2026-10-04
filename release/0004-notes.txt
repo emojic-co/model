@@ -1,0 +1,5 @@
+• Retrained model with better emoji, feeling and color suggestions
+• Animated emoji and new card transitions
+• Swipe the card to cycle emoji and feelings
+• Hebrew interface
+• Settings: model auto-update (Wi-Fi only by default)

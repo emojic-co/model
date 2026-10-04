@@ -1,2 +1,2 @@
-Only use slide (from all direction) and flip (to all 4 directions) animations.
-For the final card use cross fade animation.
+When sharing the card from the Android app add, with probability 1/10 a link to https://emojify.ing with the shared card.
+Let the user disable it in the settings but make a sad face when disabled and happy one when enabled.

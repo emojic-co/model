@@ -1,7 +1,7 @@
 # Publishing emojify.ing to Google Play
 
 Status as of 2026-09-17: the app (`android/`) has feature parity with the web
-app through Phase 8 of `android/implementation.md`. The `ing.emojify` app
+app. The `ing.emojify` app
 shell already exists in Play Console with the service account granted API
 access, and store listing text, icon, feature graphic, and 3 screenshots are
 already live there (steps 0, 4, 5 below are done — this file lagged the
@@ -12,8 +12,7 @@ safety / content rating questionnaires (no public API for those) — see the
 per-section notes below.
 
 Package: **`ing.emojify`** (renamed from the scaffold-era `ing.emojify.app`
-to match the product domain `emojify.ing`, same convention as the reverse-DNS
-note in `android/implementation.md`).
+to match the product domain `emojify.ing`).
 
 ## 0. Play Developer API access
 
@@ -160,9 +159,10 @@ policy**.
 ## 7. Data safety form
 
 Play Console → **Policy → App content → Data safety**. Since the app has no
-backend, no `INTERNET` permission, and no third-party SDKs (verified:
-`android/app/src/main/AndroidManifest.xml` declares zero `<uses-permission>`
-elements), the honest answer throughout is **"No data collected"** — every
+backend and no third-party SDKs, and its only network use is downloading
+public model/style files from emojify.ing (`ModelUpdater.kt`, `StyleUpdater.kt`
+— no user data sent; the manifest declares `INTERNET` for this), the honest
+answer throughout is **"No data collected"** — every
 sub-question ("Is data collected or shared?") should be No. Do not accept
 the form's default suggestions without checking; this only holds as long as
 the app stays offline-only.
@@ -210,12 +210,19 @@ Console-UI-only regardless of API access. Concretely, what's left:
 5. After the 14-day closed test, promote the same build (or a newer one) to
    **Production**.
 
+## Automated releases
+
+Use `/release <version>` (`.claude/commands/release.md`), backed by
+`tools/play/release.py` (`status` / `prepare` / `publish`). Versions are one
+zero-padded integer (`0004`), tagged `v0004`, notes in `release/0004-notes.txt`,
+listing text in `play/listing/<locale>/`. This replaces the manual upload
+described in step 9.
+
 ## Ongoing
 
 - Every model retrain that changes `web/public/model.onnx` needs
   `android/app/src/main/assets/model.onnx` (+ `meta.json`/`config.json`)
-  refreshed the same way — see `android/implementation.md`'s "Model
-  inference" section — then a new versioned release through this same
+  refreshed the same way (`model/export_onnx.py` writes both) — then a new versioned release through this same
   pipeline.
 - Bump `versionCode`/`versionName` every release; Play rejects a re-upload
   with a `versionCode` it's already seen.

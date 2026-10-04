@@ -6,11 +6,10 @@ Guidance for Claude Code in this repo. **Keep this file compact.** It is an inde
 
 `emojic` trains a small multi-task char-level model that maps a short text string to emojis, a style label, and a color palette, and ships that model into web (`web/`) and Android (`android/`) apps for live inference.
 
-Goals/status/plan (source of truth, not summarized here):
+Goals/status (source of truth, not summarized here):
 
 - `goals.yml` — targets, long-term and current alike (single source, no per-iteration target file).
 - `report/<newest>/report.html` — current measured state, written by `tools/report.py`.
-- `plans/<newest>/plan.md` — derived plan.
 
 Architecture (read the code, not this file): `model/model.py` (encoder + classifier heads + GAN), `model/color.py` (`energy_distance`, used by the GAN loss, computed directly on RGB), `model/train.py` (training/loss), `tools/data/regen.ts` (corpus → vocab/split), `tools/data/keywords.ts` (CLDR+EmojiLib+wa-keywords merge → `data/keywords.jsonl`/`data/terms.jsonl`/`data/flags.jsonl` split).
 
@@ -25,7 +24,7 @@ Architecture (read the code, not this file): `model/model.py` (encoder + classif
 - `web/src/clip.yml` — shared preview/export clip rules (ground truth, copied into `style.yml`); mirrored by `web/src/clip.js` and `android/.../model/Clip.kt`, kept in sync by `web/src/clipFixture.json` (regenerate with `UPDATE_CLIP_FIXTURE=1` in `web/`).
 - `web/src/i18n.yml` — shared en/he UI strings (ground truth, embedded into `style.yml` by `export-style`; web reads it directly, Android via `LocalStrings`).
 - `files.py` / `files.ts` — source of truth for every data/model/pt/goals path (kept as parallel Python/TS mirrors, not perfectly identical — check both when adding a path). Add paths here first.
-- `report/`, `plans/`, `runs/`, `preview/`, `pr/`, `docs/`, `web/` — generated reports, derived plans, TensorBoard logs, previews, marketing, prose docs, web app.
+- `report/`, `runs/`, `preview/`, `pr/`, `docs/`, `web/` — generated reports, TensorBoard logs, previews, marketing, prose docs, web app.
 - `play/` — Google Play publishing: `publish.md` (checklist), `assets/` (store listing graphics), plus gitignored signing/service-account files.
 
 ## Environment & commands

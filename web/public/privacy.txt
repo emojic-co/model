@@ -1,5 +1,5 @@
 Privacy Policy — emojify.ing
-Last updated: September 16, 2026.
+Last updated: October 4, 2026.
 
 emojify.ing (web app at https://emojify.ing/ and the Android app, package
 ing.emojify) turns short text into an emoji, a feeling label, and a color
@@ -10,8 +10,14 @@ What we collect
 Nothing. The model runs entirely on your device (in your browser via
 WebAssembly, or on-device in the Android app via ONNX Runtime). The text you
 type is never sent to a server — there is no backend for this app to send it
-to. We don't use analytics, crash reporting, or advertising SDKs, and the
-Android app requests no INTERNET permission.
+to. We don't use analytics, crash reporting, or advertising SDKs.
+
+The Android app requests the INTERNET permission for one purpose: to
+occasionally download an updated model and card-style files from
+https://emojify.ing/ (Wi-Fi only by default; it can be turned off in
+Settings). These are plain file downloads — no text you type, device
+identifier, or other personal data is sent with them. Like any web request,
+our host (GitHub Pages) may see your IP address in its own server logs.
 
 Local storage
 -------------
