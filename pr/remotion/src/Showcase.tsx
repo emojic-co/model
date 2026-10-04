@@ -1,46 +1,13 @@
 import { AbsoluteFill, Audio, Easing, interpolate, random, staticFile, useCurrentFrame, useVideoConfig } from 'remotion'
 import { eggPieces } from '../../../web/src/easterEgg.js'
 import { toHexColor } from '../../../web/src/model.js'
-import { CardClip, CardData } from './CardClip'
-import cards from './showcase.json'
+import { CardClip } from './CardClip'
+import { ShowcaseConfig, Transition, transitionStart } from './config'
 
 export const FPS = 30
 export const WIDTH = 1080
 export const HEIGHT = 1350
-
-// Music: "Doh De Oh" by Kevin MacLeod (incompetech.com), CC BY 4.0.
-const MUSIC = staticFile('mp3/Doh De Oh - Kevin MacLeod.mp3')
-const FADE_IN_S = 0.5
-const FADE_OUT_S = 1.5
-
-const CARDS = cards as CardData[]
 const CARD = 960 // card edge in px
-const FIRST_HOLD_S = 2.2
-const HOLD_S = 2.1
-const TRANS_S = 0.7
-const OUTRO_HOLD_S = 2.9 // with the longer last hold this keeps the video at the music's length
-const LAST_EXTRA_HOLD_S = 1.5 // the last card lingers before cross-fading to the outro
-// Slides come in from a side (the old card is pushed out the opposite way); flips turn toward a side.
-type Dir = 'left' | 'right' | 'up' | 'down'
-type Transition = { type: 'slide'; from: Dir } | { type: 'flip'; to: Dir } | { type: 'fade' }
-const TRANSITIONS: Transition[] = [
-  { type: 'slide', from: 'right' },
-  { type: 'flip', to: 'left' },
-  { type: 'slide', from: 'down' },
-  { type: 'flip', to: 'up' },
-  { type: 'slide', from: 'left' },
-  { type: 'flip', to: 'right' },
-  { type: 'slide', from: 'up' },
-  { type: 'flip', to: 'down' },
-  { type: 'fade' }, // last card -> outro
-]
-
-// Transition j starts at transitionStart(j) and brings in card j+1 (the last one is the outro).
-const transitionStart = (j: number) =>
-  FIRST_HOLD_S + j * (HOLD_S + TRANS_S) + (j === TRANSITIONS.length - 1 ? LAST_EXTRA_HOLD_S : 0)
-export const DURATION_FRAMES = Math.ceil(
-  (transitionStart(TRANSITIONS.length - 1) + TRANS_S + OUTRO_HOLD_S) * FPS,
-)
 
 type Pose = { x: number; y: number; scale: number; rotateX: number; rotateY: number; opacity: number }
 const REST: Pose = { x: 0, y: 0, scale: 1, rotateX: 0, rotateY: 0, opacity: 1 }
@@ -113,30 +80,34 @@ const EmojiRain: React.FC<{ t: number }> = ({ t }) => (
   </AbsoluteFill>
 )
 
-export const Showcase: React.FC = () => {
+export const Showcase: React.FC<{ config: ShowcaseConfig }> = ({ config }) => {
+  const { transitions: TRANSITIONS, timing, music } = config
+  const CARDS = [...config.cards, config.outro]
+  const start = (j: number) => transitionStart(config, j)
+  const TRANS_S = timing.transS
   const frame = useCurrentFrame()
-  const { fps } = useVideoConfig()
+  const { fps, durationInFrames: total } = useVideoConfig()
   const t = frame / fps
 
   // Which transition is active (or most recently finished) decides who is on screen.
-  const j = TRANSITIONS.findIndex((_, k) => t < transitionStart(k) + TRANS_S)
+  const j = TRANSITIONS.findIndex((_, k) => t < start(k) + TRANS_S)
   const lastDone = j === -1
   const cur = lastDone ? TRANSITIONS.length : j // index of the incoming/current card
-  const p = lastDone ? 1 : clamp01((t - transitionStart(j)) / TRANS_S)
+  const p = lastDone ? 1 : clamp01((t - start(j)) / TRANS_S)
   const transitioning = !lastDone && p > 0
 
   // Card k starts playing when it starts entering (card 0 at t=0).
-  const cardMs = (k: number) => (t - (k === 0 ? 0 : transitionStart(k - 1))) * 1000
+  const cardMs = (k: number) => (t - (k === 0 ? 0 : start(k - 1))) * 1000
 
   const k = transitioning ? j : cur - 1 // outgoing card index when transitioning
   const [outPose, inPose] = transitioning ? poses(TRANSITIONS[j], p) : [REST, REST]
 
   // Background: current card palette, darkened, crossfaded during transitions.
-  const bgOf = (idx: number) => hex(CARDS[Math.min(idx, CARDS.length - 1)].bg2)
+  const bgOf = (idx: number) => hex(CARDS[Math.min(idx, CARDS.length - 1)].colors.bg2)
   const shown = transitioning ? j + 1 : cur
-  const outro = shown === CARDS.length - 1 && (t >= transitionStart(TRANSITIONS.length - 1) + TRANS_S * 0.5)
+  const isOutro = shown === CARDS.length - 1 && (t >= start(TRANSITIONS.length - 1) + TRANS_S * 0.5)
 
-  const rainT = t - (transitionStart(TRANSITIONS.length - 1) + TRANS_S)
+  const rainT = t - (start(TRANSITIONS.length - 1) + TRANS_S)
 
   const layer = (idx: number, pose: Pose, z: number) => (
     <div
@@ -149,7 +120,7 @@ export const Showcase: React.FC = () => {
         ...poseStyle(pose),
       }}
     >
-      <CardClip card={CARDS[idx]} timeMs={cardMs(idx)} size={CARD} />
+      <CardClip card={CARDS[idx]} lang={config.lang} timeMs={cardMs(idx)} size={CARD} />
     </div>
   )
 
@@ -158,12 +129,12 @@ export const Showcase: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: '#0f0c0a', perspective: 2200 }}>
       <Audio
-        src={MUSIC}
+        src={staticFile(music.file)}
         volume={(f) =>
           interpolate(
             f,
-            [0, FADE_IN_S * FPS, DURATION_FRAMES - FADE_OUT_S * FPS, DURATION_FRAMES],
-            [0, 0.8, 0.8, 0],
+            [0, music.fadeInS * FPS, total - music.fadeOutS * FPS, total],
+            [0, music.volume, music.volume, 0],
             { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' },
           )
         }
@@ -181,7 +152,7 @@ export const Showcase: React.FC = () => {
           layer(shown, REST, 1)
         )}
       </AbsoluteFill>
-      {outro && rainT > 0 ? <EmojiRain t={rainT} /> : null}
+      {isOutro && rainT > 0 ? <EmojiRain t={rainT} /> : null}
     </AbsoluteFill>
   )
 }

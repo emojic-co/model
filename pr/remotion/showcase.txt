@@ -1,6 +1,0 @@
-# candidate texts for candidates.mjs (the fixed cards live in src/showcase.json)
-got my driver's license!!!
-concert tonight with the squad
-movie night with the squad
-new sneakers just dropped
-summer vacation starts today

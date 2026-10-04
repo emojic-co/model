@@ -1,8 +1,9 @@
-// Explores what the real ONNX model offers for each line of showcase.txt and writes candidates.json:
+// Usage: node candidates.mjs <lang>   (reads texts/<lang>.txt, writes candidates/<lang>.json)
+// Explores what the real ONNX model offers for each text:
 // the top emojis that have an ORIGINAL Google Noto animation (byte-identical to Google's lottie.json, not one
 // we generated), the top style, and the best-scoring palettes out of many samples (the model's color output is
-// noisy). Nothing here touches src/showcase.json: that file is hand-picked and fixed — copy choices into it.
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+// noisy). Nothing here touches configs/: those are hand-picked and fixed — copy choices into them.
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import ort from 'onnxruntime-node'
@@ -14,7 +15,7 @@ const meta = JSON.parse(readFileSync(join(webPublic, 'meta.json'), 'utf8'))
 const noto = JSON.parse(readFileSync(join(webPublic, 'noto', 'index.json'), 'utf8'))
 const char2idx = new Map([...meta.chars].map((ch, i) => [ch, i]))
 const session = await ort.InferenceSession.create(join(webPublic, 'model.onnx'))
-const SAMPLES = 80
+const SAMPLES = 60
 
 const originals = new Map()
 async function isOriginal(emoji) {
@@ -38,7 +39,8 @@ function score(p) {
 }
 const hue = (p) => Math.round((Math.atan2(p.bg1[2], p.bg1[1]) * 180) / Math.PI + 360) % 360
 
-const texts = readFileSync(join(here, 'showcase.txt'), 'utf8').split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'))
+const lang = process.argv[2] ?? 'en'
+const texts = readFileSync(join(here, 'texts', `${lang}.txt`), 'utf8').split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'))
 const out = []
 for (const text of texts) {
   const ids = encode(text, meta, char2idx)
@@ -49,11 +51,11 @@ for (const text of texts) {
     if (i === 0) {
       const ranked = [...o.emoji_logits.data].map((v, k) => [v, k]).sort((a, b) => b[0] - a[0])
       emojis = []
-      for (const [, k] of ranked) {
-        if (emojis.length === 4) break
-        if (await isOriginal(meta.emojis[k])) emojis.push(meta.emojis[k])
+      for (const [r, [, k]] of ranked.slice(0, 12).entries()) {
+        if (emojis.length === 5) break
+        if (await isOriginal(meta.emojis[k])) emojis.push(`${meta.emojis[k]}#${r + 1}`)
       }
-      style = meta.styles[[...o.style_logits.data].reduce((m, v, k, a) => (v > a[m] ? k : m), 0)]
+      style = [...o.style_logits.data].map((v, k) => [v, k]).sort((a, b) => b[0] - a[0]).slice(0, 4).map(([, k]) => meta.styles[k])
     }
     palettes.push(...decodeColorList(o.color.data))
   }
@@ -62,7 +64,8 @@ for (const text of texts) {
     .sort((a, b) => b.score - a.score)
     .slice(0, 200)
   out.push({ text, emojis, style, palettes: top })
-  console.log(text.padEnd(34), emojis.join(' '), style, top.slice(0, 4).map((p) => `${p.hue}°`).join(' '))
+  console.log(text.padEnd(30), emojis.join(' '), style.join('/'), top.slice(0, 4).map((p) => `${p.hue}°`).join(' '))
 }
-writeFileSync(join(here, 'candidates.json'), JSON.stringify(out, null, 2))
-console.log('wrote candidates.json')
+mkdirSync(join(here, 'candidates'), { recursive: true })
+writeFileSync(join(here, 'candidates', `${lang}.json`), JSON.stringify(out, null, 2))
+console.log(`wrote candidates/${lang}.json`)

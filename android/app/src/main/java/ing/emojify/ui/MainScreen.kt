@@ -358,6 +358,9 @@ private fun exportSizePx(context: Context): Int =
         .getInt(ing.emojify.model.ExportSizePrefs.KEY_SIZE_PX, ing.emojify.model.ExportSizePrefs.DEFAULT_SIZE_PX)
 
 private const val GIF_SIZE_PX = 480
+// When a GIF exceeds this, it is re-exported at the next lower fps; the resolution never changes.
+private const val GIF_TARGET_BYTES = 1_000_000L
+private val GIF_FPS_STEPS = listOf(10, 8, 6, 5, 4)
 
 // Frame 0 is the poster (finished card, no shimmer, emoji at rest), held for ClipSpec.posterHoldMs so viewers
 // that pause a GIF show a finished card. Then the shared clip (model/Clip.kt) is sampled at the format's fps.
@@ -372,7 +375,24 @@ private suspend fun exportCardAnimation(
     setPose: (ing.emojify.ui.components.ClipPose) -> Unit,
 ) {
     val spec = timeline.spec
-    val fps = if (format == ShareFormat.Gif) spec.gifFps else spec.mp4Fps
+    val steps = if (format == ShareFormat.Gif) listOf(spec.gifFps) + GIF_FPS_STEPS.filter { it < spec.gifFps } else listOf(spec.mp4Fps)
+    for ((n, fps) in steps.withIndex()) {
+        val file = exportPass(context, format, fps, capture, timeline, { onProgress((n + it) / steps.size) }, setPose)
+        if (format == ShareFormat.Mp4 || file.length() <= GIF_TARGET_BYTES || n == steps.lastIndex) break
+    }
+    if (format == ShareFormat.Gif) shareCardGif(context, cardGifFile(context)) else shareCardMp4(context, cardMp4File(context))
+}
+
+private suspend fun exportPass(
+    context: Context,
+    format: ShareFormat,
+    fps: Int,
+    capture: suspend () -> android.graphics.Bitmap,
+    timeline: ClipTimeline,
+    onProgress: (Float) -> Unit,
+    setPose: (ing.emojify.ui.components.ClipPose) -> Unit,
+): java.io.File {
+    val spec = timeline.spec
     val frames = clipFrameCount(timeline.durationMs, fps)
     val gifFile = cardGifFile(context)
     val mp4File = cardMp4File(context)
@@ -400,5 +420,5 @@ private suspend fun exportCardAnimation(
         gif?.finish()
         mp4?.finish()
     }
-    if (format == ShareFormat.Gif) shareCardGif(context, gifFile) else shareCardMp4(context, mp4File)
+    return if (format == ShareFormat.Gif) gifFile else mp4File
 }

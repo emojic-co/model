@@ -1,40 +1,54 @@
 # pr/remotion
 
-[Remotion](https://remotion.dev) project that films a **showcase** of
-**emojify.ing**: nine real model cards, each replacing the previous one with a
+[Remotion](https://remotion.dev) **template** that films a teen-oriented showcase
+of **emojify.ing**: nine real model cards, each replacing the previous one with a
 slide (in from a side) or a flip (toward a side), then a cross-fade into an
-`emojify.ing` outro card with the web app's emoji-rain easter egg. The
-transition list (type + direction) is `TRANSITIONS` in `src/Showcase.tsx`.
-1080×1350 (4:5), 30 fps, ~29 s, with the Kevin MacLeod track "Doh De Oh" (CC BY 4.0, credit him on publish) — fits Play Store promo video and social feeds.
+`emojify.ing` outro card with the web app's emoji-rain easter egg. 1080×1350
+(4:5), 30 fps, ~30 s — fits Play Store promo video and social feeds.
 
 The cards are the **real** thing: `createPainter` and the clip timeline from
-`web/src` (same painter as the web preview and GIF/MP4 export), with the animated
-Noto Lottie emoji. Nothing is typed; each card plays its own entrance animation.
+`web/src` (same painter as the web preview and GIF/MP4 export), with the original
+animated Noto Lottie emoji. Nothing is typed.
 
-## Files
+Everything about a video lives in one JSON file in `configs/`. Each file becomes a
+composition (id = file name): `en` (English) and `he` (Hebrew, RTL).
 
-| Path | What |
+## Config (`configs/<id>.json`, types in `src/config.ts`)
+
+| Field | What |
 |---|---|
-| `src/showcase.json` | **The fixed cards** (text, emoji, style, colors), hand-picked and committed. Nothing regenerates it. |
-| `showcase.txt` | Candidate texts for `candidates.mjs`. |
-| `candidates.mjs` | Explores the real ONNX model: for each text, the top emojis that have an **original** Google Noto animation (byte-identical to Google's `lottie.json`, not one we generated) and the best-scoring palettes out of many samples. Writes `candidates.json`; never touches `showcase.json`. |
-| `sync-assets.mjs` | Copies the Lottie clips used by `showcase.json` into `public/noto/`. |
-| `src/Showcase.tsx` | The composition: timing, the five transitions, background, emoji rain. |
-| `src/CardClip.tsx` | One real card on a canvas, drawn deterministically for a given time. |
-| `src/fonts.ts` | Google Fonts for every card style. |
-| `webpack-override.mjs` | Shims for the web modules' Vite idioms (`?raw`, `import.meta.env`). |
-| `render.mjs` | Renders `out/showcase.mp4`. |
+| `lang` | `en` / `he`; sets the card font and text direction. |
+| `music` | Track in `public/mp3/`, credit line, volume and fades. |
+| `timing` | Hold/transition/outro seconds. The video length follows from these. |
+| `transitions` | One per card: `{type: "slide", from}` / `{type: "flip", to}` with `left/right/up/down`; the last must be `fade` (into the outro). |
+| `cards` | `text`, `emoji`, `feeling` (style), and frozen `colors` (OKLab). |
+| `outro` | Same shape as a card; `lang` should be `en` so `emojify.ing` is not mirrored. |
 
-## Workflow
+Cards are frozen in the JSON on purpose: the model's color output is noisy, so
+nothing regenerates them.
 
-```sh
-cd pr/remotion
-npm install
-npm run studio        # preview / scrub
-npm run render        # -> out/showcase.mp4
-```
+## Tools
 
-To change a card, edit `src/showcase.json` (copy a pick from `candidates.json`
-after `npm run candidates`), then `npm run sync-assets`. The model's color output
-is noisy, so `candidates` gives different palettes each run — that is why the
-chosen ones are frozen in `showcase.json`.
+| Command | What |
+|---|---|
+| `npm run candidates -- <lang>` | Runs the real ONNX model over `texts/<lang>.txt`: top emojis that have an **original** Noto animation (with their model rank), top styles, and the best-scoring palettes out of many samples → `candidates/<lang>.json`. Never touches `configs/`. |
+| `npm run validate` | Checks every config against the model: emoji in the top 5, style in the top 3, emoji is byte-identical to Google's Noto animation, text contrast ≥ the app's floor. Exits non-zero on failure. |
+| `npm run sync-assets` | Copies the Lottie clips the configs use into `public/noto/`. |
+| `npm run studio` | Preview / scrub. |
+| `npm run render [id ...]` | Renders `out/<id>.mp4` (default: all configs). |
+
+## Making a new video / language
+
+1. Put candidate texts in `texts/<lang>.txt`, run `npm run candidates -- <lang>`.
+2. Copy `configs/en.json` to `configs/<id>.json`; fill `cards` from the candidates
+   (emoji + style from the lists, `colors` from a palette).
+3. `npm run validate && npm run sync-assets`, then preview in the studio.
+
+Music: "Doh De Oh" by Kevin MacLeod (incompetech.com), CC BY 4.0 — credit him on publish.
+
+## Code
+
+`src/Showcase.tsx` (timing, transitions, background, emoji rain), `src/CardClip.tsx`
+(one real card on a canvas, drawn deterministically for a given time),
+`src/fonts.ts` (Google Fonts), `webpack-override.mjs` (shims for the web modules'
+Vite idioms).

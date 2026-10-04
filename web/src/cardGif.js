@@ -3,8 +3,9 @@ import { createPainter } from './hooks/useCardImage'
 import { loadNotoIndex, notoUrl } from './notoLottie'
 import { CLIP, springScale } from './clip'
 
-// Output sizes tried in order until the file fits TARGET_BYTES (the last one is kept regardless).
-const SIZES = [320, 256, 208, 160]
+// Fixed output size. When the file exceeds TARGET_BYTES the frame rate is lowered, never the resolution.
+const SIZE = 320
+const FPS_STEPS = [CLIP.gifFps, 10, 8, 6, 5, 4].filter((f, i, a) => f <= CLIP.gifFps && a.indexOf(f) === i)
 const TARGET_BYTES = 500 * 1024
 
 // Emoji layer: the Noto Lottie clone rendered to an offscreen canvas (looping over the timeline),
@@ -81,9 +82,9 @@ export async function renderGif(cardData, { onProgress, signal } = {}) {
   const emoji = await emojiLayer(cardData.emoji)
   try {
     let blob
-    for (let a = 0; a < SIZES.length; a++) {
-      const report = (p) => onProgress?.((a + p) / SIZES.length)
-      blob = await encode(cardData, emoji, SIZES[a], report, signal)
+    for (let a = 0; a < FPS_STEPS.length; a++) {
+      const report = (p) => onProgress?.((a + p) / FPS_STEPS.length)
+      blob = await encode(cardData, emoji, SIZE, FPS_STEPS[a], report, signal)
       if (blob.size <= TARGET_BYTES) break
     }
     onProgress?.(1)
@@ -95,16 +96,16 @@ export async function renderGif(cardData, { onProgress, signal } = {}) {
 
 const grabPixels = (c) => c.getContext('2d').getImageData(0, 0, c.width, c.height).data
 
-async function encode(cardData, emoji, size, onProgress, signal) {
+async function encode(cardData, emoji, size, fps, onProgress, signal) {
   const paint = await createPainter(cardData, size / 512)
   const tl = paint.timeline(emoji.loopMs)
-  const count = frameCount(tl.durationMs, CLIP.gifFps)
+  const count = frameCount(tl.durationMs, fps)
   // Pass 1: render every frame (poster first). Pass 2: encode with ONE shared palette (per-frame palettes make
   // the soft shimmer gradient band and flicker) plus ordered dithering to hide the banding.
   const frames = [grabPixels(paint.poster(emoji))]
   for (let i = 0; i < count; i++) {
     if (signal?.aborted) throw new DOMException('aborted', 'AbortError')
-    frames.push(grabPixels(paint.frame(tl, emoji, (i * 1000) / CLIP.gifFps)))
+    frames.push(grabPixels(paint.frame(tl, emoji, (i * 1000) / fps)))
     onProgress?.(((i + 1) / count) * 0.8)
     await tick()
   }
@@ -114,7 +115,7 @@ async function encode(cardData, emoji, size, onProgress, signal) {
   for (let i = 0; i < frames.length; i++) {
     if (signal?.aborted) throw new DOMException('aborted', 'AbortError')
     dither(frames[i], width)
-    const delay = i === 0 ? CLIP.posterHoldMs : Math.round(1000 / CLIP.gifFps)
+    const delay = i === 0 ? CLIP.posterHoldMs : Math.round(1000 / fps)
     gif.writeFrame(applyPalette(frames[i], palette), width, height, { palette, delay })
     frames[i] = null
     onProgress?.(0.8 + ((i + 1) / frames.length) * 0.2)

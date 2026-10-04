@@ -4,14 +4,7 @@ import { createPainter } from '../../../web/src/hooks/useCardImage.js'
 import { springScale } from '../../../web/src/clip.js'
 import { loadFonts } from './fonts'
 
-export type CardData = {
-  text: string
-  emoji: string
-  feeling: string
-  bg1: number[]
-  bg2: number[]
-  text_color: number[]
-}
+import type { CardConfig } from './config'
 
 const SCALE = 2 // painter backing resolution: 512 * 2 = 1024px
 
@@ -57,8 +50,9 @@ type Player = { paint: any; tl: any; emoji: any }
 
 // One real card (same painter + clip timeline as the web preview and GIF/MP4 export),
 // drawn deterministically for `timeMs` since the card started playing.
-export const CardClip: React.FC<{ card: CardData; timeMs: number; size: number }> = ({
+export const CardClip: React.FC<{ card: CardConfig; lang: string; timeMs: number; size: number }> = ({
   card,
+  lang,
   timeMs,
   size,
 }) => {
@@ -74,9 +68,9 @@ export const CardClip: React.FC<{ card: CardData; timeMs: number; size: number }
           text: card.text,
           emoji: card.emoji,
           feeling: card.feeling,
-          lang: 'en',
+          lang: card.lang ?? lang,
           dim: false,
-          colors: { bg1: card.bg1, bg2: card.bg2, text_color: card.text_color },
+          colors: card.colors,
         },
         SCALE,
       )
@@ -87,7 +81,7 @@ export const CardClip: React.FC<{ card: CardData; timeMs: number; size: number }
         console.error(e)
         continueRender(handle)
       })
-  }, [card, handle])
+  }, [card, lang, handle])
 
   useLayoutEffect(() => {
     const el = canvas.current
