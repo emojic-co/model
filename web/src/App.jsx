@@ -12,6 +12,8 @@ import { EmojiList } from './components/EmojiList'
 import { KeyHints } from './components/KeyHints'
 import { mp4Supported, useCardExport, useCardImage } from './hooks/useCardImage'
 import { Toast } from './components/Toast'
+import { EmojiRain } from './components/EmojiRain'
+import { isEasterEgg } from './easterEgg'
 import { useMediaQuery } from './hooks/useMediaQuery'
 import { useI18n, LANGS, LANG_NAMES } from './i18n'
 
@@ -75,6 +77,10 @@ export function App() {
   const [contrastFix, setContrastFix] = useState(initialContrastFix)
   const [toast, setToast] = useState({ msg: '', n: 0 })
   const showToast = useCallback((msg) => setToast((s) => ({ msg, n: s.n + 1 })), [])
+  const [eggTrigger, setEggTrigger] = useState(0)
+  useEffect(() => {
+    if (isEasterEgg(text)) setEggTrigger((n) => n + 1)
+  }, [text])
   const seq = useRef(0)
   const inputRef = useRef(null)
   const cardRef = useRef(null)
@@ -384,6 +390,7 @@ export function App() {
         </div>
       </div>
       <Toast toast={toast} />
+      <EmojiRain trigger={eggTrigger} />
     </main>
   )
 }

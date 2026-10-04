@@ -81,6 +81,8 @@ import ing.emojify.model.Mp4Encoder
 import ing.emojify.ui.components.Card
 import ing.emojify.ui.components.ColorBar
 import ing.emojify.ui.components.EmojiList
+import ing.emojify.ui.components.EmojiRain
+import ing.emojify.ui.components.isEasterEgg
 import ing.emojify.ui.components.FeelingBar
 import ing.emojify.ui.components.PatternBackground
 import kotlinx.coroutines.delay
@@ -112,6 +114,8 @@ private data class Override(val emoji: String? = null, val feeling: String? = nu
 fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit) {
     val strings = LocalStrings.current
     var text by remember { mutableStateOf("") }
+    var eggTrigger by remember { mutableStateOf(0) }
+    LaunchedEffect(text) { if (isEasterEgg(text)) eggTrigger++ }
     var emojiTop by remember { mutableStateOf<List<EmojiScore>>(emptyList()) }
     var predictedFeeling by remember { mutableStateOf<String?>(null) }
     var feelingScores by remember { mutableStateOf<FloatArray?>(null) }
@@ -345,6 +349,7 @@ fun MainScreen(meta: Meta, predictor: OnnxPredictor, onSettingsClick: () -> Unit
         ) {
             Icon(Icons.Default.Settings, contentDescription = strings.t("main.settings"))
         }
+        EmojiRain(trigger = eggTrigger)
     }
 }
 

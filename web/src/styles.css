@@ -902,6 +902,32 @@ main[data-exporting] .feelings-col {
   margin: 0;
 }
 
+.emoji-rain {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.emoji-rain span {
+  position: absolute;
+  top: -3rem;
+  animation: emoji-fall linear both;
+}
+
+@keyframes emoji-fall {
+  to {
+    transform: translateY(110vh) rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .emoji-rain {
+    display: none;
+  }
+}
+
 .toast {
   position: fixed;
   left: 50%;
