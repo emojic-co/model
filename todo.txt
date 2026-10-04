@@ -6,7 +6,7 @@ The animation concludes with a final outro card clearly displaying the text 'emo
 Notes:
 - No typewriting animation at all.
 - Each card should show an actual card according to the model.
-- Pick 5 engaging texts, run the model and pick the best card (emoji, style, colors) for each text.
+- Pick 5 engaging texts, run the model and pick the best card (emoji, style, colors) for each text (pre compute and save to a .json file).
 - For the final outro use the easter egg animation.
 - The video should be engaging and optimal for the google play store and social media posts.
 - Open the project in the Remotion studio.
