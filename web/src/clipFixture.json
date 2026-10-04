@@ -174,8 +174,8 @@
     "cluster": "reflective",
     "unitCount": 12,
     "loopMs": 2400,
-    "durationMs": 4800,
-    "loops": 2,
+    "durationMs": 4450,
+    "loops": 1,
     "samples": [
       {
         "t": 0,

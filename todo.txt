@@ -1,10 +1,7 @@
-Goal:
-GIF animation should be at most 6s long.
+Do not animate the text twice.
+The animation is:
+- start text + emoji
+- when text is done start the shimmer.
+- when max(emoji, shimmer) is done, stop the animation.
 
-What need to be done:
-- Make a 2s cap on the text entrance duration.
-- Make a 3s cap on the shimmer duration.
-
-
-Note:
-- For MP4 the total duration should be the same as the GIF animation, then pause for 3s, then loop forever.
+Note that this true both for GIF and MP4, which could be less than 6s.

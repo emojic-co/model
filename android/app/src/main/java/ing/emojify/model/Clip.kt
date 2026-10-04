@@ -15,9 +15,7 @@ data class SpringSpec(val durationMs: Double, val from: Double, val zeta: Double
 
 @Serializable
 data class ClipSpec(
-    val minEmojiLoops: Int,
     val maxClipMs: Double,
-    val posterHoldMs: Int,
     val gifFps: Int,
     val mp4Fps: Int,
     val mp4EndHoldMs: Int = 0,
@@ -29,10 +27,7 @@ data class ClipLength(val durationMs: Double, val loops: Int)
 fun clipLength(entranceMs: Double, startDelayMs: Double, passMs: Double, loopMs: Double, spec: ClipSpec): ClipLength {
     val content = entranceMs + startDelayMs + passMs
     if (loopMs <= 0.0) return ClipLength(content, 0)
-    val needed = maxOf(1, ceil(content / loopMs).toInt())
-    var loops = maxOf(needed, spec.minEmojiLoops)
-    while (loops > needed && loops * loopMs > spec.maxClipMs) loops -= 1
-    return ClipLength(maxOf(content, minOf(loops * loopMs, spec.maxClipMs)), loops)
+    return ClipLength(maxOf(content, minOf(loopMs, spec.maxClipMs)), 1)
 }
 
 fun clipFrameCount(durationMs: Double, fps: Int): Int = maxOf(1, ceil(durationMs * fps / 1000.0).toInt())

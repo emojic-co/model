@@ -366,8 +366,8 @@ private fun gifSizePx(context: Context): Int =
     context.getSharedPreferences(ing.emojify.model.GifSizePrefs.FILE, Context.MODE_PRIVATE)
         .getInt(ing.emojify.model.GifSizePrefs.KEY_SIZE_PX, ing.emojify.model.GifSizePrefs.DEFAULT_SIZE_PX)
 
-// Frame 0 is the poster (finished card, no shimmer, emoji at rest), held for ClipSpec.posterHoldMs so viewers
-// that pause a GIF show a finished card. Then the shared clip (model/Clip.kt) is sampled at the format's fps.
+// The shared clip (model/Clip.kt) is sampled at the format's fps from t=0 (text and emoji start together, so
+// the text animates once).
 // Each frame is posed, waits for two composed frames, and the card layer is captured; the frames are encoded
 // into a looping GIF or MP4 and the share sheet opens.
 private suspend fun exportCardAnimation(
@@ -420,7 +420,6 @@ private suspend fun exportPass(
         waitMs += (t1 - t0) / 1e6; captureMs += (t2 - t1) / 1e6; encodeMs += (t3 - t2) / 1e6
     }
 
-    grab(ing.emojify.ui.components.ClipPose(0f, poster = true), spec.posterHoldMs)
     for (i in 0 until frames) {
         onProgress(i / frames.toFloat())
         grab(ing.emojify.ui.components.ClipPose(i * 1000f / fps), 1000 / fps, if (i == frames - 1) endHoldMs else 0)

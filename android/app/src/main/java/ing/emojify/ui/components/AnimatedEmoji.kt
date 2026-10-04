@@ -69,7 +69,7 @@ fun AnimatedEmoji(
                 composition = composition,
                 progress = {
                     val t = emojiMs()
-                    if (t == null || loopMs <= 0f) 0f else ((t % loopMs) / loopMs).coerceIn(0f, 0.999f)
+                    if (t == null || loopMs <= 0f) 0f else (if (t < loopMs) t / loopMs else 0f).coerceIn(0f, 0.999f)
                 },
                 modifier = Modifier.align(Alignment.Center).size(side),
             )

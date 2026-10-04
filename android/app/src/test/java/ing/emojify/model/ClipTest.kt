@@ -17,9 +17,9 @@ class ClipTest {
     private val spec = file.clip!!
 
     @Test
-    fun `clip length rounds up to whole emoji loops`() {
-        assertEquals(3000.0, clipLength(1000.0, 250.0, 1500.0, 1000.0, spec).durationMs, 0.0)
-        assertEquals(4000.0, clipLength(1000.0, 250.0, 1500.0, 2000.0, spec).durationMs, 0.0)
+    fun `clip ends when both emoji and shimmer are done`() {
+        assertEquals(2750.0, clipLength(1000.0, 250.0, 1500.0, 1000.0, spec).durationMs, 0.0)
+        assertEquals(4000.0, clipLength(1000.0, 250.0, 1500.0, 4000.0, spec).durationMs, 0.0)
         assertEquals(2750.0, clipLength(1000.0, 250.0, 1500.0, 0.0, spec).durationMs, 0.0)
     }
 

@@ -1,7 +1,7 @@
 import { loadNotoIndex, notoUrl } from './notoLottie'
 import { CLIP, springScale } from './clip'
 
-// Emoji layer: the Noto Lottie clone rendered to an offscreen canvas (looping over the timeline),
+// Emoji layer: the Noto Lottie clone rendered to an offscreen canvas (played once from t=0, then at rest),
 // or, for emojis without a clone, the spring scale at the start. `restMs` is the time the poster frame shows.
 export async function emojiLayer(emoji) {
   const stem = (await loadNotoIndex())[emoji]
@@ -26,7 +26,7 @@ export async function emojiLayer(emoji) {
       loopMs,
       restMs: 0,
       draw(timeMs, ctx, x, y, px) {
-        anim.goToAndStop(data.ip + ((timeMs % loopMs) / loopMs) * (frames - 1), true)
+        anim.goToAndStop(data.ip + (timeMs < loopMs ? timeMs / loopMs : 0) * (frames - 1), true)
         ctx.drawImage(canvas, x - px / 2, y - px / 2, px, px)
       },
       destroy: () => anim.destroy(),

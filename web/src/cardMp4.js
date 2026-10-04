@@ -35,16 +35,13 @@ export async function renderMp4(cardData, { onProgress, signal } = {}) {
 
     const tl = paint.timeline(emoji.loopMs)
     const count = frameCount(tl.durationMs, FPS)
-    const poster = new VideoFrame(paint.poster(emoji), { timestamp: 0, duration: CLIP.posterHoldMs * 1000 })
-    encoder.encode(poster, { keyFrame: true })
-    poster.close()
     for (let i = 0; i < count; i++) {
       if (signal?.aborted) throw new DOMException('aborted', 'AbortError')
       if (failure) throw failure
       const timeMs = (i * 1000) / FPS
       const canvas = paint.frame(tl, emoji, timeMs)
       const holdMs = i === count - 1 ? CLIP.mp4EndHoldMs : 0
-      const frame = new VideoFrame(canvas, { timestamp: Math.round((CLIP.posterHoldMs + timeMs) * 1000), duration: Math.round(1e6 / FPS + holdMs * 1000) })
+      const frame = new VideoFrame(canvas, { timestamp: Math.round(timeMs * 1000), duration: Math.round(1e6 / FPS + holdMs * 1000) })
       encoder.encode(frame, { keyFrame: i % FPS === 0 })
       frame.close()
       onProgress?.((i + 1) / count)

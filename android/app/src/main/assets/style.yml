@@ -1,4 +1,4 @@
-exportedAt: 2026-10-04T10:45:45.833Z
+exportedAt: 2026-10-04T11:45:30.596Z
 global:
   referencePx: 600
   maxPatternOpacity: 0.14
@@ -569,9 +569,7 @@ shimmer:
     Tense:
       durationMs: 1100
 clip:
-  minEmojiLoops: 1
-  maxClipMs: 5400
-  posterHoldMs: 600
+  maxClipMs: 6000
   gifFps: 12
   mp4Fps: 20
   mp4EndHoldMs: 3000

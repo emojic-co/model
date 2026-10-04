@@ -8,10 +8,7 @@ export const CLIP = parse(raw)
 export function clipFor({ entranceMs, startDelayMs, passMs, loopMs }, spec = CLIP) {
   const content = entranceMs + startDelayMs + passMs
   if (!loopMs) return { durationMs: content, loops: 0 }
-  const needed = Math.max(1, Math.ceil(content / loopMs))
-  let loops = Math.max(needed, spec.minEmojiLoops)
-  while (loops > needed && loops * loopMs > spec.maxClipMs) loops -= 1
-  return { durationMs: Math.max(content, Math.min(loops * loopMs, spec.maxClipMs)), loops }
+  return { durationMs: Math.max(content, Math.min(loopMs, spec.maxClipMs)), loops: 1 }
 }
 
 export function springScale(tMs, s = CLIP.spring) {

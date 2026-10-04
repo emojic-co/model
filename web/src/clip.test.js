@@ -5,20 +5,18 @@ import { CLIP, clipFor, createTimeline, springScale } from './clip'
 
 describe('clipFor', () => {
   const base = { entranceMs: 1000, startDelayMs: 250, passMs: 1500 } // 2750 ms of content
-  it('rounds up to whole emoji loops, at least minEmojiLoops', () => {
-    expect(clipFor({ ...base, loopMs: 1000 })).toEqual({ durationMs: 3000, loops: 3 })
-    expect(clipFor({ ...base, loopMs: 2000 })).toEqual({ durationMs: 4000, loops: 2 })
+  it('stops when both the emoji and the shimmer are done', () => {
+    expect(clipFor({ ...base, loopMs: 1000 })).toEqual({ durationMs: 2750, loops: 1 })
+    expect(clipFor({ ...base, loopMs: 4000 }, { ...CLIP, maxClipMs: 6000 })).toEqual({ durationMs: 4000, loops: 1 })
   })
-  it('cuts a long emoji loop at maxClipMs but never the content', () => {
+  it('cuts a long emoji at maxClipMs but never the content', () => {
     expect(clipFor({ ...base, loopMs: 4000 }, { ...CLIP, maxClipMs: 3500 })).toEqual({ durationMs: 3500, loops: 1 })
     expect(clipFor({ ...base, loopMs: 4000 }, { ...CLIP, maxClipMs: 1000 })).toEqual({ durationMs: 2750, loops: 1 })
   })
   it('keeps an exported GIF within 6 s even for the longest entrance, shimmer and emoji loop', () => {
-    const content = 2000 + 250 + 3000
-    expect(CLIP.maxClipMs).toBeGreaterThanOrEqual(content)
     for (const loopMs of [0, 700, 2500, 8067]) {
       const { durationMs } = clipFor({ entranceMs: 2000, startDelayMs: 250, passMs: 3000, loopMs })
-      expect(CLIP.posterHoldMs + durationMs, String(loopMs)).toBeLessThanOrEqual(6000)
+      expect(durationMs, String(loopMs)).toBeLessThanOrEqual(6000)
     }
   })
   it('spring-only emoji uses just text + shimmer', () => {
@@ -36,7 +34,7 @@ describe('springScale', () => {
 describe('createTimeline', () => {
   it('builds a loop whose shimmer starts after entrance + startDelay', () => {
     const tl = createTimeline({ motif: 'slam', feeling: 'Angry', cluster: 'anger', unitCount: 5, loopMs: 1500 })
-    expect(tl.durationMs % 1500).toBe(0)
+    expect(tl.durationMs).toBeGreaterThanOrEqual(1500)
     expect(tl.shimmerStartMs).toBeCloseTo(tl.text.totalMs + tl.shimmer.startDelayMs)
     expect(tl.shimmer.pose(tl.shimmerStartMs - 1)).toBeNull()
     expect(tl.shimmer.pose(tl.shimmerStartMs + 1)).not.toBeNull()
