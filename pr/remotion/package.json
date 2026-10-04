@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "pregen": "node pregen.mjs",
+    "candidates": "node candidates.mjs",
+    "sync-assets": "node sync-assets.mjs",
     "studio": "remotion studio",
     "render": "node render.mjs",
     "lint": "eslint src"

@@ -15,8 +15,10 @@ Noto Lottie emoji. Nothing is typed; each card plays its own entrance animation.
 
 | Path | What |
 |---|---|
-| `showcase.txt` | The nine card texts + outro text. Format: `text \| palette (0-4) \| emoji \| style`, all but text optional. |
-| `pregen.mjs` | Runs the **real** ONNX model (`web/public/model.onnx`) per line: highest-logit emoji that has a Lottie clone, argmax style, chosen palette. Writes `src/showcase.json` and copies the needed clips into `public/noto/`. |
+| `src/showcase.json` | **The fixed cards** (text, emoji, style, colors), hand-picked and committed. Nothing regenerates it. |
+| `showcase.txt` | Candidate texts for `candidates.mjs`. |
+| `candidates.mjs` | Explores the real ONNX model: for each text, the top emojis that have an **original** Google Noto animation (byte-identical to Google's `lottie.json`, not one we generated) and the best-scoring palettes out of many samples. Writes `candidates.json`; never touches `showcase.json`. |
+| `sync-assets.mjs` | Copies the Lottie clips used by `showcase.json` into `public/noto/`. |
 | `src/Showcase.tsx` | The composition: timing, the five transitions, background, emoji rain. |
 | `src/CardClip.tsx` | One real card on a canvas, drawn deterministically for a given time. |
 | `src/fonts.ts` | Google Fonts for every card style. |
@@ -28,14 +30,11 @@ Noto Lottie emoji. Nothing is typed; each card plays its own entrance animation.
 ```sh
 cd pr/remotion
 npm install
-npm run pregen   # after changing showcase.txt or the model
-npm run studio   # preview / scrub
-npm run render   # -> out/showcase.mp4
+npm run studio        # preview / scrub
+npm run render        # -> out/showcase.mp4
 ```
 
-To pick a different card for a text, change its palette index (and optionally
-emoji/style) in `showcase.txt` and rerun `pregen`.
-
-Note: the model's palette output is not deterministic, so `pregen` gives different
-colors on every run. `src/showcase.json` is the committed pick — rerun `pregen`
-only when you want to re-roll the cards.
+To change a card, edit `src/showcase.json` (copy a pick from `candidates.json`
+after `npm run candidates`), then `npm run sync-assets`. The model's color output
+is noisy, so `candidates` gives different palettes each run — that is why the
+chosen ones are frozen in `showcase.json`.

@@ -1,11 +1,6 @@
-# text | palette (0-4) | emoji | style — all but text optional
-we got the house!!!
-pizza's finally here | 2
-he ghosted me again
-beat the final boss at last
-new puppy just arrived
-first sunrise of the whole trip
-the cat knocked my coffee over
-rainy day, hot cocoa
-road trip with the besties
-emojify.ing | 0 | 🎉 | Joyful
+# candidate texts for candidates.mjs (the fixed cards live in src/showcase.json)
+got my driver's license!!!
+concert tonight with the squad
+movie night with the squad
+new sneakers just dropped
+summer vacation starts today
