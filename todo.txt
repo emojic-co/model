@@ -1,2 +1,11 @@
-When sharing the card from the Android app add, with probability 1/10 a link to https://emojify.ing with the shared card.
-Let the user disable it in the settings but make a sad face when disabled and happy one when enabled.
+Setting page order:
+- Language
+- Rate the app
+- Max Emojis...
+- Number of colors...
+- Export settings
+- Model settings (Auto update, wifi, check now)
+
+In addition I asked you to add a link to https://emojify.ing when users share a card, the link should be added randomly 1/10.
+The user can disable this feature in the settings if they wish but there is a sad face when disabled and a happy one when enabled.
+

@@ -5,9 +5,17 @@ import android.content.Intent
 import android.graphics.Bitmap
 import androidx.core.content.FileProvider
 import java.io.File
+import ing.emojify.model.ShareLinkPrefs
 import java.io.FileOutputStream
+import kotlin.random.Random
 
 private fun cardsDir(context: Context) = File(context.cacheDir, "cards").apply { mkdirs() }
+
+private fun shouldAddLink(context: Context): Boolean {
+    val prefs = context.getSharedPreferences(ShareLinkPrefs.FILE, Context.MODE_PRIVATE)
+    return prefs.getBoolean(ShareLinkPrefs.KEY_ENABLED, ShareLinkPrefs.DEFAULT_ENABLED) &&
+        Random.nextInt(ShareLinkPrefs.ONE_IN) == 0
+}
 
 private fun send(context: Context, file: File, mime: String) {
     val uri = FileProvider.getUriForFile(context, "ing.emojify.fileprovider", file)
@@ -15,6 +23,7 @@ private fun send(context: Context, file: File, mime: String) {
         type = mime
         putExtra(Intent.EXTRA_STREAM, uri)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        if (shouldAddLink(context)) putExtra(Intent.EXTRA_TEXT, ShareLinkPrefs.URL)
     }
     context.startActivity(Intent.createChooser(intent, null))
 }

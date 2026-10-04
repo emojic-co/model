@@ -4,6 +4,8 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,10 +15,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +51,7 @@ import ing.emojify.model.LanguagePrefs
 import ing.emojify.model.LocalStrings
 import ing.emojify.model.ModelUpdatePrefs
 import ing.emojify.model.ModelUpdater
+import ing.emojify.model.ShareLinkPrefs
 import ing.emojify.model.Strings
 import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
@@ -74,6 +79,11 @@ private fun openStoreListing(context: Context) {
         } catch (_: ActivityNotFoundException) {
         }
     }
+}
+
+@Composable
+private fun GroupDivider() {
+    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), thickness = 0.5.dp)
 }
 
 @Composable
@@ -121,6 +131,10 @@ fun SettingsScreen(onBack: () -> Unit, lang: String, onLangChange: (String) -> U
                 .coerceIn(DebouncePrefs.MIN_DEBOUNCE_MS, DebouncePrefs.MAX_DEBOUNCE_MS),
         )
     }
+    val shareLinkPrefs = remember { context.getSharedPreferences(ShareLinkPrefs.FILE, Context.MODE_PRIVATE) }
+    var shareLink by remember {
+        mutableStateOf(shareLinkPrefs.getBoolean(ShareLinkPrefs.KEY_ENABLED, ShareLinkPrefs.DEFAULT_ENABLED))
+    }
     var status by remember { mutableStateOf(statusText(updater, strings)) }
     var checking by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -129,7 +143,7 @@ fun SettingsScreen(onBack: () -> Unit, lang: String, onLangChange: (String) -> U
         LocalLayoutDirection provides if (lang == "he") LayoutDirection.Rtl else LayoutDirection.Ltr,
     ) {
     Box(modifier = Modifier.fillMaxSize().safeDrawingPadding().padding(16.dp)) {
-        Column {
+        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth(),
@@ -140,34 +154,22 @@ fun SettingsScreen(onBack: () -> Unit, lang: String, onLangChange: (String) -> U
                 Text(strings.t("settings.title"), style = MaterialTheme.typography.titleLarge)
             }
             Spacer(modifier = Modifier.height(24.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(strings.t("settings.autoUpdate"), modifier = Modifier.weight(1f))
-                Switch(
-                    checked = autoUpdate,
-                    onCheckedChange = {
-                        autoUpdate = it
-                        prefs.edit().putBoolean(ModelUpdatePrefs.KEY_AUTO_UPDATE, it).apply()
-                    },
-                )
+            Text(strings.t("settings.language"))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                for (code in LanguagePrefs.SUPPORTED) {
+                    val name = LanguagePrefs.NAMES.getValue(code)
+                    if (code == lang) Button(onClick = { onLangChange(code) }) { Text(name) }
+                    else OutlinedButton(onClick = { onLangChange(code) }) { Text(name) }
+                }
             }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(),
+            GroupDivider()
+            Button(
+                onClick = { openStoreListing(context) },
+                modifier = Modifier.fillMaxWidth().height(64.dp),
             ) {
-                Text(strings.t("settings.wifiOnly"), modifier = Modifier.weight(1f))
-                Switch(
-                    checked = wifiOnly,
-                    enabled = autoUpdate,
-                    onCheckedChange = {
-                        wifiOnly = it
-                        prefs.edit().putBoolean(ModelUpdatePrefs.KEY_WIFI_ONLY, it).apply()
-                    },
-                )
+                Text("\u2B50 " + strings.t("settings.rate") + " \u2B50", style = MaterialTheme.typography.titleLarge)
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            GroupDivider()
             Text(strings.t("settings.maxEmojis", mapOf("n" to maxEmojis)))
             Slider(
                 value = maxEmojis.toFloat(),
@@ -189,7 +191,7 @@ fun SettingsScreen(onBack: () -> Unit, lang: String, onLangChange: (String) -> U
                 valueRange = ColorCountPrefs.MIN_COLOR_COUNT.toFloat()..ColorCountPrefs.MAX_COLOR_COUNT.toFloat(),
                 steps = ColorCountPrefs.MAX_COLOR_COUNT - ColorCountPrefs.MIN_COLOR_COUNT - 1,
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            GroupDivider()
             Text(strings.t("settings.exportRes"))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 for (option in ExportSizePrefs.OPTIONS) {
@@ -225,7 +227,7 @@ fun SettingsScreen(onBack: () -> Unit, lang: String, onLangChange: (String) -> U
                     else OutlinedButton(onClick = pick) { Text("$option") }
                 }
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            GroupDivider()
             Text(strings.t("settings.debounce", mapOf("ms" to debounceMs)))
             Slider(
                 value = debounceMs.toFloat(),
@@ -238,14 +240,33 @@ fun SettingsScreen(onBack: () -> Unit, lang: String, onLangChange: (String) -> U
                 valueRange = DebouncePrefs.MIN_DEBOUNCE_MS.toFloat()..DebouncePrefs.MAX_DEBOUNCE_MS.toFloat(),
                 steps = (DebouncePrefs.MAX_DEBOUNCE_MS - DebouncePrefs.MIN_DEBOUNCE_MS) / DebouncePrefs.STEP_MS - 1,
             )
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(strings.t("settings.language"))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                for (code in LanguagePrefs.SUPPORTED) {
-                    val name = LanguagePrefs.NAMES.getValue(code)
-                    if (code == lang) Button(onClick = { onLangChange(code) }) { Text(name) }
-                    else OutlinedButton(onClick = { onLangChange(code) }) { Text(name) }
-                }
+            GroupDivider()
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(strings.t("settings.autoUpdate"), modifier = Modifier.weight(1f))
+                Switch(
+                    checked = autoUpdate,
+                    onCheckedChange = {
+                        autoUpdate = it
+                        prefs.edit().putBoolean(ModelUpdatePrefs.KEY_AUTO_UPDATE, it).apply()
+                    },
+                )
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(strings.t("settings.wifiOnly"), modifier = Modifier.weight(1f))
+                Switch(
+                    checked = wifiOnly,
+                    enabled = autoUpdate,
+                    onCheckedChange = {
+                        wifiOnly = it
+                        prefs.edit().putBoolean(ModelUpdatePrefs.KEY_WIFI_ONLY, it).apply()
+                    },
+                )
             }
             Spacer(modifier = Modifier.height(12.dp))
             Text(status)
@@ -263,9 +284,21 @@ fun SettingsScreen(onBack: () -> Unit, lang: String, onLangChange: (String) -> U
             ) {
                 Text(strings.t(if (checking) "settings.checking" else "settings.checkNow"))
             }
-            Spacer(modifier = Modifier.height(24.dp))
-            OutlinedButton(onClick = { openStoreListing(context) }) {
-                Text(strings.t("settings.rate"))
+            GroupDivider()
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(if (shareLink) "\uD83D\uDE0A" else "\uD83D\uDE22", style = MaterialTheme.typography.headlineSmall)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(strings.t("settings.shareLink"), modifier = Modifier.weight(1f))
+                Switch(
+                    checked = shareLink,
+                    onCheckedChange = {
+                        shareLink = it
+                        shareLinkPrefs.edit().putBoolean(ShareLinkPrefs.KEY_ENABLED, it).apply()
+                    },
+                )
             }
         }
     }

@@ -1,4 +1,4 @@
-exportedAt: 2026-10-04T09:31:27.659Z
+exportedAt: 2026-10-04T09:49:49.400Z
 global:
   referencePx: 600
   maxPatternOpacity: 0.14
@@ -645,6 +645,7 @@ i18n:
     settings.checking: Checking…
     settings.rate: Rate this app
     settings.language: Language
+    settings.shareLink: Sometimes add a link to emojify.ing when sharing
     feeling.Joyful: Joyful
     feeling.Excited: Excited
     feeling.Hopeful: Hopeful
@@ -718,6 +719,7 @@ i18n:
     settings.checking: בודק…
     settings.rate: דרגו את האפליקציה
     settings.language: שפה
+    settings.shareLink: להוסיף לפעמים קישור ל-emojify.ing בשיתוף
     feeling.Joyful: שמח
     feeling.Excited: נלהב
     feeling.Hopeful: מלא תקווה
