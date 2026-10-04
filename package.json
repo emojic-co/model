@@ -17,6 +17,7 @@
     "pinterest": "bun run tools/social/pinterest.ts",
     "show-labels": "bun run tools/data/show-labels.ts",
     "emoji-coverage": "bun run tools/analysis/emoji-coverage.ts",
+    "emoji2png": "bun run tools/emoji2png.ts",
     "animate": "bun run tools/animate/animate.ts",
     "fetch-noto-lottie": "bun run tools/data/fetch-noto-lottie.ts",
     "export-style": "bun run tools/data/export-style.ts",

@@ -1,3 +1,6 @@
-Make the text animation faster and smoother if possible.
-The first frame of the animation  must be the static emoji with the full text so when the GIF is done playing I can see the text and emoji clearly.
-If the first export to GIF is > 600KB go straight to the 3rd attempt (10 fps, 280px)
+create a tool tools/emoji2png.ts
+That convert an emoji to a .png img.
+emoji2jpg <emoji> [--res <resolution>] [--output <output_file>]
+default resolution is 512x512
+default output is pngs/<emoji_code>.png
+the tool prints the output file so we can emoji2png | xargs google-chrome
