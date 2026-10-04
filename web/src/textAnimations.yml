@@ -25,12 +25,12 @@
 #  * Reduced-motion: show the final state immediately, no animation.
 
 timing:
-  maxTotalMs: 2000
+  maxTotalMs: 1300
 
 motifs:
   slam:
-    durationMs: 380
-    staggerMs: 45
+    durationMs: 245
+    staggerMs: 30
     order: forward
     jitterMs: 0
     alternate: false
@@ -38,12 +38,11 @@ motifs:
     keyframes:
       - { at: 0, opacity: 0, scale: 1.8, y: -0.3 }
       - { at: 0.55, opacity: 1, scale: 0.92, y: 0 }
-      - { at: 0.75, scale: 1.05, x: -0.04 }
-      - { at: 0.88, scale: 1, x: 0.04 }
-      - { at: 1, x: 0 }
+      - { at: 0.8, scale: 1.04 }
+      - { at: 1, scale: 1 }
   pop:
-    durationMs: 480
-    staggerMs: 55
+    durationMs: 310
+    staggerMs: 35
     order: forward
     jitterMs: 0
     alternate: false
@@ -53,8 +52,8 @@ motifs:
       - { at: 0.65, opacity: 1, scale: 1.18, y: -0.12 }
       - { at: 1, scale: 1, y: 0 }
   spin:
-    durationMs: 560
-    staggerMs: 60
+    durationMs: 365
+    staggerMs: 40
     order: forward
     jitterMs: 0
     alternate: true
@@ -64,8 +63,8 @@ motifs:
       - { at: 0.7, opacity: 1, rotate: 12, scale: 1.1 }
       - { at: 1, rotate: 0, scale: 1 }
   settle:
-    durationMs: 900
-    staggerMs: 70
+    durationMs: 585
+    staggerMs: 45
     order: forward
     jitterMs: 0
     alternate: false
@@ -74,8 +73,8 @@ motifs:
       - { at: 0, opacity: 0, y: 0.15, scale: 1.15 }
       - { at: 1, opacity: 1, y: 0, scale: 1 }
   drop:
-    durationMs: 900
-    staggerMs: 90
+    durationMs: 585
+    staggerMs: 60
     order: reverse
     jitterMs: 0
     alternate: false
@@ -85,10 +84,10 @@ motifs:
       - { at: 0.7, opacity: 1, y: 0.12 }
       - { at: 1, y: 0 }
   jitter:
-    durationMs: 320
-    staggerMs: 25
+    durationMs: 210
+    staggerMs: 15
     order: random
-    jitterMs: 140
+    jitterMs: 90
     alternate: false
     easing: [0.4, 0, 0.6, 1]
     keyframes:
@@ -100,8 +99,8 @@ motifs:
       - { at: 0.8, x: -0.02, y: 0 }
       - { at: 1, x: 0, y: 0 }
   bloom:
-    durationMs: 800
-    staggerMs: 80
+    durationMs: 520
+    staggerMs: 50
     order: center
     jitterMs: 0
     alternate: false
@@ -111,8 +110,8 @@ motifs:
       - { at: 0.6, opacity: 1, scale: 1.08 }
       - { at: 1, scale: 1 }
   rise:
-    durationMs: 600
-    staggerMs: 55
+    durationMs: 390
+    staggerMs: 35
     order: forward
     jitterMs: 0
     alternate: false
@@ -121,8 +120,8 @@ motifs:
       - { at: 0, opacity: 0, y: 0.8 }
       - { at: 1, opacity: 1, y: 0 }
   fadeTilt:
-    durationMs: 700
-    staggerMs: 50
+    durationMs: 455
+    staggerMs: 30
     order: forward
     jitterMs: 0
     alternate: false
@@ -131,8 +130,8 @@ motifs:
       - { at: 0, opacity: 0, rotate: -8, y: 0.25 }
       - { at: 1, opacity: 1, rotate: 0, y: 0 }
   droop:
-    durationMs: 800
-    staggerMs: 80
+    durationMs: 520
+    staggerMs: 50
     order: forward
     jitterMs: 0
     alternate: false
@@ -142,8 +141,8 @@ motifs:
       - { at: 0.55, opacity: 1, y: 0.1, scaleY: 0.9 }
       - { at: 1, y: 0, scaleY: 1 }
   shrinkBack:
-    durationMs: 480
-    staggerMs: 40
+    durationMs: 310
+    staggerMs: 25
     order: random
     jitterMs: 0
     alternate: false
@@ -156,13 +155,13 @@ motifs:
 
 # Per-style tuning on top of the motif (only fields that differ).
 styles:
-  Furious: { staggerMs: 30, durationMs: 320 }
-  Irritated: { staggerMs: 38 }
-  Excited: { staggerMs: 35 }
-  Serene: { staggerMs: 110, durationMs: 1100 }
-  Wistful: { staggerMs: 130, durationMs: 1200 }
-  Melancholy: { staggerMs: 120 }
-  Tense: { staggerMs: 18 }
-  Sarcastic: { staggerMs: 60, jitterMs: 180 }
-  Deadpan: { staggerMs: 140, durationMs: 1000 }
-  Startled: { staggerMs: 30 }
+  Furious: { staggerMs: 20, durationMs: 210 }
+  Irritated: { staggerMs: 25 }
+  Excited: { staggerMs: 25 }
+  Serene: { staggerMs: 70, durationMs: 715 }
+  Wistful: { staggerMs: 85, durationMs: 780 }
+  Melancholy: { staggerMs: 80 }
+  Tense: { staggerMs: 10 }
+  Sarcastic: { staggerMs: 40, jitterMs: 115 }
+  Deadpan: { staggerMs: 90, durationMs: 650 }
+  Startled: { staggerMs: 20 }

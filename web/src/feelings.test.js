@@ -108,6 +108,7 @@ describe('css motif contract', () => {
     const names = [...css.matchAll(/@keyframes (emoji)-([a-zA-Z]+)/g)].map((x) => `${x[1]}:${x[2]}`)
     const known = new Set([
       ...EMOJI_MOTIFS.map((m) => `emoji:${m}`),
+      'emoji:fall', // EmojiRain overlay, not a per-card motif
     ])
     for (const n of names) expect(known.has(n), n).toBe(true)
   })

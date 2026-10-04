@@ -1,4 +1,4 @@
-exportedAt: 2026-10-04T11:45:30.596Z
+exportedAt: 2026-10-04T14:37:23.170Z
 global:
   referencePx: 600
   maxPatternOpacity: 0.14
@@ -17,11 +17,11 @@ global:
   watermarkMarginRatio: 0.055
 textAnimations:
   timing:
-    maxTotalMs: 2000
+    maxTotalMs: 1300
   motifs:
     slam:
-      durationMs: 380
-      staggerMs: 45
+      durationMs: 245
+      staggerMs: 30
       order: forward
       jitterMs: 0
       alternate: false
@@ -39,17 +39,13 @@ textAnimations:
           opacity: 1
           scale: 0.92
           y: 0
-        - at: 0.75
-          scale: 1.05
-          x: -0.04
-        - at: 0.88
-          scale: 1
-          x: 0.04
+        - at: 0.8
+          scale: 1.04
         - at: 1
-          x: 0
+          scale: 1
     pop:
-      durationMs: 480
-      staggerMs: 55
+      durationMs: 310
+      staggerMs: 35
       order: forward
       jitterMs: 0
       alternate: false
@@ -71,8 +67,8 @@ textAnimations:
           scale: 1
           y: 0
     spin:
-      durationMs: 560
-      staggerMs: 60
+      durationMs: 365
+      staggerMs: 40
       order: forward
       jitterMs: 0
       alternate: true
@@ -94,8 +90,8 @@ textAnimations:
           rotate: 0
           scale: 1
     settle:
-      durationMs: 900
-      staggerMs: 70
+      durationMs: 585
+      staggerMs: 45
       order: forward
       jitterMs: 0
       alternate: false
@@ -114,8 +110,8 @@ textAnimations:
           y: 0
           scale: 1
     drop:
-      durationMs: 900
-      staggerMs: 90
+      durationMs: 585
+      staggerMs: 60
       order: reverse
       jitterMs: 0
       alternate: false
@@ -134,10 +130,10 @@ textAnimations:
         - at: 1
           y: 0
     jitter:
-      durationMs: 320
-      staggerMs: 25
+      durationMs: 210
+      staggerMs: 15
       order: random
-      jitterMs: 140
+      jitterMs: 90
       alternate: false
       easing:
         - 0.4
@@ -170,8 +166,8 @@ textAnimations:
           x: 0
           y: 0
     bloom:
-      durationMs: 800
-      staggerMs: 80
+      durationMs: 520
+      staggerMs: 50
       order: center
       jitterMs: 0
       alternate: false
@@ -190,8 +186,8 @@ textAnimations:
         - at: 1
           scale: 1
     rise:
-      durationMs: 600
-      staggerMs: 55
+      durationMs: 390
+      staggerMs: 35
       order: forward
       jitterMs: 0
       alternate: false
@@ -208,8 +204,8 @@ textAnimations:
           opacity: 1
           y: 0
     fadeTilt:
-      durationMs: 700
-      staggerMs: 50
+      durationMs: 455
+      staggerMs: 30
       order: forward
       jitterMs: 0
       alternate: false
@@ -228,8 +224,8 @@ textAnimations:
           rotate: 0
           y: 0
     droop:
-      durationMs: 800
-      staggerMs: 80
+      durationMs: 520
+      staggerMs: 50
       order: forward
       jitterMs: 0
       alternate: false
@@ -251,8 +247,8 @@ textAnimations:
           y: 0
           scaleY: 1
     shrinkBack:
-      durationMs: 480
-      staggerMs: 40
+      durationMs: 310
+      staggerMs: 25
       order: random
       jitterMs: 0
       alternate: false
@@ -276,30 +272,30 @@ textAnimations:
           rotate: 0
   styles:
     Furious:
-      staggerMs: 30
-      durationMs: 320
+      staggerMs: 20
+      durationMs: 210
     Irritated:
-      staggerMs: 38
+      staggerMs: 25
     Excited:
-      staggerMs: 35
+      staggerMs: 25
     Serene:
-      staggerMs: 110
-      durationMs: 1100
+      staggerMs: 70
+      durationMs: 715
     Wistful:
-      staggerMs: 130
-      durationMs: 1200
+      staggerMs: 85
+      durationMs: 780
     Melancholy:
-      staggerMs: 120
+      staggerMs: 80
     Tense:
-      staggerMs: 18
+      staggerMs: 10
     Sarcastic:
-      staggerMs: 60
-      jitterMs: 180
+      staggerMs: 40
+      jitterMs: 115
     Deadpan:
-      staggerMs: 140
-      durationMs: 1000
+      staggerMs: 90
+      durationMs: 650
     Startled:
-      staggerMs: 30
+      staggerMs: 20
 shimmer:
   startDelayMs: 250
   clusters:
@@ -619,8 +615,6 @@ i18n:
     settings.maxEmojis: "Max emojis shown: {n}"
     settings.colorCount: "Number of colors to show: {n}"
     settings.exportRes: jpg / mp4 export resolution
-    settings.gifRes: GIF export resolution
-    settings.gifFps: GIF FPS
     settings.debounce: "Typing delay before card updates: {ms} ms"
     settings.statusPending: Update available, waiting for Wi-Fi
     settings.statusUpdated: Model updated {date}
@@ -692,8 +686,6 @@ i18n:
     settings.maxEmojis: "מקסימום אימוג׳ים להצגה: {n}"
     settings.colorCount: "מספר צבעים להצגה: {n}"
     settings.exportRes: רזולוציית ייצוא jpg / mp4
-    settings.gifRes: רזולוציית ייצוא GIF
-    settings.gifFps: GIF FPS
     settings.debounce: "השהיה לפני עדכון הכרטיס: {ms} ms"
     settings.statusPending: קיים עדכון, ממתין ל־Wi-Fi
     settings.statusUpdated: המודל עודכן {date}

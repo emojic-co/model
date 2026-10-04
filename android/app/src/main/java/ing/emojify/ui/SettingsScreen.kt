@@ -43,8 +43,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import ing.emojify.model.ColorCountPrefs
 import ing.emojify.model.ExportSizePrefs
-import ing.emojify.model.GifFpsPrefs
-import ing.emojify.model.GifSizePrefs
 import ing.emojify.model.DebouncePrefs
 import ing.emojify.model.EmojiCountPrefs
 import ing.emojify.model.LanguagePrefs
@@ -115,14 +113,6 @@ fun SettingsScreen(onBack: () -> Unit, lang: String, onLangChange: (String) -> U
     val exportSizePrefs = remember { context.getSharedPreferences(ExportSizePrefs.FILE, Context.MODE_PRIVATE) }
     var exportSize by remember {
         mutableStateOf(exportSizePrefs.getInt(ExportSizePrefs.KEY_SIZE_PX, ExportSizePrefs.DEFAULT_SIZE_PX))
-    }
-    val gifSizePrefs = remember { context.getSharedPreferences(GifSizePrefs.FILE, Context.MODE_PRIVATE) }
-    var gifSize by remember {
-        mutableStateOf(gifSizePrefs.getInt(GifSizePrefs.KEY_SIZE_PX, GifSizePrefs.DEFAULT_SIZE_PX))
-    }
-    val gifFpsPrefs = remember { context.getSharedPreferences(GifFpsPrefs.FILE, Context.MODE_PRIVATE) }
-    var gifFps by remember {
-        mutableStateOf(gifFpsPrefs.getInt(GifFpsPrefs.KEY_FPS, GifFpsPrefs.DEFAULT_FPS))
     }
     val debouncePrefs = remember { context.getSharedPreferences(DebouncePrefs.FILE, Context.MODE_PRIVATE) }
     var debounceMs by remember {
@@ -201,30 +191,6 @@ fun SettingsScreen(onBack: () -> Unit, lang: String, onLangChange: (String) -> U
                     }
                     if (option == exportSize) Button(onClick = pick) { Text("${option}x$option") }
                     else OutlinedButton(onClick = pick) { Text("${option}x$option") }
-                }
-            }
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(strings.t("settings.gifRes"))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                for (option in GifSizePrefs.OPTIONS) {
-                    val pick = {
-                        gifSize = option
-                        gifSizePrefs.edit().putInt(GifSizePrefs.KEY_SIZE_PX, option).apply()
-                    }
-                    if (option == gifSize) Button(onClick = pick) { Text("${option}x$option") }
-                    else OutlinedButton(onClick = pick) { Text("${option}x$option") }
-                }
-            }
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(strings.t("settings.gifFps"))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                for (option in GifFpsPrefs.OPTIONS) {
-                    val pick = {
-                        gifFps = option
-                        gifFpsPrefs.edit().putInt(GifFpsPrefs.KEY_FPS, option).apply()
-                    }
-                    if (option == gifFps) Button(onClick = pick) { Text("$option") }
-                    else OutlinedButton(onClick = pick) { Text("$option") }
                 }
             }
             GroupDivider()

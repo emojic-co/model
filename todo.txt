@@ -1,7 +1,3 @@
-Do not animate the text twice.
-The animation is:
-- start text + emoji
-- when text is done start the shimmer.
-- when max(emoji, shimmer) is done, stop the animation.
-
-Note that this true both for GIF and MP4, which could be less than 6s.
+Make the text animation faster and smoother if possible.
+The first frame of the animation  must be the static emoji with the full text so when the GIF is done playing I can see the text and emoji clearly.
+If the first export to GIF is > 600KB go straight to the 3rd attempt (10 fps, 280px)

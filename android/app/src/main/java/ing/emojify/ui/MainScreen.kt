@@ -357,14 +357,13 @@ private fun exportSizePx(context: Context): Int =
     context.getSharedPreferences(ing.emojify.model.ExportSizePrefs.FILE, Context.MODE_PRIVATE)
         .getInt(ing.emojify.model.ExportSizePrefs.KEY_SIZE_PX, ing.emojify.model.ExportSizePrefs.DEFAULT_SIZE_PX)
 
-private fun gifFps(context: Context): Int =
-    context.getSharedPreferences(ing.emojify.model.GifFpsPrefs.FILE, Context.MODE_PRIVATE)
-        .getInt(ing.emojify.model.GifFpsPrefs.KEY_FPS, ing.emojify.model.GifFpsPrefs.DEFAULT_FPS)
-
-// GIFs are the chosen size (Settings, GifSizePrefs) at the chosen fps (GifFpsPrefs), encoded once (no size-based re-encode).
-private fun gifSizePx(context: Context): Int =
-    context.getSharedPreferences(ing.emojify.model.GifSizePrefs.FILE, Context.MODE_PRIVATE)
-        .getInt(ing.emojify.model.GifSizePrefs.KEY_SIZE_PX, ing.emojify.model.GifSizePrefs.DEFAULT_SIZE_PX)
+// GIFs target GIF_MAX_BYTES: try the clip's gifFps at 320px, then 10 fps, then 10 fps at 280px; the last attempt is
+// shared whatever its size. A first attempt over GIF_SKIP_BYTES goes straight to the last.
+private const val GIF_MAX_BYTES = 500 * 1024
+private const val GIF_SKIP_BYTES = 600 * 1024
+// The first GIF frame is the finished card (poster), held this long, so thumbnails and the loop restart read clearly.
+private const val GIF_POSTER_MS = 500
+private val GIF_FALLBACKS = listOf(10 to 320, 10 to 280)
 
 // The shared clip (model/Clip.kt) is sampled at the format's fps from t=0 (text and emoji start together, so
 // the text animates once).
@@ -379,8 +378,18 @@ private suspend fun exportCardAnimation(
     setPose: (ing.emojify.ui.components.ClipPose) -> Unit,
 ) {
     val spec = timeline.spec
-    val fps = if (format == ShareFormat.Gif) gifFps(context) else spec.mp4Fps
-    exportPass(context, format, fps, capture, timeline, onProgress, setPose, endHoldMs = if (format == ShareFormat.Mp4) spec.mp4EndHoldMs else 0)
+    if (format == ShareFormat.Gif) {
+        val attempts = listOf(spec.gifFps to 320) + GIF_FALLBACKS
+        var i = 0
+        while (true) {
+            val attempt = attempts[i]
+            val bytes = exportPass(context, format, attempt.first, attempt.second, capture, timeline, onProgress, setPose).length()
+            if (bytes <= GIF_MAX_BYTES || i == attempts.lastIndex) break
+            i = if (i == 0 && bytes > GIF_SKIP_BYTES) attempts.lastIndex else i + 1
+        }
+    } else {
+        exportPass(context, format, spec.mp4Fps, exportSizePx(context), capture, timeline, onProgress, setPose, endHoldMs = spec.mp4EndHoldMs)
+    }
     if (format == ShareFormat.Gif) shareCardGif(context, cardGifFile(context)) else shareCardMp4(context, cardMp4File(context))
 }
 
@@ -388,6 +397,7 @@ private suspend fun exportPass(
     context: Context,
     format: ShareFormat,
     fps: Int,
+    sizePx: Int,
     capture: suspend () -> android.graphics.Bitmap,
     timeline: ClipTimeline,
     onProgress: (Float) -> Unit,
@@ -399,8 +409,8 @@ private suspend fun exportPass(
     val gifFile = cardGifFile(context)
     val mp4File = cardMp4File(context)
     // GIF delays are whole centiseconds (8 cs at 12 fps).
-    val gif = if (format == ShareFormat.Gif) GifEncoder(gifFile, gifSizePx(context), delayCs = 100 / fps) else null
-    val mp4 = if (format == ShareFormat.Mp4) Mp4Encoder(mp4File, exportSizePx(context), fps) else null
+    val gif = if (format == ShareFormat.Gif) GifEncoder(gifFile, sizePx, delayCs = 100 / fps) else null
+    val mp4 = if (format == ShareFormat.Mp4) Mp4Encoder(mp4File, sizePx, fps) else null
 
     var waitMs = 0.0; var captureMs = 0.0; var encodeMs = 0.0
     val startNs = System.nanoTime()
@@ -420,6 +430,7 @@ private suspend fun exportPass(
         waitMs += (t1 - t0) / 1e6; captureMs += (t2 - t1) / 1e6; encodeMs += (t3 - t2) / 1e6
     }
 
+    if (format == ShareFormat.Gif) grab(ing.emojify.ui.components.ClipPose(0f, poster = true), GIF_POSTER_MS)
     for (i in 0 until frames) {
         onProgress(i / frames.toFloat())
         grab(ing.emojify.ui.components.ClipPose(i * 1000f / fps), 1000 / fps, if (i == frames - 1) endHoldMs else 0)

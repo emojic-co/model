@@ -35,17 +35,17 @@
         "t": 250,
         "unit0": {
           "opacity": 1,
-          "x": 0.028637253276018515,
+          "x": 0,
           "y": 0,
           "scale": 1,
           "scaleY": 1,
           "rotate": 0
         },
         "unitLast": {
-          "opacity": 0.29493208515111957,
+          "opacity": 1,
           "x": 0,
-          "y": -0.21152037445466412,
-          "scale": 1.5404597650670149,
+          "y": 0,
+          "scale": 1.0358181038823995,
           "scaleY": 1,
           "rotate": 0
         },
@@ -70,7 +70,10 @@
           "scaleY": 1,
           "rotate": 0
         },
-        "shimmer": null,
+        "shimmer": {
+          "c": -0.1258480139554758,
+          "opacity": 1
+        },
         "spring": null
       },
       {
@@ -92,7 +95,7 @@
           "rotate": 0
         },
         "shimmer": {
-          "c": -0.12263913284734872,
+          "c": 0.30777776496153386,
           "opacity": 1
         },
         "spring": null
@@ -116,7 +119,7 @@
           "rotate": 0
         },
         "shimmer": {
-          "c": 0.3303028749474052,
+          "c": 1.0406124630982638,
           "opacity": 1
         },
         "spring": null
@@ -139,10 +142,7 @@
           "scaleY": 1,
           "rotate": 0
         },
-        "shimmer": {
-          "c": 1.0484343649032155,
-          "opacity": 1
-        },
+        "shimmer": null,
         "spring": null
       },
       {
@@ -174,7 +174,7 @@
     "cluster": "reflective",
     "unitCount": 12,
     "loopMs": 2400,
-    "durationMs": 4450,
+    "durationMs": 3750,
     "loops": 1,
     "samples": [
       {
@@ -203,10 +203,10 @@
       {
         "t": 250,
         "unit0": {
-          "opacity": 0.7268189887211289,
+          "opacity": 0.8811306930077918,
           "x": 0,
-          "y": 0.04097715169183065,
-          "scale": 1.0409771516918307,
+          "y": 0.017830396048831243,
+          "scale": 1.0178303960488313,
           "scaleY": 1,
           "rotate": 0
         },
@@ -225,21 +225,20 @@
       {
         "t": 700,
         "unit0": {
-          "opacity": 0.9884987517492347,
+          "opacity": 0.9999986613450088,
           "x": 0,
-          "y": 0.001725187237614778,
-          "scale": 1.0017251872376147,
+          "y": 2.007982486673665e-7,
+          "scale": 1.0000002007982487,
           "scaleY": 1,
           "rotate": 0
         },
         "unitLast": {
-          "opacity": 0,
+          "opacity": 0.5827256806131417,
           "x": 0,
-          "y": 0.15,
-          "scale": 1.15,
+          "y": 0.06259114790802875,
+          "scale": 1.0625911479080288,
           "scaleY": 1,
-          "rotate": 0,
-          "at": 0
+          "rotate": 0
         },
         "shimmer": null,
         "spring": null
@@ -247,21 +246,20 @@
       {
         "t": 900,
         "unit0": {
-          "opacity": 0.9989201499141521,
+          "opacity": 1,
           "x": 0,
-          "y": 0.00016197751287719275,
-          "scale": 1.0001619775128772,
+          "y": 0,
+          "scale": 1,
           "scaleY": 1,
           "rotate": 0
         },
         "unitLast": {
-          "opacity": 0,
+          "opacity": 0.9386797581060373,
           "x": 0,
-          "y": 0.15,
-          "scale": 1.15,
+          "y": 0.009198036284094407,
+          "scale": 1.0091980362840944,
           "scaleY": 1,
-          "rotate": 0,
-          "at": 0
+          "rotate": 0
         },
         "shimmer": null,
         "spring": null
@@ -277,10 +275,10 @@
           "rotate": 0
         },
         "unitLast": {
-          "opacity": 0.6339792543695622,
+          "opacity": 0.9954436082131137,
           "x": 0,
-          "y": 0.05490311184456567,
-          "scale": 1.0549031118445655,
+          "y": 0.0006834587680329407,
+          "scale": 1.0006834587680329,
           "scaleY": 1,
           "rotate": 0
         },
@@ -298,10 +296,10 @@
           "rotate": 0
         },
         "unitLast": {
-          "opacity": 0.8923379597398607,
+          "opacity": 1,
           "x": 0,
-          "y": 0.0161493060390209,
-          "scale": 1.0161493060390208,
+          "y": 0,
+          "scale": 1,
           "scaleY": 1,
           "rotate": 0
         },
@@ -319,10 +317,10 @@
           "rotate": 0
         },
         "unitLast": {
-          "opacity": 0.973481615986558,
+          "opacity": 1,
           "x": 0,
-          "y": 0.003977757602016296,
-          "scale": 1.0039777576020164,
+          "y": 0,
+          "scale": 1,
           "scaleY": 1,
           "rotate": 0
         },
@@ -331,27 +329,6 @@
       },
       {
         "t": 1900,
-        "unit0": {
-          "opacity": 1,
-          "x": 0,
-          "y": 0,
-          "scale": 1,
-          "scaleY": 1,
-          "rotate": 0
-        },
-        "unitLast": {
-          "opacity": 0.9998808761702328,
-          "x": 0,
-          "y": 0.000017868574465090825,
-          "scale": 1.0000178685744652,
-          "scaleY": 1,
-          "rotate": 0
-        },
-        "shimmer": null,
-        "spring": null
-      },
-      {
-        "t": 2600,
         "unit0": {
           "opacity": 1,
           "x": 0,
@@ -375,7 +352,7 @@
         "spring": null
       },
       {
-        "t": 3300,
+        "t": 2600,
         "unit0": {
           "opacity": 1,
           "x": 0,
@@ -397,6 +374,30 @@
           "opacity": 1
         },
         "spring": null
+      },
+      {
+        "t": 3300,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": {
+          "c": 1.1162208150743183,
+          "opacity": 1
+        },
+        "spring": null
       }
     ]
   },
@@ -406,7 +407,7 @@
     "cluster": "drive",
     "unitCount": 9,
     "loopMs": 0,
-    "durationMs": 2121.42,
+    "durationMs": 1789.345,
     "loops": 0,
     "samples": [
       {
@@ -444,9 +445,9 @@
           "at": 0
         },
         "unitLast": {
-          "opacity": 0.003983869470837844,
-          "x": -0.0004552993680957536,
-          "y": 0.000284562105059846,
+          "opacity": 0.8566542898768273,
+          "x": 0.01211647438670814,
+          "y": -0.02389095168719544,
           "scale": 1,
           "scaleY": 1,
           "rotate": 0
@@ -458,8 +459,8 @@
         "t": 700,
         "unit0": {
           "opacity": 1,
-          "x": 0.018256669392572006,
-          "y": 0.01639571545395943,
+          "x": 0,
+          "y": 0,
           "scale": 1,
           "scaleY": 1,
           "rotate": 0
@@ -493,7 +494,10 @@
           "scaleY": 1,
           "rotate": 0
         },
-        "shimmer": null,
+        "shimmer": {
+          "c": -0.19958156318176462,
+          "opacity": 1
+        },
         "spring": 1
       },
       {
@@ -514,7 +518,10 @@
           "scaleY": 1,
           "rotate": 0
         },
-        "shimmer": null,
+        "shimmer": {
+          "c": 0.08006841399923853,
+          "opacity": 1
+        },
         "spring": 1
       },
       {
@@ -536,7 +543,7 @@
           "rotate": 0
         },
         "shimmer": {
-          "c": -0.173213796137122,
+          "c": 0.7998831201177783,
           "opacity": 1
         },
         "spring": 1
@@ -560,31 +567,7 @@
           "rotate": 0
         },
         "shimmer": {
-          "c": 0.35068569313448367,
-          "opacity": 1
-        },
-        "spring": 1
-      },
-      {
-        "t": 1900,
-        "unit0": {
-          "opacity": 1,
-          "x": 0,
-          "y": 0,
-          "scale": 1,
-          "scaleY": 1,
-          "rotate": 0
-        },
-        "unitLast": {
-          "opacity": 1,
-          "x": 0,
-          "y": 0,
-          "scale": 1,
-          "scaleY": 1,
-          "rotate": 0
-        },
-        "shimmer": {
-          "c": 1.1451372816031042,
+          "c": 1.0982464105816798,
           "opacity": 1
         },
         "spring": 1
