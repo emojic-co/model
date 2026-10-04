@@ -24,7 +24,7 @@ class ShimmerTest {
     }
 
     @Test
-    fun `starts after the entrance plus start delay and pauses between passes`() {
+    fun `starts after the entrance plus start delay and plays a single pass`() {
         val e = resolveShimmer(spec, "drive", "Hopeful")
         val p = ShimmerPlayer(e, 1000.0 + spec.startDelayMs)
         assertNull(p.poseAt(0.0))
@@ -33,8 +33,8 @@ class ShimmerTest {
         assertNotNull(first)
         assertEquals(-0.2f, first!!.c, 1e-4f)
         assertNull(p.poseAt(1000.0 + spec.startDelayMs + e.durationMs + 10))
-        // second cycle starts again
-        assertNotNull(p.poseAt(1000.0 + spec.startDelayMs + e.durationMs + e.pauseMs + 1))
+        // never repeats
+        assertNull(p.poseAt(1000.0 + spec.startDelayMs + 100 * e.durationMs))
     }
 
     @Test

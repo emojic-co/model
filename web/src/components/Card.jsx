@@ -7,7 +7,7 @@ import { useI18n } from '../i18n'
 
 const FADE_MS = 150
 
-export function Card({ text, emoji, feeling, lang, colors, loading, onJpg, onGif, onMp4, exporting, progress = 0, onCancel, ref }) {
+export function Card({ text, emoji, feeling, lang, colors, loading, onJpg, onMp4, exporting, progress = 0, onCancel, ref }) {
   const { t } = useI18n()
   const [shown, setShown] = useState({ emoji, feeling, lang })
   const [phase, setPhase] = useState('in')
@@ -59,7 +59,7 @@ export function Card({ text, emoji, feeling, lang, colors, loading, onJpg, onGif
       data-phase={phase}
       style={{ ...CARD_CSS_VARS, ...style }}
     >
-      <CardCanvas cardData={cardData} />
+      <CardCanvas cardData={cardData} paused={!!exporting} />
       <div className="share-bar">
         {exporting ? (
           <>
@@ -72,9 +72,6 @@ export function Card({ text, emoji, feeling, lang, colors, loading, onJpg, onGif
           <>
             <button type="button" aria-label={t('card.copyJpg')} onClick={onJpg}>
               jpg
-            </button>
-            <button type="button" aria-label={t('card.saveGif')} onClick={onGif} disabled={!onGif}>
-              gif
             </button>
             <button type="button" aria-label={t('card.saveMp4')} onClick={onMp4} disabled={!onMp4}>
               mp4

@@ -22,7 +22,6 @@ data class ShimmerEffect(
     val radiusFrac: Double? = null,
     val blend: String,
     val durationMs: Double,
-    val pauseMs: Double,
     val easing: List<Double>,
     val stops: List<ShimmerStop>,
     val keyframes: List<ShimmerKeyframe>,
@@ -31,7 +30,6 @@ data class ShimmerEffect(
 @Serializable
 data class ShimmerOverride(
     val durationMs: Double? = null,
-    val pauseMs: Double? = null,
     val angleDeg: Double? = null,
 )
 
@@ -46,7 +44,6 @@ data class ShimmerSpec(
 data class ShimmerPose(val c: Float, val opacity: Float)
 
 class ShimmerPlayer(val effect: ShimmerEffect, private val startMs: Double) {
-    private val cycleMs = effect.durationMs + effect.pauseMs
     private val ease = cubicBezier(effect.easing[0], effect.easing[1], effect.easing[2], effect.easing[3])
     private val keyframes: List<Triple<Double, Double, Double>> = run {
         var c = effect.keyframes.first().c ?: 0.0
@@ -58,11 +55,11 @@ class ShimmerPlayer(val effect: ShimmerEffect, private val startMs: Double) {
         }
     }
 
-    /** Null while waiting to start, or during the pause between passes. */
+    /** Null while waiting to start, and once the single pass is over. */
     fun poseAt(elapsedMs: Double): ShimmerPose? {
         val t = elapsedMs - startMs
         if (t < 0.0) return null
-        val u = (t % cycleMs) / effect.durationMs
+        val u = t / effect.durationMs
         return if (u >= 1.0) null else poseAtPass(u)
     }
 
@@ -85,7 +82,6 @@ fun resolveShimmer(spec: ShimmerSpec, cluster: String, feeling: String?): Shimme
     val o = spec.styles[feeling] ?: return base
     return base.copy(
         durationMs = o.durationMs ?: base.durationMs,
-        pauseMs = o.pauseMs ?: base.pauseMs,
         angleDeg = o.angleDeg ?: base.angleDeg,
     )
 }

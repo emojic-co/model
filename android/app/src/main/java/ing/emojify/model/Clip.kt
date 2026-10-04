@@ -20,18 +20,19 @@ data class ClipSpec(
     val posterHoldMs: Int,
     val gifFps: Int,
     val mp4Fps: Int,
+    val mp4EndHoldMs: Int = 0,
     val spring: SpringSpec,
 )
 
 data class ClipLength(val durationMs: Double, val loops: Int)
 
-fun clipLength(entranceMs: Double, startDelayMs: Double, cycleMs: Double, loopMs: Double, spec: ClipSpec): ClipLength {
-    val content = entranceMs + startDelayMs + cycleMs
+fun clipLength(entranceMs: Double, startDelayMs: Double, passMs: Double, loopMs: Double, spec: ClipSpec): ClipLength {
+    val content = entranceMs + startDelayMs + passMs
     if (loopMs <= 0.0) return ClipLength(content, 0)
     val needed = maxOf(1, ceil(content / loopMs).toInt())
     var loops = maxOf(needed, spec.minEmojiLoops)
     while (loops > needed && loops * loopMs > spec.maxClipMs) loops -= 1
-    return ClipLength(loops * loopMs, loops)
+    return ClipLength(maxOf(content, minOf(loops * loopMs, spec.maxClipMs)), loops)
 }
 
 fun clipFrameCount(durationMs: Double, fps: Int): Int = maxOf(1, ceil(durationMs * fps / 1000.0).toInt())
@@ -60,7 +61,7 @@ class ClipTimeline(
     private val effect = resolveShimmer(shimmerSpec, cluster, feeling)
     val shimmerStartMs: Double = schedule.totalMs + shimmerSpec.startDelayMs
     private val shimmerPlayer = ShimmerPlayer(effect, shimmerStartMs)
-    private val length = clipLength(schedule.totalMs, shimmerSpec.startDelayMs, effect.durationMs + effect.pauseMs, loopMs, spec)
+    private val length = clipLength(schedule.totalMs, shimmerSpec.startDelayMs, effect.durationMs, loopMs, spec)
     val durationMs: Double = length.durationMs
     val loops: Int = length.loops
     val shimmerEffect: ShimmerEffect get() = effect

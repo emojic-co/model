@@ -29,36 +29,31 @@ export function shimmerBackground(e) {
   return `linear-gradient(${e.angleDeg + 90}deg, ${list((at) => pct(at))})`
 }
 
-// Web Animations keyframes for one cycle (pass + pause); the pause is fully transparent.
+// Web Animations keyframes for the single pass; the layer is hidden again once it ends.
 export function shimmerKeyframes(e) {
-  const T = e.durationMs + e.pauseMs
-  const pass = e.durationMs / T
   const [a, b, c, d] = e.easing
   const easing = `cubic-bezier(${a}, ${b}, ${c}, ${d})`
   let cur = { c: 0, opacity: 1, ...(e.keyframes[0] ?? {}) }
   const frames = e.keyframes.map((k, i) => {
     cur = { ...cur, ...k }
     const last = i === e.keyframes.length - 1
-    return { offset: k.at * pass, opacity: cur.opacity, [PROP]: cur.c, easing: last ? 'linear' : easing }
+    return { offset: k.at, opacity: cur.opacity, [PROP]: cur.c, easing: last ? 'linear' : easing }
   })
-  if (e.pauseMs > 0) {
-    const last = frames[frames.length - 1]
-    frames.push({ ...last, offset: Math.min(1, last.offset + 1e-4), opacity: 0 }, { ...last, offset: 1, opacity: 0 })
-  }
-  return { frames, cycleMs: T }
+  const last = frames[frames.length - 1]
+  frames.push({ ...last, offset: 1, opacity: 0 })
+  return { frames, durationMs: e.durationMs }
 }
 
 // Starts the shimmer on `el` after `startAfterMs` (text entrance total + spec startDelayMs).
 export function playShimmer(el, { anim = SHIMMERS, cluster, feeling, entranceMs }) {
   if (!el || prefersReducedMotion()) return () => {}
   const e = resolveShimmer(anim, cluster, feeling)
-  const { frames, cycleMs } = shimmerKeyframes(e)
+  const { frames, durationMs } = shimmerKeyframes(e)
   el.style.background = shimmerBackground(e)
   el.style.mixBlendMode = CSS_BLEND[e.blend] ?? 'normal'
   const an = el.animate(frames, {
-    duration: cycleMs,
+    duration: durationMs,
     delay: entranceMs + anim.startDelayMs,
-    iterations: Infinity,
     fill: 'both',
   })
   return () => an.cancel()

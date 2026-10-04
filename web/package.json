@@ -9,7 +9,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "gifenc": "^1.0.3",
     "hero-patterns": "^2.1.0",
     "lottie-web": "^5.13.0",
     "mp4-muxer": "^5.2.2",

@@ -18,6 +18,12 @@ describe('shimmer spec', () => {
       expect([...at].sort((a, b) => a - b), name).toEqual(at)
     }
   })
+  it('never runs a pass longer than 3 s', () => {
+    for (const name of Object.keys(S.clusters)) {
+      expect(resolveShimmer(S, name, undefined).durationMs, name).toBeLessThanOrEqual(3000)
+      for (const f of Object.keys(S.styles)) expect(resolveShimmer(S, name, f).durationMs, `${name}/${f}`).toBeLessThanOrEqual(3000)
+    }
+  })
   it('applies per-style overrides', () => {
     expect(resolveShimmer(S, 'anger', 'Furious').durationMs).toBe(480)
     expect(resolveShimmer(S, 'anger', 'Irritated').durationMs).toBe(650)
@@ -25,13 +31,12 @@ describe('shimmer spec', () => {
 })
 
 describe('shimmerKeyframes / background', () => {
-  it('fits pass + pause into one cycle and hides during the pause', () => {
+  it('plays one pass of durationMs and ends hidden', () => {
     const e = resolveShimmer(S, 'drive', 'Hopeful')
-    const { frames, cycleMs } = shimmerKeyframes(e)
-    expect(cycleMs).toBe(e.durationMs + e.pauseMs)
+    const { frames, durationMs } = shimmerKeyframes(e)
+    expect(durationMs).toBe(e.durationMs)
     expect(frames[0].offset).toBe(0)
     expect(frames.at(-1)).toMatchObject({ offset: 1, opacity: 0 })
-    expect(frames.some((f) => Math.abs(f.offset - e.durationMs / cycleMs) < 1e-6)).toBe(true)
   })
   it('builds css gradients per kind', () => {
     expect(shimmerBackground(resolveShimmer(S, 'drive', 'Hopeful'))).toContain('linear-gradient(105deg')

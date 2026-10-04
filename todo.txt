@@ -1,11 +1,10 @@
-Setting page order:
-- Language
-- Rate the app
-- Max Emojis...
-- Number of colors...
-- Export settings
-- Model settings (Auto update, wifi, check now)
+Goal:
+GIF animation should be at most 6s long.
 
-In addition I asked you to add a link to https://emojify.ing when users share a card, the link should be added randomly 1/10.
-The user can disable this feature in the settings if they wish but there is a sad face when disabled and a happy one when enabled.
+What need to be done:
+- Make a 2s cap on the text entrance duration.
+- Make a 3s cap on the shimmer duration.
 
+
+Note:
+- For MP4 the total duration should be the same as the GIF animation, then pause for 3s, then loop forever.

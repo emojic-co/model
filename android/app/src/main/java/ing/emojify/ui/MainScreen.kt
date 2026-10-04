@@ -380,7 +380,7 @@ private suspend fun exportCardAnimation(
 ) {
     val spec = timeline.spec
     val fps = if (format == ShareFormat.Gif) gifFps(context) else spec.mp4Fps
-    exportPass(context, format, fps, capture, timeline, onProgress, setPose)
+    exportPass(context, format, fps, capture, timeline, onProgress, setPose, endHoldMs = if (format == ShareFormat.Mp4) spec.mp4EndHoldMs else 0)
     if (format == ShareFormat.Gif) shareCardGif(context, cardGifFile(context)) else shareCardMp4(context, cardMp4File(context))
 }
 
@@ -392,6 +392,7 @@ private suspend fun exportPass(
     timeline: ClipTimeline,
     onProgress: (Float) -> Unit,
     setPose: (ing.emojify.ui.components.ClipPose) -> Unit,
+    endHoldMs: Int = 0,
 ): java.io.File {
     val spec = timeline.spec
     val frames = clipFrameCount(timeline.durationMs, fps)
@@ -401,25 +402,33 @@ private suspend fun exportPass(
     val gif = if (format == ShareFormat.Gif) GifEncoder(gifFile, gifSizePx(context), delayCs = 100 / fps) else null
     val mp4 = if (format == ShareFormat.Mp4) Mp4Encoder(mp4File, exportSizePx(context), fps) else null
 
-    suspend fun grab(pose: ing.emojify.ui.components.ClipPose, delayMs: Int) {
+    var waitMs = 0.0; var captureMs = 0.0; var encodeMs = 0.0
+    val startNs = System.nanoTime()
+    suspend fun grab(pose: ing.emojify.ui.components.ClipPose, delayMs: Int, mp4HoldMs: Int = 0) {
+        val t0 = System.nanoTime()
         setPose(pose)
         withFrameNanos { }
         withFrameNanos { }
+        val t1 = System.nanoTime()
         val bitmap = capture()
+        val t2 = System.nanoTime()
         withContext(Dispatchers.Default) {
             gif?.addFrame(bitmap, delayMs / 10)
-            mp4?.addFrame(bitmap, delayMs)
+            mp4?.addFrame(bitmap, delayMs + mp4HoldMs)
         }
+        val t3 = System.nanoTime()
+        waitMs += (t1 - t0) / 1e6; captureMs += (t2 - t1) / 1e6; encodeMs += (t3 - t2) / 1e6
     }
 
     grab(ing.emojify.ui.components.ClipPose(0f, poster = true), spec.posterHoldMs)
     for (i in 0 until frames) {
         onProgress(i / frames.toFloat())
-        grab(ing.emojify.ui.components.ClipPose(i * 1000f / fps), 1000 / fps)
+        grab(ing.emojify.ui.components.ClipPose(i * 1000f / fps), 1000 / fps, if (i == frames - 1) endHoldMs else 0)
     }
     withContext(Dispatchers.Default) {
         gif?.finish()
         mp4?.finish()
     }
+    android.util.Log.i("emojify", "export ${format.label}: ${frames + 1} frames @${fps}fps, clip ${timeline.durationMs}ms (loops ${timeline.loops}), total ${(System.nanoTime() - startNs) / 1_000_000}ms: frameWait ${waitMs.toInt()} capture ${captureMs.toInt()} encode ${encodeMs.toInt()}")
     return if (format == ShareFormat.Gif) gifFile else mp4File
 }

@@ -4,23 +4,28 @@
 #
 # Semantics (both platforms must follow exactly):
 #  * Clip time t runs 0..L and loops. The text entrance starts at t=0; the shimmer starts at
-#    entranceTotal + shimmers.startDelayMs and runs one cycle (pass + pause); the emoji Lottie loops
+#    entranceTotal + shimmers.startDelayMs and runs one pass (no repeat); the emoji Lottie loops
 #    from t=0 with period loopMs (phase = (t mod loopMs) / loopMs).
-#  * needed = ceil((entranceTotal + startDelayMs + shimmerCycle) / loopMs).
+#  * needed = ceil((entranceTotal + startDelayMs + shimmerPass) / loopMs).
 #    loops = max(needed, minEmojiLoops); then, while loops > needed and loops * loopMs > maxClipMs,
-#    loops -= 1. L = loops * loopMs. maxClipMs never cuts the entrance or the shimmer.
-#  * Emoji without a Lottie clone (loopMs = 0): L = entranceTotal + startDelayMs + shimmerCycle and the
+#    loops -= 1. L = max(content, min(loops * loopMs, maxClipMs)), content = entranceTotal + startDelayMs + shimmerPass:
+#    a long emoji loop is cut at maxClipMs (the clip loops back to t=0), the entrance and shimmer pass never are.
+#  * GIF budget: posterHoldMs + maxClipMs = 6000 ms, so an exported GIF is at most 6 s (entrance <= 2000 and shimmer
+#    <= 3000 keep content = 5250 <= maxClipMs).
+#  * Emoji without a Lottie clone (loopMs = 0): L = entranceTotal + startDelayMs + shimmerPass and the
 #    emoji plays the spring once from t=0 (scale(t), see `spring`), then rests at scale 1.
 #  * spring: scale(t) = 1 - (1 - from) * exp(-zeta*omega*t) * (cos(wd*t) + zeta*omega/wd * sin(wd*t)),
 #    t in seconds, wd = omega * sqrt(1 - zeta^2); scale = 1 for t >= durationMs.
 #  * Export only: the first frame is a poster (finished card text, no shimmer, emoji Lottie at progress 0
 #    or, for the spring, at rest) held posterHoldMs, then the clip samples t = i * 1000 / fps for
 #    i = 0 until ceil(L * fps / 1000), at gifFps (GIF) or mp4Fps (MP4).
-minEmojiLoops: 2
-maxClipMs: 12000
+#  * MP4 only: same frames as the GIF (poster + clip), then the last frame is held mp4EndHoldMs before the video loops.
+minEmojiLoops: 1
+maxClipMs: 5400
 posterHoldMs: 600
 gifFps: 12
 mp4Fps: 20
+mp4EndHoldMs: 3000
 spring:
   durationMs: 900
   from: 0.88

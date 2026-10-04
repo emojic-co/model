@@ -25,7 +25,7 @@
 #  * Reduced-motion: show the final state immediately, no animation.
 
 timing:
-  maxTotalMs: 2200
+  maxTotalMs: 2000
 
 motifs:
   slam:

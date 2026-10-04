@@ -298,7 +298,6 @@ export function App() {
           colors={colors}
           loading={pending}
           onJpg={copyCard}
-          onGif={exporter.saveGif}
           onMp4={mp4Supported() ? exporter.saveMp4 : undefined}
           exporting={exporter.busy}
           progress={exporter.progress}

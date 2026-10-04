@@ -43,7 +43,8 @@ export async function renderMp4(cardData, { onProgress, signal } = {}) {
       if (failure) throw failure
       const timeMs = (i * 1000) / FPS
       const canvas = paint.frame(tl, emoji, timeMs)
-      const frame = new VideoFrame(canvas, { timestamp: Math.round((CLIP.posterHoldMs + timeMs) * 1000), duration: Math.round(1e6 / FPS) })
+      const holdMs = i === count - 1 ? CLIP.mp4EndHoldMs : 0
+      const frame = new VideoFrame(canvas, { timestamp: Math.round((CLIP.posterHoldMs + timeMs) * 1000), duration: Math.round(1e6 / FPS + holdMs * 1000) })
       encoder.encode(frame, { keyFrame: i % FPS === 0 })
       frame.close()
       onProgress?.((i + 1) / count)

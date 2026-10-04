@@ -16,7 +16,7 @@ describe('textTimeline', () => {
 })
 
 describe('shimmerTimeline', () => {
-  it('draws during the pass and nothing before start or in the pause', () => {
+  it('draws during the pass and nothing before start or after the pass', () => {
     const calls = []
     const ctx = new Proxy({}, { get: (_, k) => (k === 'createLinearGradient' ? () => ({ addColorStop() {} }) : () => calls.push(k)) , set: () => true })
     const sh = shimmerTimeline('joy', 'Joyful')

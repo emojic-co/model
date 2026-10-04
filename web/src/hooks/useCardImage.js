@@ -5,7 +5,7 @@ import { contrastRatio, patternTint, toCssOklab, toHexColor, BLACK, WHITE } from
 import { lineUnits } from '../cardAnim'
 import { createTimeline } from '../clip'
 import { patternLayers } from '../patterns'
-import { downloadBlob, renderGif } from '../cardGif'
+import { downloadBlob } from '../cardGif'
 import { mp4Supported, renderMp4 } from '../cardMp4'
 import { ensureScriptFontsLoaded, scriptForLang } from '../scriptFonts'
 
@@ -267,7 +267,7 @@ export function useCardImage(cardData, showToast, t) {
       return
     }
     try {
-      const blob = await render(cardData)
+      const blob = await renderMp4(cardData)
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
       showToast(t('toast.copied'))
     } catch (err) {
@@ -277,7 +277,7 @@ export function useCardImage(cardData, showToast, t) {
   }, [cardData, showToast, t])
 }
 
-// GIF/MP4 export with progress and cancel. `busy` is the format being made (null when idle).
+// MP4 export with progress and cancel. `busy` is the format being made (null when idle).
 export function useCardExport(cardData, showToast, t) {
   const [state, setState] = useState({ busy: null, progress: 0 })
   const abort = useRef(null)
@@ -288,9 +288,8 @@ export function useCardExport(cardData, showToast, t) {
       const ctl = new AbortController()
       abort.current = ctl
       setState({ busy: format, progress: 0 })
-      const render = format === 'gif' ? renderGif : renderMp4
       try {
-        const blob = await render(cardData, {
+        const blob = await renderMp4(cardData, {
           signal: ctl.signal,
           onProgress: (progress) => setState({ busy: format, progress }),
         })
@@ -311,7 +310,7 @@ export function useCardExport(cardData, showToast, t) {
   )
 
   const cancel = useCallback(() => abort.current?.abort(), [])
-  return { ...state, saveGif: useCallback(() => start('gif'), [start]), saveMp4: useCallback(() => start('mp4'), [start]), cancel }
+  return { ...state, saveMp4: useCallback(() => start('mp4'), [start]), cancel }
 }
 
 export { mp4Supported }

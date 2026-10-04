@@ -13,8 +13,9 @@ export const shapeKey = ({ emoji, feeling, lang }) => [emoji, feeling, lang].joi
 const REBUILD_DEBOUNCE_MS = 150
 
 // Preview player: draws the shared clip (same painter + timeline as GIF/MP4 export) in a loop that
-// restarts from t=0 whenever the card changes. `scale` is the painter's backing-resolution factor.
-export function useCardPlayer(cardData, canvasRef, scale = 1) {
+// restarts from t=0 whenever the card changes. While `paused` (an export is running) the loop stops and the last
+// frame stays on screen, so the preview doesn't compete with the encoder for the main thread. `scale` is the painter's backing-resolution factor.
+export function useCardPlayer(cardData, canvasRef, scale = 1, paused = false) {
   const key = cardData ? playerKey(cardData) : ''
   const shape = cardData ? shapeKey(cardData) : ''
   const lastShape = useRef('')
@@ -25,7 +26,7 @@ export function useCardPlayer(cardData, canvasRef, scale = 1) {
       const canvas = canvasRef.current
       canvas?.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
     }
-    if (!cardData) return
+    if (!cardData || paused) return
     let cancelled = false
     let raf = 0
     let emoji
@@ -62,5 +63,5 @@ export function useCardPlayer(cardData, canvasRef, scale = 1) {
       emoji?.destroy()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, scale])
+  }, [key, scale, paused])
 }

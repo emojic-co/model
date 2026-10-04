@@ -26,7 +26,11 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.Image
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.layout.ContentScale
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -126,6 +130,11 @@ fun Card(
     val fontFamily = remember(style.fontName, style.faceWeight, style.faceItalic) { cardFontFamily(context, style.fontName, style.faceWeight, style.faceItalic) }
     val displayText = cardDisplayText(text, style)
     val graphicsLayer = rememberGraphicsLayer()
+    // Export steps the live card through the clip from the poster on, which would visibly reset the preview;
+    // instead the frame on screen at the tap is frozen on top (outside the captured layer) until the export ends.
+    var frozen by remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+    val uiScope = rememberCoroutineScope()
+    LaunchedEffect(busyFormat) { if (busyFormat == null) frozen = null }
     // Shared still image capture: finished card, no shimmer, plain emoji glyph.
     var stillCapture by remember { mutableStateOf(false) }
     val exporting by rememberUpdatedState(pose != null)
@@ -310,6 +319,14 @@ fun Card(
                         .padding(end = cardWidthDp * global.watermarkMarginRatio, bottom = cardWidthDp * global.watermarkMarginRatio),
                 )
             }
+            frozen?.let {
+                Image(
+                    bitmap = it,
+                    contentDescription = null,
+                    contentScale = ContentScale.FillBounds,
+                    modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(16.dp)),
+                )
+            }
             Row(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.align(Alignment.BottomCenter).padding(14.dp),
@@ -320,7 +337,12 @@ fun Card(
                             label = format.label,
                             enabled = shareEnabled,
                             busy = false,
-                            onClick = { onShare(format) },
+                            onClick = {
+                                uiScope.launch {
+                                    if (format != ShareFormat.Jpg) frozen = runCatching { graphicsLayer.toImageBitmap() }.getOrNull()
+                                    onShare(format)
+                                }
+                            },
                             ink = textColor,
                         )
                     }

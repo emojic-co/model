@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useCardPlayer } from '../hooks/useCardPlayer'
 
 // The card preview: the shared clip painted on a canvas (same painter as the jpg/gif/mp4 exports).
-export function CardCanvas({ cardData }) {
+export function CardCanvas({ cardData, paused }) {
   const ref = useRef(null)
   const [scale, setScale] = useState(1)
 
@@ -20,6 +20,6 @@ export function CardCanvas({ cardData }) {
     return () => ro.disconnect()
   }, [])
 
-  useCardPlayer(cardData, ref, scale)
+  useCardPlayer(cardData, ref, scale, paused)
   return <canvas ref={ref} className="card-canvas" aria-hidden="true" />
 }

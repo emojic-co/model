@@ -1,4 +1,4 @@
-exportedAt: 2026-10-04T09:49:49.400Z
+exportedAt: 2026-10-04T10:45:45.833Z
 global:
   referencePx: 600
   maxPatternOpacity: 0.14
@@ -17,7 +17,7 @@ global:
   watermarkMarginRatio: 0.055
 textAnimations:
   timing:
-    maxTotalMs: 2200
+    maxTotalMs: 2000
   motifs:
     slam:
       durationMs: 380
@@ -309,7 +309,6 @@ shimmer:
       widthFrac: 0.18
       blend: screen
       durationMs: 650
-      pauseMs: 1900
       easing:
         - 0.6
         - 0
@@ -339,7 +338,6 @@ shimmer:
       widthFrac: 0.45
       blend: screen
       durationMs: 1400
-      pauseMs: 1600
       easing:
         - 0.4
         - 0
@@ -365,7 +363,6 @@ shimmer:
       widthFrac: 0.9
       blend: screen
       durationMs: 2400
-      pauseMs: 400
       easing:
         - 0.4
         - 0
@@ -398,8 +395,7 @@ shimmer:
       angleDeg: 45
       widthFrac: 0.7
       blend: screen
-      durationMs: 6000
-      pauseMs: 2000
+      durationMs: 3000
       easing:
         - 0.45
         - 0
@@ -424,8 +420,7 @@ shimmer:
       angleDeg: 90
       widthFrac: 0.5
       blend: multiply
-      durationMs: 5000
-      pauseMs: 3000
+      durationMs: 3000
       easing:
         - 0.3
         - 0
@@ -450,7 +445,6 @@ shimmer:
       angleDeg: 90
       blend: screen
       durationMs: 1400
-      pauseMs: 900
       easing:
         - 0
         - 0
@@ -491,7 +485,6 @@ shimmer:
       radiusFrac: 0.6
       blend: screen
       durationMs: 2600
-      pauseMs: 600
       easing:
         - 0.4
         - 0
@@ -520,7 +513,6 @@ shimmer:
       widthFrac: 0.12
       blend: screen
       durationMs: 900
-      pauseMs: 2600
       easing:
         - 0.4
         - 0
@@ -550,7 +542,6 @@ shimmer:
       widthFrac: 0.08
       blend: screen
       durationMs: 2200
-      pauseMs: 5000
       easing:
         - 0.4
         - 0
@@ -573,21 +564,17 @@ shimmer:
   styles:
     Furious:
       durationMs: 480
-      pauseMs: 1400
     Excited:
       durationMs: 1000
     Tense:
       durationMs: 1100
-    Deadpan:
-      pauseMs: 9000
-    Serene:
-      pauseMs: 4000
 clip:
-  minEmojiLoops: 2
-  maxClipMs: 12000
+  minEmojiLoops: 1
+  maxClipMs: 5400
   posterHoldMs: 600
   gifFps: 12
   mp4Fps: 20
+  mp4EndHoldMs: 3000
   spring:
     durationMs: 900
     from: 0.88
@@ -613,7 +600,6 @@ i18n:
     footer.patternsBy: background patterns by
     footer.language: language
     card.copyJpg: Copy card as jpg
-    card.saveGif: Save card as gif
     card.saveMp4: Save card as mp4
     card.cancel: cancel
     card.cancelAria: Cancel export
@@ -687,7 +673,6 @@ i18n:
     footer.patternsBy: דפוסי רקע מאת
     footer.language: שפה
     card.copyJpg: העתקת הכרטיס כ־jpg
-    card.saveGif: שמירת הכרטיס כ־gif
     card.saveMp4: שמירת הכרטיס כ־mp4
     card.cancel: ביטול
     card.cancelAria: ביטול ייצוא

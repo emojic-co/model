@@ -14,9 +14,8 @@ describe('strings file', () => {
   test('every feeling has a label in both languages', () => {
     for (const f of Object.keys(FEELINGS)) for (const l of LANGS) expect(I18N[l][`feeling.${f}`], `${l}:${f}`).toBeTruthy()
   })
-  test('literals jpg/gif/mp4 survive translation', () => {
+  test('literals jpg/mp4 survive translation', () => {
     expect(I18N.he['card.copyJpg']).toContain('jpg')
-    expect(I18N.he['card.saveGif']).toContain('gif')
     expect(I18N.he['card.saveMp4']).toContain('mp4')
     expect(I18N.he['settings.exportRes']).toContain('jpg / mp4')
   })

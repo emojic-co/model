@@ -5,13 +5,13 @@ import { shimmerTimeline, textTimeline } from './cardAnim'
 
 export const CLIP = parse(raw)
 
-export function clipFor({ entranceMs, startDelayMs, cycleMs, loopMs }, spec = CLIP) {
-  const content = entranceMs + startDelayMs + cycleMs
+export function clipFor({ entranceMs, startDelayMs, passMs, loopMs }, spec = CLIP) {
+  const content = entranceMs + startDelayMs + passMs
   if (!loopMs) return { durationMs: content, loops: 0 }
   const needed = Math.max(1, Math.ceil(content / loopMs))
   let loops = Math.max(needed, spec.minEmojiLoops)
   while (loops > needed && loops * loopMs > spec.maxClipMs) loops -= 1
-  return { durationMs: loops * loopMs, loops }
+  return { durationMs: Math.max(content, Math.min(loops * loopMs, spec.maxClipMs)), loops }
 }
 
 export function springScale(tMs, s = CLIP.spring) {
@@ -31,7 +31,7 @@ export function createTimeline({ motif, feeling, cluster, unitCount, loopMs }) {
   const { durationMs, loops } = clipFor({
     entranceMs: text.totalMs,
     startDelayMs: shimmer.startDelayMs,
-    cycleMs: shimmer.cycleMs,
+    passMs: shimmer.passMs,
     loopMs,
   })
   return {

@@ -9,8 +9,9 @@
 #  * Start: `startDelayMs` after the text entrance has fully finished (entrance total = last unit's
 #    delay + durationMs, see textAnimations.yml). Every replay of the entrance restarts the shimmer.
 #    Before the start, and with reduced-motion, nothing is drawn.
-#  * Cycle: T = durationMs + pauseMs, repeating forever. In cycle time t: u = (t mod T) / durationMs.
-#    While u < 1 the effect is drawn at pass progress u; while u >= 1 (the pause) nothing is drawn.
+#  * No pass (durationMs, including style overrides) may exceed 3000 ms (enforced by shimmer.test.js).
+#  * One pass only, never repeated: with t = time since the start, u = t / durationMs. While 0 <= u < 1
+#    the effect is drawn at pass progress u; from u >= 1 on nothing is drawn.
 #  * Keyframes: `at` in 0..1 over the pass; fields opacity (0..1) and c (a kind-specific number).
 #    Missing fields carry from the previous keyframe. Between two keyframes the local progress is
 #    eased with the cubic-bezier `easing` (same easing for every segment) and c/opacity are lerped.
@@ -25,7 +26,7 @@
 #      Stop `at` runs 0 (centre) .. 1 (edge); transparent outside.
 #  * kind flash: the whole card filled with a linear gradient along angleDeg (same s mapping, stop `at`
 #      = s). c is unused; only opacity animates (use it for irregular flicker).
-#  * `styles.<Name>` overrides on top of the cluster effect: durationMs, pauseMs, angleDeg.
+#  * `styles.<Name>` overrides on top of the cluster effect: durationMs, angleDeg.
 
 startDelayMs: 250
 
@@ -36,7 +37,6 @@ clusters:
     widthFrac: 0.18
     blend: screen
     durationMs: 650
-    pauseMs: 1900
     easing: [0.6, 0, 0.4, 1]
     stops:
       - { at: 0, color: "#FF3B0000" }
@@ -53,7 +53,6 @@ clusters:
     widthFrac: 0.45
     blend: screen
     durationMs: 1400
-    pauseMs: 1600
     easing: [0.4, 0, 0.2, 1]
     stops:
       - { at: 0, color: "#FFE08A00" }
@@ -68,7 +67,6 @@ clusters:
     widthFrac: 0.9
     blend: screen
     durationMs: 2400
-    pauseMs: 400
     easing: [0.4, 0, 0.6, 1]
     stops:
       - { at: 0, color: "#FF4D6D00" }
@@ -86,8 +84,7 @@ clusters:
     angleDeg: 45
     widthFrac: 0.7
     blend: screen
-    durationMs: 6000
-    pauseMs: 2000
+    durationMs: 3000
     easing: [0.45, 0, 0.55, 1]
     stops:
       - { at: 0, color: "#FFFFFF00" }
@@ -101,8 +98,7 @@ clusters:
     angleDeg: 90
     widthFrac: 0.5
     blend: multiply
-    durationMs: 5000
-    pauseMs: 3000
+    durationMs: 3000
     easing: [0.3, 0, 0.7, 1]
     stops:
       - { at: 0, color: "#3A4A6600" }
@@ -116,7 +112,6 @@ clusters:
     angleDeg: 90
     blend: screen
     durationMs: 1400
-    pauseMs: 900
     easing: [0, 0, 1, 1]
     stops:
       - { at: 0, color: "#FFFFFF66" }
@@ -140,7 +135,6 @@ clusters:
     radiusFrac: 0.6
     blend: screen
     durationMs: 2600
-    pauseMs: 600
     easing: [0.4, 0, 0.6, 1]
     stops:
       - { at: 0, color: "#FFB3D1AA" }
@@ -156,7 +150,6 @@ clusters:
     widthFrac: 0.12
     blend: screen
     durationMs: 900
-    pauseMs: 2600
     easing: [0.4, 0, 0.2, 1]
     stops:
       - { at: 0, color: "#FFFFFF00" }
@@ -173,7 +166,6 @@ clusters:
     widthFrac: 0.08
     blend: screen
     durationMs: 2200
-    pauseMs: 5000
     easing: [0.4, 0, 0.2, 1]
     stops:
       - { at: 0, color: "#FFFFFF00" }
@@ -184,8 +176,6 @@ clusters:
       - { at: 1, c: 1.15, opacity: 1 }
 
 styles:
-  Furious: { durationMs: 480, pauseMs: 1400 }
+  Furious: { durationMs: 480 }
   Excited: { durationMs: 1000 }
   Tense: { durationMs: 1100 }
-  Deadpan: { pauseMs: 9000 }
-  Serene: { pauseMs: 4000 }
