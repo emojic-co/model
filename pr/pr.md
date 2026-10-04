@@ -8,10 +8,10 @@ Marketing and launch material for **emojify.ing** (https://emojify.ing).
   positioning notes, boilerplate blurbs, screenshot/GIF shot-list, links.
 - One subfolder per target audience, holding copy tuned to that audience and
   its channels.
-- `remotion/` — a Remotion template that films a typewriter demo (phrase types
-  itself, card shows an "emojifying…" loader, then the real model result slides
-  in from the right). Produces 1080×1350 (4:5) clips for social. See
-  `remotion/README.md`.
+- `remotion/` — a Remotion project that films a 5-card showcase video (push,
+  slide, flip, zoom slam, spin transitions) ending on an `emojify.ing` outro, built
+  from real model cards with animated emoji. 1080×1350 (4:5) for the Play Store
+  and social. See `remotion/README.md`.
 
 ## Audiences
 
