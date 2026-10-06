@@ -241,12 +241,12 @@ fun Card(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(start = cardPadding, top = cardPadding, end = cardPadding, bottom = maxOf(cardPadding, SHARE_BAR_CLEARANCE)),
+                        .padding(horizontal = cardPadding),
                 ) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
+                        verticalArrangement = Arrangement.SpaceEvenly,
                     ) {
                         AnimatedEmoji(
                             emoji = emoji,
@@ -256,18 +256,13 @@ fun Card(
                             loopMs = (loopMs ?: 0.0).toFloat(),
                             emojiMs = emojiMsFn,
                             static = stillCapture,
-                            modifier = Modifier.offset(y = cardWidthDp * global.emojiDyRatio),
                         )
-                        Spacer(Modifier.height(cardWidthDp * global.gapRatio))
                         Box(
                             modifier = Modifier.weight(1f, fill = false).fillMaxWidth(),
                             contentAlignment = Alignment.Center,
                         ) {
                             BoxWithConstraints(
-                                modifier = Modifier.fillMaxWidth().padding(
-                                    horizontal = cardWidthDp * global.textBoxPadXRatio,
-                                    vertical = cardWidthDp * global.textBoxPadYRatio,
-                                ),
+                                modifier = Modifier.fillMaxWidth(),
                             ) {
                                 val density = LocalDensity.current
                                 val maxWidthPx = with(density) { maxWidth.toPx() }.toInt()
@@ -359,9 +354,6 @@ fun Card(
         }
     }
 }
-
-/** Space reserved at the card bottom so text never sits under the share buttons (14dp inset + ~30dp button + breathing room). */
-private val SHARE_BAR_CLEARANCE = 58.dp
 
 /** One export frame: ms into the shared clip, or the poster (finished card, no shimmer, emoji at rest). */
 data class ClipPose(val tMs: Float, val poster: Boolean = false)

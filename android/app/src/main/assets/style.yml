@@ -1,16 +1,12 @@
-exportedAt: 2026-10-04T14:37:23.170Z
+exportedAt: 2026-10-06T15:13:03.328Z
 global:
   referencePx: 600
   maxPatternOpacity: 0.14
   padRatio: 0.07
-  gapRatio: 0.06
-  emojiRatio: 0.32
-  emojiDyRatio: 0.065
-  textBoxPadXRatio: 0.03
-  textBoxPadYRatio: 0.05
+  emojiRatio: 0.36
   textLineHeight: 1.5
   textMinRatio: 0.05
-  textMaxRatio: 0.21
+  textMaxRatio: 0.24
   maxLines: 10
   watermarkPxRatio: 0.044
   watermarkOpacity: 0.28

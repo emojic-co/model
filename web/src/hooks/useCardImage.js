@@ -17,14 +17,10 @@ const EMOJI_STACK = '"Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", 
 // which bakes these into style.yml for the Android app to mirror.
 export const RATIOS = {
   padRatio: 0.07,
-  gapRatio: 0.06,
-  emojiRatio: 0.32,
-  emojiDyRatio: 0.065,
-  textBoxPadXRatio: 0.03,
-  textBoxPadYRatio: 0.05,
+  emojiRatio: 0.36,
   textLineHeight: 1.5,
   textMinRatio: 0.05,
-  textMaxRatio: 0.21,
+  textMaxRatio: 0.24,
   maxLines: 10,
   watermarkPxRatio: 0.044,
   watermarkOpacity: 0.28,
@@ -33,21 +29,14 @@ export const RATIOS = {
 
 // CSS custom properties for the live DOM card, derived from the same ratios (see .card in styles.css).
 export const CARD_CSS_VARS = {
-  '--card-pad': `${RATIOS.padRatio * 100}%`,
-  '--card-gap': `${RATIOS.gapRatio * 100}%`,
+  '--card-pad': `0 ${RATIOS.padRatio * 100}%`,
   '--card-emoji': `${RATIOS.emojiRatio * 100}cqw`,
-  '--card-emoji-dy': `${RATIOS.emojiDyRatio * 100}cqw`,
-  '--card-text-box-pad': `${RATIOS.textBoxPadYRatio * 100}% ${RATIOS.textBoxPadXRatio * 100}%`,
-  '--card-text-box-max-h': `${(1 - 2 * RATIOS.padRatio - RATIOS.emojiRatio - RATIOS.gapRatio) * 100}cqw`,
+  '--card-text-box-max-h': `${(1 - RATIOS.emojiRatio) * 100}cqw`,
 }
 
 const WATERMARK_PX = Math.round(RATIOS.watermarkPxRatio * S)
 const PAD = RATIOS.padRatio * S
-const GAP = RATIOS.gapRatio * S
 const EMOJI_PX = RATIOS.emojiRatio * S
-const EMOJI_DY = RATIOS.emojiDyRatio * S
-const TEXT_BOX_PAD_X = RATIOS.textBoxPadXRatio * S
-const TEXT_BOX_PAD_Y = RATIOS.textBoxPadYRatio * S
 const TEXT_LINE_HEIGHT = RATIOS.textLineHeight
 const TEXT_MIN_PX = Math.round(RATIOS.textMinRatio * S)
 const TEXT_MAX_PX = Math.round(RATIOS.textMaxRatio * S)
@@ -133,9 +122,8 @@ export async function createPainter({ text, emoji, feeling, lang, colors, dim },
   // Font fit, line wrap and per-unit x offsets: computed once per card (not per frame).
   let layout = null
   const computeLayout = (ctx) => {
-    const textBoxTop = PAD + EMOJI_PX + GAP
-    const maxWidth = S - 2 * PAD - 2 * TEXT_BOX_PAD_X
-    const maxHeight = S - PAD - textBoxTop - 2 * TEXT_BOX_PAD_Y
+    const maxWidth = S - 2 * PAD
+    const maxHeight = S - EMOJI_PX
     const widthAt = (str, px) => {
       ctx.font = `${fitalic}${fw} ${px}px ${stack}`
       return ctx.measureText(str).width
@@ -152,9 +140,9 @@ export async function createPainter({ text, emoji, feeling, lang, colors, dim },
     })
     ctx.font = `${fitalic}${fw} ${fpx}px ${stack}`
     const lines = wrapLines((str) => ctx.measureText(str).width, headline, maxWidth, MAX_LINES)
-    // Emoji + text form one group, centered vertically on the card.
+    // Emoji and text are spaced evenly: equal gaps above, between and below.
     const blockH = lines.length * fpx * TEXT_LINE_HEIGHT
-    const top = (S - (EMOJI_PX + GAP + 2 * TEXT_BOX_PAD_Y + blockH)) / 2
+    const gap = (S - EMOJI_PX - blockH) / 3
     if ('direction' in ctx) ctx.direction = rtl ? 'rtl' : 'ltr'
     const unitLines = lines.map(lineUnits)
     // Each unit is drawn at its natural position in the line, posed by the entrance animation.
@@ -172,8 +160,8 @@ export async function createPainter({ text, emoji, feeling, lang, colors, dim },
       lines,
       unitLines,
       unitCx,
-      emojiCenterY: top + EMOJI_PX / 2 + EMOJI_DY,
-      textCenterY: top + EMOJI_PX + GAP + TEXT_BOX_PAD_Y + blockH / 2,
+      emojiCenterY: gap + EMOJI_PX / 2,
+      textCenterY: 2 * gap + EMOJI_PX + blockH / 2,
     }
   }
 

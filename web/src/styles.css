@@ -243,12 +243,11 @@ h1 .tld {
   max-width: var(--card-w);
   aspect-ratio: 1;
   border-radius: 1.25em;
-  padding: var(--card-pad, 7%);
+  padding: var(--card-pad, 0 7%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: var(--card-gap, 6%);
+  justify-content: space-evenly;
   text-align: center;
   overflow: hidden;
   background: linear-gradient(135deg, #dedede, #bebebe);
@@ -586,7 +585,6 @@ main[data-exporting] .feelings-col {
   font-size: var(--card-emoji, 32cqw);
   line-height: 1;
   flex: none;
-  transform: translateY(var(--card-emoji-dy, 6.5cqw));
   transition: opacity 150ms ease;
   position: relative;
 }
@@ -631,7 +629,6 @@ main[data-exporting] .feelings-col {
   min-height: 0;
   max-height: var(--card-text-box-max-h, 48cqw);
   width: 100%;
-  padding: var(--card-text-box-pad, 5% 3%);
   display: flex;
   align-items: center;
   justify-content: center;

@@ -5,7 +5,6 @@
     "": {
       "name": "emojic-web",
       "dependencies": {
-        "gifenc": "^1.0.3",
         "hero-patterns": "^2.1.0",
         "lottie-web": "^5.13.0",
         "mp4-muxer": "^5.2.2",
@@ -126,8 +125,6 @@
     "flatbuffers": ["flatbuffers@25.9.23", "", {}, "sha512-MI1qs7Lo4Syw0EOzUl0xjs2lsoeqFku44KpngfIduHBYvzm8h2+7K8YMQh1JtVVVrUvhLpNwqVi4DERegUJhPQ=="],
 
     "fsevents": ["fsevents@2.3.3", "", { "os": "darwin" }, "sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw=="],
-
-    "gifenc": ["gifenc@1.0.3", "", {}, "sha512-xdr6AdrfGBcfzncONUOlXMBuc5wJDtOueE3c5rdG0oNgtINLD+f2iFZltrBRZYzACRbKr+mSVU/x98zv2u3jmw=="],
 
     "github-buttons": ["github-buttons@2.33.0", "", {}, "sha512-+WQ+r3nSM2/NGBo17LaQ2evPOEjXUmSLzFuZzpz9rCzwa7HrmIDQCaMx6uTsfL1aW7/bmBd5slREkCp3XKpuFw=="],
 

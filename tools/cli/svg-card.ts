@@ -9,11 +9,7 @@ import { resolveEmojiSvg } from "./emoji-svg.ts"
 
 const S = 512
 const PAD = 0.07 * S
-const GAP = 0.03 * S
 const EMOJI_PX = 0.32 * S
-const EMOJI_DY = 0.065 * S
-const TEXT_BOX_PAD_X = 0.03 * S
-const TEXT_BOX_PAD_Y = 0.05 * S
 const TEXT_LINE_HEIGHT = 1.5
 const TEXT_MIN_PX = Math.round(0.05 * S)
 const TEXT_MAX_PX = Math.round(0.13 * S)
@@ -88,13 +84,8 @@ export function cardSvg(row: Row, resolution: number, fonts: FontCache): string 
   const fontPath = fonts.fileFor(family, fontWeight, fontStyle)
   const widthAt = widthAtFn(fontPath, (px) => letterSpacingEm * px)
 
-  const emojiBoxBottom = PAD + EMOJI_PX
-  const emojiCenterY = PAD + EMOJI_PX / 2 + EMOJI_DY
-  const textBoxTop = emojiBoxBottom + GAP
-  const textBoxBottom = S - PAD
-  const textCenterY = (textBoxTop + textBoxBottom) / 2
-  const maxWidth = S - 2 * PAD - 2 * TEXT_BOX_PAD_X
-  const maxHeight = textBoxBottom - textBoxTop - 2 * TEXT_BOX_PAD_Y
+  const maxWidth = S - 2 * PAD
+  const maxHeight = S - EMOJI_PX
 
   const fpx = fitCanvasFont({
     text: headline,
@@ -106,6 +97,10 @@ export function cardSvg(row: Row, resolution: number, fonts: FontCache): string 
     widthAt,
   })
   const lines: string[] = wrapLines((s: string) => widthAt(s, fpx), headline, maxWidth, MAX_LINES)
+  // Emoji and text are spaced evenly: equal gaps above, between and below.
+  const gap = (S - EMOJI_PX - lines.length * fpx * TEXT_LINE_HEIGHT) / 3
+  const emojiCenterY = gap + EMOJI_PX / 2
+  const textCenterY = 2 * gap + EMOJI_PX + (lines.length * fpx * TEXT_LINE_HEIGHT) / 2
   const ty0 = textCenterY - ((lines.length - 1) * fpx * TEXT_LINE_HEIGHT) / 2
 
   const textEls = lines
