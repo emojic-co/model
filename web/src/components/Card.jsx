@@ -51,15 +51,17 @@ export function Card({ text, emoji, feeling, lang, colors, loading, onJpg, onMp4
     : null
 
   return (
-    <div
-      ref={ref}
-      className="card"
-      data-feeling={shown.feeling || undefined}
-      data-cluster={r?.cluster || undefined}
-      data-phase={phase}
-      style={{ ...CARD_CSS_VARS, ...style }}
-    >
-      <CardCanvas cardData={cardData} paused={!!exporting} />
+    <div className="card-col">
+      <div
+        ref={ref}
+        className="card"
+        data-feeling={shown.feeling || undefined}
+        data-cluster={r?.cluster || undefined}
+        data-phase={phase}
+        style={{ ...CARD_CSS_VARS, ...style }}
+      >
+        <CardCanvas cardData={cardData} paused={!!exporting} />
+      </div>
       <div className="share-bar">
         {exporting ? (
           <>

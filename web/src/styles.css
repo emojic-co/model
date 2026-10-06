@@ -143,8 +143,16 @@ h1 .tld {
   gap: 0.875em;
 }
 
-.stage>.card {
+.stage>.card-col {
   grid-area: card;
+}
+
+.card-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75em;
+  min-width: 0;
 }
 
 .stage>.emoji-list {
@@ -499,10 +507,6 @@ h1 .tld {
 }
 
 .share-bar {
-  position: absolute;
-  bottom: 1.5em;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   gap: 0.75em;
 }
@@ -569,7 +573,7 @@ main[data-exporting] .feelings-col {
 .card-watermark {
   position: absolute;
   right: 5.5%;
-  bottom: 4.5%;
+  top: 4.5%;
   font-family: "Caveat", ui-sans-serif, cursive;
   font-size: 4.4cqw;
   font-weight: 700;

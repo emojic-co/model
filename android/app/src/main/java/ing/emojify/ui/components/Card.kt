@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
@@ -185,6 +186,7 @@ fun Card(
     }
 
     val global = Styles.file.global
+    val shareInk = MaterialTheme.colorScheme.onSurface
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val cardWidthDp = maxWidth
         val emojiSizeSp = cardWidthDp.value * global.emojiRatio
@@ -195,6 +197,7 @@ fun Card(
         val patternTileWidthPx = with(density) { (cardWidthDp * style.patternWidthRatio).toPx() }.toInt().coerceAtLeast(1)
         val patternTileHeightPx = with(density) { (cardWidthDp * style.patternHeightRatio).toPx() }.toInt().coerceAtLeast(1)
 
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box {
             Box(
                 modifier = Modifier
@@ -310,8 +313,8 @@ fun Card(
                     fontWeight = FontWeight.Bold,
                     fontSize = (cardWidthDp.value * global.watermarkPxRatio).sp,
                     modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = cardWidthDp * global.watermarkMarginRatio, bottom = cardWidthDp * global.watermarkMarginRatio),
+                        .align(Alignment.TopEnd)
+                        .padding(end = cardWidthDp * global.watermarkMarginRatio, top = cardWidthDp * global.watermarkMarginRatio),
                 )
             }
             frozen?.let {
@@ -322,9 +325,10 @@ fun Card(
                     modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(16.dp)),
                 )
             }
+        }
             Row(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.align(Alignment.BottomCenter).padding(14.dp),
+                modifier = Modifier.padding(top = 12.dp),
             ) {
                 if (busyFormat == null) {
                     for (format in ShareFormat.entries) {
@@ -338,17 +342,17 @@ fun Card(
                                     onShare(format)
                                 }
                             },
-                            ink = textColor,
+                            ink = shareInk,
                         )
                     }
                 } else {
                     LinearProgressIndicator(
                         progress = { exportProgress.coerceIn(0f, 1f) },
-                        color = textColor,
-                        trackColor = textColor.copy(alpha = 0.25f),
+                        color = shareInk,
+                        trackColor = shareInk.copy(alpha = 0.25f),
                         modifier = Modifier.align(Alignment.CenterVertically).width(140.dp),
                     )
-                    ShareButton(label = LocalStrings.current.t("card.cancel"), enabled = true, busy = false, onClick = onCancelExport, ink = textColor)
+                    ShareButton(label = LocalStrings.current.t("card.cancel"), enabled = true, busy = false, onClick = onCancelExport, ink = shareInk)
                 }
             }
         }

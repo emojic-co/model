@@ -18,7 +18,7 @@ const EMOJI_STACK = '"Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", 
 export const RATIOS = {
   padRatio: 0.07,
   emojiRatio: 0.36,
-  textLineHeight: 1.5,
+  textLineHeight: 1.3,
   textMinRatio: 0.05,
   textMaxRatio: 0.24,
   maxLines: 10,
@@ -227,14 +227,14 @@ export async function createPainter({ text, emoji, feeling, lang, colors, dim },
 
     ctx.save()
     ctx.textAlign = 'right'
-    ctx.textBaseline = 'alphabetic'
+    ctx.textBaseline = 'top'
     ctx.font = `700 ${WATERMARK_PX}px "Caveat", ui-sans-serif, sans-serif`
     ctx.fillStyle =
       contrastRatio(BLACK, colors.bg2) >= contrastRatio(WHITE, colors.bg2)
         ? '#000000'
         : '#ffffff'
     ctx.globalAlpha = RATIOS.watermarkOpacity
-    ctx.fillText(WATERMARK, S - RATIOS.watermarkMarginRatio * S, S - RATIOS.watermarkMarginRatio * S)
+    ctx.fillText(WATERMARK, S - RATIOS.watermarkMarginRatio * S, RATIOS.watermarkMarginRatio * S)
     ctx.restore()
   }
 
