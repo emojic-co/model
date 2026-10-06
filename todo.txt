@@ -1,6 +1,3 @@
-create a tool tools/emoji2png.ts
-That convert an emoji to a .png img.
-emoji2jpg <emoji> [--res <resolution>] [--output <output_file>]
-default resolution is 512x512
-default output is pngs/<emoji_code>.png
-the tool prints the output file so we can emoji2png | xargs google-chrome
+The app is ready for publishing on google play.
+I think I already done with all manual settings, could you check, confirm and publish the app.
+Also there are two remotion videos, could you upload them to YouTube and them to the google play store.
