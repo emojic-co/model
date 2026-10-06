@@ -3,12 +3,10 @@ import { CARD_CSS_VARS } from '../hooks/useCardImage'
 import { CardCanvas } from './CardCanvas'
 import { resolveFeeling } from '../feelings'
 import { toCssOklab } from '../model'
-import { useI18n } from '../i18n'
 
 const FADE_MS = 150
 
-export function Card({ text, emoji, feeling, lang, colors, loading, onJpg, onMp4, exporting, progress = 0, onCancel, ref }) {
-  const { t } = useI18n()
+export function Card({ text, emoji, feeling, lang, colors, loading, exporting, ref }) {
   const [shown, setShown] = useState({ emoji, feeling, lang })
   const [phase, setPhase] = useState('in')
   const prev = useRef({ emoji, feeling, lang })
@@ -51,36 +49,15 @@ export function Card({ text, emoji, feeling, lang, colors, loading, onJpg, onMp4
     : null
 
   return (
-    <div className="card-col">
-      <div
-        ref={ref}
-        className="card"
-        data-feeling={shown.feeling || undefined}
-        data-cluster={r?.cluster || undefined}
-        data-phase={phase}
-        style={{ ...CARD_CSS_VARS, ...style }}
-      >
-        <CardCanvas cardData={cardData} paused={!!exporting} />
-      </div>
-      <div className="share-bar">
-        {exporting ? (
-          <>
-            <progress className="share-progress" max="1" value={progress} aria-label={t('card.making', { format: exporting })} />
-            <button type="button" aria-label={t('card.cancelAria')} onClick={onCancel}>
-              {t('card.cancel')}
-            </button>
-          </>
-        ) : (
-          <>
-            <button type="button" aria-label={t('card.copyJpg')} onClick={onJpg}>
-              jpg
-            </button>
-            <button type="button" aria-label={t('card.saveMp4')} onClick={onMp4} disabled={!onMp4}>
-              mp4
-            </button>
-          </>
-        )}
-      </div>
+    <div
+      ref={ref}
+      className="card"
+      data-feeling={shown.feeling || undefined}
+      data-cluster={r?.cluster || undefined}
+      data-phase={phase}
+      style={{ ...CARD_CSS_VARS, ...style }}
+    >
+      <CardCanvas cardData={cardData} paused={!!exporting} />
     </div>
   )
 }

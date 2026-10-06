@@ -8,7 +8,7 @@ const HINTS = [
   { keys: ['Esc'], label: 'keys.clear' },
 ]
 
-export function KeyHints() {
+export function KeyHints({ children }) {
   const { t } = useI18n()
   return (
     <aside className="keys" aria-label={t('keys.aria')}>
@@ -24,6 +24,7 @@ export function KeyHints() {
           </div>
         ))}
       </dl>
+      {children && <div className="keys-actions">{children}</div>}
     </aside>
   )
 }

@@ -10,6 +10,7 @@ import { FeelingBar } from './components/FeelingBar'
 import { ColorBar } from './components/ColorBar'
 import { EmojiList } from './components/EmojiList'
 import { KeyHints } from './components/KeyHints'
+import { ShareBar } from './components/ShareBar'
 import { mp4Supported, useCardExport, useCardImage } from './hooks/useCardImage'
 import { Toast } from './components/Toast'
 import { EmojiRain } from './components/EmojiRain'
@@ -188,6 +189,13 @@ export function App() {
       : null
   const copyCard = useCardImage(cardData, showToast, t)
   const exporter = useCardExport(cardData, showToast, t)
+  const shareProps = {
+    onJpg: copyCard,
+    onMp4: mp4Supported() ? exporter.saveMp4 : undefined,
+    exporting: exporter.busy,
+    progress: exporter.progress,
+    onCancel: exporter.cancel,
+  }
   const exporting = !!exporter.busy
   const exportingRef = useRef(false)
   exportingRef.current = exporting
@@ -297,13 +305,12 @@ export function App() {
           lang={lang}
           colors={colors}
           loading={pending}
-          onJpg={copyCard}
-          onMp4={mp4Supported() ? exporter.saveMp4 : undefined}
           exporting={exporter.busy}
-          progress={exporter.progress}
-          onCancel={exporter.cancel}
         />
-        <KeyHints />
+        <ShareBar {...shareProps} className="share-bar--below" />
+        <KeyHints>
+          <ShareBar {...shareProps} />
+        </KeyHints>
         <div className="feelings-col" inert={exporting || undefined}>
           <ColorBar
             palettes={palettes}

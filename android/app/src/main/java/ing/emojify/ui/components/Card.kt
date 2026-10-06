@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -186,7 +187,7 @@ fun Card(
     }
 
     val global = Styles.file.global
-    val shareInk = MaterialTheme.colorScheme.onSurface
+    val shareInk = ShareInk
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val cardWidthDp = maxWidth
         val emojiSizeSp = cardWidthDp.value * global.emojiRatio
@@ -372,26 +373,29 @@ private fun ShareButton(
     busy: Boolean,
     ink: Color,
 ) {
-    // Mirrors the web .share-bar button: translucent white pill, 1px ink border, uppercase spaced label.
+    // Mirrors the web .share-bar button: solid ink pill, white bold uppercase spaced label, soft shadow.
     val shape = RoundedCornerShape(percent = 50)
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .alpha(if (enabled || busy) 0.55f else 0.3f)
+            .alpha(if (enabled || busy) 1f else 0.35f)
+            .shadow(if (enabled) 3.dp else 0.dp, shape)
             .clip(shape)
-            .background(Color.White.copy(alpha = 0.18f))
-            .border(1.dp, ink, shape)
+            .background(ink)
             .clickable(enabled = enabled, onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 6.dp),
+            .padding(horizontal = 20.dp, vertical = 9.dp),
     ) {
         if (busy) {
             CircularProgressIndicator(
                 modifier = Modifier.size(14.dp),
                 strokeWidth = 2.dp,
-                color = ink,
+                color = Color.White,
             )
         } else {
-            Text(label.uppercase(), color = ink, fontSize = 12.sp, letterSpacing = 1.7.sp)
+            Text(label.uppercase(), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.8.sp)
         }
     }
 }
+
+/** Share button / progress ink, same as the web --ink. */
+private val ShareInk = Color(0xFF1A1A1A)

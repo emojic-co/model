@@ -143,16 +143,24 @@ h1 .tld {
   gap: 0.875em;
 }
 
-.stage>.card-col {
+.stage>.card {
   grid-area: card;
 }
 
-.card-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75em;
-  min-width: 0;
+.stage>.share-bar--below {
+  display: none;
+  grid-area: share;
+  justify-content: center;
+}
+
+.keys-actions {
+  margin-top: 1.25em;
+  padding-top: 1.25em;
+  border-top: 1px solid var(--line);
+}
+
+.keys .share-bar button {
+  font-size: 1.1em;
 }
 
 .stage>.emoji-list {
@@ -512,30 +520,35 @@ h1 .tld {
 }
 
 .share-bar button {
-  padding: 0.375em 0.75em;
+  padding: 0.6em 1.4em;
   font: inherit;
-  font-size: 0.75em;
+  font-size: 0.85em;
+  font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: inherit;
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid currentColor;
+  color: #fff;
+  background: var(--ink);
+  border: 1px solid var(--ink);
   border-radius: 999px;
   cursor: pointer;
-  opacity: 0.55;
-  transition: opacity 160ms ease;
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
 }
 
 .share-bar button:hover:not(:disabled),
 .share-bar button:focus-visible {
-  opacity: 1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
   outline: none;
 }
 
+.share-bar button:active:not(:disabled) {
+  transform: none;
+}
+
 .share-bar button:disabled {
-  opacity: 0.3;
+  opacity: 0.35;
+  box-shadow: none;
   cursor: default;
 }
 
@@ -548,7 +561,7 @@ h1 .tld {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.18);
   overflow: hidden;
-  opacity: 0.55;
+  color: var(--ink);
 }
 
 .share-progress::-webkit-progress-bar {
@@ -960,12 +973,17 @@ main[data-exporting] .feelings-col {
     grid-template-areas:
       "head"
       "card"
+      "share"
       "emoji"
       "feelings";
   }
 
   .stage>.keys {
     display: none;
+  }
+
+  .stage>.share-bar--below {
+    display: flex;
   }
 
   .footer {
