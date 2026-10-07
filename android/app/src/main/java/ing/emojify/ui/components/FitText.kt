@@ -2,7 +2,9 @@ package ing.emojify.ui.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -40,6 +42,8 @@ fun rememberFitFontSizeSp(
                     fontStyle = fontStyle,
                     letterSpacing = letterSpacing,
                     textDirection = TextDirection.Content,
+                    platformStyle = PlatformTextStyle(includeFontPadding = false),
+                    lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None),
                 ),
                 constraints = Constraints(maxWidth = maxWidthPx, maxHeight = maxHeightPx),
                 softWrap = true,

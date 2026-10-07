@@ -1,3 +1,1 @@
-The app is ready for publishing on google play.
-I think I already done with all manual settings, could you check, confirm and publish the app.
-Also there are two remotion videos, could you upload them to YouTube and them to the google play store.
+Card: add some tiny vertical padding and reduce a bit the line height.

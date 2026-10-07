@@ -44,11 +44,12 @@ fun AnimatedCharText(
     feeling: String?,
     textMs: () -> Float,
     modifier: Modifier = Modifier,
+    maxLines: Int = Int.MAX_VALUE,
 ) {
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
-    val layout = remember(text, textStyle, maxWidthPx) {
-        measurer.measure(text, textStyle, constraints = Constraints(minWidth = maxWidthPx, maxWidth = maxWidthPx))
+    val layout = remember(text, textStyle, maxWidthPx, maxLines) {
+        measurer.measure(text, textStyle, maxLines = maxLines, constraints = Constraints(minWidth = maxWidthPx, maxWidth = maxWidthPx))
     }
     val units = remember(text, layout) { unitPaths(text, layout, textStyle.fontSize.value) }
     val schedule: TextSchedule? = remember(animations, motif, feeling, units.size) {

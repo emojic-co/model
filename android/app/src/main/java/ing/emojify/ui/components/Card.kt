@@ -51,7 +51,9 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -192,6 +194,7 @@ fun Card(
         val cardWidthDp = maxWidth
         val emojiSizeSp = cardWidthDp.value * global.emojiRatio
         val cardPadding = cardWidthDp * global.padRatio
+        val cardPaddingY = cardWidthDp * global.padYRatio
         val textMinSp = cardWidthDp.value * global.textMinRatio
         val textMaxSp = cardWidthDp.value * global.textMaxRatio
         val density = LocalDensity.current
@@ -245,7 +248,7 @@ fun Card(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = cardPadding),
+                        .padding(horizontal = cardPadding, vertical = cardPaddingY),
                 ) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
@@ -291,6 +294,8 @@ fun Card(
                                         fontFamily = fontFamily,
                                         fontSize = fitSp.sp,
                                         lineHeight = (fitSp * global.textLineHeight).sp,
+                                        platformStyle = PlatformTextStyle(includeFontPadding = false),
+                                        lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None),
                                         fontWeight = FontWeight(style.fontWeight),
                                         fontStyle = if (style.italic) FontStyle.Italic else FontStyle.Normal,
                                         letterSpacing = style.letterSpacingEm?.let { TextUnit(it, TextUnitType.Em) } ?: TextUnit.Unspecified,
@@ -301,6 +306,7 @@ fun Card(
                                     motif = style.entranceMotif,
                                     feeling = feeling,
                                     textMs = textMsFn,
+                                    maxLines = global.maxLines,
                                 )
                             }
                         }

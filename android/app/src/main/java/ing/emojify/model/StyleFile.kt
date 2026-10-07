@@ -9,6 +9,7 @@ data class GlobalSettings(
     val referencePx: Int,
     val maxPatternOpacity: Float,
     val padRatio: Float,
+    val padYRatio: Float,
     val emojiRatio: Float,
     val textLineHeight: Float,
     val textMinRatio: Float,

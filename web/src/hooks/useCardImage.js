@@ -37,6 +37,8 @@ export const CARD_CSS_VARS = {
 const WATERMARK_PX = Math.round(RATIOS.watermarkPxRatio * S)
 const PAD = RATIOS.padRatio * S
 const EMOJI_PX = RATIOS.emojiRatio * S
+// Android lays the emoji out in a row taller than its font size (the emoji font's natural line height); mirrored here so text fit and spacing match.
+const EMOJI_BOX = EMOJI_PX * 1.175
 const TEXT_LINE_HEIGHT = RATIOS.textLineHeight
 const TEXT_MIN_PX = Math.round(RATIOS.textMinRatio * S)
 const TEXT_MAX_PX = Math.round(RATIOS.textMaxRatio * S)
@@ -123,7 +125,7 @@ export async function createPainter({ text, emoji, feeling, lang, colors, dim },
   let layout = null
   const computeLayout = (ctx) => {
     const maxWidth = S - 2 * PAD
-    const maxHeight = S - EMOJI_PX
+    const maxHeight = S - EMOJI_BOX
     const widthAt = (str, px) => {
       ctx.font = `${fitalic}${fw} ${px}px ${stack}`
       return ctx.measureText(str).width
@@ -142,7 +144,7 @@ export async function createPainter({ text, emoji, feeling, lang, colors, dim },
     const lines = wrapLines((str) => ctx.measureText(str).width, headline, maxWidth, MAX_LINES)
     // Emoji and text are spaced evenly: equal gaps above, between and below.
     const blockH = lines.length * fpx * TEXT_LINE_HEIGHT
-    const gap = (S - EMOJI_PX - blockH) / 3
+    const gap = (S - EMOJI_BOX - blockH) / 3
     if ('direction' in ctx) ctx.direction = rtl ? 'rtl' : 'ltr'
     const unitLines = lines.map(lineUnits)
     // Each unit is drawn at its natural position in the line, posed by the entrance animation.
@@ -160,8 +162,9 @@ export async function createPainter({ text, emoji, feeling, lang, colors, dim },
       lines,
       unitLines,
       unitCx,
-      emojiCenterY: gap + EMOJI_PX / 2,
-      textCenterY: 2 * gap + EMOJI_PX + blockH / 2,
+      // Glyph paints slightly high in its row; nudge down to sit where Android draws it (measured against the Android card).
+      emojiCenterY: gap + EMOJI_BOX / 2 + EMOJI_PX * 0.055,
+      textCenterY: 2 * gap + EMOJI_BOX + blockH / 2,
     }
   }
 
