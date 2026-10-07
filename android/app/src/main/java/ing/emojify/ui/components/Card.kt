@@ -194,7 +194,9 @@ fun Card(
         val cardWidthDp = maxWidth
         val emojiSizeSp = cardWidthDp.value * global.emojiRatio
         val cardPadding = cardWidthDp * global.padRatio
-        val cardPaddingY = cardWidthDp * global.padYRatio
+        val cardPaddingTop = cardWidthDp * global.padTopRatio
+        val cardPaddingBottom = cardWidthDp * global.padBottomRatio
+        val emojiTextGap = cardWidthDp * global.emojiTextGapRatio
         val textMinSp = cardWidthDp.value * global.textMinRatio
         val textMaxSp = cardWidthDp.value * global.textMaxRatio
         val density = LocalDensity.current
@@ -248,7 +250,7 @@ fun Card(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = cardPadding, vertical = cardPaddingY),
+                        .padding(start = cardPadding, end = cardPadding, top = cardPaddingTop, bottom = cardPaddingBottom),
                 ) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
@@ -265,7 +267,7 @@ fun Card(
                             static = stillCapture,
                         )
                         Box(
-                            modifier = Modifier.weight(1f, fill = false).fillMaxWidth(),
+                            modifier = Modifier.padding(top = emojiTextGap).weight(1f, fill = false).fillMaxWidth(),
                             contentAlignment = Alignment.Center,
                         ) {
                             BoxWithConstraints(
