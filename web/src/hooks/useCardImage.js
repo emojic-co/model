@@ -46,6 +46,8 @@ const PAD_BOTTOM = RATIOS.padBottomRatio * S
 // Extra space between emoji and text, on top of the equal gaps above, between and below.
 const EMOJI_TEXT_GAP = RATIOS.emojiTextGapRatio * S
 const EMOJI_PX = RATIOS.emojiRatio * S
+// Emoji size in device pixels for a painter at `scale`.
+export const emojiPixels = (scale) => Math.round(EMOJI_PX * scale)
 // Android lays the emoji out in a row taller than its font size (the emoji font's natural line height); mirrored here so text fit and spacing match.
 const EMOJI_BOX = EMOJI_PX * 1.175
 const TEXT_LINE_HEIGHT = RATIOS.textLineHeight

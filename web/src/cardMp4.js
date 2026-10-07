@@ -1,7 +1,7 @@
 import { ArrayBufferTarget, Muxer } from 'mp4-muxer'
 import { emojiLayer, frameCount, tick } from './cardGif'
 import { CLIP } from './clip'
-import { createPainter } from './hooks/useCardImage'
+import { createPainter, emojiPixels } from './hooks/useCardImage'
 
 const SIZE = 1024
 const FPS = CLIP.mp4Fps
@@ -18,7 +18,7 @@ export async function renderMp4(cardData, { onProgress, signal } = {}) {
   if (!(await VideoEncoder.isConfigSupported(config)).supported) throw new Error('H.264 encoding not supported')
 
   const paint = await createPainter(cardData, SIZE / 512)
-  const emoji = await emojiLayer(cardData.emoji)
+  const emoji = await emojiLayer(cardData.emoji, emojiPixels(SIZE / 512))
   let encoder
   try {
     const muxer = new Muxer({

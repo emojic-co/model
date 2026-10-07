@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { createPainter } from './useCardImage'
+import { createPainter, emojiPixels } from './useCardImage'
 import { emojiLayer } from '../cardGif'
 import { prefersReducedMotion } from '../notoLottie'
 
@@ -33,7 +33,7 @@ export function useCardPlayer(cardData, canvasRef, scale = 1, paused = false) {
     const timer = setTimeout(async () => {
       try {
         const paint = await createPainter(cardData, scale)
-        const layer = await emojiLayer(cardData.emoji)
+        const layer = await emojiLayer(cardData.emoji, emojiPixels(scale))
         if (cancelled) return layer.destroy()
         emoji = layer
         const canvas = canvasRef.current

@@ -3,7 +3,8 @@ import { CLIP, springScale } from './clip'
 
 // Emoji layer: the Noto Lottie clone rendered to an offscreen canvas (played once from t=0, then at rest),
 // or, for emojis without a clone, the spring scale at the start. `restMs` is the time the poster frame shows.
-export async function emojiLayer(emoji) {
+// `size` is the emoji's final on-card size in device pixels: the clone renders at that size so it's drawn 1:1, never resampled.
+export async function emojiLayer(emoji, size) {
   const stem = (await loadNotoIndex())[emoji]
   if (stem) {
     const [{ default: lottie }, data] = await Promise.all([
@@ -11,14 +12,14 @@ export async function emojiLayer(emoji) {
       fetch(notoUrl(stem)).then((r) => r.json()),
     ])
     const canvas = document.createElement('canvas')
-    canvas.width = data.w
-    canvas.height = data.h
+    canvas.width = size
+    canvas.height = size
     const anim = lottie.loadAnimation({
       renderer: 'canvas',
       loop: false,
       autoplay: false,
       animationData: data,
-      rendererSettings: { context: canvas.getContext('2d'), clearCanvas: true },
+      rendererSettings: { context: canvas.getContext('2d'), clearCanvas: true, dpr: 1 },
     })
     const frames = data.op - data.ip
     const loopMs = (frames / (data.fr || 30)) * 1000
