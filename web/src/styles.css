@@ -643,6 +643,7 @@ main[data-exporting] .feelings-col {
 
 .card-text-box {
   flex: 0 1 auto;
+  margin-top: var(--card-emoji-text-gap, 0);
   min-height: 0;
   max-height: var(--card-text-box-max-h, 48cqw);
   width: 100%;
@@ -670,6 +671,7 @@ main[data-exporting] .feelings-col {
 
 .card-text {
   margin: 0;
+  line-height: var(--card-line-height, 1.1);
   font-weight: 600;
   word-break: break-word;
   overflow-wrap: anywhere;

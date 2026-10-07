@@ -1,12 +1,12 @@
 import { useCallback, useRef, useState } from 'react'
-import { fitCanvasFont, wrapLines } from '../fit'
-import { resolveFeeling } from '../feelings'
-import { contrastRatio, patternTint, toCssOklab, toHexColor, BLACK, WHITE } from '../model'
 import { lineUnits } from '../cardAnim'
-import { createTimeline } from '../clip'
-import { patternLayers } from '../patterns'
 import { downloadBlob } from '../cardGif'
 import { mp4Supported, renderMp4 } from '../cardMp4'
+import { createTimeline } from '../clip'
+import { resolveFeeling } from '../feelings'
+import { fitCanvasFont, wrapLines } from '../fit'
+import { BLACK, contrastRatio, patternTint, toCssOklab, toHexColor, WHITE } from '../model'
+import { patternLayers } from '../patterns'
 import { ensureScriptFontsLoaded, scriptForLang } from '../scriptFonts'
 
 const S = 512
@@ -16,9 +16,12 @@ const EMOJI_STACK = '"Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", 
 // Card layout ratios, relative to card size. Shared with tools/data/export-style.ts,
 // which bakes these into style.yml for the Android app to mirror.
 export const RATIOS = {
-  padRatio: 0.07,
+  padRatio: 0.065,
+  padTopRatio: 0.055,
+  padBottomRatio: 0.06,
+  emojiTextGapRatio: 0.03,
   emojiRatio: 0.36,
-  textLineHeight: 1.3,
+  textLineHeight: 1.1,
   textMinRatio: 0.05,
   textMaxRatio: 0.24,
   maxLines: 10,
@@ -29,13 +32,19 @@ export const RATIOS = {
 
 // CSS custom properties for the live DOM card, derived from the same ratios (see .card in styles.css).
 export const CARD_CSS_VARS = {
-  '--card-pad': `0 ${RATIOS.padRatio * 100}%`,
+  '--card-pad': `${RATIOS.padTopRatio * 100}cqw ${RATIOS.padRatio * 100}% ${RATIOS.padBottomRatio * 100}cqw`,
+  '--card-line-height': RATIOS.textLineHeight,
+  '--card-emoji-text-gap': `${RATIOS.emojiTextGapRatio * 100}cqw`,
   '--card-emoji': `${RATIOS.emojiRatio * 100}cqw`,
-  '--card-text-box-max-h': `${(1 - RATIOS.emojiRatio) * 100}cqw`,
+  '--card-text-box-max-h': `${(1 - RATIOS.emojiRatio - RATIOS.padTopRatio - RATIOS.padBottomRatio - RATIOS.emojiTextGapRatio) * 100}cqw`,
 }
 
 const WATERMARK_PX = Math.round(RATIOS.watermarkPxRatio * S)
 const PAD = RATIOS.padRatio * S
+const PAD_TOP = RATIOS.padTopRatio * S
+const PAD_BOTTOM = RATIOS.padBottomRatio * S
+// Extra space between emoji and text, on top of the equal gaps above, between and below.
+const EMOJI_TEXT_GAP = RATIOS.emojiTextGapRatio * S
 const EMOJI_PX = RATIOS.emojiRatio * S
 // Android lays the emoji out in a row taller than its font size (the emoji font's natural line height); mirrored here so text fit and spacing match.
 const EMOJI_BOX = EMOJI_PX * 1.175
@@ -57,7 +66,7 @@ async function ensureFonts(stack, emoji) {
   }
   try {
     await Promise.all(jobs)
-  } catch {}
+  } catch { }
 }
 
 function patternUrl(cssValue) {
@@ -125,7 +134,7 @@ export async function createPainter({ text, emoji, feeling, lang, colors, dim },
   let layout = null
   const computeLayout = (ctx) => {
     const maxWidth = S - 2 * PAD
-    const maxHeight = S - EMOJI_BOX
+    const maxHeight = S - PAD_TOP - PAD_BOTTOM - EMOJI_BOX - EMOJI_TEXT_GAP
     const widthAt = (str, px) => {
       ctx.font = `${fitalic}${fw} ${px}px ${stack}`
       return ctx.measureText(str).width
@@ -144,7 +153,7 @@ export async function createPainter({ text, emoji, feeling, lang, colors, dim },
     const lines = wrapLines((str) => ctx.measureText(str).width, headline, maxWidth, MAX_LINES)
     // Emoji and text are spaced evenly: equal gaps above, between and below.
     const blockH = lines.length * fpx * TEXT_LINE_HEIGHT
-    const gap = (S - EMOJI_BOX - blockH) / 3
+    const gap = (S - PAD_TOP - PAD_BOTTOM - EMOJI_BOX - EMOJI_TEXT_GAP - blockH) / 3
     if ('direction' in ctx) ctx.direction = rtl ? 'rtl' : 'ltr'
     const unitLines = lines.map(lineUnits)
     // Each unit is drawn at its natural position in the line, posed by the entrance animation.
@@ -163,8 +172,8 @@ export async function createPainter({ text, emoji, feeling, lang, colors, dim },
       unitLines,
       unitCx,
       // Glyph paints slightly high in its row; nudge down to sit where Android draws it (measured against the Android card).
-      emojiCenterY: gap + EMOJI_BOX / 2 + EMOJI_PX * 0.055,
-      textCenterY: 2 * gap + EMOJI_BOX + blockH / 2,
+      emojiCenterY: PAD_TOP + gap + EMOJI_BOX / 2 + EMOJI_PX * 0.055,
+      textCenterY: PAD_TOP + 2 * gap + EMOJI_TEXT_GAP + EMOJI_BOX + blockH / 2,
     }
   }
 

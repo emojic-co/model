@@ -1,1 +1,1 @@
-Card: add some tiny vertical padding and reduce a bit the line height.
+Add a bit top padding to the card, start with the web and only when I approve, sync to the android app.
