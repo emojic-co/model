@@ -41,7 +41,7 @@ export function buildStyleFile() {
         {
           cluster: f.cluster,
           font: FONTS.latin[name].family,
-          fontWeight: st.fontWeight ?? 400,
+          fontWeight: st.fontWeight ?? 600,
           italic: st.fontStyle === "italic",
           uppercase: st.textTransform === "uppercase",
           letterSpacingEm,

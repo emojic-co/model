@@ -82,17 +82,19 @@ private val fontProvider = GoogleFont.Provider(
     certificates = R.array.com_google_android_gms_fonts_certs,
 )
 
-// Fonts the Google provider doesn't serve ship in assets/fonts/<Family_Name>.ttf and win over it.
+// Every card font ships in assets/fonts/<Family_Name>[_Italic].ttf (tools/data/fetch-android-fonts.ts); the Google
+// provider is only a fallback for a family that isn't bundled. A missing italic file falls back to the upright one.
 private fun cardFontFamily(context: android.content.Context, name: String, weight: Int, italic: Boolean): FontFamily {
-    val file = "fonts/${name.replace(' ', '_')}.ttf"
-    val bundled = try {
+    val base = "fonts/${name.replace(' ', '_')}"
+    fun exists(file: String) = try {
         context.assets.open(file).close()
         true
     } catch (_: java.io.IOException) {
         false
     }
+    val file = listOf("${base}_Italic.ttf".takeIf { italic }, "$base.ttf").filterNotNull().firstOrNull(::exists)
     val fontStyle = if (italic) FontStyle.Italic else FontStyle.Normal
-    return if (bundled) FontFamily(androidx.compose.ui.text.font.Font(file, context.assets, FontWeight(weight), fontStyle))
+    return if (file != null) FontFamily(androidx.compose.ui.text.font.Font(file, context.assets, FontWeight(weight), fontStyle))
     else FontFamily(
         Font(
             googleFont = GoogleFont(name),

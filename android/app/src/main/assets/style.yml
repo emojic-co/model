@@ -1,4 +1,4 @@
-exportedAt: 2026-10-07T07:46:43.558Z
+exportedAt: 2026-10-07T07:48:46.317Z
 global:
   referencePx: 600
   maxPatternOpacity: 0.14
@@ -1958,7 +1958,7 @@ styles:
   Excited:
     cluster: joy
     font: Chewy
-    fontWeight: 400
+    fontWeight: 600
     italic: false
     uppercase: true
     letterSpacingEm: 0.05
@@ -2022,7 +2022,7 @@ styles:
   Playful:
     cluster: play
     font: Bungee
-    fontWeight: 400
+    fontWeight: 600
     italic: false
     uppercase: false
     letterSpacingEm: null
@@ -2038,7 +2038,7 @@ styles:
   Whimsical:
     cluster: play
     font: Gochi Hand
-    fontWeight: 400
+    fontWeight: 600
     italic: false
     uppercase: false
     letterSpacingEm: 0.02
@@ -2054,7 +2054,7 @@ styles:
   Awed:
     cluster: reflective
     font: Luckiest Guy
-    fontWeight: 400
+    fontWeight: 600
     italic: false
     uppercase: false
     letterSpacingEm: 0.04
@@ -2070,7 +2070,7 @@ styles:
   Earnest:
     cluster: tender
     font: Shadows Into Light
-    fontWeight: 400
+    fontWeight: 600
     italic: false
     uppercase: false
     letterSpacingEm: 0.01
@@ -2118,7 +2118,7 @@ styles:
   Wistful:
     cluster: sad
     font: Spectral
-    fontWeight: 400
+    fontWeight: 600
     italic: true
     uppercase: false
     letterSpacingEm: 0.05
@@ -2134,7 +2134,7 @@ styles:
   Melancholy:
     cluster: sad
     font: Playfair Display
-    fontWeight: 400
+    fontWeight: 600
     italic: true
     uppercase: false
     letterSpacingEm: null
@@ -2150,7 +2150,7 @@ styles:
   Anxious:
     cluster: anxiety
     font: Shantell Sans
-    fontWeight: 400
+    fontWeight: 600
     italic: false
     uppercase: false
     letterSpacingEm: null
@@ -2166,7 +2166,7 @@ styles:
   Tense:
     cluster: anxiety
     font: Oswald
-    fontWeight: 400
+    fontWeight: 600
     italic: false
     uppercase: false
     letterSpacingEm: -0.01
@@ -2182,7 +2182,7 @@ styles:
   Furious:
     cluster: anger
     font: Anton
-    fontWeight: 400
+    fontWeight: 600
     italic: false
     uppercase: true
     letterSpacingEm: 0.06
@@ -2198,7 +2198,7 @@ styles:
   Irritated:
     cluster: anger
     font: Archivo Black
-    fontWeight: 400
+    fontWeight: 600
     italic: false
     uppercase: true
     letterSpacingEm: null
@@ -2214,7 +2214,7 @@ styles:
   Disgusted:
     cluster: anger
     font: Griffy
-    fontWeight: 400
+    fontWeight: 600
     italic: true
     uppercase: false
     letterSpacingEm: 0.03
@@ -2230,7 +2230,7 @@ styles:
   Startled:
     cluster: play
     font: Schoolbell
-    fontWeight: 400
+    fontWeight: 600
     italic: false
     uppercase: false
     letterSpacingEm: null
@@ -2246,7 +2246,7 @@ styles:
   Sarcastic:
     cluster: reflective
     font: Bitter
-    fontWeight: 400
+    fontWeight: 600
     italic: true
     uppercase: false
     letterSpacingEm: null
@@ -2262,7 +2262,7 @@ styles:
   Deadpan:
     cluster: reflective
     font: Inter
-    fontWeight: 400
+    fontWeight: 600
     italic: false
     uppercase: false
     letterSpacingEm: null
