@@ -11,7 +11,8 @@
 Version = one zero-padded integer (e.g. 0004): lexicographically increasing, used
 verbatim as versionName, int(version) as versionCode, `v<version>` as git tag.
 Release notes live in release/<version>-notes.txt (<=500 chars, en-US).
-Listing text lives in play/listing/<locale>/{title,short,full}.txt.
+Listing text lives in play/listing/<locale>/{title,short,full}.txt, optional video.txt
+(YouTube id) and phone/*.png screenshots.
 `publish` is the only command that touches Play.
 """
 import argparse
@@ -85,6 +86,9 @@ def listings():
         if len(f["title"]) > 30 or len(f["short"]) > 80 or len(f["full"]) > 4000:
             sys.exit(f"{d.name}: listing exceeds Play limits (30/80/4000)")
         out[d.name] = {"title": f["title"], "shortDescription": f["short"], "fullDescription": f["full"]}
+        video = d / "video.txt"
+        if video.exists():  # YouTube video id
+            out[d.name]["video"] = f"https://www.youtube.com/watch?v={video.read_text().strip()}"
     return out
 
 
@@ -126,6 +130,15 @@ def publish(args):
     edit = call(s, "POST", f"{API}/edits", json={})["id"]
     for lang, body in listings().items():
         call(s, "PUT", f"{API}/edits/{edit}/listings/{lang}", json=body)
+    for lang in listings():
+        shots = sorted((ROOT / f"play/listing/{lang}/phone").glob("*.png"))
+        if not shots:
+            continue
+        call(s, "DELETE", f"{API}/edits/{edit}/listings/{lang}/phoneScreenshots")
+        for shot in shots:
+            with open(shot, "rb") as f:
+                call(s, "POST", f"{UPLOAD}/edits/{edit}/listings/{lang}/phoneScreenshots?uploadType=media",
+                     data=f, headers={"Content-Type": "image/png"})
     with open(AAB, "rb") as f:
         bundle = call(s, "POST", f"{UPLOAD}/edits/{edit}/bundles?uploadType=media", data=f,
                       headers={"Content-Type": "application/octet-stream"}, timeout=600)
