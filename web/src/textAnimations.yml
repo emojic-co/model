@@ -25,12 +25,12 @@
 #  * Reduced-motion: show the final state immediately, no animation.
 
 timing:
-  maxTotalMs: 1300
+  maxTotalMs: 1500
 
 motifs:
   slam:
     durationMs: 245
-    staggerMs: 30
+    staggerMs: 60
     order: forward
     jitterMs: 0
     alternate: false
@@ -42,7 +42,7 @@ motifs:
       - { at: 1, scale: 1 }
   pop:
     durationMs: 310
-    staggerMs: 35
+    staggerMs: 70
     order: forward
     jitterMs: 0
     alternate: false
@@ -53,7 +53,7 @@ motifs:
       - { at: 1, scale: 1, y: 0 }
   spin:
     durationMs: 365
-    staggerMs: 40
+    staggerMs: 80
     order: forward
     jitterMs: 0
     alternate: true
@@ -64,7 +64,7 @@ motifs:
       - { at: 1, rotate: 0, scale: 1 }
   settle:
     durationMs: 585
-    staggerMs: 45
+    staggerMs: 90
     order: forward
     jitterMs: 0
     alternate: false
@@ -74,7 +74,7 @@ motifs:
       - { at: 1, opacity: 1, y: 0, scale: 1 }
   drop:
     durationMs: 585
-    staggerMs: 60
+    staggerMs: 120
     order: reverse
     jitterMs: 0
     alternate: false
@@ -85,7 +85,7 @@ motifs:
       - { at: 1, y: 0 }
   jitter:
     durationMs: 210
-    staggerMs: 15
+    staggerMs: 30
     order: random
     jitterMs: 90
     alternate: false
@@ -100,7 +100,7 @@ motifs:
       - { at: 1, x: 0, y: 0 }
   bloom:
     durationMs: 520
-    staggerMs: 50
+    staggerMs: 100
     order: center
     jitterMs: 0
     alternate: false
@@ -111,7 +111,7 @@ motifs:
       - { at: 1, scale: 1 }
   rise:
     durationMs: 390
-    staggerMs: 35
+    staggerMs: 70
     order: forward
     jitterMs: 0
     alternate: false
@@ -121,7 +121,7 @@ motifs:
       - { at: 1, opacity: 1, y: 0 }
   fadeTilt:
     durationMs: 455
-    staggerMs: 30
+    staggerMs: 60
     order: forward
     jitterMs: 0
     alternate: false
@@ -131,7 +131,7 @@ motifs:
       - { at: 1, opacity: 1, rotate: 0, y: 0 }
   droop:
     durationMs: 520
-    staggerMs: 50
+    staggerMs: 100
     order: forward
     jitterMs: 0
     alternate: false
@@ -142,7 +142,7 @@ motifs:
       - { at: 1, y: 0, scaleY: 1 }
   shrinkBack:
     durationMs: 310
-    staggerMs: 25
+    staggerMs: 50
     order: random
     jitterMs: 0
     alternate: false
@@ -155,13 +155,13 @@ motifs:
 
 # Per-style tuning on top of the motif (only fields that differ).
 styles:
-  Furious: { staggerMs: 20, durationMs: 210 }
-  Irritated: { staggerMs: 25 }
-  Excited: { staggerMs: 25 }
-  Serene: { staggerMs: 70, durationMs: 715 }
-  Wistful: { staggerMs: 85, durationMs: 780 }
-  Melancholy: { staggerMs: 80 }
-  Tense: { staggerMs: 10 }
-  Sarcastic: { staggerMs: 40, jitterMs: 115 }
-  Deadpan: { staggerMs: 90, durationMs: 650 }
-  Startled: { staggerMs: 20 }
+  Furious: { staggerMs: 40, durationMs: 210 }
+  Irritated: { staggerMs: 50 }
+  Excited: { staggerMs: 50 }
+  Serene: { staggerMs: 140, durationMs: 715 }
+  Wistful: { staggerMs: 170, durationMs: 780 }
+  Melancholy: { staggerMs: 160 }
+  Tense: { staggerMs: 20 }
+  Sarcastic: { staggerMs: 80, jitterMs: 115 }
+  Deadpan: { staggerMs: 180, durationMs: 650 }
+  Startled: { staggerMs: 40 }

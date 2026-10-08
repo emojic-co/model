@@ -357,13 +357,11 @@ private fun exportSizePx(context: Context): Int =
     context.getSharedPreferences(ing.emojify.model.ExportSizePrefs.FILE, Context.MODE_PRIVATE)
         .getInt(ing.emojify.model.ExportSizePrefs.KEY_SIZE_PX, ing.emojify.model.ExportSizePrefs.DEFAULT_SIZE_PX)
 
-// GIFs target GIF_MAX_BYTES: try the clip's gifFps at 320px, then 10 fps, then 10 fps at 280px; the last attempt is
-// shared whatever its size. A first attempt over GIF_SKIP_BYTES goes straight to the last.
-private const val GIF_MAX_BYTES = 500 * 1024
-private const val GIF_SKIP_BYTES = 600 * 1024
+// GIFs are always exported at a fixed GIF_SIZE_PX and GIF_FPS: no size check, no retry.
+private const val GIF_SIZE_PX = 330
+private const val GIF_FPS = 12
 // The first GIF frame is the finished card (poster), held this long, so thumbnails and the loop restart read clearly.
 private const val GIF_POSTER_MS = 500
-private val GIF_FALLBACKS = listOf(10 to 320, 10 to 280)
 
 // The shared clip (model/Clip.kt) is sampled at the format's fps from t=0 (text and emoji start together, so
 // the text animates once).
@@ -379,14 +377,7 @@ private suspend fun exportCardAnimation(
 ) {
     val spec = timeline.spec
     if (format == ShareFormat.Gif) {
-        val attempts = listOf(spec.gifFps to 320) + GIF_FALLBACKS
-        var i = 0
-        while (true) {
-            val attempt = attempts[i]
-            val bytes = exportPass(context, format, attempt.first, attempt.second, capture, timeline, onProgress, setPose).length()
-            if (bytes <= GIF_MAX_BYTES || i == attempts.lastIndex) break
-            i = if (i == 0 && bytes > GIF_SKIP_BYTES) attempts.lastIndex else i + 1
-        }
+        exportPass(context, format, GIF_FPS, GIF_SIZE_PX, capture, timeline, onProgress, setPose)
     } else {
         exportPass(context, format, spec.mp4Fps, exportSizePx(context), capture, timeline, onProgress, setPose, endHoldMs = spec.mp4EndHoldMs)
     }

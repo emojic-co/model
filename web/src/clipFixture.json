@@ -42,10 +42,10 @@
           "rotate": 0
         },
         "unitLast": {
-          "opacity": 1,
+          "opacity": 0.02236693035004298,
           "x": 0,
-          "y": 0,
-          "scale": 1.0358181038823995,
+          "y": -0.2932899208949871,
+          "scale": 1.7803171012919623,
           "scaleY": 1,
           "rotate": 0
         },
@@ -70,10 +70,7 @@
           "scaleY": 1,
           "rotate": 0
         },
-        "shimmer": {
-          "c": -0.1258480139554758,
-          "opacity": 1
-        },
+        "shimmer": null,
         "spring": null
       },
       {
@@ -95,7 +92,7 @@
           "rotate": 0
         },
         "shimmer": {
-          "c": 0.30777776496153386,
+          "c": -0.04061246309826391,
           "opacity": 1
         },
         "spring": null
@@ -119,7 +116,7 @@
           "rotate": 0
         },
         "shimmer": {
-          "c": 1.0406124630982638,
+          "c": 0.692222235038466,
           "opacity": 1
         },
         "spring": null
@@ -142,7 +139,10 @@
           "scaleY": 1,
           "rotate": 0
         },
-        "shimmer": null,
+        "shimmer": {
+          "c": 1.1258480139554756,
+          "opacity": 1
+        },
         "spring": null
       },
       {
@@ -174,7 +174,7 @@
     "cluster": "reflective",
     "unitCount": 12,
     "loopMs": 2400,
-    "durationMs": 3750,
+    "durationMs": 3950,
     "loops": 1,
     "samples": [
       {
@@ -233,6 +233,28 @@
           "rotate": 0
         },
         "unitLast": {
+          "opacity": 0,
+          "x": 0,
+          "y": 0.15,
+          "scale": 1.15,
+          "scaleY": 1,
+          "rotate": 0,
+          "at": 0
+        },
+        "shimmer": null,
+        "spring": null
+      },
+      {
+        "t": 900,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
           "opacity": 0.5827256806131417,
           "x": 0,
           "y": 0.06259114790802875,
@@ -244,7 +266,7 @@
         "spring": null
       },
       {
-        "t": 900,
+        "t": 1100,
         "unit0": {
           "opacity": 1,
           "x": 0,
@@ -265,7 +287,7 @@
         "spring": null
       },
       {
-        "t": 1100,
+        "t": 1300,
         "unit0": {
           "opacity": 1,
           "x": 0,
@@ -279,27 +301,6 @@
           "x": 0,
           "y": 0.0006834587680329407,
           "scale": 1.0006834587680329,
-          "scaleY": 1,
-          "rotate": 0
-        },
-        "shimmer": null,
-        "spring": null
-      },
-      {
-        "t": 1300,
-        "unit0": {
-          "opacity": 1,
-          "x": 0,
-          "y": 0,
-          "scale": 1,
-          "scaleY": 1,
-          "rotate": 0
-        },
-        "unitLast": {
-          "opacity": 1,
-          "x": 0,
-          "y": 0,
-          "scale": 1,
           "scaleY": 1,
           "rotate": 0
         },
@@ -346,7 +347,7 @@
           "rotate": 0
         },
         "shimmer": {
-          "c": -0.05119516566718646,
+          "c": -0.13548190996368945,
           "opacity": 1
         },
         "spring": null
@@ -370,7 +371,7 @@
           "rotate": 0
         },
         "shimmer": {
-          "c": 0.8188577446809148,
+          "c": 0.61043747021728,
           "opacity": 1
         },
         "spring": null
@@ -394,7 +395,7 @@
           "rotate": 0
         },
         "shimmer": {
-          "c": 1.1162208150743183,
+          "c": 1.0725278859081526,
           "opacity": 1
         },
         "spring": null
@@ -407,7 +408,7 @@
     "cluster": "drive",
     "unitCount": 9,
     "loopMs": 0,
-    "durationMs": 1789.345,
+    "durationMs": 2105.185,
     "loops": 0,
     "samples": [
       {
@@ -445,12 +446,13 @@
           "at": 0
         },
         "unitLast": {
-          "opacity": 0.8566542898768273,
-          "x": 0.01211647438670814,
-          "y": -0.02389095168719544,
+          "opacity": 0,
+          "x": 0,
+          "y": 0,
           "scale": 1,
           "scaleY": 1,
-          "rotate": 0
+          "rotate": 0,
+          "at": 0
         },
         "shimmer": null,
         "spring": 1.0303812691368828
@@ -459,8 +461,8 @@
         "t": 700,
         "unit0": {
           "opacity": 1,
-          "x": 0,
-          "y": 0,
+          "x": 0.029371709470912218,
+          "y": 0.02115930405896238,
           "scale": 1,
           "scaleY": 1,
           "rotate": 0
@@ -494,10 +496,7 @@
           "scaleY": 1,
           "rotate": 0
         },
-        "shimmer": {
-          "c": -0.19958156318176462,
-          "opacity": 1
-        },
+        "shimmer": null,
         "spring": 1
       },
       {
@@ -518,10 +517,7 @@
           "scaleY": 1,
           "rotate": 0
         },
-        "shimmer": {
-          "c": 0.08006841399923853,
-          "opacity": 1
-        },
+        "shimmer": null,
         "spring": 1
       },
       {
@@ -543,7 +539,7 @@
           "rotate": 0
         },
         "shimmer": {
-          "c": 0.7998831201177783,
+          "c": -0.15929262801485805,
           "opacity": 1
         },
         "spring": 1
@@ -567,7 +563,31 @@
           "rotate": 0
         },
         "shimmer": {
-          "c": 1.0982464105816798,
+          "c": 0.4188414966046436,
+          "opacity": 1
+        },
+        "spring": 1
+      },
+      {
+        "t": 1900,
+        "unit0": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "unitLast": {
+          "opacity": 1,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "scaleY": 1,
+          "rotate": 0
+        },
+        "shimmer": {
+          "c": 1.1537465470456894,
           "opacity": 1
         },
         "spring": 1

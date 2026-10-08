@@ -18,7 +18,7 @@ describe('scheduleFor', () => {
     const c = scheduleFor(A, 'bloom', 'Tender', 5).delays
     expect(c[2]).toBe(0)
     expect(c[0]).toBe(c[4])
-    expect(scheduleFor(A, 'settle', 'Serene', 2).motif.staggerMs).toBe(70)
+    expect(scheduleFor(A, 'settle', 'Serene', 2).motif.staggerMs).toBe(140)
   })
   it('uses a stable hash', () => {
     expect(hash(0)).toBe(hash(0))

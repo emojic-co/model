@@ -18,10 +18,10 @@ describe('shimmer spec', () => {
       expect([...at].sort((a, b) => a - b), name).toEqual(at)
     }
   })
-  it('never runs a pass longer than 3 s', () => {
+  it('never runs a pass longer than 2.5 s', () => {
     for (const name of Object.keys(S.clusters)) {
-      expect(resolveShimmer(S, name, undefined).durationMs, name).toBeLessThanOrEqual(3000)
-      for (const f of Object.keys(S.styles)) expect(resolveShimmer(S, name, f).durationMs, `${name}/${f}`).toBeLessThanOrEqual(3000)
+      expect(resolveShimmer(S, name, undefined).durationMs, name).toBeLessThanOrEqual(2500)
+      for (const f of Object.keys(S.styles)) expect(resolveShimmer(S, name, f).durationMs, `${name}/${f}`).toBeLessThanOrEqual(2500)
     }
   })
   it('applies per-style overrides', () => {

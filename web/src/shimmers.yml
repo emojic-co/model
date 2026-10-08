@@ -9,7 +9,7 @@
 #  * Start: `startDelayMs` after the text entrance has fully finished (entrance total = last unit's
 #    delay + durationMs, see textAnimations.yml). Every replay of the entrance restarts the shimmer.
 #    Before the start, and with reduced-motion, nothing is drawn.
-#  * No pass (durationMs, including style overrides) may exceed 3000 ms (enforced by shimmer.test.js).
+#  * No pass (durationMs, including style overrides) may exceed 2500 ms (enforced by shimmer.test.js).
 #  * One pass only, never repeated: with t = time since the start, u = t / durationMs. While 0 <= u < 1
 #    the effect is drawn at pass progress u; from u >= 1 on nothing is drawn.
 #  * Keyframes: `at` in 0..1 over the pass; fields opacity (0..1) and c (a kind-specific number).
@@ -84,7 +84,7 @@ clusters:
     angleDeg: 45
     widthFrac: 0.7
     blend: screen
-    durationMs: 3000
+    durationMs: 2500
     easing: [0.45, 0, 0.55, 1]
     stops:
       - { at: 0, color: "#FFFFFF00" }
@@ -98,7 +98,7 @@ clusters:
     angleDeg: 90
     widthFrac: 0.5
     blend: multiply
-    durationMs: 3000
+    durationMs: 2500
     easing: [0.3, 0, 0.7, 1]
     stops:
       - { at: 0, color: "#3A4A6600" }
@@ -134,7 +134,7 @@ clusters:
     cy: 0.42
     radiusFrac: 0.6
     blend: screen
-    durationMs: 2600
+    durationMs: 2500
     easing: [0.4, 0, 0.6, 1]
     stops:
       - { at: 0, color: "#FFB3D1AA" }

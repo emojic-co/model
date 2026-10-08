@@ -10,7 +10,7 @@
 #    are done: L = max(content, min(loopMs, maxClipMs)); a long emoji is cut at maxClipMs, the entrance and
 #    shimmer pass never are. This can be well under 6 s.
 #  * GIF budget: maxClipMs = 6000 ms, so an exported GIF is at most 6 s (entrance <= 2000 and shimmer
-#    <= 3000 keep content = 5250 <= maxClipMs).
+#    <= 2500 keep content = 4750 <= maxClipMs).
 #  * Emoji without a Lottie clone (loopMs = 0): L = content and the emoji plays the spring once from t=0
 #    (scale(t), see `spring`), then rests at scale 1.
 #  * spring: scale(t) = 1 - (1 - from) * exp(-zeta*omega*t) * (cos(wd*t) + zeta*omega/wd * sin(wd*t)),

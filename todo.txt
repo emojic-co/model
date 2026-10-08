@@ -1,1 +1,2 @@
-Add a bit top padding to the card, start with the web and only when I approve, sync to the android app.
+Android app:
+- GIF export: use a fixed 200px resolution with 12 fps (do not check file size and do not retry, always 200px with 12fps). 

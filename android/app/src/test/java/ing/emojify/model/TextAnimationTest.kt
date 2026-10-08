@@ -42,7 +42,7 @@ class TextAnimationTest {
         val c = textScheduleFor(anim, "bloom", "Tender", 5).delays
         assertEquals(0.0, c[2], 0.0)
         assertEquals(c[0], c[4], 1e-9)
-        assertEquals(70.0, textScheduleFor(anim, "settle", "Serene", 2).motif.staggerMs, 0.0)
+        assertEquals(140.0, textScheduleFor(anim, "settle", "Serene", 2).motif.staggerMs, 0.0)
     }
 
     @Test
