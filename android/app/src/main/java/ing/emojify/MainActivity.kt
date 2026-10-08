@@ -46,16 +46,16 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val updater = ModelUpdater(applicationContext)
-        val (metaJson, modelBytes) = if (updater.hasCachedModel()) {
-            try {
-                updater.cachedMetaFile.readText() to updater.cachedModelFile.readBytes()
-            } catch (_: Exception) {
-                loadBundledModel(assets)
-            }
-        } else {
-            loadBundledModel(assets)
+        // A cached model that is missing, truncated or unparsable (e.g. a killed download) must never block startup.
+        val (meta, modelBytes) = try {
+            check(updater.hasCachedModel())
+            val bytes = updater.cachedModelFile.readBytes()
+            check(bytes.isNotEmpty())
+            Json.decodeFromString(Meta.serializer(), updater.cachedMetaFile.readText()) to bytes
+        } catch (_: Exception) {
+            val (metaJson, bundled) = loadBundledModel(assets)
+            Json.decodeFromString(Meta.serializer(), metaJson) to bundled
         }
-        val meta = Json.decodeFromString(Meta.serializer(), metaJson)
         val predictor = OnnxPredictor(modelBytes, meta)
 
         val styleUpdater = StyleUpdater(applicationContext)

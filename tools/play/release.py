@@ -12,7 +12,7 @@ Version = one zero-padded integer (e.g. 0004): lexicographically increasing, use
 verbatim as versionName, int(version) as versionCode, `v<version>` as git tag.
 Release notes live in release/<version>-notes.txt (<=500 chars, en-US).
 Listing text lives in play/listing/<locale>/{title,short,full}.txt, optional video.txt
-(YouTube id) and phone/*.png screenshots.
+(YouTube id) and {phone,tablet7,tablet10}/*.png screenshots.
 `publish` is the only command that touches Play.
 """
 import argparse
@@ -32,6 +32,7 @@ KEY = ROOT / "play/service-account.json"
 API = f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{PKG}"
 UPLOAD = f"https://androidpublisher.googleapis.com/upload/androidpublisher/v3/applications/{PKG}"
 NOTES_MAX = 500
+SHOTS = {"phone": "phoneScreenshots", "tablet7": "sevenInchScreenshots", "tablet10": "tenInchScreenshots"}
 TRACKS = ("internal", "alpha", "production")
 
 
@@ -131,14 +132,15 @@ def publish(args):
     for lang, body in listings().items():
         call(s, "PUT", f"{API}/edits/{edit}/listings/{lang}", json=body)
     for lang in listings():
-        shots = sorted((ROOT / f"play/listing/{lang}/phone").glob("*.png"))
-        if not shots:
-            continue
-        call(s, "DELETE", f"{API}/edits/{edit}/listings/{lang}/phoneScreenshots")
-        for shot in shots:
-            with open(shot, "rb") as f:
-                call(s, "POST", f"{UPLOAD}/edits/{edit}/listings/{lang}/phoneScreenshots?uploadType=media",
-                     data=f, headers={"Content-Type": "image/png"})
+        for folder, image_type in SHOTS.items():
+            shots = sorted((ROOT / f"play/listing/{lang}/{folder}").glob("*.png"))
+            if not shots:
+                continue
+            call(s, "DELETE", f"{API}/edits/{edit}/listings/{lang}/{image_type}")
+            for shot in shots:
+                with open(shot, "rb") as f:
+                    call(s, "POST", f"{UPLOAD}/edits/{edit}/listings/{lang}/{image_type}?uploadType=media",
+                         data=f, headers={"Content-Type": "image/png"})
     with open(AAB, "rb") as f:
         bundle = call(s, "POST", f"{UPLOAD}/edits/{edit}/bundles?uploadType=media", data=f,
                       headers={"Content-Type": "application/octet-stream"}, timeout=600)
