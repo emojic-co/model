@@ -1,2 +1,6 @@
-Android app:
-- GIF export: use a fixed 200px resolution with 12 fps (do not check file size and do not retry, always 200px with 12fps). 
+The app is ready for production in Google Play.
+Create a new release and publish the app.
+Make sure to include YouTube videos and screenshots.
+Add release notes.
+Update the description if needed, list supported languages and add missing info if needed.
+If I need to mak manual actions that you can't list them one by one.
