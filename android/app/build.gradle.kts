@@ -20,8 +20,8 @@ android {
         applicationId = "ing.emojify"
         minSdk = 26
         targetSdk = 36
-        versionCode = 4
-        versionName = "0004"
+        versionCode = 5
+        versionName = "0005"
     }
 
     signingConfigs {
