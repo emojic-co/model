@@ -49,9 +49,24 @@ h1 .tld {
   opacity: 0.5;
 }
 
+.play-badge {
+  display: block;
+  margin: -0.5em;
+  line-height: 0;
+}
+
+.play-badge img {
+  height: 4.5rem;
+  width: auto;
+}
+
+.stage>.footer {
+  grid-area: footer;
+}
+
 .footer {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, max-content));
+  grid-template-columns: repeat(3, minmax(0, max-content));
   justify-content: space-between;
   align-items: start;
   width: 100%;
@@ -83,26 +98,6 @@ h1 .tld {
   text-underline-offset: 0.2em;
 }
 
-.contrast-toggle {
-  font-size: 0.75em;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-}
-
-.contrast-toggle label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45em;
-  cursor: pointer;
-  letter-spacing: 0.08em;
-}
-
-.contrast-toggle input {
-  accent-color: var(--ink);
-  cursor: pointer;
-  margin: 0;
-}
-
 .footer a:hover {
   color: var(--ink);
 }
@@ -114,7 +109,8 @@ h1 .tld {
   grid-template-areas:
     ".      head      ."
     "emoji  card      keys"
-    ".      feelings  .";
+    ".      feelings  ."
+    "footer footer    footer";
   column-gap: var(--col-gap);
   row-gap: var(--row-gap);
   justify-content: center;
@@ -977,7 +973,8 @@ main[data-exporting] .feelings-col {
       "card"
       "share"
       "emoji"
-      "feelings";
+      "feelings"
+      "footer";
   }
 
   .stage>.keys {
@@ -1133,7 +1130,6 @@ main[data-exporting] .feelings-col {
 html[dir='rtl'] .stage { direction: ltr; }
 html[dir='rtl'] .footer-col,
 html[dir='rtl'] .keys dd,
-html[dir='rtl'] .contrast-toggle,
 html[dir='rtl'] .input-meta,
 html[dir='rtl'] .toast { direction: rtl; }
 

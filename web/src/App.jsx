@@ -21,7 +21,6 @@ import { useI18n, LANGS, LANG_NAMES } from './i18n'
 const MIN_CHARS = 3
 // Idle time after the last keystroke before the card (and prediction) update.
 const DEBOUNCE_MS = 600
-const CONTRAST_FIX_KEY = 'contrastFix'
 
 export function pickEmojiList(scores, meta, slots) {
   if (!scores || !meta) return []
@@ -31,14 +30,6 @@ export function pickEmojiList(scores, meta, slots) {
     .sort((a, b) => arr[b] - arr[a])
     .slice(0, slots)
     .map((idx) => ({ emoji: meta.emojis[idx], p: sigmoid([arr[idx]])[0] }))
-}
-
-function initialContrastFix() {
-  try {
-    return localStorage.getItem(CONTRAST_FIX_KEY) !== 'off'
-  } catch {
-    return true
-  }
 }
 
 function formatMs(ms) {
@@ -75,7 +66,6 @@ export function App() {
   const [scores, setScores] = useState(null)
   const [pending, setPending] = useState(false)
   const [override, setOverride] = useState({ emoji: null, feeling: null, color: 0 })
-  const [contrastFix, setContrastFix] = useState(initialContrastFix)
   const [toast, setToast] = useState({ msg: '', n: 0 })
   const showToast = useCallback((msg) => setToast((s) => ({ msg, n: s.n + 1 })), [])
   const [eggTrigger, setEggTrigger] = useState(0)
@@ -90,12 +80,6 @@ export function App() {
     () => (meta ? new Map([...meta.chars].map((c, i) => [c, i])) : null),
     [meta],
   )
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(CONTRAST_FIX_KEY, contrastFix ? 'on' : 'off')
-    } catch {}
-  }, [contrastFix])
 
   useEffect(() => {
     const el = cardRef.current
@@ -171,10 +155,7 @@ export function App() {
   const emojiList = useMemo(() => emojiTop.map((x) => x.emoji), [emojiTop])
 
   const rawPalettes = useMemo(() => scores?.palettes ?? [DEFAULT_COLORS], [scores])
-  const palettes = useMemo(
-    () => (contrastFix ? rawPalettes.map((p) => fixContrast(p)) : rawPalettes),
-    [rawPalettes, contrastFix],
-  )
+  const palettes = useMemo(() => rawPalettes.map((p) => fixContrast(p)), [rawPalettes])
   const colors = palettes[override.color] ?? palettes[0]
 
   const cardData =
@@ -326,74 +307,79 @@ export function App() {
             ready={!tooShort && !!shownFeeling}
             onPick={(f) => setOverride((o) => ({ ...o, feeling: f }))}
           />
-          <div className="contrast-toggle">
-            <label>
-              <input
-                type="checkbox"
-                checked={contrastFix}
-                onChange={(e) => setContrastFix(e.target.checked)}
-              />
-              {t('contrast.label')}
-            </label>
-          </div>
-          <footer className="footer">
-            <div className="footer-col">
-              <span>
-                {t('footer.modelUpdated', { date: formatDate(meta?.exported_at) })}
-              </span>
-              <span>
-                <a
-                  href="https://github.com/emojic-co/model/blob/main/ABOUT.md"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {t('footer.about')}
-                </a>
-              </span>
-              <span>
-                <a href="/emoji-coverage.html" target="_blank" rel="noopener noreferrer">
-                  {t('footer.coverage')}
-                </a>
-              </span>
-              <span>
-                <a href="/style-preview.html" target="_blank" rel="noopener noreferrer">
-                  {t('footer.stylePreview')}
-                </a>
-              </span>
-            </div>
-            <div className="footer-col">
-              <span className="lang-select">
-                <label>
-                  {t('footer.language')}{' '}
-                  <select value={uiLang} onChange={(e) => setUiLang(e.target.value)}>
-                    {LANGS.map((l) => (
-                      <option key={l} value={l}>
-                        {LANG_NAMES[l]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </span>
-              <span>{t('footer.madeBy')}</span>
-              <span>
-                {t('footer.patternsBy')}{' '}
-                <a href="https://heropatterns.com/" target="_blank" rel="noopener noreferrer">
-                  Hero Patterns
-                </a>
-              </span>
-              <span className="gh">
-                <GitHubButton
-                  href="https://github.com/emojic-co/model"
-                  data-icon="octicon-star"
-                  data-show-count="true"
-                  aria-label="Star emojic-co/model on GitHub"
-                >
-                  Star
-                </GitHubButton>
-              </span>
-            </div>
-          </footer>
         </div>
+        <footer className="footer">
+          <div className="footer-col">
+            <a
+              className="play-badge"
+              href="https://play.google.com/store/apps/details?id=ing.emojify"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img
+                src={`/google-play-${uiLang === 'he' ? 'he' : 'en'}.png`}
+                alt={t('footer.android')}
+                width="646"
+                height="250"
+              />
+            </a>
+          </div>
+          <div className="footer-col">
+            <span>
+              {t('footer.modelUpdated', { date: formatDate(meta?.exported_at) })}
+            </span>
+            <span>
+              <a
+                href="https://github.com/emojic-co/model/blob/main/ABOUT.md"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t('footer.about')}
+              </a>
+            </span>
+            <span>
+              <a href="/emoji-coverage.html" target="_blank" rel="noopener noreferrer">
+                {t('footer.coverage')}
+              </a>
+            </span>
+            <span>
+              <a href="/style-preview.html" target="_blank" rel="noopener noreferrer">
+                {t('footer.stylePreview')}
+              </a>
+            </span>
+          </div>
+          <div className="footer-col">
+            <span className="lang-select">
+              <label>
+                {t('footer.language')}{' '}
+                <select value={uiLang} onChange={(e) => setUiLang(e.target.value)}>
+                  {LANGS.map((l) => (
+                    <option key={l} value={l}>
+                      {LANG_NAMES[l]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </span>
+            <span>{t('footer.madeBy')}</span>
+            <span>
+              {t('footer.patternsBy')}{' '}
+              <a href="https://heropatterns.com/" target="_blank" rel="noopener noreferrer">
+                Hero Patterns
+              </a>
+            </span>
+            <span className="gh">
+              <GitHubButton
+                href="https://github.com/emojic-co/model"
+                data-icon="octicon-star"
+                data-show-count="true"
+                aria-label="Star emojic-co/model on GitHub"
+              >
+                Star
+              </GitHubButton>
+            </span>
+          </div>
+        </footer>
       </div>
       <Toast toast={toast} />
       <EmojiRain trigger={eggTrigger} />

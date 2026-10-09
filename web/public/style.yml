@@ -1,4 +1,4 @@
-exportedAt: 2026-10-08T11:26:02.985Z
+exportedAt: 2026-10-09T05:06:44.213Z
 global:
   referencePx: 600
   maxPatternOpacity: 0.14
@@ -584,11 +584,11 @@ i18n:
     keys.feeling: feeling
     keys.copy: copy image
     keys.clear: clear text
-    contrast.label: fix low-contrast palettes
     footer.modelUpdated: model updated {date}
     footer.about: about this model
     footer.coverage: emoji coverage
     footer.stylePreview: style preview
+    footer.android: Android app on Google Play
     footer.madeBy: made with ❤️ by Gilad
     footer.patternsBy: background patterns by
     footer.language: language
@@ -655,11 +655,11 @@ i18n:
     keys.feeling: רגש
     keys.copy: העתקת תמונה
     keys.clear: ניקוי טקסט
-    contrast.label: תיקון פלטות בניגודיות נמוכה
     footer.modelUpdated: המודל עודכן {date}
     footer.about: על המודל
     footer.coverage: כיסוי אימוג׳י
     footer.stylePreview: תצוגת סגנונות
+    footer.android: אפליקציית אנדרואיד ב-Google Play
     footer.madeBy: נעשה באהבה ❤️ על ידי גלעד
     footer.patternsBy: דפוסי רקע מאת
     footer.language: שפה
