@@ -269,7 +269,7 @@ export function useCardImage(cardData, showToast, t) {
       return
     }
     try {
-      const blob = await renderMp4(cardData)
+      const blob = await render(cardData)
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
       showToast(t('toast.copied'))
     } catch (err) {
